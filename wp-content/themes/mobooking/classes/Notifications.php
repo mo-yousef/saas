@@ -85,10 +85,14 @@ class Notifications {
         $ref = isset($booking_details['booking_reference']) ? esc_html($booking_details['booking_reference']) : __('N/A', 'mobooking');
         $services = isset($booking_details['service_names']) ? esc_html($booking_details['service_names']) : __('N/A', 'mobooking');
         $datetime = isset($booking_details['booking_date_time']) ? esc_html($booking_details['booking_date_time']) : __('N/A', 'mobooking');
-        $price = isset($booking_details['total_price']) ? number_format_i18n($booking_details['total_price'], 2) : __('N/A', 'mobooking');
+        $raw_total_price = isset($booking_details['total_price']) ? floatval($booking_details['total_price']) : 0;
         $customer_name = isset($booking_details['customer_name']) ? esc_html($booking_details['customer_name']) : __('Customer', 'mobooking');
         $address = isset($booking_details['service_address']) ? nl2br(esc_html($booking_details['service_address'])) : __('N/A', 'mobooking');
-        // TODO: Add currency symbol from settings
+
+        $settings_manager = new Settings();
+        $currency_symbol = $settings_manager->get_setting($tenant_user_id, 'biz_currency_symbol', '$');
+        $currency_position = $settings_manager->get_setting($tenant_user_id, 'biz_currency_position', 'before');
+        $price_display = ($currency_position === 'after') ? number_format_i18n($raw_total_price, 2) . $currency_symbol : $currency_symbol . number_format_i18n($raw_total_price, 2);
 
         $subject = sprintf(__('Your Booking Confirmation with %s - Ref: %s', 'mobooking'), $tenant_business_name, $ref);
 
@@ -99,7 +103,7 @@ class Notifications {
         $message .= "<li><strong>" . __('Services:', 'mobooking') . "</strong> " . $services . "</li>";
         $message .= "<li><strong>" . __('Date & Time:', 'mobooking') . "</strong> " . $datetime . "</li>";
         $message .= "<li><strong>" . __('Service Address:', 'mobooking') . "</strong><br>" . $address . "</li>";
-        $message .= "<li><strong>" . __('Total Price:', 'mobooking') . "</strong> " . $price . "</li>";
+        $message .= "<li><strong>" . __('Total Price:', 'mobooking') . "</strong> " . $price_display . "</li>";
         $message .= "</ul>";
         $message .= "<p>" . sprintf(__('If you have any questions, please contact %s.', 'mobooking'), $tenant_business_name) . "</p>";
         $message .= "<p>" . __('Thank you,', 'mobooking') . "<br>" . $tenant_business_name . "</p>";
@@ -137,7 +141,12 @@ class Notifications {
         $customer_phone = isset($booking_details['customer_phone']) ? esc_html($booking_details['customer_phone']) : __('N/A', 'mobooking');
         $address = isset($booking_details['service_address']) ? nl2br(esc_html($booking_details['service_address'])) : __('N/A', 'mobooking');
         $instructions = isset($booking_details['special_instructions']) && !empty($booking_details['special_instructions']) ? nl2br(esc_html($booking_details['special_instructions'])) : __('None', 'mobooking');
-        // TODO: Add currency symbol
+
+        $settings_manager = new Settings();
+        $currency_symbol = $settings_manager->get_setting($tenant_user_id, 'biz_currency_symbol', '$');
+        $currency_position = $settings_manager->get_setting($tenant_user_id, 'biz_currency_position', 'before');
+        $price_display = ($currency_position === 'after') ? number_format_i18n($raw_total_price, 2) . $currency_symbol : $currency_symbol . number_format_i18n($raw_total_price, 2);
+
 
         $subject = sprintf(__('New Booking Received - Ref: %s - %s', 'mobooking'), $ref, $customer_name);
 
@@ -153,7 +162,7 @@ class Notifications {
         $message .= "<li><strong>" . __('Services:', 'mobooking') . "</strong> " . $services . "</li>";
         $message .= "<li><strong>" . __('Date & Time:', 'mobooking') . "</strong> " . $datetime . "</li>";
         $message .= "<li><strong>" . __('Service Address:', 'mobooking') . "</strong><br>" . $address . "</li>";
-        $message .= "<li><strong>" . __('Total Price:', 'mobooking') . "</strong> " . $price . "</li>";
+        $message .= "<li><strong>" . __('Total Price:', 'mobooking') . "</strong> " . $price_display . "</li>";
         $message .= "<li><strong>" . __('Special Instructions:', 'mobooking') . "</strong><br>" . $instructions . "</li>";
         $message .= "</ul>";
         $message .= "<p>" . __('Please review this booking in your dashboard.', 'mobooking') . "</p>";

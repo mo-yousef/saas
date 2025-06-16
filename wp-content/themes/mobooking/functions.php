@@ -90,20 +90,68 @@ function mobooking_scripts() {
     // For Public Booking Form page
     if ( is_page_template('templates/booking-form-public.php') ) {
         wp_enqueue_script('mobooking-booking-form', MOBOOKING_THEME_URI . 'assets/js/booking-form.js', array('jquery'), MOBOOKING_VERSION, true);
-        
-        $tenant_id_on_page = get_query_var('mobooking_tenant_id_on_page', 0); 
+
+        $tenant_id_on_page = get_query_var('mobooking_tenant_id_on_page', 0);
+
+        $i18n_strings = [
+            // Step 1
+            'zip_required' => __('Please enter your ZIP code.', 'mobooking'),
+            'country_code_required' => __('Please enter your Country Code.', 'mobooking'),
+            'tenant_id_missing' => __('Business identifier is missing. Cannot check availability.', 'mobooking'),
+            'tenant_id_missing_refresh' => __('Business ID is missing. Please refresh and try again or contact support.', 'mobooking'),
+            'checking' => __('Checking...', 'mobooking'),
+            'error_generic' => __('An unexpected error occurred. Please try again.', 'mobooking'),
+            // Step 2
+            'loading_services' => __('Loading services...', 'mobooking'),
+            'no_services_available' => __('No services are currently available for this area. Please try another location or check back later.', 'mobooking'),
+            'error_loading_services' => __('Could not load services. Please try again.', 'mobooking'),
+            'select_one_service' => __('Please select at least one service to continue.', 'mobooking'),
+            // Step 3
+            'configure_options' => __('Configure Options for', 'mobooking'),
+            'no_options_for_services' => __('No configurable options for the selected service(s).', 'mobooking'),
+            'fill_required_options' => __('Please fill in all required options.', 'mobooking'),
+            'option_required_prefix' => __('Option', 'mobooking'),
+            'option_required_suffix' => __('is required', 'mobooking'),
+            'for_service' => __('for service', 'mobooking'),
+            'invalid_json_for_option' => __('Invalid JSON format in Option Values for:', 'mobooking'),
+            'no_options_prompt' => __('This service has no additional options to configure.', 'mobooking'), // Adjusted from 'Click "Add Option"...'
+            // Step 4
+            'name_required' => __('Full name is required.', 'mobooking'),
+            'email_required' => __('Email address is required.', 'mobooking'),
+            'email_invalid' => __('Please enter a valid email address.', 'mobooking'),
+            'phone_required' => __('Phone number is required.', 'mobooking'),
+            'address_required' => __('Service address is required.', 'mobooking'),
+            'date_required' => __('Preferred date is required.', 'mobooking'),
+            'time_required' => __('Preferred time is required.', 'mobooking'),
+            // Step 5
+            'customer_details' => __('Customer Details', 'mobooking'),
+            'name_label' => __('Name', 'mobooking'),
+            'email_label' => __('Email', 'mobooking'),
+            'phone_label' => __('Phone', 'mobooking'),
+            'address_label' => __('Service Address', 'mobooking'),
+            'datetime_label' => __('Scheduled Date & Time', 'mobooking'),
+            'instructions_label' => __('Special Instructions', 'mobooking'),
+            'services_summary' => __('Services & Options Summary', 'mobooking'),
+            'enter_discount_code' => __('Please enter a discount code.', 'mobooking'),
+            'invalid_discount_code' => __('Invalid or expired discount code.', 'mobooking'),
+            'discount_applied' => __('Discount applied', 'mobooking'),
+            'error_applying_discount' => __('Error applying discount.', 'mobooking'),
+            'error_review_data_missing' => __('Some booking information is missing. Please go back and complete all steps.', 'mobooking'),
+            'error_review_incomplete' => __('Booking data is incomplete. Please review previous steps.', 'mobooking'),
+            // Step 6
+            'processing_booking' => __('Processing your booking...', 'mobooking'),
+            'error_booking_failed' => __('Could not create your booking. Please try again.', 'mobooking'),
+            'error_booking_failed_ajax' => __('A network error occurred while creating your booking. Please try again.', 'mobooking'),
+            'your_ref_is' => __('Your booking reference is:', 'mobooking'),
+        ];
 
         wp_localize_script('mobooking-booking-form', 'mobooking_booking_form_params', array(
             'ajax_url' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce('mobooking_booking_form_nonce'),
-            'tenant_id' => $tenant_id_on_page, 
-            'i18n' => [
-                'zip_required' => __('Please enter your ZIP code.', 'mobooking'),
-                'country_code_required' => __('Please enter your Country Code.', 'mobooking'),
-                'tenant_id_missing' => __('Business identifier is missing. Cannot check availability.', 'mobooking'),
-                'checking' => __('Checking...', 'mobooking'),
-                'error_generic' => __('An unexpected error occurred. Please try again.', 'mobooking'),
-            ]
+            'tenant_id' => $tenant_id_on_page,
+            'currency_symbol' => $public_form_currency_symbol, // Added in previous step
+            'currency_position' => $public_form_currency_position, // Added in previous step
+            'i18n' => $i18n_strings
         ));
     }
 }
@@ -155,6 +203,16 @@ if (class_exists('MoBooking\Classes\Discounts')) {
     }
 }
 
+// Initialize Settings Manager and register its AJAX actions
+if (class_exists('MoBooking\Classes\Settings')) {
+    if (!isset($GLOBALS['mobooking_settings_manager'])) {
+        $GLOBALS['mobooking_settings_manager'] = new MoBooking\Classes\Settings();
+        if (method_exists($GLOBALS['mobooking_settings_manager'], 'register_ajax_actions')) {
+            $GLOBALS['mobooking_settings_manager']->register_ajax_actions();
+        }
+    }
+}
+
 // Initialize Notifications Manager (no AJAX actions needed for this one usually)
 if (class_exists('MoBooking\Classes\Notifications')) {
     if (!isset($GLOBALS['mobooking_notifications_manager'])) {
@@ -179,6 +237,21 @@ if (class_exists('MoBooking\Classes\Bookings') &&
     }
 }
 
+// Ensure Business Owner Role exists on init
+function mobooking_ensure_business_owner_role_exists() {
+    if (class_exists('MoBooking\Classes\Auth')) {
+        if ( !get_role( MoBooking\Classes\Auth::ROLE_BUSINESS_OWNER ) ) {
+            MoBooking\Classes\Auth::add_business_owner_role();
+            // Add an admin notice that the role was re-created.
+            add_action('admin_notices', function() {
+                echo '<div class="notice notice-success is-dismissible"><p>' .
+                     esc_html__('MoBooking: The "Business Owner" user role was missing and has been successfully re-created. Please refresh if you were assigning roles.', 'mobooking') .
+                     '</p></div>';
+            });
+        }
+    }
+}
+add_action( 'init', 'mobooking_ensure_business_owner_role_exists' );
 
 // Custom Class Autoloader
 spl_autoload_register(function ($class_name) {
@@ -227,17 +300,17 @@ add_action('switch_theme', 'mobooking_flush_rewrite_rules_on_activation_deactiva
 
 function mobooking_add_dashboard_rewrite_rules() {
     add_rewrite_rule(
-        '^dashboard/?$', 
+        '^dashboard/?$',
         'index.php?mobooking_dashboard_page=overview',
         'top'
     );
     add_rewrite_rule(
-        '^dashboard/([^/]+)/?$', 
+        '^dashboard/([^/]+)/?$',
         'index.php?mobooking_dashboard_page=$matches[1]',
         'top'
     );
     add_rewrite_rule(
-        '^dashboard/([^/]+)/([^/]+)/?$', 
+        '^dashboard/([^/]+)/([^/]+)/?$',
         'index.php?mobooking_dashboard_page=$matches[1]&mobooking_dashboard_action=$matches[2]',
         'top'
     );
@@ -270,13 +343,13 @@ function mobooking_dashboard_template_include( $template ) {
 
     if ( $is_dashboard_request ) {
         if ( !is_user_logged_in() ) {
-            wp_redirect( home_url( '/login/' ) ); 
+            wp_redirect( home_url( '/login/' ) );
             exit;
         }
         $user = wp_get_current_user();
         if ( !in_array( MoBooking\Classes\Auth::ROLE_BUSINESS_OWNER, (array) $user->roles ) ) {
             // If logged in but not a business owner, redirect to home or a 'permission denied' page.
-            wp_redirect( home_url( '/' ) ); 
+            wp_redirect( home_url( '/' ) );
             exit;
         }
 
@@ -285,19 +358,19 @@ function mobooking_dashboard_template_include( $template ) {
         if (!in_array($current_page_slug, $allowed_pages)) {
             $current_page_slug = 'overview'; // Default to overview if the page is not allowed or not found.
         }
-        
+
         // Set a global variable that can be used by dashboard components (header, sidebar)
         // to know the current view.
         $GLOBALS['mobooking_current_dashboard_view'] = $current_page_slug;
-        
+
         $new_template = MOBOOKING_THEME_DIR . 'dashboard/dashboard-shell.php';
         if ( file_exists( $new_template ) ) {
             // Prevent WordPress from trying to redirect to a canonical URL (e.g. /dashboard to /dashboard/)
             // as our rewrite rules handle this.
-            remove_filter('template_redirect', 'redirect_canonical'); 
-            
+            remove_filter('template_redirect', 'redirect_canonical');
+
             // Ensure correct HTTP status header for these dynamically routed pages.
-            status_header(200); 
+            status_header(200);
             return $new_template;
         }
     }
@@ -342,7 +415,7 @@ function mobooking_dashboard_scripts_styles() {
             wp_enqueue_script('mobooking-dashboard-areas', MOBOOKING_THEME_URI . 'assets/js/dashboard-areas.js', array('jquery'), MOBOOKING_VERSION, true);
             wp_localize_script('mobooking-dashboard-areas', 'mobooking_areas_params', array(
                 'ajax_url' => admin_url('admin-ajax.php'),
-                'nonce' => wp_create_nonce('mobooking_areas_nonce'), // Consider a general dashboard nonce
+                'nonce' => wp_create_nonce('mobooking_dashboard_nonce'),
                 'i18n' => [
                     'loading' => __('Loading areas...', 'mobooking'),
                     'no_areas' => __('No service areas defined yet.', 'mobooking'),
@@ -355,11 +428,40 @@ function mobooking_dashboard_scripts_styles() {
                 ]
             ));
         }
+        // Specific to Discounts page (Dashboard)
+        if ($GLOBALS['mobooking_current_dashboard_view'] === 'discounts') {
+            wp_enqueue_script('jquery-ui-datepicker'); // For expiry date field
+            wp_enqueue_script('mobooking-dashboard-discounts', MOBOOKING_THEME_URI . 'assets/js/dashboard-discounts.js', array('jquery', 'jquery-ui-datepicker'), MOBOOKING_VERSION, true);
+            wp_localize_script('mobooking-dashboard-discounts', 'mobooking_discounts_params', array(
+                'ajax_url' => admin_url('admin-ajax.php'),
+                'nonce' => wp_create_nonce('mobooking_dashboard_nonce'),
+                'types' => [ // For display in JS
+                    'percentage' => __('Percentage', 'mobooking'),
+                    'fixed_amount' => __('Fixed Amount', 'mobooking'),
+                ],
+                'statuses' => [ // For display in JS
+                    'active' => __('Active', 'mobooking'),
+                    'inactive' => __('Inactive', 'mobooking'),
+                    'expired' => __('Expired', 'mobooking'), // JS might not set this, but good for display consistency
+                ],
+                'i18n' => [
+                    'loading' => __('Loading discount codes...', 'mobooking'),
+                    'no_discounts' => __('No discount codes found.', 'mobooking'),
+                    'error_loading' => __('Error loading discount codes.', 'mobooking'),
+                    'add_new_title' => __('Add New Discount Code', 'mobooking'),
+                    'edit_title' => __('Edit Discount Code', 'mobooking'),
+                    'saving' => __('Saving...', 'mobooking'),
+                    'confirm_delete' => __('Are you sure you want to delete this discount code?', 'mobooking'),
+                    'never' => __('Never', 'mobooking'),
+                    'unlimited' => __('Unlimited', 'mobooking'),
+                ]
+            ));
+        }
         // Specific to Bookings page (Dashboard)
         if ($GLOBALS['mobooking_current_dashboard_view'] === 'bookings') {
-            wp_enqueue_script('jquery-ui-datepicker'); // For date filters
+            wp_enqueue_script('jquery-ui-datepicker');
             wp_enqueue_script('mobooking-dashboard-bookings', MOBOOKING_THEME_URI . 'assets/js/dashboard-bookings.js', array('jquery', 'jquery-ui-datepicker'), MOBOOKING_VERSION, true);
-            
+
             // Prepare statuses for JS
             $booking_statuses_for_js = [ '' => __('All Statuses', 'mobooking')];
             // This list should ideally match the one in page-bookings.php or come from a central config
@@ -386,6 +488,89 @@ function mobooking_dashboard_scripts_styles() {
                 ]
             ));
         }
+        // Specific to Booking Form Settings page (Dashboard)
+        if ($GLOBALS['mobooking_current_dashboard_view'] === 'booking-form') {
+            wp_enqueue_style('wp-color-picker');
+            wp_enqueue_script(
+                'mobooking-dashboard-booking-form-settings',
+                MOBOOKING_THEME_URI . 'assets/js/dashboard-booking-form-settings.js',
+                array('jquery', 'wp-color-picker'),
+                MOBOOKING_VERSION,
+                true
+            );
+            wp_localize_script('mobooking-dashboard-booking-form-settings', 'mobooking_bf_settings_params', array(
+                'ajax_url' => admin_url('admin-ajax.php'),
+                'nonce' => wp_create_nonce('mobooking_dashboard_nonce'),
+                'i18n' => [
+                    'saving' => __('Saving...', 'mobooking'),
+                    'save_success' => __('Settings saved successfully.', 'mobooking'),
+                    'error_saving' => __('Error saving settings.', 'mobooking'),
+                    'error_loading' => __('Error loading settings.', 'mobooking'),
+                    'error_ajax' => __('An AJAX error occurred.', 'mobooking'),
+                    'invalid_json' => __('Invalid JSON format in Business Hours.', 'mobooking'), // This i18n key might be more relevant for Business Settings
+                ]
+            ));
+        }
+        // Specific to Business Settings page (Dashboard) - this is 'settings' view key
+        if ($GLOBALS['mobooking_current_dashboard_view'] === 'settings') {
+             wp_enqueue_script(
+                'mobooking-dashboard-business-settings',
+                MOBOOKING_THEME_URI . 'assets/js/dashboard-business-settings.js',
+                array('jquery'),
+                MOBOOKING_VERSION,
+                true
+            );
+            wp_localize_script('mobooking-dashboard-business-settings', 'mobooking_biz_settings_params', array(
+                'ajax_url' => admin_url('admin-ajax.php'),
+                'nonce' => wp_create_nonce('mobooking_dashboard_nonce'),
+                'i18n' => [
+                    'saving' => __('Saving...', 'mobooking'),
+                    'save_success' => __('Business settings saved successfully.', 'mobooking'),
+                    'error_saving' => __('Error saving business settings.', 'mobooking'),
+                    'error_loading' => __('Error loading business settings.', 'mobooking'),
+                    'error_ajax' => __('An AJAX error occurred.', 'mobooking'),
+                    'invalid_json' => __('Business Hours JSON is not valid.', 'mobooking'), // Specific to this page
+                ]
+            ));
+        }
+        // Specific to Overview page (Dashboard)
+        if ($GLOBALS['mobooking_current_dashboard_view'] === 'overview') {
+            wp_enqueue_script(
+                'mobooking-dashboard-overview',
+                MOBOOKING_THEME_URI . 'assets/js/dashboard-overview.js',
+                array('jquery'),
+                MOBOOKING_VERSION,
+                true
+            );
+            // Prepare statuses for JS, similar to bookings page if needed for display
+            $booking_statuses_for_js = [ '' => __('All Statuses', 'mobooking')];
+            $statuses = ['pending', 'confirmed', 'completed', 'cancelled', 'on-hold', 'processing'];
+            foreach ($statuses as $status) {
+                $booking_statuses_for_js[$status] = ucfirst($status);
+            }
+            $current_user_id = get_current_user_id();
+            $settings_manager_for_currency = isset($GLOBALS['mobooking_settings_manager']) ? $GLOBALS['mobooking_settings_manager'] : null;
+            $currency_symbol = '$'; // Default
+            $currency_position = 'before'; // Default
+            if ($settings_manager_for_currency && $current_user_id) {
+                $currency_symbol = $settings_manager_for_currency->get_setting($current_user_id, 'biz_currency_symbol', '$');
+                $currency_position = $settings_manager_for_currency->get_setting($current_user_id, 'biz_currency_position', 'before');
+            }
+
+            wp_localize_script('mobooking-dashboard-overview', 'mobooking_overview_params', array(
+                'ajax_url' => admin_url('admin-ajax.php'),
+                'nonce' => wp_create_nonce('mobooking_dashboard_nonce'),
+                'currency_symbol' => $currency_symbol,
+                'currency_position' => $currency_position,
+                'statuses' => $booking_statuses_for_js,
+                'i18n' => [
+                    'loading_data' => __('Loading overview data...', 'mobooking'),
+                    'no_recent_bookings' => __('No recent bookings to display.', 'mobooking'),
+                    'error_loading_data' => __('Error loading overview data.', 'mobooking'),
+                    'error_ajax' => __('An AJAX error occurred.', 'mobooking'),
+                ]
+            ));
+        }
         // Add other page-specific scripts here
     }
 
@@ -396,17 +581,38 @@ function mobooking_dashboard_scripts_styles() {
         // Example: wp_enqueue_style('jquery-ui-theme', '//ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/jquery-ui.css');
 
         wp_enqueue_script('mobooking-booking-form', MOBOOKING_THEME_URI . 'assets/js/booking-form.js', array('jquery', 'jquery-ui-datepicker'), MOBOOKING_VERSION, true);
-        
+
         // Try to get tenant_id from query var if set by a shortcode or other server-side logic for the page
         // For now, JS primarily uses URL param 'tid'. This is a fallback or alternative.
-        $tenant_id_on_page = get_query_var('mobooking_tenant_id_on_page', 0); // Example query var
-        // If you have a specific way to determine tenant_id for the page (e.g. from shortcode attribute), get it here.
-        // For example: $tenant_id_on_page = MoBooking_Shortcodes::get_current_tenant_id_for_booking_page();
+        $tenant_id_on_page = get_query_var('mobooking_tenant_id_on_page', 0);
+        // If tenant_id is determined by URL param 'tid', JS handles it.
+        // If this page template is used for a specific tenant (e.g. via shortcode), $tenant_id_on_page should be set.
+        // For currency on public form, it must be based on the tenant being booked.
+        // This requires tenant_id to be known when localizing.
+
+        $public_form_currency_symbol = '$';
+        $public_form_currency_position = 'before';
+        $effective_tenant_id_for_public_form = 0;
+
+        // Try to get tenant_id from query var first for public form context
+        if (!empty($_GET['tid'])) { // If 'tid' is in URL, it's the primary source
+            $effective_tenant_id_for_public_form = intval($_GET['tid']);
+        } elseif ($tenant_id_on_page) { // Fallback to query_var if set by other means
+            $effective_tenant_id_for_public_form = intval($tenant_id_on_page);
+        }
+
+        if ($effective_tenant_id_for_public_form && isset($GLOBALS['mobooking_settings_manager'])) {
+            $public_form_currency_symbol = $GLOBALS['mobooking_settings_manager']->get_setting($effective_tenant_id_for_public_form, 'biz_currency_symbol', '$');
+            $public_form_currency_position = $GLOBALS['mobooking_settings_manager']->get_setting($effective_tenant_id_for_public_form, 'biz_currency_position', 'before');
+        }
+
 
         wp_localize_script('mobooking-booking-form', 'mobooking_booking_form_params', array(
             'ajax_url' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce('mobooking_booking_form_nonce'),
-            'tenant_id' => $tenant_id_on_page, // Pass tenant_id if available server-side
+            'tenant_id' => $tenant_id_on_page,
+            'currency_symbol' => $public_form_currency_symbol,
+            'currency_position' => $public_form_currency_position,
             'i18n' => [
                 'zip_required' => __('Please enter your ZIP code.', 'mobooking'),
                 'country_code_required' => __('Please enter your Country Code.', 'mobooking'),
@@ -459,10 +665,10 @@ function mobooking_dashboard_scripts_styles() {
         ));
     }
 }
-// Note: mobooking_scripts now handles general frontend scripts, 
+// Note: mobooking_scripts now handles general frontend scripts,
 // mobooking_dashboard_scripts_styles handles dashboard specific scripts.
 // Both are hooked to wp_enqueue_scripts. This is fine.
-add_action('wp_enqueue_scripts', 'mobooking_scripts'); 
+add_action('wp_enqueue_scripts', 'mobooking_scripts');
 add_action('wp_enqueue_scripts', 'mobooking_dashboard_scripts_styles');
 
 ?>

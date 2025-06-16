@@ -1,12 +1,12 @@
 <?php
-/** 
- * Dashboard Page: Bookings 
- * @package MoBooking 
+/**
+ * Dashboard Page: Bookings
+ * @package MoBooking
  */
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
 $booking_statuses = [
-    '' => __('All Statuses', 'mobooking'), 
+    '' => __('All Statuses', 'mobooking'),
     'pending' => __('Pending', 'mobooking'),
     'confirmed' => __('Confirmed', 'mobooking'),
     'completed' => __('Completed', 'mobooking'),
@@ -47,7 +47,7 @@ $booking_statuses = [
 
         <label for="mobooking-date-to-filter" style="margin-right:5px;"><?php esc_html_e('To:', 'mobooking'); ?></label>
         <input type="text" id="mobooking-date-to-filter" name="date_to_filter" class="mobooking-datepicker" placeholder="YYYY-MM-DD" style="margin-right: 15px; width: 120px;">
-        
+
         <label for="mobooking-search-query" style="margin-right:5px;"><?php esc_html_e('Search:', 'mobooking'); ?></label>
         <input type="text" id="mobooking-search-query" name="search_query" placeholder="<?php esc_attr_e('Ref, Name, Email', 'mobooking'); ?>" style="margin-right: 15px;">
 
@@ -80,7 +80,7 @@ $booking_statuses = [
     <div class="mobooking-modal-content">
         <span class="mobooking-modal-close">&times;</span>
         <h2 id="modal-booking-title"><?php esc_html_e('Booking Details', 'mobooking'); ?> - <span id="modal-booking-ref"></span></h2>
-        
+
         <input type="hidden" id="modal-current-booking-id" value="">
 
         <div class="modal-section">

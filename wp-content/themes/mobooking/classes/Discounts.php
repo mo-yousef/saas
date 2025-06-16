@@ -15,11 +15,103 @@ class Discounts {
     public function register_ajax_actions() {
         // Dashboard specific discount management AJAX actions would go here.
         // e.g., add_action('wp_ajax_mobooking_get_tenant_discounts', [$this, 'handle_get_tenant_discounts_ajax']);
-        
+
         // Public booking form discount validation
         add_action('wp_ajax_nopriv_mobooking_validate_discount_public', [$this, 'handle_validate_discount_public_ajax']);
         add_action('wp_ajax_mobooking_validate_discount_public', [$this, 'handle_validate_discount_public_ajax']);
+
+        // Tenant Dashboard AJAX actions
+        add_action('wp_ajax_mobooking_get_discounts', [$this, 'handle_get_discounts_ajax']);
+        add_action('wp_ajax_mobooking_save_discount', [$this, 'handle_save_discount_ajax']);
+        add_action('wp_ajax_mobooking_delete_discount', [$this, 'handle_delete_discount_ajax']);
+        add_action('wp_ajax_mobooking_get_discount_details', [$this, 'handle_get_discount_details_ajax']);
     }
+
+    // --- AJAX Handlers for Tenant Dashboard ---
+
+    public function handle_get_discounts_ajax() {
+        check_ajax_referer('mobooking_dashboard_nonce', 'nonce');
+        $user_id = get_current_user_id();
+        if (!$user_id) { wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403); return; }
+
+        $args = [
+            'status' => isset($_POST['status_filter']) ? sanitize_text_field($_POST['status_filter']) : null,
+            'paged' => isset($_POST['paged']) ? intval($_POST['paged']) : 1,
+            'limit' => isset($_POST['limit']) ? intval($_POST['limit']) : 20,
+            'orderby' => isset($_POST['orderby']) ? sanitize_key($_POST['orderby']) : 'created_at',
+            'order' => isset($_POST['order']) ? sanitize_key($_POST['order']) : 'DESC',
+        ];
+        $result = $this->get_discount_codes_by_user($user_id, $args);
+        wp_send_json_success($result); // $result already includes pagination data
+    }
+
+    public function handle_save_discount_ajax() {
+        check_ajax_referer('mobooking_dashboard_nonce', 'nonce');
+        $user_id = get_current_user_id();
+        if (!$user_id) { wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403); return; }
+
+        $discount_id = isset($_POST['discount_id']) && !empty($_POST['discount_id']) ? intval($_POST['discount_id']) : 0;
+
+        $data = [
+            'code' => isset($_POST['code']) ? $_POST['code'] : '',
+            'type' => isset($_POST['type']) ? $_POST['type'] : '',
+            'value' => isset($_POST['value']) ? $_POST['value'] : '',
+            'expiry_date' => isset($_POST['expiry_date']) ? $_POST['expiry_date'] : null, // Important: allow null/empty
+            'usage_limit' => isset($_POST['usage_limit']) ? $_POST['usage_limit'] : null, // Important: allow null/empty
+            'status' => isset($_POST['status']) ? $_POST['status'] : 'active',
+        ];
+
+        if ($discount_id) {
+            $result = $this->update_discount_code($discount_id, $user_id, $data);
+            $message = __('Discount code updated successfully.', 'mobooking');
+        } else {
+            $result = $this->add_discount_code($user_id, $data);
+            $message = __('Discount code added successfully.', 'mobooking');
+            if (!is_wp_error($result)) {
+                $discount_id = $result; // Get new ID
+            }
+        }
+
+        if (is_wp_error($result)) {
+            wp_send_json_error(['message' => $result->get_error_message()], 400);
+        } else {
+            $discount_details = $this->get_discount_code($discount_id, $user_id); // Fetch the full details
+            wp_send_json_success(['message' => $message, 'discount' => $discount_details]);
+        }
+    }
+
+    public function handle_delete_discount_ajax() {
+        check_ajax_referer('mobooking_dashboard_nonce', 'nonce');
+        $user_id = get_current_user_id();
+        if (!$user_id) { wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403); return; }
+
+        $discount_id = isset($_POST['discount_id']) ? intval($_POST['discount_id']) : 0;
+        if (empty($discount_id)) { wp_send_json_error(['message' => __('Invalid discount ID.', 'mobooking')], 400); return; }
+
+        $result = $this->delete_discount_code($discount_id, $user_id);
+        if (is_wp_error($result)) {
+            wp_send_json_error(['message' => $result->get_error_message()], 400);
+        } else {
+            wp_send_json_success(['message' => __('Discount code deleted successfully.', 'mobooking')]);
+        }
+    }
+
+    public function handle_get_discount_details_ajax() {
+        check_ajax_referer('mobooking_dashboard_nonce', 'nonce');
+        $user_id = get_current_user_id();
+        if (!$user_id) { wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403); return; }
+
+        $discount_id = isset($_POST['discount_id']) ? intval($_POST['discount_id']) : 0;
+        if (empty($discount_id)) { wp_send_json_error(['message' => __('Invalid discount ID.', 'mobooking')], 400); return; }
+
+        $discount = $this->get_discount_code($discount_id, $user_id);
+        if ($discount) {
+            wp_send_json_success(['discount' => $discount]);
+        } else {
+            wp_send_json_error(['message' => __('Discount code not found or access denied.', 'mobooking')], 404);
+        }
+    }
+    // --- End AJAX Handlers ---
 
     private function _normalize_code(string $code): string {
         return strtoupper(trim($code));
@@ -154,7 +246,7 @@ class Discounts {
             $update_data['code'] = $new_code;
             $format[] = '%s';
         }
-        
+
         if (isset($data['type'])) {
             if (!in_array($data['type'], ['percentage', 'fixed_amount'])) {
                 return new \WP_Error('invalid_type', __('Invalid discount type.', 'mobooking'));
@@ -171,7 +263,7 @@ class Discounts {
             }
             $update_data['value'] = $value; $format[] = '%f';
         }
-       
+
         if (array_key_exists('expiry_date', $data)) { // Allow clearing the date
             $expiry_date = $data['expiry_date'];
             if (empty($expiry_date)) {
@@ -198,7 +290,7 @@ class Discounts {
             $update_data['status'] = $data['status']; $format[] = '%s';
         }
 
-        if (empty($update_data)) return true; 
+        if (empty($update_data)) return true;
 
         $table_name = Database::get_table_name('discount_codes');
         $updated = $this->wpdb->update(
@@ -231,7 +323,7 @@ class Discounts {
         if ($discount['status'] !== 'active') return new \WP_Error('inactive', __('This discount code is not active.', 'mobooking'));
 
         if (!empty($discount['expiry_date'])) {
-            $today = current_time('Y-m-d', 0); 
+            $today = current_time('Y-m-d', 0);
             if ($discount['expiry_date'] < $today) return new \WP_Error('expired', __('This discount code has expired.', 'mobooking'));
         }
         if (!empty($discount['usage_limit'])) {
@@ -239,7 +331,7 @@ class Discounts {
                 return new \WP_Error('limit_reached', __('This discount code has reached its usage limit.', 'mobooking'));
             }
         }
-        return $discount; 
+        return $discount;
     }
 
     public function increment_discount_usage(int $discount_id) {

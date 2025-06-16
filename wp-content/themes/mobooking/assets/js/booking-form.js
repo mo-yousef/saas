@@ -15,7 +15,7 @@ jQuery(document).ready(function($) {
     const step3OptionsDiv = $('#mobooking-bf-step-3-options');
     const serviceOptionsDisplayDiv = $('#mobooking-bf-service-options-display');
     const step3FeedbackDiv = $('#mobooking-bf-step-3-feedback').hide();
-    
+
     // Step 4 elements
     const step4DetailsDiv = $('#mobooking-bf-step-4-details');
     const step4FeedbackDiv = $('#mobooking-bf-step-4-feedback').hide();
@@ -83,12 +83,12 @@ jQuery(document).ready(function($) {
     });
 
     function displayStep(stepToShow) {
-        $('.mobooking-bf-step').hide(); 
+        $('.mobooking-bf-step').hide();
         let targetStepDiv;
         if (stepToShow === 1) targetStepDiv = step1Div;
         else if (stepToShow === 2) targetStepDiv = step2ServicesDiv;
         else if (stepToShow === 3) targetStepDiv = step3OptionsDiv;
-        else if (stepToShow === 4) targetStepDiv = step4DetailsDiv; 
+        else if (stepToShow === 4) targetStepDiv = step4DetailsDiv;
         else if (stepToShow === 5) targetStepDiv = step5ReviewDiv;
         else if (stepToShow === 6) targetStepDiv = step6ConfirmDiv;
         if (targetStepDiv && targetStepDiv.length) { targetStepDiv.slideDown(); }
@@ -215,10 +215,10 @@ jQuery(document).ready(function($) {
         sessionStorage.setItem('mobooking_cart_selected_services', JSON.stringify(selectedServices));
         displayStep(4); displayStep4_CustomerDetails();
     });
-    
+
     function displayStep4_CustomerDetails() {
-        step4FeedbackDiv.empty().hide(); 
-        if (typeof $.fn.datepicker === 'function') { 
+        step4FeedbackDiv.empty().hide();
+        if (typeof $.fn.datepicker === 'function') {
             $("#mobooking-bf-booking-date").datepicker({ dateFormat: "yy-mm-dd", minDate: 0 });
         } else { if ($("#mobooking-bf-booking-date").attr('type') !== 'date') $("#mobooking-bf-booking-date").prop('type','date'); }
         const zip = sessionStorage.getItem('mobooking_cart_zip'), country = sessionStorage.getItem('mobooking_cart_country'), serviceAddressField = $('#mobooking-bf-service-address');
@@ -269,7 +269,7 @@ jQuery(document).ready(function($) {
                             let choices = [];
                             if (Array.isArray(originalOption.parsed_option_values)) choices = originalOption.parsed_option_values;
                             else if (typeof originalOption.option_values === 'string') { try { choices = JSON.parse(originalOption.option_values); } catch(e) {} }
-                            
+
                             const chosen = choices.find(c => c.value === selectedVal);
                             if (chosen && chosen.price_adjust) optionPriceImpact += parseFloat(chosen.price_adjust) || 0;
                         }
@@ -286,7 +286,7 @@ jQuery(document).ready(function($) {
             const disc = discountInfo.discount;
             if (disc.type === 'percentage') discountAmount = subtotal * (parseFloat(disc.value) / 100);
             else if (disc.type === 'fixed_amount') discountAmount = parseFloat(disc.value);
-            discountAmount = Math.min(discountAmount, subtotal); 
+            discountAmount = Math.min(discountAmount, subtotal);
         }
         let finalTotal = subtotal - discountAmount; if (finalTotal < 0) finalTotal = 0;
         return { subtotal: subtotal.toFixed(2), discountApplied: discountAmount.toFixed(2), finalTotal: finalTotal.toFixed(2), serviceDetailsForSummary: serviceDetailsForSummary, appliedDiscountCode: (discountInfo && discountInfo.valid) ? discountInfo.discount.code : null };
@@ -342,10 +342,10 @@ jQuery(document).ready(function($) {
                 else { sessionStorage.removeItem('mobooking_cart_discount_info'); discountFeedbackDiv.text(response.data.message || mobooking_booking_form_params.i18n.invalid_discount_code).addClass('error').show(); }
             },
             error: function() { sessionStorage.removeItem('mobooking_cart_discount_info'); discountFeedbackDiv.text(mobooking_booking_form_params.i18n.error_applying_discount).addClass('error').show(); },
-            complete: function(xhr) { 
+            complete: function(xhr) {
                 const response = xhr.responseJSON;
                 if (!(response && response.success && response.data.valid)) $button.prop('disabled', false);
-                displayStep5_ReviewBooking(); 
+                displayStep5_ReviewBooking();
             }
         });
     });
@@ -358,21 +358,21 @@ jQuery(document).ready(function($) {
             pricing: JSON.parse(sessionStorage.getItem('mobooking_cart_pricing') || '{}'),
             discount_info: JSON.parse(sessionStorage.getItem('mobooking_cart_discount_info') || 'null'),
             // Explicitly add zip_code from step 1 to the root of finalBookingData for easier access in PHP
-            zip_code: sessionStorage.getItem('mobooking_cart_zip') 
+            zip_code: sessionStorage.getItem('mobooking_cart_zip')
         };
         if (!finalBookingData.tenant_id || finalBookingData.selected_services.length === 0 || !finalBookingData.customer_details.customer_name) {
             step5FeedbackDiv.text(mobooking_booking_form_params.i18n.error_review_incomplete).addClass('error').show(); return;
         }
         step5FeedbackDiv.empty().removeClass('error').hide();
         // Removed storing 'mobooking_final_booking_data' as we pass it directly.
-        displayStep6_Confirmation(finalBookingData); 
+        displayStep6_Confirmation(finalBookingData);
     });
-    
+
     function displayStep6_Confirmation(finalBookingData) {
-        const confirmButton = $('#mobooking-bf-review-confirm-btn'); 
+        const confirmButton = $('#mobooking-bf-review-confirm-btn');
         const originalButtonText = confirmButton.text();
         confirmButton.prop('disabled', true).text(mobooking_booking_form_params.i18n.processing_booking || 'Processing...');
-        step5FeedbackDiv.empty().hide(); 
+        step5FeedbackDiv.empty().hide();
 
         $.ajax({
             url: mobooking_booking_form_params.ajax_url,
@@ -397,17 +397,17 @@ jQuery(document).ready(function($) {
                     if(response.data.booking_reference){
                          confirmationMessageDiv.append('<p>' + (mobooking_booking_form_params.i18n.your_ref_is || 'Ref:') + ' <strong>' + $('<div>').text(response.data.booking_reference).html() + '</strong></p>');
                     }
-                    displayStep(6); 
-                    $('#mobooking-bf-review-back-btn').hide(); 
-                    confirmButton.hide(); 
+                    displayStep(6);
+                    $('#mobooking-bf-review-back-btn').hide();
+                    confirmButton.hide();
                 } else {
                     step5FeedbackDiv.text(response.data.message || mobooking_booking_form_params.i18n.error_booking_failed).addClass('error').show();
-                    confirmButton.prop('disabled', false).text(originalButtonText); 
+                    confirmButton.prop('disabled', false).text(originalButtonText);
                 }
             },
             error: function() {
                 step5FeedbackDiv.text(mobooking_booking_form_params.i18n.error_booking_failed_ajax).addClass('error').show();
-                confirmButton.prop('disabled', false).text(originalButtonText); 
+                confirmButton.prop('disabled', false).text(originalButtonText);
             }
         });
     }
@@ -416,9 +416,9 @@ jQuery(document).ready(function($) {
     $('#mobooking-bf-services-back-btn').on('click', function() { displayStep(1); });
     $('#mobooking-bf-options-back-btn').on('click', function() { displayStep(2); });
     $('#mobooking-bf-details-back-btn').on('click', function() { displayStep(3); });
-    $('#mobooking-bf-review-back-btn').on('click', function() { displayStep(4); }); 
+    $('#mobooking-bf-review-back-btn').on('click', function() { displayStep(4); });
 
 
     // Initial setup on page load: Ensure Step 1 is shown.
-    displayStep(1); 
+    displayStep(1);
 });
