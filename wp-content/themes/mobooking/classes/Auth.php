@@ -79,10 +79,9 @@ class Auth {
             $user = new \WP_User( $user_id );
             $user->set_role( self::ROLE_BUSINESS_OWNER );
 
-            // Placeholder for initializing default settings
+        // Initialize default settings for the new business owner
             if (class_exists('MoBooking\Classes\Settings')) {
-                // MoBooking\Classes\Settings::initialize_default_settings( $user_id );
-                // For now, we'll just note this. Actual implementation in Settings class later.
+            \MoBooking\Classes\Settings::initialize_default_settings( $user_id );
             }
 
             // Log the user in
