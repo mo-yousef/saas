@@ -15,7 +15,7 @@ class Discounts {
     public function register_ajax_actions() {
         // Dashboard specific discount management AJAX actions would go here.
         // e.g., add_action('wp_ajax_mobooking_get_tenant_discounts', [$this, 'handle_get_tenant_discounts_ajax']);
-
+        
         // Public booking form discount validation
         add_action('wp_ajax_nopriv_mobooking_validate_discount_public', [$this, 'handle_validate_discount_public_ajax']);
         add_action('wp_ajax_mobooking_validate_discount_public', [$this, 'handle_validate_discount_public_ajax']);
@@ -154,7 +154,7 @@ class Discounts {
             $update_data['code'] = $new_code;
             $format[] = '%s';
         }
-
+        
         if (isset($data['type'])) {
             if (!in_array($data['type'], ['percentage', 'fixed_amount'])) {
                 return new \WP_Error('invalid_type', __('Invalid discount type.', 'mobooking'));
@@ -171,7 +171,7 @@ class Discounts {
             }
             $update_data['value'] = $value; $format[] = '%f';
         }
-
+       
         if (array_key_exists('expiry_date', $data)) { // Allow clearing the date
             $expiry_date = $data['expiry_date'];
             if (empty($expiry_date)) {
@@ -198,7 +198,7 @@ class Discounts {
             $update_data['status'] = $data['status']; $format[] = '%s';
         }
 
-        if (empty($update_data)) return true;
+        if (empty($update_data)) return true; 
 
         $table_name = Database::get_table_name('discount_codes');
         $updated = $this->wpdb->update(
@@ -231,7 +231,7 @@ class Discounts {
         if ($discount['status'] !== 'active') return new \WP_Error('inactive', __('This discount code is not active.', 'mobooking'));
 
         if (!empty($discount['expiry_date'])) {
-            $today = current_time('Y-m-d', 0);
+            $today = current_time('Y-m-d', 0); 
             if ($discount['expiry_date'] < $today) return new \WP_Error('expired', __('This discount code has expired.', 'mobooking'));
         }
         if (!empty($discount['usage_limit'])) {
@@ -239,7 +239,7 @@ class Discounts {
                 return new \WP_Error('limit_reached', __('This discount code has reached its usage limit.', 'mobooking'));
             }
         }
-        return $discount;
+        return $discount; 
     }
 
     public function increment_discount_usage(int $discount_id) {

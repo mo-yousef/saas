@@ -90,13 +90,13 @@ function mobooking_scripts() {
     // For Public Booking Form page
     if ( is_page_template('templates/booking-form-public.php') ) {
         wp_enqueue_script('mobooking-booking-form', MOBOOKING_THEME_URI . 'assets/js/booking-form.js', array('jquery'), MOBOOKING_VERSION, true);
-
-        $tenant_id_on_page = get_query_var('mobooking_tenant_id_on_page', 0);
+        
+        $tenant_id_on_page = get_query_var('mobooking_tenant_id_on_page', 0); 
 
         wp_localize_script('mobooking-booking-form', 'mobooking_booking_form_params', array(
             'ajax_url' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce('mobooking_booking_form_nonce'),
-            'tenant_id' => $tenant_id_on_page,
+            'tenant_id' => $tenant_id_on_page, 
             'i18n' => [
                 'zip_required' => __('Please enter your ZIP code.', 'mobooking'),
                 'country_code_required' => __('Please enter your Country Code.', 'mobooking'),
@@ -227,17 +227,17 @@ add_action('switch_theme', 'mobooking_flush_rewrite_rules_on_activation_deactiva
 
 function mobooking_add_dashboard_rewrite_rules() {
     add_rewrite_rule(
-        '^dashboard/?$',
+        '^dashboard/?$', 
         'index.php?mobooking_dashboard_page=overview',
         'top'
     );
     add_rewrite_rule(
-        '^dashboard/([^/]+)/?$',
+        '^dashboard/([^/]+)/?$', 
         'index.php?mobooking_dashboard_page=$matches[1]',
         'top'
     );
     add_rewrite_rule(
-        '^dashboard/([^/]+)/([^/]+)/?$',
+        '^dashboard/([^/]+)/([^/]+)/?$', 
         'index.php?mobooking_dashboard_page=$matches[1]&mobooking_dashboard_action=$matches[2]',
         'top'
     );
@@ -270,13 +270,13 @@ function mobooking_dashboard_template_include( $template ) {
 
     if ( $is_dashboard_request ) {
         if ( !is_user_logged_in() ) {
-            wp_redirect( home_url( '/login/' ) );
+            wp_redirect( home_url( '/login/' ) ); 
             exit;
         }
         $user = wp_get_current_user();
         if ( !in_array( MoBooking\Classes\Auth::ROLE_BUSINESS_OWNER, (array) $user->roles ) ) {
             // If logged in but not a business owner, redirect to home or a 'permission denied' page.
-            wp_redirect( home_url( '/' ) );
+            wp_redirect( home_url( '/' ) ); 
             exit;
         }
 
@@ -285,19 +285,19 @@ function mobooking_dashboard_template_include( $template ) {
         if (!in_array($current_page_slug, $allowed_pages)) {
             $current_page_slug = 'overview'; // Default to overview if the page is not allowed or not found.
         }
-
+        
         // Set a global variable that can be used by dashboard components (header, sidebar)
         // to know the current view.
         $GLOBALS['mobooking_current_dashboard_view'] = $current_page_slug;
-
+        
         $new_template = MOBOOKING_THEME_DIR . 'dashboard/dashboard-shell.php';
         if ( file_exists( $new_template ) ) {
             // Prevent WordPress from trying to redirect to a canonical URL (e.g. /dashboard to /dashboard/)
             // as our rewrite rules handle this.
-            remove_filter('template_redirect', 'redirect_canonical');
-
+            remove_filter('template_redirect', 'redirect_canonical'); 
+            
             // Ensure correct HTTP status header for these dynamically routed pages.
-            status_header(200);
+            status_header(200); 
             return $new_template;
         }
     }
@@ -359,7 +359,7 @@ function mobooking_dashboard_scripts_styles() {
         if ($GLOBALS['mobooking_current_dashboard_view'] === 'bookings') {
             wp_enqueue_script('jquery-ui-datepicker'); // For date filters
             wp_enqueue_script('mobooking-dashboard-bookings', MOBOOKING_THEME_URI . 'assets/js/dashboard-bookings.js', array('jquery', 'jquery-ui-datepicker'), MOBOOKING_VERSION, true);
-
+            
             // Prepare statuses for JS
             $booking_statuses_for_js = [ '' => __('All Statuses', 'mobooking')];
             // This list should ideally match the one in page-bookings.php or come from a central config
@@ -396,7 +396,7 @@ function mobooking_dashboard_scripts_styles() {
         // Example: wp_enqueue_style('jquery-ui-theme', '//ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/jquery-ui.css');
 
         wp_enqueue_script('mobooking-booking-form', MOBOOKING_THEME_URI . 'assets/js/booking-form.js', array('jquery', 'jquery-ui-datepicker'), MOBOOKING_VERSION, true);
-
+        
         // Try to get tenant_id from query var if set by a shortcode or other server-side logic for the page
         // For now, JS primarily uses URL param 'tid'. This is a fallback or alternative.
         $tenant_id_on_page = get_query_var('mobooking_tenant_id_on_page', 0); // Example query var
@@ -459,10 +459,10 @@ function mobooking_dashboard_scripts_styles() {
         ));
     }
 }
-// Note: mobooking_scripts now handles general frontend scripts,
+// Note: mobooking_scripts now handles general frontend scripts, 
 // mobooking_dashboard_scripts_styles handles dashboard specific scripts.
 // Both are hooked to wp_enqueue_scripts. This is fine.
-add_action('wp_enqueue_scripts', 'mobooking_scripts');
+add_action('wp_enqueue_scripts', 'mobooking_scripts'); 
 add_action('wp_enqueue_scripts', 'mobooking_dashboard_scripts_styles');
 
 ?>
