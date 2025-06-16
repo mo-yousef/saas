@@ -71,7 +71,11 @@ add_action( 'after_setup_theme', 'mobooking_setup' );
 
 // Enqueue scripts and styles.
 function mobooking_scripts() {
-    wp_enqueue_style( 'mobooking-style', get_stylesheet_uri(), array(), MOBOOKING_VERSION );
+    // Enqueue CSS Reset first
+    wp_enqueue_style( 'mobooking-reset', MOBOOKING_THEME_URI . 'assets/css/reset.css', array(), MOBOOKING_VERSION );
+
+    // Enqueue main stylesheet, making it dependent on the reset
+    wp_enqueue_style( 'mobooking-style', get_stylesheet_uri(), array('mobooking-reset'), MOBOOKING_VERSION );
     // wp_enqueue_script( 'mobooking-navigation', MOBOOKING_THEME_URI . 'js/navigation.js', array(), MOBOOKING_VERSION, true );
 
     if ( is_page_template( 'page-login.php' ) || is_page_template('page-register.php') ) { // Assuming page-register.php for future
