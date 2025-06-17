@@ -10,3 +10,459 @@ License URI: http://www.gnu.org/licenses/gpl-2.0.html
 Text Domain: mobooking
 Tags: booking, services, business, multi-tenant
 */
+
+/* Global Resets are in assets/css/reset.css and enqueued first */
+
+/*--------------------------------------------------------------
+>>> TABLE OF CONTENTS:
+----------------------------------------------------------------
+1.0 General Body & Typography
+2.0 Links & Buttons
+3.0 Forms (Inputs, Textareas, Selects)
+4.0 Tables
+5.0 Basic Layout & Utility Classes (e.g., .mobooking-box)
+6.0 WordPress Core Alignments & Generated Classes (minimal)
+--------------------------------------------------------------*/
+
+/*--------------------------------------------------------------
+1.0 General Body & Typography
+--------------------------------------------------------------*/
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    color: #333;
+    background-color: #f4f4f4; /* Light grey background for public pages, dashboard has its own */
+}
+
+h1, h2, h3, h4, h5, h6 {
+    margin-top: 1.5em;
+    margin-bottom: 0.75em;
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+h1 { font-size: 2.25em; }
+h2 { font-size: 1.75em; }
+h3 { font-size: 1.5em; }
+h4 { font-size: 1.25em; }
+h5 { font-size: 1.1em; }
+h6 { font-size: 1em; }
+
+p {
+    margin-bottom: 1em;
+}
+
+strong, b {
+    font-weight: 600;
+}
+
+em, i {
+    font-style: italic;
+}
+
+/*--------------------------------------------------------------
+2.0 Links & Buttons
+--------------------------------------------------------------*/
+a {
+    color: #0073aa; /* WordPress blue */
+    text-decoration: none;
+}
+
+a:hover,
+a:focus {
+    color: #005177;
+    text-decoration: underline;
+}
+
+/* Basic button styling - WordPress .button class is more specific in admin/dashboard */
+button,
+input[type="button"],
+input[type="reset"],
+input[type="submit"],
+.button { /* Target .button class as well for consistency */
+    display: inline-block;
+    text-decoration: none;
+    font-size: 14px;
+    line-height: 1;
+    padding: 10px 15px;
+    margin-bottom: 5px; /* Basic spacing */
+    cursor: pointer;
+    border-width: 1px;
+    border-style: solid;
+    border-radius: 3px;
+    white-space: nowrap;
+    box-sizing: border-box;
+
+    /* Default button colors - primary actions should use .button-primary */
+    background-color: #f7f7f7;
+    border-color: #ccc;
+    color: #555;
+}
+
+button:hover, button:focus,
+input[type="button"]:hover, input[type="button"]:focus,
+input[type="reset"]:hover, input[type="reset"]:focus,
+input[type="submit"]:hover, input[type="submit"]:focus,
+.button:hover, .button:focus {
+    background-color: #f0f0f0;
+    border-color: #999;
+    color: #333;
+}
+
+/* WordPress primary button style (for frontend consistency if needed) */
+.button-primary {
+    background: #0073aa;
+    border-color: #006799 #005f8d #005f8d;
+    box-shadow: none;
+    color: #fff;
+    text-decoration: none;
+    text-shadow: none;
+}
+
+.button-primary:hover,
+.button-primary:focus {
+    background: #005177;
+    border-color: #005177;
+    color: #fff;
+}
+
+.button-link-delete {
+    color: #dc3232;
+    border-color: transparent;
+    background: transparent;
+    box-shadow: none;
+    padding: 0;
+    line-height: inherit;
+}
+.button-link-delete:hover,
+.button-link-delete:focus {
+    color: #a00;
+    text-decoration: underline;
+}
+
+
+/*--------------------------------------------------------------
+3.0 Forms (Inputs, Textareas, Selects)
+--------------------------------------------------------------*/
+input[type="text"],
+input[type="email"],
+input[type="url"],
+input[type="password"],
+input[type="search"],
+input[type="number"],
+input[type="tel"],
+input[type="date"],
+input[type="time"],
+textarea,
+select {
+    padding: 8px 10px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,.07);
+    background-color: #fff;
+    color: #32373c;
+    font-size: 14px;
+    line-height: 1.4;
+    width: 100%; /* Default to full width for block display */
+    max-width: 400px; /* Cap max width for readability */
+    margin-bottom: 10px; /* Basic spacing */
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="url"]:focus,
+input[type="password"]:focus,
+input[type="search"]:focus,
+input[type="number"]:focus,
+input[type="tel"]:focus,
+input[type="date"]:focus,
+input[type="time"]:focus,
+textarea:focus,
+select:focus {
+    border-color: #0073aa;
+    box-shadow: 0 0 0 1px #0073aa;
+    outline: 2px solid transparent;
+}
+
+textarea {
+    width: 100%;
+    max-width: 600px; /* Textareas can be wider */
+}
+
+label {
+    display: block;
+    margin-bottom: 0.5em;
+    font-weight: 600;
+}
+
+input[type="checkbox"],
+input[type="radio"] {
+    margin-right: 0.5em;
+    vertical-align: middle;
+}
+
+/*--------------------------------------------------------------
+4.0 Tables
+--------------------------------------------------------------*/
+table {
+    width: 100%;
+    margin-bottom: 1.5em;
+    border: 1px solid #e5e5e5;
+}
+
+th, td {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid #e5e5e5;
+}
+
+thead th {
+    background-color: #f9f9f9;
+    font-weight: 600;
+    border-bottom-width: 2px;
+}
+
+/*--------------------------------------------------------------
+5.0 Basic Layout & Utility Classes
+--------------------------------------------------------------*/
+.wrap { /* Common WordPress class for main content area */
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.mobooking-wrapper { /* Generic wrapper for theme sections */
+    padding: 20px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 1px rgba(0,0,0,.04);
+}
+
+.text-center { text-align: center; }
+.hidden { display: none; }
+.required { color: red; margin-left: 2px; }
+
+/*--------------------------------------------------------------
+6.0 WordPress Core Alignments & Generated Classes (minimal)
+--------------------------------------------------------------*/
+.alignleft { float: left; margin-right: 1.5em; margin-bottom: 1em; }
+.alignright { float: right; margin-left: 1.5em; margin-bottom: 1em; }
+.aligncenter { display: block; margin-left: auto; margin-right: auto; margin-bottom: 1em; text-align:center; }
+
+.screen-reader-text {
+	border: 0;
+	clip: rect(1px, 1px, 1px, 1px);
+	clip-path: inset(50%);
+	height: 1px;
+	margin: -1px;
+	overflow: hidden;
+	padding: 0;
+	position: absolute !important;
+	width: 1px;
+	word-wrap: normal !important;
+}
+
+/* Specific input field styling used in dashboard forms */
+.regular-text {
+    width: 25em;
+}
+.small-text {
+    width: 5em;
+}
+.large-text { /* For textareas */
+    width: 98%;
+}
+.code { /* For textareas meant for code like JSON or CSS */
+    font-family: monospace;
+}
+.mobooking-bf-input { /* Class for public booking form inputs for consistency */
+    width:100%;
+    padding:8px;
+    margin-top:5px;
+    margin-bottom:10px;
+}
+/* Basic table styling for dashboard lists */
+.wp-list-table {
+    border: 1px solid #e5e5e5;
+    border-spacing: 0;
+    width: 100%;
+    clear: both;
+    margin: 0;
+}
+.wp-list-table thead th {
+    padding: 10px;
+    text-align: left;
+    background-color: #f9f9f9;
+    border-bottom: 1px solid #e5e5e5;
+}
+.wp-list-table tbody td {
+    padding: 10px;
+    border-bottom: 1px solid #f0f0f0; /* Lighter than table border */
+    vertical-align: top;
+}
+.wp-list-table tbody tr.inactive-row td { /* Example for styling inactive items */
+    background-color: #fcfcfc;
+    color: #999;
+}
+.wp-list-table tbody tr.inactive-row a {
+    color: #aaa;
+}
+.wp-list-table tbody tr:nth-child(odd) {
+    /* background-color: #f9f9f9; */ /* Removed for .striped */
+}
+.wp-list-table.striped > tbody > tr:nth-child(odd) {
+    background-color: #f9f9f9;
+}
+
+/* Basic pagination styling */
+.mobooking-pagination {
+    margin: 20px 0;
+    padding: 0;
+    list-style: none;
+    text-align: center;
+}
+.mobooking-pagination li {
+    display: inline-block;
+    margin: 0 2px;
+}
+.mobooking-pagination li a,
+.mobooking-pagination li span {
+    display: inline-block;
+    padding: 5px 10px;
+    border: 1px solid #ddd;
+    text-decoration: none;
+    color: #0073aa;
+    background-color: #fff;
+}
+.mobooking-pagination li.active a,
+.mobooking-pagination li.active span,
+.mobooking-pagination li a:hover,
+.mobooking-pagination li span:hover {
+    background-color: #0073aa;
+    color: #fff;
+    border-color: #0073aa;
+}
+.mobooking-pagination li.disabled span,
+.mobooking-pagination li.disabled a {
+    color: #999;
+    background-color: #f9f9f9;
+    border-color: #ddd;
+    cursor: default;
+}
+
+/* Dashboard specific filters bar */
+.mobooking-filters-bar label {
+    margin-right: 5px;
+    font-weight: normal;
+}
+.mobooking-filters-bar input[type="text"],
+.mobooking-filters-bar select {
+    margin-right: 15px;
+    margin-bottom: 0; /* Align with buttons */
+    padding: 6px 8px; /* Slightly smaller for filter bar */
+    max-width: 150px;
+}
+.mobooking-filters-bar input[type="text"].mobooking-datepicker {
+    width: 120px;
+}
+.mobooking-filters-bar .button {
+    vertical-align: middle;
+}
+
+/* Dashboard form table styling for settings pages */
+.form-table th {
+    width: 200px;
+    padding: 15px 10px;
+    vertical-align: top;
+}
+.form-table td {
+    padding: 10px;
+    vertical-align: top;
+}
+.form-table td .description {
+    font-size: 0.9em;
+    color: #666;
+    font-style: italic;
+}
+
+/* Feedback messages styling */
+#mobooking-settings-feedback.notice,
+#mobooking-discount-form-feedback.notice,
+#mobooking-service-form-feedback.notice {
+    padding: 10px;
+    margin-bottom: 15px;
+    border-left-width: 4px;
+    border-left-style: solid;
+}
+#mobooking-settings-feedback.notice-success,
+#mobooking-discount-form-feedback.notice-success,
+#mobooking-service-form-feedback.notice-success {
+    background-color: #f0fff0;
+    border-left-color: #4CAF50;
+}
+#mobooking-settings-feedback.notice-error,
+#mobooking-discount-form-feedback.notice-error,
+#mobooking-service-form-feedback.notice-error {
+    background-color: #fff0f0;
+    border-left-color: #F44336;
+}
+
+/* Booking form specific feedback styling */
+#mobooking-bf-feedback.success,
+#mobooking-bf-step-2-feedback.success,
+#mobooking-bf-step-3-feedback.success,
+#mobooking-bf-step-4-feedback.success,
+#mobooking-bf-step-5-feedback.success,
+#mobooking-bf-discount-feedback.success {
+    color: green;
+    border: 1px solid green;
+    background-color: #f0fff0;
+}
+#mobooking-bf-feedback.error,
+#mobooking-bf-step-2-feedback.error,
+#mobooking-bf-step-3-feedback.error,
+#mobooking-bf-step-4-feedback.error,
+#mobooking-bf-step-5-feedback.error,
+#mobooking-bf-discount-feedback.error {
+    color: red;
+    border: 1px solid red;
+    background-color: #fff0f0;
+}
+
+/* Status specific styling for lists */
+.booking-status, .status-active, .status-confirmed { background-color: #c8e6c9 !important; color: #255d28 !important; }
+.status-pending, .status-on-hold, .status-processing { background-color: #fff9c4 !important; color: #6f5f00 !important; }
+.status-cancelled, .status-inactive, .status-expired { background-color: #ffcdd2 !important; color: #c62828 !important; }
+.status-completed { background-color: #bbdefb !important; color: #0d47a1 !important; }
+
+/* Ensure table layout for dashboard lists where data-label is used for mobile */
+@media screen and (max-width: 782px) {
+	.wp-list-table tbody th,
+	.wp-list-table tbody td {
+		display: block;
+		width: auto;
+		text-align: left;
+		border-bottom: 0;
+	}
+    .wp-list-table tbody td:before {
+        content: attr(data-label);
+        float: left;
+        width: 30%; /* Adjust as needed */
+        font-weight: bold;
+        margin-right: 10px;
+        display: inline-block;
+    }
+    .wp-list-table tbody tr {
+        border-bottom: 1px solid #e5e5e5;
+    }
+     .wp-list-table tbody td .button { /* Ensure buttons stack nicely on mobile */
+        display: block;
+        margin-bottom: 5px;
+        text-align: center;
+    }
+    .wp-list-table tbody td .button:last-child {
+        margin-bottom: 0;
+    }
+}
