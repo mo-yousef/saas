@@ -265,19 +265,37 @@ class Services {
 
 
     public function handle_get_services_ajax() {
-        check_ajax_referer('mobooking_services_nonce', 'nonce');
+        error_log('[MoBooking Services Debug] handle_get_services_ajax reached.');
+        error_log('[MoBooking Services Debug] POST data: ' . print_r($_POST, true));
+
+        // Check nonce immediately
+        $nonce_verified = check_ajax_referer('mobooking_services_nonce', 'nonce', false); // false to not die, so we can log
+        if (!$nonce_verified) {
+            error_log('[MoBooking Services Debug] Nonce verification failed.');
+            wp_send_json_error(['message' => __('Nonce verification failed.', 'mobooking')], 403);
+            return; // Explicitly return after sending error
+        }
+        error_log('[MoBooking Services Debug] Nonce verified successfully.');
+
         $user_id = get_current_user_id();
         if (!$user_id) {
+            error_log('[MoBooking Services Debug] User not logged in.');
             wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403);
             return;
         }
+        error_log('[MoBooking Services Debug] User ID: ' . $user_id);
+
         // Consider allowing args from POST/GET for pagination/filtering if needed
         $services = $this->get_services_by_user($user_id, ['status' => null]); // Get all statuses by default for management
+
         if (is_wp_error($services)) {
+            error_log('[MoBooking Services Debug] Error from get_services_by_user: ' . $services->get_error_message());
             wp_send_json_error(['message' => $services->get_error_message()], 500);
         } else {
+            error_log('[MoBooking Services Debug] Services fetched successfully: ' . count($services) . ' services.');
             wp_send_json_success($services);
         }
+        // wp_die(); // Not strictly necessary if wp_send_json_* is the last thing called.
     }
 
     public function handle_delete_service_ajax() {

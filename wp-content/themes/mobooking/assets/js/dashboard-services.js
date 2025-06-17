@@ -257,7 +257,7 @@ jQuery(document).ready(function($) {
         serviceIdField.val(''); // Crucial for Add vs Edit logic
         serviceFormTitle.text(mobooking_services_params.i18n.add_new_service);
         feedbackDiv.empty().hide();
-        serviceOptionsListDiv.html('<p><em>' + mobooking_services_params.i18n.save_service_before_options + '</em></p>');
+        optionsListContainer.html('<p><em>' + (mobooking_services_params.i18n.save_service_before_options || 'Save service before adding options.') + '</em></p>');
         addServiceOptionBtn.prop('disabled', true);
         serviceFormContainer.slideDown();
          $('html, body').animate({ scrollTop: serviceFormContainer.offset().top - 50 }, 300);
