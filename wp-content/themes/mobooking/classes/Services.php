@@ -359,14 +359,38 @@ class Services {
                     $this->delete_options_for_service($service_id, $user_id);
 
                     foreach ($options as $option_data) {
+                        $current_option_values_str = isset($option_data['option_values']) ? stripslashes($option_data['option_values']) : null;
+                        $processed_option_values_for_db = null;
+                        $option_type_for_values = isset($option_data['type']) ? sanitize_text_field($option_data['type']) : '';
+
+                        if (!is_null($current_option_values_str) && !empty(trim($current_option_values_str))) {
+                            if (in_array($option_type_for_values, ['select', 'radio'])) {
+                                $decoded_values = json_decode($current_option_values_str, true);
+                                if (is_array($decoded_values)) {
+                                    $processed_option_values_for_db = wp_json_encode($decoded_values);
+                                } else {
+                                    $processed_option_values_for_db = wp_json_encode([]);
+                                    // error_log("MoBooking: Invalid JSON for option_values (select/radio): " . $current_option_values_str);
+                                }
+                            } else {
+                                // For other types, if option_values were to be used, they'd be sanitized as plain text.
+                                // Currently, design implies only select/radio use structured option_values.
+                                // $processed_option_values_for_db = sanitize_textarea_field($current_option_values_str);
+                                $processed_option_values_for_db = null; // Set to null if not select/radio
+                            }
+                        } else if (in_array($option_type_for_values, ['select', 'radio'])) {
+                            // If it's a select/radio and input is empty/null, store empty JSON array
+                            $processed_option_values_for_db = wp_json_encode([]);
+                        }
+
                         $clean_option_data = [
                             'name' => isset($option_data['name']) ? sanitize_text_field($option_data['name']) : '',
                             'description' => isset($option_data['description']) ? wp_kses_post($option_data['description']) : '',
-                            'type' => isset($option_data['type']) ? sanitize_text_field($option_data['type']) : 'checkbox',
+                            'type' => $option_type_for_values,
                             'is_required' => !empty($option_data['is_required']) && $option_data['is_required'] === '1' ? 1 : 0,
                             'price_impact_type' => isset($option_data['price_impact_type']) ? sanitize_text_field($option_data['price_impact_type']) : null,
                             'price_impact_value' => !empty($option_data['price_impact_value']) ? floatval($option_data['price_impact_value']) : null,
-                            'option_values' => isset($option_data['option_values']) ? sanitize_textarea_field($option_data['option_values']) : null,
+                            'option_values' => $processed_option_values_for_db, // Use the processed value
                             'sort_order' => isset($option_data['sort_order']) ? intval($option_data['sort_order']) : 0,
                         ];
                         if (!empty($clean_option_data['name'])) {
@@ -428,14 +452,28 @@ class Services {
                 'description' => wp_kses_post($option_data['description']),
                 'type' => sanitize_text_field($option_data['type']),
                 'is_required' => boolval($option_data['is_required']),
-                'price_impact_type' => !is_null($option_data['price_impact_type']) ? sanitize_text_field($option_data['price_impact_type']) : null,
-                'price_impact_value' => !is_null($option_data['price_impact_value']) ? floatval($option_data['price_impact_value']) : null,
-                'option_values' => !is_null($option_data['option_values']) ? wp_json_encode($option_data['option_values']) : null,
+                'price_impact_type' => $option_data['price_impact_type'], // Already sanitized
+                'price_impact_value' => $option_data['price_impact_value'], // Already floatval or null
+                'option_values' => $option_data['option_values'], // Already JSON string or null
                 'sort_order' => intval($option_data['sort_order']),
                 'created_at' => current_time('mysql', 1), // GMT
                 'updated_at' => current_time('mysql', 1), // GMT
             ),
-            array('%d', '%d', '%s', '%s', '%s', '%d', '%s', '%f', '%s', '%d', '%s', '%s')
+            // Ensure formats match the data being inserted
+            array(
+                '%d', // user_id
+                '%d', // service_id
+                '%s', // name
+                '%s', // description
+                '%s', // type
+                '%d', // is_required (boolval results in 0 or 1)
+                '%s', // price_impact_type (string or null)
+                (is_null($option_data['price_impact_value']) ? '%s' : '%f'), // price_impact_value (float or null)
+                '%s', // option_values (JSON string or null)
+                '%d', // sort_order
+                '%s', // created_at
+                '%s'  // updated_at
+            )
         );
 
         if (false === $inserted) {
