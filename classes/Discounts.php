@@ -135,8 +135,16 @@ class Discounts {
         $code = $this->_normalize_code($data['code']);
         $type = sanitize_text_field($data['type']);
         $value = floatval($data['value']);
-        $expiry_date = !empty($data['expiry_date']) ? sanitize_text_field($data['expiry_date']) : null;
-        $usage_limit = !empty($data['usage_limit']) ? intval($data['usage_limit']) : null;
+
+        // Refined handling for optional expiry_date
+        $expiry_date_input = isset($data['expiry_date']) ? trim($data['expiry_date']) : '';
+        $expiry_date = ($expiry_date_input !== '') ? sanitize_text_field($expiry_date_input) : null;
+
+        // Refined handling for optional usage_limit
+        $usage_limit_input = isset($data['usage_limit']) ? trim($data['usage_limit']) : '';
+        // Allow 0 as a specific value, otherwise empty string means NULL (unlimited/not set)
+        $usage_limit = ($usage_limit_input !== '') ? intval($usage_limit_input) : null;
+
         $status = !empty($data['status']) && in_array($data['status'], ['active', 'inactive']) ? $data['status'] : 'active';
 
         if (!in_array($type, ['percentage', 'fixed_amount'])) {
@@ -148,10 +156,12 @@ class Discounts {
         if ($type === 'percentage' && $value > 100) {
             return new \WP_Error('invalid_percentage', __('Percentage discount cannot exceed 100.', 'mobooking'));
         }
-        if ($expiry_date && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $expiry_date)) {
-            return new \WP_Error('invalid_date_format', __('Expiry date must be in YYYY-MM-DD format.', 'mobooking'));
+        // Validate format only if expiry_date is not null (i.e., was provided and not empty)
+        if (!is_null($expiry_date) && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $expiry_date)) {
+            return new \WP_Error('invalid_date_format', __('Expiry date must be in YYYY-MM-DD format or empty.', 'mobooking'));
         }
-        if (!is_null($usage_limit) && $usage_limit < 0) {
+        // Validate only if usage_limit is not null (i.e., was provided and not empty)
+        if (!is_null($usage_limit) && $usage_limit < 0) { // A usage_limit of 0 is valid (e.g. for a one-time use if times_used starts at 0)
             return new \WP_Error('invalid_usage_limit', __('Usage limit cannot be negative.', 'mobooking'));
         }
 
