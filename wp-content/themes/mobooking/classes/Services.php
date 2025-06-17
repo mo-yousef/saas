@@ -323,26 +323,45 @@ class Services {
     }
 
     public function handle_save_service_ajax() {
-        check_ajax_referer('mobooking_services_nonce', 'nonce');
+        error_log('[MoBooking SaveSvc Debug] handle_save_service_ajax reached.');
+        error_log('[MoBooking SaveSvc Debug] RAW POST data: ' . print_r($_POST, true));
+
+        $nonce_verified = check_ajax_referer('mobooking_services_nonce', 'nonce', false); // false to not die
+        if (!$nonce_verified) {
+            error_log('[MoBooking SaveSvc Debug] Nonce verification FAILED.');
+            wp_send_json_error(['message' => __('Nonce verification failed. Please refresh and try again.', 'mobooking')], 403);
+            return;
+        }
+        error_log('[MoBooking SaveSvc Debug] Nonce verified successfully.');
+
         $user_id = get_current_user_id();
-        if (!$user_id) { wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403); return; }
+        if (!$user_id) {
+            error_log('[MoBooking SaveSvc Debug] User not logged in.');
+            wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403);
+            return;
+        }
+        error_log('[MoBooking SaveSvc Debug] User ID: ' . $user_id);
 
         $service_id = isset($_POST['service_id']) && !empty($_POST['service_id']) ? intval($_POST['service_id']) : 0;
+        error_log('[MoBooking SaveSvc Debug] Service ID for save/update: ' . $service_id);
 
         if (empty($_POST['name'])) {
+            error_log('[MoBooking SaveSvc Debug] Validation Error: Service name is required.');
             wp_send_json_error(['message' => __('Service name is required.', 'mobooking')], 400);
             return;
         }
         if (!isset($_POST['price']) || !is_numeric($_POST['price'])) {
+            error_log('[MoBooking SaveSvc Debug] Validation Error: Valid price is required. Received: ' . print_r($_POST['price'], true));
             wp_send_json_error(['message' => __('Valid price is required.', 'mobooking')], 400);
             return;
         }
-         if (!isset($_POST['duration']) || !ctype_digit($_POST['duration'])) { // ctype_digit for positive integers
+         if (!isset($_POST['duration']) || !ctype_digit(strval($_POST['duration']))) {
+            error_log('[MoBooking SaveSvc Debug] Validation Error: Valid duration (positive integer) is required. Received: ' . print_r($_POST['duration'], true));
             wp_send_json_error(['message' => __('Valid duration (positive integer) is required.', 'mobooking')], 400);
             return;
         }
 
-        $data = [
+        $data_for_service_method = [
             'name' => sanitize_text_field($_POST['name']),
             'description' => wp_kses_post(isset($_POST['description']) ? $_POST['description'] : ''),
             'price' => floatval($_POST['price']),
@@ -352,87 +371,109 @@ class Services {
             'image_url' => esc_url_raw(isset($_POST['image_url']) ? $_POST['image_url'] : ''),
             'status' => sanitize_text_field(isset($_POST['status']) ? $_POST['status'] : 'active'),
         ];
+        error_log('[MoBooking SaveSvc Debug] Data for add/update_service: ' . print_r($data_for_service_method, true));
+
+        $result_service_save = null;
+        $message = '';
 
         if ($service_id) { // Update
-            $result = $this->update_service($service_id, $user_id, $data);
+            error_log('[MoBooking SaveSvc Debug] Attempting to update service ID: ' . $service_id);
+            $result_service_save = $this->update_service($service_id, $user_id, $data_for_service_method);
             $message = __('Service updated successfully.', 'mobooking');
         } else { // Add
-            $result = $this->add_service($user_id, $data);
+            error_log('[MoBooking SaveSvc Debug] Attempting to add new service.');
+            $result_service_save = $this->add_service($user_id, $data_for_service_method);
             $message = __('Service added successfully.', 'mobooking');
-            if (!is_wp_error($result)) {
-                 $service_id = $result; // Get new ID to fetch the service
+            if (!is_wp_error($result_service_save)) {
+                 $service_id = $result_service_save; // Get new ID for options processing
+                 error_log('[MoBooking SaveSvc Debug] New service added with ID: ' . $service_id);
             }
         }
 
-        if (is_wp_error($result)) {
-            wp_send_json_error(['message' => $result->get_error_message()], ('not_owner' === $result->get_error_code() ? 403 : 500) );
-        } else {
-            // Process service options if provided
-            if (isset($_POST['service_options'])) {
-                $options_json = stripslashes($_POST['service_options']);
-                $options = json_decode($options_json, true);
+        if (is_wp_error($result_service_save)) {
+            error_log('[MoBooking SaveSvc Debug] Error saving/updating service: ' . $result_service_save->get_error_message());
+            wp_send_json_error(['message' => $result_service_save->get_error_message()], ('not_owner' === $result_service_save->get_error_code() ? 403 : 500) );
+            return;
+        }
+        error_log('[MoBooking SaveSvc Debug] Service main data saved/updated successfully for service_id: ' . $service_id);
 
-                if (is_array($options)) {
-                    // Sync options: Delete existing, then add submitted ones
-                    $this->delete_options_for_service($service_id, $user_id);
+        // Process service options if provided
+        if (isset($_POST['service_options'])) {
+            $options_json = stripslashes($_POST['service_options']);
+            error_log('[MoBooking SaveSvc Debug] Received service_options JSON string: ' . $options_json);
+            $options = json_decode($options_json, true);
 
-                    foreach ($options as $option_data) {
-                        $current_option_values_str = isset($option_data['option_values']) ? stripslashes($option_data['option_values']) : null;
-                        $processed_option_values_for_db = null;
-                        $option_type_for_values = isset($option_data['type']) ? sanitize_text_field($option_data['type']) : '';
+            if (is_array($options)) {
+                error_log('[MoBooking SaveSvc Debug] Decoded options array: ' . print_r($options, true));
+                error_log('[MoBooking SaveSvc Debug] Deleting existing options for service_id: ' . $service_id);
+                $this->delete_options_for_service($service_id, $user_id);
 
-                        if (!is_null($current_option_values_str) && !empty(trim($current_option_values_str))) {
-                            if (in_array($option_type_for_values, ['select', 'radio'])) {
-                                $decoded_values = json_decode($current_option_values_str, true);
-                                if (is_array($decoded_values)) {
-                                    $processed_option_values_for_db = wp_json_encode($decoded_values);
-                                } else {
-                                    $processed_option_values_for_db = wp_json_encode([]);
-                                    // error_log("MoBooking: Invalid JSON for option_values (select/radio): " . $current_option_values_str);
-                                }
+                foreach ($options as $idx => $option_data_from_client) {
+                    error_log("[MoBooking SaveSvc Debug] Processing option #{$idx}: " . print_r($option_data_from_client, true));
+
+                    $current_option_values_str = isset($option_data_from_client['option_values']) ? stripslashes($option_data_from_client['option_values']) : null;
+                    $processed_option_values_for_db = null;
+                    $option_type_for_values = isset($option_data_from_client['type']) ? sanitize_text_field($option_data_from_client['type']) : '';
+
+                    if (!is_null($current_option_values_str) && !empty(trim($current_option_values_str))) {
+                        if (in_array($option_type_for_values, ['select', 'radio'])) {
+                            $decoded_values = json_decode($current_option_values_str, true);
+                            if (is_array($decoded_values)) {
+                                $processed_option_values_for_db = wp_json_encode($decoded_values);
                             } else {
-                                // For other types, if option_values were to be used, they'd be sanitized as plain text.
-                                // Currently, design implies only select/radio use structured option_values.
-                                // $processed_option_values_for_db = sanitize_textarea_field($current_option_values_str);
-                                $processed_option_values_for_db = null; // Set to null if not select/radio
+                                $processed_option_values_for_db = wp_json_encode([]);
+                                error_log("[MoBooking SaveSvc Debug] Invalid JSON for option_values (select/radio) for option '{$option_data_from_client['name']}': " . $current_option_values_str);
                             }
-                        } else if (in_array($option_type_for_values, ['select', 'radio'])) {
-                            // If it's a select/radio and input is empty/null, store empty JSON array
-                            $processed_option_values_for_db = wp_json_encode([]);
+                        } else {
+                            $processed_option_values_for_db = null;
                         }
-
-                        $clean_option_data = [
-                            'name' => isset($option_data['name']) ? sanitize_text_field($option_data['name']) : '',
-                            'description' => isset($option_data['description']) ? wp_kses_post($option_data['description']) : '',
-                            'type' => $option_type_for_values,
-                            'is_required' => !empty($option_data['is_required']) && $option_data['is_required'] === '1' ? 1 : 0,
-                            'price_impact_type' => isset($option_data['price_impact_type']) ? sanitize_text_field($option_data['price_impact_type']) : null,
-                            'price_impact_value' => !empty($option_data['price_impact_value']) ? floatval($option_data['price_impact_value']) : null,
-                            'option_values' => $processed_option_values_for_db, // Use the processed value
-                            'sort_order' => isset($option_data['sort_order']) ? intval($option_data['sort_order']) : 0,
-                        ];
-                        if (!empty($clean_option_data['name'])) {
-                             $option_result = $this->add_service_option($user_id, $service_id, $clean_option_data);
-                             if (is_wp_error($option_result)) {
-                                // Log option error or add to an errors array to send back
-                                // error_log("MoBooking: Error adding service option: " . $option_result->get_error_message());
-                             }
-                        }
+                    } else if (in_array($option_type_for_values, ['select', 'radio'])) {
+                        $processed_option_values_for_db = wp_json_encode([]);
                     }
-                } else if (!empty($_POST['service_options'])) { // If it's not an empty string but json_decode failed
-                     wp_send_json_error(['message' => __('Invalid format for service options.', 'mobooking')], 400);
-                     return;
-                }
-            }
 
-            // Fetch the saved/updated service (now with options) to return it
-            $saved_service = $this->get_service($service_id, $user_id);
-            if ($saved_service) {
-                wp_send_json_success(['message' => $message, 'service' => $saved_service]);
-            } else {
-                wp_send_json_error(['message' => __('Could not retrieve service after saving.', 'mobooking')], 500);
+                    $clean_option_data = [
+                        'name' => isset($option_data_from_client['name']) ? sanitize_text_field($option_data_from_client['name']) : '',
+                        'description' => isset($option_data_from_client['description']) ? wp_kses_post($option_data_from_client['description']) : '',
+                        'type' => $option_type_for_values,
+                        'is_required' => !empty($option_data_from_client['is_required']) && $option_data_from_client['is_required'] === '1' ? 1 : 0,
+                        'price_impact_type' => isset($option_data_from_client['price_impact_type']) ? sanitize_text_field($option_data_from_client['price_impact_type']) : null,
+                        'price_impact_value' => !empty($option_data_from_client['price_impact_value']) ? floatval($option_data_from_client['price_impact_value']) : null,
+                        'option_values' => $processed_option_values_for_db,
+                        'sort_order' => isset($option_data_from_client['sort_order']) ? intval($option_data_from_client['sort_order']) : 0,
+                    ];
+
+                    if (!empty($clean_option_data['name'])) {
+                         error_log("[MoBooking SaveSvc Debug] Adding/updating option: " . print_r($clean_option_data, true));
+                         $option_result = $this->add_service_option($user_id, $service_id, $clean_option_data);
+                         if (is_wp_error($option_result)) {
+                            error_log("[MoBooking SaveSvc Debug] Error adding service option '{$clean_option_data['name']}': " . $option_result->get_error_message());
+                         } else {
+                            error_log("[MoBooking SaveSvc Debug] Successfully added option '{$clean_option_data['name']}'. New option ID: " . $option_result);
+                         }
+                    } else {
+                        error_log("[MoBooking SaveSvc Debug] Skipped processing option #{$idx} due to empty name.");
+                    }
+                }
+                error_log('[MoBooking SaveSvc Debug] Finished processing service options.');
+
+            } else if (!empty($_POST['service_options'])) {
+                 error_log('[MoBooking SaveSvc Debug] Error: service_options was not empty but failed json_decode. Original: ' . $options_json);
+                 wp_send_json_error(['message' => __('Invalid format for service options data.', 'mobooking')], 400);
+                 return;
             }
+        } else {
+            error_log('[MoBooking SaveSvc Debug] No service_options provided in POST.');
         }
+
+        $saved_service = $this->get_service($service_id, $user_id);
+        if ($saved_service) {
+            error_log('[MoBooking SaveSvc Debug] Successfully saved and retrieved service. Sending success response.');
+            wp_send_json_success(['message' => $message, 'service' => $saved_service]);
+        } else {
+            error_log('[MoBooking SaveSvc Debug] Error: Could not retrieve service after saving. Service ID: ' . $service_id);
+            wp_send_json_error(['message' => __('Could not retrieve service after saving.', 'mobooking')], 500);
+        }
+        // wp_die(); // Not strictly necessary
     }
 
 
