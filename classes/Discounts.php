@@ -201,9 +201,31 @@ class Discounts {
     }
 
     public function get_discount_codes_by_user(int $user_id, array $args = []) {
-        if (empty($user_id)) return [];
+        if (empty($user_id)) {
+            return ['discounts' => [], 'total_count' => 0, 'per_page' => 0, 'current_page' => 1];
+        }
         $table_name = Database::get_table_name('discount_codes');
-        $defaults = ['status' => null, 'orderby' => 'created_at', 'order' => 'DESC', 'limit' => -1, 'offset' => 0];
+
+        // Ensure 'paged' and 'limit' are correctly set from args, with defaults.
+        $paged = isset($args['paged']) ? max(1, intval($args['paged'])) : 1;
+        $limit = isset($args['limit']) ? max(1, intval($args['limit'])) : 20; // Default limit to 20 if not provided or invalid
+        $offset = ($paged - 1) * $limit;
+
+        // Status filter should be handled before parsing other args if it affects total_count
+        $status_filter_sql = '';
+        $status_params = [];
+        if (!empty($args['status'])) {
+            $status_filter_sql = " AND status = %s";
+            $status_params[] = sanitize_text_field($args['status']);
+        }
+
+        // Get total count
+        $count_sql = "SELECT COUNT(discount_id) FROM $table_name WHERE user_id = %d" . $status_filter_sql;
+        $total_count_params = array_merge([$user_id], $status_params);
+        $total_count = $this->wpdb->get_var($this->wpdb->prepare($count_sql, ...$total_count_params));
+
+        // Defaults for sorting, merging with provided args
+        $defaults = ['orderby' => 'created_at', 'order' => 'DESC'];
         $args = wp_parse_args($args, $defaults);
 
         // Validate orderby and order
@@ -211,18 +233,21 @@ class Discounts {
         $orderby = in_array($args['orderby'], $valid_orderby) ? $args['orderby'] : 'created_at';
         $order = strtoupper($args['order']) === 'ASC' ? 'ASC' : 'DESC';
 
-        $sql = "SELECT * FROM $table_name WHERE user_id = %d";
-        $params = [$user_id];
+        $sql = "SELECT * FROM $table_name WHERE user_id = %d" . $status_filter_sql; // Add status filter SQL
+        $params = array_merge([$user_id], $status_params); // Add status params
 
-        if (!empty($args['status'])) {
-            $sql .= " AND status = %s";
-            $params[] = sanitize_text_field($args['status']);
-        }
-        $sql .= " ORDER BY " . $orderby . " " . $order; // Already sanitized
-        if (intval($args['limit']) > 0) {
-            $sql .= $this->wpdb->prepare(" LIMIT %d OFFSET %d", intval($args['limit']), intval($args['offset']));
-        }
-        return $this->wpdb->get_results($this->wpdb->prepare($sql, ...$params), ARRAY_A);
+        $sql .= " ORDER BY " . $orderby . " " . $order;
+        // Use the calculated limit and offset
+        $sql .= $this->wpdb->prepare(" LIMIT %d OFFSET %d", $limit, $offset);
+
+        $discounts = $this->wpdb->get_results($this->wpdb->prepare($sql, ...$params), ARRAY_A);
+
+        return [
+            'discounts' => $discounts,
+            'total_count' => (int) $total_count,
+            'per_page' => $limit,
+            'current_page' => $paged
+        ];
     }
 
     public function update_discount_code(int $discount_id, int $user_id, array $data) {
