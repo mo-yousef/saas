@@ -71,6 +71,10 @@ add_action( 'after_setup_theme', 'mobooking_setup' );
 
 // Enqueue scripts and styles.
 function mobooking_scripts() {
+    // Initialize variables to prevent undefined warnings if used before assignment in conditional blocks
+    $public_form_currency_symbol = '$'; // Default value
+    $public_form_currency_position = 'before'; // Default value
+
     // Enqueue CSS Reset first
     wp_enqueue_style( 'mobooking-reset', MOBOOKING_THEME_URI . 'assets/css/reset.css', array(), MOBOOKING_VERSION );
 
@@ -329,30 +333,46 @@ function mobooking_add_query_vars($vars) {
 add_filter('query_vars', 'mobooking_add_query_vars');
 
 function mobooking_dashboard_template_include( $template ) {
+    error_log('[MoBooking Debug] ====== New Request ======');
+    error_log('[MoBooking Debug] REQUEST_URI: ' . $_SERVER['REQUEST_URI']);
+
     $is_dashboard_request = false;
     $current_page_slug = get_query_var('mobooking_dashboard_page');
+    error_log('[MoBooking Debug] Initial query_var "mobooking_dashboard_page": ' . print_r($current_page_slug, true));
 
     if (!empty($current_page_slug)) {
         $is_dashboard_request = true;
+        error_log('[MoBooking Debug] Detected dashboard from query_var.');
     } else {
-        // Fallback for servers where query vars might not be immediately available after rewrite rule changes
-        // or for direct access attempts without WordPress fully parsing the request via query vars.
         $path = trim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');
         $segments = explode('/', $path);
-        if (isset($segments[0]) && $segments[0] === 'dashboard') {
+        error_log('[MoBooking Debug] Path segments from URI: ' . print_r($segments, true));
+
+        if (isset($segments[0]) && strtolower($segments[0]) === 'dashboard') { // Case-insensitive check
             $is_dashboard_request = true;
+            // If the base is 'dashboard', subsequent segments determine the page.
+            // $matches[1] from rewrite rule corresponds to $segments[1] here if rule is simple.
+            // $current_page_slug was for query_var, now set it from segment.
             $current_page_slug = isset($segments[1]) && !empty($segments[1]) ? $segments[1] : 'overview';
+            error_log('[MoBooking Debug] Detected dashboard from URI. Page slug determined as: ' . $current_page_slug);
         }
     }
 
+    error_log('[MoBooking Debug] Is dashboard request? ' . ($is_dashboard_request ? 'Yes' : 'No'));
+
     if ( $is_dashboard_request ) {
         if ( !is_user_logged_in() ) {
+            error_log('[MoBooking Debug] User not logged in. Redirecting to login.');
             wp_redirect( home_url( '/login/' ) );
             exit;
         }
+
         $user = wp_get_current_user();
-        if ( !in_array( MoBooking\Classes\Auth::ROLE_BUSINESS_OWNER, (array) $user->roles ) ) {
-            // If logged in but not a business owner, redirect to home or a 'permission denied' page.
+        $user_roles_string = !empty($user->roles) ? implode(', ', $user->roles) : 'No roles';
+        error_log('[MoBooking Debug] Current user ID: ' . $user->ID . ', Roles: ' . $user_roles_string);
+
+        if ( !in_array( \MoBooking\Classes\Auth::ROLE_BUSINESS_OWNER, (array) $user->roles ) ) {
+            error_log('[MoBooking Debug] User ID ' . $user->ID . ' does NOT have ROLE_BUSINESS_OWNER. Redirecting to home.');
             wp_redirect( home_url( '/' ) );
             exit;
         }
@@ -360,24 +380,25 @@ function mobooking_dashboard_template_include( $template ) {
         // Define allowed dashboard pages to prevent arbitrary file inclusion.
         $allowed_pages = ['overview', 'bookings', 'services', 'discounts', 'areas', 'booking-form', 'settings'];
         if (!in_array($current_page_slug, $allowed_pages)) {
-            $current_page_slug = 'overview'; // Default to overview if the page is not allowed or not found.
+            error_log('[MoBooking Debug] Page slug "' . $current_page_slug . '" not in allowed_pages. Defaulting to overview.');
+            $current_page_slug = 'overview';
         }
 
-        // Set a global variable that can be used by dashboard components (header, sidebar)
-        // to know the current view.
+        // Set a global variable that can be used by dashboard components
         $GLOBALS['mobooking_current_dashboard_view'] = $current_page_slug;
+        error_log('[MoBooking Debug] Current dashboard view global set to: ' . $current_page_slug);
 
         $new_template = MOBOOKING_THEME_DIR . 'dashboard/dashboard-shell.php';
         if ( file_exists( $new_template ) ) {
-            // Prevent WordPress from trying to redirect to a canonical URL (e.g. /dashboard to /dashboard/)
-            // as our rewrite rules handle this.
+            error_log('[MoBooking Debug] Loading dashboard shell: ' . $new_template);
             remove_filter('template_redirect', 'redirect_canonical');
-
-            // Ensure correct HTTP status header for these dynamically routed pages.
             status_header(200);
             return $new_template;
+        } else {
+            error_log('[MoBooking Debug] CRITICAL ERROR: Dashboard shell file not found: ' . $new_template);
         }
     }
+    // error_log('[MoBooking Debug] Returning original template: ' . $template); // This can be very verbose
     return $template;
 }
 add_filter( 'template_include', 'mobooking_dashboard_template_include', 99 ); // High priority
