@@ -125,7 +125,7 @@ class Areas {
 
     // AJAX Handlers
     public function handle_get_areas_ajax() {
-        check_ajax_referer('mobooking_areas_nonce', 'nonce');
+        check_ajax_referer('mobooking_dashboard_nonce', 'nonce'); // Corrected nonce
         $user_id = get_current_user_id();
         if (!$user_id) { wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403); return; }
 
@@ -134,7 +134,7 @@ class Areas {
     }
 
     public function handle_add_area_ajax() {
-        check_ajax_referer('mobooking_areas_nonce', 'nonce');
+        check_ajax_referer('mobooking_dashboard_nonce', 'nonce'); // Corrected nonce
         $user_id = get_current_user_id();
         if (!$user_id) { wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403); return; }
 
@@ -155,7 +155,7 @@ class Areas {
     }
 
     public function handle_delete_area_ajax() {
-        check_ajax_referer('mobooking_areas_nonce', 'nonce');
+        check_ajax_referer('mobooking_dashboard_nonce', 'nonce'); // Corrected nonce
         $user_id = get_current_user_id();
         if (!$user_id) { wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403); return; }
         if (!isset($_POST['area_id']) || !is_numeric($_POST['area_id'])) {

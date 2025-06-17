@@ -39,9 +39,9 @@ jQuery(document).ready(function($) {
             data: { action: 'mobooking_get_discounts', nonce: mobooking_discounts_params.nonce, ...currentFilters },
             success: function(response) {
                 listContainer.empty();
-                if (response.success && response.data.bookings && response.data.bookings.length) { // PHP sends 'bookings' key from get_bookings_by_tenant, should be 'discounts'
-                    // Assuming PHP sends response.data.discounts and response.data.total_count etc.
-                    const discounts = response.data.discounts || response.data.bookings; // Temporary fix for key name
+                // Correctly access discounts and pagination data from the structured response
+                if (response.success && response.data && response.data.discounts && response.data.discounts.length) {
+                    const discounts = response.data.discounts;
                     const total_count = response.data.total_count;
                     const per_page = response.data.per_page;
                     const current_page = response.data.current_page;
@@ -56,10 +56,12 @@ jQuery(document).ready(function($) {
                         listContainer.append(renderTemplate(itemTemplate, displayData));
                     });
                     renderPagination(total_count, per_page, current_page);
-                } else if (response.success) {
+                } else if (response.success && response.data && response.data.discounts && response.data.discounts.length === 0) { // Explicitly check for empty discounts array
                     listContainer.html('<tr><td colspan="7"><p>' + (mobooking_discounts_params.i18n.no_discounts || 'No discounts found.') + '</p></td></tr>');
                 } else {
-                    listContainer.html('<tr><td colspan="7"><p>' + (response.data.message || mobooking_discounts_params.i18n.error_loading || 'Error.') + '</p></td></tr>');
+                    // Handle cases where response.data might be missing or message is not in response.data.message
+                    const message = (response.data && response.data.message) ? sanitizeHTML(response.data.message) : (mobooking_discounts_params.i18n.error_loading || 'Error.');
+                    listContainer.html('<tr><td colspan="7"><p>' + message + '</p></td></tr>');
                 }
             },
             error: function() {
