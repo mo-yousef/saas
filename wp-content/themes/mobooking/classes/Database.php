@@ -23,13 +23,16 @@ class Database {
     }
 
     public static function create_tables() {
+        error_log('[MoBooking DB Debug] Attempting to create/update custom tables...');
         global $wpdb;
         require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
 
         $charset_collate = $wpdb->get_charset_collate();
+        $dbDelta_results = [];
 
         // Services Table
         $table_name = self::get_table_name('services');
+        error_log('[MoBooking DB Debug] Preparing SQL for services table: ' . $table_name);
         $sql_services = "CREATE TABLE $table_name (
             service_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
             user_id BIGINT UNSIGNED NOT NULL,
@@ -48,10 +51,12 @@ class Database {
             INDEX category_idx (category),
             INDEX status_idx (status)
         ) $charset_collate;";
-        dbDelta( $sql_services );
+        error_log('[MoBooking DB Debug] SQL for services table: ' . preg_replace('/\s+/', ' ', $sql_services)); // Log condensed SQL
+        $dbDelta_results['services'] = dbDelta( $sql_services );
 
         // Service Options Table
         $table_name = self::get_table_name('service_options');
+        error_log('[MoBooking DB Debug] Preparing SQL for service_options table: ' . $table_name);
         $sql_service_options = "CREATE TABLE $table_name (
             option_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
             service_id BIGINT UNSIGNED NOT NULL,
@@ -70,10 +75,12 @@ class Database {
             INDEX service_id_idx (service_id),
             INDEX user_id_idx (user_id)
         ) $charset_collate;";
-        dbDelta( $sql_service_options );
+        error_log('[MoBooking DB Debug] SQL for service_options table: ' . preg_replace('/\s+/', ' ', $sql_service_options));
+        $dbDelta_results['service_options'] = dbDelta( $sql_service_options );
 
         // Customers Table
         $table_name = self::get_table_name('customers');
+        error_log('[MoBooking DB Debug] Preparing SQL for customers table: ' . $table_name);
         $sql_customers = "CREATE TABLE $table_name (
             customer_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
             user_id BIGINT UNSIGNED NOT NULL, -- Business owner ID
@@ -94,10 +101,12 @@ class Database {
             INDEX email_idx (email)
             -- Consider: UNIQUE KEY user_customer_email_unique (user_id, email)
         ) $charset_collate;";
-        dbDelta( $sql_customers );
+        error_log('[MoBooking DB Debug] SQL for customers table: ' . preg_replace('/\s+/', ' ', $sql_customers));
+        $dbDelta_results['customers'] = dbDelta( $sql_customers );
 
         // Discount Codes Table
         $table_name = self::get_table_name('discount_codes');
+        error_log('[MoBooking DB Debug] Preparing SQL for discount_codes table: ' . $table_name);
         $sql_discount_codes = "CREATE TABLE $table_name (
             discount_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
             user_id BIGINT UNSIGNED NOT NULL,
@@ -113,10 +122,12 @@ class Database {
             INDEX user_id_idx (user_id),
             UNIQUE KEY user_code_unique (user_id, code)
         ) $charset_collate;";
-        dbDelta( $sql_discount_codes );
+        error_log('[MoBooking DB Debug] SQL for discount_codes table: ' . preg_replace('/\s+/', ' ', $sql_discount_codes));
+        $dbDelta_results['discount_codes'] = dbDelta( $sql_discount_codes );
 
         // Bookings Table
         $table_name = self::get_table_name('bookings');
+        error_log('[MoBooking DB Debug] Preparing SQL for bookings table: ' . $table_name);
         $sql_bookings = "CREATE TABLE $table_name (
             booking_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
             user_id BIGINT UNSIGNED NOT NULL, -- Business owner
@@ -145,10 +156,12 @@ class Database {
             INDEX status_idx (status),
             INDEX discount_id_idx (discount_id)
         ) $charset_collate;";
-        dbDelta( $sql_bookings );
+        error_log('[MoBooking DB Debug] SQL for bookings table: ' . preg_replace('/\s+/', ' ', $sql_bookings));
+        $dbDelta_results['bookings'] = dbDelta( $sql_bookings );
 
         // Booking Items Table
         $table_name = self::get_table_name('booking_items');
+        error_log('[MoBooking DB Debug] Preparing SQL for booking_items table: ' . $table_name);
         $sql_booking_items = "CREATE TABLE $table_name (
             item_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
             booking_id BIGINT UNSIGNED NOT NULL,
@@ -162,10 +175,12 @@ class Database {
             INDEX booking_id_idx (booking_id),
             INDEX service_id_idx (service_id)
         ) $charset_collate;";
-        dbDelta( $sql_booking_items );
+        error_log('[MoBooking DB Debug] SQL for booking_items table: ' . preg_replace('/\s+/', ' ', $sql_booking_items));
+        $dbDelta_results['booking_items'] = dbDelta( $sql_booking_items );
 
         // Tenant Settings Table
         $table_name = self::get_table_name('tenant_settings');
+        error_log('[MoBooking DB Debug] Preparing SQL for tenant_settings table: ' . $table_name);
         $sql_tenant_settings = "CREATE TABLE $table_name (
             setting_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
             user_id BIGINT UNSIGNED NOT NULL, -- Business owner
@@ -174,10 +189,12 @@ class Database {
             PRIMARY KEY (setting_id),
             UNIQUE KEY user_setting_unique (user_id, setting_name(191)) -- Specify key length for older MySQL on shared hosts
         ) $charset_collate;";
-        dbDelta( $sql_tenant_settings );
+        error_log('[MoBooking DB Debug] SQL for tenant_settings table: ' . preg_replace('/\s+/', ' ', $sql_tenant_settings));
+        $dbDelta_results['tenant_settings'] = dbDelta( $sql_tenant_settings );
 
         // Service Areas Table
         $table_name = self::get_table_name('service_areas');
+        error_log('[MoBooking DB Debug] Preparing SQL for service_areas table: ' . $table_name);
         $sql_service_areas = "CREATE TABLE $table_name (
             area_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
             user_id BIGINT UNSIGNED NOT NULL, -- Business owner
@@ -189,6 +206,10 @@ class Database {
             INDEX user_id_idx (user_id)
             -- Consider: UNIQUE KEY user_area_unique (user_id, area_type, area_value(191), country_code)
         ) $charset_collate;";
-        dbDelta( $sql_service_areas );
+        error_log('[MoBooking DB Debug] SQL for service_areas table: ' . preg_replace('/\s+/', ' ', $sql_service_areas));
+        $dbDelta_results['service_areas'] = dbDelta( $sql_service_areas );
+
+        error_log('[MoBooking DB Debug] dbDelta execution results: ' . print_r($dbDelta_results, true));
+        error_log('[MoBooking DB Debug] Custom tables creation/update attempt finished.');
     }
 }

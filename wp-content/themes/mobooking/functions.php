@@ -261,6 +261,32 @@ function mobooking_ensure_business_owner_role_exists() {
 }
 add_action( 'init', 'mobooking_ensure_business_owner_role_exists' );
 
+// Ensure Custom Database Tables exist on admin_init
+function mobooking_ensure_custom_tables_exist() {
+    if (is_admin() && class_exists('MoBooking\Classes\Database')) {
+        global $wpdb;
+        // Use a key table name that your theme relies on.
+        // Using Database::get_table_name() is good practice.
+        $services_table_name = \MoBooking\Classes\Database::get_table_name('services');
+
+        // $wpdb->get_var returns NULL if table doesn't exist.
+        // Need to compare with the actual table name string.
+        if ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $services_table_name)) != $services_table_name) {
+            error_log('[MoBooking DB Debug] Key table ' . $services_table_name . ' not found during admin_init check. Forcing table creation.');
+            \MoBooking\Classes\Database::create_tables(); // Attempt to create/update all tables
+
+            // Add an admin notice to inform the admin that tables were (re)created.
+            add_action('admin_notices', function() {
+                echo '<div class="notice notice-warning is-dismissible"><p>' .
+                     esc_html__('MoBooking: Core database tables were missing and an attempt was made to create them. Please verify their integrity or contact support if issues persist.', 'mobooking') .
+                     '</p></div>';
+            });
+        }
+    }
+}
+add_action( 'admin_init', 'mobooking_ensure_custom_tables_exist' );
+
+
 // Custom Class Autoloader
 spl_autoload_register(function ($class_name) {
     // Check if the class belongs to our theme's namespace
