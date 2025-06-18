@@ -275,8 +275,28 @@ jQuery(document).ready(function($) {
                 }
             },
             error: function(jqXHR, textStatus, errorThrown) {
-                alert(mobooking_services_params.i18n.error_ajax || 'AJAX error fetching service details. Check console for more info.');
-                console.error('AJAX error fetching service details:', textStatus, errorThrown, jqXHR.responseText);
+                let serverMessage = '';
+                if (jqXHR.responseText) {
+                    try {
+                        const response = JSON.parse(jqXHR.responseText);
+                        if (response && response.data && response.data.message) {
+                            serverMessage = 'Server said: ' + response.data.message;
+                        } else if (jqXHR.responseText.length < 200) { // Avoid showing huge HTML error pages in alert
+                            serverMessage = 'Server response: ' + jqXHR.responseText;
+                        }
+                    } catch (e) {
+                        // responseText was not JSON, might be HTML or plain text
+                        if (jqXHR.responseText.length < 200) {
+                             serverMessage = 'Server response: ' + jqXHR.responseText.substring(0, 100) + '...';
+                        } else {
+                             serverMessage = 'Server returned an unexpected response (see console for full details).';
+                        }
+                    }
+                }
+                const alertMessage = (mobooking_services_params.i18n.error_ajax || 'AJAX error fetching service details.') +
+                                     ` Status: ${jqXHR.status}. ${serverMessage} Check console for full details.`;
+                alert(alertMessage);
+                console.error('AJAX error fetching service details. Status:', jqXHR.status, 'Error:', errorThrown, 'Response:', jqXHR.responseText, 'Full XHR:', jqXHR);
             },
             complete: function() {
                 $editButton.prop('disabled', false).text(originalButtonText);
