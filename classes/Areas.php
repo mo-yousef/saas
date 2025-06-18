@@ -84,12 +84,103 @@ class Areas {
     }
 
     public function get_areas_by_user(int $user_id, $type = 'zip_code') {
-        if (empty($user_id)) return [];
+        if (empty($user_id)) {
+            return ['areas' => [], 'total_count' => 0, 'per_page' => 0, 'current_page' => 1];
+        }
         $table_name = Database::get_table_name('service_areas');
-        return $this->wpdb->get_results($this->wpdb->prepare(
-            "SELECT * FROM $table_name WHERE user_id = %d AND area_type = %s ORDER BY country_code ASC, area_value ASC",
-            $user_id, sanitize_text_field($type)
+        $area_type = sanitize_text_field($type);
+
+        // Args for pagination (could be extended with more filters like country_code later)
+        $paged = isset($args['paged']) ? max(1, intval($args['paged'])) : 1;
+        $limit = isset($args['limit']) ? max(1, intval($args['limit'])) : 20;
+        $offset = ($paged - 1) * $limit;
+
+        // Get total count for this user and type
+        $total_count_sql = $this->wpdb->prepare(
+            "SELECT COUNT(area_id) FROM $table_name WHERE user_id = %d AND area_type = %s",
+            $user_id, $area_type
+        );
+        $total_count = $this->wpdb->get_var($total_count_sql);
+
+        // Get paginated results
+        $sql = $this->wpdb->prepare(
+            "SELECT * FROM $table_name WHERE user_id = %d AND area_type = %s ORDER BY country_code ASC, area_value ASC LIMIT %d OFFSET %d",
+            $user_id, $area_type, $limit, $offset
+        );
+        $areas = $this->wpdb->get_results($sql, ARRAY_A);
+
+        return [
+            'areas' => $areas,
+            'total_count' => (int) $total_count,
+            'per_page' => $limit,
+            'current_page' => $paged
+        ];
+    }
+
+    public function update_area(int $area_id, int $user_id, array $data) {
+        if (empty($user_id)) return new \WP_Error('invalid_user', __('Invalid user.', 'mobooking'));
+        if (empty($area_id)) return new \WP_Error('invalid_area_id', __('Invalid area ID.', 'mobooking'));
+
+        $current_area = $this->wpdb->get_row($this->wpdb->prepare(
+            "SELECT * FROM " . Database::get_table_name('service_areas') . " WHERE area_id = %d AND user_id = %d",
+            $area_id, $user_id
         ), ARRAY_A);
+
+        if (!$current_area) {
+            return new \WP_Error('not_found_or_owner', __('Area not found or you do not own it.', 'mobooking'));
+        }
+
+        $update_payload = [];
+        $update_formats = [];
+
+        if (isset($data['area_value'])) {
+            $area_value = sanitize_text_field(str_replace(' ', '', strtoupper($data['area_value'])));
+            if (empty($area_value)) return new \WP_Error('missing_value', __('Area value cannot be empty.', 'mobooking'));
+            $update_payload['area_value'] = $area_value;
+            $update_formats[] = '%s';
+        } else {
+            $area_value = $current_area['area_value']; // Keep current if not provided
+        }
+
+        if (isset($data['country_code'])) {
+            $country_code = sanitize_text_field(strtoupper($data['country_code']));
+            if (empty($country_code)) return new \WP_Error('missing_country', __('Country code cannot be empty.', 'mobooking'));
+            $update_payload['country_code'] = $country_code;
+            $update_formats[] = '%s';
+        } else {
+            $country_code = $current_area['country_code']; // Keep current if not provided
+        }
+
+        // Area type is generally not updatable, use current.
+        $area_type = $current_area['area_type'];
+
+        // Check for duplicates only if area_value or country_code has changed
+        if ($area_value !== $current_area['area_value'] || $country_code !== $current_area['country_code']) {
+            $existing = $this->wpdb->get_var($this->wpdb->prepare(
+                "SELECT area_id FROM " . Database::get_table_name('service_areas') . " WHERE user_id = %d AND area_type = %s AND area_value = %s AND country_code = %s AND area_id != %d",
+                $user_id, $area_type, $area_value, $country_code, $area_id
+            ));
+            if ($existing) {
+                return new \WP_Error('duplicate_area', __('This service area (value/country combination) already exists.', 'mobooking'));
+            }
+        }
+
+        if (empty($update_payload)) {
+            return true; // No changes provided
+        }
+
+        $updated = $this->wpdb->update(
+            Database::get_table_name('service_areas'),
+            $update_payload,
+            ['area_id' => $area_id, 'user_id' => $user_id],
+            $update_formats,
+            ['%d', '%d']
+        );
+
+        if (false === $updated) {
+            return new \WP_Error('db_error', __('Could not update service area.', 'mobooking'));
+        }
+        return true;
     }
 
     public function delete_area(int $area_id, int $user_id) {
@@ -125,12 +216,43 @@ class Areas {
 
     // AJAX Handlers
     public function handle_get_areas_ajax() {
-        check_ajax_referer('mobooking_dashboard_nonce', 'nonce'); // Corrected nonce
+        check_ajax_referer('mobooking_dashboard_nonce', 'nonce');
         $user_id = get_current_user_id();
         if (!$user_id) { wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403); return; }
 
-        $areas = $this->get_areas_by_user($user_id);
-        wp_send_json_success($areas);
+        $args = [
+            'paged' => isset($_POST['paged']) ? intval($_POST['paged']) : 1,
+            'limit' => isset($_POST['limit']) ? intval($_POST['limit']) : 20,
+            // Add other filters like 'type' or 'country_code' if needed in future
+        ];
+        // Default to 'zip_code' type for now, can be parameterized if other types are used in dashboard
+        $result = $this->get_areas_by_user($user_id, 'zip_code', $args);
+        wp_send_json_success($result); // This now includes pagination data
+    }
+
+    public function handle_update_area_ajax() {
+        check_ajax_referer('mobooking_dashboard_nonce', 'nonce');
+        $user_id = get_current_user_id();
+        if (!$user_id) { wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403); return; }
+
+        $area_id = isset($_POST['area_id']) ? intval($_POST['area_id']) : 0;
+        if (empty($area_id)) { wp_send_json_error(['message' => __('Area ID is required.', 'mobooking')], 400); return; }
+
+        $data = [
+            'area_value' => isset($_POST['area_value']) ? $_POST['area_value'] : null, // Let method handle if empty
+            'country_code' => isset($_POST['country_code']) ? $_POST['country_code'] : null, // Let method handle if empty
+        ];
+        // Filter out null values, so only provided fields are passed to update_area
+        $data = array_filter($data, function($value) { return !is_null($value); });
+
+        $result = $this->update_area($area_id, $user_id, $data);
+
+        if (is_wp_error($result)) {
+            wp_send_json_error(['message' => $result->get_error_message()], 400);
+        } else {
+            $updated_area = $this->wpdb->get_row($this->wpdb->prepare("SELECT * FROM " . Database::get_table_name('service_areas') . " WHERE area_id = %d", $area_id), ARRAY_A);
+            wp_send_json_success(['message' => __('Service area updated.', 'mobooking'), 'area' => $updated_area]);
+        }
     }
 
     public function handle_add_area_ajax() {
