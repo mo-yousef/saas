@@ -14,21 +14,11 @@ jQuery(document).ready(function($) {
         $('#mobooking-service-option-template').remove(); // Remove template from DOM after getting HTML
     }
 
-
-    let servicesDataCache = []; // Cache for service data
+    // Initialize servicesDataCache from PHP-provided data if available
+    let servicesDataCache = (typeof mobooking_initial_services_data !== 'undefined') ? mobooking_initial_services_data : [];
     let optionIndex = 0; // Used for unique IDs if needed, not for field names currently
 
-    // Basic templating function
-    function renderTemplate(templateId, data) {
-        let template = $(templateId).html();
-        if (!template) return '';
-        for (const key in data) {
-            const value = (typeof data[key] === 'string' || typeof data[key] === 'number') ? data[key] : '';
-            const regex = new RegExp('<%=\\s*' + key + '\\s*%>', 'g');
-            template = template.replace(regex, value);
-        }
-        return template;
-    }
+    // renderTemplate function is removed as it's no longer used for the main service list.
 
     // Basic XSS protection for display
     function sanitizeHTML(str) {
@@ -159,69 +149,41 @@ jQuery(document).ready(function($) {
         $hiddenInput.val($checkbox.is(':checked') ? '1' : '0');
     });
 
-
+    // loadServices is now primarily for re-triggering after an action if not using full page reload.
+    // With PHP rendering the initial list and form submissions causing a page reload,
+    // this function's original purpose (fetching and rendering the list via AJAX) is removed.
+    // It could be removed entirely if no JS action needs to refresh the list without a page reload.
+    // For now, it's kept but emptied of AJAX list fetching.
     function loadServices() {
-        servicesListContainer.html('<p>' + mobooking_services_params.i18n.loading_services + '</p>');
-        $.ajax({
-            url: mobooking_services_params.ajax_url,
-            type: 'POST',
-            data: {
-                action: 'mobooking_get_services',
-                nonce: mobooking_services_params.nonce
-            },
-            success: function(response) {
-                servicesListContainer.empty();
-                servicesDataCache = [];
-                if (response.success && response.data.length) {
-                    servicesDataCache = response.data;
-                    response.data.forEach(function(service) {
-                        const cleanService = {};
-                        // Sanitize all string properties before rendering
-                        for (const key in service) {
-                            if (typeof service[key] === 'string') {
-                                cleanService[key] = sanitizeHTML(service[key]);
-                            } else {
-                                cleanService[key] = service[key];
-                            }
-                        }
-                        cleanService.service_id = parseInt(service.service_id, 10);
-                        cleanService.price = parseFloat(service.price).toFixed(2);
-
-                        servicesListContainer.append(renderTemplate('#mobooking-service-item-template', cleanService));
-                    });
-                } else if (response.success && response.data.length === 0) {
-                    servicesListContainer.html('<p>' + mobooking_services_params.i18n.no_services_found + '</p>');
-                } else {
-                    const message = (response.data && response.data.message) ? sanitizeHTML(response.data.message) : mobooking_services_params.i18n.error_loading_services;
-                    servicesListContainer.html('<p>' + message + '</p>');
-                }
-            },
-            error: function() {
-                servicesListContainer.html('<p>' + mobooking_services_params.i18n.error_loading_services + '</p>');
-            }
-        });
+        // console.log('loadServices called. If page reloads on save/delete, this might not be needed.');
+        // If servicesDataCache needs to be updated post-action without reload, that logic would go here.
+        // For now, we rely on mobooking_initial_services_data on page load.
     }
 
     // Delegated Edit Service Button Click
-    servicesListContainer.on('click', '.mobooking-edit-service-btn', function() {
+    // This now refers to buttons rendered by PHP. The logic to find service in cache remains.
+    $(document).on('click', '.mobooking-edit-service-btn', function() { // Changed to document for dynamically added PHP content
         const serviceId = parseInt($(this).data('id'), 10);
+        // Ensure serviceId is a number before trying to find.
+        // servicesDataCache items have service_id typically as string from json_encode if not cast in PHP,
+        // or int if cast. parseInt() on both sides ensures comparison.
         const serviceToEdit = servicesDataCache.find(s => parseInt(s.service_id, 10) === serviceId);
 
         if (serviceToEdit) {
-            serviceFormTitle.text(mobooking_services_params.i18n.edit_service);
-            populateForm(serviceToEdit); // populateForm now uses the full service object
+            serviceFormTitle.text(mobooking_services_params.i18n.edit_service || 'Edit Service');
+            populateForm(serviceToEdit);
             feedbackDiv.empty().hide();
-            serviceFormContainer.slideDown();
-            $('html, body').animate({ scrollTop: serviceFormContainer.offset().top - 50 }, 300);
+            $('#mobooking-service-form-modal-backdrop').show();
+            serviceFormContainer.show();
+            $('body').addClass('mobooking-modal-open');
         } else {
-            // This might happen if cache is stale or item was removed.
-            // Optionally, fetch the single service details via AJAX here.
             alert(mobooking_services_params.i18n.error_finding_service || 'Error: Could not find service data. Please refresh.');
         }
     });
 
     // Delegated Delete Service
-    servicesListContainer.on('click', '.mobooking-delete-service-btn', function() {
+    // This now refers to buttons rendered by PHP.
+    $(document).on('click', '.mobooking-delete-service-btn', function() { // Changed to document
         const serviceId = $(this).data('id');
         if (confirm(mobooking_services_params.i18n.confirm_delete_service)) {
             $.ajax({
@@ -234,12 +196,10 @@ jQuery(document).ready(function($) {
                 },
                 success: function(response) {
                     if (response.success) {
-                        loadServices(); // Refresh list
-                        // Display a temporary success message not tied to the form
-                        // For example, inject it above the list or use a toast notification library
-                         $('#mobooking-add-new-service-btn').after('<div class="mobooking-global-feedback success" style="padding:10px; margin:10px 0; background-color:#d4edda; border-color:#c3e6cb; color:#155724; border-radius:4px;">' + sanitizeHTML(response.data.message) + '</div>');
-                        setTimeout(function() { $('.mobooking-global-feedback').fadeOut(500, function() { $(this).remove(); }); }, 3000);
-
+                        // location.reload(); // Reload the page to see changes from PHP
+                        // Display a global message instead of just alert, then reload or let user click away.
+                         $('#mobooking-add-new-service-btn').after('<div class="mobooking-global-feedback success" style="padding:10px; margin:10px 0; background-color:#d4edda; border-color:#c3e6cb; color:#155724; border-radius:4px;">' + sanitizeHTML(response.data.message || 'Service deleted.') + ' Refreshing...</div>');
+                        setTimeout(function() { location.reload(); }, 1500); // Reload after a short delay
                     } else {
                         alert(response.data.message || mobooking_services_params.i18n.error_deleting_service);
                     }
@@ -254,18 +214,21 @@ jQuery(document).ready(function($) {
     // Show Add New Service form
     $('#mobooking-add-new-service-btn').on('click', function() {
         serviceForm[0].reset();
-        serviceIdField.val(''); // Crucial for Add vs Edit logic
-        serviceFormTitle.text(mobooking_services_params.i18n.add_new_service);
+        serviceIdField.val('');
+        serviceFormTitle.text(mobooking_services_params.i18n.add_new_service || 'Add New Service');
         feedbackDiv.empty().hide();
         optionsListContainer.html('<p><em>' + (mobooking_services_params.i18n.save_service_before_options || 'Save service before adding options.') + '</em></p>');
         addServiceOptionBtn.prop('disabled', true);
-        serviceFormContainer.slideDown();
-         $('html, body').animate({ scrollTop: serviceFormContainer.offset().top - 50 }, 300);
+        $('#mobooking-service-form-modal-backdrop').show();
+        serviceFormContainer.show();
+        $('body').addClass('mobooking-modal-open');
     });
 
-    // Cancel form
+    // Cancel form - Modal interaction
     $('#mobooking-cancel-service-form').on('click', function() {
-        serviceFormContainer.slideUp();
+        serviceFormContainer.hide();
+        $('#mobooking-service-form-modal-backdrop').hide();
+        $('body').removeClass('mobooking-modal-open');
         feedbackDiv.empty().hide();
     });
 
@@ -337,11 +300,10 @@ jQuery(document).ready(function($) {
             dataType: 'json',
             success: function(response) {
                 if (response.success) {
-                    feedbackDiv.text(response.data.message).removeClass('error').addClass('success').show();
-                    serviceFormContainer.slideUp(function() {
-                        loadServices();
-                    });
-                     setTimeout(function() { feedbackDiv.fadeOut(500, function() { $(this).empty(); }); }, 3000);
+                    // feedbackDiv.text(response.data.message).removeClass('error').addClass('success').show(); // No need if reloading
+                    // serviceFormContainer.hide(); // Hide form
+                    // $('#mobooking-service-form-modal-backdrop').hide(); // Hide backdrop
+                    location.reload(); // Reload the page to show the updated list from PHP
                 } else {
                     feedbackDiv.text(response.data.message || mobooking_services_params.i18n.error_saving_service).removeClass('success').addClass('error').show();
                 }
@@ -351,12 +313,22 @@ jQuery(document).ready(function($) {
             },
             complete: function() {
                 submitButton.prop('disabled', false).text(originalButtonText);
+                // If not reloading, would re-enable button here. With reload, it's less critical.
             }
         });
     });
 
-    // Initial load
-    if (servicesListContainer.length) {
-        loadServices();
-    }
+    // Initial setup:
+    // loadServices() is not called on initial page load anymore as PHP renders the list.
+    // servicesDataCache is initialized from mobooking_initial_services_data.
+    // Event handlers are set up.
+
+    // Close modal if clicking on backdrop
+    $('#mobooking-service-form-modal-backdrop').on('click', function() {
+        serviceFormContainer.hide();
+        $(this).hide();
+        $('body').removeClass('mobooking-modal-open');
+        feedbackDiv.empty().hide();
+    });
+
 });

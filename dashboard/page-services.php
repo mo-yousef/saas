@@ -4,12 +4,32 @@
  * @package MoBooking
  */
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
+
+// Instantiate the Services class and fetch services
+$services_manager = new \MoBooking\Classes\Services();
+$user_id = get_current_user_id();
+// Fetch all services for the current user, regardless of status for management
+$services_list = $services_manager->get_services_by_user($user_id, ['status' => null]);
+
+// Prepare initial services data for JavaScript
+if (isset($services_list) && is_array($services_list)) {
+    echo "<script type='text/javascript'>\n";
+    echo "  var mobooking_initial_services_data = " . json_encode($services_list) . ";\n";
+    echo "</script>\n";
+} else {
+    echo "<script type='text/javascript'>\n";
+    echo "  var mobooking_initial_services_data = [];\n";
+    echo "</script>\n";
+}
 ?>
 <h1><?php esc_html_e('Manage Your Services', 'mobooking'); ?></h1>
 <button id="mobooking-add-new-service-btn" class="button button-primary"><?php esc_html_e('Add New Service', 'mobooking'); ?></button>
 
-<!-- Add/Edit Service Form (Initially hidden or basic) -->
-<div id="mobooking-service-form-container" style="display:none; margin-top:20px; padding:20px; background:#fff; border:1px solid #ccd0d4; max-width: 600px;">
+<!-- Modal Backdrop -->
+<div id="mobooking-service-form-modal-backdrop"></div> <!-- style attribute removed -->
+
+<!-- Add/Edit Service Form (Modal) -->
+<div id="mobooking-service-form-container" style="display:none; margin-top:20px; padding:20px; background:#fff; border:1px solid #ccd0d4; max-width: 600px;"> <!-- Reverted to original style, CSS will handle modal positioning and appearance -->
     <h2 id="mobooking-service-form-title"><?php esc_html_e('Add New Service', 'mobooking'); ?></h2>
     <form id="mobooking-service-form">
         <input type="hidden" id="mobooking-service-id" name="service_id" value="">
@@ -117,18 +137,24 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
 <h2 style="margin-top:30px;"><?php esc_html_e('Your Services', 'mobooking'); ?></h2>
 <div id="mobooking-services-list-container">
-    <p><?php esc_html_e('Loading services...', 'mobooking'); ?></p>
+    <?php if ( ! empty( $services_list ) ) : ?>
+        <?php foreach ( $services_list as $service ) : ?>
+            <?php if (is_array($service)) : // Ensure $service is an array ?>
+            <div class="mobooking-service-item" style="border:1px solid #ccd0d4; padding:15px; margin-bottom:10px; background:#fff; border-radius:4px;">
+                <h3 style="margin-top:0;"><?php echo esc_html( $service['name'] ); ?></h3>
+                <p><strong><?php esc_html_e('Price:', 'mobooking'); ?></strong> <span class="service-price"><?php echo esc_html( number_format_i18n( floatval( $service['price'] ), 2 ) ); ?></span></p>
+                <p><strong><?php esc_html_e('Duration:', 'mobooking'); ?></strong> <span class="service-duration"><?php echo esc_html( $service['duration'] ); ?></span> <?php esc_html_e('min', 'mobooking'); ?></p>
+                <p><strong><?php esc_html_e('Status:', 'mobooking'); ?></strong> <span class="service-status"><?php echo esc_html( ucfirst( $service['status'] ) ); ?></span></p>
+                <p style="margin-top:15px;">
+                    <button class="button mobooking-edit-service-btn" data-id="<?php echo esc_attr( $service['service_id'] ); ?>"><?php esc_html_e('Edit', 'mobooking'); ?></button>
+                    <button class="button button-link-delete mobooking-delete-service-btn" data-id="<?php echo esc_attr( $service['service_id'] ); ?>"><?php esc_html_e('Delete', 'mobooking'); ?></button>
+                </p>
+            </div>
+            <?php endif; ?>
+        <?php endforeach; ?>
+    <?php else : ?>
+        <p><?php esc_html_e('No services found. Click "Add New Service" to create your first service.', 'mobooking'); ?></p>
+    <?php endif; ?>
 </div>
 
-<script type="text/template" id="mobooking-service-item-template">
-    <div class="mobooking-service-item" style="border:1px solid #ccd0d4; padding:15px; margin-bottom:10px; background:#fff; border-radius:4px;">
-        <h3 style="margin-top:0;"><%= name %></h3>
-        <p><strong><?php esc_html_e('Price:', 'mobooking'); ?></strong> <span class="service-price"><%= price %></span></p>
-        <p><strong><?php esc_html_e('Duration:', 'mobooking'); ?></strong> <span class="service-duration"><%= duration %></span> <?php esc_html_e('min', 'mobooking'); ?></p>
-        <p><strong><?php esc_html_e('Status:', 'mobooking'); ?></strong> <span class="service-status"><%= status %></span></p>
-        <p style="margin-top:15px;">
-            <button class="button mobooking-edit-service-btn" data-id="<%= service_id %>"><?php esc_html_e('Edit', 'mobooking'); ?></button>
-            <button class="button button-link-delete mobooking-delete-service-btn" data-id="<%= service_id %>"><?php esc_html_e('Delete', 'mobooking'); ?></button>
-        </p>
-    </div>
-</script>
+<?php // The <script type="text/template" id="mobooking-service-item-template"> has been removed as the list is now PHP-rendered. ?>
