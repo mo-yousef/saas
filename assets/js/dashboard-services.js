@@ -236,6 +236,14 @@ jQuery(document).ready(function($) {
         const serviceId = $(this).data('id');
         feedbackDiv.empty().hide(); // Clear previous form feedback
 
+        console.log('Attempting to fetch details for service ID:', serviceId); // Diagnostic log
+
+        if (!serviceId) {
+            alert(mobooking_services_params.i18n.error_missing_service_id || 'Error: Could not identify the service ID for editing.');
+            console.error('Service ID for edit is missing or undefined.');
+            return;
+        }
+
         // Show loading state or disable button
         const $editButton = $(this);
         const originalButtonText = $editButton.text();
@@ -246,12 +254,13 @@ jQuery(document).ready(function($) {
             type: 'POST',
             data: {
                 action: 'mobooking_get_service_details',
-                nonce: mobooking_services_params.nonce,
+                nonce: mobooking_services_params.nonce, // Ensure this param object and nonce are available
                 service_id: serviceId
             },
             dataType: 'json',
             success: function(response) {
-                if (response.success && response.data.service) {
+                console.log('Successfully fetched service details:', response); // Diagnostic log
+                if (response.success && response.data && response.data.service) { // Check response.data as well
                     servicesDataCache[serviceId] = response.data.service; // Update cache with fresh data
                     serviceFormTitle.text(mobooking_services_params.i18n.edit_service || 'Edit Service');
                     populateForm(response.data.service);
@@ -259,11 +268,15 @@ jQuery(document).ready(function($) {
                     serviceFormContainer.show();
                     $('body').addClass('mobooking-modal-open');
                 } else {
-                    alert(response.data.message || mobooking_services_params.i18n.error_fetching_service_details || 'Error: Could not fetch service details.');
+                    // Use message from response if available, otherwise a generic one
+                    const errorMessage = (response.data && response.data.message) ? response.data.message : (mobooking_services_params.i18n.error_fetching_service_details || 'Error: Could not fetch service details.');
+                    alert(errorMessage);
+                    console.error('Error fetching service details from server:', response);
                 }
             },
-            error: function() {
-                alert(mobooking_services_params.i18n.error_ajax || 'AJAX error fetching service details.');
+            error: function(jqXHR, textStatus, errorThrown) {
+                alert(mobooking_services_params.i18n.error_ajax || 'AJAX error fetching service details. Check console for more info.');
+                console.error('AJAX error fetching service details:', textStatus, errorThrown, jqXHR.responseText);
             },
             complete: function() {
                 $editButton.prop('disabled', false).text(originalButtonText);
