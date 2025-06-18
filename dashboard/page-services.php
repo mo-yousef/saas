@@ -157,7 +157,7 @@ wp_nonce_field('mobooking_services_nonce', 'mobooking_services_nonce_field');
     /* Inputs within a choice item should not have global bottom margin */
     .mobooking-choice-item input[type="text"],
     .mobooking-choice-item input[type="number"] {
-        margin-bottom: 0 !important;
+        margin-bottom: 0 !important; 
     }
     .mobooking-choice-label { flex-grow: 1; }
     .mobooking-choice-value { flex-basis: 120px; }
@@ -270,7 +270,7 @@ wp_nonce_field('mobooking_services_nonce', 'mobooking_services_nonce_field');
                     <div class="mobooking-custom-radio-group-placeholder"></div> <!-- Placeholder for custom radios -->
                 </p>
                 <div class="mobooking-option-values-field" style="display:none; margin-bottom:10px;">
-                    <label><?php esc_html_e('Option Choices:', 'mobooking'); ?></label>
+                    <label><?php esc_html_e('Option Choices:', 'mobooking'); ?></label> 
                     <!-- New UI Container -->
                     <div class="mobooking-choices-ui-container">
                         <div class="mobooking-choices-list">
@@ -438,7 +438,7 @@ jQuery(document).ready(function($) {
         // Check if placeholder exists and actual group does not (to prevent re-init)
         if ($selectElement.length && $placeholder.length && $row.find('.mobooking-custom-radio-group').length === 0) {
             const $radioGroupDiv = $('<div class="mobooking-custom-radio-group"></div>');
-            $placeholder.replaceWith($radioGroupDiv);
+            $placeholder.replaceWith($radioGroupDiv); 
             createCustomRadioButtons($selectElement.get(0), $radioGroupDiv.get(0));
             $row.data('custom-radios-initialized', true);
         } else if ($selectElement.length && $row.find('.mobooking-custom-radio-group').length > 0) {
@@ -514,85 +514,85 @@ jQuery(document).ready(function($) {
         });
     }
 
-    /**
-     * Sets up all event listeners for a given option row related to choice management.
-     * @param {jQuery} $row The jQuery object for the .mobooking-service-option-row.
-     */
-    function initializeChoiceManagementForRow($row) {
-        // Check if already initialized for basic event handlers to avoid redundant work if logic gets complex
-        // Note: renderChoices and sortable have their own internal guards or idempotent behaviors.
-        // The .off().on() pattern for events already handles re-binding safely.
-        if ($row.data('choice-management-fully-initialized')) {
-             // If sortable needs re-check or other specific parts, do it here.
-             // For now, if events are bound and sortable is on, we assume it's mostly fine.
-             // Re-running renderChoices can be an option if data might get stale and not re-rendered by type change.
-             // renderChoices($row); // Optional: uncomment if state could be desynced and needs refresh
-            return;
-        }
-
-        // Initial rendering of choices from textarea
-        renderChoices($row);
-
-        // Event listener for "Add Choice" button specific to this row
-        $row.find('.mobooking-add-choice-btn').off('click.mobooking').on('click.mobooking', function() {
-            const $optionRow = $(this).closest('.mobooking-service-option-row');
-            // const choiceTemplate = $('#mobooking-choice-item-template').html(); // Now using cached choiceTemplateHTML
-            if (!choiceTemplateHTML) return; // Do not proceed if template is missing
-            const $newItem = $(choiceTemplateHTML);
-
-            $newItem.find('input').val(''); // Clear all inputs in the new choice item
-            $optionRow.find('.mobooking-choices-list').append($newItem);
-            syncTextarea($optionRow);
-        });
-
-        // Delegated event listeners for inputs and remove button within this row's choices list
-        const $choicesList = $row.find('.mobooking-choices-list');
-
-        $choicesList.off('click.mobooking', '.mobooking-remove-choice-btn').on('click.mobooking', '.mobooking-remove-choice-btn', function() {
-            const $optionRow = $(this).closest('.mobooking-service-option-row');
-            $(this).closest('.mobooking-choice-item').remove();
-            syncTextarea($optionRow);
-        });
-
-        $choicesList.off('change.mobooking input.mobooking', '.mobooking-choice-label, .mobooking-choice-value, .mobooking-choice-price-adjust')
-            .on('change.mobooking input.mobooking', '.mobooking-choice-label, .mobooking-choice-value, .mobooking-choice-price-adjust', function() {
-            const $optionRow = $(this).closest('.mobooking-service-option-row');
-            syncTextarea($optionRow);
-        });
-
-        // When the option type changes (original select for the row)
-        $row.find('.mobooking-option-type').off('change.mobookingChoices').on('change.mobookingChoices', function() {
-            const $select = $(this);
-            const $optionRow = $select.closest('.mobooking-service-option-row');
-            const $valuesField = $optionRow.find('.mobooking-option-values-field');
-            const type = $select.val();
-
-            if ($valuesField.is(':visible') && (type === 'select' || type === 'radio')) {
-                 renderChoices($optionRow); // Re-render choices if field becomes visible
-            }
-        });
-
-        // Make the choices list sortable
-        const $choicesList = $row.find('.mobooking-choices-list'); // Defined $choicesList here
-        if ($.fn.sortable && !$choicesList.hasClass('ui-sortable')) { // Check if jQuery UI sortable is loaded and not already initialized
-            $choicesList.sortable({
-                items: '.mobooking-choice-item',
-                handle: '.mobooking-choice-drag-handle',
-                axis: 'y',
-                placeholder: 'mobooking-choice-item-placeholder',
-                tolerance: 'pointer',
-                containment: 'parent', // Constrain dragging to the list itself
-                stop: function(event, ui) {
-                    // 'this' is the $choicesList DOM element
-                    var $optionRow = $(this).closest('.mobooking-service-option-row');
-                    syncTextarea($optionRow);
-                }
-            }).disableSelection(); // Optional: prevent text selection during drag
-        } else {
-            console.warn('jQuery UI Sortable is not loaded. Drag-and-drop for choices will not be available.');
-        }
-        $row.data('choice-management-fully-initialized', true);
+/**
+ * Sets up all event listeners for a given option row related to choice management.
+ * @param {jQuery} $row The jQuery object for the .mobooking-service-option-row.
+ */
+function initializeChoiceManagementForRow($row) {
+    // Check if already initialized for basic event handlers to avoid redundant work if logic gets complex
+    // Note: renderChoices and sortable have their own internal guards or idempotent behaviors.
+    // The .off().on() pattern for events already handles re-binding safely.
+    if ($row.data('choice-management-fully-initialized')) {
+         // If sortable needs re-check or other specific parts, do it here.
+         // For now, if events are bound and sortable is on, we assume it's mostly fine.
+         // Re-running renderChoices can be an option if data might get stale and not re-rendered by type change.
+         // renderChoices($row); // Optional: uncomment if state could be desynced and needs refresh
+        return;
     }
+
+    // Initial rendering of choices from textarea
+    renderChoices($row);
+
+    // Get the choices list once and reuse it
+    const $choicesList = $row.find('.mobooking-choices-list');
+
+    // Event listener for "Add Choice" button specific to this row
+    $row.find('.mobooking-add-choice-btn').off('click.mobooking').on('click.mobooking', function() {
+        const $optionRow = $(this).closest('.mobooking-service-option-row');
+        // const choiceTemplate = $('#mobooking-choice-item-template').html(); // Now using cached choiceTemplateHTML
+        if (!choiceTemplateHTML) return; // Do not proceed if template is missing
+        const $newItem = $(choiceTemplateHTML);
+        
+        $newItem.find('input').val(''); // Clear all inputs in the new choice item
+        $optionRow.find('.mobooking-choices-list').append($newItem);
+        syncTextarea($optionRow);
+    });
+
+    // Delegated event listeners for inputs and remove button within this row's choices list
+    $choicesList.off('click.mobooking', '.mobooking-remove-choice-btn').on('click.mobooking', '.mobooking-remove-choice-btn', function() {
+        const $optionRow = $(this).closest('.mobooking-service-option-row');
+        $(this).closest('.mobooking-choice-item').remove();
+        syncTextarea($optionRow);
+    });
+
+    $choicesList.off('change.mobooking input.mobooking', '.mobooking-choice-label, .mobooking-choice-value, .mobooking-choice-price-adjust')
+        .on('change.mobooking input.mobooking', '.mobooking-choice-label, .mobooking-choice-value, .mobooking-choice-price-adjust', function() {
+        const $optionRow = $(this).closest('.mobooking-service-option-row');
+        syncTextarea($optionRow);
+    });
+    
+    // When the option type changes (original select for the row)
+    $row.find('.mobooking-option-type').off('change.mobookingChoices').on('change.mobookingChoices', function() {
+        const $select = $(this);
+        const $optionRow = $select.closest('.mobooking-service-option-row');
+        const $valuesField = $optionRow.find('.mobooking-option-values-field');
+        const type = $select.val();
+
+        if ($valuesField.is(':visible') && (type === 'select' || type === 'radio')) {
+             renderChoices($optionRow); // Re-render choices if field becomes visible
+        }
+    });
+
+    // Make the choices list sortable (reusing the $choicesList variable)
+    if ($.fn.sortable && !$choicesList.hasClass('ui-sortable')) { // Check if jQuery UI sortable is loaded and not already initialized
+        $choicesList.sortable({
+            items: '.mobooking-choice-item',
+            handle: '.mobooking-choice-drag-handle',
+            axis: 'y',
+            placeholder: 'mobooking-choice-item-placeholder',
+            tolerance: 'pointer',
+            containment: 'parent', // Constrain dragging to the list itself
+            stop: function(event, ui) {
+                // 'this' is the $choicesList DOM element
+                var $optionRow = $(this).closest('.mobooking-service-option-row');
+                syncTextarea($optionRow);
+            }
+        }).disableSelection(); // Optional: prevent text selection during drag
+    } else {
+        console.warn('jQuery UI Sortable is not loaded. Drag-and-drop for choices will not be available.');
+    }
+    $row.data('choice-management-fully-initialized', true); 
+}
 
 
     // Observe the options list for newly added rows
@@ -633,7 +633,7 @@ jQuery(document).ready(function($) {
     // This targets rows that are part of the initially loaded DOM (e.g. when editing a service)
     $('#mobooking-service-options-list .mobooking-service-option-row').each(function() {
         var $currentRow = $(this);
-        initializeCustomRadiosForRow($currentRow);
+        initializeCustomRadiosForRow($currentRow); 
         initializeChoiceManagementForRow($currentRow);
     });
     // Note: The line "$row.data('choice-management-fully-initialized', true);" was identified as incorrect here and is now correctly placed inside initializeChoiceManagementForRow
