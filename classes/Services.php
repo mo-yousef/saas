@@ -508,24 +508,29 @@ class Services {
         }
 
     $duration_from_post = isset($_POST['duration']) ? strval($_POST['duration']) : null;
-    if (is_null($duration_from_post) || !ctype_digit($duration_from_post) || intval($duration_from_post) <=0) { // Assuming duration must be positive
-        error_log('[MoBooking SaveSvc Debug] Validation Error: Valid positive duration (integer) is required. Received: ' . print_r($duration_from_post, true));
+    if (is_null($duration_from_post) || !ctype_digit($duration_from_post) || intval($duration_from_post) <=0) {
+        error_log('[MoBooking SaveSvc Debug] Validation Error: Duration validation failed. Input: \'' . print_r($duration_from_post, true) . '\'. Must be a positive integer.');
             if (ob_get_length()) ob_clean();
         wp_send_json_error(['message' => __('Valid positive duration (integer) is required.', 'mobooking')], 400);
             return;
         }
 
+    // Prepare data, converting empty optional strings to null
+    $category_from_post = isset($_POST['category']) ? trim($_POST['category']) : '';
+    $icon_from_post = isset($_POST['icon']) ? trim($_POST['icon']) : '';
+    $image_url_from_post = isset($_POST['image_url']) ? trim($_POST['image_url']) : '';
+
         $data_for_service_method = [
-        'name' => sanitize_text_field($trimmed_service_name), // Use the trimmed name
+        'name' => sanitize_text_field($trimmed_service_name),
             'description' => wp_kses_post(isset($_POST['description']) ? $_POST['description'] : ''),
         'price' => floatval($price_from_post),
         'duration' => intval($duration_from_post),
-            'category' => sanitize_text_field(isset($_POST['category']) ? $_POST['category'] : ''),
-            'icon' => sanitize_text_field(isset($_POST['icon']) ? $_POST['icon'] : ''),
-            'image_url' => esc_url_raw(isset($_POST['image_url']) ? $_POST['image_url'] : ''),
+        'category' => !empty($category_from_post) ? sanitize_text_field($category_from_post) : null,
+        'icon' => !empty($icon_from_post) ? sanitize_text_field($icon_from_post) : null,
+        'image_url' => !empty($image_url_from_post) ? esc_url_raw($image_url_from_post) : null,
             'status' => sanitize_text_field(isset($_POST['status']) ? $_POST['status'] : 'active'),
         ];
-        error_log('[MoBooking SaveSvc Debug] Data for add/update_service: ' . print_r($data_for_service_method, true));
+    error_log('[MoBooking SaveSvc Debug] Data for add/update_service (with nulls for empty optionals): ' . print_r($data_for_service_method, true));
 
         $result_service_save = null;
         $message = '';
@@ -639,25 +644,36 @@ class Services {
     }
 
     public function handle_get_service_details_ajax() {
-        check_ajax_referer('mobooking_services_nonce', 'nonce');
+        // Make check_ajax_referer not die, so we can send a custom JSON response
+        if (!check_ajax_referer('mobooking_services_nonce', 'nonce', false)) {
+            wp_send_json_error(['message' => __('Error: Nonce verification failed.', 'mobooking')], 403);
+            return;
+        }
+
         $user_id = get_current_user_id();
         if (!$user_id) {
-            wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403);
+            wp_send_json_error(['message' => __('Error: User not authenticated.', 'mobooking')], 401); // 401 Unauthorized
             return;
         }
 
-        $service_id = isset($_POST['service_id']) ? intval($_POST['service_id']) : 0;
-        if (empty($service_id)) {
-            wp_send_json_error(['message' => __('Service ID is required.', 'mobooking')], 400);
+        if (!isset($_POST['service_id']) || empty($_POST['service_id']) || !is_numeric($_POST['service_id'])) {
+            wp_send_json_error(['message' => __('Error: Service ID is missing or invalid.', 'mobooking')], 400);
+            return;
+        }
+        $service_id = (int) $_POST['service_id'];
+
+        $service_details = $this->get_service($service_id, $user_id);
+
+        if (is_wp_error($service_details)) { // If get_service could return WP_Error for some reason
+            wp_send_json_error(['message' => $service_details->get_error_message()], 500);
             return;
         }
 
-        $service_details = $this->get_service($service_id, $user_id); // get_service already includes options
-
-        if ($service_details) {
-            wp_send_json_success(['service' => $service_details]);
-        } else {
-            wp_send_json_error(['message' => __('Service not found or permission denied.', 'mobooking')], 404);
+        if (!$service_details) { // Assuming get_service returns null for "not found" or permission issues
+            wp_send_json_error(['message' => __('Error: Service not found or access denied.', 'mobooking')], 404);
+            return;
         }
+
+        wp_send_json_success(['service' => $service_details]); // Ensure data is keyed under 'service' if JS expects response.data.service
     }
 }
