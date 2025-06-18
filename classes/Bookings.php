@@ -346,11 +346,11 @@ class Bookings {
 
                     if ($is_option_selected_or_has_value) {
                         if ($db_option['price_impact_type'] === 'fixed') {
-                            option_price_impact = $impact_val;
+                            $option_price_impact = $impact_val;
                         } elseif ($db_option['price_impact_type'] === 'percentage') {
-                            option_price_impact = $current_item_base_price * ($impact_val / 100);
+                            $option_price_impact = $current_item_base_price * ($impact_val / 100);
                         } elseif ($db_option['price_impact_type'] === 'multiply_value' && $db_option['type'] === 'quantity') {
-                            option_price_impact = $impact_val * (intval($selected_val) ?: 0);
+                            $option_price_impact = $impact_val * (intval($selected_val) ?: 0);
                         } elseif (($db_option['type'] === 'select' || $db_option['type'] === 'radio') && !empty($db_option['option_values'])) {
                              // Price adjustments from specific choices within select/radio
                             $parsed_choices = json_decode($db_option['option_values'], true);
