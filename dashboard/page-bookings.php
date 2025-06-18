@@ -3,10 +3,21 @@
  * Dashboard Page: Bookings
  * @package MoBooking
  */
+
+// Ensure critical classes are loaded
+// Assuming dashboard/page-bookings.php is one level down from the directory containing classes/.
+require_once __DIR__ . '/../classes/Database.php';
+require_once __DIR__ . '/../classes/Utils.php';
+require_once __DIR__ . '/../classes/Services.php';
+require_once __DIR__ . '/../classes/Discounts.php';
+require_once __DIR__ . '/../classes/Notifications.php';
+require_once __DIR__ . '/../classes/Bookings.php';
+// No separate BookingsManager.php was indicated; $bookings_manager is an instance of \MoBooking\Classes\Bookings
+
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
 // Instantiate necessary classes
-// Assuming these classes are autoloaded or included elsewhere.
+// Classes are now explicitly required above.
 // If not, require_once statements would be needed here for:
 // - MoBooking\Classes\Discounts
 // - MoBooking\Classes\Notifications

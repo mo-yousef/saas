@@ -195,3 +195,9 @@ wp_nonce_field('mobooking_services_nonce', 'mobooking_services_nonce_field');
         </p>
     </div>
 </script>
+
+<script type="text/javascript">
+    // Pass initial services data (including options) to JavaScript for caching
+    // This ensures the edit form can be populated without an immediate AJAX call for initially loaded items.
+    var mobooking_initial_services_list_for_cache = <?php echo wp_json_encode($services_list); ?>;
+</script>

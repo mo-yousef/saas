@@ -261,6 +261,7 @@ class Services {
         add_action('wp_ajax_mobooking_add_service_option', [$this, 'handle_add_service_option_ajax']);
         add_action('wp_ajax_mobooking_update_service_option', [$this, 'handle_update_service_option_ajax']);
         add_action('wp_ajax_mobooking_delete_service_option', [$this, 'handle_delete_service_option_ajax']);
+        add_action('wp_ajax_mobooking_get_service_details', [$this, 'handle_get_service_details_ajax']); // For editing
 
         // For public booking form
         add_action('wp_ajax_nopriv_mobooking_get_public_services', [$this, 'handle_get_public_services_ajax']);
@@ -488,33 +489,37 @@ class Services {
         // die('[DEBUG] Service ID determined: ' . $service_id);
         error_log('[MoBooking SaveSvc Debug] Service ID for save/update: ' . $service_id);
 
-        if (empty($_POST['name'])) {
-            error_log('[MoBooking SaveSvc Debug] Validation Error: Service name is required.');
+    $service_name_from_post = isset($_POST['name']) ? (string) $_POST['name'] : '';
+    $trimmed_service_name = trim($service_name_from_post);
+
+    if (empty($trimmed_service_name)) {
+        error_log('[MoBooking SaveSvc Debug] Validation Error: Service name (after trim) is required. Original POST name: \'' . $service_name_from_post . '\'');
             if (ob_get_length()) ob_clean();
             wp_send_json_error(['message' => __('Service name is required.', 'mobooking')], 400);
             return;
         }
-        // die('[DEBUG] Name validation PASSED.');
-        if (!isset($_POST['price']) || !is_numeric($_POST['price'])) {
-            error_log('[MoBooking SaveSvc Debug] Validation Error: Valid price is required. Received: ' . print_r($_POST['price'], true));
+
+    $price_from_post = isset($_POST['price']) ? $_POST['price'] : null;
+    if (is_null($price_from_post) || !is_numeric($price_from_post)) {
+        error_log('[MoBooking SaveSvc Debug] Validation Error: Valid price is required. Received: ' . print_r($price_from_post, true));
             if (ob_get_length()) ob_clean();
             wp_send_json_error(['message' => __('Valid price is required.', 'mobooking')], 400);
             return;
         }
-        // die('[DEBUG] Price validation PASSED.');
-         if (!isset($_POST['duration']) || !ctype_digit(strval($_POST['duration']))) {
-            error_log('[MoBooking SaveSvc Debug] Validation Error: Valid duration (positive integer) is required. Received: ' . print_r($_POST['duration'], true));
+
+    $duration_from_post = isset($_POST['duration']) ? strval($_POST['duration']) : null;
+    if (is_null($duration_from_post) || !ctype_digit($duration_from_post) || intval($duration_from_post) <=0) { // Assuming duration must be positive
+        error_log('[MoBooking SaveSvc Debug] Validation Error: Valid positive duration (integer) is required. Received: ' . print_r($duration_from_post, true));
             if (ob_get_length()) ob_clean();
-            wp_send_json_error(['message' => __('Valid duration (positive integer) is required.', 'mobooking')], 400);
+        wp_send_json_error(['message' => __('Valid positive duration (integer) is required.', 'mobooking')], 400);
             return;
         }
-        // die('[DEBUG] Duration validation PASSED.');
 
         $data_for_service_method = [
-            'name' => sanitize_text_field($_POST['name']),
+        'name' => sanitize_text_field($trimmed_service_name), // Use the trimmed name
             'description' => wp_kses_post(isset($_POST['description']) ? $_POST['description'] : ''),
-            'price' => floatval($_POST['price']),
-            'duration' => intval($_POST['duration']),
+        'price' => floatval($price_from_post),
+        'duration' => intval($duration_from_post),
             'category' => sanitize_text_field(isset($_POST['category']) ? $_POST['category'] : ''),
             'icon' => sanitize_text_field(isset($_POST['icon']) ? $_POST['icon'] : ''),
             'image_url' => esc_url_raw(isset($_POST['image_url']) ? $_POST['image_url'] : ''),
@@ -633,5 +638,26 @@ class Services {
         if (ob_get_length()) ob_end_clean(); // Final cleanup if buffer is still active.
     }
 
+    public function handle_get_service_details_ajax() {
+        check_ajax_referer('mobooking_services_nonce', 'nonce');
+        $user_id = get_current_user_id();
+        if (!$user_id) {
+            wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403);
+            return;
+        }
 
+        $service_id = isset($_POST['service_id']) ? intval($_POST['service_id']) : 0;
+        if (empty($service_id)) {
+            wp_send_json_error(['message' => __('Service ID is required.', 'mobooking')], 400);
+            return;
+        }
+
+        $service_details = $this->get_service($service_id, $user_id); // get_service already includes options
+
+        if ($service_details) {
+            wp_send_json_success(['service' => $service_details]);
+        } else {
+            wp_send_json_error(['message' => __('Service not found or permission denied.', 'mobooking')], 404);
+        }
+    }
 }
