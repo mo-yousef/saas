@@ -4,14 +4,32 @@ Theme URI: https://example.com/mobooking
 Author: Your Name/Company
 Author URI: https://example.com/
 Description: A multi-tenant SaaS application for cleaning service businesses to manage their bookings online.
-Version: 0.1.2
+Version: 0.1.3
 License: GNU General Public License v2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 Text Domain: mobooking
 Tags: booking, services, business, multi-tenant
 */
 
-/* Global Resets are in assets/css/reset.css and enqueued first */
+/* Remove all focus outlines */
+*:focus {
+    outline: none;
+}
+
+/* Global Resets and Base Styles */
+html,
+body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    box-sizing: border-box;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: inherit;
+}
 
 /*--------------------------------------------------------------
 >>> TABLE OF CONTENTS:
@@ -20,130 +38,202 @@ Tags: booking, services, business, multi-tenant
 2.0 Links & Buttons
 3.0 Forms (Inputs, Textareas, Selects)
 4.0 Tables
-5.0 Basic Layout & Utility Classes (e.g., .mobooking-box)
-6.0 WordPress Core Alignments & Generated Classes (minimal)
+5.0 Basic Layout & Utility Classes
+6.0 WordPress Core Alignments & Generated Classes
 7.0 Modal Styles
-8.0 Dashboard Specific Enhancements (New Section for General Dashboard Styling)
+8.0 Dashboard Specific Enhancements
 --------------------------------------------------------------*/
 
 /*--------------------------------------------------------------
 1.0 General Body & Typography
 --------------------------------------------------------------*/
 body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
-    font-size: 15px; /* Adjusted for compactness */
-    line-height: 1.6;
-    color: #333; /* Default text color */
-    background-color: #f9f9f9; /* Light background for overall pages, dashboard might override */
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    font-weight: 500;
+    color: hsl(222.2 84% 4.9%);
+    background-color: hsl(0 0% 100%);
+    font-feature-settings: "rlig" 1, "calt" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
-h1, h2, h3, h4, h5, h6 {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; /* Consistent with body */
-    margin-top: 1.2em; /* Slightly reduced margin */
-    margin-bottom: 0.6em; /* Slightly reduced margin */
+body.mobooking-dashboard {
+    display: flex;
+    flex-direction: column;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-family: inherit;
+    margin-top: 0rem;
+    margin-bottom: 0.5rem;
     font-weight: 600;
-    line-height: 1.3;
+    line-height: 1.25;
+    letter-spacing: -0.025em;
+    color: hsl(222.2 84% 4.9%);
 }
 
-h1 { font-size: 2em; }
-h2 { font-size: 1.75em; }
-h3 { font-size: 1.5em; }
-h4 { font-size: 1.25em; }
-h5 { font-size: 1.1em; } /* Existing was 1.1em, kept */
-h6 { font-size: 1em; }   /* Existing was 1em, kept */
+h1 {
+    font-size: 2.25rem;
+    font-weight: 800;
+}
+
+h2 {
+    font-size: 1.875rem;
+    font-weight: 700;
+}
+
+h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+h4 {
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+h5 {
+    font-size: 1.125rem;
+    font-weight: 600;
+}
+
+h6 {
+    font-size: 1rem;
+    font-weight: 600;
+}
 
 p {
-    margin-bottom: 0.9em; /* Slightly reduced margin */
+    margin-bottom: 1rem;
+    color: hsl(215.4 16.3% 46.9%);
 }
 
-strong, b {
+strong,
+b {
     font-weight: 600;
 }
 
-em, i {
+em,
+i {
     font-style: italic;
+}
+
+small {
+    font-size: 0.75rem;
+    color: hsl(215.4 16.3% 46.9%);
 }
 
 /*--------------------------------------------------------------
 2.0 Links & Buttons
 --------------------------------------------------------------*/
 a {
-    color: #0073aa; /* WordPress blue */
+    color: hsl(221.2 83.2% 53.3%);
     text-decoration: none;
+    transition: color 0.15s ease;
 }
 
 a:hover,
 a:focus {
-    color: #005177;
+    color: hsl(221.2 83.2% 53.3%);
     text-decoration: underline;
 }
 
-/* Basic button styling - WordPress .button class is more specific in admin/dashboard */
+/* Button Base Styles */
 button,
 input[type="button"],
 input[type="reset"],
 input[type="submit"],
-.button { /* Target .button class as well for consistency */
-    display: inline-block;
-    text-decoration: none;
-    font-size: 14px;
-    line-height: 1;
-    padding: 10px 15px;
-    margin-bottom: 5px; /* Basic spacing */
-    cursor: pointer;
-    border-width: 1px;
-    border-style: solid;
-    border-radius: 3px;
+.button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     white-space: nowrap;
-    box-sizing: border-box;
-
-    /* Default button colors - primary actions should use .button-primary */
-    background-color: #f7f7f7;
-    border-color: #ccc;
-    color: #555;
-}
-
-button:hover, button:focus,
-input[type="button"]:hover, input[type="button"]:focus,
-input[type="reset"]:hover, input[type="reset"]:focus,
-input[type="submit"]:hover, input[type="submit"]:focus,
-.button:hover, .button:focus {
-    background-color: #f0f0f0;
-    border-color: #999;
-    color: #333;
-}
-
-/* WordPress primary button style (for frontend consistency if needed) */
-.button-primary {
-    background: #0073aa;
-    border-color: #006799 #005f8d #005f8d;
-    box-shadow: none;
-    color: #fff;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.15s ease;
+    cursor: pointer;
+    border: 1px solid transparent;
+    padding: 0.5rem 1rem;
+    height: 2.25rem;
     text-decoration: none;
-    text-shadow: none;
+    line-height: 1;
+}
+
+/* Primary Button */
+.button-primary,
+button.button-primary,
+input[type="submit"].button-primary {
+    background: hsl(221.2 83.2% 53.3%);
+    color: hsl(210 40% 98%);
+    border-color: hsl(221.2 83.2% 53.3%);
 }
 
 .button-primary:hover,
-.button-primary:focus {
-    background: #005177;
-    border-color: #005177;
-    color: #fff;
+.button-primary:focus,
+button.button-primary:hover,
+input[type="submit"].button-primary:hover {
+    background: hsl(221.2 83.2% 53.3% / 0.9);
+    border-color: hsl(221.2 83.2% 53.3% / 0.9);
+    color: hsl(210 40% 98%);
+    text-decoration: none;
 }
 
-.button-link-delete {
-    color: #dc3232;
-    border-color: transparent;
-    background: transparent;
-    box-shadow: none;
-    padding: 0;
-    line-height: inherit;
+/* Secondary Button */
+button,
+input[type="button"],
+input[type="reset"],
+input[type="submit"],
+.button {
+    background: hsl(0 0% 100%);
+    border-color: hsl(214.3 31.8% 91.4%);
+    color: hsl(222.2 84% 4.9%);
 }
+
+button:hover,
+input[type="button"]:hover,
+input[type="reset"]:hover,
+input[type="submit"]:hover,
+.button:hover {
+    background: hsl(210 40% 96%);
+    border-color: hsl(214.3 31.8% 91.4%);
+    color: hsl(222.2 84% 4.9%);
+    text-decoration: none;
+}
+
+/* Destructive Button */
+.button-link-delete,
+.mobooking-button-delete {
+    background: hsl(0 84.2% 60.2%);
+    border-color: hsl(0 84.2% 60.2%);
+    color: hsl(210 40% 98%);
+}
+
 .button-link-delete:hover,
-.button-link-delete:focus {
-    color: #a00;
-    text-decoration: underline;
+.mobooking-button-delete:hover {
+    background: hsl(0 84.2% 60.2% / 0.9);
+    border-color: hsl(0 84.2% 60.2% / 0.9);
+    color: hsl(210 40% 98%);
+    text-decoration: none;
 }
 
+/* Ghost Button */
+.button-ghost {
+    background: transparent;
+    border-color: transparent;
+    color: hsl(222.2 84% 4.9%);
+}
+
+.button-ghost:hover {
+    background: hsl(210 40% 96%);
+    color: hsl(222.2 84% 4.9%);
+}
 
 /*--------------------------------------------------------------
 3.0 Forms (Inputs, Textareas, Selects)
@@ -159,17 +249,25 @@ input[type="date"],
 input[type="time"],
 textarea,
 select {
-    padding: 8px 10px;
-    border: 1px solid #ddd;
-    border-radius: 3px;
-    box-shadow: inset 0 1px 2px rgba(0,0,0,.07);
-    background-color: #fff;
-    color: #32373c;
-    font-size: 14px;
-    line-height: 1.4;
-    width: 100%; /* Default to full width for block display */
-    max-width: 400px; /* Cap max width for readability */
-    margin-bottom: 10px; /* Basic spacing */
+    display: flex;
+    height: 2.25rem;
+    width: 100%;
+    border-radius: 0.375rem;
+    border: 1px solid hsl(214.3 31.8% 91.4%);
+    background-color: hsl(0 0% 100%);
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    color: hsl(222.2 84% 4.9%);
+    max-width: 24rem;
+    margin-bottom: 0.75rem;
+}
+
+textarea {
+    min-height: 4rem;
+    height: auto;
+    resize: vertical;
+    max-width: 32rem;
 }
 
 input[type="text"]:focus,
@@ -183,26 +281,55 @@ input[type="date"]:focus,
 input[type="time"]:focus,
 textarea:focus,
 select:focus {
-    border-color: #0073aa;
-    box-shadow: 0 0 0 1px #0073aa;
-    outline: 2px solid transparent;
+    border-color: hsl(221.2 83.2% 53.3%);
+    box-shadow: 0 0 0 2px hsl(221.2 83.2% 53.3% / 0.2);
 }
 
-textarea {
-    width: 100%;
-    max-width: 600px; /* Textareas can be wider */
+input::placeholder,
+textarea::placeholder {
+    color: hsl(215.4 16.3% 46.9%);
 }
 
 label {
     display: block;
-    margin-bottom: 0.5em;
-    font-weight: 600;
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: hsl(222.2 84% 4.9%);
 }
 
 input[type="checkbox"],
 input[type="radio"] {
-    margin-right: 0.5em;
+    margin-right: 0.5rem;
     vertical-align: middle;
+    width: auto;
+    height: auto;
+    max-width: none;
+    margin-bottom: 0;
+}
+
+/* Form Field Sizing Classes */
+.regular-text {
+    width: 25rem;
+}
+
+.small-text {
+    width: 5rem;
+}
+
+.large-text {
+    width: 100%;
+    max-width: 40rem;
+}
+
+.code {
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+    font-size: 0.8125rem;
+}
+
+.mobooking-bf-input {
+    width: 100%;
+    max-width: none;
 }
 
 /*--------------------------------------------------------------
@@ -210,270 +337,241 @@ input[type="radio"] {
 --------------------------------------------------------------*/
 table {
     width: 100%;
-    margin-bottom: 1.5em;
-    border: 1px solid #e5e5e5;
+    caption-side: bottom;
+    border-spacing: 0;
+    border-collapse: collapse;
+    margin-bottom: 1.5rem;
 }
 
-th, td {
-    padding: 10px;
+th,
+td {
+    padding: 0.75rem;
     text-align: left;
-    border-bottom: 1px solid #e5e5e5;
+    border-bottom: 1px solid hsl(214.3 31.8% 91.4%);
+    vertical-align: top;
 }
 
 thead th {
-    background-color: #f9f9f9;
+    background-color: hsl(210 40% 98%);
     font-weight: 600;
-    border-bottom-width: 2px;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: hsl(215.4 16.3% 46.9%);
+    border-bottom: 1px solid hsl(214.3 31.8% 91.4%);
+}
+
+tbody tr:hover {
+    background-color: hsl(210 40% 98%);
+}
+
+/* WordPress List Table Styles */
+.wp-list-table {
+    border: 1px solid hsl(214.3 31.8% 91.4%);
+    border-radius: 0.5rem;
+    overflow: hidden;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.wp-list-table thead th {
+    padding: 0.75rem 1rem;
+    background-color: hsl(210 40% 98%);
+    border-bottom: 1px solid hsl(214.3 31.8% 91.4%);
+}
+
+.wp-list-table tbody td {
+    padding: 1rem;
+    border-bottom: 1px solid hsl(214.3 31.8% 91.4%);
+}
+
+.wp-list-table tbody tr:nth-child(odd) {
+    background-color: hsl(0 0% 100%);
+}
+
+.wp-list-table.striped>tbody>tr:nth-child(even) {
+    background-color: hsl(210 40% 98%);
+}
+
+.wp-list-table tbody tr.inactive-row td {
+    background-color: hsl(210 40% 98%);
+    color: hsl(215.4 16.3% 46.9%);
+}
+
+.wp-list-table tbody tr.inactive-row a {
+    color: hsl(215.4 16.3% 46.9%);
 }
 
 /*--------------------------------------------------------------
 5.0 Basic Layout & Utility Classes
 --------------------------------------------------------------*/
-.wrap { /* Common WordPress class for main content area */
-    max-width: 1100px;
+.wrap {
+    max-width: 68rem;
     margin: 0 auto;
-    padding: 20px;
+    padding: 1.25rem;
 }
 
-.mobooking-wrapper { /* Generic wrapper for theme sections */
-    padding: 20px;
-    background-color: #fff;
-    border: 1px solid #ddd;
-    margin-bottom: 20px;
-    box-shadow: 0 1px 1px rgba(0,0,0,.04);
+.mobooking-wrapper {
+    padding: 1.5rem;
+    background-color: hsl(0 0% 100%);
+    border: 1px solid hsl(214.3 31.8% 91.4%);
+    border-radius: 0.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 }
 
-.text-center { text-align: center; }
-.hidden { display: none; }
-.required { color: red; margin-left: 2px; }
-
-/*--------------------------------------------------------------
-6.0 WordPress Core Alignments & Generated Classes (minimal)
---------------------------------------------------------------*/
-.alignleft { float: left; margin-right: 1.5em; margin-bottom: 1em; }
-.alignright { float: right; margin-left: 1.5em; margin-bottom: 1em; }
-.aligncenter { display: block; margin-left: auto; margin-right: auto; margin-bottom: 1em; text-align:center; }
-
-.screen-reader-text {
-	border: 0;
-	clip: rect(1px, 1px, 1px, 1px);
-	clip-path: inset(50%);
-	height: 1px;
-	margin: -1px;
-	overflow: hidden;
-	padding: 0;
-	position: absolute !important;
-	width: 1px;
-	word-wrap: normal !important;
-}
-
-/* Specific input field styling used in dashboard forms */
-.regular-text {
-    width: 25em;
-}
-.small-text {
-    width: 5em;
-}
-.large-text { /* For textareas */
-    width: 98%;
-}
-.code { /* For textareas meant for code like JSON or CSS */
-    font-family: monospace;
-}
-.mobooking-bf-input { /* Class for public booking form inputs for consistency */
-    width:100%;
-    padding:8px;
-    margin-top:5px;
-    margin-bottom:10px;
-}
-/* Basic table styling for dashboard lists */
-.wp-list-table {
-    border: 1px solid #e5e5e5;
-    border-spacing: 0;
-    width: 100%;
-    clear: both;
-    margin: 0;
-}
-.wp-list-table thead th {
-    padding: 10px;
-    text-align: left;
-    background-color: #f9f9f9;
-    border-bottom: 1px solid #e5e5e5;
-}
-.wp-list-table tbody td {
-    padding: 10px;
-    border-bottom: 1px solid #f0f0f0; /* Lighter than table border */
-    vertical-align: top;
-}
-.wp-list-table tbody tr.inactive-row td { /* Example for styling inactive items */
-    background-color: #fcfcfc;
-    color: #999;
-}
-.wp-list-table tbody tr.inactive-row a {
-    color: #aaa;
-}
-.wp-list-table tbody tr:nth-child(odd) {
-    /* background-color: #f9f9f9; */ /* Removed for .striped */
-}
-.wp-list-table.striped > tbody > tr:nth-child(odd) {
-    background-color: #f9f9f9;
-}
-
-/* Basic pagination styling */
-.mobooking-pagination {
-    margin: 20px 0;
-    padding: 0;
-    list-style: none;
+/* Utility Classes */
+.text-center {
     text-align: center;
 }
-.mobooking-pagination li {
-    display: inline-block;
-    margin: 0 2px;
+
+.hidden {
+    display: none;
 }
+
+.required {
+    color: hsl(0 84.2% 60.2%);
+    margin-left: 0.125rem;
+}
+
+/* Status Badges */
+.booking-status,
+.status-active,
+.status-confirmed {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 9999px;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    background-color: hsl(142 76% 36% / 0.1);
+    color: hsl(142 76% 36%);
+}
+
+.status-pending,
+.status-on-hold,
+.status-processing {
+    background-color: hsl(45 93% 47% / 0.1);
+    color: hsl(45 93% 47%);
+}
+
+.status-cancelled,
+.status-inactive,
+.status-expired {
+    background-color: hsl(0 84.2% 60.2% / 0.1);
+    color: hsl(0 84.2% 60.2%);
+}
+
+.status-completed {
+    background-color: hsl(221.2 83.2% 53.3% / 0.1);
+    color: hsl(221.2 83.2% 53.3%);
+}
+
+/* Pagination */
+.mobooking-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin: 1.5rem 0;
+    padding: 0;
+    list-style: none;
+}
+
 .mobooking-pagination li a,
 .mobooking-pagination li span {
-    display: inline-block;
-    padding: 5px 10px;
-    border: 1px solid #ddd;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid hsl(214.3 31.8% 91.4%);
+    border-radius: 0.375rem;
     text-decoration: none;
-    color: #0073aa;
-    background-color: #fff;
+    color: hsl(222.2 84% 4.9%);
+    background-color: hsl(0 0% 100%);
+    font-size: 0.875rem;
+    transition: all 0.15s ease;
 }
+
 .mobooking-pagination li.active a,
 .mobooking-pagination li.active span,
-.mobooking-pagination li a:hover,
-.mobooking-pagination li span:hover {
-    background-color: #0073aa;
-    color: #fff;
-    border-color: #0073aa;
-}
-.mobooking-pagination li.disabled span,
-.mobooking-pagination li.disabled a {
-    color: #999;
-    background-color: #f9f9f9;
-    border-color: #ddd;
-    cursor: default;
+.mobooking-pagination li a:hover {
+    background-color: hsl(221.2 83.2% 53.3%);
+    color: hsl(210 40% 98%);
+    border-color: hsl(221.2 83.2% 53.3%);
 }
 
-/* Dashboard specific filters bar */
-.mobooking-filters-bar label {
-    margin-right: 5px;
-    font-weight: normal;
+.mobooking-pagination li.disabled span {
+    color: hsl(215.4 16.3% 46.9%);
+    background-color: hsl(210 40% 98%);
+    border-color: hsl(214.3 31.8% 91.4%);
+    cursor: not-allowed;
 }
+
+/* Filters Bar */
+.mobooking-filters-bar {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background-color: hsl(210 40% 98%);
+    border: 1px solid hsl(214.3 31.8% 91.4%);
+    border-radius: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.mobooking-filters-bar label {
+    margin-bottom: 0;
+    font-weight: 500;
+}
+
 .mobooking-filters-bar input[type="text"],
 .mobooking-filters-bar select {
-    margin-right: 15px;
-    margin-bottom: 0; /* Align with buttons */
-    padding: 6px 8px; /* Slightly smaller for filter bar */
-    max-width: 150px;
+    margin-bottom: 0;
+    max-width: 12rem;
 }
+
 .mobooking-filters-bar input[type="text"].mobooking-datepicker {
-    width: 120px;
-}
-.mobooking-filters-bar .button {
-    vertical-align: middle;
-}
-
-/* Dashboard form table styling for settings pages */
-.form-table th {
-    width: 200px;
-    padding: 15px 10px;
-    vertical-align: top;
-}
-.form-table td {
-    padding: 10px;
-    vertical-align: top;
-}
-.form-table td .description {
-    font-size: 0.9em;
-    color: #666;
-    font-style: italic;
-}
-
-/* Feedback messages styling */
-#mobooking-settings-feedback.notice,
-#mobooking-discount-form-feedback.notice,
-#mobooking-service-form-feedback.notice {
-    padding: 10px;
-    margin-bottom: 15px;
-    border-left-width: 4px;
-    border-left-style: solid;
-}
-#mobooking-settings-feedback.notice-success,
-#mobooking-discount-form-feedback.notice-success,
-#mobooking-service-form-feedback.notice-success {
-    background-color: #f0fff0;
-    border-left-color: #4CAF50;
-}
-#mobooking-settings-feedback.notice-error,
-#mobooking-discount-form-feedback.notice-error,
-#mobooking-service-form-feedback.notice-error {
-    background-color: #fff0f0;
-    border-left-color: #F44336;
-}
-
-/* Booking form specific feedback styling */
-#mobooking-bf-feedback.success,
-#mobooking-bf-step-2-feedback.success,
-#mobooking-bf-step-3-feedback.success,
-#mobooking-bf-step-4-feedback.success,
-#mobooking-bf-step-5-feedback.success,
-#mobooking-bf-discount-feedback.success {
-    color: green;
-    border: 1px solid green;
-    background-color: #f0fff0;
-}
-#mobooking-bf-feedback.error,
-#mobooking-bf-step-2-feedback.error,
-#mobooking-bf-step-3-feedback.error,
-#mobooking-bf-step-4-feedback.error,
-#mobooking-bf-step-5-feedback.error,
-#mobooking-bf-discount-feedback.error {
-    color: red;
-    border: 1px solid red;
-    background-color: #fff0f0;
-}
-
-/* Status specific styling for lists */
-.booking-status, .status-active, .status-confirmed { background-color: #c8e6c9 !important; color: #255d28 !important; }
-.status-pending, .status-on-hold, .status-processing { background-color: #fff9c4 !important; color: #6f5f00 !important; }
-.status-cancelled, .status-inactive, .status-expired { background-color: #ffcdd2 !important; color: #c62828 !important; }
-.status-completed { background-color: #bbdefb !important; color: #0d47a1 !important; }
-
-/* Ensure table layout for dashboard lists where data-label is used for mobile */
-@media screen and (max-width: 782px) {
-	.wp-list-table tbody th,
-	.wp-list-table tbody td {
-		display: block;
-		width: auto;
-		text-align: left;
-		border-bottom: 0;
-	}
-    .wp-list-table tbody td:before {
-        content: attr(data-label);
-        float: left;
-        width: 30%; /* Adjust as needed */
-        font-weight: bold;
-        margin-right: 10px;
-        display: inline-block;
-    }
-    .wp-list-table tbody tr {
-        border-bottom: 1px solid #e5e5e5;
-    }
-     .wp-list-table tbody td .button { /* Ensure buttons stack nicely on mobile */
-        display: block;
-        margin-bottom: 5px;
-        text-align: center;
-    }
-    .wp-list-table tbody td .button:last-child {
-        margin-bottom: 0;
-    }
+    max-width: 10rem;
 }
 
 /*--------------------------------------------------------------
-7.0 Modal Styles (New Addition)
+6.0 WordPress Core Alignments & Generated Classes
 --------------------------------------------------------------*/
-/* Modal Styles for MoBooking Add/Edit Service */
+.alignleft {
+    float: left;
+    margin-right: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.alignright {
+    float: right;
+    margin-left: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.aligncenter {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+.screen-reader-text {
+    position: absolute !important;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/*--------------------------------------------------------------
+7.0 Modal Styles
+--------------------------------------------------------------*/
 #mobooking-service-form-modal-backdrop {
     display: none;
     position: fixed;
@@ -481,204 +579,609 @@ thead th {
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.6); /* Darker backdrop */
-    z-index: 1001; /* Ensure it's above content but below modal */
+    background-color: rgba(0, 0, 0, 0.4);
+    z-index: 1001;
 }
 
-#mobooking-service-form-container { /* This is the modal itself */
-    display: none; /* Hidden by default, JS toggles */
+#mobooking-service-form-container {
+    display: none;
     position: fixed;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background-color: #fff;
-    padding: 25px; /* Slightly more padding */
-    border: 1px solid #ccd0d4;
-    border-radius: 5px; /* Slightly more rounded */
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2); /* Softer, more pronounced shadow */
-    z-index: 1002; /* Above backdrop */
-    width: 90%; /* Responsive width */
-    max-width: 550px; /* Compact max-width */
-    max-height: 90vh; /* Max height relative to viewport */
-    overflow-y: auto; /* Scroll for long content */
-    box-sizing: border-box; /* Include padding and border in width/height */
+    background-color: hsl(0 0% 100%);
+    padding: 1.5rem;
+    border: 1px solid hsl(214.3 31.8% 91.4%);
+    border-radius: 0.5rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    z-index: 1002;
+    width: 90%;
+    max-width: 32rem;
+    max-height: 90vh;
+    overflow-y: auto;
 }
 
-/* Optional: Style for when modal is open to prevent body scroll */
 body.mobooking-modal-open {
     overflow: hidden;
 }
 
-/* Adjustments for form elements within the service modal for better compactness */
-#mobooking-service-form-container h2 { /* Service specific modal title */
+#mobooking-service-form-container h2 {
     margin-top: 0;
-    margin-bottom: 20px;
-    font-size: 1.4em;
+    margin-bottom: 1.5rem;
+    font-size: 1.5rem;
+    font-weight: 600;
 }
 
-#mobooking-service-form-container p { /* Paragraphs within service modal */
-    margin-bottom: 12px;
+#mobooking-service-form-container p {
+    margin-bottom: 1rem;
 }
 
-#mobooking-service-form-container label { /* Labels within service modal */
-    font-size: 0.95em;
-    margin-bottom: 4px;
+#mobooking-service-form-container label {
+    font-size: 0.875rem;
+    margin-bottom: 0.5rem;
 }
 
 #mobooking-service-form-container input[type="text"],
 #mobooking-service-form-container input[type="number"],
 #mobooking-service-form-container input[type="url"],
 #mobooking-service-form-container textarea,
-#mobooking-service-form-container select { /* Inputs within service modal */
-    padding: 8px;
-    font-size: 0.95em;
-    margin-bottom: 8px;
+#mobooking-service-form-container select {
+    margin-bottom: 1rem;
+    max-width: 100%;
 }
 
-#mobooking-service-form-container textarea { /* Textareas within service modal */
-    min-height: 60px;
+#mobooking-service-form-container textarea {
+    min-height: 4rem;
 }
 
-#mobooking-service-form-container .button-primary { /* Buttons within service modal */
-    margin-right: 8px;
-}
-
-#mobooking-service-form-container #mobooking-service-options-section { /* Options section in service modal */
-    margin-top: 15px;
-    padding-top: 10px;
-}
-#mobooking-service-form-container #mobooking-service-options-section h3 { /* Title for options section in service modal */
-    font-size: 1.2em;
-    margin-bottom: 10px;
+#mobooking-service-form-container .button-primary {
+    margin-right: 0.5rem;
 }
 
 /*--------------------------------------------------------------
-8.0 Dashboard Specific Enhancements (Continued) & Component Refinements
+8.0 Dashboard Layout
 --------------------------------------------------------------*/
-/* General wrapper for dashboard page content areas */
-/* This targets the .wrap div that has an ID starting with "mobooking-" and is inside .wp-admin (dashboard context) */
+.mobooking-dashboard-layout {
+    display: flex;
+    flex-grow: 1;
+    min-height: 0;
+}
+
+/* Sidebar Styles */
+.mobooking-dashboard-sidebar {
+    width: 250px;
+    background: hsl(222.2 84% 4.9%);
+    color: hsl(210 40% 98%);
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid hsl(214.3 31.8% 91.4%);
+    position: relative;
+    z-index: 100;
+}
+
+.mobooking-dashboard-sidebar .dashboard-branding {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid hsl(217.2 32.6% 17.5%);
+}
+
+.mobooking-dashboard-sidebar .dashboard-branding h3 {
+    margin: 0;
+    color: hsl(210 40% 98%);
+    font-size: 1.125rem;
+    font-weight: 600;
+    letter-spacing: -0.025em;
+}
+
+.mobooking-dashboard-sidebar .dashboard-branding a {
+    text-decoration: none;
+    color: inherit;
+    transition: opacity 0.15s ease;
+}
+
+.mobooking-dashboard-sidebar .dashboard-branding a:hover {
+    opacity: 0.8;
+}
+
+.mobooking-dashboard-sidebar .dashboard-nav {
+    flex-grow: 1;
+    padding: 0.5rem;
+}
+
+.mobooking-dashboard-sidebar .dashboard-nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+}
+
+.mobooking-dashboard-sidebar .dashboard-nav li a {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 0.75rem;
+    color: hsl(0, 0%, 91%);
+    text-decoration: none;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.15s ease;
+    border-radius: 0.375rem;
+    margin: 0;
+}
+
+.mobooking-dashboard-sidebar .dashboard-nav li a:hover {
+    background: hsl(217.2 32.6% 17.5%);
+    color: hsl(210 40% 98%);
+}
+
+.mobooking-dashboard-sidebar .dashboard-nav li.active a {
+    background: hsl(210 40% 98%);
+    color: hsl(222.2 84% 4.9%);
+    font-weight: 500;
+}
+
+/* Main Content Area */
+.mobooking-dashboard-main-wrapper {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-width: 0;
+}
+
+/* Header Styles */
+.mobooking-dashboard-header {
+    background: hsl(0 0% 100%);
+    padding: 0 1.5rem;
+    border-bottom: 1px solid hsl(214.3 31.8% 91.4%);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 3.5rem;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 90;
+}
+
+.mobooking-dashboard-header .dashboard-header-left,
+.mobooking-dashboard-header .dashboard-header-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.mobooking-dashboard-header .mobooking-breadcrumbs,
+.mobooking-dashboard-header .mobooking-breadcrumbs a {
+    color: hsl(215.4 16.3% 46.9%);
+    text-decoration: none;
+    font-size: 0.875rem;
+    transition: color 0.15s ease;
+}
+
+.mobooking-dashboard-header .mobooking-breadcrumbs a:hover {
+    color: hsl(222.2 84% 4.9%);
+}
+
+.mobooking-dashboard-header .user-menu {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.mobooking-dashboard-header .user-menu span {
+    font-size: 0.875rem;
+    color: hsl(215.4 16.3% 46.9%);
+}
+
+.mobooking-dashboard-header .user-menu a {
+    text-decoration: none;
+    color: hsl(222.2 84% 4.9%);
+    font-weight: 500;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.375rem;
+    transition: all 0.15s ease;
+    font-size: 0.875rem;
+}
+
+.mobooking-dashboard-header .user-menu a:hover {
+    background-color: hsl(210 40% 96%);
+}
+
+/* Content Area */
+.dashboard-page-content-area {
+    padding: 1.5rem;
+    flex-grow: 1;
+    overflow-y: auto;
+    background-color: hsl(0 0% 100%);
+}
+
+/* Mobile Navigation Toggle */
+#mobooking-mobile-nav-toggle {
+    display: none;
+    font-size: 1.25rem;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: hsl(222.2 84% 4.9%);
+    padding: 0.5rem;
+    border-radius: 0.375rem;
+    transition: background-color 0.15s ease;
+}
+
+#mobooking-mobile-nav-toggle:hover {
+    background-color: hsl(210 40% 96%);
+}
+
+/* Mobile Styles */
+@media (max-width: 768px) {
+    #mobooking-mobile-nav-toggle {
+        display: block;
+    }
+
+    .mobooking-dashboard-sidebar {
+        position: fixed;
+        left: -250px;
+        top: 0;
+        height: 100vh;
+        width: 250px;
+        z-index: 1000;
+        transition: left 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+
+    .mobooking-dashboard-sidebar.open {
+        left: 0;
+    }
+
+    .mobooking-dashboard-header {
+        padding: 0 1rem;
+        height: 3.25rem;
+    }
+
+    .dashboard-page-content-area {
+        padding: 1rem;
+    }
+
+    /* Overlay for mobile sidebar */
+    .sidebar-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.4);
+        z-index: 999;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.2s ease;
+    }
+
+    .sidebar-overlay.active {
+        opacity: 1;
+        visibility: visible;
+    }
+}
+
+/* Tablet Styles */
+@media (max-width: 1024px) and (min-width: 769px) {
+    .mobooking-dashboard-sidebar {
+        width: 220px;
+    }
+
+    .dashboard-page-content-area {
+        padding: 1.25rem;
+    }
+}
+
+/*--------------------------------------------------------------
+8.1 WordPress Admin Enhancements
+--------------------------------------------------------------*/
 .wp-admin .wrap[id^="mobooking-"] {
-    background-color: #fff;
-    padding: 20px 25px;
-    border: 1px solid #ccd0d4; /* Standard WP border color */
-    box-shadow: 0 1px 1px rgba(0,0,0,.04); /* Standard WP shadow */
-    margin-top: 20px; /* Space from admin notices or above elements */
+    background-color: hsl(0 0% 100%);
+    padding: 1.5rem;
+    border: 1px solid hsl(214.3 31.8% 91.4%);
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    margin-top: 1.5rem;
 }
 
-/* Further refine spacing for elements commonly used in these dashboard pages */
 .wp-admin .wrap[id^="mobooking-"] h1 {
-    font-size: 1.8em; /* Slightly smaller H1 for dashboard pages */
-    margin-bottom: 15px; /* Space after main page title */
+    font-size: 1.875rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: hsl(222.2 84% 4.9%);
 }
+
 .wp-admin .wrap[id^="mobooking-"] h2 {
-    font-size: 1.6em;
-    margin-top: 25px; /* More space before H2 sections */
-    margin-bottom: 10px;
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    color: hsl(222.2 84% 4.9%);
 }
+
 .wp-admin .wrap[id^="mobooking-"] h3 {
-    font-size: 1.35em;
-    margin-top: 20px; /* More space before H3 sections */
-    margin-bottom: 8px;
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+    color: hsl(222.2 84% 4.9%);
 }
 
-/* Reduce bottom margin for form tables for a tighter layout */
+/* Form Table Styling */
 .wp-admin .wrap[id^="mobooking-"] .form-table {
-    margin-bottom: 1em;
+    margin-bottom: 1.5rem;
 }
 
-/* General dashboard list items styling for compactness */
+.wp-admin .wrap[id^="mobooking-"] .form-table th {
+    width: 14rem;
+    padding: 1rem 1.25rem 1rem 0;
+    vertical-align: top;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: hsl(222.2 84% 4.9%);
+}
+
+.wp-admin .wrap[id^="mobooking-"] .form-table td {
+    padding: 0.75rem 0;
+    vertical-align: top;
+}
+
+.wp-admin .wrap[id^="mobooking-"] .form-table td .description {
+    font-size: 0.8125rem;
+    color: hsl(215.4 16.3% 46.9%);
+    margin-top: 0.5rem;
+}
+
+/* Feedback Messages */
+#mobooking-settings-feedback.notice,
+#mobooking-discount-form-feedback.notice,
+#mobooking-service-form-feedback.notice {
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-radius: 0.375rem;
+    border: 1px solid;
+    font-size: 0.875rem;
+}
+
+#mobooking-settings-feedback.notice-success,
+#mobooking-discount-form-feedback.notice-success,
+#mobooking-service-form-feedback.notice-success {
+    background-color: hsl(142 76% 36% / 0.1);
+    border-color: hsl(142 76% 36% / 0.3);
+    color: hsl(142 76% 36%);
+}
+
+#mobooking-settings-feedback.notice-error,
+#mobooking-discount-form-feedback.notice-error,
+#mobooking-service-form-feedback.notice-error {
+    background-color: hsl(0 84.2% 60.2% / 0.1);
+    border-color: hsl(0 84.2% 60.2% / 0.3);
+    color: hsl(0 84.2% 60.2%);
+}
+
+/* Booking Form Feedback */
+#mobooking-bf-feedback.success,
+#mobooking-bf-step-2-feedback.success,
+#mobooking-bf-step-3-feedback.success,
+#mobooking-bf-step-4-feedback.success,
+#mobooking-bf-step-5-feedback.success,
+#mobooking-bf-discount-feedback.success {
+    color: hsl(142 76% 36%);
+    border: 1px solid hsl(142 76% 36% / 0.3);
+    background-color: hsl(142 76% 36% / 0.1);
+    padding: 0.75rem;
+    border-radius: 0.375rem;
+    margin-bottom: 1rem;
+}
+
+#mobooking-bf-feedback.error,
+#mobooking-bf-step-2-feedback.error,
+#mobooking-bf-step-3-feedback.error,
+#mobooking-bf-step-4-feedback.error,
+#mobooking-bf-step-5-feedback.error,
+#mobooking-bf-discount-feedback.error {
+    color: hsl(0 84.2% 60.2%);
+    border: 1px solid hsl(0 84.2% 60.2% / 0.3);
+    background-color: hsl(0 84.2% 60.2% / 0.1);
+    padding: 0.75rem;
+    border-radius: 0.375rem;
+    margin-bottom: 1rem;
+}
+
+/*--------------------------------------------------------------
+8.2 Dashboard Component Styles
+--------------------------------------------------------------*/
+
+/* Service, Booking, Discount Items */
 .mobooking-service-item,
 .mobooking-booking-item,
-.mobooking-discount-item, /* Assuming this class is used for discount rows in table */
 .mobooking-area-item {
-    padding: 10px 12px; /* Slightly reduced padding */
-    margin-bottom: 8px; /* Slightly reduced margin */
-}
-/* For table rows, padding is on td/th, so this won't apply directly to <tr> but is here for consistency if structure changes */
-tr.mobooking-discount-item td {
-    padding-top: 8px;
-    padding-bottom: 8px;
-}
-
-
-/* Ensure dashboard buttons are consistently sized if not using WP default .button */
-.wp-admin .wrap[id^="mobooking-"] button,
-.wp-admin .wrap[id^="mobooking-"] input[type="submit"],
-.wp-admin .wrap[id^="mobooking-"] input[type="button"],
-.wp-admin .wrap[id^="mobooking-"] .button { /* Catch all .button uses within our pages */
-    font-size: 13px; /* Standard WP admin button font size */
-    padding: 6px 12px; /* Compact padding */
-    height: auto; /* Ensure height is not fixed if WP styles do that */
+    padding: 1rem;
+    margin-bottom: 1rem;
+    background: hsl(0 0% 100%);
+    border: 1px solid hsl(214.3 31.8% 91.4%);
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 }
 
-/* Compact filter bars */
-.mobooking-filters-bar {
-    padding: 12px 15px; /* Reduced padding */
-}
-.mobooking-filters-bar input[type="text"],
-.mobooking-filters-bar select {
-    padding: 6px 8px; /* Keep this compact */
+.wp-admin .mobooking-service-item h3,
+.wp-admin .mobooking-booking-item h3 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    margin-top: 0;
+    color: hsl(222.2 84% 4.9%);
 }
 
-/* 8.1 Buttons in WP Admin */
-.wp-admin .button,
-.wp-admin input[type="submit"],
-.wp-admin input[type="button"],
-.wp-admin input[type="reset"] { /* General WP buttons in admin */
-    /* font-size: 13px; /* Already set by WP default or previous rule */
-    padding: 6px 12px;
-    height: auto;
-    line-height: normal; /* Or 1.5 for slightly more space if text feels cramped */
-    border-radius: 3px;
+.wp-admin .mobooking-service-item p,
+.wp-admin .mobooking-booking-item p {
+    margin-bottom: 0.5rem;
+    color: hsl(215.4 16.3% 46.9%);
+    font-size: 0.875rem;
+}
+
+/* Area Items Specific Layout */
+.wp-admin .mobooking-area-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.5rem;
+}
+
+/* Overview Page KPI Boxes */
+.wp-admin #mobooking-overview-content .kpi-box,
+.wp-admin #mobooking-overview-content #mobooking-overview-recent-bookings-section,
+.wp-admin #mobooking-overview-content #mobooking-overview-quick-actions-section {
+    background-color: hsl(0 0% 100%);
+    padding: 1.5rem;
+    border: 1px solid hsl(214.3 31.8% 91.4%);
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    margin-bottom: 1.5rem;
+}
+
+.wp-admin #mobooking-overview-content .kpi-box h4 {
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+    color: hsl(215.4 16.3% 46.9%);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.wp-admin #mobooking-overview-content .kpi-box p {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0;
+    color: hsl(222.2 84% 4.9%);
+}
+
+/* Quick Actions */
+.wp-admin #mobooking-overview-quick-actions-section ul {
+    padding-left: 0;
+    list-style: none;
+    margin-bottom: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.wp-admin #mobooking-overview-quick-actions-section .button.button-large {
+    width: 100%;
+    justify-content: center;
+    padding: 0.75rem 1rem;
+    font-weight: 500;
+}
+
+/* Recent Bookings */
+.wp-admin .mobooking-overview-booking-item {
+    border-bottom: 1px solid hsl(214.3 31.8% 91.4%);
+    padding: 1rem 0;
+    margin-bottom: 1rem;
+}
+
+.wp-admin .mobooking-overview-booking-item:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.wp-admin .mobooking-overview-booking-item strong {
+    font-size: 1rem;
+    font-weight: 600;
+    color: hsl(222.2 84% 4.9%);
+}
+
+/*--------------------------------------------------------------
+8.3 Navigation Tabs
+--------------------------------------------------------------*/
+.wp-admin .nav-tab-wrapper {
+    border-bottom: 1px solid hsl(214.3 31.8% 91.4%);
+    padding-bottom: 0;
+    margin-bottom: 1.5rem;
+}
+
+.wp-admin .nav-tab {
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    background: hsl(210 40% 98%);
+    border: 1px solid hsl(214.3 31.8% 91.4%);
+    border-bottom: none;
+    margin-right: 0.25rem;
+    border-top-left-radius: 0.375rem;
+    border-top-right-radius: 0.375rem;
+    color: hsl(215.4 16.3% 46.9%);
     text-decoration: none;
-    cursor: pointer;
-    transition: background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, color 0.15s ease-in-out;
+    transition: all 0.15s ease;
 }
 
-/* Primary button style (overriding generic .button if needed, but WP .button-primary is usually specific enough) */
-.wp-admin .button-primary { /* Targets WP's primary button class */
-    border: 1px solid #0073aa;
-    background: #0073aa;
-    color: #fff;
-}
-.wp-admin .button-primary:hover,
-.wp-admin .button-primary:focus {
-    background: #005177;
-    border-color: #005177;
-    color: #fff;
+.wp-admin .nav-tab:hover {
+    background: hsl(0 0% 100%);
+    color: hsl(222.2 84% 4.9%);
 }
 
-/* Secondary/Default button style */
-.wp-admin .button.button-secondary, /* WP default secondary */
-.wp-admin .mobooking-button-default { /* Custom class if needed */
-    background: #f3f5f6;
-    border-color: #ccd0d4;
-    color: #0071a1; /* WP blue for text on light background */
-}
-.wp-admin .button.button-secondary:hover,
-.wp-admin .button.button-secondary:focus,
-.wp-admin .mobooking-button-default:hover,
-.wp-admin .mobooking-button-default:focus {
-    background: #e0e2e4;
-    border-color: #b4b9be;
-    color: #005177;
+.wp-admin .nav-tab-active,
+.wp-admin .nav-tab-active:hover {
+    background: hsl(0 0% 100%);
+    border-bottom-color: hsl(0 0% 100%);
+    border-top: 2px solid hsl(221.2 83.2% 53.3%);
+    padding-top: 0.6875rem;
+    font-weight: 600;
+    color: hsl(222.2 84% 4.9%);
 }
 
-/* Destructive/Delete button style */
-.wp-admin .button-link-delete, /* Already styled, this is for non-link buttons */
-.wp-admin .mobooking-button-delete {
-    background: #d63638;
-    border-color: #d63638;
-    color: #fff;
-}
-.wp-admin .button-link-delete:hover,
-.wp-admin .mobooking-button-delete:hover {
-    background: #b02a2c;
-    border-color: #b02a2c;
-    color: #fff; /* Ensure text remains white on hover */
+.wp-admin .mobooking-settings-tab-content {
+    margin-top: -1px;
 }
 
-/* 8.2 Forms in WP Admin */
+/*--------------------------------------------------------------
+8.4 Mobile Responsive Tables
+--------------------------------------------------------------*/
+@media screen and (max-width: 782px) {
+
+    .wp-list-table tbody th,
+    .wp-list-table tbody td {
+        display: block;
+        width: auto;
+        text-align: left;
+        border-bottom: 0;
+        padding: 0.5rem 1rem;
+    }
+
+    .wp-list-table tbody td:before {
+        content: attr(data-label);
+        float: left;
+        width: 30%;
+        font-weight: 600;
+        margin-right: 0.75rem;
+        display: inline-block;
+        color: hsl(222.2 84% 4.9%);
+    }
+
+    .wp-list-table tbody tr {
+        border-bottom: 1px solid hsl(214.3 31.8% 91.4%);
+        margin-bottom: 1rem;
+    }
+
+    .wp-list-table tbody td .button {
+        display: block;
+        margin-bottom: 0.5rem;
+        text-align: center;
+        width: 100%;
+    }
+
+    .wp-list-table tbody td .button:last-child {
+        margin-bottom: 0;
+    }
+}
+
+/*--------------------------------------------------------------
+8.5 Form Improvements
+--------------------------------------------------------------*/
 .wp-admin .wrap[id^="mobooking-"] input[type="text"],
 .wp-admin .wrap[id^="mobooking-"] input[type="email"],
 .wp-admin .wrap[id^="mobooking-"] input[type="password"],
@@ -688,17 +1191,16 @@ tr.mobooking-discount-item td {
 .wp-admin .wrap[id^="mobooking-"] input[type="url"],
 .wp-admin .wrap[id^="mobooking-"] select,
 .wp-admin .wrap[id^="mobooking-"] textarea {
-    font-size: 14px;
-    padding: 6px 10px;
-    border: 1px solid #8c8f94; /* WP admin default input border */
-    border-radius: 3px;
-    /* box-shadow: inset 0 1px 2px rgba(0,0,0,.07); Already has this from general styles */
-    /* background-color: #fff; Already has this */
-    /* color: #2c3338; WP default text color for inputs */
-    line-height: normal;
+    border: 1px solid hsl(214.3 31.8% 91.4%);
+    border-radius: 0.375rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    color: hsl(222.2 84% 4.9%);
+    background-color: hsl(0 0% 100%);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
     width: 100%;
-    max-width: 350px;
-    margin-bottom: 8px;
+    max-width: 24rem;
+    margin-bottom: 0.75rem;
 }
 
 .wp-admin .wrap[id^="mobooking-"] input[type="text"]:focus,
@@ -710,288 +1212,100 @@ tr.mobooking-discount-item td {
 .wp-admin .wrap[id^="mobooking-"] input[type="url"]:focus,
 .wp-admin .wrap[id^="mobooking-"] select:focus,
 .wp-admin .wrap[id^="mobooking-"] textarea:focus {
-    border-color: #0073aa;
-    box-shadow: 0 0 0 1px #0073aa; /* WP focus style */
-    outline: none;
+    border-color: hsl(221.2 83.2% 53.3%);
+    box-shadow: 0 0 0 2px hsl(221.2 83.2% 53.3% / 0.2);
 }
 
 .wp-admin .wrap[id^="mobooking-"] label {
-    /* display: block; Already set */
-    margin-bottom: 4px; /* Tighter spacing */
-    /* font-weight: 600; Already set */
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: hsl(222.2 84% 4.9%);
+    margin-bottom: 0.5rem;
 }
 
-/* Specific adjustments for .form-table used in settings pages */
-.wp-admin .wrap[id^="mobooking-"] .form-table th {
-    padding-top: 12px; /* Align label better with input which has less margin now */
-    padding-right: 20px;
-    font-size: 14px; /* Ensure consistent font size */
-}
-.wp-admin .wrap[id^="mobooking-"] .form-table td {
-    padding-top: 8px; /* Align input with label */
-    padding-bottom: 8px; /* Reduce overall row height */
-}
-.wp-admin .wrap[id^="mobooking-"] .form-table td .description {
-    font-size: 13px; /* WP standard description size */
-    margin-top: 4px;
-}
 .wp-admin .wrap[id^="mobooking-"] .form-table input[type="text"],
 .wp-admin .wrap[id^="mobooking-"] .form-table input[type="email"],
 .wp-admin .wrap[id^="mobooking-"] .form-table input[type="number"],
 .wp-admin .wrap[id^="mobooking-"] .form-table input[type="url"],
 .wp-admin .wrap[id^="mobooking-"] .form-table select,
 .wp-admin .wrap[id^="mobooking-"] .form-table textarea {
-    margin-bottom: 0; /* Remove bottom margin as .form-table td provides spacing */
-}
-
-
-/* 8.3 Tables in WP Admin */
-.wp-admin table.wp-list-table { /* This is already styled fairly well by WP and previous rules */
-    margin-top: 15px;
-    margin-bottom: 15px;
-    /* box-shadow: 0 1px 1px rgba(0,0,0,.04); Already applied by .wrap */
-    /* border: 1px solid #ccd0d4; Already applied by .wrap */
-}
-.wp-admin table.wp-list-table th,
-.wp-admin table.wp-list-table thead td { /* WP uses td in thead sometimes */
-    padding: 10px 12px;
-    font-weight: 600; /* Ensure header is bold */
-    /* background-color: #f5f5f5; Already has a light background */
-    /* border-bottom: 1px solid #ccd0d4; Already has border */
-}
-.wp-admin table.wp-list-table td {
-    padding: 8px 12px;
-    /* border-bottom: 1px solid #e7e7e7; Lighter row separator */
-    vertical-align: middle; /* Better vertical alignment */
-}
-.wp-admin table.wp-list-table tbody tr:nth-child(even) { /* Ensure this is specific enough if default is td */
-    background-color: #f9f9f9;
-}
-.wp-admin table.wp-list-table tbody tr:hover {
-    background-color: #f0f0f0; /* Subtle hover for rows */
-}
-
-
-/* 8.4 Modals in WP Admin - Reviewing existing, ensuring consistency */
-/* Existing modal styles for #mobooking-service-form-container are in section 7.0 */
-/* Ensure inputs and buttons inside ANY MoBooking modal follow general admin styles */
-.wp-admin .mobooking-modal-content input[type="text"],
-.wp-admin .mobooking-modal-content input[type="email"],
-.wp-admin .mobooking-modal-content input[type="number"],
-.wp-admin .mobooking-modal-content input[type="url"],
-.wp-admin .mobooking-modal-content select,
-.wp-admin .mobooking-modal-content textarea {
-    font-size: 14px;
-    padding: 6px 10px;
-    max-width: 98%; /* Modals might be narrower */
-}
-.wp-admin .mobooking-modal-content label {
-    font-size: 14px;
-    margin-bottom: 4px;
-}
-.wp-admin .mobooking-modal-content .button,
-.wp-admin .mobooking-modal-content input[type="submit"],
-.wp-admin .mobooking-modal-content input[type="button"] {
-    margin-top: 5px; /* Add some space if buttons are stacked or near inputs */
-}
-
-
-/* 8.5 Navigation / Tabs in WP Admin */
-.wp-admin .nav-tab-wrapper { /* Already styled by WP, these are refinements */
-    /* border-bottom: 1px solid #ccd0d4; Already WP style */
-    padding-bottom: 0; /* Remove padding if WP adds it, to make tabs sit on the line */
-    margin-bottom: 20px;
-}
-.wp-admin .nav-tab {
-    padding: 8px 16px;
-    font-size: 14px;
-    /* background: #f0f0f1; WP default */
-    /* border: 1px solid #ccd0d4; WP default */
-    /* border-bottom: none; WP default */
-    margin-right: 4px;
-    /* border-top-left-radius: 3px; WP default */
-    /* border-top-right-radius: 3px; WP default */
-    transition: background-color 0.1s ease-in-out, border-color 0.1s ease-in-out;
-}
-.wp-admin .nav-tab-active,
-.wp-admin .nav-tab-active:hover {
-    background: #fff;
-    border-bottom-color: #fff; /* Make it look like tab is part of the content area */
-    border-top: 3px solid #0073aa; /* Active indicator */
-    padding-top: 6px; /* Adjust because of the top border */
-    font-weight: 600; /* Make active tab text bolder */
-}
-.wp-admin .mobooking-settings-tab-content { /* For our tab content panels */
-    margin-top: -1px; /* To align with the border-bottom of the active tab */
-    /* background-color: #fff;  Should be covered by .wrap[id^="mobooking-"] */
-    /* padding: 20px; Should be covered by .wrap[id^="mobooking-"] */
-    /* border: 1px solid #ccd0d4; Should be covered by .wrap[id^="mobooking-"] */
-    /* border-top: none; Avoid double border with nav-tab-wrapper */
-}
-
-/* 8.6 Page-Specific Adjustments */
-
-/* Overview Page Adjustments */
-.wp-admin #mobooking-overview-content .kpi-box,
-.wp-admin #mobooking-overview-content #mobooking-overview-recent-bookings-section,
-.wp-admin #mobooking-overview-content #mobooking-overview-quick-actions-section {
-    background-color: #fff !important; /* Override inline */
-    padding: 15px !important; /* Compact padding */
-    border: 1px solid #ccd0d4 !important; /* Consistent border */
-    border-radius: 4px !important;
-    box-shadow: 0 1px 1px rgba(0,0,0,.04) !important;
-    margin-bottom: 20px; /* Add consistent bottom margin */
-}
-.wp-admin #mobooking-overview-content .kpi-box h4 {
-    font-size: 14px !important; /* Consistent heading size */
-    margin-top: 0 !important; /* Remove extra top margin */
-    margin-bottom: 8px !important;
-}
-.wp-admin #mobooking-overview-content .kpi-box p {
-    font-size: 22px !important; /* Compact KPI text */
-    margin-bottom: 0 !important; /* Remove extra bottom margin */
-}
-.wp-admin #mobooking-overview-quick-actions-section ul {
-    padding-left: 0;
-    list-style: none;
     margin-bottom: 0;
 }
-.wp-admin #mobooking-overview-quick-actions-section .button.button-large {
-    /* Using general button styles from 8.1 which are compact. */
-    /* padding: 8px 14px !important; */
-    /* font-size: 14px !important; */
-    width: 100%;
-    box-sizing: border-box;
-    margin-bottom: 8px !important;
-}
-.wp-admin #mobooking-overview-quick-actions-section .button.button-large:last-child {
-    margin-bottom: 0 !important;
-}
 
-.wp-admin .mobooking-overview-booking-item {
-    border-bottom: 1px solid #e7e7e7 !important;
-    padding: 10px 0 !important;
-    margin-bottom: 10px !important;
-}
-.wp-admin .mobooking-overview-booking-item:last-child {
-    border-bottom: none !important;
-    margin-bottom: 0 !important;
-}
-.wp-admin .mobooking-overview-booking-item strong { font-size: 1.05em; }
-/* .wp-admin .mobooking-overview-booking-item .button.button-small {
-     padding: 4px 8px !important;
-     font-size: 12px !important;
-} */
-
-/* Bookings Page Adjustments */
-.wp-admin #mobooking-bookings-filters input[type="text"],
-.wp-admin #mobooking-bookings-filters select {
-    width: auto !important;
-    min-width: 120px;
-    margin-right: 10px !important;
-}
-.wp-admin #mobooking-bookings-filters input[name="search_query"] {
-    min-width: 180px;
-}
-.wp-admin .mobooking-booking-item { /* This was already styled in section 8.0, these are overrides/ensure */
-    border: 1px solid #ccd0d4 !important;
-    padding: 15px !important;
-    margin-bottom: 10px !important;
-    background: #fff !important;
-    border-radius: 4px !important;
-    box-shadow: 0 1px 1px rgba(0,0,0,.04) !important;
-}
-.wp-admin .mobooking-booking-item h3 { font-size: 1.1em !important; margin-bottom: 10px !important; margin-top: 0 !important; }
-.wp-admin .mobooking-booking-item p { margin-bottom: 5px !important; }
-
-.wp-admin .booking-status { /* General class for booking status spans */
-    padding: 3px 6px;
-    border-radius: 3px;
-    background-color: #eee; /* Default */
-    font-weight: bold;
-    font-size: 0.9em;
-    display: inline-block;
-    line-height: 1.4; /* Ensure consistent line height */
-}
-/* Status colors - these might override more generic ones in section 4.0 if specificity is higher or order is later */
-.wp-admin .booking-status.status-confirmed, .wp-admin span.status-confirmed { background-color: #c6e1c6 !important; color: #2b8a3e !important; }
-.wp-admin .booking-status.status-pending, .wp-admin span.status-pending { background-color: #fef3c7 !important; color: #b45309 !important; }
-.wp-admin .booking-status.status-cancelled, .wp-admin span.status-cancelled { background-color: #f9caca !important; color: #a00 !important; }
-.wp-admin .booking-status.status-completed, .wp-admin span.status-completed { background-color: #dde2e7 !important; color: #4a5568 !important; }
-.wp-admin .booking-status.status-on-hold, .wp-admin span.status-on-hold { background-color: #fff9c4 !important; color: #6f5f00 !important; } /* Using pending color for on-hold */
-.wp-admin .booking-status.status-processing, .wp-admin span.status-processing { background-color: #fff9c4 !important; color: #6f5f00 !important; } /* Using pending color for processing */
-
-
-/* Services Page Adjustments */
-.wp-admin .mobooking-service-item { /* This was already styled in section 8.0, these are overrides/ensure */
-    border: 1px solid #ccd0d4 !important;
-    padding: 15px !important;
-    margin-bottom: 10px !important;
-    background: #fff !important;
-    border-radius: 4px !important;
-    box-shadow: 0 1px 1px rgba(0,0,0,.04) !important;
-}
-.wp-admin .mobooking-service-item h3 { font-size: 1.1em !important; margin-bottom: 8px !important; margin-top: 0 !important; }
-.wp-admin .mobooking-service-item p { margin-bottom: 5px !important; }
-
-.wp-admin .service-status { /* For text like "Active", "Inactive" */
-    font-weight: bold;
-    text-transform: capitalize;
-}
-.wp-admin span.status-active { background-color: #c6e1c6 !important; color: #2b8a3e !important; padding: 3px 6px; border-radius: 3px; font-size:0.9em; display:inline-block; }
-.wp-admin span.status-inactive { background-color: #dde2e7 !important; color: #4a5568 !important; padding: 3px 6px; border-radius: 3px; font-size:0.9em; display:inline-block; }
-
-
-/* Discounts Page Adjustments */
-/* Using more specific selectors for discount status spans if they are inside table cells */
-.wp-admin tr.mobooking-discount-item td span[class*="status-"] {
-    padding: 3px 6px;
-    border-radius: 3px;
-    font-weight:bold;
-    font-size:0.9em;
-    display:inline-block;
-    line-height: 1.4;
-}
-/* .wp-admin .mobooking-discount-item .status-active already covered by global .status-active if specific enough */
-/* .wp-admin .mobooking-discount-item .status-inactive already covered by global .status-inactive if specific enough */
-.wp-admin tr.mobooking-discount-item.inactive-row td {
-    color: #6c757d; /* Slightly muted text for inactive discount rows */
-}
-
-
-/* Service Areas Page Adjustments */
-.wp-admin #mobooking-area-form-wrapper {
-    background: #fff !important;
-    padding: 20px !important;
-    border: 1px solid #ccd0d4 !important;
-    border-radius: 4px !important;
-    box-shadow: 0 1px 1px rgba(0,0,0,.04) !important;
-}
-.wp-admin .mobooking-area-item { /* This was already styled in section 8.0, these are overrides/ensure */
-    border: 1px solid #e0e0e0 !important;
-    padding: 8px 12px !important;
-    margin-bottom: 5px !important;
-    background: #fff !important;
-    display: flex !important;
-    justify-content: space-between !important;
-    align-items: center !important;
-    border-radius: 3px !important;
-}
-.wp-admin .mobooking-area-item div .button { /* Ensure buttons in area item are vertically aligned if needed */
-    vertical-align: middle;
-}
-
-
-/* Settings Pages Adjustments (page-booking-form.php, page-settings.php) */
 .wp-admin .wrap[id^="mobooking-"] textarea.large-text,
 .wp-admin .wrap[id^="mobooking-"] textarea.code {
-    max-width: 100%; /* Allow these textareas to take full width of their container */
+    max-width: 100%;
     width: 100%;
+    min-height: 6rem;
 }
-.wp-admin .wrap[id^="mobooking-"] .form-table th {
-    width: 220px; /* Slightly wider for potentially longer labels */
+
+/*--------------------------------------------------------------
+8.6 Button Refinements
+--------------------------------------------------------------*/
+.wp-admin .button,
+.wp-admin input[type="submit"],
+.wp-admin input[type="button"],
+.wp-admin input[type="reset"] {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.15s ease;
+    cursor: pointer;
+    border: 1px solid;
+    padding: 0.5rem 1rem;
+    height: 2.25rem;
+    text-decoration: none;
+    line-height: 1;
 }
-.wp-admin .wrap[id^="mobooking-"] .form-table .description {
-    font-size: 13px; /* Standard WP help text size */
-    color: #50575e; /* Standard WP help text color */
+
+.wp-admin .button-primary {
+    background: hsl(221.2 83.2% 53.3%);
+    color: hsl(210 40% 98%);
+    border-color: hsl(221.2 83.2% 53.3%);
+}
+
+.wp-admin .button-primary:hover,
+.wp-admin .button-primary:focus {
+    background: hsl(221.2 83.2% 53.3% / 0.9);
+    border-color: hsl(221.2 83.2% 53.3% / 0.9);
+    color: hsl(210 40% 98%);
+}
+
+.wp-admin .button.button-secondary,
+.wp-admin .mobooking-button-default {
+    background: hsl(0 0% 100%);
+    border-color: hsl(214.3 31.8% 91.4%);
+    color: hsl(222.2 84% 4.9%);
+}
+
+.wp-admin .button.button-secondary:hover,
+.wp-admin .button.button-secondary:focus,
+.wp-admin .mobooking-button-default:hover,
+.wp-admin .mobooking-button-default:focus {
+    background: hsl(210 40% 96%);
+    border-color: hsl(214.3 31.8% 91.4%);
+    color: hsl(222.2 84% 4.9%);
+}
+
+.wp-admin .button-link-delete,
+.wp-admin .mobooking-button-delete {
+    background: hsl(0 84.2% 60.2%);
+    border-color: hsl(0 84.2% 60.2%);
+    color: hsl(210 40% 98%);
+}
+
+.wp-admin .button-link-delete:hover,
+.wp-admin .mobooking-button-delete:hover {
+    background: hsl(0 84.2% 60.2% / 0.9);
+    border-color: hsl(0 84.2% 60.2% / 0.9);
+    color: hsl(210 40% 98%);
+}
+
+/* Smooth scrolling for content area */
+.dashboard-page-content-area {
+    scroll-behavior: smooth;
 }
