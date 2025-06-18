@@ -320,6 +320,7 @@ class Services {
     }
 
     public function handle_save_service_ajax() {
+        // die('[DEBUG] Reached handle_save_service_ajax start.');
         error_log('[MoBooking SaveSvc Debug] handle_save_service_ajax reached.');
         error_log('[MoBooking SaveSvc Debug] RAW POST data: ' . print_r($_POST, true));
 
@@ -329,6 +330,7 @@ class Services {
             wp_send_json_error(['message' => __('Nonce verification failed. Please refresh and try again.', 'mobooking')], 403);
             return;
         }
+        // die('[DEBUG] Nonce verification PASSED.');
         error_log('[MoBooking SaveSvc Debug] Nonce verified successfully.');
 
         $user_id = get_current_user_id();
@@ -337,9 +339,11 @@ class Services {
             wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403);
             return;
         }
+        // die('[DEBUG] User ID check PASSED. User ID: ' . $user_id);
         error_log('[MoBooking SaveSvc Debug] User ID: ' . $user_id);
 
         $service_id = isset($_POST['service_id']) && !empty($_POST['service_id']) ? intval($_POST['service_id']) : 0;
+        // die('[DEBUG] Service ID determined: ' . $service_id);
         error_log('[MoBooking SaveSvc Debug] Service ID for save/update: ' . $service_id);
 
         if (empty($_POST['name'])) {
@@ -347,16 +351,19 @@ class Services {
             wp_send_json_error(['message' => __('Service name is required.', 'mobooking')], 400);
             return;
         }
+        // die('[DEBUG] Name validation PASSED.');
         if (!isset($_POST['price']) || !is_numeric($_POST['price'])) {
             error_log('[MoBooking SaveSvc Debug] Validation Error: Valid price is required. Received: ' . print_r($_POST['price'], true));
             wp_send_json_error(['message' => __('Valid price is required.', 'mobooking')], 400);
             return;
         }
+        // die('[DEBUG] Price validation PASSED.');
          if (!isset($_POST['duration']) || !ctype_digit(strval($_POST['duration']))) {
             error_log('[MoBooking SaveSvc Debug] Validation Error: Valid duration (positive integer) is required. Received: ' . print_r($_POST['duration'], true));
             wp_send_json_error(['message' => __('Valid duration (positive integer) is required.', 'mobooking')], 400);
             return;
         }
+        // die('[DEBUG] Duration validation PASSED.');
 
         $data_for_service_method = [
             'name' => sanitize_text_field($_POST['name']),
@@ -373,6 +380,7 @@ class Services {
         $result_service_save = null;
         $message = '';
 
+        // die('[DEBUG] All initial validations passed. About to call add/update service. Service ID: ' . $service_id);
         if ($service_id) { // Update
             error_log('[MoBooking SaveSvc Debug] Attempting to update service ID: ' . $service_id);
             $result_service_save = $this->update_service($service_id, $user_id, $data_for_service_method);
