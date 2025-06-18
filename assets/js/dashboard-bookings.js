@@ -273,6 +273,261 @@ jQuery(document).ready(function($) {
     });
 
 
-    // Initial load
-    loadBookings();
+    // Initial load is now handled by PHP.
+    // loadBookings(); // Removed
+
+    // --- CRUD Operations ---
+
+    // CREATE BOOKING (Placeholder - Needs UI: Add Booking Button & Modal)
+    // This requires a new modal and form similar to the public booking form.
+    // For now, this is a placeholder. A button with id="mobooking-add-booking-btn" would trigger this.
+    $('#mobooking-add-booking-btn').on('click', function() {
+        alert('Add New Booking functionality to be implemented. This will require a new form/modal.');
+        // 1. Show a modal with form fields for:
+        //    - Customer Details (name, email, phone, address)
+        //    - Service Selection (complex: needs service list, options, pricing logic)
+        //    - Booking Date/Time
+        //    - Special Instructions
+        // 2. On submit, gather data into a payload matching `create_booking` in PHP.
+        //    const bookingData = {
+        //        customer_details: { customer_name: '...', ... },
+        //        selected_services: [ { service_id: ..., configured_options: [...] } ],
+        //        pricing: { subtotal: ..., discount: ..., final_total: ... }, // Server will recalculate
+        //        // ... any other fields required by create_booking
+        //    };
+        // 3. AJAX call:
+        //    $.ajax({
+        //        url: mobooking_bookings_params.ajax_url,
+        //        type: 'POST',
+        //        data: {
+        //            action: 'mobooking_create_dashboard_booking',
+        //            nonce: mobooking_bookings_params.nonce,
+        //            booking_data: JSON.stringify(bookingData)
+        //        },
+        //        success: function(response) { if (response.success) loadBookings(1); /* or prepend */ },
+        //        error: function() { /* handle error */ }
+        //    });
+    });
+
+
+    // UPDATE BOOKING FIELDS (in existing modal)
+    let isEditMode = false;
+    const modalEditButton = $('<button class="button" id="modal-edit-fields-btn" style="margin-left: 10px;">' + (mobooking_bookings_params.i18n.edit_fields || 'Edit Fields') + '</button>');
+    const modalSaveChangesButton = $('<button class="button button-primary" id="modal-save-fields-btn" style="margin-left: 10px; display:none;">' + (mobooking_bookings_params.i18n.save_changes || 'Save Changes') + '</button>');
+    const modalCancelEditButton = $('<button class="button" id="modal-cancel-edit-btn" style="margin-left: 5px; display:none;">' + (mobooking_bookings_params.i18n.cancel || 'Cancel') + '</button>');
+
+    // Insert new buttons after the status save button or in a specific place
+    modalSaveStatusBtn.after(modalCancelEditButton).after(modalSaveChangesButton).after(modalEditButton);
+
+    function toggleEditMode(enable) {
+        isEditMode = enable;
+        modalEditButton.toggle(!enable);
+        modalSaveChangesButton.toggle(enable);
+        modalCancelEditButton.toggle(enable);
+        modalSaveStatusBtn.toggle(!enable); // Hide status save when editing other fields
+        modalStatusSelect.prop('disabled', enable); // Disable status select in field edit mode
+
+        // Fields that can be edited (add more as needed)
+        const fields = {
+            'modal-customer-name': modalCustomerName.text(),
+            'modal-customer-email': modalCustomerEmail.text(),
+            'modal-customer-phone': modalCustomerPhone.text(),
+            'modal-service-address': modalServiceAddress.html().replace(/<br\s*\/?>/gi, '\n'), // Convert <br> to newline for textarea
+            'modal-booking-date': modalBookingDate.text(), // Consider datepicker
+            'modal-booking-time': modalBookingTime.text(), // Consider timepicker
+            'modal-special-instructions': modalSpecialInstructions.html().replace(/<br\s*\/?>/gi, '\n'),
+        };
+
+        for (const id in fields) {
+            const element = $('#' + id);
+            if (enable) {
+                let inputType = 'text';
+                if (id === 'modal-service-address' || id === 'modal-special-instructions') {
+                    inputType = 'textarea';
+                }
+                const currentVal = fields[id];
+                let inputHtml = inputType === 'textarea' ?
+                    `<textarea id="${id}-input" class="widefat" style="min-height:60px;">${sanitizeHTML(currentVal)}</textarea>` :
+                    `<input type="${inputType}" id="${id}-input" value="${sanitizeHTML(currentVal)}" class="widefat" />`;
+
+                if (id === 'modal-booking-date' && typeof $.fn.datepicker === 'function') {
+                     element.html(inputHtml);
+                     $(`#${id}-input`).datepicker({ dateFormat: 'yy-mm-dd' });
+                } else if (id === 'modal-booking-date') {
+                     element.html(inputHtml); // native date picker might be `type="date"`
+                     $(`#${id}-input`).prop('type', 'date');
+                }
+                else {
+                    element.html(inputHtml);
+                }
+            } else {
+                // Restore original text (or updated text if save was successful)
+                // This part will be enhanced by saving the original values or re-fetching
+                element.html(fields[id].replace(/\n/g, '<br>')); // Display <br> again
+            }
+        }
+    }
+
+    modalEditButton.on('click', function() {
+        toggleEditMode(true);
+    });
+
+    modalCancelEditButton.on('click', function() {
+        toggleEditMode(false);
+        // TODO: Restore original values if no save occurred. Need to store them when edit mode starts.
+        // For now, it just toggles back, potentially losing user input if they didn't save.
+        // A proper implementation would re-populate with data fetched when modal opened or last saved.
+        // This can be done by re-triggering the AJAX call or storing initial modal data.
+        // For simplicity here, we'll just revert to text, which might not be original if user typed then cancelled.
+        // The best is to re-fetch or use stored original data.
+         const bookingId = modalCurrentBookingIdField.val();
+         // Re-fetch to reset fields (simplest way to handle "cancel" without complex state management)
+         if(bookingId) viewBookingDetails(bookingId, false); // false to not re-enable edit mode
+    });
+
+    modalSaveChangesButton.on('click', function() {
+        const bookingId = modalCurrentBookingIdField.val();
+        if (!bookingId) return;
+
+        const fieldsToUpdate = {
+            customer_name: $('#modal-customer-name-input').val(),
+            customer_email: $('#modal-customer-email-input').val(),
+            customer_phone: $('#modal-customer-phone-input').val(),
+            service_address: $('#modal-service-address-input').val(),
+            booking_date: $('#modal-booking-date-input').val(),
+            booking_time: $('#modal-booking-time-input').val(),
+            special_instructions: $('#modal-special-instructions-input').val(),
+        };
+
+        modalStatusFeedback.text(mobooking_bookings_params.i18n.saving_changes || 'Saving...').removeClass('success error').show();
+        $(this).prop('disabled', true);
+
+        $.ajax({
+            url: mobooking_bookings_params.ajax_url,
+            type: 'POST',
+            data: {
+                action: 'mobooking_update_dashboard_booking_fields',
+                nonce: mobooking_bookings_params.nonce,
+                booking_id: bookingId,
+                fields_to_update: JSON.stringify(fieldsToUpdate)
+            },
+            success: function(response) {
+                if (response.success && response.data.booking_data) {
+                    modalStatusFeedback.text(response.data.message).addClass('success').show();
+                    toggleEditMode(false);
+                    // Update displayed fields in modal with response.data.booking_data
+                    populateModalWithBookingData(response.data.booking_data);
+                    loadBookings(currentFilters.paged); // Refresh the main list to reflect changes
+                } else {
+                    modalStatusFeedback.text(response.data.message || 'Error saving changes.').addClass('error').show();
+                }
+            },
+            error: function() {
+                modalStatusFeedback.text('AJAX error saving changes.').addClass('error').show();
+            },
+            complete: function() {
+                modalSaveChangesButton.prop('disabled', false);
+                setTimeout(function() { modalStatusFeedback.fadeOut(); }, 3000);
+            }
+        });
+    });
+
+    // DELETE BOOKING
+    bookingsListContainer.on('click', '.mobooking-delete-booking-btn', function(e) {
+        e.preventDefault();
+        const bookingId = $(this).data('booking-id');
+        const bookingRef = $(this).closest('.mobooking-booking-item').find('h3').text(); // Get ref for confirm message
+
+        if (confirm( (mobooking_bookings_params.i18n.confirm_delete || 'Are you sure you want to delete booking %s?').replace('%s', bookingRef) )) {
+            $.ajax({
+                url: mobooking_bookings_params.ajax_url,
+                type: 'POST',
+                data: {
+                    action: 'mobooking_delete_dashboard_booking',
+                    nonce: mobooking_bookings_params.nonce,
+                    booking_id: bookingId
+                },
+                success: function(response) {
+                    if (response.success) {
+                        alert(response.data.message); // Or use a less obtrusive notification
+                        loadBookings(currentFilters.paged); // Reload current page
+                    } else {
+                        alert('Error: ' + response.data.message);
+                    }
+                },
+                error: function() {
+                    alert('AJAX error deleting booking.');
+                }
+            });
+        }
+    });
+
+    // Helper to populate modal (used after initial load and after field update)
+    function populateModalWithBookingData(booking) {
+        modalBookingRef.text(booking.booking_reference);
+        modalCustomerName.text(booking.customer_name);
+        modalCustomerEmail.text(booking.customer_email);
+        modalCustomerPhone.text(booking.customer_phone || (mobooking_bookings_params.i18n.not_provided || 'N/A') );
+        modalServiceAddress.html(sanitizeHTML(booking.service_address || '').replace(/\n/g, '<br>'));
+        modalBookingDate.text(booking.booking_date); // Consider formatting
+        modalBookingTime.text(booking.booking_time);
+        modalSpecialInstructions.html(booking.special_instructions ? sanitizeHTML(booking.special_instructions).replace(/\n/g, '<br>') : (mobooking_bookings_params.i18n.none || 'None'));
+
+        modalServicesItemsList.html(formatServiceItemsForModal(booking.items));
+
+        modalDiscountAmount.text(parseFloat(booking.discount_amount || 0).toFixed(2));
+        modalFinalTotal.text(parseFloat(booking.total_price).toFixed(2));
+
+        modalStatusSelect.empty();
+        const statuses = mobooking_bookings_params.statuses || {};
+        for (const key in statuses) {
+            if (key === "") continue;
+            modalStatusSelect.append($('<option>', { value: key, text: statuses[key] }));
+        }
+        modalStatusSelect.val(booking.status);
+        modalCurrentBookingIdField.val(booking.booking_id);
+    }
+
+    // Modified View Details to use the helper and manage edit mode
+    function viewBookingDetails(bookingId, enterEditMode = false) {
+        modalCurrentBookingIdField.val(bookingId);
+        modalStatusFeedback.empty().removeClass('success error');
+        modalServicesItemsList.html('<p>' + (mobooking_bookings_params.i18n.loading_details || 'Loading details...') + '</p>');
+
+        // Ensure edit mode is reset if not explicitly requested
+        if (isEditMode && !enterEditMode) {
+            toggleEditMode(false);
+        }
+
+        detailsModal.fadeIn();
+
+        $.ajax({
+            url: mobooking_bookings_params.ajax_url,
+            type: 'POST',
+            data: {
+                action: 'mobooking_get_tenant_booking_details',
+                nonce: mobooking_bookings_params.nonce,
+                booking_id: bookingId
+            },
+            success: function(response) {
+                if (response.success && response.data) {
+                    populateModalWithBookingData(response.data);
+                    if (enterEditMode) {
+                        toggleEditMode(true);
+                    }
+                } else {
+                    modalServicesItemsList.html('<p>' + (response.data.message || mobooking_bookings_params.i18n.error_loading_details || 'Error loading details.') + '</p>');
+                }
+            },
+            error: function() {
+                 modalServicesItemsList.html('<p>' + (mobooking_bookings_params.i18n.error_loading_details || 'Error loading details.') + '</p>');
+            }
+        });
+    }
+
+    bookingsListContainer.on('click', '.mobooking-view-booking-details-btn', function() {
+        const bookingId = $(this).data('booking-id');
+        viewBookingDetails(bookingId);
+    });
+
 });

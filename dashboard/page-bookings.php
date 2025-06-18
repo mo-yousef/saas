@@ -5,6 +5,76 @@
  */
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
+// Instantiate necessary classes
+// Assuming these classes are autoloaded or included elsewhere.
+// If not, require_once statements would be needed here for:
+// - MoBooking\Classes\Discounts
+// - MoBooking\Classes\Notifications
+// - MoBooking\Classes\Services
+// - MoBooking\Classes\Bookings
+// - MoBooking\Classes\Utils (if currency formatting is used server-side)
+// - MoBooking\Classes\Database (if not already loaded for get_table_name)
+
+$current_user_id = get_current_user_id();
+$bookings_data = null;
+$initial_bookings_html = '';
+$initial_pagination_html = '';
+
+if ($current_user_id) {
+    // These might typically be retrieved from a central plugin container or service locator
+    $services_manager = new \MoBooking\Classes\Services();
+    $discounts_manager = new \MoBooking\Classes\Discounts($current_user_id); // Assuming constructor needs user_id or it's handled internally
+    $notifications_manager = new \MoBooking\Classes\Notifications();
+    $bookings_manager = new \MoBooking\Classes\Bookings($discounts_manager, $notifications_manager, $services_manager);
+
+    $default_args = [
+        'limit' => 20, // Same as in Bookings::get_bookings_by_tenant default
+        'paged' => 1,
+        'orderby' => 'booking_date',
+        'order' => 'DESC',
+    ];
+    $bookings_result = $bookings_manager->get_bookings_by_tenant($current_user_id, $default_args);
+
+    if (!empty($bookings_result['bookings'])) {
+        foreach ($bookings_result['bookings'] as $booking) {
+            // Adapt the JS template logic here in PHP
+            $status_display = !empty($booking['status']) ? ucfirst(str_replace('-', ' ', $booking['status'])) : __('N/A', 'mobooking');
+            $total_price_formatted = \MoBooking\Classes\Utils::format_currency($booking['total_price']); // Assuming a utility class for currency
+            $created_at_formatted = date_i18n(get_option('date_format') . ' ' . get_option('time_format'), strtotime($booking['created_at']));
+            $booking_date_formatted = date_i18n(get_option('date_format'), strtotime($booking['booking_date']));
+
+            $initial_bookings_html .= '<div class="mobooking-booking-item" style="border:1px solid #e0e0e0; padding:15px; margin-bottom:10px; background:#fff; border-radius:3px;">';
+            $initial_bookings_html .= '<h3 style="margin-top:0; margin-bottom:10px; font-size:1.1em;">Booking Ref: ' . esc_html($booking['booking_reference']) . '</h3>';
+            $initial_bookings_html .= '<p><strong>' . __('Customer:', 'mobooking') . '</strong> ' . esc_html($booking['customer_name']) . ' (' . esc_html($booking['customer_email']) . ')</p>';
+            $initial_bookings_html .= '<p><strong>' . __('Booked Date:', 'mobooking') . '</strong> ' . esc_html($booking_date_formatted) . ' at ' . esc_html($booking['booking_time']) . '</p>';
+            $initial_bookings_html .= '<p><strong>' . __('Total Price:', 'mobooking') . '</strong> ' . esc_html($total_price_formatted) . '</p>';
+            $initial_bookings_html .= '<p><strong>' . __('Status:', 'mobooking') . '</strong> <span class="booking-status booking-status-' . esc_attr($booking['status']) . '" style="padding: 3px 6px; border-radius: 3px; background-color: #eee; font-weight:bold;">' . esc_html($status_display) . '</span></p>';
+            $initial_bookings_html .= '<p style="font-size:0.9em; color:#777;"><strong>' . __('Created:', 'mobooking') . '</strong> ' . esc_html($created_at_formatted) . '</p>';
+            $initial_bookings_html .= '<div class="booking-actions" style="margin-top:10px;">';
+            $initial_bookings_html .= '<button class="button mobooking-view-booking-details-btn" data-booking-id="' . esc_attr($booking['booking_id']) . '">' . __('View Details', 'mobooking') . '</button>';
+            $initial_bookings_html .= '<button class="button mobooking-delete-booking-btn" data-booking-id="' . esc_attr($booking['booking_id']) . '" style="margin-left: 5px; color: #a00; border-color: #a00;">' . __('Delete', 'mobooking') . '</button>';
+            $initial_bookings_html .= '</div></div>';
+        }
+
+        // Basic pagination (JS will handle more complex pagination)
+        $total_pages = ceil($bookings_result['total_count'] / $bookings_result['per_page']);
+        if ($total_pages > 1) {
+            $initial_pagination_html .= '<div class="pagination-links">';
+            for ($i = 1; $i <= $total_pages; $i++) {
+                $active_class = ($i == $bookings_result['current_page']) ? 'current' : '';
+                $initial_pagination_html .= '<a href="#" class="page-numbers ' . $active_class . '" data-page="' . $i . '">' . $i . '</a> ';
+            }
+            $initial_pagination_html .= '</div>';
+        }
+
+    } else {
+        $initial_bookings_html = '<p>' . __('No bookings found.', 'mobooking') . '</p>';
+    }
+} else {
+    $initial_bookings_html = '<p>' . __('Could not load bookings. User not identified.', 'mobooking') . '</p>';
+}
+
+
 $booking_statuses = [
     '' => __('All Statuses', 'mobooking'),
     'pending' => __('Pending', 'mobooking'),
@@ -31,7 +101,12 @@ $booking_statuses = [
     #modal-status-feedback { font-style: italic; }
 </style>
 
-<h1><?php esc_html_e('Manage Bookings', 'mobooking'); ?></h1>
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+    <h1><?php esc_html_e('Manage Bookings', 'mobooking'); ?></h1>
+    <button id="mobooking-add-booking-btn" class="button button-primary">
+        <?php esc_html_e('Add New Booking', 'mobooking'); ?>
+    </button>
+</div>
 
 <div id="mobooking-bookings-filters" class="mobooking-filters-bar" style="margin-bottom: 20px; padding: 15px; background-color: #f9f9f9; border: 1px solid #eee; border-radius: 4px;">
     <form id="mobooking-bookings-filter-form" class="form-inline">
@@ -57,10 +132,12 @@ $booking_statuses = [
 </div>
 
 <div id="mobooking-bookings-list-container">
-    <p><?php esc_html_e('Loading bookings...', 'mobooking'); ?></p>
+    <?php echo $initial_bookings_html; // WPCS: XSS ok. Escaped above. ?>
 </div>
 
-<div id="mobooking-bookings-pagination-container" style="margin-top: 20px; text-align: center;"></div>
+<div id="mobooking-bookings-pagination-container" style="margin-top: 20px; text-align: center;">
+    <?php echo $initial_pagination_html; // WPCS: XSS ok. Escaped above. ?>
+</div>
 
 <script type="text/template" id="mobooking-booking-item-template">
     <div class="mobooking-booking-item" style="border:1px solid #e0e0e0; padding:15px; margin-bottom:10px; background:#fff; border-radius:3px;">
@@ -72,6 +149,7 @@ $booking_statuses = [
         <p style="font-size:0.9em; color:#777;"><strong><?php esc_html_e('Created:', 'mobooking'); ?></strong> <%= created_at_formatted %></p>
         <div class="booking-actions" style="margin-top:10px;">
             <button class="button mobooking-view-booking-details-btn" data-booking-id="<%= booking_id %>"><?php esc_html_e('View Details', 'mobooking'); ?></button>
+            <button class="button mobooking-delete-booking-btn" data-booking-id="<%= booking_id %>" style="margin-left: 5px; color: #a00; border-color: #a00;"><?php esc_html_e('Delete', 'mobooking'); ?></button>
         </div>
     </div>
 </script>
