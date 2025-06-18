@@ -84,10 +84,15 @@ class Services {
             return null;
         }
         if ( !$this->_verify_service_ownership($service_id, $user_id) ) {
+            error_log('[MoBooking get_service] Ownership verification failed for service_id: ' . $service_id . ' and user_id: ' . $user_id);
             return null; // Or WP_Error for permission denied
         }
         $table_name = Database::get_table_name('services');
         $service = $this->wpdb->get_row( $this->wpdb->prepare( "SELECT * FROM $table_name WHERE service_id = %d AND user_id = %d", $service_id, $user_id ), ARRAY_A );
+
+        if (is_null($service)) {
+            error_log('[MoBooking get_service] Service not found in database for service_id: ' . $service_id . ' and user_id: ' . $user_id);
+        }
 
         if ($service) {
             // Ensure options are fetched as an array of arrays (consistent with get_service_options)
@@ -98,6 +103,7 @@ class Services {
                     $options[] = (array) $opt; // Cast to array if objects
                 }
             }
+            error_log('[MoBooking get_service] Fetched ' . count($options) . ' options for service_id: ' . $service_id);
             $service['options'] = $options;
         }
         return $service;
@@ -665,6 +671,7 @@ class Services {
     }
 
     public function handle_get_service_details_ajax() {
+        error_log('[MoBooking ServiceDetails AJAX] Received POST: ' . print_r($_POST, true));
         // Make check_ajax_referer not die, so we can send a custom JSON response
         if (!check_ajax_referer('mobooking_services_nonce', 'nonce', false)) {
             wp_send_json_error(['message' => __('Error: Nonce verification failed.', 'mobooking')], 403);
@@ -683,16 +690,19 @@ class Services {
         }
         $service_id = (int) $_POST['service_id'];
 
+        error_log('[MoBooking ServiceDetails AJAX] Calling get_service for service_id: ' . $service_id);
         $service_details = $this->get_service($service_id, $user_id);
 
-        if (is_wp_error($service_details)) { // If get_service could return WP_Error for some reason
+        if (is_wp_error($service_details)) {
+            error_log('[MoBooking ServiceDetails AJAX] get_service returned WP_Error. Message: ' . $service_details->get_error_message() . ' Code: ' . $service_details->get_error_code()); // Added more detail
             wp_send_json_error(['message' => $service_details->get_error_message()], 500);
             return;
-        }
-
-        if (!$service_details) { // Assuming get_service returns null for "not found" or permission issues
-            wp_send_json_error(['message' => __('Error: Service not found or access denied.', 'mobooking')], 404);
+        } elseif (empty($service_details)) {
+            error_log('[MoBooking ServiceDetails AJAX] get_service returned null or empty.');
+            wp_send_json_error(['message' => __('Error: Service not found or access denied.', 'mobooking')], 404); // Kept original response for client
             return;
+        } else {
+            error_log('[MoBooking ServiceDetails AJAX] get_service returned data for service_id: ' . $service_id);
         }
 
         wp_send_json_success(['service' => $service_details]); // Ensure data is keyed under 'service' if JS expects response.data.service
