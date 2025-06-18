@@ -357,7 +357,7 @@ class Bookings {
                             if (is_array($parsed_choices)) {
                                 $chosen = array_values(array_filter($parsed_choices, function($c) use ($selected_val) { return isset($c['value']) && $c['value'] === $selected_val; }));
                                 if (!empty($chosen) && isset($chosen[0]['price_adjust'])) {
-                                    option_price_impact += floatval($chosen[0]['price_adjust']);
+                                    $option_price_impact += floatval($chosen[0]['price_adjust']);
                                 }
                             }
                         }
