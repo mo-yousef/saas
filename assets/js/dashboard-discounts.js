@@ -196,5 +196,10 @@ jQuery(document).ready(function($) {
         $('.mobooking-datepicker').attr('type', 'date');
     }
 
-    loadDiscounts(); // Initial load
+    // loadDiscounts(); // Initial load is now handled by PHP.
+    // Ensure pagination links from PHP work with the existing loadDiscounts logic.
+    // The PHP pagination uses hrefs like #?paged=X, JS should preventDefault and use the page number.
+    // The current paginationContainer.on('click', 'a', ...) should handle this if WP's paginate_links outputs simple hrefs.
+    // If it's a full URL, the selector might need adjustment or the link format in PHP.
+    // For now, assuming current JS pagination handler is sufficient for links rendered by PHP.
 });

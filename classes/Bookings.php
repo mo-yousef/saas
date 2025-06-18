@@ -27,6 +27,11 @@ class Bookings {
         add_action('wp_ajax_mobooking_get_tenant_booking_details', [$this, 'handle_get_tenant_booking_details_ajax']);
         add_action('wp_ajax_mobooking_update_booking_status', [$this, 'handle_update_booking_status_ajax']);
         add_action('wp_ajax_mobooking_get_dashboard_overview_data', [$this, 'handle_get_dashboard_overview_data_ajax']);
+
+        // New AJAX actions for dashboard CRUD
+        add_action('wp_ajax_mobooking_create_dashboard_booking', [$this, 'handle_create_dashboard_booking_ajax']);
+        add_action('wp_ajax_mobooking_update_dashboard_booking_fields', [$this, 'handle_update_dashboard_booking_fields_ajax']);
+        add_action('wp_ajax_mobooking_delete_dashboard_booking', [$this, 'handle_delete_dashboard_booking_ajax']);
     }
 
     public function get_kpi_data(int $tenant_user_id) {
@@ -542,6 +547,203 @@ class Bookings {
                 'message' => $success_message,
                 'booking_reference' => $result['booking_reference'],
                 'booking_id' => $result['booking_id']
+            ]);
+        }
+    }
+
+    // Method to delete a booking
+    public function delete_booking(int $booking_id, int $tenant_user_id) {
+        if (empty($booking_id) || empty($tenant_user_id)) {
+            return new \WP_Error('invalid_input', __('Booking ID and Tenant User ID are required.', 'mobooking'));
+        }
+
+        // Verify ownership by attempting to fetch the booking first
+        $bookings_table = Database::get_table_name('bookings');
+        $booking = $this->wpdb->get_row($this->wpdb->prepare(
+            "SELECT user_id FROM $bookings_table WHERE booking_id = %d",
+            $booking_id
+        ));
+
+        if (!$booking) {
+            return new \WP_Error('not_found', __('Booking not found.', 'mobooking'));
+        }
+        if ((int)$booking->user_id !== $tenant_user_id) {
+            return new \WP_Error('permission_denied', __('You do not have permission to delete this booking.', 'mobooking'));
+        }
+
+        $booking_items_table = Database::get_table_name('booking_items');
+
+        // Start transaction
+        $this->wpdb->query('START TRANSACTION');
+
+        // Delete booking items
+        $deleted_items = $this->wpdb->delete($booking_items_table, ['booking_id' => $booking_id], ['%d']);
+        // $deleted_items can be false on error, or number of rows affected.
+
+        // Delete main booking
+        $deleted_booking = $this->wpdb->delete($bookings_table, ['booking_id' => $booking_id, 'user_id' => $tenant_user_id], ['%d', '%d']);
+
+        if ($deleted_booking === false || $deleted_items === false) {
+            $this->wpdb->query('ROLLBACK');
+            return new \WP_Error('db_delete_error', __('Could not delete booking from the database.', 'mobooking'));
+        }
+
+        $this->wpdb->query('COMMIT');
+        return true;
+    }
+
+    public function handle_delete_dashboard_booking_ajax() {
+        check_ajax_referer('mobooking_dashboard_nonce', 'nonce'); // Use a general dashboard nonce or create a specific one
+        $user_id = get_current_user_id();
+        if (!$user_id) {
+            wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403);
+            return;
+        }
+
+        $booking_id = isset($_POST['booking_id']) ? intval($_POST['booking_id']) : 0;
+        if (empty($booking_id)) {
+            wp_send_json_error(['message' => __('Booking ID is required for deletion.', 'mobooking')], 400);
+            return;
+        }
+
+        $result = $this->delete_booking($booking_id, $user_id);
+
+        if (is_wp_error($result)) {
+            wp_send_json_error(['message' => $result->get_error_message()], ($result->get_error_code() === 'db_delete_error' ? 500 : 400) );
+        } else {
+            wp_send_json_success(['message' => __('Booking deleted successfully.', 'mobooking')]);
+        }
+    }
+
+    // Placeholder for creating a booking from dashboard - might reuse create_booking directly
+    public function handle_create_dashboard_booking_ajax() {
+        // This will be similar to handle_create_booking_public_ajax
+        // but might use a different nonce and potentially different payload structure
+        // For now, let's assume it can reuse the existing create_booking method.
+        check_ajax_referer('mobooking_dashboard_nonce', 'nonce'); // Or a specific "create booking" nonce
+        $user_id = get_current_user_id(); // This is the tenant creating the booking
+        if (!$user_id) {
+            wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403);
+            return;
+        }
+
+        $payload_json = isset($_POST['booking_data']) ? stripslashes_deep($_POST['booking_data']) : '';
+        $payload = json_decode($payload_json, true);
+
+        if (json_last_error() !== JSON_ERROR_NONE || empty($payload)) {
+            wp_send_json_error(['message' => __('Invalid booking data received.', 'mobooking')], 400);
+            return;
+        }
+
+        // The create_booking method expects tenant_user_id as its first argument.
+        // Here, $user_id is the tenant_user_id.
+        $result = $this->create_booking($user_id, $payload);
+
+        if (is_wp_error($result)) {
+            wp_send_json_error(['message' => $result->get_error_message()], ($result->get_error_code() === 'db_booking_error' ? 500 : 400) );
+        } else {
+            $success_message = !empty($result['message']) ? sprintf($result['message'], $result['booking_reference']) : __('Booking created successfully!', 'mobooking');
+            wp_send_json_success([
+                'message' => $success_message,
+                'booking_id' => $result['booking_id'],
+                'booking_reference' => $result['booking_reference']
+                // Consider returning the full booking object or enough data to prepend it to the list
+            ]);
+        }
+    }
+
+    // Placeholder for updating booking fields from dashboard
+    // This would be for more general field updates beyond just status
+    public function update_booking_fields(int $booking_id, int $tenant_user_id, array $fields_to_update) {
+        if (empty($booking_id) || empty($tenant_user_id) || empty($fields_to_update)) {
+            return new \WP_Error('invalid_input', __('Booking ID, User ID, and fields to update are required.', 'mobooking'));
+        }
+
+        // Verify ownership
+        $bookings_table = Database::get_table_name('bookings');
+        $booking = $this->wpdb->get_row($this->wpdb->prepare(
+            "SELECT user_id FROM $bookings_table WHERE booking_id = %d", $booking_id
+        ));
+
+        if (!$booking) {
+            return new \WP_Error('not_found', __('Booking not found.', 'mobooking'));
+        }
+        if ((int)$booking->user_id !== $tenant_user_id) {
+            return new \WP_Error('permission_denied', __('You do not have permission to update this booking.', 'mobooking'));
+        }
+
+        $allowed_fields = [
+            'customer_name' => 'sanitize_text_field',
+            'customer_email' => 'sanitize_email',
+            'customer_phone' => 'sanitize_text_field',
+            'service_address' => 'sanitize_textarea_field',
+            'booking_date' => 'sanitize_text_field', // Needs validation YYYY-MM-DD
+            'booking_time' => 'sanitize_text_field', // Needs validation HH:MM
+            'special_instructions' => 'sanitize_textarea_field',
+            // 'status' is handled by update_booking_status, but could be included here if logic is merged
+        ];
+
+        $data_to_update = [];
+        $data_format = [];
+
+        foreach ($fields_to_update as $key => $value) {
+            if (array_key_exists($key, $allowed_fields)) {
+                $sanitization_function = $allowed_fields[$key];
+                $data_to_update[$key] = call_user_func($sanitization_function, $value);
+                // Determine format for wpdb::update
+                if (in_array($key, ['total_price', 'discount_amount'])) { // Example if we allow price edits
+                    $data_format[] = '%f';
+                } else {
+                    $data_format[] = '%s';
+                }
+            }
+        }
+
+        if (empty($data_to_update)) {
+            return new \WP_Error('no_valid_fields', __('No valid fields provided for update.', 'mobooking'));
+        }
+
+        // Add updated_at timestamp
+        $data_to_update['updated_at'] = current_time('mysql', 1);
+        $data_format[] = '%s';
+
+        $updated = $this->wpdb->update(
+            $bookings_table,
+            $data_to_update,
+            ['booking_id' => $booking_id, 'user_id' => $tenant_user_id],
+            $data_format, // Format for data
+            ['%d', '%d']  // Format for where
+        );
+
+        if (false === $updated) {
+            return new \WP_Error('db_update_error', __('Could not update booking in the database.', 'mobooking'));
+        }
+
+        return $this->get_booking($booking_id, $tenant_user_id); // Return updated booking details
+    }
+
+    public function handle_update_dashboard_booking_fields_ajax() {
+        check_ajax_referer('mobooking_dashboard_nonce', 'nonce');
+        $user_id = get_current_user_id();
+        if (!$user_id) { wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403); return; }
+
+        $booking_id = isset($_POST['booking_id']) ? intval($_POST['booking_id']) : 0;
+        $fields_json = isset($_POST['fields_to_update']) ? stripslashes_deep($_POST['fields_to_update']) : '';
+        $fields_to_update = json_decode($fields_json, true);
+
+        if (empty($booking_id) || json_last_error() !== JSON_ERROR_NONE || empty($fields_to_update)) {
+            wp_send_json_error(['message' => __('Booking ID and valid fields to update are required.', 'mobooking')], 400);
+            return;
+        }
+
+        $result = $this->update_booking_fields($booking_id, $user_id, $fields_to_update);
+
+        if (is_wp_error($result)) {
+            wp_send_json_error(['message' => $result->get_error_message()], ($result->get_error_code() === 'db_update_error' ? 500 : 400) );
+        } else {
+            wp_send_json_success([
+                'message' => __('Booking updated successfully.', 'mobooking'),
+                'booking_data' => $result // Send back the updated booking data
             ]);
         }
     }
