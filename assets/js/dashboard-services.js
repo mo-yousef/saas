@@ -14,11 +14,21 @@ jQuery(document).ready(function($) {
         $('#mobooking-service-option-template').remove(); // Remove template from DOM after getting HTML
     }
 
-    // Initialize servicesDataCache from PHP-provided data if available
-    let servicesDataCache = (typeof mobooking_initial_services_data !== 'undefined') ? mobooking_initial_services_data : [];
-    let optionIndex = 0; // Used for unique IDs if needed, not for field names currently
+    const paginationContainer = $('#mobooking-services-pagination-container');
+    const mainServiceItemTemplate = $('#mobooking-service-item-template').html();
+    $('#mobooking-service-item-template').remove(); // Remove from DOM
 
-    // renderTemplate function is removed as it's no longer used for the main service list.
+    let currentServiceFilters = { // For storing current filter/pagination state
+        paged: 1,
+        per_page: 20, // Default, can be changed
+        status_filter: '',
+        category_filter: '',
+        search_query: '',
+        orderby: 'name',
+        order: 'ASC'
+    };
+    let servicesDataCache = {}; // Cache for service details to populate edit form
+    let optionIndex = 0;
 
     // Basic XSS protection for display
     function sanitizeHTML(str) {
@@ -149,64 +159,118 @@ jQuery(document).ready(function($) {
         $hiddenInput.val($checkbox.is(':checked') ? '1' : '0');
     });
 
-    // loadServices is now primarily for re-triggering after an action if not using full page reload.
-    // With PHP rendering the initial list and form submissions causing a page reload,
-    // this function's original purpose (fetching and rendering the list via AJAX) is removed.
-    // It could be removed entirely if no JS action needs to refresh the list without a page reload.
-    // For now, it's kept but emptied of AJAX list fetching.
-    function loadServices() {
-        // console.log('loadServices called. If page reloads on save/delete, this might not be needed.');
-        // If servicesDataCache needs to be updated post-action without reload, that logic would go here.
-        // For now, we rely on mobooking_initial_services_data on page load.
+    // Function to fetch and render services
+    function fetchAndRenderServices(page = 1, filters = {}) {
+        currentServiceFilters.paged = page;
+        currentServiceFilters = { ...currentServiceFilters, ...filters };
+
+        servicesListContainer.html('<p>' + (mobooking_services_params.i18n.loading_services || 'Loading services...') + '</p>');
+        paginationContainer.empty();
+        servicesDataCache = {}; // Clear cache on new list load
+
+        let ajaxData = {
+            action: 'mobooking_get_services',
+            nonce: mobooking_services_params.nonce, // This should be localized
+            ...currentServiceFilters
+        };
+
+        $.ajax({
+            url: mobooking_services_params.ajax_url,
+            type: 'POST',
+            data: ajaxData,
+            dataType: 'json',
+            success: function(response) {
+                servicesListContainer.empty();
+                if (response.success && response.data.services && response.data.services.length) {
+                    response.data.services.forEach(function(service) {
+                        servicesDataCache[service.service_id] = service; // Cache for editing
+                        let serviceDataForTemplate = { ...service };
+                        serviceDataForTemplate.formatted_price = mobooking_services_params.currency_symbol + parseFloat(service.price).toFixed(2); // Basic formatting
+                        serviceDataForTemplate.display_status = service.status.charAt(0).toUpperCase() + service.status.slice(1);
+
+                        let itemHtml = mainServiceItemTemplate;
+                        for (const key in serviceDataForTemplate) {
+                            itemHtml = itemHtml.replace(new RegExp('<%=\\s*' + key + '\\s*%>', 'g'), sanitizeHTML(String(serviceDataForTemplate[key])));
+                        }
+                        servicesListContainer.append(itemHtml);
+                    });
+                    renderPagination(response.data.total_count, response.data.per_page, response.data.current_page);
+                } else if (response.success) {
+                    servicesListContainer.html('<p>' + (mobooking_services_params.i18n.no_services_found || 'No services found.') + '</p>');
+                } else {
+                    servicesListContainer.html('<p>' + (response.data.message || mobooking_services_params.i18n.error_loading_services || 'Error loading services.') + '</p>');
+                }
+            },
+            error: function() {
+                servicesListContainer.html('<p>' + (mobooking_services_params.i18n.error_loading_services || 'Error loading services.') + '</p>');
+            }
+        });
     }
 
+    function renderPagination(totalItems, itemsPerPage, currentPage) {
+        paginationContainer.empty();
+        const totalPages = Math.ceil(totalItems / itemsPerPage);
+        if (totalPages <= 1) return;
+
+        let paginationHtml = '<ul class="pagination-links">'; // WordPress uses .page-numbers
+        for (let i = 1; i <= totalPages; i++) {
+            paginationHtml += `<li style="display:inline; margin-right:5px;"><a href="#" data-page="${i}" class="page-numbers ${i === currentPage ? 'current' : ''}">${i}</a></li>`;
+        }
+        paginationHtml += '</ul>';
+        paginationContainer.html(paginationHtml);
+    }
+
+    // Initial load is handled by PHP. Event handlers for pagination etc. are below.
+    // If PHP renders initial state, this fetch is not needed unless filters change.
+    // However, if we want full AJAX from the start (even for page 1), uncomment:
+    // fetchAndRenderServices(currentServiceFilters.paged, currentServiceFilters);
+
+
     // Delegated Edit Service Button Click
-    // This now refers to buttons rendered by PHP. The logic to find service in cache remains.
-    $(document).on('click', '.mobooking-edit-service-btn', function() { // Changed to document for dynamically added PHP content
-        const serviceId = parseInt($(this).data('id'), 10);
-        // Ensure serviceId is a number before trying to find.
-        // servicesDataCache items have service_id typically as string from json_encode if not cast in PHP,
-        // or int if cast. parseInt() on both sides ensures comparison.
-        const serviceToEdit = servicesDataCache.find(s => parseInt(s.service_id, 10) === serviceId);
+    servicesListContainer.on('click', '.mobooking-edit-service-btn', function() {
+        const serviceId = $(this).data('id');
+        const serviceToEdit = servicesDataCache[serviceId]; // Use cached data
 
         if (serviceToEdit) {
             serviceFormTitle.text(mobooking_services_params.i18n.edit_service || 'Edit Service');
-            populateForm(serviceToEdit);
+            populateForm(serviceToEdit); // populateForm needs to handle options correctly
             feedbackDiv.empty().hide();
             $('#mobooking-service-form-modal-backdrop').show();
             serviceFormContainer.show();
             $('body').addClass('mobooking-modal-open');
         } else {
-            alert(mobooking_services_params.i18n.error_finding_service || 'Error: Could not find service data. Please refresh.');
+            // Fallback if not in cache - could fetch via AJAX here
+            alert(mobooking_services_params.i18n.error_finding_service_cache || 'Error: Service details not found in cache. Consider fetching fresh.');
+            // Example: fetchServiceDetailsAndOpenForm(serviceId);
         }
     });
 
     // Delegated Delete Service
-    // This now refers to buttons rendered by PHP.
-    $(document).on('click', '.mobooking-delete-service-btn', function() { // Changed to document
+    servicesListContainer.on('click', '.mobooking-delete-service-btn', function() {
         const serviceId = $(this).data('id');
-        if (confirm(mobooking_services_params.i18n.confirm_delete_service)) {
+        const serviceName = $(this).closest('.mobooking-service-item').find('h3').text();
+        if (confirm( (mobooking_services_params.i18n.confirm_delete_service || 'Are you sure you want to delete "%s"?').replace('%s', serviceName) )) {
             $.ajax({
                 url: mobooking_services_params.ajax_url,
                 type: 'POST',
                 data: {
                     action: 'mobooking_delete_service',
-                    nonce: mobooking_services_params.nonce,
+                    nonce: mobooking_services_params.nonce, // Ensure this is available
                     service_id: serviceId
                 },
-                dataType: 'json', // Added this line
+                dataType: 'json',
                 success: function(response) {
                     if (response.success) {
-                        // location.reload(); // Reload the page to see changes from PHP
-                        // Display a global message instead of just alert, then reload or let user click away.
-                         $('#mobooking-add-new-service-btn').after('<div class="mobooking-global-feedback success" style="padding:10px; margin:10px 0; background-color:#d4edda; border-color:#c3e6cb; color:#155724; border-radius:4px;">' + sanitizeHTML(response.data.message || 'Service deleted.') + ' Refreshing...</div>');
-                        setTimeout(function() { location.reload(); }, 1500); // Reload after a short delay
+                        // Show success message
+                        showGlobalFeedback(response.data.message || (mobooking_services_params.i18n.service_deleted || 'Service deleted.'), 'success');
+                        // Remove item from DOM or reload list
+                        fetchAndRenderServices(currentServiceFilters.paged, currentServiceFilters); // Reload current page
                     } else {
-                        alert(response.data.message || mobooking_services_params.i18n.error_deleting_service);
+                        showGlobalFeedback(response.data.message || mobooking_services_params.i18n.error_deleting_service, 'error');
                     }
                 },
                 error: function() {
-                    alert(mobooking_services_params.i18n.error_deleting_service);
+                     showGlobalFeedback(mobooking_services_params.i18n.error_deleting_service_ajax || 'AJAX error deleting service.', 'error');
                 }
             });
         }
@@ -214,19 +278,46 @@ jQuery(document).ready(function($) {
 
     // Show Add New Service form
     $('#mobooking-add-new-service-btn').on('click', function() {
-        serviceForm[0].reset();
-        serviceIdField.val('');
+        // Reset form for new service, populateForm handles this.
+        populateForm({ service_id: '', name: '', description: '', price: '0.00', duration: '30', category: '', icon: '', image_url: '', status: 'active', options: [] });
         serviceFormTitle.text(mobooking_services_params.i18n.add_new_service || 'Add New Service');
         feedbackDiv.empty().hide();
-        optionsListContainer.html('<p><em>' + (mobooking_services_params.i18n.save_service_before_options || 'Save service before adding options.') + '</em></p>');
-        addServiceOptionBtn.prop('disabled', true);
+        // optionsListContainer is handled by populateForm
+        addServiceOptionBtn.prop('disabled', true); // Disabled for new service until saved
         $('#mobooking-service-form-modal-backdrop').show();
         serviceFormContainer.show();
         $('body').addClass('mobooking-modal-open');
+        $('#mobooking-service-name').focus();
     });
 
     // Cancel form - Modal interaction
     $('#mobooking-cancel-service-form').on('click', function() {
+        serviceFormContainer.hide();
+        $('#mobooking-service-form-modal-backdrop').hide();
+        $('body').removeClass('mobooking-modal-open');
+        feedbackDiv.empty().hide();
+    });
+
+    // Show global feedback message
+    function showGlobalFeedback(message, type = 'info') {
+        $('.mobooking-global-feedback').remove(); // Remove existing
+        const feedbackHtml = `<div class="mobooking-global-feedback ${type}" style="padding:10px; margin:10px 0; border-radius:4px; background-color:${type === 'success' ? '#d4edda' : '#f8d7da'}; border-color:${type === 'success' ? '#c3e6cb' : '#f5c6cb'}; color:${type === 'success' ? '#155724' : '#721c24'};">${sanitizeHTML(message)}</div>`;
+        $('#mobooking-add-new-service-btn').after(feedbackHtml);
+        // Auto-remove after a few seconds
+        setTimeout(function() { $('.mobooking-global-feedback').fadeOut(500, function() { $(this).remove(); }); }, 5000);
+    }
+
+    // Pagination click
+    paginationContainer.on('click', 'a.page-numbers', function(e) {
+        e.preventDefault();
+        const page = $(this).data('page') || $(this).attr('href').split('paged=')[1]?.split('&')[0];
+        if (page) {
+            fetchAndRenderServices(parseInt(page), currentServiceFilters);
+        }
+    });
+
+    // Form Submission (Add/Update)
+    serviceForm.on('submit', function(e) {
         serviceFormContainer.hide();
         $('#mobooking-service-form-modal-backdrop').hide();
         $('body').removeClass('mobooking-modal-open');
@@ -295,34 +386,43 @@ jQuery(document).ready(function($) {
         submitButton.prop('disabled', true).text(mobooking_services_params.i18n.saving || 'Saving...');
 
         $.ajax({
-            url: mobooking_services_params.ajax_url,
+            url: mobooking_services_params.ajax_url, // Make sure mobooking_services_params is localized
             type: 'POST',
             data: dataToSend,
             dataType: 'json',
             success: function(response) {
-                if (response.success) {
-                    // feedbackDiv.text(response.data.message).removeClass('error').addClass('success').show(); // No need if reloading
-                    // serviceFormContainer.hide(); // Hide form
-                    // $('#mobooking-service-form-modal-backdrop').hide(); // Hide backdrop
-                    location.reload(); // Reload the page to show the updated list from PHP
-                } else {
+                if (response.success && response.data.service) {
+                    serviceFormContainer.hide();
+                    $('#mobooking-service-form-modal-backdrop').hide();
+                    $('body').removeClass('mobooking-modal-open');
+                    showGlobalFeedback(response.data.message || (dataToSend.service_id ? mobooking_services_params.i18n.service_updated : mobooking_services_params.i18n.service_added), 'success');
+
+                    // Dynamic list update
+                    fetchAndRenderServices(dataToSend.service_id ? currentServiceFilters.paged : 1, currentServiceFilters);
+
+                } else { // Error reported by server
                     feedbackDiv.text(response.data.message || mobooking_services_params.i18n.error_saving_service).removeClass('success').addClass('error').show();
                 }
             },
-            error: function() {
-                feedbackDiv.text(mobooking_services_params.i18n.error_saving_service).removeClass('success').addClass('error').show();
+            error: function(jqXHR, textStatus, errorThrown) { // More detailed error
+                console.error("Save Service AJAX Error:", textStatus, errorThrown, jqXHR.responseText);
+                feedbackDiv.text(mobooking_services_params.i18n.error_saving_service_ajax || 'AJAX error saving service. Check console.').removeClass('success').addClass('error').show();
             },
             complete: function() {
                 submitButton.prop('disabled', false).text(originalButtonText);
-                // If not reloading, would re-enable button here. With reload, it's less critical.
             }
         });
     });
 
     // Initial setup:
-    // loadServices() is not called on initial page load anymore as PHP renders the list.
-    // servicesDataCache is initialized from mobooking_initial_services_data.
-    // Event handlers are set up.
+    // PHP renders the initial list. JS handles interactions.
+    // Make sure mobooking_services_params (especially nonce, ajax_url, i18n strings) is localized.
+    if (typeof mobooking_services_params === 'undefined') {
+        console.error('mobooking_services_params is not defined. Ensure it is localized via wp_localize_script.');
+        // Provide default i18n to prevent crashes if params are missing.
+        window.mobooking_services_params = { i18n: {}, currency_symbol: '$' };
+    }
+
 
     // Close modal if clicking on backdrop
     $('#mobooking-service-form-modal-backdrop').on('click', function() {

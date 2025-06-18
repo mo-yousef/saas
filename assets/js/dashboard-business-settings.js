@@ -41,48 +41,8 @@ jQuery(document).ready(function($) {
         navTabs.first().trigger('click');
     }
 
-
-    function loadSettings() {
-        feedbackDiv.empty().removeClass('notice-success notice-error').hide();
-        form.find(':input:not([type="submit"])').prop('disabled', true);
-
-        $.ajax({
-            url: mobooking_biz_settings_params.ajax_url,
-            type: 'POST',
-            data: {
-                action: 'mobooking_get_business_settings',
-                nonce: mobooking_biz_settings_params.nonce
-            },
-            success: function(response) {
-                if (response.success && response.data.settings) {
-                    populateForm(response.data.settings);
-                } else {
-                    feedbackDiv.text(response.data.message || mobooking_biz_settings_params.i18n.error_loading || 'Error loading settings.').addClass('notice notice-error').show();
-                }
-            },
-            error: function() {
-                feedbackDiv.text(mobooking_biz_settings_params.i18n.error_ajax || 'AJAX error.').addClass('notice notice-error').show();
-            },
-            complete: function() {
-                form.find(':input:not([type="submit"])').prop('disabled', false);
-            }
-        });
-    }
-
-    function populateForm(settings) {
-        for (const key in settings) {
-            if (settings.hasOwnProperty(key)) {
-                const field = form.find(`[name="${key}"]`);
-                if (field.length) {
-                    if (field.is(':checkbox')) { // Though no checkboxes currently in biz settings
-                        field.prop('checked', settings[key] === '1' || settings[key] === true);
-                    } else {
-                        field.val(settings[key]);
-                    }
-                }
-            }
-        }
-    }
+    // Initial settings are now loaded by PHP.
+    // The loadSettings() and populateForm() functions are no longer needed for initial load.
 
     form.on('submit', function(e) {
         e.preventDefault();
@@ -140,8 +100,12 @@ jQuery(document).ready(function($) {
         });
     });
 
-    // Initial load
-    if (form.length) { // Only if the form exists on the page
-        loadSettings();
+    // Initial load by JavaScript is removed. PHP handles populating the form.
+    // Ensure mobooking_biz_settings_params (especially nonce, ajax_url, and i18n strings)
+    // are correctly localized in your plugin's PHP enqueue script.
+    if (typeof mobooking_biz_settings_params === 'undefined') {
+        console.error('mobooking_biz_settings_params is not defined. Please ensure it is localized.');
+        // Provide a fallback to prevent JS errors if params are missing.
+        window.mobooking_biz_settings_params = { nonce: '', ajax_url: '', i18n: {} };
     }
 });

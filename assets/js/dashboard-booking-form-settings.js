@@ -22,53 +22,12 @@ jQuery(document).ready(function($) {
         $('.mobooking-color-picker').wpColorPicker();
     } else {
         console.warn('WP Color Picker not available.');
-        $('.mobooking-color-picker').each(function(){ $(this).after('<p><small><em>Color picker script not loaded. Please enter hex color manually.</em></small></p>')});
+        // Optionally, provide a fallback or simpler input if color picker is essential.
+        // For now, this console warning and the note in PHP are sufficient.
     }
 
-
-    function loadSettings() {
-        feedbackDiv.empty().removeClass('success error notice notice-success notice-error').hide();
-        form.find(':input').prop('disabled', true); // Disable form while loading
-
-        $.ajax({
-            url: mobooking_bf_settings_params.ajax_url,
-            type: 'POST',
-            data: {
-                action: 'mobooking_get_booking_form_settings',
-                nonce: mobooking_bf_settings_params.nonce
-            },
-            success: function(response) {
-                if (response.success && response.data.settings) {
-                    populateForm(response.data.settings);
-                } else {
-                    feedbackDiv.text(response.data.message || mobooking_bf_settings_params.i18n.error_loading || 'Error loading settings.').addClass('notice notice-error').show();
-                }
-            },
-            error: function() {
-                feedbackDiv.text(mobooking_bf_settings_params.i18n.error_ajax || 'AJAX error.').addClass('notice notice-error').show();
-            },
-            complete: function() {
-                form.find(':input').prop('disabled', false);
-            }
-        });
-    }
-
-    function populateForm(settings) {
-        for (const key in settings) {
-            if (settings.hasOwnProperty(key)) {
-                const field = form.find(`[name="${key}"]`);
-                if (field.length) {
-                    if (field.is(':checkbox')) {
-                        field.prop('checked', settings[key] === '1' || settings[key] === true);
-                    } else if (field.hasClass('mobooking-color-picker')) {
-                        field.wpColorPicker('color', settings[key]);
-                    } else {
-                        field.val(settings[key]);
-                    }
-                }
-            }
-        }
-    }
+    // Initial settings are now loaded by PHP.
+    // The loadSettings() and populateForm() functions are no longer needed for initial load.
 
     form.on('submit', function(e) {
         e.preventDefault();
@@ -118,6 +77,12 @@ jQuery(document).ready(function($) {
         });
     });
 
-    // Initial load
-    loadSettings();
+    // Initial load by JavaScript is removed. PHP handles populating the form.
+    // Ensure mobooking_bf_settings_params (especially nonce, ajax_url, and i18n strings)
+    // are correctly localized in your plugin's PHP enqueue script.
+    if (typeof mobooking_bf_settings_params === 'undefined') {
+        console.error('mobooking_bf_settings_params is not defined. Please ensure it is localized.');
+        // Provide a fallback to prevent JS errors if params are missing, though functionality will be broken.
+        window.mobooking_bf_settings_params = { nonce: '', ajax_url: '', i18n: {} };
+    }
 });
