@@ -317,14 +317,8 @@ jQuery(document).ready(function($) {
     });
 
     // Form Submission (Add/Update)
-    serviceForm.on('submit', function(e) {
-        serviceFormContainer.hide();
-        $('#mobooking-service-form-modal-backdrop').hide();
-        $('body').removeClass('mobooking-modal-open');
-        feedbackDiv.empty().hide();
-    });
-
-    // Form Submission (Add/Update)
+    // The following is the correct, single submit handler for the form.
+    // The duplicate, simpler one has been removed.
     serviceForm.on('submit', function(e) {
         e.preventDefault();
         feedbackDiv.empty().removeClass('success error').hide();

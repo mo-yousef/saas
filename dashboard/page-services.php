@@ -5,7 +5,6 @@
  */
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
-<?php
 // Instantiate the Services class
 $services_manager = new \MoBooking\Classes\Services();
 $user_id = get_current_user_id();
