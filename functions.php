@@ -443,9 +443,6 @@ function mobooking_dashboard_scripts_styles() {
                 'ajax_url' => admin_url('admin-ajax.php'),
                 'nonce' => wp_create_nonce('mobooking_services_nonce'),
                 'i18n' => [
-                    'loading_services' => __('Loading services...', 'mobooking'),
-                    'no_services_found' => __('No services found. Click "Add New Service" to get started.', 'mobooking'),
-                    'error_loading_services' => __('Error loading services.', 'mobooking'),
                     'confirm_delete_service' => __('Are you sure you want to delete this service and all its options? This cannot be undone.', 'mobooking'),
                     'error_deleting_service' => __('Error deleting service.', 'mobooking'),
                     'add_new_service' => __('Add New Service', 'mobooking'),
