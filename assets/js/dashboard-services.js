@@ -194,6 +194,7 @@ jQuery(document).ready(function($) {
                     nonce: mobooking_services_params.nonce,
                     service_id: serviceId
                 },
+                dataType: 'json', // Added this line
                 success: function(response) {
                     if (response.success) {
                         // location.reload(); // Reload the page to see changes from PHP
