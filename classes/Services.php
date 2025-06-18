@@ -320,6 +320,7 @@ class Services {
     }
 
     public function handle_save_service_ajax() {
+        ob_start();
         // die('[DEBUG] Reached handle_save_service_ajax start.');
         error_log('[MoBooking SaveSvc Debug] handle_save_service_ajax reached.');
         error_log('[MoBooking SaveSvc Debug] RAW POST data: ' . print_r($_POST, true));
@@ -327,6 +328,7 @@ class Services {
         $nonce_verified = check_ajax_referer('mobooking_services_nonce', 'nonce', false); // false to not die
         if (!$nonce_verified) {
             error_log('[MoBooking SaveSvc Debug] Nonce verification FAILED.');
+            if (ob_get_length()) ob_clean();
             wp_send_json_error(['message' => __('Nonce verification failed. Please refresh and try again.', 'mobooking')], 403);
             return;
         }
@@ -336,6 +338,7 @@ class Services {
         $user_id = get_current_user_id();
         if (!$user_id) {
             error_log('[MoBooking SaveSvc Debug] User not logged in.');
+            if (ob_get_length()) ob_clean();
             wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403);
             return;
         }
@@ -348,18 +351,21 @@ class Services {
 
         if (empty($_POST['name'])) {
             error_log('[MoBooking SaveSvc Debug] Validation Error: Service name is required.');
+            if (ob_get_length()) ob_clean();
             wp_send_json_error(['message' => __('Service name is required.', 'mobooking')], 400);
             return;
         }
         // die('[DEBUG] Name validation PASSED.');
         if (!isset($_POST['price']) || !is_numeric($_POST['price'])) {
             error_log('[MoBooking SaveSvc Debug] Validation Error: Valid price is required. Received: ' . print_r($_POST['price'], true));
+            if (ob_get_length()) ob_clean();
             wp_send_json_error(['message' => __('Valid price is required.', 'mobooking')], 400);
             return;
         }
         // die('[DEBUG] Price validation PASSED.');
          if (!isset($_POST['duration']) || !ctype_digit(strval($_POST['duration']))) {
             error_log('[MoBooking SaveSvc Debug] Validation Error: Valid duration (positive integer) is required. Received: ' . print_r($_POST['duration'], true));
+            if (ob_get_length()) ob_clean();
             wp_send_json_error(['message' => __('Valid duration (positive integer) is required.', 'mobooking')], 400);
             return;
         }
@@ -397,6 +403,7 @@ class Services {
 
         if (is_wp_error($result_service_save)) {
             error_log('[MoBooking SaveSvc Debug] Error saving/updating service: ' . $result_service_save->get_error_message());
+            if (ob_get_length()) ob_clean();
             wp_send_json_error(['message' => $result_service_save->get_error_message()], ('not_owner' === $result_service_save->get_error_code() ? 403 : 500) );
             return;
         }
@@ -463,6 +470,7 @@ class Services {
 
             } else if (!empty($_POST['service_options'])) {
                  error_log('[MoBooking SaveSvc Debug] Error: service_options was not empty but failed json_decode. Original: ' . $options_json);
+                 if (ob_get_length()) ob_clean();
                  wp_send_json_error(['message' => __('Invalid format for service options data.', 'mobooking')], 400);
                  return;
             }
@@ -473,12 +481,17 @@ class Services {
         $saved_service = $this->get_service($service_id, $user_id);
         if ($saved_service) {
             error_log('[MoBooking SaveSvc Debug] Successfully saved and retrieved service. Sending success response.');
+            if (ob_get_length()) ob_clean();
             wp_send_json_success(['message' => $message, 'service' => $saved_service]);
         } else {
             error_log('[MoBooking SaveSvc Debug] Error: Could not retrieve service after saving. Service ID: ' . $service_id);
+            if (ob_get_length()) ob_clean();
             wp_send_json_error(['message' => __('Could not retrieve service after saving.', 'mobooking')], 500);
+            // No explicit return here, as wp_send_json_error will die.
+            // However, if it didn't, the ob_end_clean below would catch it.
         }
-        // wp_die(); // Not strictly necessary
+        // wp_die(); // Not strictly necessary as wp_send_json_* calls wp_die().
+        if (ob_get_length()) ob_end_clean(); // Final cleanup if buffer is still active.
     }
 
 
