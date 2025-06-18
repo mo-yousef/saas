@@ -221,28 +221,54 @@ jQuery(document).ready(function($) {
     }
 
     // Initial load is handled by PHP. Event handlers for pagination etc. are below.
-    // If PHP renders initial state, this fetch is not needed unless filters change.
-    // However, if we want full AJAX from the start (even for page 1), uncomment:
-    // fetchAndRenderServices(currentServiceFilters.paged, currentServiceFilters);
+    // Populate cache from initial PHP-rendered data
+    if (typeof mobooking_initial_services_list_for_cache !== 'undefined' && Array.isArray(mobooking_initial_services_list_for_cache)) {
+        mobooking_initial_services_list_for_cache.forEach(function(service) {
+            if (service && service.service_id) {
+                servicesDataCache[service.service_id] = service;
+            }
+        });
+    }
+    // fetchAndRenderServices(currentServiceFilters.paged, currentServiceFilters); // Not needed if PHP renders first page
 
-
-    // Delegated Edit Service Button Click
+    // Delegated Edit Service Button Click - Now fetches fresh data
     servicesListContainer.on('click', '.mobooking-edit-service-btn', function() {
         const serviceId = $(this).data('id');
-        const serviceToEdit = servicesDataCache[serviceId]; // Use cached data
+        feedbackDiv.empty().hide(); // Clear previous form feedback
 
-        if (serviceToEdit) {
-            serviceFormTitle.text(mobooking_services_params.i18n.edit_service || 'Edit Service');
-            populateForm(serviceToEdit); // populateForm needs to handle options correctly
-            feedbackDiv.empty().hide();
-            $('#mobooking-service-form-modal-backdrop').show();
-            serviceFormContainer.show();
-            $('body').addClass('mobooking-modal-open');
-        } else {
-            // Fallback if not in cache - could fetch via AJAX here
-            alert(mobooking_services_params.i18n.error_finding_service_cache || 'Error: Service details not found in cache. Consider fetching fresh.');
-            // Example: fetchServiceDetailsAndOpenForm(serviceId);
-        }
+        // Show loading state or disable button
+        const $editButton = $(this);
+        const originalButtonText = $editButton.text();
+        $editButton.prop('disabled', true).text(mobooking_services_params.i18n.loading_details || 'Loading...');
+
+        $.ajax({
+            url: mobooking_services_params.ajax_url,
+            type: 'POST',
+            data: {
+                action: 'mobooking_get_service_details',
+                nonce: mobooking_services_params.nonce,
+                service_id: serviceId
+            },
+            dataType: 'json',
+            success: function(response) {
+                if (response.success && response.data.service) {
+                    servicesDataCache[serviceId] = response.data.service; // Update cache with fresh data
+                    serviceFormTitle.text(mobooking_services_params.i18n.edit_service || 'Edit Service');
+                    populateForm(response.data.service);
+                    $('#mobooking-service-form-modal-backdrop').show();
+                    serviceFormContainer.show();
+                    $('body').addClass('mobooking-modal-open');
+                } else {
+                    alert(response.data.message || mobooking_services_params.i18n.error_fetching_service_details || 'Error: Could not fetch service details.');
+                }
+            },
+            error: function() {
+                alert(mobooking_services_params.i18n.error_ajax || 'AJAX error fetching service details.');
+            },
+            complete: function() {
+                $editButton.prop('disabled', false).text(originalButtonText);
+            }
+        });
     });
 
     // Delegated Delete Service
