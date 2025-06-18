@@ -269,7 +269,10 @@ class Services {
     }
 
     public function handle_get_public_services_ajax() {
-        check_ajax_referer('mobooking_booking_form_nonce', 'nonce');
+        if (!check_ajax_referer('mobooking_booking_form_nonce', 'nonce', false)) {
+            wp_send_json_error(['message' => __('Error: Nonce verification failed.', 'mobooking')], 403);
+            return;
+        }
 
         $tenant_id = isset($_POST['tenant_id']) ? intval($_POST['tenant_id']) : 0;
         if (empty($tenant_id)) {
@@ -307,7 +310,10 @@ class Services {
         // error_log('[MoBooking Services Debug] handle_get_services_ajax reached.');
         // error_log('[MoBooking Services Debug] POST data: ' . print_r($_POST, true));
 
-        check_ajax_referer('mobooking_services_nonce', 'nonce');
+        if (!check_ajax_referer('mobooking_services_nonce', 'nonce', false)) {
+            wp_send_json_error(['message' => __('Error: Nonce verification failed.', 'mobooking')], 403);
+            return;
+        }
 
         $user_id = get_current_user_id();
         if (!$user_id) {
@@ -334,7 +340,10 @@ class Services {
     }
 
     public function handle_delete_service_ajax() {
-        check_ajax_referer('mobooking_services_nonce', 'nonce');
+        if (!check_ajax_referer('mobooking_services_nonce', 'nonce', false)) {
+            wp_send_json_error(['message' => __('Error: Nonce verification failed.', 'mobooking')], 403);
+            return;
+        }
         $user_id = get_current_user_id();
         if (!$user_id) {
             wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403);
@@ -359,7 +368,10 @@ class Services {
 
     // AJAX handler for service OPTIONS
     public function handle_get_service_options_ajax() {
-        check_ajax_referer('mobooking_services_nonce', 'nonce');
+        if (!check_ajax_referer('mobooking_services_nonce', 'nonce', false)) {
+            wp_send_json_error(['message' => __('Error: Nonce verification failed.', 'mobooking')], 403);
+            return;
+        }
         $user_id = get_current_user_id();
         if (!$user_id) { wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403); return; }
 
@@ -376,7 +388,10 @@ class Services {
     }
 
     public function handle_add_service_option_ajax() {
-        check_ajax_referer('mobooking_services_nonce', 'nonce');
+        if (!check_ajax_referer('mobooking_services_nonce', 'nonce', false)) {
+            wp_send_json_error(['message' => __('Error: Nonce verification failed.', 'mobooking')], 403);
+            return;
+        }
         $user_id = get_current_user_id();
         if (!$user_id) { wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403); return; }
 
@@ -412,7 +427,10 @@ class Services {
     }
 
     public function handle_update_service_option_ajax() {
-        check_ajax_referer('mobooking_services_nonce', 'nonce');
+        if (!check_ajax_referer('mobooking_services_nonce', 'nonce', false)) {
+            wp_send_json_error(['message' => __('Error: Nonce verification failed.', 'mobooking')], 403);
+            return;
+        }
         $user_id = get_current_user_id();
         if (!$user_id) { wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403); return; }
 
@@ -440,7 +458,10 @@ class Services {
     }
 
     public function handle_delete_service_option_ajax() {
-        check_ajax_referer('mobooking_services_nonce', 'nonce');
+        if (!check_ajax_referer('mobooking_services_nonce', 'nonce', false)) {
+            wp_send_json_error(['message' => __('Error: Nonce verification failed.', 'mobooking')], 403);
+            return;
+        }
         $user_id = get_current_user_id();
         if (!$user_id) { wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403); return; }
 
