@@ -11,12 +11,16 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
+require_once __DIR__ . '/ServiceOptions.php';
+
 class Services {
     private $wpdb;
+    private $service_options_manager;
 
     public function __construct() {
         global $wpdb;
         $this->wpdb = $wpdb;
+        $this->service_options_manager = new ServiceOptions();
     }
 
     // --- Ownership Verification Helper Methods ---
@@ -26,13 +30,6 @@ class Services {
         $table_name = Database::get_table_name('services');
         $service = $this->wpdb->get_var( $this->wpdb->prepare( "SELECT service_id FROM $table_name WHERE service_id = %d AND user_id = %d", $service_id, $user_id ) );
         return !is_null($service);
-    }
-
-    private function _verify_option_ownership(int $option_id, int $user_id): bool {
-        if (empty($option_id) || empty($user_id)) return false;
-        $table_name = Database::get_table_name('service_options');
-        $option = $this->wpdb->get_var( $this->wpdb->prepare( "SELECT option_id FROM $table_name WHERE option_id = %d AND user_id = %d", $option_id, $user_id ) );
-        return !is_null($option);
     }
 
     // --- Service CRUD Methods ---
@@ -94,7 +91,7 @@ class Services {
 
         if ($service) {
             // Ensure options are fetched as an array of arrays (consistent with get_service_options)
-            $options_raw = $this->get_service_options($service_id, $user_id); // This returns array of arrays/objects
+            $options_raw = $this->service_options_manager->get_service_options($service_id, $user_id); // This returns array of arrays/objects
             $options = [];
             if (is_array($options_raw)) {
                 foreach ($options_raw as $opt) {
@@ -133,7 +130,7 @@ class Services {
         if ($services_data) {
             foreach ($services_data as $key => $service) {
                 if (is_array($service)) { // Ensure it's an array before trying to access by key
-                    $options_raw = $this->get_service_options($service['service_id'], $user_id);
+                    $options_raw = $this->service_options_manager->get_service_options($service['service_id'], $user_id);
                     $options = [];
                     if (is_array($options_raw)) {
                         foreach ($options_raw as $opt) {
@@ -202,7 +199,7 @@ class Services {
         }
 
         // Delete associated options first
-        $this->delete_options_for_service($service_id, $user_id); // This also verifies ownership
+        $this->service_options_manager->delete_options_for_service($service_id, $user_id); // This also verifies ownership
 
         $table_name = Database::get_table_name('services');
         $deleted = $this->wpdb->delete(
@@ -406,7 +403,7 @@ class Services {
             if (is_array($options)) {
                 error_log('[MoBooking SaveSvc Debug] Decoded options array: ' . print_r($options, true));
                 error_log('[MoBooking SaveSvc Debug] Deleting existing options for service_id: ' . $service_id);
-                $this->delete_options_for_service($service_id, $user_id);
+                $this->service_options_manager->delete_options_for_service($service_id, $user_id);
 
                 foreach ($options as $idx => $option_data_from_client) {
                     error_log("[MoBooking SaveSvc Debug] Processing option #{$idx}: " . print_r($option_data_from_client, true));
@@ -444,7 +441,7 @@ class Services {
 
                     if (!empty($clean_option_data['name'])) {
                          error_log("[MoBooking SaveSvc Debug] Adding/updating option: " . print_r($clean_option_data, true));
-                         $option_result = $this->add_service_option($user_id, $service_id, $clean_option_data);
+                         $option_result = $this->service_options_manager->add_service_option($user_id, $service_id, $clean_option_data);
                          if (is_wp_error($option_result)) {
                             error_log("[MoBooking SaveSvc Debug] Error adding service option '{$clean_option_data['name']}': " . $option_result->get_error_message());
                          } else {
@@ -477,187 +474,4 @@ class Services {
     }
 
 
-    // --- Service Option CRUD Methods ---
-
-    public function add_service_option(int $user_id, int $service_id, array $data) {
-        if ( empty($user_id) || empty($service_id) ) {
-            return new \WP_Error('invalid_ids', __('Invalid user or service ID.', 'mobooking'));
-        }
-        if ( !$this->_verify_service_ownership($service_id, $user_id) ) {
-            return new \WP_Error('service_not_owner', __('You do not own the parent service.', 'mobooking'));
-        }
-        if ( empty($data['name']) || empty($data['type']) ) {
-            return new \WP_Error('missing_fields', __('Option name and type are required.', 'mobooking'));
-        }
-
-        $defaults = array(
-            'description' => '',
-            'is_required' => 0,
-            'price_impact_type' => null,
-            'price_impact_value' => null,
-            'option_values' => null, // Should be JSON string or null
-            'sort_order' => 0
-        );
-        $option_data = wp_parse_args($data, $defaults);
-
-        $table_name = Database::get_table_name('service_options');
-
-        $inserted = $this->wpdb->insert(
-            $table_name,
-            array(
-                'user_id' => $user_id,
-                'service_id' => $service_id,
-                'name' => sanitize_text_field($option_data['name']),
-                'description' => wp_kses_post($option_data['description']),
-                'type' => sanitize_text_field($option_data['type']),
-                'is_required' => boolval($option_data['is_required']),
-                'price_impact_type' => $option_data['price_impact_type'], // Already sanitized
-                'price_impact_value' => $option_data['price_impact_value'], // Already floatval or null
-                'option_values' => $option_data['option_values'], // Already JSON string or null
-                'sort_order' => intval($option_data['sort_order']),
-                'created_at' => current_time('mysql', 1), // GMT
-                'updated_at' => current_time('mysql', 1), // GMT
-            ),
-            // Ensure formats match the data being inserted
-            array(
-                '%d', // user_id
-                '%d', // service_id
-                '%s', // name
-                '%s', // description
-                '%s', // type
-                '%d', // is_required (boolval results in 0 or 1)
-                '%s', // price_impact_type (string or null)
-                (is_null($option_data['price_impact_value']) ? '%s' : '%f'), // price_impact_value (float or null)
-                '%s', // option_values (JSON string or null)
-                '%d', // sort_order
-                '%s', // created_at
-                '%s'  // updated_at
-            )
-        );
-
-        if (false === $inserted) {
-            return new \WP_Error('db_error', __('Could not add service option to the database.', 'mobooking'));
-        }
-        return $this->wpdb->insert_id;
-    }
-
-    public function get_service_option(int $option_id, int $user_id) {
-        if ( empty($user_id) || empty($option_id) ) {
-            return null;
-        }
-        if ( !$this->_verify_option_ownership($option_id, $user_id) ) {
-            return null; // Or WP_Error
-        }
-        $table_name = Database::get_table_name('service_options');
-        $option = $this->wpdb->get_row( $this->wpdb->prepare( "SELECT * FROM $table_name WHERE option_id = %d AND user_id = %d", $option_id, $user_id ), ARRAY_A );
-        if ($option && !empty($option['option_values']) && is_string($option['option_values'])) {
-            // Assuming option_values is stored as a JSON string.
-            // The JS side now expects this as a string, so no need to decode here for the PHP methods.
-            // $option['option_values'] = json_decode($option['option_values'], true);
-        }
-        return $option;
-    }
-
-    public function get_service_options(int $service_id, int $user_id) {
-        if ( empty($user_id) || empty($service_id) ) {
-            return array();
-        }
-        // Not verifying parent service ownership here, as options are directly tied to user_id as well.
-        // If options didn't have user_id, parent check would be essential.
-        $table_name = Database::get_table_name('service_options');
-        $options = $this->wpdb->get_results( $this->wpdb->prepare( "SELECT * FROM $table_name WHERE service_id = %d AND user_id = %d ORDER BY sort_order ASC", $service_id, $user_id ), ARRAY_A );
-
-        // No need to json_decode option_values here if JS expects a string.
-        // The JS `populateForm` will handle parsing for its textarea.
-        // If other PHP parts need it decoded, they can do so.
-        return $options; // Returns array of arrays, option_values is JSON string.
-    }
-
-    public function update_service_option(int $option_id, int $user_id, array $data) {
-        if ( empty($user_id) || empty($option_id) ) {
-            return new \WP_Error('invalid_ids', __('Invalid option or user ID.', 'mobooking'));
-        }
-        if ( !$this->_verify_option_ownership($option_id, $user_id) ) {
-            return new \WP_Error('not_owner', __('You do not own this service option.', 'mobooking'));
-        }
-        if ( empty($data) ) {
-            return new \WP_Error('no_data', __('No data provided for update.', 'mobooking'));
-        }
-
-        $table_name = Database::get_table_name('service_options');
-
-        $update_data = array();
-        $update_formats = array();
-
-        if (isset($data['name'])) { $update_data['name'] = sanitize_text_field($data['name']); $update_formats[] = '%s'; }
-        if (isset($data['description'])) { $update_data['description'] = wp_kses_post($data['description']); $update_formats[] = '%s'; }
-        if (isset($data['type'])) { $update_data['type'] = sanitize_text_field($data['type']); $update_formats[] = '%s'; }
-        if (isset($data['is_required'])) { $update_data['is_required'] = boolval($data['is_required']); $update_formats[] = '%d'; }
-        if (array_key_exists('price_impact_type', $data)) { $update_data['price_impact_type'] = !is_null($data['price_impact_type']) ? sanitize_text_field($data['price_impact_type']) : null; $update_formats[] = '%s'; }
-        if (array_key_exists('price_impact_value', $data)) { $update_data['price_impact_value'] = !is_null($data['price_impact_value']) ? floatval($data['price_impact_value']) : null; $update_formats[] = '%f'; }
-        if (array_key_exists('option_values', $data)) { $update_data['option_values'] = !is_null($data['option_values']) ? wp_json_encode($data['option_values']) : null; $update_formats[] = '%s'; }
-        if (isset($data['sort_order'])) { $update_data['sort_order'] = intval($data['sort_order']); $update_formats[] = '%d'; }
-
-        if (empty($update_data)) {
-            return new \WP_Error('no_valid_data', __('No valid data provided for update.', 'mobooking'));
-        }
-        $update_data['updated_at'] = current_time('mysql', 1); // GMT
-        $update_formats[] = '%s';
-
-        $updated = $this->wpdb->update(
-            $table_name,
-            $update_data,
-            array('option_id' => $option_id, 'user_id' => $user_id),
-            $update_formats,
-            array('%d', '%d')
-        );
-
-        if (false === $updated) {
-            return new \WP_Error('db_error', __('Could not update service option in the database.', 'mobooking'));
-        }
-        return true;
-    }
-
-    public function delete_service_option(int $option_id, int $user_id) {
-        if ( empty($user_id) || empty($option_id) ) {
-            return new \WP_Error('invalid_ids', __('Invalid option or user ID.', 'mobooking'));
-        }
-        if ( !$this->_verify_option_ownership($option_id, $user_id) ) {
-            return new \WP_Error('not_owner', __('You do not own this service option.', 'mobooking'));
-        }
-
-        $table_name = Database::get_table_name('service_options');
-        $deleted = $this->wpdb->delete(
-            $table_name,
-            array('option_id' => $option_id, 'user_id' => $user_id),
-            array('%d', '%d')
-        );
-
-        if (false === $deleted) {
-            return new \WP_Error('db_error', __('Could not delete service option from the database.', 'mobooking'));
-        }
-        return true;
-    }
-
-    public function delete_options_for_service(int $service_id, int $user_id) {
-        if ( empty($user_id) || empty($service_id) ) {
-             return new \WP_Error('invalid_ids', __('Invalid service or user ID.', 'mobooking'));
-        }
-        // This verifies that the user owns the PARENT service before bulk-deleting its options.
-        if ( !$this->_verify_service_ownership($service_id, $user_id) ) {
-            return new \WP_Error('not_owner', __('You do not own the parent service of these options.', 'mobooking'));
-        }
-
-        $table_name = Database::get_table_name('service_options');
-        // user_id is also in service_options table, so we can use it directly for safety.
-        $deleted = $this->wpdb->delete(
-            $table_name,
-            array('service_id' => $service_id, 'user_id' => $user_id),
-            array('%d', '%d')
-        );
-        if (false === $deleted) {
-             return new \WP_Error('db_error', __('Could not delete service options for the service.', 'mobooking'));
-        }
-        return true; // Number of rows affected
-    }
 }
