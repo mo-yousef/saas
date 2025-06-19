@@ -176,7 +176,7 @@ wp_nonce_field('mobooking_services_nonce', 'mobooking_services_nonce_field');
                                 <div class="mobooking-option-price-value-field" style="<?php echo ( !empty( $option['price_impact_type'] ) ? '' : 'display:none;' ); ?> margin-bottom:10px;">
                                     <label><?php esc_html_e('Price Impact Value:', 'mobooking'); ?></label><br>
                                     <input type="number" name="options[<?php echo $option_idx; ?>][price_impact_value]" value="<?php echo esc_attr( $option['price_impact_value'] ); ?>" step="0.01" class="widefat">
-                                </p>
+                                </div> <!-- This closes .mobooking-option-price-value-field -->
                                 <input type="hidden" name="options[<?php echo $option_idx; ?>][sort_order]" value="<?php echo esc_attr( $option['sort_order'] ); ?>">
                                 <button type="button" class="button mobooking-remove-service-option-btn button-link-delete"><?php esc_html_e('Remove Option', 'mobooking'); ?></button>
                                 </div> <!-- close mobooking-service-option-row-content -->
@@ -244,7 +244,7 @@ wp_nonce_field('mobooking_services_nonce', 'mobooking_services_nonce_field');
                     <div class="mobooking-option-price-value-field" style="display:none; margin-bottom:10px;">
                         <label><?php esc_html_e('Price Impact Value:', 'mobooking'); ?></label><br>
                         <input type="number" name="options[][price_impact_value]" step="0.01" class="widefat">
-                    </p>
+                    </div> <!-- This closes .mobooking-option-price-value-field -->
                     <input type="hidden" name="options[][sort_order]" value="0"> <!-- JS might need to manage this for new items if order matters on creation -->
                     <button type="button" class="button mobooking-remove-service-option-btn button-link-delete"><?php esc_html_e('Remove Option', 'mobooking'); ?></button>
                     </div> <!-- close mobooking-service-option-row-content -->
