@@ -331,6 +331,10 @@ function mobooking_enqueue_dashboard_scripts($current_page_slug) {
                 'error_loading_services_ajax' => __('AJAX error loading services.', 'mobooking'),
                  'service_deleted' => __('Service deleted.', 'mobooking'),
                  'error_deleting_service_ajax' => __('AJAX error deleting service.', 'mobooking'),
+                'fill_service_details_first' => __('Please fill in the following service details before adding options: %s.', 'mobooking'),
+                'service_name_label' => __('Service Name', 'mobooking'),
+                'service_price_label' => __('Price', 'mobooking'),
+                'service_duration_label' => __('Duration', 'mobooking'),
 
             ]
         ));
