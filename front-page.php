@@ -181,12 +181,14 @@ get_header();
         }
 
         .hero-title {
-            font-size: clamp(2.25rem, 5vw, 4rem);
-            font-weight: 800;
-            line-height: 1.1;
-            letter-spacing: -0.025em;
-            margin-bottom: 1.5rem;
-            color: hsl(var(--foreground));
+                font-size: clamp(2.25rem, 5vw, 4rem);
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -0.025em;
+    margin-bottom: 1.5rem;
+    color: hsl(var(--foreground));
+    max-inline-size: 800px;
+    margin-inline: auto;
         }
 
         .hero-description {
