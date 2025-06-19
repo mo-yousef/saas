@@ -234,6 +234,15 @@ Please review this booking in your dashboard: {{admin_booking_link}}",
 
         $parsed_settings = $this->get_settings_by_prefix_or_keys($user_id, $business_defaults);
 
+        // Ensure biz_currency_code has a default value
+        if (empty($parsed_settings['biz_currency_code'])) {
+            $parsed_settings['biz_currency_code'] = 'USD'; // Default to USD
+        }
+
+        // Add currency symbol and position
+        $parsed_settings['biz_currency_symbol'] = \MoBooking\Classes\Utils::get_currency_symbol($parsed_settings['biz_currency_code']);
+        $parsed_settings['biz_currency_position'] = \MoBooking\Classes\Utils::get_currency_position($parsed_settings['biz_currency_code']);
+
         if ($user_id > 0) {
             $user_info = null;
             if (empty($parsed_settings['biz_email'])) {
