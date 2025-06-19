@@ -40,7 +40,6 @@ class Database {
             description TEXT,
             price DECIMAL(10,2) NOT NULL DEFAULT 0.00,
             duration INT NOT NULL DEFAULT 30, -- in minutes
-            category VARCHAR(100),
             icon VARCHAR(100),
             image_url VARCHAR(255),
             status VARCHAR(20) NOT NULL DEFAULT 'active',
@@ -48,7 +47,6 @@ class Database {
             updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             PRIMARY KEY (service_id),
             INDEX user_id_idx (user_id),
-            INDEX category_idx (category),
             INDEX status_idx (status)
         ) $charset_collate;";
         error_log('[MoBooking DB Debug] SQL for services table: ' . preg_replace('/\s+/', ' ', $sql_services)); // Log condensed SQL
