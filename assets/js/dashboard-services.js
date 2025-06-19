@@ -34,6 +34,27 @@ jQuery(document).ready(function ($) {
     const optionsListContainer = $("#mobooking-service-options-list");
     const addServiceOptionBtn = $("#mobooking-add-service-option-btn");
 
+    // Icon related selectors
+    const iconPreviewDiv = $("#mobooking-service-icon-preview");
+    const iconValueInput = $("#mobooking-service-icon-value");
+    const iconUploadInput = $("#mobooking-service-icon-upload");
+    const presetIconsWrapper = $("#mobooking-preset-icons-wrapper");
+    const removeIconBtn = $("#mobooking-remove-service-icon-btn");
+    const noIconText = iconPreviewDiv.find('.mobooking-no-icon-text');
+
+    // Image related selectors
+    const imagePreview = $("#mobooking-service-image-preview");
+    const imageUrlInput = $("#mobooking-service-image-url-value");
+    const imageUploadInput = $("#mobooking-service-image-upload");
+    const triggerImageUploadBtn = $("#mobooking-trigger-service-image-upload-btn");
+    const removeImageBtn = $("#mobooking-remove-service-image-btn");
+    const placeholderImageUrl = mobooking_services_params.placeholder_image_url || 'data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%22150%22%20height%3D%22150%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20150%20150%22%20preserveAspectRatio%3D%22none%22%3E%3Cdefs%3E%3Cstyle%20type%3D%22text%2Fcss%22%3E%23holder_17ea872690d%20text%20%7B%20fill%3A%23AAAAAA%3Bfont-weight%3Abold%3Bfont-family%3AArial%2C%20Helvetica%2C%20Open%20Sans%2C%20sans-serif%2C%20monospace%3Bfont-size%3A10pt%20%7D%20%3C%2Fstyle%3E%3C%2Fdefs%3E%3Cg%20id%3D%22holder_17ea872690d%22%3E%3Crect%20width%3D%22150%22%20height%3D%22150%22%20fill%3D%22%23EEEEEE%22%3E%3C%2Frect%3E%3Cg%3E%3Ctext%20x%3D%2250.00303268432617%22%20y%3D%2279.5%22%3E150x150%3C%2Ftext%3E%3C%2Fg%3E%3C%2Fg%3E%3C%2Fsvg%3E';
+
+    // Status Toggle selectors
+    const statusToggle = $("#mobooking-service-status-toggle");
+    const statusHiddenInput = $("#mobooking-service-status");
+    const statusText = $("#mobooking-service-status-text");
+
     const optionTemplateHtml = $("#mobooking-service-option-template").html();
     if (optionTemplateHtml) $("#mobooking-service-option-template").remove();
     else console.error("MoBooking: Service option template not found on edit page!");
@@ -43,6 +64,268 @@ jQuery(document).ready(function ($) {
     else console.error("MoBooking: Choice item template not found on edit page!");
 
     let optionClientIndex = optionsListContainer.find(".mobooking-service-option-row").length; // Start indexing after PHP-rendered items
+
+    function loadServiceIconPreview(iconIdentifierOrUrl) {
+        iconPreviewDiv.empty().removeClass('has-preset has-custom'); // Clear previous state
+        if (!iconIdentifierOrUrl) {
+            iconPreviewDiv.append(noIconText.clone().show()); // Re-append if cleared
+            removeIconBtn.hide();
+        } else {
+            if (iconIdentifierOrUrl.startsWith('preset:')) {
+                const presetKey = iconIdentifierOrUrl.substring('preset:'.length);
+                const presetSvgContent = presetIconsWrapper.find(`.mobooking-preset-icon-item[data-preset-key="preset:${presetKey}"]`).html();
+                if (presetSvgContent) {
+                    iconPreviewDiv.html(presetSvgContent).addClass('has-preset');
+                } else {
+                    iconPreviewDiv.append(noIconText.clone().show()); // Fallback
+                }
+            } else { // Assuming it's a URL
+                iconPreviewDiv.html(`<img src="${sanitizeHTML(iconIdentifierOrUrl)}" style="max-width: 100%; max-height: 100%; object-fit: contain;">`).addClass('has-custom');
+            }
+            removeIconBtn.show();
+        }
+    }
+
+    // Initial load for icon preview
+    if(iconValueInput.length) { // Make sure the element exists
+        loadServiceIconPreview(iconValueInput.val());
+    }
+
+    presetIconsWrapper.on("click", ".mobooking-preset-icon-item", function () {
+        const presetKey = $(this).data("preset-key");
+        iconValueInput.val(presetKey).trigger('change'); // Trigger change for any listeners
+        loadServiceIconPreview(presetKey);
+        iconUploadInput.val(''); // Clear file input if a preset is chosen
+        feedbackDiv.hide();
+    });
+
+    iconUploadInput.on("change", function(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        feedbackDiv.hide().removeClass('success error');
+
+        if (file.type !== "image/svg+xml") {
+            feedbackDiv.text("Invalid file type. Only SVG files are allowed.").addClass('error').show();
+            $(this).val(''); // Clear the input
+            return;
+        }
+        if (file.size > 102400) { // 100KB
+            feedbackDiv.text("File is too large. Max size: 100KB.").addClass('error').show();
+            $(this).val('');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('service_icon_svg', file);
+        formData.append('action', 'mobooking_upload_service_icon');
+        formData.append('nonce', mobooking_services_params.nonce);
+        // Optionally append service_id if needed for filename on backend, though not strictly required by current PHP
+        // const serviceId = $("#mobooking-service-id").val();
+        // if (serviceId) formData.append('service_id', serviceId);
+
+
+        const originalButtonText = $(this).prop('disabled', true).siblings('label').text(); // Assuming label acts as button text
+        // Or if there's a dedicated upload button: const submitBtn = ...; submitBtn.prop('disabled', true).text('Uploading...');
+
+        $.ajax({
+            url: mobooking_services_params.ajax_url,
+            type: "POST",
+            data: formData,
+            processData: false,
+            contentType: false,
+            dataType: "json",
+            success: function (response) {
+                if (response.success) {
+                    iconValueInput.val(response.data.icon_url).trigger('change');
+                    loadServiceIconPreview(response.data.icon_url);
+                    feedbackDiv.text(response.data.message || "Icon uploaded.").addClass('success').show();
+                } else {
+                    feedbackDiv.text(response.data.message || "Error uploading icon.").addClass('error').show();
+                }
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                feedbackDiv.text("AJAX error: " + textStatus + " - " + errorThrown).addClass('error').show();
+            },
+            complete: function () {
+                 iconUploadInput.prop('disabled', false);
+                // if(submitBtn) submitBtn.prop('disabled', false).text(originalButtonText);
+            }
+        });
+    });
+
+    removeIconBtn.on("click", function () {
+        const currentIcon = iconValueInput.val();
+        feedbackDiv.hide();
+
+        if (currentIcon && !currentIcon.startsWith('preset:')) { // It's a custom URL
+            $.ajax({
+                url: mobooking_services_params.ajax_url,
+                type: "POST",
+                data: {
+                    action: 'mobooking_delete_service_icon',
+                    nonce: mobooking_services_params.nonce,
+                    icon_url: currentIcon
+                },
+                dataType: "json",
+                success: function (response) {
+                    if (response.success) {
+                        iconValueInput.val('').trigger('change');
+                        loadServiceIconPreview('');
+                        feedbackDiv.text(response.data.message || "Icon removed.").addClass('success').show();
+                    } else {
+                        feedbackDiv.text(response.data.message || "Error removing icon.").addClass('error').show();
+                    }
+                },
+                error: function () {
+                    feedbackDiv.text("AJAX error removing icon.").addClass('error').show();
+                }
+            });
+        } else { // It's a preset or empty
+            iconValueInput.val('').trigger('change');
+            loadServiceIconPreview('');
+            // feedbackDiv.text("Preset icon selection cleared.").addClass('success').show(); // Optional feedback
+        }
+    });
+
+    // Status Toggle Logic
+    if (statusToggle.length) {
+        statusToggle.on("click keypress", function(e) {
+            if (e.type === 'keypress' && (e.which !== 13 && e.which !== 32)) {
+                return; // Only allow Enter or Space for keypress
+            }
+            if (e.type === 'keypress' && e.which === 32) {
+                e.preventDefault(); // Prevent page scroll on Space
+            }
+
+            $(this).toggleClass("active");
+            const isActive = $(this).hasClass("active");
+
+            if (isActive) {
+                statusHiddenInput.val('active');
+                statusText.text(mobooking_services_params.i18n.active || 'Active');
+                $(this).attr('aria-checked', 'true');
+            } else {
+                statusHiddenInput.val('inactive');
+                statusText.text(mobooking_services_params.i18n.inactive || 'Inactive');
+                $(this).attr('aria-checked', 'false');
+            }
+        });
+    }
+
+    // Image Upload/Management Logic
+    if (triggerImageUploadBtn.length) { // Check if image elements are on the page
+        triggerImageUploadBtn.on("click", function () {
+            imageUploadInput.click();
+        });
+
+        imageUploadInput.on("change", function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            feedbackDiv.hide().removeClass('success error'); // Clear previous feedback
+
+            // Validate file type (client-side)
+            const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+            if (!allowedTypes.includes(file.type)) {
+                feedbackDiv.text("Invalid file type. Allowed: JPG, PNG, GIF, WEBP.").addClass('error').show();
+                $(this).val(''); // Clear the input
+                return;
+            }
+
+            // Validate file size (client-side) - e.g., 2MB
+            if (file.size > 2 * 1024 * 1024) {
+                feedbackDiv.text("File is too large. Max size: 2MB.").addClass('error').show();
+                $(this).val('');
+                return;
+            }
+
+            // Local preview
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                imagePreview.attr('src', e.target.result);
+            };
+            reader.readAsDataURL(file);
+
+            // AJAX Upload
+            const formData = new FormData();
+            formData.append('service_image', file);
+            formData.append('action', 'mobooking_upload_service_image');
+            formData.append('nonce', mobooking_services_params.nonce);
+            // Can add service_id if needed: formData.append('service_id', $("#mobooking-service-id").val());
+
+            triggerImageUploadBtn.prop('disabled', true).text('Uploading...');
+            removeImageBtn.prop('disabled', true);
+
+            $.ajax({
+                url: mobooking_services_params.ajax_url,
+                type: "POST",
+                data: formData,
+                processData: false,
+                contentType: false,
+                dataType: "json",
+                success: function (response) {
+                    if (response.success) {
+                        imageUrlInput.val(response.data.image_url).trigger('change');
+                        imagePreview.attr('src', response.data.image_url); // Update preview with server URL
+                        removeImageBtn.show();
+                        feedbackDiv.text(response.data.message || "Image uploaded.").addClass('success').show();
+                    } else {
+                        feedbackDiv.text(response.data.message || "Error uploading image.").addClass('error').show();
+                        // Revert preview if upload failed and there was a previously saved image
+                        const previousImageUrl = imageUrlInput.val();
+                        imagePreview.attr('src', previousImageUrl || placeholderImageUrl);
+                    }
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    feedbackDiv.text("AJAX error: " + textStatus + " - " + errorThrown).addClass('error').show();
+                    const previousImageUrl = imageUrlInput.val();
+                    imagePreview.attr('src', previousImageUrl || placeholderImageUrl);
+                },
+                complete: function () {
+                    triggerImageUploadBtn.prop('disabled', false).text('Upload Image');
+                    removeImageBtn.prop('disabled', false);
+                }
+            });
+        });
+
+        removeImageBtn.on("click", function () {
+            const currentImageUrl = imageUrlInput.val();
+            if (!currentImageUrl) {
+                // Already no image or using placeholder, ensure UI is consistent
+                imageUrlInput.val('').trigger('change');
+                imagePreview.attr('src', placeholderImageUrl);
+                $(this).hide();
+                return;
+            }
+            feedbackDiv.hide();
+
+            $.ajax({
+                url: mobooking_services_params.ajax_url,
+                type: "POST",
+                data: {
+                    action: 'mobooking_delete_service_image',
+                    nonce: mobooking_services_params.nonce,
+                    image_url_to_delete: currentImageUrl
+                },
+                dataType: "json",
+                success: function (response) {
+                    if (response.success) {
+                        imageUrlInput.val('').trigger('change');
+                        imagePreview.attr('src', placeholderImageUrl);
+                        removeImageBtn.hide();
+                        feedbackDiv.text(response.data.message || "Image removed.").addClass('success').show();
+                    } else {
+                        feedbackDiv.text(response.data.message || "Error removing image.").addClass('error').show();
+                    }
+                },
+                error: function () {
+                    feedbackDiv.text("AJAX error removing image.").addClass('error').show();
+                }
+            });
+        });
+    }
+
 
     function toggleOptionDetailFields($row) {
       const type = $row.find(".mobooking-option-type, select[name^='options['][name$='[type]']").val();
@@ -373,15 +656,28 @@ jQuery(document).ready(function ($) {
     let currentServiceFilters = { paged: 1, per_page: 20, status_filter: "", category_filter: "", search_query: "", orderby: "name", order: "ASC" };
     // let servicesDataCache = {}; // Not actively used on list page after modal removal
 
+    // Remove category_filter from currentServiceFilters initialization
+    let currentServiceFilters = { paged: 1, per_page: 20, status_filter: "", search_query: "", orderby: "name", order: "ASC" };
+
     function fetchAndRenderServices(page = 1, filters = {}) {
         currentServiceFilters.paged = page;
-        currentServiceFilters = { ...currentServiceFilters, ...filters };
+        // Ensure category_filter is not part of filters spread here
+        const { category_filter, ...otherFilters } = filters;
+        currentServiceFilters = { ...currentServiceFilters, ...otherFilters };
         servicesListContainer.html("<p>" + (mobooking_services_params.i18n.loading_services || "Loading...") + "</p>");
         paginationContainer.empty();
 
+        // Ensure category_filter is not sent in data
+        const dataToSend = { action: "mobooking_get_services", nonce: mobooking_services_params.nonce };
+        for (const key in currentServiceFilters) {
+            if (key !== 'category_filter') { // Explicitly exclude
+                dataToSend[key] = currentServiceFilters[key];
+            }
+        }
+
         $.ajax({
             url: mobooking_services_params.ajax_url, type: "POST",
-            data: { action: "mobooking_get_services", nonce: mobooking_services_params.nonce, ...currentServiceFilters },
+            data: dataToSend,
             dataType: "json",
             success: function (response) {
                 servicesListContainer.empty();
@@ -391,7 +687,35 @@ jQuery(document).ready(function ($) {
                     }
                     response.data.services.forEach(function (service) {
                         let srv = { ...service };
-                        srv.formatted_price = currencyCode + ' ' + parseFloat(srv.price).toFixed(2);
+                        // srv.formatted_price = currencyCode + ' ' + parseFloat(srv.price).toFixed(2); // Old way
+                        if (srv.price) {
+                            const price = parseFloat(srv.price);
+                            const decimals = mobooking_services_params.currency_decimals || 2;
+                            const dec_point = mobooking_services_params.currency_decimal_sep || '.';
+                            const thousands_sep = mobooking_services_params.currency_thousand_sep || ',';
+                            let n = !isFinite(+price) ? 0 : +price;
+                            let s = '';
+                            const toFixedFix = function (n_fix, prec_fix) {
+                                const k = Math.pow(10, prec_fix);
+                                return '' + Math.round(n_fix * k) / k;
+                            };
+                            s = (decimals ? toFixedFix(n, decimals) : '' + Math.round(n)).split('.');
+                            if (s[0].length > 3) {
+                                s[0] = s[0].replace(/\B(?=(?:\d{3})+(?!\d))/g, thousands_sep);
+                            }
+                            if ((s[1] || '').length < decimals) {
+                                s[1] = s[1] || '';
+                                s[1] += new Array(decimals - s[1].length + 1).join('0');
+                            }
+                            const formatted_number = s.join(dec_point);
+                            if (mobooking_services_params.currency_position === 'before') {
+                                srv.formatted_price = mobooking_services_params.currency_symbol + formatted_number;
+                            } else {
+                                srv.formatted_price = formatted_number + mobooking_services_params.currency_symbol;
+                            }
+                        } else {
+                            srv.formatted_price = 'N/A'; // Or some other placeholder
+                        }
                         srv.display_status = srv.status.charAt(0).toUpperCase() + srv.status.slice(1);
                         let itemHtml = mainServiceItemTemplate;
                         for (const k in srv) itemHtml = itemHtml.replace(new RegExp("<%=\\s*" + k + "\\s*%>", "g"), sanitizeHTML(String(srv[k])));

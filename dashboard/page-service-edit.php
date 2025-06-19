@@ -21,7 +21,6 @@ $service_name = '';
 $service_description = '';
 $service_price = ''; // Keep as string for input field, validation will handle numeric
 $service_duration = ''; // Keep as string
-$service_category = '';
 $service_icon = '';
 $service_image_url = '';
 $service_status = 'active'; // Default status
@@ -30,8 +29,15 @@ $service_options_data = []; // Array to hold option data
 $error_message = '';
 
 // 3. Fetch Service Data in Edit Mode
+$user_id = get_current_user_id(); // Defined early for settings
+// Fetch business settings for currency display
+$settings_manager = new \MoBooking\Classes\Settings();
+$biz_settings = $settings_manager->get_business_settings($user_id);
+$currency_symbol = $biz_settings['biz_currency_symbol'];
+$currency_pos = $biz_settings['biz_currency_position'];
+
 if ( $edit_mode && $service_id > 0 ) {
-    $user_id = get_current_user_id();
+    // $user_id is already defined
     if ( class_exists('\MoBooking\Classes\Services') ) {
         $services_manager = new \MoBooking\Classes\Services();
         $service_data = $services_manager->get_service( $service_id, $user_id );
@@ -41,7 +47,6 @@ if ( $edit_mode && $service_id > 0 ) {
             $service_description = $service_data['description'];
             $service_price = $service_data['price'];
             $service_duration = $service_data['duration'];
-            $service_category = $service_data['category'];
             $service_icon = $service_data['icon'];
             $service_image_url = $service_data['image_url'];
             $service_status = $service_data['status'];
@@ -89,30 +94,83 @@ wp_nonce_field('mobooking_services_nonce', 'mobooking_services_nonce_field');
             </p>
             <p>
                 <label for="mobooking-service-price"><?php esc_html_e('Price:', 'mobooking'); ?></label><br>
-                <input type="number" id="mobooking-service-price" name="price" value="<?php echo esc_attr( $service_price ); ?>" step="0.01" required class="widefat">
+                <div class="mobooking-price-input-wrapper" style="display: flex; align-items: center;">
+                    <?php if ($currency_pos === 'before') : ?>
+                        <span class="mobooking-currency-symbol" style="margin-right: 5px;"><?php echo esc_html($currency_symbol); ?></span>
+                    <?php endif; ?>
+                    <input type="number" id="mobooking-service-price" name="price" value="<?php echo esc_attr( $service_price ); ?>" step="0.01" required class="widefat" style="flex-grow: 1;">
+                    <?php if ($currency_pos === 'after') : ?>
+                        <span class="mobooking-currency-symbol" style="margin-left: 5px;"><?php echo esc_html($currency_symbol); ?></span>
+                    <?php endif; ?>
+                </div>
             </p>
             <p>
                 <label for="mobooking-service-duration"><?php esc_html_e('Duration (minutes):', 'mobooking'); ?></label><br>
                 <input type="number" id="mobooking-service-duration" name="duration" value="<?php echo esc_attr( $service_duration ); ?>" step="1" required class="widefat">
             </p>
             <p>
-                <label for="mobooking-service-category"><?php esc_html_e('Category:', 'mobooking'); ?></label><br>
-                <input type="text" id="mobooking-service-category" name="category" value="<?php echo esc_attr( $service_category ); ?>" class="widefat">
-            </p>
-            <p>
                 <label for="mobooking-service-icon"><?php esc_html_e('Icon (Dashicon class e.g., dashicons-admin-tools):', 'mobooking'); ?></label><br>
                 <input type="text" id="mobooking-service-icon" name="icon" value="<?php echo esc_attr( $service_icon ); ?>" class="widefat">
             </p>
             <p>
-                <label for="mobooking-service-image-url"><?php esc_html_e('Image URL:', 'mobooking'); ?></label><br>
-                <input type="url" id="mobooking-service-image-url" name="image_url" value="<?php echo esc_attr( $service_image_url ); ?>" class="widefat">
+                <label><?php esc_html_e('Service Icon:', 'mobooking'); ?></label><br>
+                <div id="mobooking-service-icon-preview" style="width: 64px; height: 64px; border: 1px dashed #ccc; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; background-color: #f9f9f9;">
+                    <!-- Preview will be populated by JS -->
+                    <span class="mobooking-no-icon-text"><?php esc_html_e('None', 'mobooking'); ?></span>
+                </div>
+                <input type="hidden" id="mobooking-service-icon-value" name="icon" value="<?php echo esc_attr( $service_icon ); ?>">
+
+                <button type="button" id="mobooking-remove-service-icon-btn" class="button" style="<?php echo empty($service_icon) ? 'display:none;' : ''; ?>"><?php esc_html_e('Remove Icon', 'mobooking'); ?></button>
+
+                <div style="margin-top: 15px;">
+                    <strong><?php esc_html_e('Preset Icons:', 'mobooking'); ?></strong>
+                    <div id="mobooking-preset-icons-wrapper" style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 5px; margin-bottom: 15px;">
+                        <?php
+                        // Ensure Services class is available. It should be due to earlier usage.
+                        if (class_exists('\MoBooking\Classes\Services')) {
+                            $services_manager_for_icons = new \MoBooking\Classes\Services();
+                            $presets = $services_manager_for_icons->get_all_preset_icons();
+                            foreach ($presets as $key => $svg_content) {
+                                echo '<div class="mobooking-preset-icon-item" data-preset-key="preset:' . esc_attr($key) . '" title="' . esc_attr(ucfirst($key)) . '" style="width: 48px; height: 48px; border: 1px solid #eee; cursor: pointer; padding: 5px; box-sizing: border-box;">' . $svg_content . '</div>';
+                            }
+                        }
+                        ?>
+                    </div>
+                </div>
+
+                <div>
+                    <strong><?php esc_html_e('Upload Custom SVG Icon:', 'mobooking'); ?></strong><br>
+                    <input type="file" id="mobooking-service-icon-upload" accept=".svg, image/svg+xml" style="margin-top: 5px;">
+                    <small><?php esc_html_e('Upload an SVG file. Max size: 100KB. Ensure it is sanitized.', 'mobooking'); ?></small>
+                </div>
             </p>
             <p>
-                <label for="mobooking-service-status"><?php esc_html_e('Status:', 'mobooking'); ?></label><br>
-                <select id="mobooking-service-status" name="status" class="widefat">
-                    <option value="active" <?php selected( $service_status, 'active' ); ?>><?php esc_html_e('Active', 'mobooking'); ?></option>
-                    <option value="inactive" <?php selected( $service_status, 'inactive' ); ?>><?php esc_html_e('Inactive', 'mobooking'); ?></option>
-                </select>
+                <?php
+                // Define a placeholder image URL (e.g., from plugin assets or a generic one)
+                // Since direct file creation isn't possible, using the data URI fallback directly.
+                $actual_placeholder_url = 'data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%22150%22%20height%3D%22150%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20150%20150%22%20preserveAspectRatio%3D%22none%22%3E%3Cdefs%3E%3Cstyle%20type%3D%22text%2Fcss%22%3E%23holder_17ea872690d%20text%20%7B%20fill%3A%23AAAAAA%3Bfont-weight%3Abold%3Bfont-family%3AArial%2C%20Helvetica%2C%20Open%20Sans%2C%20sans-serif%2C%20monospace%3Bfont-size%3A10pt%20%7D%20%3C%2Fstyle%3E%3C%2Fdefs%3E%3Cg%20id%3D%22holder_17ea872690d%22%3E%3Crect%20width%3D%22150%22%20height%3D%22150%22%20fill%3D%22%23EEEEEE%22%3E%3C%2Frect%3E%3Cg%3E%3Ctext%20x%3D%2250.00303268432617%22%20y%3D%2279.5%22%3E150x150%3C%2Ftext%3E%3C%2Fg%3E%3C%2Fg%3E%3C%2Fsvg%3E';
+                $current_image_to_display = !empty($service_image_url) ? esc_url($service_image_url) : $actual_placeholder_url;
+                ?>
+                <label for="mobooking-service-image-upload"><?php esc_html_e('Service Image:', 'mobooking'); ?></label><br>
+                <img id="mobooking-service-image-preview" src="<?php echo $current_image_to_display; ?>" alt="<?php esc_attr_e('Service Image Preview', 'mobooking'); ?>" style="width: 150px; height: 150px; border: 1px solid #ccc; margin-bottom: 10px; object-fit: cover; background-color: #f9f9f9;">
+                <input type="hidden" id="mobooking-service-image-url-value" name="image_url" value="<?php echo esc_attr( $service_image_url ); ?>">
+
+                <div>
+                    <input type="file" id="mobooking-service-image-upload" accept="image/jpeg, image/png, image/gif, image/webp" style="display: none;">
+                    <button type="button" id="mobooking-trigger-service-image-upload-btn" class="button"><?php esc_html_e('Upload Image', 'mobooking'); ?></button>
+                    <button type="button" id="mobooking-remove-service-image-btn" class="button button-link-delete" style="<?php echo empty($service_image_url) ? 'display:none;' : ''; ?>"><?php esc_html_e('Remove Image', 'mobooking'); ?></button>
+                </div>
+                <small><?php esc_html_e('Recommended size: 800x600px. Max file size: 2MB.', 'mobooking'); ?></small>
+            </p>
+            <p>
+                <label for="mobooking-service-status-toggle"><?php esc_html_e('Status:', 'mobooking'); ?></label><br>
+                <div class="mobooking-toggle-switch <?php echo ($service_status === 'active' ? 'active' : ''); ?>" id="mobooking-service-status-toggle" tabindex="0" role="switch" aria-checked="<?php echo ($service_status === 'active' ? 'true' : 'false'); ?>">
+                    <div class="mobooking-toggle-knob"></div>
+                </div>
+                <input type="hidden" id="mobooking-service-status" name="status" value="<?php echo esc_attr( $service_status ); ?>">
+                <span id="mobooking-service-status-text" style="margin-left: 10px; vertical-align: middle;">
+                    <?php echo ($service_status === 'active' ? esc_html__('Active', 'mobooking') : esc_html__('Inactive', 'mobooking')); ?>
+                </span>
             </p>
 
             <!-- Service Options Section -->
