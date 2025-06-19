@@ -68,6 +68,25 @@ class Notifications {
             return false;
         }
 
+        $settings_manager = new Settings();
+        $locale_switched_for_email = false;
+        $original_locale = get_locale();
+        $user_language = '';
+
+        if ($tenant_user_id) {
+            $user_language = $settings_manager->get_setting($tenant_user_id, 'biz_user_language', '');
+            if (!empty($user_language) && is_string($user_language) && preg_match('/^[a-z]{2,3}(_[A-Z]{2})?$/', $user_language)) {
+                if ($original_locale !== $user_language) {
+                    if (switch_to_locale($user_language)) {
+                        $locale_switched_for_email = true;
+                        // Ensure MOBOOKING_THEME_DIR is available or use get_template_directory()
+                        $theme_dir = defined('MOBOOKING_THEME_DIR') ? MOBOOKING_THEME_DIR : get_template_directory();
+                        load_theme_textdomain('mobooking', $theme_dir . '/languages');
+                    }
+                }
+            }
+        }
+
         $tenant_business_name = get_bloginfo('name'); // Default to site name
         if ($tenant_user_id) {
             $tenant_info = get_userdata($tenant_user_id);
@@ -90,9 +109,8 @@ class Notifications {
         $address = isset($booking_details['service_address']) ? nl2br(esc_html($booking_details['service_address'])) : __('N/A', 'mobooking');
 
         $settings_manager = new Settings();
-        $currency_symbol = $settings_manager->get_setting($tenant_user_id, 'biz_currency_symbol', '$');
-        $currency_position = $settings_manager->get_setting($tenant_user_id, 'biz_currency_position', 'before');
-        $price_display = ($currency_position === 'after') ? number_format_i18n($raw_total_price, 2) . $currency_symbol : $currency_symbol . number_format_i18n($raw_total_price, 2);
+        $biz_currency_code = $settings_manager->get_setting($tenant_user_id, 'biz_currency_code', 'USD');
+        $price_display = $biz_currency_code . ' ' . number_format_i18n($raw_total_price, 2);
 
         $subject = sprintf(__('Your Booking Confirmation with %s - Ref: %s', 'mobooking'), $tenant_business_name, $ref);
 
@@ -109,8 +127,16 @@ class Notifications {
         $message .= "<p>" . __('Thank you,', 'mobooking') . "<br>" . $tenant_business_name . "</p>";
 
         $headers = $this->get_email_headers($tenant_user_id);
+        $email_sent = wp_mail($customer_email, $subject, $message, $headers);
 
-        return wp_mail($customer_email, $subject, $message, $headers);
+        if ($locale_switched_for_email) {
+            restore_current_locale();
+            // Reload text domain for original locale
+            $theme_dir = defined('MOBOOKING_THEME_DIR') ? MOBOOKING_THEME_DIR : get_template_directory();
+            load_theme_textdomain('mobooking', $theme_dir . '/languages');
+        }
+
+        return $email_sent;
     }
 
     /**
@@ -125,32 +151,64 @@ class Notifications {
             return false;
         }
 
+        $settings_manager = new Settings(); // Moved up for language setting
+        $locale_switched_for_email = false;
+        $original_locale = get_locale();
+        $user_language = '';
+
+        if ($tenant_user_id) { // tenant_user_id is the admin/business owner here
+            $user_language = $settings_manager->get_setting($tenant_user_id, 'biz_user_language', '');
+            if (!empty($user_language) && is_string($user_language) && preg_match('/^[a-z]{2,3}(_[A-Z]{2})?$/', $user_language)) {
+                if ($original_locale !== $user_language) {
+                    if (switch_to_locale($user_language)) {
+                        $locale_switched_for_email = true;
+                        $theme_dir = defined('MOBOOKING_THEME_DIR') ? MOBOOKING_THEME_DIR : get_template_directory();
+                        load_theme_textdomain('mobooking', $theme_dir . '/languages');
+                    }
+                }
+            }
+        }
+
         $tenant_info = get_userdata($tenant_user_id);
         if (!$tenant_info) {
             // error_log('MoBooking Notifications: Invalid tenant_user_id for admin confirmation.');
+            // Restore locale if it was switched before returning false
+            if ($locale_switched_for_email) {
+                restore_current_locale();
+                $theme_dir = defined('MOBOOKING_THEME_DIR') ? MOBOOKING_THEME_DIR : get_template_directory();
+                load_theme_textdomain('mobooking', $theme_dir . '/languages');
+            }
             return false;
         }
         $admin_email = $tenant_info->user_email;
 
+        // Business name for email content (can be different from site name)
+        $tenant_business_name = $settings_manager->get_setting($tenant_user_id, 'biz_name', get_bloginfo('name'));
+        if (empty($tenant_business_name)) {
+            $tenant_business_name = get_bloginfo('name');
+        }
+
+
         $ref = isset($booking_details['booking_reference']) ? esc_html($booking_details['booking_reference']) : __('N/A', 'mobooking');
         $services = isset($booking_details['service_names']) ? esc_html($booking_details['service_names']) : __('N/A', 'mobooking');
         $datetime = isset($booking_details['booking_date_time']) ? esc_html($booking_details['booking_date_time']) : __('N/A', 'mobooking');
-        $price = isset($booking_details['total_price']) ? number_format_i18n($booking_details['total_price'], 2) : __('N/A', 'mobooking');
+        // $price = isset($booking_details['total_price']) ? number_format_i18n($booking_details['total_price'], 2) : __('N/A', 'mobooking'); // Price variable unused, raw_total_price is used below
+        $raw_total_price = isset($booking_details['total_price']) ? floatval($booking_details['total_price']) : 0;
         $customer_name = isset($booking_details['customer_name']) ? esc_html($booking_details['customer_name']) : __('N/A', 'mobooking');
         $customer_email_val = isset($booking_details['customer_email']) ? esc_html($booking_details['customer_email']) : __('N/A', 'mobooking');
         $customer_phone = isset($booking_details['customer_phone']) ? esc_html($booking_details['customer_phone']) : __('N/A', 'mobooking');
         $address = isset($booking_details['service_address']) ? nl2br(esc_html($booking_details['service_address'])) : __('N/A', 'mobooking');
         $instructions = isset($booking_details['special_instructions']) && !empty($booking_details['special_instructions']) ? nl2br(esc_html($booking_details['special_instructions'])) : __('None', 'mobooking');
 
-        $settings_manager = new Settings();
-        $currency_symbol = $settings_manager->get_setting($tenant_user_id, 'biz_currency_symbol', '$');
-        $currency_position = $settings_manager->get_setting($tenant_user_id, 'biz_currency_position', 'before');
-        $price_display = ($currency_position === 'after') ? number_format_i18n($raw_total_price, 2) . $currency_symbol : $currency_symbol . number_format_i18n($raw_total_price, 2);
+        // Settings manager already instantiated above
+        $biz_currency_code = $settings_manager->get_setting($tenant_user_id, 'biz_currency_code', 'USD');
+        $price_display = $biz_currency_code . ' ' . number_format_i18n($raw_total_price, 2);
 
-
+        // Subject and message using translated strings
         $subject = sprintf(__('New Booking Received - Ref: %s - %s', 'mobooking'), $ref, $customer_name);
 
         $message  = "<p>" . sprintf(__('You have received a new booking (Ref: %s).', 'mobooking'), $ref) . "</p>";
+        // Add business name context if it's part of the message structure
         $message .= "<h3>" . __('Customer Details:', 'mobooking') . "</h3>";
         $message .= "<ul>";
         $message .= "<li><strong>" . __('Name:', 'mobooking') . "</strong> " . $customer_name . "</li>";
@@ -166,10 +224,20 @@ class Notifications {
         $message .= "<li><strong>" . __('Special Instructions:', 'mobooking') . "</strong><br>" . $instructions . "</li>";
         $message .= "</ul>";
         $message .= "<p>" . __('Please review this booking in your dashboard.', 'mobooking') . "</p>";
+        // Example of using tenant_business_name in the email body if needed for clarity
+        // $message .= "<p>" . sprintf(__('This booking is for your business: %s', 'mobooking'), $tenant_business_name) . "</p>";
+
 
         $headers = $this->get_email_headers($tenant_user_id);
+        $email_sent = wp_mail($admin_email, $subject, $message, $headers);
 
-        return wp_mail($admin_email, $subject, $message, $headers);
+        if ($locale_switched_for_email) {
+            restore_current_locale();
+            $theme_dir = defined('MOBOOKING_THEME_DIR') ? MOBOOKING_THEME_DIR : get_template_directory();
+            load_theme_textdomain('mobooking', $theme_dir . '/languages');
+        }
+
+        return $email_sent;
     }
 
     // Placeholder for other notifications

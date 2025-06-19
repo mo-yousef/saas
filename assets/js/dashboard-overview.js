@@ -41,24 +41,21 @@ jQuery(document).ready(function($) {
                 if (response.success && response.data) {
                     // Populate KPIs
                     if (response.data.kpis) {
+                        const currencyCode = mobooking_overview_params.currency_code || 'USD';
                         kpiBookingsMonthEl.text(response.data.kpis.bookings_month || '0');
                         const revenue = parseFloat(response.data.kpis.revenue_month) || 0;
-                        const revenueFormatted = mobooking_overview_params.currency_position === 'after' ?
-                            revenue.toFixed(2) + mobooking_overview_params.currency_symbol :
-                            mobooking_overview_params.currency_symbol + revenue.toFixed(2);
-                        kpiRevenueMonthEl.text(revenueFormatted);
+                        kpiRevenueMonthEl.text(currencyCode + ' ' + revenue.toFixed(2));
                         kpiUpcomingCountEl.text(response.data.kpis.upcoming_count || '0');
                     }
 
                     // Populate Recent Bookings
                     recentBookingsContainer.empty();
                     if (response.data.recent_bookings && response.data.recent_bookings.length) {
+                        const currencyCode = mobooking_overview_params.currency_code || 'USD';
                         response.data.recent_bookings.forEach(function(booking) {
                             let bookingData = {...booking};
                             const price = parseFloat(booking.total_price) || 0;
-                            bookingData.total_price_formatted = mobooking_overview_params.currency_position === 'after' ?
-                                price.toFixed(2) + mobooking_overview_params.currency_symbol :
-                                mobooking_overview_params.currency_symbol + price.toFixed(2);
+                            bookingData.total_price_formatted = currencyCode + ' ' + price.toFixed(2);
                             bookingData.status_display = mobooking_overview_params.statuses[booking.status] || booking.status.charAt(0).toUpperCase() + booking.status.slice(1);
                             recentBookingsContainer.append(renderTemplate(bookingItemTemplate, bookingData));
                         });

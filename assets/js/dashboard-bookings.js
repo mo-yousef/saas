@@ -5,6 +5,7 @@ jQuery(document).ready(function($) {
     const paginationContainer = $('#mobooking-bookings-pagination-container');
     const filterForm = $('#mobooking-bookings-filter-form');
     const bookingItemTemplate = $('#mobooking-booking-item-template').html();
+    const currencyCode = mobooking_bookings_params.currency_code || 'USD';
 
     // Store current filters and page
     let currentFilters = {
@@ -54,7 +55,7 @@ jQuery(document).ready(function($) {
                     response.data.bookings.forEach(function(booking) {
                         let bookingDataForTemplate = {...booking};
                         // Format data for display
-                        bookingDataForTemplate.total_price_formatted = parseFloat(booking.total_price).toFixed(2); // Add currency from settings later
+                        bookingDataForTemplate.total_price_formatted = currencyCode + ' ' + parseFloat(booking.total_price).toFixed(2);
                         bookingDataForTemplate.status_display = mobooking_bookings_params.statuses[booking.status] || booking.status;
                         // Basic date formatting, consider moment.js or similar for complex needs
                         try {
@@ -166,11 +167,18 @@ jQuery(document).ready(function($) {
         }
         let html = '<ul>';
         items.forEach(function(item) {
-            html += `<li><strong>${sanitizeHTML(item.service_name)}</strong> (Qty: ${item.quantity || 1}) - Price: ${parseFloat(item.item_total_price).toFixed(2)}`;
+            html += `<li><strong>${sanitizeHTML(item.service_name)}</strong> (Qty: ${item.quantity || 1}) - Price: ${currencyCode} ${parseFloat(item.item_total_price).toFixed(2)}`;
             if (item.selected_options && item.selected_options.length > 0) {
                 html += '<ul class="option-list">';
                 item.selected_options.forEach(function(opt) {
-                    html += `<li><em>${sanitizeHTML(opt.name)}:</em> ${sanitizeHTML(opt.value)} ${parseFloat(opt.price_impact) !== 0 ? '(' + (parseFloat(opt.price_impact) > 0 ? '+' : '') + parseFloat(opt.price_impact).toFixed(2) + ')' : ''}</li>`;
+                    let impact_val = parseFloat(opt.price_impact);
+                    let impact_display = '';
+                    if (impact_val !== 0) {
+                        let sign = impact_val > 0 ? '+' : '';
+                        // For option impacts, it's usually just AMOUNT CURRENCY_CODE, e.g. +5.00 USD or -2.50 EUR
+                        impact_display = ` (${sign}${impact_val.toFixed(2)} ${currencyCode})`;
+                    }
+                    html += `<li><em>${sanitizeHTML(opt.name)}:</em> ${sanitizeHTML(opt.value)}${impact_display}</li>`;
                 });
                 html += '</ul>';
             }
@@ -211,8 +219,8 @@ jQuery(document).ready(function($) {
 
                     modalServicesItemsList.html(formatServiceItemsForModal(booking.items));
 
-                    modalDiscountAmount.text(parseFloat(booking.discount_amount).toFixed(2));
-                    modalFinalTotal.text(parseFloat(booking.total_price).toFixed(2));
+                    modalDiscountAmount.text(currencyCode + ' ' + parseFloat(booking.discount_amount || 0).toFixed(2));
+                    modalFinalTotal.text(currencyCode + ' ' + parseFloat(booking.total_price).toFixed(2));
 
                     // Populate status dropdown
                     modalStatusSelect.empty();
@@ -475,8 +483,8 @@ jQuery(document).ready(function($) {
 
         modalServicesItemsList.html(formatServiceItemsForModal(booking.items));
 
-        modalDiscountAmount.text(parseFloat(booking.discount_amount || 0).toFixed(2));
-        modalFinalTotal.text(parseFloat(booking.total_price).toFixed(2));
+        modalDiscountAmount.text(currencyCode + ' ' + parseFloat(booking.discount_amount || 0).toFixed(2));
+        modalFinalTotal.text(currencyCode + ' ' + parseFloat(booking.total_price).toFixed(2));
 
         modalStatusSelect.empty();
         const statuses = mobooking_bookings_params.statuses || {};
