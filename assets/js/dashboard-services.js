@@ -1,7 +1,6 @@
-// Enhanced error handling for dashboard-services.js
-// Add this to the beginning of your dashboard-services.js file:
-
 jQuery(document).ready(function ($) {
+  "use strict";
+
   // Enhanced parameter validation
   if (typeof mobooking_services_params === "undefined") {
     console.error(
@@ -27,206 +26,45 @@ jQuery(document).ready(function ($) {
     return;
   }
 
-  // Enhanced AJAX error handling for the edit service button
-  $(document).on("click", ".mobooking-edit-service-btn", function () {
-    const serviceId = $(this).data("id");
-    const $editButton = $(this);
-    const originalButtonText = $editButton.text();
-
-    console.log("Attempting to fetch details for service ID:", serviceId);
-
-    if (!serviceId) {
-      console.error("Service ID for edit is missing or undefined.");
-      alert(
-        mobooking_services_params.i18n.error_missing_service_id ||
-          "Error: Could not identify the service ID for editing."
-      );
-      return;
-    }
-
-    // Show loading state
-    $editButton
-      .prop("disabled", true)
-      .text(mobooking_services_params.i18n.loading_details || "Loading...");
-
-    // Enhanced AJAX request with better error handling
-    $.ajax({
-      url: mobooking_services_params.ajax_url,
-      type: "POST",
-      data: {
-        action: "mobooking_get_service_details",
-        nonce: mobooking_services_params.nonce,
-        service_id: serviceId,
-      },
-      dataType: "json",
-      timeout: 30000, // 30 second timeout
-      success: function (response) {
-        console.log("AJAX Response received:", response);
-
-        if (response.success && response.data && response.data.service) {
-          // Cache the service data
-          if (typeof servicesDataCache !== "undefined") {
-            servicesDataCache[serviceId] = response.data.service;
-          }
-
-          // Update form title and populate
-          if (typeof serviceFormTitle !== "undefined") {
-            serviceFormTitle.text(
-              mobooking_services_params.i18n.edit_service || "Edit Service"
-            );
-          }
-
-          if (typeof populateForm === "function") {
-            populateForm(response.data.service);
-          }
-
-          // Show modal
-          $("#mobooking-service-form-modal-backdrop").show();
-          if (typeof serviceFormContainer !== "undefined") {
-            serviceFormContainer.show();
-          }
-          $("body").addClass("mobooking-modal-open");
-        } else {
-          const errorMessage =
-            response.data && response.data.message
-              ? response.data.message
-              : mobooking_services_params.i18n.error_fetching_service_details ||
-                "Error: Could not fetch service details.";
-
-          console.error("Service details fetch failed:", errorMessage);
-          alert(errorMessage);
-        }
-      },
-      error: function (xhr, status, error) {
-        console.error(
-          "AJAX error fetching service details. Status:",
-          xhr.status,
-          "Error:",
-          error,
-          "Response:",
-          xhr.responseText,
-          "Full XHR:",
-          xhr
-        );
-
-        let errorMessage =
-          "Network error occurred while fetching service details.";
-
-        // Provide more specific error messages
-        if (xhr.status === 400) {
-          errorMessage =
-            "Bad request. Please check if you have the proper permissions.";
-        } else if (xhr.status === 403) {
-          errorMessage = "Access denied. Please log in again.";
-        } else if (xhr.status === 404) {
-          errorMessage = "Service not found or may have been deleted.";
-        } else if (xhr.status === 500) {
-          errorMessage = "Server error occurred. Please try again later.";
-        } else if (status === "timeout") {
-          errorMessage = "Request timed out. Please try again.";
-        }
-
-        alert(errorMessage);
-      },
-      complete: function () {
-        // Restore button state
-        $editButton.prop("disabled", false).text(originalButtonText);
-      },
-    });
-  });
-
-  // Add a global error handler for uncaught AJAX errors
-  $(document).ajaxError(function (event, xhr, settings, thrownError) {
-    if (settings.url && settings.url.includes("admin-ajax.php")) {
-      console.error(
-        "Global AJAX Error Handler - URL:",
-        settings.url,
-        "Status:",
-        xhr.status,
-        "Error:",
-        thrownError
-      );
-    }
-  });
-});
-
-// Additional debugging function to test AJAX connectivity
-function testMoBookingAjax() {
-  if (typeof mobooking_services_params === "undefined") {
-    console.error("Cannot test AJAX - parameters not loaded");
-    return;
-  }
-
-  jQuery.ajax({
-    url: mobooking_services_params.ajax_url,
-    type: "POST",
-    data: {
-      action: "mobooking_get_services",
-      nonce: mobooking_services_params.nonce,
-      per_page: 1,
-    },
-    success: function (response) {
-      console.log("AJAX Test Success:", response);
-    },
-    error: function (xhr, status, error) {
-      console.error("AJAX Test Failed:", {
-        status: xhr.status,
-        statusText: xhr.statusText,
-        error: error,
-        response: xhr.responseText,
-      });
-    },
-  });
-}
-
-// Expose test function globally for debugging
-window.testMoBookingAjax = testMoBookingAjax;
-
-jQuery(document).ready(function ($) {
-  "use strict";
-
   const servicesListContainer = $("#mobooking-services-list-container");
   const serviceFormContainer = $("#mobooking-service-form-container");
   const serviceForm = $("#mobooking-service-form");
   const serviceFormTitle = $("#mobooking-service-form-title");
-  const serviceIdField = $("#mobooking-service-id"); // Hidden input for service_id
+  const serviceIdField = $("#mobooking-service-id");
   const feedbackDiv = $("#mobooking-service-form-feedback").hide();
-  const optionsListContainer = $("#mobooking-service-options-list"); // Renamed for clarity
+  const optionsListContainer = $("#mobooking-service-options-list");
   const addServiceOptionBtn = $("#mobooking-add-service-option-btn");
   const optionTemplateHtml = $("#mobooking-service-option-template").html();
+
   if (optionTemplateHtml) {
-    // Ensure template exists before removing
-    $("#mobooking-service-option-template").remove(); // Remove template from DOM after getting HTML
+    $("#mobooking-service-option-template").remove();
   }
 
   const paginationContainer = $("#mobooking-services-pagination-container");
   const mainServiceItemTemplate = $("#mobooking-service-item-template").html();
-  $("#mobooking-service-item-template").remove(); // Remove from DOM
+  $("#mobooking-service-item-template").remove();
 
   let currentServiceFilters = {
-    // For storing current filter/pagination state
     paged: 1,
-    per_page: 20, // Default, can be changed
+    per_page: 20,
     status_filter: "",
     category_filter: "",
     search_query: "",
     orderby: "name",
     order: "ASC",
   };
-  let servicesDataCache = {}; // Cache for service details to populate edit form
+  let servicesDataCache = {};
   let optionIndex = 0;
 
   // Basic XSS protection for display
   function sanitizeHTML(str) {
     if (typeof str !== "string") return "";
-    // Create a temporary div element
     var temp = document.createElement("div");
-    // Set its textContent to the input string (this escapes HTML)
     temp.textContent = str;
-    // Return the innerHTML (which is now the escaped string)
     return temp.innerHTML;
   }
 
+  // Updated populateForm function to support full CRUD
   function populateForm(service) {
     serviceForm[0].reset();
     serviceIdField.val(service.service_id);
@@ -239,98 +77,129 @@ jQuery(document).ready(function ($) {
     $("#mobooking-service-image-url").val(service.image_url);
     $("#mobooking-service-status").val(service.status);
 
-    optionsListContainer.empty(); // Clear previous options
-    optionIndex = 0;
-    addServiceOptionBtn.prop("disabled", !service.service_id); // Enable only if service exists
+    // Only clear options when switching to a completely different service
+    const currentlyLoadedServiceId = optionsListContainer.attr(
+      "data-current-service-id"
+    );
+    const isNewService = !service.service_id;
+    const isDifferentService =
+      service.service_id && service.service_id !== currentlyLoadedServiceId;
 
-    if (
-      service.service_id &&
-      service.options &&
-      Array.isArray(service.options) &&
-      service.options.length
-    ) {
-      service.options.forEach(function (opt) {
-        optionIndex++;
-        const newOptionRow = $(optionTemplateHtml); // Create new row from template
-        newOptionRow
-          .find('input[name="options[][option_id]"]')
-          .val(opt.option_id || "");
-        newOptionRow.find('input[name="options[][name]"]').val(opt.name || "");
-        newOptionRow
-          .find('textarea[name="options[][description]"]')
-          .val(opt.description || "");
-        newOptionRow
-          .find('select[name="options[][type]"]')
-          .val(opt.type || "checkbox");
+    // Only clear and reload options if we're switching services or loading for the first time
+    if (isNewService || isDifferentService || !currentlyLoadedServiceId) {
+      optionsListContainer.empty();
+      optionIndex = 0;
 
-        const isRequiredCheckbox = newOptionRow.find(
-          'input[name="options[][is_required_cb]"]'
-        );
-        const isRequiredHidden = newOptionRow.find(
-          'input[name="options[][is_required]"]'
-        );
-        if (
-          opt.is_required &&
-          (opt.is_required === "1" ||
-            opt.is_required === 1 ||
-            opt.is_required === true)
-        ) {
-          isRequiredCheckbox.prop("checked", true);
-          isRequiredHidden.val("1");
-        } else {
-          isRequiredCheckbox.prop("checked", false);
-          isRequiredHidden.val("0");
-        }
+      // Set the current service ID for tracking
+      optionsListContainer.attr(
+        "data-current-service-id",
+        service.service_id || "new"
+      );
 
-        newOptionRow
-          .find('select[name="options[][price_impact_type]"]')
-          .val(opt.price_impact_type || "");
-        newOptionRow
-          .find('input[name="options[][price_impact_value]"]')
-          .val(opt.price_impact_value || "");
+      // Load saved options for existing service
+      if (
+        service.service_id &&
+        service.options &&
+        Array.isArray(service.options) &&
+        service.options.length
+      ) {
+        service.options.forEach(function (opt) {
+          optionIndex++;
+          const newOptionRow = $(optionTemplateHtml);
 
-        let optionValuesText = "";
-        // opt.option_values is expected to be a string (JSON) from server for select/radio
-        if (opt.option_values) {
-          if (typeof opt.option_values === "string") {
-            try {
-              // Attempt to parse then stringify to ensure it's well-formed and consistently formatted for display
-              const parsedValues = JSON.parse(opt.option_values);
-              optionValuesText = JSON.stringify(parsedValues, null, 2); // Pretty print
-            } catch (e) {
-              // If not valid JSON, display as is (might indicate error or plain text for other types)
-              optionValuesText = opt.option_values;
-            }
-          } else if (typeof opt.option_values === "object") {
-            // Should not happen if PHP sends JSON string
-            optionValuesText = JSON.stringify(opt.option_values, null, 2);
+          // Mark this as a saved option
+          newOptionRow.attr("data-option-source", "saved");
+          newOptionRow.attr("data-option-id", opt.option_id);
+
+          newOptionRow
+            .find('input[name="options[][option_id]"]')
+            .val(opt.option_id || "");
+          newOptionRow
+            .find('input[name="options[][name]"]')
+            .val(opt.name || "");
+          newOptionRow
+            .find('textarea[name="options[][description]"]')
+            .val(opt.description || "");
+          newOptionRow
+            .find('select[name="options[][type]"]')
+            .val(opt.type || "checkbox");
+
+          const isRequiredCheckbox = newOptionRow.find(
+            'input[name="options[][is_required_cb]"]'
+          );
+          const isRequiredHidden = newOptionRow.find(
+            'input[name="options[][is_required]"]'
+          );
+          if (
+            opt.is_required &&
+            (opt.is_required === "1" ||
+              opt.is_required === 1 ||
+              opt.is_required === true)
+          ) {
+            isRequiredCheckbox.prop("checked", true);
+            isRequiredHidden.val("1");
+          } else {
+            isRequiredCheckbox.prop("checked", false);
+            isRequiredHidden.val("0");
           }
+
+          newOptionRow
+            .find('select[name="options[][price_impact_type]"]')
+            .val(opt.price_impact_type || "");
+          newOptionRow
+            .find('input[name="options[][price_impact_value]"]')
+            .val(opt.price_impact_value || "");
+
+          let optionValuesText = "";
+          if (opt.option_values) {
+            if (typeof opt.option_values === "string") {
+              try {
+                const parsedValues = JSON.parse(opt.option_values);
+                optionValuesText = JSON.stringify(parsedValues, null, 2);
+              } catch (e) {
+                optionValuesText = opt.option_values;
+              }
+            } else if (typeof opt.option_values === "object") {
+              optionValuesText = JSON.stringify(opt.option_values, null, 2);
+            }
+          }
+          newOptionRow
+            .find('textarea[name="options[][option_values]"]')
+            .val(optionValuesText);
+          newOptionRow
+            .find('input[name="options[][sort_order]"]')
+            .val(opt.sort_order || optionIndex);
+
+          optionsListContainer.append(newOptionRow);
+          toggleOptionDetailFields(newOptionRow);
+        });
+      }
+
+      // Show appropriate message if no options
+      if (
+        optionsListContainer.children(".mobooking-service-option-row")
+          .length === 0
+      ) {
+        if (!service.service_id) {
+          optionsListContainer.html(
+            "<p><em>" +
+              (mobooking_services_params.i18n.add_options_for_new_service ||
+                'Click "Add Option" below to create service options. You can save everything together when done.') +
+              "</em></p>"
+          );
+        } else {
+          optionsListContainer.html(
+            "<p><em>" +
+              (mobooking_services_params.i18n.no_options_for_service ||
+                'No options configured for this service yet. Click "Add Option" to create one.') +
+              "</em></p>"
+          );
         }
-        newOptionRow
-          .find('textarea[name="options[][option_values]"]')
-          .val(optionValuesText);
-        newOptionRow
-          .find('input[name="options[][sort_order]"]')
-          .val(opt.sort_order || optionIndex);
-        optionsListContainer.append(newOptionRow);
-        toggleOptionDetailFields(newOptionRow); // Call after appending and populating
-      });
-    } else if (!service.service_id) {
-      // New service
-      optionsListContainer.html(
-        "<p><em>" +
-          mobooking_services_params.i18n.save_service_before_options +
-          "</em></p>"
-      );
-    } else {
-      // Existing service, no options
-      optionsListContainer.html(
-        "<p><em>" +
-          (mobooking_services_params.i18n.no_options_for_service ||
-            'No options configured for this service yet. Click "Add Option" to create one.') +
-          "</em></p>"
-      );
+      }
     }
+
+    // Always enable the Add Option button for CRUD operations
+    addServiceOptionBtn.prop("disabled", false);
   }
 
   // Show/hide option_values and price_impact_value fields based on selections
@@ -346,8 +215,19 @@ jQuery(document).ready(function ($) {
       $row.find(".mobooking-option-price-value-field").slideDown();
     } else {
       $row.find(".mobooking-option-price-value-field").slideUp();
-      $row.find('input[name="options[][price_impact_value]"]').val(""); // Clear value if type is none
+      $row.find('input[name="options[][price_impact_value]"]').val("");
     }
+  }
+
+  // Helper function to update sort orders
+  function updateOptionSortOrders() {
+    optionsListContainer
+      .find(".mobooking-service-option-row")
+      .each(function (idx, el) {
+        $(el)
+          .find('input[name="options[][sort_order]"]')
+          .val(idx + 1);
+      });
   }
 
   optionsListContainer.on(
@@ -360,52 +240,86 @@ jQuery(document).ready(function ($) {
     }
   );
 
+  // Updated "Add Option" button click handler
   $("#mobooking-add-service-option-btn").on("click", function () {
     if ($(this).is(":disabled")) return;
 
+    // Clear placeholder message if it exists
     if (
       optionsListContainer.find("p").length &&
-      optionsListContainer.children().length === 1
+      optionsListContainer.children().length === 1 &&
+      optionsListContainer.find("p em").length > 0
     ) {
-      optionsListContainer.empty(); // Clear "No options..." message if present
+      optionsListContainer.empty();
     }
 
     optionIndex++;
     const newOptionRow = $(optionTemplateHtml);
+
+    // Mark this as a newly added option
+    newOptionRow.attr("data-option-source", "new");
+    newOptionRow.attr("data-option-id", "new-" + optionIndex);
+
+    // Set default values for new option
+    newOptionRow.find('input[name="options[][option_id]"]').val("");
+    newOptionRow.find('select[name="options[][type]"]').val("checkbox");
+    newOptionRow.find('input[name="options[][is_required]"]').val("0");
+
     optionsListContainer.append(newOptionRow);
     toggleOptionDetailFields(newOptionRow);
-    newOptionRow
-      .find('input[name="options[][sort_order]"]')
-      .val(
-        optionsListContainer.children(".mobooking-service-option-row").length
-      );
+
+    // Update sort order for all options
+    updateOptionSortOrders();
+
     newOptionRow.find('input[name="options[][name]"]').focus();
   });
 
+  // Updated remove button handler to support both saved and new options
   optionsListContainer.on(
     "click",
     ".mobooking-remove-service-option-btn",
     function () {
-      $(this).closest(".mobooking-service-option-row").remove();
-      // Re-calculate sort orders
-      optionsListContainer
-        .find(".mobooking-service-option-row")
-        .each(function (idx, el) {
-          $(el)
-            .find('input[name="options[][sort_order]"]')
-            .val(idx + 1);
-        });
+      const $row = $(this).closest(".mobooking-service-option-row");
+      const optionSource = $row.attr("data-option-source");
+
+      // For saved options, confirm deletion
+      if (optionSource === "saved") {
+        if (
+          !confirm(
+            mobooking_services_params.i18n.confirm_delete_option ||
+              "Are you sure you want to delete this option? This action cannot be undone."
+          )
+        ) {
+          return;
+        }
+      }
+
+      $row.remove();
+      updateOptionSortOrders();
+
+      // Show placeholder message if no options left
       if (
         optionsListContainer.children(".mobooking-service-option-row")
           .length === 0
       ) {
-        // Check if only .mobooking-service-option-row are zero
-        optionsListContainer.html(
-          "<p><em>" +
-            (mobooking_services_params.i18n.no_options_prompt ||
-              'Click "Add Option" to create service options.') +
-            "</em></p>"
+        const currentServiceId = optionsListContainer.attr(
+          "data-current-service-id"
         );
+        if (!currentServiceId || currentServiceId === "new") {
+          optionsListContainer.html(
+            "<p><em>" +
+              (mobooking_services_params.i18n.add_options_for_new_service ||
+                'Click "Add Option" below to create service options.') +
+              "</em></p>"
+          );
+        } else {
+          optionsListContainer.html(
+            "<p><em>" +
+              (mobooking_services_params.i18n.no_options_for_service ||
+                'No options configured for this service yet. Click "Add Option" to create one.') +
+              "</em></p>"
+          );
+        }
       }
     }
   );
@@ -435,11 +349,11 @@ jQuery(document).ready(function ($) {
         "</p>"
     );
     paginationContainer.empty();
-    servicesDataCache = {}; // Clear cache on new list load
+    servicesDataCache = {};
 
     let ajaxData = {
       action: "mobooking_get_services",
-      nonce: mobooking_services_params.nonce, // This should be localized
+      nonce: mobooking_services_params.nonce,
       ...currentServiceFilters,
     };
 
@@ -456,11 +370,11 @@ jQuery(document).ready(function ($) {
           response.data.services.length
         ) {
           response.data.services.forEach(function (service) {
-            servicesDataCache[service.service_id] = service; // Cache for editing
+            servicesDataCache[service.service_id] = service;
             let serviceDataForTemplate = { ...service };
             serviceDataForTemplate.formatted_price =
               mobooking_services_params.currency_symbol +
-              parseFloat(service.price).toFixed(2); // Basic formatting
+              parseFloat(service.price).toFixed(2);
             serviceDataForTemplate.display_status =
               service.status.charAt(0).toUpperCase() + service.status.slice(1);
 
@@ -498,164 +412,132 @@ jQuery(document).ready(function ($) {
       error: function () {
         servicesListContainer.html(
           "<p>" +
-            (mobooking_services_params.i18n.error_loading_services ||
-              "Error loading services.") +
+            (mobooking_services_params.i18n.error_loading_services_ajax ||
+              "AJAX error loading services.") +
             "</p>"
         );
       },
     });
   }
 
-  function renderPagination(totalItems, itemsPerPage, currentPage) {
-    paginationContainer.empty();
-    const totalPages = Math.ceil(totalItems / itemsPerPage);
-    if (totalPages <= 1) return;
-
-    let paginationHtml = '<ul class="pagination-links">'; // WordPress uses .page-numbers
-    for (let i = 1; i <= totalPages; i++) {
-      paginationHtml += `<li style="display:inline; margin-right:5px;"><a href="#" data-page="${i}" class="page-numbers ${
-        i === currentPage ? "current" : ""
-      }">${i}</a></li>`;
+  function renderPagination(totalCount, perPage, currentPage) {
+    const totalPages = Math.ceil(totalCount / perPage);
+    if (totalPages <= 1) {
+      paginationContainer.empty();
+      return;
     }
+
+    let paginationHtml = "<ul class='page-numbers'>";
+
+    if (currentPage > 1) {
+      paginationHtml += `<li><a href="#" class="page-numbers" data-page="${
+        currentPage - 1
+      }">&laquo; Prev</a></li>`;
+    }
+
+    for (let i = 1; i <= totalPages; i++) {
+      if (i === currentPage) {
+        paginationHtml += `<li><span class="page-numbers current">${i}</span></li>`;
+      } else {
+        paginationHtml += `<li><a href="#" class="page-numbers" data-page="${i}">${i}</a></li>`;
+      }
+    }
+
+    if (currentPage < totalPages) {
+      paginationHtml += `<li><a href="#" class="page-numbers" data-page="${
+        currentPage + 1
+      }">Next &raquo;</a></li>`;
+    }
+
     paginationHtml += "</ul>";
     paginationContainer.html(paginationHtml);
   }
 
-  // Initial load is handled by PHP. Event handlers for pagination etc. are below.
-  // Populate cache from initial PHP-rendered data
-  if (
-    typeof mobooking_initial_services_list_for_cache !== "undefined" &&
-    Array.isArray(mobooking_initial_services_list_for_cache)
-  ) {
-    mobooking_initial_services_list_for_cache.forEach(function (service) {
-      if (service && service.service_id) {
-        servicesDataCache[service.service_id] = service;
-      }
-    });
-  }
-  // fetchAndRenderServices(currentServiceFilters.paged, currentServiceFilters); // Not needed if PHP renders first page
-
-  // Delegated Edit Service Button Click - Now fetches fresh data
+  // Updated edit service click handler
   servicesListContainer.on("click", ".mobooking-edit-service-btn", function () {
     const serviceId = $(this).data("id");
-    feedbackDiv.empty().hide(); // Clear previous form feedback
+    const $editButton = $(this);
+    const originalButtonText = $editButton.text();
 
-    console.log("Attempting to fetch details for service ID:", serviceId); // Diagnostic log
+    console.log("Attempting to fetch details for service ID:", serviceId);
 
     if (!serviceId) {
+      console.error("Service ID for edit is missing or undefined.");
       alert(
         mobooking_services_params.i18n.error_missing_service_id ||
           "Error: Could not identify the service ID for editing."
       );
-      console.error("Service ID for edit is missing or undefined.");
       return;
     }
 
-    // Show loading state or disable button
-    const $editButton = $(this);
-    const originalButtonText = $editButton.text();
-    $editButton
-      .prop("disabled", true)
-      .text(mobooking_services_params.i18n.loading_details || "Loading...");
-
-    // Nonce check
-    if (
-      typeof mobooking_services_params === "undefined" ||
-      !mobooking_services_params ||
-      !mobooking_services_params.nonce ||
-      mobooking_services_params.nonce.trim() === ""
-    ) {
-      console.error(
-        "Critical: mobooking_services_params.nonce is missing or empty. AJAX call to mobooking_get_service_details aborted."
+    // Get service details from cache or fetch via AJAX
+    let service = servicesDataCache[serviceId];
+    if (service) {
+      populateForm(service);
+      serviceFormTitle.text(
+        mobooking_services_params.i18n.edit_service || "Edit Service"
       );
-      alert(
-        "Critical error: Missing security token (nonce). Cannot fetch service details. Please refresh the page and try again. If the problem persists, contact support."
-      );
-
-      $editButton.prop("disabled", false).text(originalButtonText); // Re-enable button and restore text
-      return; // Prevent AJAX call
+      feedbackDiv.empty().hide();
+      $("#mobooking-service-form-modal-backdrop").show();
+      serviceFormContainer.show();
+      $("body").addClass("mobooking-modal-open");
+      $("#mobooking-service-name").focus();
     } else {
+      // Fetch service details via AJAX if not in cache
+      $editButton.prop("disabled", true).text("Loading...");
+
       $.ajax({
         url: mobooking_services_params.ajax_url,
         type: "POST",
         data: {
           action: "mobooking_get_service_details",
-          nonce: mobooking_services_params.nonce, // Ensure this param object and nonce are available
+          nonce: mobooking_services_params.nonce,
           service_id: serviceId,
         },
         dataType: "json",
         success: function (response) {
-          console.log("Successfully fetched service details:", response); // Diagnostic log
-          if (response.success && response.data && response.data.service) {
-            // Check response.data as well
-            servicesDataCache[serviceId] = response.data.service; // Update cache with fresh data
+          if (response.success && response.data.service) {
+            service = response.data.service;
+            servicesDataCache[serviceId] = service;
+            populateForm(service);
             serviceFormTitle.text(
               mobooking_services_params.i18n.edit_service || "Edit Service"
             );
-            populateForm(response.data.service);
+            feedbackDiv.empty().hide();
             $("#mobooking-service-form-modal-backdrop").show();
             serviceFormContainer.show();
             $("body").addClass("mobooking-modal-open");
+            $("#mobooking-service-name").focus();
           } else {
-            // Use message from response if available, otherwise a generic one
-            const errorMessage =
-              response.data && response.data.message
-                ? response.data.message
-                : mobooking_services_params.i18n
-                    .error_fetching_service_details ||
-                  "Error: Could not fetch service details.";
-            alert(errorMessage);
-            console.error(
-              "Error fetching service details from server:",
-              response
+            showGlobalFeedback(
+              response.data.message || "Error loading service details.",
+              "error"
             );
           }
         },
-        error: function (jqXHR, textStatus, errorThrown) {
-          let serverMessage = "";
-          if (jqXHR.responseText) {
-            try {
-              const response = JSON.parse(jqXHR.responseText);
-              if (response && response.data && response.data.message) {
-                serverMessage = "Server said: " + response.data.message;
-              } else if (jqXHR.responseText.length < 200) {
-                // Avoid showing huge HTML error pages in alert
-                serverMessage = "Server response: " + jqXHR.responseText;
-              }
-            } catch (e) {
-              // responseText was not JSON, might be HTML or plain text
-              if (jqXHR.responseText.length < 200) {
-                serverMessage =
-                  "Server response: " +
-                  jqXHR.responseText.substring(0, 100) +
-                  "...";
-              } else {
-                serverMessage =
-                  "Server returned an unexpected response (see console for full details).";
-              }
-            }
+        error: function (xhr, status, error) {
+          let errorMessage = "AJAX error loading service details.";
+
+          if (xhr.status === 400) {
+            errorMessage =
+              "Bad request. Please check if you have the proper permissions.";
+          } else if (xhr.status === 403) {
+            errorMessage = "Access denied. Please log in again.";
+          } else if (xhr.status === 404) {
+            errorMessage = "Service not found or may have been deleted.";
+          } else if (xhr.status === 500) {
+            errorMessage = "Server error occurred. Please try again later.";
+          } else if (status === "timeout") {
+            errorMessage = "Request timed out. Please try again.";
           }
-          const alertMessage =
-            (mobooking_services_params.i18n.error_ajax ||
-              "AJAX error fetching service details.") +
-            ` Status: ${jqXHR.status}. ${serverMessage} Check console for full details.`;
-          alert(alertMessage);
-          console.error(
-            "AJAX error fetching service details. Status:",
-            jqXHR.status,
-            "Error:",
-            errorThrown,
-            "Response:",
-            jqXHR.responseText,
-            "Full XHR:",
-            jqXHR
-          );
+
+          alert(errorMessage);
         },
         complete: function () {
           $editButton.prop("disabled", false).text(originalButtonText);
         },
       });
-    } // End of else block for nonce check
+    }
   });
 
   // Delegated Delete Service
@@ -681,24 +563,22 @@ jQuery(document).ready(function ($) {
           type: "POST",
           data: {
             action: "mobooking_delete_service",
-            nonce: mobooking_services_params.nonce, // Ensure this is available
+            nonce: mobooking_services_params.nonce,
             service_id: serviceId,
           },
           dataType: "json",
           success: function (response) {
             if (response.success) {
-              // Show success message
               showGlobalFeedback(
                 response.data.message ||
                   mobooking_services_params.i18n.service_deleted ||
                   "Service deleted.",
                 "success"
               );
-              // Remove item from DOM or reload list
               fetchAndRenderServices(
                 currentServiceFilters.paged,
                 currentServiceFilters
-              ); // Reload current page
+              );
             } else {
               showGlobalFeedback(
                 response.data.message ||
@@ -719,9 +599,8 @@ jQuery(document).ready(function ($) {
     }
   );
 
-  // Show Add New Service form
+  // Updated "Add New Service" button click handler
   $("#mobooking-add-new-service-btn").on("click", function () {
-    // Reset form for new service, populateForm handles this.
     populateForm({
       service_id: "",
       name: "",
@@ -738,32 +617,33 @@ jQuery(document).ready(function ($) {
       mobooking_services_params.i18n.add_new_service || "Add New Service"
     );
     feedbackDiv.empty().hide();
-    // optionsListContainer is handled by populateForm
-    addServiceOptionBtn.prop("disabled", true); // Disabled for new service until saved
+
     $("#mobooking-service-form-modal-backdrop").show();
     serviceFormContainer.show();
     $("body").addClass("mobooking-modal-open");
     $("#mobooking-service-name").focus();
   });
 
-  // Cancel form - Modal interaction
+  // Updated cancel handler to clear tracking
   $("#mobooking-cancel-service-form").on("click", function () {
     serviceFormContainer.hide();
     $("#mobooking-service-form-modal-backdrop").hide();
     $("body").removeClass("mobooking-modal-open");
     feedbackDiv.empty().hide();
+
+    // Clear current service tracking
+    optionsListContainer.removeAttr("data-current-service-id");
   });
 
   // Show global feedback message
   function showGlobalFeedback(message, type = "info") {
-    $(".mobooking-global-feedback").remove(); // Remove existing
+    $(".mobooking-global-feedback").remove();
     const feedbackHtml = `<div class="mobooking-global-feedback ${type}" style="padding:10px; margin:10px 0; border-radius:4px; background-color:${
       type === "success" ? "#d4edda" : "#f8d7da"
     }; border-color:${type === "success" ? "#c3e6cb" : "#f5c6cb"}; color:${
       type === "success" ? "#155724" : "#721c24"
     };">${sanitizeHTML(message)}</div>`;
     $("#mobooking-add-new-service-btn").after(feedbackHtml);
-    // Auto-remove after a few seconds
     setTimeout(function () {
       $(".mobooking-global-feedback").fadeOut(500, function () {
         $(this).remove();
@@ -783,8 +663,6 @@ jQuery(document).ready(function ($) {
   });
 
   // Form Submission (Add/Update)
-  // The following is the correct, single submit handler for the form.
-  // The duplicate, simpler one has been removed.
   serviceForm.on("submit", function (e) {
     e.preventDefault();
     feedbackDiv.empty().removeClass("success error").hide();
@@ -797,7 +675,6 @@ jQuery(document).ready(function ($) {
       });
     dataToSend.action = "mobooking_save_service";
     dataToSend.nonce = mobooking_services_params.nonce;
-    // service_id is already part of serializeArray
 
     // Collect Service Options
     let service_options = [];
@@ -813,7 +690,7 @@ jQuery(document).ready(function ($) {
             .find('textarea[name="options[][description]"]')
             .val(),
           type: $row.find('select[name="options[][type]"]').val(),
-          is_required: $row.find('input[name="options[][is_required]"]').val(), // Value from hidden field
+          is_required: $row.find('input[name="options[][is_required]"]').val(),
           price_impact_type: $row
             .find('select[name="options[][price_impact_type]"]')
             .val(),
@@ -823,11 +700,10 @@ jQuery(document).ready(function ($) {
           option_values: $row
             .find('textarea[name="options[][option_values]"]')
             .val(),
-          sort_order: idx + 1, // Re-calculate sort order on submit
+          sort_order: idx + 1,
         };
-        // Basic validation for option name: only include if name is present
+
         if (option.name && option.name.trim() !== "") {
-          // For select/radio, ensure option_values is valid JSON if provided
           if (
             (option.type === "select" || option.type === "radio") &&
             option.option_values.trim() !== ""
@@ -844,103 +720,77 @@ jQuery(document).ready(function ($) {
                 .removeClass("success")
                 .addClass("error")
                 .show();
-              throw new Error("Invalid JSON for option: " + option.name); // Stop submission by throwing error
+              throw new Error("Invalid JSON for option: " + option.name);
             }
           }
           service_options.push(option);
-        } else if (option.option_id) {
-          // If it's an existing option without a name, it implies deletion or error.
-          // For simplicity, we'll filter out nameless options. If it had an ID, it will be removed by the sync process.
         }
       });
-    dataToSend.service_options = JSON.stringify(service_options);
 
-    if (!dataToSend.name.trim()) {
-      feedbackDiv
-        .text(
-          mobooking_services_params.i18n.name_required ||
-            "Service name is required."
-        )
-        .addClass("error")
-        .show();
-      return;
-    }
-    if (
-      isNaN(parseFloat(dataToSend.price)) ||
-      parseFloat(dataToSend.price) < 0
-    ) {
-      feedbackDiv
-        .text(
-          mobooking_services_params.i18n.valid_price_required ||
-            "Valid price is required."
-        )
-        .addClass("error")
-        .show();
-      return;
-    }
-    if (
-      isNaN(parseInt(dataToSend.duration)) ||
-      parseInt(dataToSend.duration) <= 0
-    ) {
-      feedbackDiv
-        .text(
-          mobooking_services_params.i18n.valid_duration_required ||
-            "Valid positive duration is required."
-        )
-        .addClass("error")
-        .show();
-      return;
+    if (service_options.length > 0) {
+      dataToSend.service_options = JSON.stringify(service_options);
     }
 
-    const submitButton = $(this).find('button[type="submit"]');
+    const submitButton = $(this).find('[type="submit"]');
     const originalButtonText = submitButton.text();
-    submitButton
-      .prop("disabled", true)
-      .text(mobooking_services_params.i18n.saving || "Saving...");
+    submitButton.prop("disabled", true).text("Saving...");
 
     $.ajax({
-      url: mobooking_services_params.ajax_url, // Make sure mobooking_services_params is localized
+      url: mobooking_services_params.ajax_url,
       type: "POST",
       data: dataToSend,
       dataType: "json",
       success: function (response) {
-        if (response.success && response.data.service) {
-          serviceFormContainer.hide();
-          $("#mobooking-service-form-modal-backdrop").hide();
-          $("body").removeClass("mobooking-modal-open");
-          showGlobalFeedback(
-            response.data.message ||
-              (dataToSend.service_id
-                ? mobooking_services_params.i18n.service_updated
-                : mobooking_services_params.i18n.service_added),
-            "success"
-          );
-
-          // Dynamic list update
-          fetchAndRenderServices(
-            dataToSend.service_id ? currentServiceFilters.paged : 1,
-            currentServiceFilters
-          );
-        } else {
-          // Error reported by server
+        if (response.success) {
           feedbackDiv
             .text(
               response.data.message ||
-                mobooking_services_params.i18n.error_saving_service
+                mobooking_services_params.i18n.service_saved ||
+                "Service saved successfully."
+            )
+            .removeClass("error")
+            .addClass("success")
+            .show();
+
+          // Update the service ID if it was a new service
+          if (response.data.service_id && !serviceIdField.val()) {
+            serviceIdField.val(response.data.service_id);
+            // Update the tracking ID
+            optionsListContainer.attr(
+              "data-current-service-id",
+              response.data.service_id
+            );
+          }
+
+          // Update cache with new data
+          if (response.data.service) {
+            servicesDataCache[response.data.service.service_id] =
+              response.data.service;
+          }
+
+          // Refresh the services list
+          setTimeout(function () {
+            serviceFormContainer.hide();
+            $("#mobooking-service-form-modal-backdrop").hide();
+            $("body").removeClass("mobooking-modal-open");
+            fetchAndRenderServices(
+              currentServiceFilters.paged,
+              currentServiceFilters
+            );
+          }, 1500);
+        } else {
+          feedbackDiv
+            .text(
+              response.data.message ||
+                mobooking_services_params.i18n.error_saving_service ||
+                "Error saving service."
             )
             .removeClass("success")
             .addClass("error")
             .show();
         }
       },
-      error: function (jqXHR, textStatus, errorThrown) {
-        // More detailed error
-        console.error(
-          "Save Service AJAX Error:",
-          textStatus,
-          errorThrown,
-          jqXHR.responseText
-        );
+      error: function () {
         feedbackDiv
           .text(
             mobooking_services_params.i18n.error_saving_service_ajax ||
@@ -956,15 +806,11 @@ jQuery(document).ready(function ($) {
     });
   });
 
-  // Initial setup:
-  // PHP renders the initial list. JS handles interactions.
-  // Make sure mobooking_services_params (especially nonce, ajax_url, i18n strings) is localized.
-  if (typeof mobooking_services_params === "undefined") {
-    console.error(
-      "mobooking_services_params is not defined. Ensure it is localized via wp_localize_script."
-    );
-    // Provide default i18n to prevent crashes if params are missing.
-    window.mobooking_services_params = { i18n: {}, currency_symbol: "$" };
+  // Initialize from cached data if available
+  if (typeof mobooking_initial_services_list_for_cache !== "undefined") {
+    mobooking_initial_services_list_for_cache.forEach(function (service) {
+      servicesDataCache[service.service_id] = service;
+    });
   }
 
   // Close modal if clicking on backdrop
@@ -973,5 +819,38 @@ jQuery(document).ready(function ($) {
     $(this).hide();
     $("body").removeClass("mobooking-modal-open");
     feedbackDiv.empty().hide();
+    optionsListContainer.removeAttr("data-current-service-id");
   });
 });
+
+// Additional debugging function to test AJAX connectivity
+function testMoBookingAjax() {
+  if (typeof mobooking_services_params === "undefined") {
+    console.error("Cannot test AJAX - parameters not loaded");
+    return;
+  }
+
+  jQuery.ajax({
+    url: mobooking_services_params.ajax_url,
+    type: "POST",
+    data: {
+      action: "mobooking_get_services",
+      nonce: mobooking_services_params.nonce,
+      per_page: 1,
+    },
+    success: function (response) {
+      console.log("AJAX Test Success:", response);
+    },
+    error: function (xhr, status, error) {
+      console.error("AJAX Test Failed:", {
+        status: xhr.status,
+        statusText: xhr.statusText,
+        error: error,
+        response: xhr.responseText,
+      });
+    },
+  });
+}
+
+// Expose test function globally for debugging
+window.testMoBookingAjax = testMoBookingAjax;
