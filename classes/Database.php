@@ -39,7 +39,7 @@ class Database {
             name VARCHAR(255) NOT NULL,
             description TEXT,
             price DECIMAL(10,2) NOT NULL DEFAULT 0.00,
-            duration INT NOT NULL DEFAULT 30, -- in minutes
+            duration INT NOT NULL DEFAULT 30,
             icon VARCHAR(100),
             image_url VARCHAR(255),
             status VARCHAR(20) NOT NULL DEFAULT 'active',
@@ -58,14 +58,14 @@ class Database {
         $sql_service_options = "CREATE TABLE $table_name (
             option_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
             service_id BIGINT UNSIGNED NOT NULL,
-            user_id BIGINT UNSIGNED NOT NULL, -- For multi-tenancy
+            user_id BIGINT UNSIGNED NOT NULL,
             name VARCHAR(255) NOT NULL,
             description TEXT,
-            type VARCHAR(50) NOT NULL, -- checkbox, text, number, select, radio, textarea, quantity
+            type VARCHAR(50) NOT NULL,
             is_required BOOLEAN NOT NULL DEFAULT 0,
-            price_impact_type VARCHAR(20), -- fixed, percentage, multiply_value
+            price_impact_type VARCHAR(20),
             price_impact_value DECIMAL(10,2),
-            option_values TEXT, -- JSON: [{value: 'val', label: 'Label', price_adjust: 0.00}] for select/radio
+            option_values TEXT,
             sort_order INT NOT NULL DEFAULT 0,
             created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
             updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -81,7 +81,7 @@ class Database {
         error_log('[MoBooking DB Debug] Preparing SQL for customers table: ' . $table_name);
         $sql_customers = "CREATE TABLE $table_name (
             customer_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-            user_id BIGINT UNSIGNED NOT NULL, -- Business owner ID
+            user_id BIGINT UNSIGNED NOT NULL,
             first_name VARCHAR(100),
             last_name VARCHAR(100),
             email VARCHAR(255) NOT NULL,
@@ -97,7 +97,6 @@ class Database {
             PRIMARY KEY (customer_id),
             INDEX user_id_idx (user_id),
             INDEX email_idx (email)
-            -- Consider: UNIQUE KEY user_customer_email_unique (user_id, email)
         ) $charset_collate;";
         error_log('[MoBooking DB Debug] SQL for customers table: ' . preg_replace('/\s+/', ' ', $sql_customers));
         $dbDelta_results['customers'] = dbDelta( $sql_customers );
@@ -109,12 +108,12 @@ class Database {
             discount_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
             user_id BIGINT UNSIGNED NOT NULL,
             code VARCHAR(100) NOT NULL,
-            type VARCHAR(20) NOT NULL, -- 'percentage', 'fixed_amount'
+            type VARCHAR(20) NOT NULL,
             value DECIMAL(10,2) NOT NULL,
             expiry_date DATE,
             usage_limit INT,
             times_used INT NOT NULL DEFAULT 0,
-            status VARCHAR(20) NOT NULL DEFAULT 'active', -- 'active', 'inactive', 'expired'
+            status VARCHAR(20) NOT NULL DEFAULT 'active',
             created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY (discount_id),
             INDEX user_id_idx (user_id),
@@ -128,8 +127,8 @@ class Database {
         error_log('[MoBooking DB Debug] Preparing SQL for bookings table: ' . $table_name);
         $sql_bookings = "CREATE TABLE $table_name (
             booking_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-            user_id BIGINT UNSIGNED NOT NULL, -- Business owner
-            customer_id BIGINT UNSIGNED, -- fk to mobooking_customers
+            user_id BIGINT UNSIGNED NOT NULL,
+            customer_id BIGINT UNSIGNED,
             customer_name VARCHAR(255) NOT NULL,
             customer_email VARCHAR(255) NOT NULL,
             customer_phone VARCHAR(50),
@@ -139,9 +138,9 @@ class Database {
             booking_time TIME NOT NULL,
             special_instructions TEXT,
             total_price DECIMAL(10,2) NOT NULL,
-            discount_id BIGINT UNSIGNED, -- fk to mobooking_discount_codes
+            discount_id BIGINT UNSIGNED,
             discount_amount DECIMAL(10,2) DEFAULT 0.00,
-            status VARCHAR(50) NOT NULL DEFAULT 'pending', -- pending, confirmed, completed, cancelled
+            status VARCHAR(50) NOT NULL DEFAULT 'pending',
             booking_reference VARCHAR(100) UNIQUE,
             payment_status VARCHAR(50) NOT NULL DEFAULT 'pending',
             created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -167,7 +166,7 @@ class Database {
             service_name VARCHAR(255) NOT NULL,
             service_price DECIMAL(10,2) NOT NULL,
             quantity INT NOT NULL DEFAULT 1,
-            selected_options TEXT, -- JSON: [{option_id: 1, name: 'Deep Clean', value: 'yes', price: 10.00}]
+            selected_options TEXT,
             item_total_price DECIMAL(10,2) NOT NULL,
             PRIMARY KEY (item_id),
             INDEX booking_id_idx (booking_id),
@@ -181,11 +180,11 @@ class Database {
         error_log('[MoBooking DB Debug] Preparing SQL for tenant_settings table: ' . $table_name);
         $sql_tenant_settings = "CREATE TABLE $table_name (
             setting_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-            user_id BIGINT UNSIGNED NOT NULL, -- Business owner
+            user_id BIGINT UNSIGNED NOT NULL,
             setting_name VARCHAR(255) NOT NULL,
             setting_value LONGTEXT,
             PRIMARY KEY (setting_id),
-            UNIQUE KEY user_setting_unique (user_id, setting_name(191)) -- Specify key length for older MySQL on shared hosts
+            UNIQUE KEY user_setting_unique (user_id, setting_name(191))
         ) $charset_collate;";
         error_log('[MoBooking DB Debug] SQL for tenant_settings table: ' . preg_replace('/\s+/', ' ', $sql_tenant_settings));
         $dbDelta_results['tenant_settings'] = dbDelta( $sql_tenant_settings );
@@ -195,14 +194,13 @@ class Database {
         error_log('[MoBooking DB Debug] Preparing SQL for service_areas table: ' . $table_name);
         $sql_service_areas = "CREATE TABLE $table_name (
             area_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-            user_id BIGINT UNSIGNED NOT NULL, -- Business owner
-            area_type VARCHAR(50) NOT NULL, -- 'zip_code', 'city', 'region'
+            user_id BIGINT UNSIGNED NOT NULL,
+            area_type VARCHAR(50) NOT NULL,
             area_value VARCHAR(255) NOT NULL,
             country_code VARCHAR(10),
             created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY (area_id),
             INDEX user_id_idx (user_id)
-            -- Consider: UNIQUE KEY user_area_unique (user_id, area_type, area_value(191), country_code)
         ) $charset_collate;";
         error_log('[MoBooking DB Debug] SQL for service_areas table: ' . preg_replace('/\s+/', ' ', $sql_service_areas));
         $dbDelta_results['service_areas'] = dbDelta( $sql_service_areas );
