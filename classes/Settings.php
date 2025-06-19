@@ -31,6 +31,8 @@ class Settings {
         'biz_address'                         => '', // Multiline address
         'biz_logo_url'                        => '', // URL to business logo
         'biz_hours_json'                      => '{}', // JSON string for business hours, e.g., {"monday":{"open":"09:00","close":"17:00","is_closed":false}, ...}
+        'biz_currency_code'                   => 'USD', // Uppercase, 3 characters
+        'biz_user_language'                   => 'en_US', // Format like xx_XX
 
         // Email Sender Settings
         'email_from_name'                     => '', // Name for outgoing emails (dynamic default: biz_name or site title)
@@ -294,6 +296,20 @@ Please review this booking in your dashboard: {{admin_booking_link}}",
                         break;
                     case 'biz_currency_position':
                         $sanitized_value = in_array($value, ['before', 'after'], true) ? $value : 'before';
+                        break;
+                    case 'biz_currency_code':
+                        $sanitized_value = preg_replace('/[^A-Z]/', '', strtoupper(substr(trim($value), 0, 3)));
+                        if (strlen($sanitized_value) !== 3) {
+                            $sanitized_value = 'USD'; // Default if validation fails
+                        }
+                        break;
+                    case 'biz_user_language':
+                        // Allow format like xx_XX (e.g., en_US, fr_CA)
+                        if (preg_match('/^[a-z]{2}_[A-Z]{2}$/', trim($value))) {
+                            $sanitized_value = trim($value);
+                        } else {
+                            $sanitized_value = 'en_US'; // Default if validation fails
+                        }
                         break;
                 }
 

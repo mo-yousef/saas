@@ -8,12 +8,13 @@ jQuery(document).ready(function ($) {
       ajax_url: "/wp-admin/admin-ajax.php", // This is a common default
       nonce: "",
       i18n: {},
-      currency_symbol: "$",
+      currency_code: "USD", // Fallback currency code
       site_url: "", // Should be localized
       dashboard_slug: "dashboard" // Default slug
     };
   }
 
+  const currencyCode = mobooking_services_params.currency_code || 'USD';
   const siteUrl = mobooking_services_params.site_url || '';
   const dashboardSlug = mobooking_services_params.dashboard_slug || 'dashboard';
   const servicesListPageUrl = siteUrl + (siteUrl.endsWith('/') ? '' : '/') + dashboardSlug + '/services/';
@@ -390,7 +391,7 @@ jQuery(document).ready(function ($) {
                     }
                     response.data.services.forEach(function (service) {
                         let srv = { ...service };
-                        srv.formatted_price = (mobooking_services_params.currency_symbol || '$') + parseFloat(srv.price).toFixed(2);
+                        srv.formatted_price = currencyCode + ' ' + parseFloat(srv.price).toFixed(2);
                         srv.display_status = srv.status.charAt(0).toUpperCase() + srv.status.slice(1);
                         let itemHtml = mainServiceItemTemplate;
                         for (const k in srv) itemHtml = itemHtml.replace(new RegExp("<%=\\s*" + k + "\\s*%>", "g"), sanitizeHTML(String(srv[k])));

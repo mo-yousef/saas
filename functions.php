@@ -72,8 +72,9 @@ add_action( 'after_setup_theme', 'mobooking_setup' );
 // Enqueue scripts and styles.
 function mobooking_scripts() {
     // Initialize variables to prevent undefined warnings if used before assignment in conditional blocks
-    $public_form_currency_symbol = '$'; // Default value
-    $public_form_currency_position = 'before'; // Default value
+    // $public_form_currency_symbol = '$'; // Default value - REMOVED
+    // $public_form_currency_position = 'before'; // Default value - REMOVED
+    $public_form_currency_code = 'USD'; // Default value
 
     // Enqueue CSS Reset first
     wp_enqueue_style( 'mobooking-reset', MOBOOKING_THEME_URI . 'assets/css/reset.css', array(), MOBOOKING_VERSION );
@@ -110,8 +111,9 @@ function mobooking_scripts() {
         }
 
         if ($effective_tenant_id_for_public_form && isset($GLOBALS['mobooking_settings_manager'])) {
-            $public_form_currency_symbol = $GLOBALS['mobooking_settings_manager']->get_setting($effective_tenant_id_for_public_form, 'biz_currency_symbol', '$');
-            $public_form_currency_position = $GLOBALS['mobooking_settings_manager']->get_setting($effective_tenant_id_for_public_form, 'biz_currency_position', 'before');
+            // $public_form_currency_symbol = $GLOBALS['mobooking_settings_manager']->get_setting($effective_tenant_id_for_public_form, 'biz_currency_symbol', '$'); // REMOVED
+            // $public_form_currency_position = $GLOBALS['mobooking_settings_manager']->get_setting($effective_tenant_id_for_public_form, 'biz_currency_position', 'before'); // REMOVED
+            $public_form_currency_code = $GLOBALS['mobooking_settings_manager']->get_setting($effective_tenant_id_for_public_form, 'biz_currency_code', 'USD');
         }
 
         $i18n_strings = [
@@ -165,8 +167,9 @@ function mobooking_scripts() {
             'ajax_url' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce('mobooking_booking_form_nonce'),
             'tenant_id' => $tenant_id_on_page,
-            'currency_symbol' => $public_form_currency_symbol,
-            'currency_position' => $public_form_currency_position,
+            // 'currency_symbol' => $public_form_currency_symbol, // REMOVED
+            // 'currency_position' => $public_form_currency_position, // REMOVED
+            'currency_code' => $public_form_currency_code,
             'i18n' => $i18n_strings
         ));
     }
@@ -287,6 +290,12 @@ add_filter( 'template_include', 'mobooking_dashboard_template_include', 99 );
 
 // New function to handle dashboard script enqueuing
 function mobooking_enqueue_dashboard_scripts($current_page_slug) {
+    $user_id = get_current_user_id();
+    $currency_code = 'USD'; // Default
+    if (isset($GLOBALS['mobooking_settings_manager']) && $user_id) {
+        $currency_code = $GLOBALS['mobooking_settings_manager']->get_setting($user_id, 'biz_currency_code', 'USD');
+    }
+
     // Specific to Services page
     if ($current_page_slug === 'services' || $current_page_slug === 'service-edit') {
         wp_enqueue_script('mobooking-dashboard-services', MOBOOKING_THEME_URI . 'assets/js/dashboard-services.js', array('jquery', 'jquery-ui-sortable'), MOBOOKING_VERSION, true);
@@ -301,7 +310,7 @@ function mobooking_enqueue_dashboard_scripts($current_page_slug) {
         wp_localize_script('mobooking-dashboard-services', 'mobooking_services_params', array(
             'ajax_url' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce('mobooking_services_nonce'),
-            'currency_symbol' => '$', // You can make this dynamic later
+            'currency_code' => $currency_code,
             'site_url' => site_url(), // Pass site_url for robust redirects
             'dashboard_slug' => 'dashboard', // Pass dashboard slug
             'i18n' => [
@@ -354,6 +363,7 @@ function mobooking_enqueue_dashboard_scripts($current_page_slug) {
         wp_localize_script('mobooking-dashboard-bookings', 'mobooking_bookings_params', array(
             'ajax_url' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce('mobooking_dashboard_nonce'),
+            'currency_code' => $currency_code,
             'statuses' => $booking_statuses_for_js,
             'i18n' => [
                 'loading_bookings' => __('Loading bookings...', 'mobooking'),
@@ -472,6 +482,7 @@ function mobooking_enqueue_dashboard_scripts($current_page_slug) {
         wp_localize_script('mobooking-dashboard-overview', 'mobooking_overview_params', array(
             'ajax_url' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce('mobooking_dashboard_nonce'),
+            'currency_code' => $currency_code,
             'i18n' => [
                 'loading_data' => __('Loading dashboard data...', 'mobooking'),
                 'error_loading_data' => __('Error loading overview data.', 'mobooking'),
@@ -589,3 +600,86 @@ function mobooking_ensure_custom_tables_exist() {
     }
 }
 add_action( 'admin_init', 'mobooking_ensure_custom_tables_exist' );
+
+// Locale switching functions
+function mobooking_switch_user_locale() {
+    static $locale_switched = false; // Track if locale was actually switched
+
+    if ( ! is_user_logged_in() ) {
+        return false;
+    }
+
+    $user_id = get_current_user_id();
+    if ( ! $user_id ) {
+        return false;
+    }
+
+    // Ensure settings manager is available
+    if ( ! isset( $GLOBALS['mobooking_settings_manager'] ) || ! is_object( $GLOBALS['mobooking_settings_manager'] ) ) {
+        // error_log('MoBooking Debug: Settings manager not available for locale switch.');
+        return false;
+    }
+
+    $settings_manager = $GLOBALS['mobooking_settings_manager'];
+    $user_language = $settings_manager->get_setting( $user_id, 'biz_user_language', '' );
+
+    if ( ! empty( $user_language ) && is_string( $user_language ) ) {
+        // Basic validation for locale format xx_XX or xx
+        if ( preg_match( '/^[a-z]{2,3}(_[A-Z]{2})?$/', $user_language ) ) {
+            if ( get_locale() !== $user_language ) { // Only switch if different
+                // error_log("MoBooking Debug: Switching locale from " . get_locale() . " to " . $user_language . " for user " . $user_id);
+                if ( switch_to_locale( $user_language ) ) {
+                    $locale_switched = true;
+                    // Re-load the theme's text domain for the new locale
+                    // Note: This assumes 'mobooking' is the text domain and 'languages' is the path.
+                    // unload_textdomain( 'mobooking' ); // May not be necessary if switch_to_locale handles this context for future loads
+                    load_theme_textdomain( 'mobooking', MOBOOKING_THEME_DIR . 'languages' );
+
+                    // You might need to reload other text domains if your theme/plugins use them and expect user-specific language
+                } else {
+                    // error_log("MoBooking Debug: switch_to_locale failed for " . $user_language);
+                }
+            }
+        } else {
+            // error_log("MoBooking Debug: Invalid user language format: " . $user_language);
+        }
+    }
+    return $locale_switched; // Return status for potential use by restore function
+}
+add_action( 'after_setup_theme', 'mobooking_switch_user_locale', 20 ); // Priority 20 to run after settings manager and main textdomain load
+
+// Store whether locale was switched in a global to be accessible by shutdown action
+// because static variables in hooked functions are not easily accessible across different hooks.
+$GLOBALS['mobooking_locale_switched_for_request'] = false;
+
+function mobooking_set_global_locale_switched_status() {
+    // This function is called by the after_setup_theme hook to get the status
+    // from mobooking_switch_user_locale and store it globally.
+    // However, mobooking_switch_user_locale itself is hooked to after_setup_theme.
+    // A simpler way: mobooking_switch_user_locale directly sets this global.
+    // Let's modify mobooking_switch_user_locale to do that.
+    // No, the static variable approach for mobooking_restore_user_locale is better.
+    // The static var inside mobooking_switch_user_locale is not directly accessible by mobooking_restore_user_locale.
+    // The issue is that mobooking_restore_user_locale needs to know the state of $locale_switched from mobooking_switch_user_locale.
+    // A simple global flag is okay here.
+}
+// No, this intermediate function is not the best way.
+// Let's make mobooking_switch_user_locale update a global directly.
+
+// Redefining mobooking_switch_user_locale slightly to set a global flag
+// This is generally discouraged, but for shutdown action, it's a common pattern if needed.
+// However, restore_current_locale() is safe to call regardless.
+// The static var was more about *if* we should call it.
+// WordPress's own `restore_current_locale()` checks if a switch happened.
+// So, we don't strictly need to track it ourselves for `restore_current_locale`.
+// The static var `$locale_switched` inside `mobooking_switch_user_locale` is fine for its own logic (e.g. logging)
+// but `mobooking_restore_user_locale` can just call `restore_current_locale()`.
+
+// Let's simplify. `restore_current_locale()` is idempotent.
+
+function mobooking_restore_user_locale() {
+    // restore_current_locale() will only do something if switch_to_locale() was successfully called.
+    restore_current_locale();
+    // error_log("MoBooking Debug: Attempted to restore locale. Current locale after restore: " . get_locale());
+}
+add_action( 'shutdown', 'mobooking_restore_user_locale' );
