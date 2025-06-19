@@ -9,6 +9,15 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 $services_manager = new \MoBooking\Classes\Services();
 $user_id = get_current_user_id();
 
+// Fetch business settings for currency formatting
+$settings_manager = new \MoBooking\Classes\Settings();
+$biz_settings = $settings_manager->get_business_settings($user_id);
+$currency_symbol = $biz_settings['biz_currency_symbol'];
+$currency_pos = $biz_settings['biz_currency_position'];
+$currency_decimals = 2; // Or fetch from settings if available in future
+$currency_decimal_sep = '.'; // Or fetch
+$currency_thousand_sep = ','; // Or fetch
+
 $default_args = [
     'number' => 20, // Items per page
     'offset' => 0,  // Start from the first page
@@ -41,7 +50,7 @@ wp_nonce_field('mobooking_services_nonce', 'mobooking_services_nonce_field');
             <?php if (is_array($service)) : // Ensure $service is an array ?>
             <div class="mobooking-service-item" data-service-id="<?php echo esc_attr( $service['service_id'] ); ?>" style="border:1px solid #ccd0d4; padding:15px; margin-bottom:10px; background:#fff; border-radius:4px;">
                 <h3 style="margin-top:0;"><?php echo esc_html( $service['name'] ); ?></h3>
-                <p><strong><?php esc_html_e('Price:', 'mobooking'); ?></strong> <span class="service-price"><?php echo esc_html( \MoBooking\Classes\Utils::format_currency( $service['price'] ) ); ?></span></p>
+                <p><strong><?php esc_html_e('Price:', 'mobooking'); ?></strong> <span class="service-price"><?php echo esc_html( \MoBooking\Classes\Utils::format_currency( $service['price'], $currency_symbol, $currency_pos, $currency_decimals, $currency_decimal_sep, $currency_thousand_sep ) ); ?></span></p>
                 <p><strong><?php esc_html_e('Duration:', 'mobooking'); ?></strong> <span class="service-duration"><?php echo esc_html( $service['duration'] ); ?></span> <?php esc_html_e('min', 'mobooking'); ?></p>
                 <p><strong><?php esc_html_e('Status:', 'mobooking'); ?></strong> <span class="service-status"><?php echo esc_html( ucfirst( $service['status'] ) ); ?></span></p>
                 <p style="margin-top:15px;">

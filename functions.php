@@ -292,8 +292,23 @@ add_filter( 'template_include', 'mobooking_dashboard_template_include', 99 );
 function mobooking_enqueue_dashboard_scripts($current_page_slug) {
     $user_id = get_current_user_id();
     $currency_code = 'USD'; // Default
+    $currency_symbol = '$';
+    $currency_pos = 'before';
+    $currency_decimals = 2;
+    $currency_decimal_sep = '.';
+    $currency_thousand_sep = ',';
+
     if (isset($GLOBALS['mobooking_settings_manager']) && $user_id) {
-        $currency_code = $GLOBALS['mobooking_settings_manager']->get_setting($user_id, 'biz_currency_code', 'USD');
+        $settings_manager = $GLOBALS['mobooking_settings_manager'];
+        $biz_settings = $settings_manager->get_business_settings($user_id);
+
+        $currency_code = $biz_settings['biz_currency_code'];
+        $currency_symbol = $biz_settings['biz_currency_symbol'];
+        $currency_pos = $biz_settings['biz_currency_position'];
+        // In a future update, these could also come from settings:
+        // $currency_decimals = $biz_settings['biz_currency_decimals'];
+        // $currency_decimal_sep = $biz_settings['biz_currency_decimal_sep'];
+        // $currency_thousand_sep = $biz_settings['biz_currency_thousand_sep'];
     }
 
     // Specific to Services page
@@ -310,9 +325,15 @@ function mobooking_enqueue_dashboard_scripts($current_page_slug) {
         wp_localize_script('mobooking-dashboard-services', 'mobooking_services_params', array(
             'ajax_url' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce('mobooking_services_nonce'),
-            'currency_code' => $currency_code,
+            'currency_code' => $currency_code, // Still useful for other context if needed
+            'currency_symbol' => $currency_symbol,
+            'currency_position' => $currency_pos,
+            'currency_decimals' => $currency_decimals,
+            'currency_decimal_sep' => $currency_decimal_sep,
+            'currency_thousand_sep' => $currency_thousand_sep,
             'site_url' => site_url(), // Pass site_url for robust redirects
             'dashboard_slug' => 'dashboard', // Pass dashboard slug
+            'placeholder_image_url' => 'data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%22150%22%20height%3D%22150%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20150%20150%22%20preserveAspectRatio%3D%22none%22%3E%3Cdefs%3E%3Cstyle%20type%3D%22text%2Fcss%22%3E%23holder_17ea872690d%20text%20%7B%20fill%3A%23AAAAAA%3Bfont-weight%3Abold%3Bfont-family%3AArial%2C%20Helvetica%2C%20Open%20Sans%2C%20sans-serif%2C%20monospace%3Bfont-size%3A10pt%20%7D%20%3C%2Fstyle%3E%3C%2Fdefs%3E%3Cg%20id%3D%22holder_17ea872690d%22%3E%3Crect%20width%3D%22150%22%20height%3D%22150%22%20fill%3D%22%23EEEEEE%22%3E%3C%2Frect%3E%3Cg%3E%3Ctext%20x%3D%2250.00303268432617%22%20y%3D%2279.5%22%3E150x150%3C%2Ftext%3E%3C%2Fg%3E%3C%2Fg%3E%3C%2Fsvg%3E', // Fallback data URI
             'i18n' => [
                 'confirm_delete_service' => __('Are you sure you want to delete this service and all its options? This cannot be undone.', 'mobooking'),
                 'confirm_delete_option' => __('Are you sure you want to delete this option?', 'mobooking'),
@@ -344,6 +365,8 @@ function mobooking_enqueue_dashboard_scripts($current_page_slug) {
                 'service_name_label' => __('Service Name', 'mobooking'),
                 'service_price_label' => __('Price', 'mobooking'),
                 'service_duration_label' => __('Duration', 'mobooking'),
+                'active' => __('Active', 'mobooking'),
+                'inactive' => __('Inactive', 'mobooking'),
 
             ]
         ));
