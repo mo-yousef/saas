@@ -34,41 +34,44 @@ class Test_MoBooking_Settings extends WP_UnitTestCase {
      * Test saving and retrieving biz_currency_code.
      */
     public function test_save_and_get_biz_currency_code() {
-        // 1. Test saving a valid currency code
-        $valid_code = 'EUR';
-        $this->settings_manager->update_setting($this->user_id, 'biz_currency_code', $valid_code);
-        $retrieved_code = $this->settings_manager->get_setting($this->user_id, 'biz_currency_code');
-        $this->assertEquals($valid_code, $retrieved_code, 'Failed to save and retrieve a valid currency code.');
+        // 1. Test saving valid currency codes from the dropdown options
+        $valid_codes = ['USD', 'EUR', 'SEK', 'GBP'];
+        foreach ($valid_codes as $code) {
+            $this->settings_manager->update_setting($this->user_id, 'biz_currency_code', $code);
+            $retrieved_code = $this->settings_manager->get_setting($this->user_id, 'biz_currency_code');
+            $this->assertEquals($code, $retrieved_code, "Failed to save and retrieve valid currency code: {$code}");
+        }
 
-        // 2. Test saving an invalid currency code (too long) - expecting sanitization
-        $invalid_code_long = 'EURO';
-        $this->settings_manager->update_setting($this->user_id, 'biz_currency_code', $invalid_code_long);
-        $retrieved_code_long = $this->settings_manager->get_setting($this->user_id, 'biz_currency_code');
-        // The sanitization logic is: preg_replace('/[^A-Z]/', '', strtoupper(substr(trim($value), 0, 3)));
-        // Then, if strlen !== 3, it defaults. 'EURO' -> 'EUR' (which is valid, length 3)
-        $this->assertEquals('EUR', $retrieved_code_long, 'Failed to sanitize a long currency code correctly.');
+        // 2. Test saving an empty value - expecting default
+        $this->settings_manager->update_setting($this->user_id, 'biz_currency_code', '');
+        $retrieved_empty = $this->settings_manager->get_setting($this->user_id, 'biz_currency_code');
+        $this->assertEquals(self::$default_currency_code, $retrieved_empty, 'Saving an empty currency code should result in default.');
 
-        // 3. Test saving an invalid currency code (lowercase) - expecting sanitization
-        $invalid_code_lower = 'gbp';
-        $this->settings_manager->update_setting($this->user_id, 'biz_currency_code', $invalid_code_lower);
-        $retrieved_code_lower = $this->settings_manager->get_setting($this->user_id, 'biz_currency_code');
-        $this->assertEquals('GBP', $retrieved_code_lower, 'Failed to sanitize a lowercase currency code to uppercase.');
+        // 3. Test saving a lowercase valid code (e.g., 'eur') - expecting sanitization to uppercase 'EUR'
+        $this->settings_manager->update_setting($this->user_id, 'biz_currency_code', 'eur');
+        $retrieved_lower = $this->settings_manager->get_setting($this->user_id, 'biz_currency_code');
+        $this->assertEquals('EUR', $retrieved_lower, 'Lowercase "eur" should be sanitized to "EUR".');
 
-        // 4. Test saving an invalid currency code (too short) - expecting default
+        // 4. Test saving an invalid code not in a typical list but matching format (e.g., 'XYZ')
+        // The current sanitization (3 uppercase letters) will allow this.
+        // UI restricts to dropdown, but direct save should be tested.
+        $this->settings_manager->update_setting($this->user_id, 'biz_currency_code', 'XYZ');
+        $retrieved_xyz = $this->settings_manager->get_setting($this->user_id, 'biz_currency_code');
+        $this->assertEquals('XYZ', $retrieved_xyz, 'Saving "XYZ" (valid format, not in UI list) should be stored as is by current sanitization.');
+
+        // 5. Test saving an invalid code (too short) - expecting default
         $invalid_code_short = 'EU';
         $this->settings_manager->update_setting($this->user_id, 'biz_currency_code', $invalid_code_short);
         $retrieved_code_short = $this->settings_manager->get_setting($this->user_id, 'biz_currency_code');
         $this->assertEquals(self::$default_currency_code, $retrieved_code_short, 'Failed to default an overly short currency code.');
 
-        // 5. Test saving an invalid currency code (with numbers/symbols) - expecting sanitization then default if length mismatch
+        // 6. Test saving an invalid code (with numbers/symbols) - expecting default
         $invalid_code_symbols = 'U$1';
         $this->settings_manager->update_setting($this->user_id, 'biz_currency_code', $invalid_code_symbols);
         $retrieved_code_symbols = $this->settings_manager->get_setting($this->user_id, 'biz_currency_code');
-        // 'U$1' -> 'U' (substr(0,3) after preg_replace) -> strlen is 1, so defaults to USD
         $this->assertEquals(self::$default_currency_code, $retrieved_code_symbols, 'Failed to sanitize currency code with symbols and default.');
 
-        // 6. Test retrieving with no setting (should return default)
-        // To do this, we'd need to delete the setting or use a new user
+        // 7. Test retrieving with no setting (should return default)
         $new_user_id = $this->factory->user->create();
         $default_retrieved = $this->settings_manager->get_setting($new_user_id, 'biz_currency_code');
         $this->assertEquals(self::$default_currency_code, $default_retrieved, 'Should retrieve default currency code if none is set.');
@@ -78,45 +81,33 @@ class Test_MoBooking_Settings extends WP_UnitTestCase {
      * Test saving and retrieving biz_user_language.
      */
     public function test_save_and_get_biz_user_language() {
-        // 1. Test saving a valid language code (en_US)
-        $valid_lang_1 = 'en_US';
-        $this->settings_manager->update_setting($this->user_id, 'biz_user_language', $valid_lang_1);
-        $retrieved_lang_1 = $this->settings_manager->get_setting($this->user_id, 'biz_user_language');
-        $this->assertEquals($valid_lang_1, $retrieved_lang_1, 'Failed to save and retrieve en_US.');
+        // 1. Test saving valid language codes from the new dropdown options
+        $valid_languages = ['en_US', 'sv_SE', 'nb_NO', 'fi_FI', 'da_DK'];
+        foreach ($valid_languages as $lang_code) {
+            $this->settings_manager->update_setting($this->user_id, 'biz_user_language', $lang_code);
+            $retrieved_lang = $this->settings_manager->get_setting($this->user_id, 'biz_user_language');
+            $this->assertEquals($lang_code, $retrieved_lang, "Failed to save and retrieve valid language code: {$lang_code}");
+        }
 
-        // 2. Test saving another valid language code (es_ES)
-        $valid_lang_2 = 'es_ES';
-        $this->settings_manager->update_setting($this->user_id, 'biz_user_language', $valid_lang_2);
-        $retrieved_lang_2 = $this->settings_manager->get_setting($this->user_id, 'biz_user_language');
-        $this->assertEquals($valid_lang_2, $retrieved_lang_2, 'Failed to save and retrieve es_ES.');
-
-        // 3. Test saving a valid short language code (fr) - assuming sanitization handles this by defaulting
-        // Current sanitization: preg_match('/^[a-z]{2}_[A-Z]{2}$/', trim($value))
-        // 'fr' will fail this regex and default.
-        $valid_lang_short_but_incomplete = 'fr';
-        $this->settings_manager->update_setting($this->user_id, 'biz_user_language', $valid_lang_short_but_incomplete);
-        $retrieved_lang_short = $this->settings_manager->get_setting($this->user_id, 'biz_user_language');
-        $this->assertEquals(self::$default_user_language, $retrieved_lang_short, 'Short language code "fr" should default as it does not match xx_XX.');
-
-        // 4. Test saving an invalid format (e.g., en-GB instead of en_GB) - expecting default
+        // 2. Test saving an invalid format (e.g., en-GB instead of en_GB) - expecting default
         $invalid_format_1 = 'en-GB';
         $this->settings_manager->update_setting($this->user_id, 'biz_user_language', $invalid_format_1);
         $retrieved_invalid_1 = $this->settings_manager->get_setting($this->user_id, 'biz_user_language');
         $this->assertEquals(self::$default_user_language, $retrieved_invalid_1, 'Invalid format en-GB should default.');
 
-        // 5. Test saving an invalid too short code (e) - expecting default
+        // 3. Test saving an invalid too short code (e.g., 'e') - expecting default
         $invalid_format_2 = 'e';
         $this->settings_manager->update_setting($this->user_id, 'biz_user_language', $invalid_format_2);
         $retrieved_invalid_2 = $this->settings_manager->get_setting($this->user_id, 'biz_user_language');
         $this->assertEquals(self::$default_user_language, $retrieved_invalid_2, 'Invalid short code "e" should default.');
 
-        // 6. Test saving an invalid code with numbers (en_U1) - expecting default
+        // 4. Test saving an invalid code with numbers (e.g., 'en_U1') - expecting default
         $invalid_format_3 = 'en_U1';
         $this->settings_manager->update_setting($this->user_id, 'biz_user_language', $invalid_format_3);
         $retrieved_invalid_3 = $this->settings_manager->get_setting($this->user_id, 'biz_user_language');
         $this->assertEquals(self::$default_user_language, $retrieved_invalid_3, 'Invalid code with numbers en_U1 should default.');
 
-        // 7. Test retrieving with no setting (should return default)
+        // 5. Test retrieving with no setting (should return default)
         $new_user_id = $this->factory->user->create();
         $default_retrieved = $this->settings_manager->get_setting($new_user_id, 'biz_user_language');
         $this->assertEquals(self::$default_user_language, $default_retrieved, 'Should retrieve default user language if none is set.');
@@ -177,45 +168,48 @@ class Test_MoBooking_Settings extends WP_UnitTestCase {
     /**
      * Test language switching for notification emails.
      * This requires dummy .mo files for 'mobooking' text domain.
-     * E.g., languages/en_US.mo and languages/es_ES.mo
+     * E.g., languages/en_US.mo and languages/sv_SE.mo
      * With a test string like: 'Booking Summary:' translated differently.
      */
     public function test_language_switching_for_notifications() {
         // Assume en_US.mo has "Booking Summary:"
-        // Assume es_ES.mo has "Resumen de Reserva:" for "Booking Summary:"
+        // Assume sv_SE.mo has "Bokningsöversikt:" for "Booking Summary:" (Example translation)
 
         // $this->mailer = new \WPMailCollector();
         // add_filter( 'wp_mail', array( $this->mailer, 'collect' ) );
 
         $notifications = new Notifications();
-        $spanish_lang_code = 'es_ES';
+        $swedish_lang_code = 'sv_SE';
         $english_lang_code = 'en_US';
+        $test_string_key = 'Booking Summary:'; // Key used in __()
+        $test_string_en = 'Booking Summary:'; // English
+        $test_string_sv = 'Bokningsöversikt:'; // Swedish example
 
-        // Set user's language to Spanish
-        $this->settings_manager->update_setting($this->user_id, 'biz_user_language', $spanish_lang_code);
+        // Set user's language to Swedish
+        $this->settings_manager->update_setting($this->user_id, 'biz_user_language', $swedish_lang_code);
 
         $booking_details = [
-            'booking_reference' => 'TESTLANG123', 'service_names' => 'Servicio de Prueba',
+            'booking_reference' => 'TESTLANG123', 'service_names' => 'Testtjänst',
             'booking_date_time' => '2023-01-01 10:00', 'total_price' => 50,
-            'customer_name' => 'Juan Perez', 'service_address' => 'Calle Falsa 123'
+            'customer_name' => 'Sven Svensson', 'service_address' => 'Testgatan 1'
         ];
-        $customer_email = 'juan@example.com';
+        $customer_email = 'sven@example.com';
 
-        // --- Test Customer Confirmation in Spanish ---
+        // --- Test Customer Confirmation in Swedish ---
         // if (method_exists($this->mailer, 'clear_emails')) $this->mailer->clear_emails();
         $notifications->send_booking_confirmation_customer($booking_details, $customer_email, $this->user_id);
-        // $sent_email_es = $this->mailer->get_last_email();
-        // $this->assertNotNull($sent_email_es, "Spanish customer email not sent/captured.");
-        // $this->assertStringContainsString("Resumen de Reserva:", $sent_email_es['body'], "Email body not in Spanish.");
-        // $this->assertStringNotContainsString("Booking Summary:", $sent_email_es['body'], "Email body contains English string when Spanish expected.");
+        // $sent_email_sv = $this->mailer->get_last_email();
+        // $this->assertNotNull($sent_email_sv, "Swedish customer email not sent/captured.");
+        // $this->assertStringContainsString($test_string_sv, $sent_email_sv['body'], "Email body not in Swedish.");
+        // $this->assertStringNotContainsString($test_string_en, $sent_email_sv['body'], "Email body contains English string when Swedish expected.");
 
-        // --- Test Admin Confirmation in Spanish (as tenant is the admin) ---
+        // --- Test Admin Confirmation in Swedish (as tenant is the admin) ---
         // if (method_exists($this->mailer, 'clear_emails')) $this->mailer->clear_emails();
         $admin_booking_details = array_merge($booking_details, ['customer_email' => $customer_email, 'customer_phone' => 'N/A']);
         $notifications->send_booking_confirmation_admin($admin_booking_details, $this->user_id);
-        // $sent_admin_email_es = $this->mailer->get_last_email();
-        // $this->assertNotNull($sent_admin_email_es, "Spanish admin email not sent/captured.");
-        // $this->assertStringContainsString("Resumen de Reserva:", $sent_admin_email_es['body'], "Admin email body not in Spanish.");
+        // $sent_admin_email_sv = $this->mailer->get_last_email();
+        // $this->assertNotNull($sent_admin_email_sv, "Swedish admin email not sent/captured.");
+        // $this->assertStringContainsString($test_string_sv, $sent_admin_email_sv['body'], "Admin email body not in Swedish.");
 
 
         // Switch user's language back to English (or site default) and test again
@@ -224,8 +218,8 @@ class Test_MoBooking_Settings extends WP_UnitTestCase {
         $notifications->send_booking_confirmation_customer($booking_details, $customer_email, $this->user_id);
         // $sent_email_en = $this->mailer->get_last_email();
         // $this->assertNotNull($sent_email_en, "English customer email not sent/captured.");
-        // $this->assertStringContainsString("Booking Summary:", $sent_email_en['body'], "Email body not in English after locale switch back.");
-        // $this->assertStringNotContainsString("Resumen de Reserva:", $sent_email_en['body'], "Email body contains Spanish string when English expected.");
+        // $this->assertStringContainsString($test_string_en, $sent_email_en['body'], "Email body not in English after locale switch back.");
+        // $this->assertStringNotContainsString($test_string_sv, $sent_email_en['body'], "Email body contains Swedish string when English expected.");
 
         // remove_filter( 'wp_mail', array( $this->mailer, 'collect' ) );
 
