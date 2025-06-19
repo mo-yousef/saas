@@ -65,36 +65,33 @@ function mobooking_select_biz_setting_value($settings, $key, $value, $default_va
                         <p class="description"><?php esc_html_e('Link to your business logo. Will be used in emails and potentially on the booking form.', 'mobooking'); ?></p></td>
                 </tr>
                 <tr valign="top">
-                    <th scope="row"><label for="biz_currency_symbol"><?php esc_html_e('Currency Symbol', 'mobooking'); ?></label></th>
-                    <td><input name="biz_currency_symbol" type="text" id="biz_currency_symbol" value="<?php echo mobooking_get_biz_setting_value($biz_settings, 'biz_currency_symbol', '$'); ?>" class="small-text" maxlength="5">
-                        <p class="description"><?php esc_html_e('E.g., $, €, £, INR.', 'mobooking'); ?></p></td>
-                </tr>
-                <tr valign="top">
-                    <th scope="row"><label for="biz_currency_position"><?php esc_html_e('Currency Position', 'mobooking'); ?></label></th>
+                    <th scope="row"><label for="biz_currency_code"><?php esc_html_e('Currency', 'mobooking'); ?></label></th>
                     <td>
-                        <select name="biz_currency_position" id="biz_currency_position">
-                            <option value="before" <?php echo mobooking_select_biz_setting_value($biz_settings, 'biz_currency_position', 'before', 'before'); ?>><?php esc_html_e('Before amount (e.g., $100)', 'mobooking'); ?></option>
-                            <option value="after" <?php echo mobooking_select_biz_setting_value($biz_settings, 'biz_currency_position', 'after'); ?>><?php esc_html_e('After amount (e.g., 100$)', 'mobooking'); ?></option>
+                        <select name="biz_currency_code" id="biz_currency_code" class="regular-text">
+                            <option value="USD" <?php echo mobooking_select_biz_setting_value($biz_settings, 'biz_currency_code', 'USD', 'USD'); ?>>USD (US Dollar)</option>
+                            <option value="EUR" <?php echo mobooking_select_biz_setting_value($biz_settings, 'biz_currency_code', 'EUR'); ?>>EUR (Euro)</option>
+                            <option value="SEK" <?php echo mobooking_select_biz_setting_value($biz_settings, 'biz_currency_code', 'SEK'); ?>>SEK (Swedish Krona)</option>
+                            <option value="NOK" <?php echo mobooking_select_biz_setting_value($biz_settings, 'biz_currency_code', 'NOK'); ?>>NOK (Norwegian Krone)</option>
+                            <option value="DKK" <?php echo mobooking_select_biz_setting_value($biz_settings, 'biz_currency_code', 'DKK'); ?>>DKK (Danish Krone)</option>
+                            <option value="" disabled>---</option>
+                            <option value="GBP" <?php echo mobooking_select_biz_setting_value($biz_settings, 'biz_currency_code', 'GBP'); ?>>GBP (British Pound)</option>
+                            <option value="CAD" <?php echo mobooking_select_biz_setting_value($biz_settings, 'biz_currency_code', 'CAD'); ?>>CAD (Canadian Dollar)</option>
+                            <option value="AUD" <?php echo mobooking_select_biz_setting_value($biz_settings, 'biz_currency_code', 'AUD'); ?>>AUD (Australian Dollar)</option>
+                            <option value="JPY" <?php echo mobooking_select_biz_setting_value($biz_settings, 'biz_currency_code', 'JPY'); ?>>JPY (Japanese Yen)</option>
+                            <?php // Add more common currencies as needed ?>
                         </select>
-                         <p class="description"><?php esc_html_e('Position of the currency symbol relative to the amount.', 'mobooking'); ?></p>
+                        <p class="description"><?php esc_html_e('Select your preferred currency. This will be used for all pricing display.', 'mobooking'); ?></p>
                     </td>
-                </tr>
-                <tr valign="top">
-                    <th scope="row"><label for="biz_currency_code"><?php esc_html_e('Currency Code', 'mobooking'); ?></label></th>
-                    <td><input name="biz_currency_code" type="text" id="biz_currency_code" value="<?php echo mobooking_get_biz_setting_value($biz_settings, 'biz_currency_code', 'USD'); ?>" class="small-text" maxlength="3" placeholder="USD">
-                        <p class="description"><?php esc_html_e('Enter the 3-letter ISO currency code (e.g., USD, EUR).', 'mobooking'); ?></p></td>
                 </tr>
                 <tr valign="top">
                     <th scope="row"><label for="biz_user_language"><?php esc_html_e('Language', 'mobooking'); ?></label></th>
                     <td>
-                        <select name="biz_user_language" id="biz_user_language">
-                            <option value="en_US" <?php echo mobooking_select_biz_setting_value($biz_settings, 'biz_user_language', 'en_US', 'en_US'); ?>><?php esc_html_e('English (US)', 'mobooking'); ?></option>
-                            <option value="es_ES" <?php echo mobooking_select_biz_setting_value($biz_settings, 'biz_user_language', 'es_ES'); ?>><?php esc_html_e('Spanish (Spain)', 'mobooking'); ?></option>
-                            <option value="fr_FR" <?php echo mobooking_select_biz_setting_value($biz_settings, 'biz_user_language', 'fr_FR'); ?>><?php esc_html_e('French (France)', 'mobooking'); ?></option>
-                            <option value="de_DE" <?php echo mobooking_select_biz_setting_value($biz_settings, 'biz_user_language', 'de_DE'); ?>><?php esc_html_e('German (Germany)', 'mobooking'); ?></option>
-                            <option value="it_IT" <?php echo mobooking_select_biz_setting_value($biz_settings, 'biz_user_language', 'it_IT'); ?>><?php esc_html_e('Italian (Italy)', 'mobooking'); ?></option>
-                            <option value="pt_BR" <?php echo mobooking_select_biz_setting_value($biz_settings, 'biz_user_language', 'pt_BR'); ?>><?php esc_html_e('Portuguese (Brazil)', 'mobooking'); ?></option>
-                            <option value="nl_NL" <?php echo mobooking_select_biz_setting_value($biz_settings, 'biz_user_language', 'nl_NL'); ?>><?php esc_html_e('Dutch (Netherlands)', 'mobooking'); ?></option>
+                        <select name="biz_user_language" id="biz_user_language" class="regular-text">
+                            <option value="en_US" <?php echo mobooking_select_biz_setting_value($biz_settings, 'biz_user_language', 'en_US', 'en_US'); ?>>English (US)</option>
+                            <option value="sv_SE" <?php echo mobooking_select_biz_setting_value($biz_settings, 'biz_user_language', 'sv_SE'); ?>>Swedish (sv_SE)</option>
+                            <option value="nb_NO" <?php echo mobooking_select_biz_setting_value($biz_settings, 'biz_user_language', 'nb_NO'); ?>>Norwegian (nb_NO)</option>
+                            <option value="fi_FI" <?php echo mobooking_select_biz_setting_value($biz_settings, 'biz_user_language', 'fi_FI'); ?>>Finnish (fi_FI)</option>
+                            <option value="da_DK" <?php echo mobooking_select_biz_setting_value($biz_settings, 'biz_user_language', 'da_DK'); ?>>Danish (da_DK)</option>
                         </select>
                         <p class="description"><?php esc_html_e("Select the preferred language for the booking form, dashboard, and invoices. Note: Translation files (.po/.mo) must be present in the theme's 'languages' directory for the selected language to take full effect.", 'mobooking'); ?></p>
                     </td>
