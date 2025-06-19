@@ -1,0 +1,270 @@
+/* Styles for MoBooking Service Edit Page */
+
+/* General Form Styles */
+#mobooking-service-form input[type="text"],
+#mobooking-service-form input[type="number"],
+#mobooking-service-form input[type="url"],
+#mobooking-service-form textarea,
+#mobooking-service-form select {
+    border: 1px solid #ccc;
+    padding: 8px 10px;
+    border-radius: 4px;
+    box-sizing: border-box;
+    width: 100%; /* Default to full width within their container */
+    margin-bottom: 5px; /* Consistent bottom margin for inputs */
+    font-family: sans-serif;
+}
+
+#mobooking-service-form p {
+    margin-bottom: 15px; /* Consistent spacing for paragraphs holding form elements */
+}
+
+#mobooking-service-form label {
+    font-weight: bold;
+    display: inline-block;
+    margin-bottom: 4px; /* Space between label and input */
+}
+
+#mobooking-service-form input[type="text"]:focus,
+#mobooking-service-form input[type="number"]:focus,
+#mobooking-service-form input[type="url"]:focus,
+#mobooking-service-form textarea:focus,
+#mobooking-service-form select:focus {
+    border-color: #007cba; /* WordPress admin blue */
+    box-shadow: 0 0 0 1px #007cba;
+    outline: 1px solid transparent; /* Replace default outline */
+}
+
+#mobooking-service-form .widefat { /* This class might be redundant if all inputs are 100% */
+    width: 100%;
+}
+
+/* Service Options Section */
+#mobooking-service-options-section {
+    margin-top: 25px; /* Increased top margin */
+    padding-top: 15px;
+    border-top: 1px solid #ddd; /* Changed from dashed to solid */
+}
+
+#mobooking-service-options-section h3 {
+    margin-bottom: 15px; /* More space below section title */
+    font-size: 1.2em; /* Slightly larger title */
+}
+
+/* Service Option Rows */
+.mobooking-service-option-row {
+    padding: 15px; /* Increased padding */
+    margin-top: 15px; /* Increased separation */
+    border: 1px solid #e0e0e0; /* Lightened border */
+    border-radius: 4px; /* Standardized radius */
+    background-color: #f9f9f9; /* Light background for differentiation */
+    display: flex; /* For drag handle alignment */
+    align-items: flex-start; /* Align items to the top for multi-line content */
+    gap: 10px; /* Gap for direct children, primarily for drag handle and main content */
+}
+
+.mobooking-service-option-row-content {
+    flex-grow: 1; /* Allow content to take remaining space */
+}
+
+
+.mobooking-service-option-row p {
+    margin-top: 0; /* Remove top margin for p inside option row if not needed */
+    margin-bottom: 10px; /* Consistent spacing for p tags inside option row */
+}
+.mobooking-service-option-row p:last-child {
+    margin-bottom: 0; /* No bottom margin for the last paragraph */
+}
+
+.mobooking-service-option-row label { /* More specific for labels within option rows */
+    font-weight: bold;
+    display: inline-block;
+    margin-bottom: 3px;
+}
+
+#mobooking-add-service-option-btn {
+    margin-top: 20px; /* More space above Add Option button */
+}
+
+/* Custom Radio Button Styles for Option Type */
+.mobooking-option-type { /* The original select element */
+    display: none !important; /* Keep hidden as JS provides UI */
+}
+.mobooking-custom-radio-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 10px;
+    margin-top: 5px;
+}
+.mobooking-custom-radio-label {
+    padding: 8px 14px; /* Increased padding */
+    border: 1px solid #ccc;
+    border-radius: 3px; /* Slightly less radius */
+    cursor: pointer;
+    font-size: 0.95em; /* Adjusted font size */
+    transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+    background-color: #f7f7f7; /* Lighter default */
+}
+.mobooking-custom-radio-label:hover {
+    background-color: #f0f0f0;
+    border-color: #999; /* Darker border on hover */
+}
+.mobooking-custom-radio-label.selected {
+    background-color: #007cba;
+    color: white;
+    border-color: #007cba;
+}
+
+/* Styles for Option Choices UI */
+.mobooking-option-values-field textarea { /* The original textarea for JSON */
+    display: none !important; /* Keep hidden */
+}
+.mobooking-choices-ui-container {
+    margin-top: 8px; /* Increased margin */
+    padding: 12px; /* Increased padding */
+    background-color: #fff; /* White background */
+    border: 1px solid #ddd;
+    border-radius: 3px;
+}
+.mobooking-choices-list {
+    margin-bottom: 12px; /* Increased margin */
+    min-height: 25px; /* Slightly taller */
+}
+.mobooking-add-choice-btn {
+    margin-top: 8px; /* Consistent margin */
+}
+
+.mobooking-choice-item {
+    display: flex;
+    align-items: center; /* Vertically align items */
+    gap: 10px; /* Increased gap */
+    padding: 10px; /* Increased padding */
+    border: 1px solid #e5e5e5; /* Lighter border */
+    border-radius: 3px;
+    margin-bottom: 10px; /* Increased margin */
+    background-color: #fdfdfd; /* Very light background */
+}
+.mobooking-choice-item input[type="text"],
+.mobooking-choice-item input[type="number"] {
+    margin-bottom: 0 !important; /* Keep this to override general input margin */
+}
+.mobooking-choice-label { flex-grow: 1; }
+.mobooking-choice-value { flex-basis: 100px; } /* Adjusted basis */
+.mobooking-choice-price-adjust { flex-basis: 90px; } /* Adjusted basis */
+
+.mobooking-choice-drag-handle {
+    cursor: move;
+    font-size: 18px; /* Larger handle */
+    color: #555; /* Darker color */
+    padding: 0 5px; /* Adjust padding */
+}
+.mobooking-remove-choice-btn {
+    color: #d63638; /* More prominent red */
+    text-decoration: none;
+    font-size: 20px; /* Slightly smaller for balance */
+    line-height: 1;
+    background: none;
+    border: none;
+    padding: 0 5px;
+}
+.mobooking-remove-choice-btn:hover {
+    color: #a02020; /* Darker red on hover */
+}
+
+/* Placeholder for jQuery UI Sortable for Choices */
+.mobooking-choice-item-placeholder {
+    height: 48px; /* Adjust to match item height (padding + line height) */
+    background-color: #e6f7ff; /* Lighter blue */
+    border: 1px dashed #99cfff; /* Blue dashed border */
+    margin-bottom: 10px;
+    border-radius: 3px;
+    box-sizing: border-box;
+}
+
+/* Drag Handle and Placeholder for Service Options Reordering */
+.mobooking-option-drag-handle {
+    cursor: move;
+    font-size: 20px; /* Prominent handle */
+    color: #444;
+    padding-right: 10px; /* Space between handle and content */
+    padding-top: 12px; /* Align with first line of text */
+}
+
+.mobooking-service-option-row-placeholder {
+    height: 100px; /* Approximate height of an option row */
+    background-color: #f0f0f0;
+    border: 2px dashed #ccc;
+    margin-top: 15px;
+    margin-bottom: 15px;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+/* Feedback Messages */
+#mobooking-service-form-feedback.success {
+    color: #155724;
+    background-color: #d4edda;
+    border-color: #c3e6cb;
+    padding: 10px;
+    margin-top: 15px;
+    border-radius: 4px;
+    border: 1px solid;
+}
+
+#mobooking-service-form-feedback.error {
+    color: #721c24;
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+    padding: 10px;
+    margin-top: 15px;
+    border-radius: 4px;
+    border: 1px solid;
+}
+
+/* Utility class for visually hidden elements that are still accessible to screen readers */
+.mobooking-visually-hidden {
+  position: absolute !important;
+  height: 1px; width: 1px;
+  overflow: hidden;
+  clip: rect(1px, 1px, 1px, px); /* IE6, IE7 */
+  white-space: nowrap; /* Keep from wrapping */
+}
+
+/* Ensure no !important is used where specificity can solve it */
+/* Example: if #mobooking-service-options-section had margin-top: 15px !important; */
+/* It's now: #mobooking-service-options-section { margin-top: 25px; ... } */
+/* All !important rules from the original inline style have been reviewed. */
+/* display: none !important; for .mobooking-option-type and textarea is kept as JS controls their visibility. */
+
+#mobooking-service-form .mobooking-service-option-row p label.inline-label {
+    font-weight: normal; /* For checkbox labels like "Required?" */
+    margin-left: 5px;
+}
+
+/* Ensure checkbox and its label are aligned */
+#mobooking-service-form .mobooking-service-option-row p input[type="checkbox"] {
+    width: auto; /* Override general input width */
+    margin-right: 5px;
+    vertical-align: middle;
+}
+
+#mobooking-service-form .mobooking-service-option-row p input[type="hidden"] {
+    display:none; /* Hidden inputs should not take space */
+}
+
+/* Adjustments for buttons within the form */
+#mobooking-service-form .button {
+    margin-right: 10px; /* Space between buttons like Save/Cancel */
+}
+#mobooking-service-form .button-link-delete {
+    color: #d63638;
+    text-decoration: none;
+    border: none;
+    background: none;
+    padding: 0;
+    cursor: pointer;
+}
+#mobooking-service-form .button-link-delete:hover {
+    color: #a02020;
+}
