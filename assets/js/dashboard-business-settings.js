@@ -86,6 +86,8 @@ jQuery(document).ready(function($) {
             success: function(response) {
                 if (response.success) {
                     feedbackDiv.text(response.data.message || mobooking_biz_settings_params.i18n.save_success || 'Settings saved.').addClass('notice notice-success').show();
+                    // Force page reload on successful save to apply new settings (like language)
+                    location.reload();
                 } else {
                     feedbackDiv.text(response.data.message || mobooking_biz_settings_params.i18n.error_saving || 'Error saving.').addClass('notice notice-error').show();
                 }

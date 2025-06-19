@@ -23,8 +23,6 @@ class Settings {
         'bf_thank_you_message'        => 'Thank you for your booking! A confirmation email has been sent to you.',
 
         // Business Settings (prefix biz_ or email_)
-        'biz_currency_symbol'                 => '$',
-        'biz_currency_position'               => 'before', // 'before' or 'after'
         'biz_name'                            => '', // Tenant's business name
         'biz_email'                           => '', // Tenant's primary business email (dynamic default: user's registration email)
         'biz_phone'                           => '',
@@ -291,20 +289,25 @@ Please review this booking in your dashboard: {{admin_booking_link}}",
                             $sanitized_value = '{}';
                         } else { $sanitized_value = sanitize_text_field($json_val); }
                         break;
-                    case 'biz_currency_symbol':
-                        $sanitized_value = sanitize_text_field(substr(trim($value), 0, 5));
-                        break;
-                    case 'biz_currency_position':
-                        $sanitized_value = in_array($value, ['before', 'after'], true) ? $value : 'before';
-                        break;
+                    // Removed biz_currency_symbol and biz_currency_position cases
                     case 'biz_currency_code':
-                        $sanitized_value = preg_replace('/[^A-Z]/', '', strtoupper(substr(trim($value), 0, 3)));
+                        // Since this will be a select dropdown, values should be valid.
+                        // This sanitization ensures it's 3 uppercase letters or defaults to USD.
+                        $sanitized_value = preg_replace('/[^A-Z]/', '', strtoupper(trim($value)));
                         if (strlen($sanitized_value) !== 3) {
-                            $sanitized_value = 'USD'; // Default if validation fails
+                            // Attempt to take first 3 if longer and valid, otherwise default
+                            $sanitized_value = substr($sanitized_value, 0, 3);
+                            if (strlen($sanitized_value) !== 3 || !ctype_upper($sanitized_value)) {
+                                $sanitized_value = 'USD'; // Default if validation fails
+                            }
+                        } else if (!ctype_upper($sanitized_value)) {
+                             $sanitized_value = 'USD'; // Default if not all uppercase
                         }
                         break;
                     case 'biz_user_language':
                         // Allow format like xx_XX (e.g., en_US, fr_CA)
+                        // For a select dropdown, this validation is less critical if options are controlled,
+                        // but good for direct API calls or data integrity.
                         if (preg_match('/^[a-z]{2}_[A-Z]{2}$/', trim($value))) {
                             $sanitized_value = trim($value);
                         } else {
