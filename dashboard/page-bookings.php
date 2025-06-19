@@ -31,6 +31,12 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 // - MoBooking\Classes\Database (if not already loaded for get_table_name)
 
 $current_user_id = get_current_user_id();
+
+$currency_code = 'USD'; // Default
+if ($current_user_id && isset($GLOBALS['mobooking_settings_manager'])) {
+    $currency_code = $GLOBALS['mobooking_settings_manager']->get_setting($current_user_id, 'biz_currency_code', 'USD');
+}
+
 $bookings_data = null;
 $initial_bookings_html = '';
 $initial_pagination_html = '';
@@ -54,7 +60,8 @@ if ($current_user_id) {
         foreach ($bookings_result['bookings'] as $booking) {
             // Adapt the JS template logic here in PHP
             $status_display = !empty($booking['status']) ? ucfirst(str_replace('-', ' ', $booking['status'])) : __('N/A', 'mobooking');
-            $total_price_formatted = \MoBooking\Classes\Utils::format_currency($booking['total_price']); // Assuming a utility class for currency
+            // $total_price_formatted = \MoBooking\Classes\Utils::format_currency($booking['total_price']); // Assuming a utility class for currency - REPLACED
+            $total_price_formatted = esc_html($currency_code . ' ' . number_format_i18n(floatval($booking['total_price']), 2));
             $created_at_formatted = date_i18n(get_option('date_format') . ' ' . get_option('time_format'), strtotime($booking['created_at']));
             $booking_date_formatted = date_i18n(get_option('date_format'), strtotime($booking['booking_date']));
 
