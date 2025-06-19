@@ -72,7 +72,8 @@ class Utils {
             return $currency_symbol . $formatted_number;
         } else {
             return $formatted_number . $currency_symbol;
-    }
+        } // This closing brace was missing
+    } // Add this closing brace for the format_currency method
 
     public static function get_currency_symbol(string $currency_code): string
     {
