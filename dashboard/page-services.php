@@ -638,4 +638,6 @@ function initializeChoiceManagementForRow($row) {
     });
     // Note: The line "$row.data('choice-management-fully-initialized', true);" was identified as incorrect here and is now correctly placed inside initializeChoiceManagementForRow
 });
+
+
 </script>
