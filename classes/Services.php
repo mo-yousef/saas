@@ -513,6 +513,7 @@ class Services {
         error_log('[MoBooking SaveSvc Debug] User ID: ' . $user_id);
 
         $service_id = isset($_POST['service_id']) && !empty($_POST['service_id']) ? intval($_POST['service_id']) : 0;
+        error_log('[MoBooking SaveSvc Debug] Initial service_id from POST: ' . (isset($_POST['service_id']) ? $_POST['service_id'] : 'Not Set') . ', Processed service_id: ' . $service_id);
         // die('[DEBUG] Service ID determined: ' . $service_id);
         error_log('[MoBooking SaveSvc Debug] Service ID for save/update: ' . $service_id);
 
@@ -564,29 +565,54 @@ class Services {
 
         // die('[DEBUG] All initial validations passed. About to call add/update service. Service ID: ' . $service_id);
         if ($service_id) { // Update
+            error_log('[MoBooking SaveSvc Debug] UPDATE path. Service ID: ' . $service_id);
             error_log('[MoBooking SaveSvc Debug] Attempting to update service ID: ' . $service_id);
             $result_service_save = $this->update_service($service_id, $user_id, $data_for_service_method);
             $message = __('Service updated successfully.', 'mobooking');
         } else { // Add
+            error_log('[MoBooking SaveSvc Debug] ADD path. Data for new service: ' . print_r($data_for_service_method, true));
             error_log('[MoBooking SaveSvc Debug] Attempting to add new service.');
             $result_service_save = $this->add_service($user_id, $data_for_service_method);
-            $message = __('Service added successfully.', 'mobooking');
-            if (!is_wp_error($result_service_save)) {
-                 $service_id = $result_service_save; // Get new ID for options processing
-                 error_log('[MoBooking SaveSvc Debug] New service added with ID: ' . $service_id);
-            }
+            error_log('[MoBooking SaveSvc Debug] Result of add_service: ' . print_r($result_service_save, true));
+            // $message is set after successful ID validation
+            // if (!is_wp_error($result_service_save)) { // This check is now part of the more robust validation below
+            //      $service_id = $result_service_save;
+            //      error_log('[MoBooking SaveSvc Debug] NEW service_id assigned for options: ' . $service_id);
+            //      error_log('[MoBooking SaveSvc Debug] New service added with ID: ' . $service_id);
+            // }
         }
 
         if (is_wp_error($result_service_save)) {
-            error_log('[MoBooking SaveSvc Debug] Error saving/updating service: ' . $result_service_save->get_error_message());
+            error_log('[MoBooking SaveSvc Debug] Error saving/updating service (WP_Error): ' . $result_service_save->get_error_message());
             if (ob_get_length()) ob_clean();
             wp_send_json_error(['message' => $result_service_save->get_error_message()], ('not_owner' === $result_service_save->get_error_code() ? 403 : 500) );
             return;
         }
+
+        // If execution reaches here, and it was an 'add' operation, $result_service_save holds the potential new ID.
+        // If it was an 'update' operation, $result_service_save is likely true/number of rows, and $service_id is already set.
+        if (isset($_POST['service_id']) && !empty($_POST['service_id'])) { // Was an update
+             // $service_id is already the correct ID for update. $result_service_save is true or num rows.
+             // No special handling needed here for $service_id itself if it was an update.
+        } else { // This was an ADD operation
+            // More robust check for the result of add_service
+            if (empty($result_service_save) || !is_numeric($result_service_save) || intval($result_service_save) <= 0) {
+                error_log('[MoBooking SaveSvc Debug] add_service did not return a valid new Service ID. Result: ' . print_r($result_service_save, true));
+                if (ob_get_length()) ob_clean();
+                wp_send_json_error(['message' => __('Failed to create the new service (ID was invalid), so options could not be saved.', 'mobooking')], 500);
+                return; // Stop execution
+            }
+            $service_id = intval($result_service_save); // Ensure it's an integer
+            error_log('[MoBooking SaveSvc Debug] NEW service_id assigned after robust check: ' . $service_id);
+            // $message was already set to "Service added successfully."
+        }
+        // $message is already set based on add/update path.
         error_log('[MoBooking SaveSvc Debug] Service main data saved/updated successfully for service_id: ' . $service_id);
 
         // Process service options if provided
+        error_log('[MoBooking SaveSvc Debug] Checking for service_options. Current service_id: ' . $service_id);
         if (isset($_POST['service_options'])) {
+            error_log('[MoBooking SaveSvc Debug] service_options POST data: ' . print_r($_POST['service_options'], true));
             $options_json = stripslashes($_POST['service_options']);
             error_log('[MoBooking SaveSvc Debug] Received service_options JSON string: ' . $options_json);
             $options = json_decode($options_json, true);
@@ -631,8 +657,10 @@ class Services {
                     ];
 
                     if (!empty($clean_option_data['name'])) {
-                         error_log("[MoBooking SaveSvc Debug] Adding/updating option: " . print_r($clean_option_data, true));
+                         error_log("[MoBooking SaveSvc Debug] Adding option for service_id {$service_id}, user_id {$user_id}. Option data: " . print_r($clean_option_data, true));
+                         // error_log("[MoBooking SaveSvc Debug] Adding/updating option: " . print_r($clean_option_data, true)); // Original log, slightly redundant
                          $option_result = $this->service_options_manager->add_service_option($user_id, $service_id, $clean_option_data);
+                         error_log("[MoBooking SaveSvc Debug] Result of add_service_option for '{$clean_option_data['name']}': " . print_r($option_result, true));
                          if (is_wp_error($option_result)) {
                             error_log("[MoBooking SaveSvc Debug] Error adding service option '{$clean_option_data['name']}': " . $option_result->get_error_message());
                          } else {
@@ -651,14 +679,17 @@ class Services {
                  return;
             }
         } else {
+            error_log('[MoBooking SaveSvc Debug] service_options NOT SET in POST.');
             error_log('[MoBooking SaveSvc Debug] No service_options provided in POST.');
         }
 
         $saved_service = $this->get_service($service_id, $user_id);
+        error_log('[MoBooking SaveSvc Debug] Sending response. Service ID: ' . $service_id . '. Message: ' . $message);
         if ($saved_service) {
+            error_log('[MoBooking SaveSvc Debug] Final saved_service data: ' . print_r($saved_service, true));
             error_log('[MoBooking SaveSvc Debug] Successfully saved and retrieved service. Sending success response.');
             if (ob_get_length()) ob_clean();
-            wp_send_json_success(['message' => $message, 'service' => $saved_service]);
+            wp_send_json_success(['message' => $message, 'service' => $saved_service, 'service_id' => $service_id]); // Also explicitly send service_id
         } else {
             error_log('[MoBooking SaveSvc Debug] Error: Could not retrieve service after saving. Service ID: ' . $service_id);
             if (ob_get_length()) ob_clean();
