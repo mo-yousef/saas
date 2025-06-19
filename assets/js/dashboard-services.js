@@ -223,6 +223,32 @@ jQuery(document).ready(function ($) {
     });
 
     addServiceOptionBtn.on("click", function () {
+        if ($(this).is(":disabled")) return;
+
+       const serviceId = $("#mobooking-service-id").val();
+       const serviceName = $("#mobooking-service-name").val().trim();
+       const servicePrice = $("#mobooking-service-price").val().trim();
+       const serviceDuration = $("#mobooking-service-duration").val().trim();
+       // feedbackDiv is already defined in this scope if this is inside the `if ($('#mobooking-service-form').length)` block
+
+       if (!serviceId) { // Only apply this check for new services (serviceId is empty for new)
+           if (!serviceName || !servicePrice || !serviceDuration) {
+               let missingFields = [];
+               if (!serviceName) missingFields.push(mobooking_services_params.i18n.service_name_label || 'Service Name');
+               if (!servicePrice) missingFields.push(mobooking_services_params.i18n.service_price_label || 'Price');
+               if (!serviceDuration) missingFields.push(mobooking_services_params.i18n.service_duration_label || 'Duration');
+
+               const message = (mobooking_services_params.i18n.fill_service_details_first || 'Please fill in the following service details before adding options: %s.').replace('%s', missingFields.join(', '));
+
+               feedbackDiv.text(message).removeClass("success error notice").addClass("notice").show();
+               // Optional: Scroll to feedback or first empty field
+               // Example: $(window).scrollTop($('#mobooking-service-form-feedback').offset().top - 100);
+               return; // Prevent adding the option
+           } else {
+               feedbackDiv.empty().removeClass("success error notice").hide(); // Clear if previously shown and details are now filled
+           }
+       }
+
         if (!optionTemplateHtml) { console.error("Cannot add option: template missing."); return; }
         optionsListContainer.find("p.mobooking-no-options-yet").remove();
         optionClientIndex++;
