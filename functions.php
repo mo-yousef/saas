@@ -288,14 +288,26 @@ add_filter( 'template_include', 'mobooking_dashboard_template_include', 99 );
 // New function to handle dashboard script enqueuing
 function mobooking_enqueue_dashboard_scripts($current_page_slug) {
     // Specific to Services page
-    if ($current_page_slug === 'services') {
-        wp_enqueue_script('mobooking-dashboard-services', MOBOOKING_THEME_URI . 'assets/js/dashboard-services.js', array('jquery'), MOBOOKING_VERSION, true);
+    if ($current_page_slug === 'services' || $current_page_slug === 'service-edit') {
+        wp_enqueue_script('mobooking-dashboard-services', MOBOOKING_THEME_URI . 'assets/js/dashboard-services.js', array('jquery', 'jquery-ui-sortable'), MOBOOKING_VERSION, true);
+        // Ensure jQuery UI Sortable CSS is also enqueued if needed, or handle styling in plugin's CSS
+        // wp_enqueue_style('jquery-ui-sortable-css', MOBOOKING_THEME_URI . 'path/to/jquery-ui-sortable.css');
+
+
+        if ($current_page_slug === 'service-edit') {
+            wp_enqueue_style('mobooking-dashboard-service-edit', MOBOOKING_THEME_URI . 'assets/css/dashboard-service-edit.css', array(), MOBOOKING_VERSION);
+        }
+
         wp_localize_script('mobooking-dashboard-services', 'mobooking_services_params', array(
             'ajax_url' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce('mobooking_services_nonce'),
             'currency_symbol' => '$', // You can make this dynamic later
+            'site_url' => site_url(), // Pass site_url for robust redirects
+            'dashboard_slug' => 'dashboard', // Pass dashboard slug
             'i18n' => [
                 'confirm_delete_service' => __('Are you sure you want to delete this service and all its options? This cannot be undone.', 'mobooking'),
+                'confirm_delete_option' => __('Are you sure you want to delete this option?', 'mobooking'),
+                'no_options_yet' => __('No options added yet. Click "Add Option" to create one.', 'mobooking'),
                 'error_deleting_service' => __('Error deleting service.', 'mobooking'),
                 'add_new_service' => __('Add New Service', 'mobooking'),
                 'edit_service' => __('Edit Service', 'mobooking'),
@@ -309,10 +321,17 @@ function mobooking_enqueue_dashboard_scripts($current_page_slug) {
                 'valid_price_required' => __('A valid, non-negative price is required.', 'mobooking'),
                 'valid_duration_required' => __('A valid, positive duration in minutes is required.', 'mobooking'),
                 'saving' => __('Saving...', 'mobooking'),
+                'service_saved' => __('Service saved successfully.', 'mobooking'),
                 'error_saving_service' => __('Error saving service. Please check your input and try again.', 'mobooking'),
+                'error_saving_service_ajax' => __('AJAX error saving service. Check console.', 'mobooking'),
+                'invalid_json_for_option' => __('Invalid JSON in Option Values for: ', 'mobooking'),
                 'loading_services' => __('Loading services...', 'mobooking'),
                 'no_services_found' => __('No services found.', 'mobooking'),
                 'error_loading_services' => __('Error loading services.', 'mobooking'),
+                'error_loading_services_ajax' => __('AJAX error loading services.', 'mobooking'),
+                 'service_deleted' => __('Service deleted.', 'mobooking'),
+                 'error_deleting_service_ajax' => __('AJAX error deleting service.', 'mobooking'),
+
             ]
         ));
     }
