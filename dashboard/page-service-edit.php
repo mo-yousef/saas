@@ -1167,13 +1167,49 @@ wp_nonce_field('mobooking_services_nonce', 'mobooking_services_nonce_field');
 
                             <div class="grid gap-4" style="grid-template-columns: 1fr 1fr;">
                                 <div class="form-group">
-                                    <label class="form-label"><?php esc_html_e('Price Impact Type', 'mobooking'); ?></label>
-                                    <select name="options[][price_impact_type]" class="form-input form-select w-full">
-                                        <option value="none"><?php esc_html_e('No Price Change', 'mobooking'); ?></option>
-                                        <option value="fixed"><?php esc_html_e('Fixed Amount', 'mobooking'); ?></option>
-                                        <option value="percentage"><?php esc_html_e('Percentage', 'mobooking'); ?></option>
-                                        <option value="multiply_value"><?php esc_html_e('Multiply by Value', 'mobooking'); ?></option>
-                                    </select>
+                                    <label class="form-label mb-3"><?php esc_html_e('Price Impact Type', 'mobooking'); ?></label>
+                                    <div class="pricing-type-grid">
+                                        <label class="pricing-type-card">
+                                            <input type="radio" name="options[][price_impact_type]" value="none" checked class="pricing-type-radio">
+                                            <div class="pricing-type-content">
+                                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="pricing-type-icon"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>
+                                                <div class="pricing-type-text">
+                                                    <span class="pricing-type-title"><?php esc_html_e('No Change', 'mobooking'); ?></span>
+                                                    <span class="pricing-type-desc"><?php esc_html_e('Free option', 'mobooking'); ?></span>
+                                                </div>
+                                            </div>
+                                        </label>
+                                        <label class="pricing-type-card">
+                                            <input type="radio" name="options[][price_impact_type]" value="fixed" class="pricing-type-radio">
+                                            <div class="pricing-type-content">
+                                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="pricing-type-icon"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                                                <div class="pricing-type-text">
+                                                    <span class="pricing-type-title"><?php esc_html_e('Fixed Amount', 'mobooking'); ?></span>
+                                                    <span class="pricing-type-desc"><?php esc_html_e('Add/subtract fixed price', 'mobooking'); ?></span>
+                                                </div>
+                                            </div>
+                                        </label>
+                                        <label class="pricing-type-card">
+                                            <input type="radio" name="options[][price_impact_type]" value="percentage" class="pricing-type-radio">
+                                            <div class="pricing-type-content">
+                                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="pricing-type-icon"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 h.01"/><path d="m15 15 h.01"/></svg>
+                                                <div class="pricing-type-text">
+                                                    <span class="pricing-type-title"><?php esc_html_e('Percentage', 'mobooking'); ?></span>
+                                                    <span class="pricing-type-desc"><?php esc_html_e('% of base price', 'mobooking'); ?></span>
+                                                </div>
+                                            </div>
+                                        </label>
+                                        <label class="pricing-type-card">
+                                            <input type="radio" name="options[][price_impact_type]" value="multiply_value" class="pricing-type-radio">
+                                            <div class="pricing-type-content">
+                                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="pricing-type-icon"><path d="m5 9 3-3 3 3"/><path d="m13 15 3 3 3-3"/><path d="M8 6v12"/><path d="M16 18V6"/></svg>
+                                                <div class="pricing-type-text">
+                                                    <span class="pricing-type-title"><?php esc_html_e('Multiply Value', 'mobooking'); ?></span>
+                                                    <span class="pricing-type-desc"><?php esc_html_e('Price × quantity', 'mobooking'); ?></span>
+                                                </div>
+                                            </div>
+                                        </label>
+                                    </div>
                                 </div>
 
                                 <div class="form-group">

@@ -419,11 +419,7 @@ jQuery(document).ready(function ($) {
         $valuesAccordionContent.slideUp();
       }
 
-      const priceType = $row
-        .find(
-          ".mobooking-option-price-type, select[name^='options['][name$='[price_impact_type]']"
-        )
-        .val();
+      const priceType = $row.find('input[type="radio"][name$="[price_impact_type]"]:checked').val();
       const $priceValueField = $row.find(".mobooking-option-price-value-field");
       const $adornment = $row.find(".mobooking-price-impact-value-adornment"); // Find the adornment
 
@@ -926,9 +922,7 @@ jQuery(document).ready(function ($) {
             description: $row.find('textarea[name$="[description]"]').val(),
             type: $row.find('input[type="radio"][name^="options["][name$="[type]"]:checked, select[name^="options["][name$="[type]"], .mobooking-option-type:checked').val(),
             is_required: $row.find('input[name$="[is_required]"]').val(), // This should correspond to the hidden input if is_required_cb is used
-            price_impact_type: $row
-              .find('select[name$="[price_impact_type]"]')
-              .val(),
+            price_impact_type: $row.find('input[type="radio"][name$="[price_impact_type]"]:checked').val(),
             price_impact_value:
               $row.find('input[name$="[price_impact_value]"]').val() || null,
             option_values: $row.find('textarea[name$="[option_values]"]').val(),
