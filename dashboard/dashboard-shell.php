@@ -4,9 +4,70 @@
  * @package MoBooking
  */
 if ( ! defined( 'ABSPATH' ) ) exit;
-error_log('[MoBooking Shell Debug] dashboard-shell.php execution started.');
+
+// Initial Access Control
+if ( ! is_user_logged_in() ) {
+    // Consider using wp_safe_redirect to prevent header modification issues if output has started.
+    // However, at this point, it should be safe.
+    wp_redirect( home_url( '/login/' ) ); // Assuming '/login/' is your login page slug
+    exit;
+}
+
+// Ensure Auth class is available. This might be better handled by an autoloader or ensuring it's included earlier.
+if ( ! class_exists('\MoBooking\Classes\Auth') ) {
+    // This is a critical error, means the plugin structure or loading is incorrect.
+    wp_die( 'Critical Error: Auth class not found. Cannot proceed with dashboard loading.' );
+}
+
+if ( ! current_user_can( \MoBooking\Classes\Auth::ACCESS_MOBOOKING_DASHBOARD ) ) {
+    wp_die( esc_html__( 'You do not have sufficient permissions to access this dashboard.', 'mobooking' ) );
+}
 
 $requested_page = isset($GLOBALS['mobooking_current_dashboard_view']) ? $GLOBALS['mobooking_current_dashboard_view'] : 'overview';
+
+// Page-specific capability check
+$page_capabilities = [
+    'overview' => \MoBooking\Classes\Auth::ACCESS_MOBOOKING_DASHBOARD,
+    'bookings' => \MoBooking\Classes\Auth::CAP_VIEW_BOOKINGS, // Users with CAP_MANAGE_BOOKINGS will also pass this if CAP_VIEW_BOOKINGS is granted to them
+    'services' => \MoBooking\Classes\Auth::CAP_VIEW_SERVICES, // Same logic for other view caps
+    'service-edit' => \MoBooking\Classes\Auth::CAP_MANAGE_SERVICES, // Editing requires manage cap
+    'discounts' => \MoBooking\Classes\Auth::CAP_VIEW_DISCOUNTS,
+    'areas' => \MoBooking\Classes\Auth::CAP_VIEW_AREAS,
+    'workers' => \MoBooking\Classes\Auth::CAP_MANAGE_WORKERS,
+    'booking-form' => \MoBooking\Classes\Auth::CAP_MANAGE_BOOKING_FORM,
+    'settings' => \MoBooking\Classes\Auth::CAP_MANAGE_BUSINESS_SETTINGS,
+    // Add other specific pages like 'discount-edit', 'area-edit' if they exist and need specific manage caps
+];
+
+$required_capability_for_page = isset( $page_capabilities[$requested_page] ) ? $page_capabilities[$requested_page] : \MoBooking\Classes\Auth::ACCESS_MOBOOKING_DASHBOARD; // Default to basic access
+
+// For pages that have both view and manage capabilities (like bookings, services, etc.),
+// if the required cap is a "view" cap, we should also allow users who have the "manage" cap.
+// This logic is a bit more complex if not all roles with "manage_X" also have "view_X".
+// The current role setup in Auth.php *does* grant view caps when manage caps are granted, so a direct check is okay.
+
+if ( ! current_user_can( $required_capability_for_page ) ) {
+    // If it's a "view" cap that failed, check if they have the corresponding "manage" cap.
+    // This is a simplified check. A more robust system might involve checking an array of caps.
+    $can_access = false;
+    if ( strpos( $required_capability_for_page, '_view_' ) !== false ) {
+        $manage_cap = str_replace( '_view_', '_manage_', $required_capability_for_page );
+        if ( current_user_can( $manage_cap ) ) {
+            $can_access = true;
+        }
+    }
+
+    if ( ! $can_access ) {
+        // Redirect to overview or show error
+        // wp_redirect( home_url('/dashboard/') );
+        // exit;
+        wp_die( esc_html__( 'You do not have sufficient permissions to access this specific page.', 'mobooking' ) . ' (Req: ' . esc_html($required_capability_for_page). ')' );
+    }
+}
+
+
+error_log('[MoBooking Shell Debug] dashboard-shell.php execution started. User logged in and has basic dashboard access.');
+
 ?>
 <!DOCTYPE html>
 <html <?php language_attributes(); ?>>
