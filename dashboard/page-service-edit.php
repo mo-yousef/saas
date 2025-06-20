@@ -182,6 +182,12 @@ wp_nonce_field('mobooking_services_nonce', 'mobooking_services_nonce_field');
                             <div class="mobooking-service-option-row">
                                 <span class="mobooking-option-drag-handle">&#x2630;</span>
                                 <div class="mobooking-service-option-row-content">
+                                    <div class="mobooking-option-visual-header">
+                                        <div class="mobooking-option-image-placeholder">
+                                            <span><?php esc_html_e('Image', 'mobooking'); ?></span>
+                                        </div>
+                                        <h4 class="mobooking-option-title"><?php echo esc_html( $option['name'] ); ?></h4>
+                                    </div>
                                     <input type="hidden" name="options[<?php echo $option_idx; ?>][option_id]" value="<?php echo esc_attr( $option['option_id'] ); ?>">
                                     <p>
                                         <label style="font-weight:bold;"><?php esc_html_e('Option Name:', 'mobooking'); ?></label><br>
@@ -222,19 +228,22 @@ wp_nonce_field('mobooking_services_nonce', 'mobooking_services_nonce_field');
                                     <label><input type="checkbox" name="options[<?php echo $option_idx; ?>][is_required_cb]" value="1" <?php checked( $option['is_required'], '1' ); ?>> <?php esc_html_e('Required?', 'mobooking'); ?></label>
                                     <input type="hidden" name="options[<?php echo $option_idx; ?>][is_required]" value="<?php echo esc_attr( $option['is_required'] ); ?>"> <!-- JS updates this -->
                                 </p>
-                                <p>
-                                    <label><?php esc_html_e('Price Impact Type:', 'mobooking'); ?></label><br>
-                                    <select name="options[<?php echo $option_idx; ?>][price_impact_type]" class="mobooking-option-price-type widefat">
-                                        <option value="" <?php selected( $option['price_impact_type'], '' ); ?>><?php esc_html_e('None', 'mobooking'); ?></option>
-                                        <option value="fixed" <?php selected( $option['price_impact_type'], 'fixed' ); ?>><?php esc_html_e('Fixed Amount', 'mobooking'); ?></option>
-                                        <option value="percentage" <?php selected( $option['price_impact_type'], 'percentage' ); ?>><?php esc_html_e('Percentage of Base Price', 'mobooking'); ?></option>
-                                        <option value="multiply_value" <?php selected( $option['price_impact_type'], 'multiply_value' ); ?>><?php esc_html_e('Multiply by Quantity/Value (for Type=Quantity/Number)', 'mobooking'); ?></option>
-                                    </select>
-                                </p>
-                                <div class="mobooking-option-price-value-field" style="<?php echo ( !empty( $option['price_impact_type'] ) ? '' : 'display:none;' ); ?> margin-bottom:10px;">
-                                    <label><?php esc_html_e('Price Impact Value:', 'mobooking'); ?></label><br>
-                                    <input type="number" name="options[<?php echo $option_idx; ?>][price_impact_value]" value="<?php echo esc_attr( $option['price_impact_value'] ); ?>" step="0.01" class="widefat">
-                                </div> <!-- This closes .mobooking-option-price-value-field -->
+                                <div class="mobooking-price-impact-group">
+                                    <p>
+                                        <label><?php esc_html_e('Price Impact Type:', 'mobooking'); ?></label><br>
+                                        <select name="options[<?php echo $option_idx; ?>][price_impact_type]" class="mobooking-option-price-type widefat">
+                                            <option value="" <?php selected( $option['price_impact_type'], '' ); ?>><?php esc_html_e('None', 'mobooking'); ?></option>
+                                            <option value="fixed" <?php selected( $option['price_impact_type'], 'fixed' ); ?>><?php esc_html_e('Fixed Amount', 'mobooking'); ?></option>
+                                            <option value="percentage" <?php selected( $option['price_impact_type'], 'percentage' ); ?>><?php esc_html_e('Percentage of Base Price', 'mobooking'); ?></option>
+                                            <option value="multiply_value" <?php selected( $option['price_impact_type'], 'multiply_value' ); ?>><?php esc_html_e('Multiply by Quantity/Value (for Type=Quantity/Number)', 'mobooking'); ?></option>
+                                        </select>
+                                    </p>
+                                    <div class="mobooking-option-price-value-field"> {/* Inline style removed, JS will add/remove mobooking-active class */}
+                                        <label style="display:none;"><?php esc_html_e('Price Impact Value:', 'mobooking'); ?></label>{/* Label can be hidden if adornment makes it clear */}
+                                        <span class="mobooking-price-impact-value-adornment"></span>
+                                        <input type="number" name="options[<?php echo $option_idx; ?>][price_impact_value]" value="<?php echo esc_attr( $option['price_impact_value'] ); ?>" step="0.01" class="widefat">
+                                    </div>
+                                </div>
                                 <input type="hidden" name="options[<?php echo $option_idx; ?>][sort_order]" value="<?php echo esc_attr( $option['sort_order'] ); ?>">
                                 <button type="button" class="button mobooking-remove-service-option-btn button-link-delete"><?php esc_html_e('Remove Option', 'mobooking'); ?></button>
                                 </div> <!-- close mobooking-service-option-row-content -->
@@ -255,6 +264,12 @@ wp_nonce_field('mobooking_services_nonce', 'mobooking_services_nonce_field');
                 <div class="mobooking-service-option-row">
                     <span class="mobooking-option-drag-handle">&#x2630;</span>
                     <div class="mobooking-service-option-row-content">
+                        <div class="mobooking-option-visual-header">
+                            <div class="mobooking-option-image-placeholder">
+                                <span><?php esc_html_e('Image', 'mobooking'); ?></span>
+                            </div>
+                            <h4 class="mobooking-option-title"><?php esc_html_e('New Option', 'mobooking'); ?></h4>
+                        </div>
                         <input type="hidden" name="options[][option_id]" value=""> <!-- New options won't have an ID yet -->
                         <p>
                             <label style="font-weight:bold;"><?php esc_html_e('Option Name:', 'mobooking'); ?></label><br>
@@ -290,19 +305,22 @@ wp_nonce_field('mobooking_services_nonce', 'mobooking_services_nonce_field');
                         <label><input type="checkbox" name="options[][is_required_cb]" value="1"> <?php esc_html_e('Required?', 'mobooking'); ?></label>
                         <input type="hidden" name="options[][is_required]" value="0"> <!-- JS updates this based on checkbox -->
                     </p>
-                    <p>
-                        <label><?php esc_html_e('Price Impact Type:', 'mobooking'); ?></label><br>
-                        <select name="options[][price_impact_type]" class="mobooking-option-price-type widefat">
-                            <option value=""><?php esc_html_e('None', 'mobooking'); ?></option>
-                            <option value="fixed"><?php esc_html_e('Fixed Amount', 'mobooking'); ?></option>
-                            <option value="percentage"><?php esc_html_e('Percentage of Base Price', 'mobooking'); ?></option>
-                            <option value="multiply_value"><?php esc_html_e('Multiply by Quantity/Value (for Type=Quantity/Number)', 'mobooking'); ?></option>
-                        </select>
-                    </p>
-                    <div class="mobooking-option-price-value-field" style="display:none; margin-bottom:10px;">
-                        <label><?php esc_html_e('Price Impact Value:', 'mobooking'); ?></label><br>
-                        <input type="number" name="options[][price_impact_value]" step="0.01" class="widefat">
-                    </div> <!-- This closes .mobooking-option-price-value-field -->
+                    <div class="mobooking-price-impact-group">
+                        <p>
+                            <label><?php esc_html_e('Price Impact Type:', 'mobooking'); ?></label><br>
+                            <select name="options[][price_impact_type]" class="mobooking-option-price-type widefat">
+                                <option value=""><?php esc_html_e('None', 'mobooking'); ?></option>
+                                <option value="fixed"><?php esc_html_e('Fixed Amount', 'mobooking'); ?></option>
+                                <option value="percentage"><?php esc_html_e('Percentage of Base Price', 'mobooking'); ?></option>
+                                <option value="multiply_value"><?php esc_html_e('Multiply by Quantity/Value (for Type=Quantity/Number)', 'mobooking'); ?></option>
+                            </select>
+                        </p>
+                        <div class="mobooking-option-price-value-field"> {/* Inline style removed, JS will add/remove mobooking-active class */}
+                            <label style="display:none;"><?php esc_html_e('Price Impact Value:', 'mobooking'); ?></label>{/* Label can be hidden if adornment makes it clear */}
+                            <span class="mobooking-price-impact-value-adornment"></span>
+                            <input type="number" name="options[][price_impact_value]" step="0.01" class="widefat">
+                        </div>
+                    </div>
                     <input type="hidden" name="options[][sort_order]" value="0"> <!-- JS might need to manage this for new items if order matters on creation -->
                     <button type="button" class="button mobooking-remove-service-option-btn button-link-delete"><?php esc_html_e('Remove Option', 'mobooking'); ?></button>
                     </div> <!-- close mobooking-service-option-row-content -->
