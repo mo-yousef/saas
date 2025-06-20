@@ -21,15 +21,14 @@ $service_name = '';
 $service_description = '';
 $service_price = '';
 $service_duration = '';
-$service_icon = '';
+$service_icon = ''; // Stores the key of the selected SVG icon
 $service_image_url = '';
 $service_status = 'active';
-$service_options_data = [];
+$service_options_data = []; // This will hold data for existing options
 $error_message = '';
 
 // 3. Fetch Service Data in Edit Mode
 $user_id = get_current_user_id();
-// Fetch business settings for currency display
 $settings_manager = new \MoBooking\Classes\Settings();
 $biz_settings = $settings_manager->get_business_settings($user_id);
 $currency_symbol = $biz_settings['biz_currency_symbol'];
@@ -45,7 +44,7 @@ if ( $edit_mode && $service_id > 0 ) {
             $service_description = $service_data['description'];
             $service_price = $service_data['price'];
             $service_duration = $service_data['duration'];
-            $service_icon = $service_data['icon'];
+            $service_icon = $service_data['icon']; // Should be an icon key
             $service_image_url = $service_data['image_url'];
             $service_status = $service_data['status'];
             $service_options_data = isset($service_data['options']) && is_array($service_data['options']) ? $service_data['options'] : [];
@@ -60,7 +59,56 @@ if ( $edit_mode && $service_id > 0 ) {
 // Nonce for JS operations
 wp_nonce_field('mobooking_services_nonce', 'mobooking_services_nonce_field');
 
-// Helper functions for rendering form elements
+// Define Preset SVG Icons for Service Icon selection
+$mobooking_preset_svg_icons = [
+    'default' => '<svg viewBox="0 0 24 24" fill="currentColor" class="w-full h-full text-gray-400"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>',
+    'home' => '<svg viewBox="0 0 24 24" fill="currentColor" class="w-full h-full"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>',
+    'tool' => '<svg viewBox="0 0 24 24" fill="currentColor" class="w-full h-full"><path d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z"/></svg>',
+    'time' => '<svg viewBox="0 0 24 24" fill="currentColor" class="w-full h-full"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>',
+    'service' => '<svg viewBox="0 0 24 24" fill="currentColor" class="w-full h-full"><path d="M20 8h-3V6c0-1.1-.9-2-2-2H9c-1.1 0-2 .9-2 2v2H4c-1.1 0-2 .9-2 2v10h20V10c0-1.1-.9-2-2-2zM9 6h6v2H9V6zm11 12H4v-3h2v1h2v-1h8v1h2v-1h2v3zm0-5h-2v-1H6v1H4v-1c0-.55.45-1 1-1h14c.55 0 1 .45 1 1v1z"/></svg>',
+    'payment' => '<svg viewBox="0 0 24 24" fill="currentColor" class="w-full h-full"><path d="M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/></svg>',
+    'star' => '<svg viewBox="0 0 24 24" fill="currentColor" class="w-full h-full"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2l-2.81 6.63L2 9.24l5.46 4.73L5.82 21z"/></svg>',
+];
+$default_svg_icon_key = 'default';
+
+// Define Option Type SVGs & Labels
+$mobooking_option_type_icons = [
+    'checkbox' => '<svg viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>',
+    'text' => '<svg viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828zM4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6z"/></svg>',
+    'number' => '<svg viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5"><path fill-rule="evenodd" d="M9.49 2.544c.28-.594.94-.825 1.534-.544L11 2l.003.001c.28.133.68.057.943-.192a.75.75 0 011.061 1.06L13 3l-.001.003c-.133.28-.057.68.192.943a.75.75 0 01-1.06 1.061L12 5l.001-.003c-.28-.133-.68-.057-.943.192a.75.75 0 01-1.06-1.06L10 4l-.003-.001a1.07 1.07 0 00-.192-.943L9.49 2.544zM5 8a1 1 0 000 2h10a1 1 0 100-2H5zm1 4a1 1 0 100 2h8a1 1 0 100-2H6z" clip-rule="evenodd" /></svg>',
+    'select' => '<svg viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>',
+    'radio' => '<svg viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm0 2a10 10 0 100-20 10 10 0 000 20zm0-5a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd" /></svg>',
+    'textarea' => '<svg viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5"><path fill-rule="evenodd" d="M2 4a2 2 0 012-2h12a2 2 0 012 2v12a2 2 0 01-2 2H4a2 2 0 01-2-2V4zm11 3a1 1 0 10-2 0v6a1 1 0 102 0V7zm-4 0a1 1 0 10-2 0v6a1 1 0 102 0V7z" clip-rule="evenodd" /></svg>',
+    'quantity' => '<svg viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5"><path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/></svg>',
+];
+$mobooking_option_types_available = [
+    'checkbox' => __('Checkbox', 'mobooking'),
+    'text' => __('Text Input', 'mobooking'),
+    'number' => __('Number Input', 'mobooking'),
+    'select' => __('Dropdown', 'mobooking'),
+    'radio' => __('Radio Buttons', 'mobooking'),
+    'textarea' => __('Text Area', 'mobooking'),
+    'quantity' => __('Quantity', 'mobooking'),
+];
+
+// Define Price Impact Type SVGs & Labels
+$mobooking_price_impact_type_icons = [
+    'none' => '<svg viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 101.414-1.414L11.414 10l1.293-1.293a1 1 0 10-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" /></svg>',
+    'fixed' => '<svg viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd" /></svg>',
+    'percentage' => '<svg viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5"><path d="M17.5 15a2.5 2.5 0 110-5 2.5 2.5 0 010 5zM5.5 5a2.5 2.5 0 110-5 2.5 2.5 0 010 5zM16.03 6.03a.75.75 0 00-1.06-1.06L4.97 15.03a.75.75 0 001.06 1.06L16.03 6.03z"/></svg>',
+    'multiply_value' => '<svg viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5"><path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" /></svg>',
+];
+$mobooking_price_impact_types_available = [
+    'none' => __('No Price Change', 'mobooking'),
+    'fixed' => __('Fixed Amount', 'mobooking'),
+    'percentage' => __('Percentage', 'mobooking'),
+    'multiply_value' => __('Multiply by Value', 'mobooking'),
+];
+
+
+// Helper functions for rendering form elements (Assumed to be defined above this point)
+// ... [All helper functions as previously defined: mobooking_display_form_field, mobooking_render_service_option_choice_item_template, etc.] ...
+// The key change is within mobooking_render_service_option_template
 if (!function_exists('mobooking_display_form_field')) {
     function mobooking_display_form_field($args) {
         $defaults = [
@@ -136,7 +184,6 @@ if (!function_exists('mobooking_display_form_field')) {
                     $html .= '<span class="inline-flex items-center px-3 rounded-r-md border border-l-0 border-gray-300 bg-muted text-gray-500 sm:text-sm">' . esc_html($args['currency_symbol']) . '</span>';
                      $price_input_class = str_replace('rounded-md', 'rounded-none rounded-l-md', $price_input_class);
                      $price_input_class = str_replace('w-full', 'flex-1', $price_input_class);
-                     // Re-apply class if changed
                      $html = str_replace('class="' . esc_attr($args['input_class']) . '"', 'class="' . esc_attr($price_input_class) . '"', $html);
                 }
                 $html .= '</div>';
@@ -156,22 +203,7 @@ if (!function_exists('mobooking_display_form_field')) {
     }
 }
 
-if (!function_exists('mobooking_render_service_option_accordion_item')) {
-    function mobooking_render_service_option_accordion_item($title, $content_html, $is_open = false, $accordion_content_classes = ['space-y-3']) {
-        $html = '<div class="accordion">';
-        $html .= '<div class="accordion-item">';
-        $html .= '<button type="button" class="accordion-trigger" aria-expanded="' . ($is_open ? 'true' : 'false') . '">';
-        $html .= '<span>' . esc_html($title) . '</span>';
-        $html .= '<svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>';
-        $html .= '</button>';
-        $html .= '<div class="accordion-content' . ($accordion_content_classes ? ' ' . implode(' ', array_map('esc_attr', $accordion_content_classes)) : '') . '" ' . ($is_open ? '' : 'aria-hidden="true"') . '>';
-        $html .= $content_html; // Content is already HTML, generated by other helpers
-        $html .= '</div>';
-        $html .= '</div>';
-        $html .= '</div>';
-        return $html;
-    }
-}
+// Removed mobooking_render_service_option_accordion_item as it's no longer used.
 
 if (!function_exists('mobooking_render_service_option_choice_item_template')) {
     function mobooking_render_service_option_choice_item_template($option_idx_placeholder = '{option_idx}', $choice_idx_placeholder = '{choice_idx}') {
@@ -199,7 +231,8 @@ if (!function_exists('mobooking_render_service_option_choice_item_template')) {
 
 if (!function_exists('mobooking_render_service_option_template')) {
     function mobooking_render_service_option_template($option_idx_placeholder = '{option_idx}', $option_data = []) {
-        // Default structure for a new option, can be overridden by $option_data
+        global $mobooking_option_type_icons, $mobooking_option_types_available, $mobooking_price_impact_type_icons, $mobooking_price_impact_types_available;
+
         $defaults = [
             'option_id' => '',
             'name' => '',
@@ -208,67 +241,73 @@ if (!function_exists('mobooking_render_service_option_template')) {
             'is_required' => false,
             'price_impact_type' => 'none',
             'price_impact_value' => '',
-            'choices_display_style' => 'display:none;', // Default for new, non-choice types
+            'choices_display_style' => 'display:none;',
         ];
-
-        // If we are rendering an existing option, $option_data will have values
-        // If it's for the template, $option_data is empty, uses defaults
         $current_option = wp_parse_args($option_data, $defaults);
 
         if (in_array($current_option['type'], ['select', 'radio', 'checkbox'])) {
             $current_option['choices_display_style'] = '';
         }
 
+        $content_id = 'option-content-' . $option_idx_placeholder;
+        $is_template_placeholder = ($option_idx_placeholder === '{option_idx}');
+        // For new template rows, default to expanded. For existing, JS will handle.
+        $is_expanded_default = $is_template_placeholder ? true : true;
+        $initial_chevron_rotation = $is_expanded_default ? 'rotate-180' : ''; // Pointing down initially
+        $initial_header_border_class = $is_expanded_default && !$is_template_placeholder ? 'border-b' : '';
+
+
         ob_start();
         ?>
-        <div class="option-row mobooking-service-option-row p-4" <?php echo $option_idx_placeholder === '{option_idx}' ? '' : 'data-option-index="' . esc_attr($option_idx_placeholder) . '"'; ?>>
-            <div class="option-header flex items-center justify-between pb-2 mb-4 border-b">
-                <div class="flex items-center gap-2">
-                    <span class="drag-handle mobooking-option-drag-handle p-1 rounded hover:bg-muted">
+        <div class="option-row mobooking-service-option-row border rounded-md bg-card" <?php echo $is_template_placeholder ? '' : 'data-option-index="' . esc_attr($option_idx_placeholder) . '"'; ?>>
+            <button type="button" class="mobooking-option-row-trigger flex items-center justify-between w-full text-left p-4 <?php echo esc_attr($initial_header_border_class); ?>" aria-expanded="<?php echo $is_expanded_default ? 'true' : 'false'; ?>" aria-controls="<?php echo esc_attr($content_id); ?>">
+                <div class="flex items-center gap-3">
+                    <span class="drag-handle mobooking-option-drag-handle p-1 rounded hover:bg-muted cursor-move">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="12" r="1"/><circle cx="9" cy="5" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="19" r="1"/></svg>
                     </span>
                     <h4 class="font-semibold text-foreground mobooking-option-title"><?php echo esc_html( $current_option['name'] ?: __('New Option', 'mobooking') ); ?></h4>
                 </div>
-                <button type="button" class="remove-btn mobooking-remove-option-btn" title="<?php esc_attr_e('Remove option', 'mobooking'); ?>">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 6-12 12"/><path d="m6 6 12 12"/></svg>
-                </button>
-            </div>
+                <div class="flex items-center">
+                    <button type="button" class="remove-btn mobooking-remove-option-btn mr-2" title="<?php esc_attr_e('Remove option', 'mobooking'); ?>">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 6-12 12"/><path d="m6 6 12 12"/></svg>
+                    </button>
+                    <span class="mobooking-option-chevron text-gray-500 transform transition-transform duration-150 <?php echo esc_attr($initial_chevron_rotation); ?>">
+                        <svg class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+                    </span>
+                </div>
+            </button>
 
-            <div class="mobooking-service-option-row-content space-y-4">
+            <div id="<?php echo esc_attr($content_id); ?>" class="mobooking-service-option-row-content p-4 space-y-4 <?php echo !$is_expanded_default && !$is_template_placeholder ? 'hidden-by-collapse' : ''; ?>">
                 <input type="hidden" name="options[<?php echo esc_attr($option_idx_placeholder); ?>][option_id]" value="<?php echo esc_attr($current_option['option_id']); ?>">
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <?php
-                    mobooking_display_form_field([
-                        'id' => 'option_name_' . $option_idx_placeholder,
-                        'name' => 'options[' . $option_idx_placeholder . '][name]',
-                        'label' => __('Option Name', 'mobooking'),
-                        'type' => 'text',
-                        'value' => $current_option['name'],
-                        'placeholder' => __('e.g., Room Size', 'mobooking'),
-                        'required' => true,
-                    ]);
+                <?php
+                mobooking_display_form_field([
+                    'id' => 'option_name_' . $option_idx_placeholder,
+                    'name' => 'options[' . $option_idx_placeholder . '][name]',
+                    'label' => __('Option Name', 'mobooking'),
+                    'type' => 'text',
+                    'value' => $current_option['name'],
+                    'placeholder' => __('e.g., Room Size', 'mobooking'),
+                    'required' => true,
+                ]);
+                ?>
 
-                    mobooking_display_form_field([
-                        'id' => 'option_type_' . $option_idx_placeholder,
-                        'name' => 'options[' . $option_idx_placeholder . '][type]',
-                        'label' => __('Type', 'mobooking'),
-                        'type' => 'select',
-                        'value' => $current_option['type'],
-                        'input_class' => 'form-input form-select mobooking-option-type w-full',
-                        'options' => [
-                            'checkbox' => __('Checkbox', 'mobooking'),
-                            'text' => __('Text Input', 'mobooking'),
-                            'number' => __('Number Input', 'mobooking'),
-                            'select' => __('Dropdown', 'mobooking'),
-                            'radio' => __('Radio Buttons', 'mobooking'),
-                            'textarea' => __('Text Area', 'mobooking'),
-                            'quantity' => __('Quantity', 'mobooking'),
-                        ],
-                    ]);
-                    ?>
+                <div class="form-group mb-4">
+                    <label class="form-label"><?php esc_html_e('Type', 'mobooking'); ?></label>
+                    <div class="flex flex-wrap gap-2 mobooking-option-type-radio-group">
+                        <?php
+                        foreach ($mobooking_option_types_available as $type_key => $type_label) :
+                            $svg_icon = $mobooking_option_type_icons[$type_key] ?? '<svg class="w-5 h-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path d="M12.732 3.732a1 1 0 011.268.175l2.268 2.914a1 1 0 01-.29 1.62l-2.4.96a1 1 0 01-1.106-.273l-1.4-1.8a1 1 0 01.175-1.268l1.485-1.333zM4.732 6.732a1 1 0 011.268.175l2.268 2.914a1 1 0 01-.29 1.62l-2.4.96a1 1 0 01-1.106-.273l-1.4-1.8a1 1 0 01.175-1.268l1.485-1.333zM7 13a1 1 0 011-1h4a1 1 0 110 2H8a1 1 0 01-1-1z"/></svg>';
+                            $is_checked = ($current_option['type'] === $type_key);
+                        ?>
+                            <label class="styled-radio-btn flex flex-col items-center justify-center p-3 border rounded-md cursor-pointer hover:border-primary focus-within:ring-2 focus-within:ring-primary <?php echo ($is_checked ? 'border-primary ring-2 ring-primary bg-primary-50' : 'border-gray-300'); ?>">
+                                <input type="radio" id="option_type_<?php echo esc_attr($option_idx_placeholder) . '_' . esc_attr($type_key); ?>" name="options[<?php echo esc_attr($option_idx_placeholder); ?>][type]" value="<?php echo esc_attr($type_key); ?>" class="sr-only mobooking-option-type" <?php checked($current_option['type'], $type_key); ?>>
+                                <span class="icon-wrapper text-gray-600 group-hover:text-primary mb-1"><?php echo $svg_icon; ?></span>
+                                <span class="text-label text-xs font-medium text-gray-700 group-hover:text-primary"><?php echo esc_html($type_label); ?></span>
+                            </label>
+                        <?php endforeach; ?>
+                    </div>
                 </div>
-
                 <?php
                 mobooking_display_form_field([
                     'id' => 'option_description_' . $option_idx_placeholder,
@@ -279,75 +318,68 @@ if (!function_exists('mobooking_render_service_option_template')) {
                     'placeholder' => __('Helpful description for customers...', 'mobooking'),
                     'rows' => 2,
                 ]);
-
-                // Choices Accordion
-                $choices_content_html = '<div class="space-y-3">';
-                $choices_content_html .= '<div class="mobooking-choices-ui-container">';
-                $choices_content_html .= '<div class="mobooking-choices-list space-y-2">';
-                // In template mode, choices are added by JS. For existing options, they would be looped here.
-                if ($option_idx_placeholder !== '{option_idx}' && !empty($current_option['choices']) && is_array($current_option['choices'])) {
-                    foreach($current_option['choices'] as $choice_idx => $choice) {
-                        // This part is tricky because mobooking_render_service_option_choice_item_template generates a template string.
-                        // For existing choices, we'd ideally populate them directly or have JS handle it from data.
-                        // For now, this indicates where existing choices would be handled.
-                         $choices_content_html .= '<!-- Existing choice item for ' . esc_attr($choice['label']) . ' would be here -->';
-                    }
-                }
-                $choices_content_html .= '</div>'; // end mobooking-choices-list
-                $choices_content_html .= '<button type="button" class="btn btn-outline btn-sm mobooking-add-choice-btn mt-3"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><path d="M5 12h14"/><path d="M12 5v14"/></svg>' . __('Add Choice', 'mobooking') . '</button>';
-                $choices_content_html .= '</div>'; // end mobooking-choices-ui-container
-                $choices_content_html .= '<p class="text-xs text-muted-foreground">' . __('Manage the individual choices for this option. Each choice can have its own label, value, and price adjustment.', 'mobooking') . '</p>';
-                $choices_content_html .= '</div>'; // end space-y-3
-
-                $choices_accordion_html = '<div class="mobooking-option-values-field" style="' . esc_attr($current_option['choices_display_style']) . '">';
-                $choices_accordion_html .= mobooking_render_service_option_accordion_item(__('Option Choices', 'mobooking'), $choices_content_html, false, ['p-4', 'space-y-3']);
-                $choices_accordion_html .= '</div>';
-                echo $choices_accordion_html;
-
-
-                // Pricing Accordion
-                $pricing_content_html = '<div class="space-y-4">'; // Outer space-y-4 for pricing content
-                $pricing_content_html .= '<div class="form-group mb-4"><label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" name="options[' . esc_attr($option_idx_placeholder) . '][is_required_cb]" value="1" class="w-4 h-4 text-primary border border-gray-300 rounded focus:ring-primary" ' . checked($current_option['is_required'], true, false) . '> <span class="text-sm font-medium">' . __('Required field', 'mobooking') . '</span></label></div>';
-
-                $pricing_content_html .= '<div class="grid grid-cols-1 md:grid-cols-2 gap-4">';
-                ob_start(); // Capture output of mobooking_display_form_field
-                mobooking_display_form_field([
-                    'id' => 'option_price_impact_type_' . $option_idx_placeholder,
-                    'name' => 'options[' . $option_idx_placeholder . '][price_impact_type]',
-                    'label' => __('Price Impact Type', 'mobooking'),
-                    'type' => 'select',
-                    'value' => $current_option['price_impact_type'],
-                    'options' => [
-                        'none' => __('No Price Change', 'mobooking'),
-                        'fixed' => __('Fixed Amount', 'mobooking'),
-                        'percentage' => __('Percentage', 'mobooking'),
-                        'multiply_value' => __('Multiply by Value', 'mobooking'),
-                    ],
-                ]);
-                mobooking_display_form_field([
-                    'id' => 'option_price_impact_value_' . $option_idx_placeholder,
-                    'name' => 'options[' . $option_idx_placeholder . '][price_impact_value]',
-                    'label' => __('Price Impact Value', 'mobooking'),
-                    'type' => 'number',
-                    'value' => $current_option['price_impact_value'],
-                    'placeholder' => '0.00',
-                    'step' => '0.01',
-                ]);
-                $pricing_content_html .= ob_get_clean();
-                $pricing_content_html .= '</div>'; // end grid
-
-                $pricing_content_html .= '<p class="text-xs text-muted-foreground">' . __('Configure how this option affects the total service price.', 'mobooking') . '</p>';
-                $pricing_content_html .= '</div>'; // end space-y-4 for pricing
-
-                echo mobooking_render_service_option_accordion_item(__('Pricing & Requirements', 'mobooking'), $pricing_content_html, false, ['p-4', 'space-y-4']);
                 ?>
+
+                <div class="mobooking-option-values-field form-group mb-4" style="<?php echo esc_attr($current_option['choices_display_style']); ?>">
+                    <label class="form-label"><?php esc_html_e('Option Choices', 'mobooking'); ?></label>
+                    <div class="space-y-3 p-4 border rounded-md bg-slate-50">
+                        <div class="mobooking-choices-ui-container">
+                            <div class="mobooking-choices-list space-y-2">
+                                <!-- JS will populate choices here for existing options -->
+                            </div>
+                            <button type="button" class="btn btn-outline btn-sm mobooking-add-choice-btn mt-3">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+                                <?php esc_html_e('Add Choice', 'mobooking'); ?>
+                            </button>
+                        </div>
+                        <p class="text-xs text-muted-foreground"><?php esc_html_e('Manage the individual choices for this option. Each choice can have its own label, value, and price adjustment.', 'mobooking'); ?></p>
+                    </div>
+                </div>
+
+                <div class="form-group mb-4">
+                     <label class="form-label"><?php esc_html_e('Pricing & Requirements', 'mobooking'); ?></label>
+                    <div class="space-y-4 p-4 border rounded-md bg-slate-50">
+                        <div class="form-group mb-0"><label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" name="options[<?php echo esc_attr($option_idx_placeholder); ?>][is_required_cb]" value="1" class="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary" <?php checked($current_option['is_required'], true, false); ?>> <span class="text-sm font-medium"><?php esc_html_e('Required field', 'mobooking'); ?></span></label></div>
+
+                        <div class="form-group mb-4">
+                             <label class="form-label text-sm"><?php esc_html_e('Price Impact Type', 'mobooking'); ?></label>
+                             <div class="flex flex-wrap gap-2 mobooking-price-impact-type-radio-group">
+                                <?php
+                                foreach ($mobooking_price_impact_types_available as $type_key => $type_label) :
+                                    $svg_icon = $mobooking_price_impact_type_icons[$type_key] ?? '';
+                                    $is_checked = ($current_option['price_impact_type'] === $type_key);
+                                ?>
+                                    <label class="styled-radio-btn flex flex-col items-center justify-center p-3 border rounded-md cursor-pointer hover:border-primary focus-within:ring-2 focus-within:ring-primary <?php echo ($is_checked ? 'border-primary ring-2 ring-primary bg-primary-50' : 'border-gray-300'); ?>">
+                                        <input type="radio" id="option_price_impact_type_<?php echo esc_attr($option_idx_placeholder) . '_' . esc_attr($type_key); ?>" name="options[<?php echo esc_attr($option_idx_placeholder); ?>][price_impact_type]" value="<?php echo esc_attr($type_key); ?>" class="sr-only mobooking-price-impact-type-radio" <?php checked($current_option['price_impact_type'], $type_key); ?>>
+                                        <span class="icon-wrapper text-gray-600 group-hover:text-primary mb-1"><?php echo $svg_icon; ?></span>
+                                        <span class="text-label text-xs font-medium text-gray-700 group-hover:text-primary"><?php echo esc_html($type_label); ?></span>
+                                    </label>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+
+                        <?php
+                        mobooking_display_form_field([
+                            'id' => 'option_price_impact_value_' . $option_idx_placeholder,
+                            'name' => 'options[' . $option_idx_placeholder . '][price_impact_value]',
+                            'label' => __('Price Impact Value', 'mobooking'),
+                            'label_class' => 'form-label text-sm',
+                            'type' => 'number',
+                            'value' => $current_option['price_impact_value'],
+                            'placeholder' => '0.00',
+                            'step' => '0.01',
+                            'wrapper_class' => 'form-group mb-0',
+                        ]);
+                        ?>
+                        <p class="text-xs text-muted-foreground"><?php esc_html_e('Configure how this option affects the total service price.', 'mobooking'); ?></p>
+                    </div>
+                </div>
             </div>
         </div>
         <?php
         return ob_get_clean();
     }
 }
-
 ?>
 
 <style>
@@ -399,6 +431,17 @@ if (!function_exists('mobooking_render_service_option_template')) {
 .grid {
     display: grid;
 }
+.sr-only { /* Screen Reader Only */
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0,0,0,0);
+    border: 0;
+}
+
 /* Custom components */
 .card {
     background-color: hsl(0 0% 100%);
@@ -429,20 +472,18 @@ if (!function_exists('mobooking_render_service_option_template')) {
     margin-top: 0.375rem;
 }
 
+/* Accordion (Original - can be removed if no other accordions use this exact structure) */
 .accordion {
     border: 1px solid hsl(214.3 31.8% 91.4%);
     border-radius: 0.5rem;
     overflow: hidden;
 }
-
 .accordion-item {
     border-bottom: 1px solid hsl(214.3 31.8% 91.4%);
 }
-
 .accordion-item:last-child {
     border-bottom: none;
 }
-
 .accordion-trigger {
     display: flex;
     align-items: center;
@@ -457,32 +498,27 @@ if (!function_exists('mobooking_render_service_option_template')) {
     transition: all 0.15s ease;
     font-size: 0.875rem;
 }
-
 .accordion-trigger:hover {
     background-color: hsl(210 40% 96%);
 }
-
 .accordion-trigger[aria-expanded="true"] {
     background-color: hsl(210 40% 96%);
 }
-
 .accordion-trigger .chevron {
     transition: transform 0.15s ease;
 }
-
 .accordion-trigger[aria-expanded="true"] .chevron {
     transform: rotate(180deg);
 }
-
 .accordion-content {
     padding: 1rem; /* p-4, adjusted for consistency */
     overflow: hidden;
     transition: all 0.15s ease;
 }
-
 .accordion-content[aria-hidden="true"] {
     display: none;
 }
+
 
 .form-group {
     margin-bottom: 1rem; /* mb-4 */
@@ -581,27 +617,21 @@ if (!function_exists('mobooking_render_service_option_template')) {
     font-size: 0.75rem;
 }
 
-.option-row {
-    background-color: hsl(0 0% 100%);
-    border: 1px solid hsl(214.3 31.8% 91.4%);
-    border-radius: 0.5rem;
-    padding: 1rem;
-    margin-bottom: 0.75rem;
+.option-row { /* Service Option Row container */
+    /* background-color: hsl(0 0% 100%); */ /* Handled by .bg-card if needed, or direct */
+    /* border: 1px solid hsl(214.3 31.8% 91.4%); */ /* Handled by .border */
+    /* border-radius: 0.5rem; */ /* Handled by .rounded-md */
+    /* padding: 1rem; */ /* Removed, p-4 is on content, header has its own */
+    margin-bottom: 0.75rem; /* space-y-3 or mb-3 on parent */
     transition: all 0.15s ease;
 }
 
-.option-row:hover {
-    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+.option-row:hover { /* Optional: if you want a hover effect on the whole row */
+    /* box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1); */
 }
 
-.option-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 1rem;
-    padding-bottom: 0.75rem;
-    border-bottom: 1px solid hsl(214.3 31.8% 91.4%);
-}
+/* .option-header is now part of .mobooking-option-row-trigger or replaced by it */
+
 
 .drag-handle {
     cursor: move;
@@ -677,10 +707,93 @@ if (!function_exists('mobooking_render_service_option_template')) {
     background-color: hsl(0 84.2% 95%);
 }
 
+/* Styles for Collapsible Option Rows */
+.option-row {
+    padding: 0; /* Service option row itself has no padding */
+}
+.mobooking-option-row-trigger {
+    background: none;
+    /* border: none; border-b is applied by default or when expanded */
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    /* padding is p-4, defined on the button in PHP */
+}
+.mobooking-option-chevron {
+    transition: transform 0.15s ease-in-out;
+}
+/* Chevron pointing up when collapsed (trigger's aria-expanded="false") */
+.mobooking-option-row-trigger[aria-expanded="false"] .mobooking-option-chevron {
+    transform: rotate(0deg);
+}
+/* Chevron pointing down when expanded (trigger's aria-expanded="true") */
+.mobooking-option-row-trigger[aria-expanded="true"] .mobooking-option-chevron {
+    transform: rotate(180deg);
+}
+.mobooking-service-option-row-content.hidden-by-collapse {
+    display: none;
+}
+
+/* Styled Radio Buttons for Option Type & Price Impact Type */
+.styled-radio-btn {
+    transition: all 0.15s ease-in-out;
+    min-width: 80px;
+    text-align: center;
+}
+.styled-radio-btn:has(input:checked) { /* Modern CSS to style based on hidden input state */
+    border-color: hsl(221.2 83.2% 53.3%); /* primary */
+    background-color: hsl(221.2 83.2% 53.3% / 0.05); /* primary-50 equivalent */
+    box-shadow: 0 0 0 2px hsl(221.2 83.2% 53.3%); /* ring-2 ring-primary */
+}
+.styled-radio-btn.selected-radio-label { /* Fallback for JS-driven selection, if :has is not fully relied upon */
+    border-color: hsl(221.2 83.2% 53.3%);
+    background-color: hsl(221.2 83.2% 53.3% / 0.05);
+    box-shadow: 0 0 0 2px hsl(221.2 83.2% 53.3%);
+}
+.styled-radio-btn:hover {
+        border-color: hsl(221.2 83.2% 48%); /* primary-hover */
+}
+.styled-radio-btn .icon-wrapper svg {
+    width: 1.5rem; /* w-6 */
+    height: 1.5rem; /* h-6 */
+    margin-bottom: 0.25rem; /* mb-1 */
+}
+.styled-radio-btn .text-label {
+    font-size: 0.75rem; /* text-xs */
+    font-weight: 500; /* font-medium */
+}
+.styled-radio-btn:focus-within { /* Accessibility: highlight container when hidden radio has focus */
+        border-color: hsl(221.2 83.2% 53.3%);
+        box-shadow: 0 0 0 2px hsl(221.2 83.2% 53.3%);
+}
+
+
 @media (max-width: 768px) {
-    /* .p-6 { padding: 1rem; } */ /* Adjusted by direct class changes */
-    /* .card-content { padding: 1rem; } */ /* Adjusted by direct class changes */
-    /* .card-header { padding: 1rem 1rem 0; } */ /* Adjusted by direct class changes */
+    /* .p-6 { padding: 1rem; } */
+    /* .card-content { padding: 1rem; } */
+    /* .card-header { padding: 1rem 1rem 0; } */
+    #mobooking-service-options-list .grid-cols-1.md\\:grid-cols-2,
+    #mobooking-service-option-template .grid-cols-1.md\\:grid-cols-2 {
+        grid-template-columns: 1fr;
+    }
+    .mobooking-option-type-radio-group,
+    .mobooking-price-impact-type-radio-group {
+        grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); /* Allow more aggressive wrapping */
+    }
+}
+
+@media (max-width: 640px) {
+    .choice-item .grid {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+    }
+    .choice-item .grid > * {
+        width: 100%;
+    }
+    .choice-item .remove-btn {
+        justify-content: flex-start;
+        padding-left: 0;
+    }
 }
 </style>
 
@@ -791,12 +904,12 @@ if (!function_exists('mobooking_render_service_option_template')) {
                     <div class="form-group mb-4">
                         <label class="form-label"><?php esc_html_e('Service Icon', 'mobooking'); ?></label>
                         <div class="flex items-start gap-4">
-                            <div id="mobooking-service-icon-preview" class="w-16 h-16 border-2 border-dashed rounded-md flex items-center justify-center bg-muted">
-                                <?php if ( $service_icon ) : ?>
-                                    <span class="dashicons <?php echo esc_attr($service_icon); ?>" style="font-size: 24px; color: #666;"></span>
-                                <?php else : ?>
-                                    <span class="mobooking-no-icon-text text-xs text-muted-foreground"><?php esc_html_e('No Icon', 'mobooking'); ?></span>
-                                <?php endif; ?>
+                            <div id="mobooking-service-icon-preview" class="w-16 h-16 p-1 border-2 border-dashed rounded-md flex items-center justify-center bg-muted text-gray-600">
+                                <?php
+                                $current_icon_key = $service_icon ?: $default_svg_icon_key;
+                                $preview_svg = isset($mobooking_preset_svg_icons[$current_icon_key]) ? $mobooking_preset_svg_icons[$current_icon_key] : $mobooking_preset_svg_icons[$default_svg_icon_key];
+                                echo $preview_svg;
+                                ?>
                             </div>
                             <div class="flex-1">
                                 <input type="hidden" id="mobooking-service-icon-value" name="icon" value="<?php echo esc_attr($service_icon); ?>">
@@ -808,8 +921,8 @@ if (!function_exists('mobooking_render_service_option_template')) {
                                         <?php esc_html_e('Remove', 'mobooking'); ?>
                                     </button>
                                 </div>
-                                <input type="file" id="mobooking-service-icon-upload" accept="image/*" style="display: none;">
-                                <p class="text-xs text-muted-foreground"><?php esc_html_e('Choose from presets below or upload a custom icon.', 'mobooking'); ?></p>
+                                <input type="file" id="mobooking-service-icon-upload" accept="image/*, .svg" style="display: none;">
+                                <p class="text-xs text-muted-foreground"><?php esc_html_e('Choose from presets below or upload a custom SVG/image icon.', 'mobooking'); ?></p>
                             </div>
                         </div>
                         
@@ -817,16 +930,12 @@ if (!function_exists('mobooking_render_service_option_template')) {
                         <div id="mobooking-preset-icons-wrapper" class="mt-4">
                             <div class="grid grid-cols-6 gap-2 max-w-xs">
                                 <?php
-                                $preset_icons = [
-                                    'dashicons-admin-home', 'dashicons-building', 'dashicons-admin-tools',
-                                    'dashicons-hammer', 'dashicons-admin-appearance', 'dashicons-camera',
-                                    'dashicons-chart-line', 'dashicons-money', 'dashicons-calendar-alt',
-                                    'dashicons-clock', 'dashicons-star-filled', 'dashicons-awards'
-                                ];
-                                foreach ( $preset_icons as $icon ) :
+                                foreach ( $mobooking_preset_svg_icons as $key => $svg_content ) :
+                                    if ($key === $default_svg_icon_key && $service_icon !== $default_svg_icon_key) continue;
+                                    if ($key === 'default' && $service_icon === '') continue;
                                 ?>
-                                    <button type="button" class="mobooking-preset-icon-item w-12 h-12 border rounded-md flex items-center justify-center hover:border-primary transition-colors" data-icon="<?php echo esc_attr($icon); ?>">
-                                        <span class="dashicons <?php echo esc_attr($icon); ?>" style="font-size: 20px; color: #666;"></span>
+                                    <button type="button" class="mobooking-preset-icon-item w-12 h-12 p-2 border rounded-md flex items-center justify-center hover:border-primary transition-colors <?php echo ($service_icon === $key ? 'border-primary ring-2 ring-primary' : ''); ?>" data-icon-key="<?php echo esc_attr($key); ?>" title="<?php echo esc_attr(ucfirst($key)); ?>">
+                                        <?php echo $svg_content; ?>
                                     </button>
                                 <?php endforeach; ?>
                             </div>
@@ -872,11 +981,10 @@ if (!function_exists('mobooking_render_service_option_template')) {
                                     'name' => $option_data_from_db['name'] ?? '',
                                     'type' => $option_data_from_db['type'] ?? 'checkbox',
                                     'description' => $option_data_from_db['description'] ?? '',
-                                    'is_required' => !empty($option_data_from_db['is_required']), // Directly use 'is_required' if it's set
+                                    'is_required' => !empty($option_data_from_db['is_required']),
                                     'price_impact_type' => $option_data_from_db['price_impact_type'] ?? 'none',
                                     'price_impact_value' => $option_data_from_db['price_impact_value'] ?? '',
-                                    // 'choices' are not directly rendered by mobooking_render_service_option_template for existing options; JS handles it.
-                                    // However, 'choices_display_style' depends on type.
+                                    'choices' => isset($option_data_from_db['choices']) && is_array($option_data_from_db['choices']) ? $option_data_from_db['choices'] : [],
                                 ];
                                 if (in_array($current_option_args['type'], ['select', 'radio', 'checkbox'])) {
                                     $current_option_args['choices_display_style'] = '';
@@ -889,20 +997,18 @@ if (!function_exists('mobooking_render_service_option_template')) {
                         ?>
                             <div class="text-center py-8 text-muted-foreground">
                                 <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mx-auto mb-4 opacity-50">
-                                    <rect width="18" height="18" x="3" y="3" rx="2"/>
-                                    <path d="M9 9h6v6H9z"/>
+                                    <rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 9h6v6H9z"/>
                                 </svg>
                                 <p class="font-medium"><?php esc_html_e('No options created yet', 'mobooking'); ?></p>
                                 <p class="text-sm"><?php esc_html_e('Click "Add Option" to create customizable choices for your service.', 'mobooking'); ?></p>
                             </div>
-                        <?php } // Closing the else ?>
+                        <?php } ?>
                     </div>
 
                     <div class="mt-6 pt-4 border-t">
                         <button type="button" id="mobooking-add-service-option-btn" class="btn btn-outline">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2">
-                                <path d="M5 12h14"/>
-                                <path d="M12 5v14"/>
+                                <path d="M5 12h14"/><path d="M12 5v14"/>
                             </svg>
                             <?php esc_html_e('Add Option', 'mobooking'); ?>
                         </button>
@@ -917,7 +1023,7 @@ if (!function_exists('mobooking_render_service_option_template')) {
                         <div class="hidden" id="mobooking-service-form-feedback">
                             <!-- Feedback messages will be shown here -->
                         </div>
-                        <div class="flex items-center gap-2 ml-auto"> <!-- Adjusted gap to gap-2 -->
+                        <div class="flex items-center gap-2 ml-auto">
                             <button type="button" id="mobooking-cancel-service-edit-btn" class="btn btn-secondary">
                                 <?php esc_html_e('Cancel', 'mobooking'); ?>
                             </button>
@@ -939,7 +1045,7 @@ if (!function_exists('mobooking_render_service_option_template')) {
 
 <!-- Script Templates for Dynamic Content -->
 <script type="text/template" id="mobooking-service-option-template">
-<?php echo mobooking_render_service_option_template(); ?>
+<?php echo mobooking_render_service_option_template('{option_idx}', []); // Pass empty array for template defaults ?>
 </script>
 
 <script type="text/template" id="mobooking-choice-item-template">
@@ -949,6 +1055,9 @@ if (!function_exists('mobooking_render_service_option_template')) {
 <script>
 // Enhanced JavaScript for Shadcn UI interactions
 document.addEventListener('DOMContentLoaded', function() {
+    const presetSvgIcons = <?php echo json_encode($mobooking_preset_svg_icons); ?>;
+    const defaultSvgIconKey = '<?php echo esc_js($default_svg_icon_key); ?>';
+
     // Status toggle functionality
     const statusToggle = document.getElementById('mobooking-service-status-toggle');
     const statusInput = document.getElementById('mobooking-service-status');
@@ -968,99 +1077,49 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Accordion functionality
-    function initAccordions() {
-        document.querySelectorAll('.accordion-trigger').forEach(trigger => {
-            trigger.addEventListener('click', function() {
-                const isExpanded = this.getAttribute('aria-expanded') === 'true';
-                const content = this.nextElementSibling;
-                
-                if (isExpanded) {
-                    this.setAttribute('aria-expanded', 'false');
-                    content.setAttribute('aria-hidden', 'true');
-                } else {
-                    this.setAttribute('aria-expanded', 'true');
-                    content.setAttribute('aria-hidden', 'false');
-                }
-            });
-        });
-    }
-
     // Icon selection functionality
-    document.querySelectorAll('.mobooking-preset-icon-item').forEach(item => {
+    const iconPreviewElement = document.getElementById('mobooking-service-icon-preview');
+    const iconInputElement = document.getElementById('mobooking-service-icon-value');
+    const presetIconItems = document.querySelectorAll('.mobooking-preset-icon-item');
+
+    presetIconItems.forEach(item => {
         item.addEventListener('click', function() {
-            const icon = this.dataset.icon;
-            const preview = document.getElementById('mobooking-service-icon-preview');
-            const input = document.getElementById('mobooking-service-icon-value');
+            const iconKey = this.dataset.iconKey;
+            const selectedSvg = presetSvgIcons[iconKey] || presetSvgIcons[defaultSvgIconKey];
             
-            // Remove selected class from all items
-            document.querySelectorAll('.mobooking-preset-icon-item').forEach(i => i.classList.remove('selected'));
-            
-            // Add selected class to clicked item
-            this.classList.add('selected');
-            
-            // Update preview and input
-            if (preview && input) {
-                preview.innerHTML = `<span class="dashicons ${icon}" style="font-size: 24px; color: #666;"></span>`;
-                input.value = icon;
+            if (iconPreviewElement && iconInputElement) {
+                iconPreviewElement.innerHTML = selectedSvg;
+                iconInputElement.value = iconKey;
             }
+
+            presetIconItems.forEach(i => i.classList.remove('border-primary', 'ring-2', 'ring-primary'));
+            this.classList.add('border-primary', 'ring-2', 'ring-primary');
         });
     });
 
     // Remove icon functionality
     const removeIconBtn = document.getElementById('mobooking-remove-service-icon-btn');
-    if (removeIconBtn) {
+    if (removeIconBtn && iconPreviewElement && iconInputElement) {
         removeIconBtn.addEventListener('click', function() {
-            const preview = document.getElementById('mobooking-service-icon-preview');
-            const input = document.getElementById('mobooking-service-icon-value');
-            
-            if (preview && input) {
-                preview.innerHTML = '<span class="mobooking-no-icon-text text-xs text-muted-foreground"><?php esc_html_e('No Icon', 'mobooking'); ?></span>';
-                input.value = '';
-                
-                // Remove selected class from all preset icons
-                document.querySelectorAll('.mobooking-preset-icon-item').forEach(i => i.classList.remove('selected'));
+            iconPreviewElement.innerHTML = presetSvgIcons[defaultSvgIconKey];
+            iconInputElement.value = '';
+            presetIconItems.forEach(i => i.classList.remove('border-primary', 'ring-2', 'ring-primary'));
+        });
+    }
+
+    // Set initial selected state for preset icon
+    if (iconInputElement && iconInputElement.value) {
+        const currentSelectedKey = iconInputElement.value;
+        presetIconItems.forEach(item => {
+            if(item.dataset.iconKey === currentSelectedKey) {
+                item.classList.add('border-primary', 'ring-2', 'ring-primary');
             }
         });
     }
 
-    // Initialize accordions
-    initAccordions();
-
     const optionsListContainer = document.getElementById('mobooking-service-options-list');
     if (optionsListContainer) {
-        // Re-initialize accordions when new options are added (delegated)
-        const observer = new MutationObserver(function(mutations) {
-            mutations.forEach(function(mutation) {
-                if (mutation.type === 'childList') {
-                    mutation.addedNodes.forEach(node => {
-                        if (node.nodeType === 1 && node.matches('.mobooking-service-option-row')) {
-                            // Initialize accordions within the new option row
-                            node.querySelectorAll('.accordion-trigger').forEach(trigger => {
-                                // Simplified init: if already has listener, skip (though ideally, have a cleanup)
-                                if (!trigger.dataset.accordionInitialized) {
-                                     trigger.addEventListener('click', function() {
-                                        const isExpanded = this.getAttribute('aria-expanded') === 'true';
-                                        const content = this.nextElementSibling;
-                                        if (isExpanded) {
-                                            this.setAttribute('aria-expanded', 'false');
-                                            content.setAttribute('aria-hidden', 'true');
-                                        } else {
-                                            this.setAttribute('aria-expanded', 'true');
-                                            content.setAttribute('aria-hidden', 'false');
-                                        }
-                                    });
-                                    trigger.dataset.accordionInitialized = 'true';
-                                }
-                            });
-                        }
-                    });
-                }
-            });
-        });
-        observer.observe(optionsListContainer, { childList: true, subtree: true }); // subtree true if new rows also contain new accordions immediately
-
-        // Event Delegation for Remove Option and Remove Choice
+        // Event Delegation for Remove Option, Remove Choice, and Option Row Toggle
         optionsListContainer.addEventListener('click', function(e) {
             // Remove Option Button
             const removeOptionBtn = e.target.closest('.mobooking-remove-option-btn');
@@ -1069,8 +1128,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (optionRow) {
                     if (confirm('<?php esc_html_e('Are you sure you want to remove this option?', 'mobooking'); ?>')) {
                         optionRow.remove();
-                        // If it's the last option, show the "No options" message (handled by checking child count or specific class)
-                         if (optionsListContainer.querySelectorAll('.mobooking-service-option-row').length === 0) {
+                        if (optionsListContainer.querySelectorAll('.mobooking-service-option-row').length === 0) {
                             optionsListContainer.innerHTML = `
                                 <div class="text-center py-8 text-muted-foreground">
                                     <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mx-auto mb-4 opacity-50">
@@ -1082,6 +1140,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         }
                     }
                 }
+                return;
             }
 
             // Remove Choice Button
@@ -1091,8 +1150,54 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (choiceItem) {
                     choiceItem.remove();
                 }
+                return;
+            }
+
+            // Option Row Trigger for Collapse/Expand
+            const optionRowTrigger = e.target.closest('.mobooking-option-row-trigger');
+            if (optionRowTrigger) {
+                const contentId = optionRowTrigger.getAttribute('aria-controls');
+                const contentElement = document.getElementById(contentId);
+                const chevron = optionRowTrigger.querySelector('.mobooking-option-chevron');
+
+                if (contentElement) {
+                    const isExpanded = optionRowTrigger.getAttribute('aria-expanded') === 'true';
+                    if (isExpanded) {
+                        contentElement.classList.add('hidden-by-collapse');
+                        optionRowTrigger.setAttribute('aria-expanded', 'false');
+                        if(chevron) chevron.classList.remove('rotate-180');
+                        optionRowTrigger.classList.remove('border-b');
+                    } else {
+                        contentElement.classList.remove('hidden-by-collapse');
+                        optionRowTrigger.setAttribute('aria-expanded', 'true');
+                        if(chevron) chevron.classList.add('rotate-180');
+                        optionRowTrigger.classList.add('border-b');
+                    }
+                }
             }
         });
+
+        // MutationObserver for newly added option rows
+        const observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                if (mutation.type === 'childList') {
+                    mutation.addedNodes.forEach(node => {
+                        if (node.nodeType === 1 && node.matches('.mobooking-service-option-row')) {
+                            const trigger = node.querySelector('.mobooking-option-row-trigger');
+                            const content = node.querySelector('.mobooking-service-option-row-content');
+                            const chevron = node.querySelector('.mobooking-option-chevron');
+                            if (trigger && content && chevron) {
+                                trigger.setAttribute('aria-expanded', 'true'); // New rows default to expanded
+                                content.classList.remove('hidden-by-collapse');
+                                chevron.classList.add('rotate-180');
+                                trigger.classList.add('border-b');
+                            }
+                        }
+                    });
+                }
+            });
+        });
+        observer.observe(optionsListContainer, { childList: true });
     }
 
 
@@ -1100,8 +1205,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('mobooking-service-form');
     if (form) {
         form.addEventListener('submit', function(e) {
-            // Clear previous global feedback and individual field errors
-            showFeedback('', 'clear'); // Clear global feedback
+            showFeedback('', 'clear');
             form.querySelectorAll('.field-error-message').forEach(msg => msg.remove());
 
             const requiredFields = form.querySelectorAll('[required]');
@@ -1109,66 +1213,47 @@ document.addEventListener('DOMContentLoaded', function() {
             let firstInvalidField = null;
 
             requiredFields.forEach(field => {
-                let fieldWrapper = field.closest('.form-group') || field.parentNode;
-                // Clear previous error state for the field
+                let fieldWrapper = field.closest('.form-group') || field.closest('.styled-radio-btn')?.parentNode.closest('.form-group') || field.parentNode;
                 field.classList.remove('border-destructive');
+                const fieldId = field.id || field.name.replace(/\[\]/g, '').replace(/\[/g, '_').replace(/\]/g, ''); // Create a usable ID for radios
 
-                // Remove existing error message for this specific field
-                const existingError = fieldWrapper.querySelector('.field-error-message.for-' + field.id);
-                if (existingError) {
-                    existingError.remove();
-                }
+                const existingError = fieldWrapper.querySelector('.field-error-message.for-' + fieldId);
+                if (existingError) existingError.remove();
 
-                // Check if the field is part of a hidden template or option row
-                if (field.closest('.mobooking-service-option-row-content') && field.closest('.mobooking-service-option-row[style*="display: none"]')) {
-                    return; // Skip validation for fields in hidden option templates
-                }
-                if (field.closest('#mobooking-service-option-template') || field.closest('#mobooking-choice-item-template')) {
-                    return; // Skip fields within templates
-                }
-
+                if (field.closest('.mobooking-service-option-row-content.hidden-by-collapse')) return; // Skip hidden by collapse
+                if (field.closest('#mobooking-service-option-template') || field.closest('#mobooking-choice-item-template')) return;
 
                 if (!field.value.trim()) {
                     isValid = false;
                     field.classList.add('border-destructive');
-
-                    // Create and insert error message
                     const errorMessage = document.createElement('span');
-                    errorMessage.className = 'text-xs text-destructive mt-1 block field-error-message for-' + field.id;
+                    errorMessage.className = 'text-xs text-destructive mt-1 block field-error-message for-' + fieldId;
                     errorMessage.textContent = field.dataset.errorMessage || '<?php esc_html_e('This field is required.', 'mobooking'); ?>';
 
-                    let targetElement = field;
-                     // If the field is part of a flex container (like price input), insert after the container.
-                    if (targetElement.parentNode.classList.contains('flex')) {
-                        targetElement = targetElement.parentNode;
+                    let targetElement = field.type === 'radio' ? field.closest('.flex-wrap') || field.parentNode : field;
+                     if (targetElement.parentNode.classList.contains('flex') && !targetElement.classList.contains('styled-radio-btn')) { // For currency input
+                         targetElement = targetElement.parentNode;
                     }
                     targetElement.parentNode.insertBefore(errorMessage, targetElement.nextSibling);
-
-
-                    if (!firstInvalidField) {
-                        firstInvalidField = field;
-                    }
+                    if (!firstInvalidField) firstInvalidField = field;
                 }
             });
             
             if (!isValid) {
                 e.preventDefault();
                 showFeedback('<?php esc_html_e('Please fill in all required fields. Check the highlighted fields below.', 'mobooking'); ?>', 'error');
-                if (firstInvalidField) {
-                    firstInvalidField.focus();
-                }
+                if (firstInvalidField) firstInvalidField.focus();
             }
         });
     }
 
-    // Feedback display function
     function showFeedback(message, type = 'info') {
         const feedback = document.getElementById('mobooking-service-form-feedback');
         if (feedback) {
             if (type === 'clear' || !message) {
                 feedback.classList.add('hidden');
                 feedback.textContent = '';
-                feedback.className = 'hidden'; // Reset classes
+                feedback.className = 'hidden';
                 return;
             }
             feedback.className = `p-3 rounded-md text-sm font-medium ${
@@ -1179,104 +1264,125 @@ document.addEventListener('DOMContentLoaded', function() {
             feedback.textContent = message;
             feedback.classList.remove('hidden');
             
-            // Auto-hide after 5 seconds for success/info messages, not for errors
             if (type === 'success' || (type ==='info' && message)) {
-                setTimeout(() => {
-                    feedback.classList.add('hidden');
-                }, 5000);
+                setTimeout(() => { feedback.classList.add('hidden'); }, 5000);
             }
         }
     }
 
-    // Option name update handler
     document.addEventListener('input', function(e) {
         if (e.target.matches('input[name*="[name]"]') && e.target.closest('.mobooking-service-option-row')) {
             const optionRow = e.target.closest('.mobooking-service-option-row');
             const titleElement = optionRow.querySelector('.mobooking-option-title');
-            if (titleElement) {
-                titleElement.textContent = e.target.value || '<?php esc_html_e('Untitled Option', 'mobooking'); ?>';
+            if (titleElement) titleElement.textContent = e.target.value || '<?php esc_html_e('Untitled Option', 'mobooking'); ?>';
+        }
+    });
+
+    document.addEventListener('change', function(e) {
+        if (e.target.matches('.mobooking-price-impact-type-radio')) {
+            const selectedRadio = e.target;
+            const radioGroup = selectedRadio.closest('.mobooking-price-impact-type-radio-group');
+            if (radioGroup) {
+                radioGroup.querySelectorAll('label.styled-radio-btn').forEach(label => {
+                    label.classList.remove('border-primary', 'ring-2', 'ring-primary', 'bg-primary-50');
+                    label.classList.add('border-gray-300');
+                    if (label.contains(selectedRadio)) {
+                        label.classList.add('border-primary', 'ring-2', 'ring-primary', 'bg-primary-50');
+                        label.classList.remove('border-gray-300');
+                    }
+                });
             }
         }
     });
 
-    // Option type change handler
     document.addEventListener('change', function(e) {
         if (e.target.matches('.mobooking-option-type')) {
-            const optionRow = e.target.closest('.mobooking-service-option-row');
+            const selectedRadio = e.target;
+            const optionRow = selectedRadio.closest('.mobooking-service-option-row');
             const valuesField = optionRow.querySelector('.mobooking-option-values-field');
-            const selectedType = e.target.value;
+            const selectedType = selectedRadio.value;
+            const radioGroup = selectedRadio.closest('.mobooking-option-type-radio-group');
+
+            if (radioGroup) {
+                radioGroup.querySelectorAll('label.styled-radio-btn').forEach(label => {
+                    label.classList.remove('border-primary', 'ring-2', 'ring-primary', 'bg-primary-50');
+                    label.classList.add('border-gray-300');
+                    if (label.contains(selectedRadio)) {
+                        label.classList.add('border-primary', 'ring-2', 'ring-primary', 'bg-primary-50');
+                        label.classList.remove('border-gray-300');
+                    }
+                });
+            }
             
             if (valuesField) {
-                if (['select', 'radio', 'checkbox'].includes(selectedType)) {
-                    valuesField.style.display = 'block';
-                } else {
-                    valuesField.style.display = 'none';
-                }
+                valuesField.style.display = ['select', 'radio', 'checkbox'].includes(selectedType) ? 'block' : 'none';
             }
         }
     });
 
-    // Image upload handling
     const imageUploadBtn = document.getElementById('mobooking-trigger-service-image-upload-btn');
     const imageUploadInput = document.getElementById('mobooking-service-image-upload');
     const imagePreview = document.getElementById('mobooking-service-image-preview');
     const imageUrlInput = document.getElementById('mobooking-service-image-url-value');
     
     if (imageUploadBtn && imageUploadInput) {
-        imageUploadBtn.addEventListener('click', function() {
-            imageUploadInput.click();
-        });
-        
+        imageUploadBtn.addEventListener('click', () => imageUploadInput.click());
         imageUploadInput.addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (file && file.type.startsWith('image/')) {
                 const reader = new FileReader();
-                reader.onload = function(e) {
-                    if (imagePreview) {
-                        imagePreview.src = e.target.result;
-                    }
-                    if (imageUrlInput) {
-                        imageUrlInput.value = e.target.result;
-                    }
+                reader.onload = (ev) => {
+                    if (imagePreview) imagePreview.src = ev.target.result;
+                    if (imageUrlInput) imageUrlInput.value = ev.target.result; // For actual upload, this would be an AJAX call
                 };
                 reader.readAsDataURL(file);
             }
         });
     }
 
-    // Remove image functionality
     const removeImageBtn = document.getElementById('mobooking-remove-service-image-btn');
-    if (removeImageBtn) {
-        removeImageBtn.addEventListener('click', function() {
-            if (imagePreview && imageUrlInput) {
-                imagePreview.src = 'data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%22150%22%20height%3D%22150%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20150%20150%22%3E%3Crect%20width%3D%22150%22%20height%3D%22150%22%20fill%3D%22%23EEEEEE%22%3E%3C%2Frect%3E%3Ctext%20x%3D%2275%22%20y%3D%2280%22%20text-anchor%3D%22middle%22%20font-size%3D%2212%22%20fill%3D%22%23AAAAAA%22%3ENo%20Image%3C%2Ftext%3E%3C%2Fsvg%3E';
-                imageUrlInput.value = '';
-            }
+    if (removeImageBtn && imagePreview && imageUrlInput) {
+        removeImageBtn.addEventListener('click', () => {
+            imagePreview.src = 'data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%22150%22%20height%3D%22150%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20150%20150%22%3E%3Crect%20width%3D%22150%22%20height%3D%22150%22%20fill%3D%22%23EEEEEE%22%3E%3C%2Frect%3E%3Ctext%20x%3D%2275%22%20y%3D%2280%22%20text-anchor%3D%22middle%22%20font-size%3D%2212%22%20fill%3D%22%23AAAAAA%22%3ENo%20Image%3C%2Ftext%3E%3C%2Fsvg%3E';
+            imageUrlInput.value = '';
         });
     }
 
-    // Cancel button functionality
     const cancelBtn = document.getElementById('mobooking-cancel-service-edit-btn');
     if (cancelBtn) {
-        cancelBtn.addEventListener('click', function() {
+        cancelBtn.addEventListener('click', () => {
             if (confirm('<?php esc_html_e('Are you sure you want to cancel? Any unsaved changes will be lost.', 'mobooking'); ?>')) {
                 window.location.href = '<?php echo esc_url(home_url('/dashboard/services/')); ?>';
             }
         });
     }
 
-    // Auto-resize textareas
     document.addEventListener('input', function(e) {
         if (e.target.matches('textarea.form-textarea')) {
             e.target.style.height = 'auto';
             e.target.style.height = e.target.scrollHeight + 'px';
         }
     });
-
-    // Initialize existing textareas
     document.querySelectorAll('textarea.form-textarea').forEach(textarea => {
         textarea.style.height = 'auto';
         textarea.style.height = textarea.scrollHeight + 'px';
+    });
+
+    // Initial setup for existing option rows to be collapsible
+    document.querySelectorAll('.mobooking-service-option-row').forEach(optionRow => {
+        const trigger = optionRow.querySelector('.mobooking-option-row-trigger');
+        const content = optionRow.querySelector('.mobooking-service-option-row-content');
+        const chevron = optionRow.querySelector('.mobooking-option-chevron');
+        if (trigger && content && chevron) { // Ensure all parts are there
+            // Default to expanded for existing rows as well, matching new rows
+            trigger.setAttribute('aria-expanded', 'true');
+            content.classList.remove('hidden-by-collapse');
+            chevron.classList.add('rotate-180');
+            // Ensure border is present if expanded
+             if (!trigger.classList.contains('border-b') && trigger.getAttribute('aria-expanded') === 'true') {
+                trigger.classList.add('border-b');
+            }
+        }
     });
 });
 
@@ -1298,11 +1404,77 @@ style.textContent = `
         position: relative; /* For potential future absolute positioned elements inside */
     }
     /* .option-row:hover { transform: translateY(-1px); } */ /* Handled by existing hover effect on option-row */
+    .option-row { /* Ensure option rows themselves don't have extra padding if header is now the button */
+      padding: 0;
+    }
+    /* .option-header is now part of .mobooking-option-row-trigger or replaced by it */
+
+     .mobooking-option-row-trigger {
+        background: none;
+        /* border: none; Replaced by border-b on trigger itself for expand/collapse state */
+        /* padding: 0; p-4 is applied directly */
+        width: 100%;
+        text-align: left;
+        cursor: pointer;
+    }
+    .mobooking-option-chevron { /* Default state: pointing down means content visible */
+        transition: transform 0.15s ease-in-out;
+    }
+    /* Chevron pointing up when collapsed (trigger's aria-expanded="false") */
+    .mobooking-option-row-trigger[aria-expanded="false"] .mobooking-option-chevron {
+        transform: rotate(0deg);
+    }
+    /* Chevron pointing down when expanded (trigger's aria-expanded="true") */
+    .mobooking-option-row-trigger[aria-expanded="true"] .mobooking-option-chevron {
+        transform: rotate(180deg);
+    }
+
+
+    .mobooking-service-option-row-content.hidden-by-collapse {
+        display: none;
+    }
+
+    .styled-radio-btn { /* Container label */
+        transition: all 0.15s ease-in-out;
+        min-width: 80px; /* Ensure some minimum width */
+        text-align: center;
+    }
+    .styled-radio-btn:has(input:checked) { /* Modern CSS to style based on hidden input state */
+        border-color: hsl(221.2 83.2% 53.3%); /* primary */
+        background-color: hsl(221.2 83.2% 53.3% / 0.05); /* primary-50 equivalent */
+        box-shadow: 0 0 0 2px hsl(221.2 83.2% 53.3%); /* ring-2 ring-primary */
+    }
+    .styled-radio-btn.selected-radio-label { /* Fallback for JS-driven selection, if :has is not fully relied upon */
+        border-color: hsl(221.2 83.2% 53.3%);
+        background-color: hsl(221.2 83.2% 53.3% / 0.05);
+        box-shadow: 0 0 0 2px hsl(221.2 83.2% 53.3%);
+    }
+    .styled-radio-btn:hover {
+            border-color: hsl(221.2 83.2% 48%); /* primary-hover */
+    }
+    .styled-radio-btn .icon-wrapper svg {
+        width: 1.5rem; /* w-6 */
+        height: 1.5rem; /* h-6 */
+        margin-bottom: 0.25rem; /* mb-1 */
+    }
+    .styled-radio-btn .text-label {
+        font-size: 0.75rem; /* text-xs */
+        font-weight: 500; /* font-medium */
+    }
+    .styled-radio-btn:focus-within { /* Accessibility: highlight container when hidden radio has focus */
+            border-color: hsl(221.2 83.2% 53.3%);
+            box-shadow: 0 0 0 2px hsl(221.2 83.2% 53.3%);
+    }
+
 
     @media (max-width: 768px) { /* Target md breakpoint for choice item grid specifically */
         #mobooking-service-options-list .grid-cols-1.md\\:grid-cols-2,
         #mobooking-service-option-template .grid-cols-1.md\\:grid-cols-2 {
             grid-template-columns: 1fr; /* Stack option name/type on smaller screens */
+        }
+        .mobooking-option-type-radio-group,
+        .mobooking-price-impact-type-radio-group { /* Make radio buttons wrap more aggressively */
+            /* Using flex-wrap, so grid-template-columns is not needed here for wrapping */
         }
     }
 
