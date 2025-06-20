@@ -1,74 +1,57 @@
-/* Styles for the Service Edit Page */
+/* Styles for the Service Edit Page - Most styles are now handled by utility classes or inline component styles in PHP */
+
+/* Commenting out styles that are likely redundant due to utility classes or inline styles in page-service-edit.php */
+
+/*
 .mobooking-service-edit-page {
-    /* Add any overall page styling here if needed */
 }
 
 #mobooking-service-form-container {
-    /* Styles for the form container */
 }
 
-/* Service Options Styling */
 #mobooking-service-options-section {
     margin-top: 30px;
     padding-top: 20px;
     border-top: 1px solid #ddd;
 }
 
-
-
 .mobooking-option-drag-handle {
     cursor: move;
     font-size: 1.2em;
     padding: 5px 8px 5px 0;
-    /* Reduced padding */
     color: #777;
     margin-right: 8px;
-    /* Reduced margin */
-    /* line-height might not be needed if align-items: center works well */
 }
-
 
 .mobooking-service-option-row-content {
     flex-grow: 1;
-    /* Allow content to take remaining space */
 }
 
-/* Assuming p tags are directly inside .mobooking-service-option-row-content for form fields */
 .mobooking-service-option-row-content p {
     margin-top: 0;
     margin-bottom: 8px;
-    /* Reduced from 10px */
 }
 
 .mobooking-service-option-row-content p:last-child {
     margin-bottom: 0;
 }
 
-
-
 .mobooking-service-option-row-content input[type="text"],
 .mobooking-service-option-row-content input[type="number"],
 .mobooking-service-option-row-content textarea,
 .mobooking-service-option-row-content select {
     margin-top: 2px;
-    /* Reduced from 3px */
-    /* Ensure they are block or have appropriate width for layout */
 }
 
-/* Reduce spacing for specific fields if they have their own divs */
 .mobooking-service-option-row-content .mobooking-option-values-field {
     margin-bottom: 8px !important;
-    /* Override inline styles if necessary, or advise JS update */
 }
-
-/* Note: .mobooking-option-price-value-field margin is now handled by .mobooking-price-impact-group */
 
 
 .mobooking-service-option-row-content .button-link-delete {
     color: #a00;
     text-decoration: none;
     margin-left: 8px;
-    /* Reduced from 10px */
 }
 
 .mobooking-service-option-row-content .button-link-delete:hover {
@@ -76,28 +59,36 @@
     text-decoration: underline;
 }
 
-.mobooking-no-options-yet {
+.mobooking-no-options-yet { // Handled by utility classes
     padding: 10px;
     background-color: #eee;
     text-align: center;
     border-radius: 3px;
 }
+*/
 
-/* Placeholder for sortable items */
+/* Placeholder for sortable items - This might still be useful if sortable JS relies on it */
 .mobooking-service-option-row-placeholder {
     border: 2px dashed #ccc;
     background-color: #f0f0f0;
     height: 50px;
-    /* Adjust as needed */
-    margin-bottom: 15px;
+    margin-bottom: 15px; /* Utility mb-4 is 1rem, this is slightly more. Keep for now. */
+}
+.mobooking-choice-item-placeholder { /* Similar to above, for choices */
+    border: 1px dashed #ccc;
+    background-color: #f9f9f9;
+    height: 30px;
+    margin: 5px 0; /* Utility m-1 or my-1 could replace */
 }
 
-/* Custom Radio Buttons Styling */
+
+/* Custom Radio Buttons Styling - If this custom radio styling is still desired over browser defaults or new component styles */
+/* For now, assuming it's not the primary way options are displayed, as select/checkbox are more prominent. */
+/*
 .mobooking-custom-radio-group {
     display: flex;
     flex-wrap: wrap;
     gap: 5px;
-    /* Space between radio buttons */
     margin-top: 5px;
 }
 
@@ -118,34 +109,32 @@
 
 .mobooking-custom-radio-label.selected {
     background-color: #0073aa;
-    /* WordPress blue */
     color: #fff;
     border-color: #0073aa;
 }
+*/
 
 /* Choices UI Styling */
+/* .mobooking-choices-ui-container, .mobooking-choices-list, .mobooking-choice-item, .mobooking-choice-drag-handle are largely handled by new structure and utilities. */
+/* Specific input sizing within choice items might still be relevant if not covered by form-input-sm and grid. */
+/*
 .mobooking-choices-ui-container {
     margin-top: 3px;
-    /* Reduced from 5px */
     padding: 8px;
-    /* Reduced from 10px */
-    border: 1px solid #ddd;
+    border: 1px solid #ddd; // This is part of .accordion in the new structure
     background-color: #fff;
-    border-radius: 3px;
+    border-radius: 3px; // .rounded-md is 0.375rem
 }
 
 .mobooking-choices-list {
-    margin-bottom: 8px;
-    /* Reduced from 10px */
+    margin-bottom: 8px; // space-y-2 on the container
 }
 
-.mobooking-choice-item {
+.mobooking-choice-item { // Now a .choice-item with utilities
     display: flex;
     align-items: center;
     gap: 3px;
-    /* Reduced from 5px */
     padding: 4px 0;
-    /* Reduced from 5px 0 */
     border-bottom: 1px solid #eee;
 }
 
@@ -153,35 +142,30 @@
     border-bottom: none;
 }
 
-.mobooking-choice-drag-handle {
+.mobooking-choice-drag-handle { // .drag-handle with utilities
     cursor: move;
     padding: 0 5px;
     color: #777;
 }
 
 .mobooking-choice-item input[type="text"],
-.mobooking-choice-item input[type="number"] {
+.mobooking-choice-item input[type="number"] { // .form-input .form-input-sm
     padding: 4px;
-    /* Reduced from 5px */
     font-size: 0.9em;
-    /* Keep or adjust if too small */
     flex-grow: 1;
-    /* Allow inputs to take available space */
 }
 
 .mobooking-choice-item input[type="text"].mobooking-choice-value {
     flex-basis: 30%;
-    /* Give value a bit more space */
 }
 
 .mobooking-choice-item input[type="number"].mobooking-choice-price-adjust {
     flex-basis: 20%;
-    /* Price adjust less space */
-    max-width: 100px;
+    max-width: 100px; // This max-width might be useful to retain if not handled by grid.
 }
 
 
-.mobooking-choice-item .button-link {
+.mobooking-choice-item .button-link { // .remove-btn
     text-decoration: none;
     color: #a00;
     font-size: 1.2em;
@@ -191,15 +175,11 @@
 .mobooking-choice-item .button-link:hover {
     color: #c00;
 }
+*/
 
-.mobooking-choice-item-placeholder {
-    border: 1px dashed #ccc;
-    background-color: #f9f9f9;
-    height: 30px;
-    margin: 5px 0;
-}
 
-/* Price Input Styling */
+/* Price Input Styling - Handled by mobooking_display_form_field type 'price' */
+/*
 .mobooking-price-input-wrapper {
     display: flex;
     align-items: center;
@@ -207,66 +187,57 @@
 
 .mobooking-currency-symbol {
     font-size: 1em;
-    /* Adjust as needed */
     font-weight: bold;
     color: #555;
 }
 
 .mobooking-price-input-wrapper .mobooking-currency-symbol {
-    /* More specific if needed */
     margin-right: 5px;
-    /* Default for symbol before */
 }
 
 .mobooking-price-input-wrapper input[type="number"]+.mobooking-currency-symbol {
     margin-right: 0;
-    /* Reset right margin if symbol is after */
     margin-left: 5px;
-    /* Add left margin if symbol is after */
 }
+*/
 
-/* Feedback messages */
+/* Feedback messages - Handled by JS applying utility classes directly */
+/*
 #mobooking-service-form-feedback.success {
     border: 1px solid #4CAF50;
-    /* Green */
     background-color: #dff0d8;
     color: #3c763d;
 }
 
 #mobooking-service-form-feedback.error {
     border: 1px solid #F44336;
-    /* Red */
     background-color: #f2dede;
     color: #a94442;
 }
 
 #mobooking-service-form-feedback.notice {
-    /* For general notices like "fill fields" */
     border: 1px solid #FFC107;
-    /* Amber/Yellow */
     background-color: #fff3cd;
     color: #856404;
 }
 
 #mobooking-service-form-feedback {
     display: none;
-    /* Hidden by default, shown by JS */
 }
+*/
 
-/* Service Icon Feature Styles */
+/* Service Icon Feature Styles - Mostly handled by utility classes in PHP */
+/*
 #mobooking-service-icon-preview {
     width: 64px;
-    /* Default, as in HTML */
     height: 64px;
-    /* Default, as in HTML */
-    border: 1px dashed #ccc;
-    margin-bottom: 10px;
+    border: 1px dashed #ccc; // border-2 border-dashed in PHP
+    margin-bottom: 10px; // Handled by space-y or mb- utilities
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: #f9f9f9;
+    background-color: #f9f9f9; // bg-muted
     overflow: hidden;
-    /* Ensure content like large SVGs don't break layout */
 }
 
 #mobooking-service-icon-preview svg,
@@ -274,25 +245,21 @@
     width: 100%;
     height: 100%;
     object-fit: contain;
-    /* Scales down if larger, maintains aspect ratio */
 }
 
-.mobooking-no-icon-text {
+.mobooking-no-icon-text { // text-xs text-muted-foreground
     color: #777;
     font-size: 0.9em;
     text-align: center;
 }
 
-.mobooking-preset-icon-item {
+.mobooking-preset-icon-item { // w-12 h-12 border rounded-md flex items-center justify-center hover:border-primary transition-colors
     width: 48px;
-    /* Default, as in HTML */
     height: 48px;
-    /* Default, as in HTML */
     border: 1px solid #eee;
     cursor: pointer;
     padding: 5px;
     box-sizing: border-box;
-    /* Include padding and border in element's total width and height */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -300,13 +267,10 @@
 
 .mobooking-preset-icon-item:hover {
     border-color: #0073aa;
-    /* WordPress blue for hover */
     background-color: #f0f8ff;
-    /* Light blueish background */
 }
 
-.mobooking-preset-icon-item.selected {
-    /* JS will need to add/remove this class if visual selection is desired */
+.mobooking-preset-icon-item.selected { // JS might add a more specific class like 'border-primary' or similar
     border-color: #0073aa;
     box-shadow: 0 0 0 2px #0073aa;
 }
@@ -317,147 +281,120 @@
     object-fit: contain;
 }
 
-#mobooking-remove-service-icon-btn {
+#mobooking-remove-service-icon-btn { // btn btn-outline btn-sm
     margin-bottom: 8px;
-    /* Add some space below remove button */
 }
+*/
 
-/* Service Image Feature Styles */
-#mobooking-service-image-preview {
+/* Service Image Feature Styles - Mostly handled by utility classes in PHP */
+/*
+#mobooking-service-image-preview { // w-24 h-24 object-cover border rounded-md bg-muted
     width: 150px;
-    /* As defined in HTML */
     height: 150px;
-    /* As defined in HTML */
     border: 1px solid #ccc;
     margin-bottom: 10px;
     object-fit: cover;
-    /* Cover the area, might crop */
     background-color: #f9f9f9;
-    /* BG for transparent images or before load */
     display: block;
-    /* Ensure it takes up its own line */
 }
 
 #mobooking-trigger-service-image-upload-btn,
-#mobooking-remove-service-image-btn {
+#mobooking-remove-service-image-btn { // btn btn-outline btn-sm, part of flex gap-2 mb-2
     margin-right: 5px;
-    /* Space between buttons */
 }
 
 #mobooking-service-image-upload {
-    /* The actual file input */
     display: none;
-    /* Hidden, triggered by button */
 }
+*/
 
-/* Toggle Switch */
+/* Toggle Switch - Current implementation uses .switch and .switch-thumb from inline styles in page-service-edit.php */
+/* These .mobooking-toggle-switch styles are likely not used or are overridden. */
+/*
 .mobooking-toggle-switch {
     display: inline-flex;
-    /* Changed from inline-block to inline-flex for better knob alignment */
     align-items: center;
     width: 44px;
-    /* Width of the toggle background */
     height: 24px;
-    /* Height of the toggle background */
     background-color: #e5e7eb;
-    /* Default background (inactive) - Tailwind gray-200 */
     border-radius: 9999px;
-    /* Fully rounded */
     cursor: pointer;
     transition: background-color 0.2s ease-in-out;
     vertical-align: middle;
-    /* Align with text */
     padding: 2px;
-    /* Padding for the knob to move within */
     box-sizing: content-box;
-    /* Ensure padding doesn't shrink the knob area */
 }
 
 .mobooking-toggle-knob {
     width: 20px;
-    /* Diameter of the knob */
     height: 20px;
-    /* Diameter of the knob */
     background-color: white;
     border-radius: 9999px;
-    /* Fully rounded */
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     transition: transform 0.2s ease-in-out;
     transform: translateX(0px);
-    /* Initial position for inactive */
 }
 
 .mobooking-toggle-switch.active {
     background-color: #2563eb;
-    /* Active background - Tailwind blue-600 (example) */
 }
 
 .mobooking-toggle-switch.active .mobooking-toggle-knob {
     transform: translateX(20px);
-    /* (Switch Width - Knob Width - 2*Padding) = 44 - 20 - 4 = 20px */
 }
 
-/* Focus styles for accessibility */
 .mobooking-toggle-switch:focus {
     outline: 2px solid transparent;
     outline-offset: 2px;
     box-shadow: 0 0 0 2px #3b82f6;
-    /* Example focus ring */
 }
 
 #mobooking-service-status-text {
     vertical-align: middle;
-    /* Ensure text aligns with the switch */
 }
+*/
 
-/* New Service Option Visual Header Styles */
+/* New Service Option Visual Header Styles - Handled by utility classes on h4 in PHP helpers */
+/*
 .mobooking-option-visual-header {
     text-align: center;
     margin-bottom: 10px;
 }
 
 h4.mobooking-option-title {
-    /* Added h4 to make it more specific */
     font-size: 1.1em;
-    /* Adjust as needed */
     font-weight: bold;
     margin-top: 0;
     margin-bottom: 5px;
 }
 
-/* Hide redundant Option Name label when visual header is present */
 .mobooking-service-option-row-content>.mobooking-option-visual-header+p>label[for*="[name]"] {
     display: none;
 }
+*/
 
-/* Price Impact Group Styling */
+/* Price Impact Group Styling - This custom styling for a dynamic group might be replaced by simpler accordion structure and standard fields */
+/* If the JS logic for this specific group is removed or changed, these styles become obsolete. */
+/* For now, comment out as PHP helpers use standard field display. */
+/*
 .mobooking-price-impact-group {
     background-color: #f0f0f0;
-    /* Light grey background for the group */
     padding: 10px;
     border-radius: 3px;
     margin-top: 10px;
-    /* Or adjust as needed */
     margin-bottom: 8px;
-    /* Replaces old margin on price-value-field */
 }
 
 .mobooking-price-impact-group>p {
-    /* Target the paragraph with the select */
     margin-bottom: 5px !important;
-    /* Reduce space between select and value field */
 }
 
 .mobooking-option-price-value-field {
     display: none;
-    /* Hidden by default, JS will show it by adding .mobooking-active */
-    /* margin-bottom: 0; /* Removed, handled by group */
 }
 
 .mobooking-option-price-value-field.mobooking-active {
-    /* JS will add this class */
     display: flex !important;
-    /* Use flex for adornment alignment */
     align-items: center;
 }
 
@@ -466,21 +403,16 @@ h4.mobooking-option-title {
     background-color: #e0e0e0;
     border: 1px solid #ccc;
     border-right: none;
-    /* Attach to the left of the input */
     font-size: 0.9em;
     line-height: 1.5;
-    /* Align with input text */
     border-top-left-radius: 3px;
     border-bottom-left-radius: 3px;
-    /* JS will populate content of this span */
 }
 
 .mobooking-option-price-value-field input[type="number"] {
     border-top-left-radius: 0 !important;
-    /* Ensure !important if needed to override general WP styles */
     border-bottom-left-radius: 0 !important;
     margin-top: 0 !important;
-    /* Remove margin-top from input */
     flex-grow: 1;
-    /* Allow input to take available space */
 }
+*/
