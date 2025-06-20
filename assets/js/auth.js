@@ -80,6 +80,17 @@ jQuery(document).ready(function($) {
                 nonce: mobooking_auth_params.register_nonce
             };
 
+            // Check for invitation fields
+            const inviterId = $('#mobooking-inviter-id').val();
+            const assignedRole = $('#mobooking-assigned-role').val();
+            const invitationToken = $('#mobooking-invitation-token').val();
+
+            if (inviterId && assignedRole && invitationToken) {
+                formData.inviter_id = inviterId;
+                formData.role_to_assign = assignedRole;
+                formData.invitation_token = invitationToken;
+            }
+
             $.ajax({
                 type: 'POST',
                 url: mobooking_auth_params.ajax_url,
