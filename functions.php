@@ -534,6 +534,10 @@ if ( class_exists( 'MoBooking\Classes\Auth' ) ) {
     // Role creation/removal on theme activation/deactivation
     add_action( 'after_switch_theme', array( 'MoBooking\Classes\Auth', 'add_business_owner_role' ) );
     add_action( 'switch_theme', array( 'MoBooking\Classes\Auth', 'remove_business_owner_role' ) );
+
+    // Worker roles management
+    add_action( 'after_switch_theme', array( 'MoBooking\Classes\Auth', 'add_worker_roles' ) );
+    add_action( 'switch_theme', array( 'MoBooking\Classes\Auth', 'remove_worker_roles' ) );
 }
 
 // Initialize Database and create tables on activation
@@ -600,6 +604,11 @@ if (class_exists('MoBooking\Classes\Bookings') &&
     }
 }
 
+// Register Admin Pages
+if ( class_exists( 'MoBooking\Classes\Admin\UserManagementPage' ) ) {
+    add_action( 'admin_menu', array( 'MoBooking\Classes\Admin\UserManagementPage', 'register_page' ) );
+}
+
 // Ensure Business Owner Role exists on init
 function mobooking_ensure_business_owner_role_exists() {
     if (class_exists('MoBooking\Classes\Auth')) {
@@ -614,6 +623,34 @@ function mobooking_ensure_business_owner_role_exists() {
     }
 }
 add_action( 'init', 'mobooking_ensure_business_owner_role_exists' );
+
+// Ensure Worker Roles exist on init
+function mobooking_ensure_worker_roles_exist() {
+    if (class_exists('MoBooking\Classes\Auth')) {
+        $roles_to_check = array(
+            MoBooking\Classes\Auth::ROLE_MANAGER,
+            MoBooking\Classes\Auth::ROLE_STAFF,
+            MoBooking\Classes\Auth::ROLE_VIEWER
+        );
+        $missing_roles = false;
+        foreach ($roles_to_check as $role_name) {
+            if ( !get_role( $role_name ) ) {
+                $missing_roles = true;
+                break;
+            }
+        }
+
+        if ($missing_roles) {
+            MoBooking\Classes\Auth::add_worker_roles();
+            add_action('admin_notices', function() {
+                echo '<div class="notice notice-success is-dismissible"><p>' .
+                     esc_html__('MoBooking: One or more worker user roles (Manager, Staff, Viewer) were missing and have been successfully re-created. Please refresh if you were assigning roles.', 'mobooking') .
+                     '</p></div>';
+            });
+        }
+    }
+}
+add_action( 'init', 'mobooking_ensure_worker_roles_exist' );
 
 // Ensure Custom Database Tables exist on admin_init
 function mobooking_ensure_custom_tables_exist() {
