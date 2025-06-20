@@ -14,19 +14,7 @@
     border-top: 1px solid #ddd;
 }
 
-.mobooking-service-option-row {
-    padding: 10px;
-    /* Reduced from 15px */
-    border: 1px solid #ddd;
-    /* Potentially lighter border */
-    background-color: #f9f9f9;
-    margin-bottom: 10px;
-    /* Reduced from 15px */
-    border-radius: 4px;
-    display: flex;
-    align-items: center;
-    /* Changed from flex-start for better vertical alignment if possible */
-}
+
 
 .mobooking-option-drag-handle {
     cursor: move;
@@ -56,11 +44,7 @@
     margin-bottom: 0;
 }
 
-.mobooking-service-option-row label {
-    /* This selector is fine, applies to labels within the row */
-    font-weight: normal;
-    /* Normal weight for sub-labels */
-}
+
 
 .mobooking-service-option-row-content input[type="text"],
 .mobooking-service-option-row-content input[type="number"],
@@ -334,7 +318,7 @@
 }
 
 #mobooking-remove-service-icon-btn {
-    margin-bottom: 15px;
+    margin-bottom: 8px;
     /* Add some space below remove button */
 }
 
