@@ -15,62 +15,78 @@
 }
 
 .mobooking-service-option-row {
-    padding: 10px; /* Reduced from 15px */
-    border: 1px solid #ddd; /* Potentially lighter border */
+    padding: 10px;
+    /* Reduced from 15px */
+    border: 1px solid #ddd;
+    /* Potentially lighter border */
     background-color: #f9f9f9;
-    margin-bottom: 10px; /* Reduced from 15px */
+    margin-bottom: 10px;
+    /* Reduced from 15px */
     border-radius: 4px;
     display: flex;
-    align-items: center; /* Changed from flex-start for better vertical alignment if possible */
+    align-items: center;
+    /* Changed from flex-start for better vertical alignment if possible */
 }
 
 .mobooking-option-drag-handle {
     cursor: move;
     font-size: 1.2em;
-    padding: 5px 8px 5px 0; /* Reduced padding */
+    padding: 5px 8px 5px 0;
+    /* Reduced padding */
     color: #777;
-    margin-right: 8px; /* Reduced margin */
+    margin-right: 8px;
+    /* Reduced margin */
     /* line-height might not be needed if align-items: center works well */
 }
 
 
 .mobooking-service-option-row-content {
-    flex-grow: 1; /* Allow content to take remaining space */
+    flex-grow: 1;
+    /* Allow content to take remaining space */
 }
 
 /* Assuming p tags are directly inside .mobooking-service-option-row-content for form fields */
 .mobooking-service-option-row-content p {
     margin-top: 0;
-    margin-bottom: 8px; /* Reduced from 10px */
+    margin-bottom: 8px;
+    /* Reduced from 10px */
 }
+
 .mobooking-service-option-row-content p:last-child {
     margin-bottom: 0;
 }
 
-.mobooking-service-option-row label { /* This selector is fine, applies to labels within the row */
-    font-weight: normal; /* Normal weight for sub-labels */
+.mobooking-service-option-row label {
+    /* This selector is fine, applies to labels within the row */
+    font-weight: normal;
+    /* Normal weight for sub-labels */
 }
 
 .mobooking-service-option-row-content input[type="text"],
 .mobooking-service-option-row-content input[type="number"],
 .mobooking-service-option-row-content textarea,
 .mobooking-service-option-row-content select {
-    margin-top: 2px; /* Reduced from 3px */
+    margin-top: 2px;
+    /* Reduced from 3px */
     /* Ensure they are block or have appropriate width for layout */
 }
 
 /* Reduce spacing for specific fields if they have their own divs */
 .mobooking-service-option-row-content .mobooking-option-values-field {
-    margin-bottom: 8px !important; /* Override inline styles if necessary, or advise JS update */
+    margin-bottom: 8px !important;
+    /* Override inline styles if necessary, or advise JS update */
 }
+
 /* Note: .mobooking-option-price-value-field margin is now handled by .mobooking-price-impact-group */
 
 
 .mobooking-service-option-row-content .button-link-delete {
     color: #a00;
     text-decoration: none;
-    margin-left: 8px; /* Reduced from 10px */
+    margin-left: 8px;
+    /* Reduced from 10px */
 }
+
 .mobooking-service-option-row-content .button-link-delete:hover {
     color: #c00;
     text-decoration: underline;
@@ -87,7 +103,8 @@
 .mobooking-service-option-row-placeholder {
     border: 2px dashed #ccc;
     background-color: #f0f0f0;
-    height: 50px; /* Adjust as needed */
+    height: 50px;
+    /* Adjust as needed */
     margin-bottom: 15px;
 }
 
@@ -95,7 +112,8 @@
 .mobooking-custom-radio-group {
     display: flex;
     flex-wrap: wrap;
-    gap: 5px; /* Space between radio buttons */
+    gap: 5px;
+    /* Space between radio buttons */
     margin-top: 5px;
 }
 
@@ -115,31 +133,38 @@
 }
 
 .mobooking-custom-radio-label.selected {
-    background-color: #0073aa; /* WordPress blue */
+    background-color: #0073aa;
+    /* WordPress blue */
     color: #fff;
     border-color: #0073aa;
 }
 
 /* Choices UI Styling */
 .mobooking-choices-ui-container {
-    margin-top: 3px; /* Reduced from 5px */
-    padding: 8px; /* Reduced from 10px */
+    margin-top: 3px;
+    /* Reduced from 5px */
+    padding: 8px;
+    /* Reduced from 10px */
     border: 1px solid #ddd;
     background-color: #fff;
     border-radius: 3px;
 }
 
 .mobooking-choices-list {
-    margin-bottom: 8px; /* Reduced from 10px */
+    margin-bottom: 8px;
+    /* Reduced from 10px */
 }
 
 .mobooking-choice-item {
     display: flex;
     align-items: center;
-    gap: 3px; /* Reduced from 5px */
-    padding: 4px 0; /* Reduced from 5px 0 */
+    gap: 3px;
+    /* Reduced from 5px */
+    padding: 4px 0;
+    /* Reduced from 5px 0 */
     border-bottom: 1px solid #eee;
 }
+
 .mobooking-choice-item:last-child {
     border-bottom: none;
 }
@@ -152,15 +177,22 @@
 
 .mobooking-choice-item input[type="text"],
 .mobooking-choice-item input[type="number"] {
-    padding: 4px; /* Reduced from 5px */
-    font-size: 0.9em; /* Keep or adjust if too small */
-    flex-grow: 1; /* Allow inputs to take available space */
+    padding: 4px;
+    /* Reduced from 5px */
+    font-size: 0.9em;
+    /* Keep or adjust if too small */
+    flex-grow: 1;
+    /* Allow inputs to take available space */
 }
+
 .mobooking-choice-item input[type="text"].mobooking-choice-value {
-    flex-basis: 30%; /* Give value a bit more space */
+    flex-basis: 30%;
+    /* Give value a bit more space */
 }
+
 .mobooking-choice-item input[type="number"].mobooking-choice-price-adjust {
-    flex-basis: 20%; /* Price adjust less space */
+    flex-basis: 20%;
+    /* Price adjust less space */
     max-width: 100px;
 }
 
@@ -171,6 +203,7 @@
     font-size: 1.2em;
     padding: 0 5px;
 }
+
 .mobooking-choice-item .button-link:hover {
     color: #c00;
 }
@@ -189,59 +222,75 @@
 }
 
 .mobooking-currency-symbol {
-    font-size: 1em; /* Adjust as needed */
+    font-size: 1em;
+    /* Adjust as needed */
     font-weight: bold;
     color: #555;
 }
-.mobooking-price-input-wrapper .mobooking-currency-symbol { /* More specific if needed */
-    margin-right: 5px; /* Default for symbol before */
+
+.mobooking-price-input-wrapper .mobooking-currency-symbol {
+    /* More specific if needed */
+    margin-right: 5px;
+    /* Default for symbol before */
 }
-.mobooking-price-input-wrapper input[type="number"] + .mobooking-currency-symbol {
-    margin-right: 0; /* Reset right margin if symbol is after */
-    margin-left: 5px; /* Add left margin if symbol is after */
+
+.mobooking-price-input-wrapper input[type="number"]+.mobooking-currency-symbol {
+    margin-right: 0;
+    /* Reset right margin if symbol is after */
+    margin-left: 5px;
+    /* Add left margin if symbol is after */
 }
 
 /* Feedback messages */
 #mobooking-service-form-feedback.success {
-    border: 1px solid #4CAF50; /* Green */
+    border: 1px solid #4CAF50;
+    /* Green */
     background-color: #dff0d8;
     color: #3c763d;
 }
 
 #mobooking-service-form-feedback.error {
-    border: 1px solid #F44336; /* Red */
+    border: 1px solid #F44336;
+    /* Red */
     background-color: #f2dede;
     color: #a94442;
 }
 
-#mobooking-service-form-feedback.notice { /* For general notices like "fill fields" */
-    border: 1px solid #FFC107; /* Amber/Yellow */
+#mobooking-service-form-feedback.notice {
+    /* For general notices like "fill fields" */
+    border: 1px solid #FFC107;
+    /* Amber/Yellow */
     background-color: #fff3cd;
     color: #856404;
 }
 
 #mobooking-service-form-feedback {
-    display: none; /* Hidden by default, shown by JS */
+    display: none;
+    /* Hidden by default, shown by JS */
 }
 
 /* Service Icon Feature Styles */
 #mobooking-service-icon-preview {
-    width: 64px; /* Default, as in HTML */
-    height: 64px; /* Default, as in HTML */
+    width: 64px;
+    /* Default, as in HTML */
+    height: 64px;
+    /* Default, as in HTML */
     border: 1px dashed #ccc;
     margin-bottom: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
     background-color: #f9f9f9;
-    overflow: hidden; /* Ensure content like large SVGs don't break layout */
+    overflow: hidden;
+    /* Ensure content like large SVGs don't break layout */
 }
 
 #mobooking-service-icon-preview svg,
 #mobooking-service-icon-preview img {
     width: 100%;
     height: 100%;
-    object-fit: contain; /* Scales down if larger, maintains aspect ratio */
+    object-fit: contain;
+    /* Scales down if larger, maintains aspect ratio */
 }
 
 .mobooking-no-icon-text {
@@ -251,23 +300,29 @@
 }
 
 .mobooking-preset-icon-item {
-    width: 48px; /* Default, as in HTML */
-    height: 48px; /* Default, as in HTML */
+    width: 48px;
+    /* Default, as in HTML */
+    height: 48px;
+    /* Default, as in HTML */
     border: 1px solid #eee;
     cursor: pointer;
     padding: 5px;
-    box-sizing: border-box; /* Include padding and border in element's total width and height */
+    box-sizing: border-box;
+    /* Include padding and border in element's total width and height */
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
 .mobooking-preset-icon-item:hover {
-    border-color: #0073aa; /* WordPress blue for hover */
-    background-color: #f0f8ff; /* Light blueish background */
+    border-color: #0073aa;
+    /* WordPress blue for hover */
+    background-color: #f0f8ff;
+    /* Light blueish background */
 }
 
-.mobooking-preset-icon-item.selected { /* JS will need to add/remove this class if visual selection is desired */
+.mobooking-preset-icon-item.selected {
+    /* JS will need to add/remove this class if visual selection is desired */
     border-color: #0073aa;
     box-shadow: 0 0 0 2px #0073aa;
 }
@@ -279,77 +334,96 @@
 }
 
 #mobooking-remove-service-icon-btn {
-    margin-bottom: 15px; /* Add some space below remove button */
+    margin-bottom: 15px;
+    /* Add some space below remove button */
 }
 
 /* Service Image Feature Styles */
 #mobooking-service-image-preview {
-    width: 150px; /* As defined in HTML */
-    height: 150px; /* As defined in HTML */
+    width: 150px;
+    /* As defined in HTML */
+    height: 150px;
+    /* As defined in HTML */
     border: 1px solid #ccc;
     margin-bottom: 10px;
-    object-fit: cover; /* Cover the area, might crop */
-    background-color: #f9f9f9; /* BG for transparent images or before load */
-    display: block; /* Ensure it takes up its own line */
+    object-fit: cover;
+    /* Cover the area, might crop */
+    background-color: #f9f9f9;
+    /* BG for transparent images or before load */
+    display: block;
+    /* Ensure it takes up its own line */
 }
 
 #mobooking-trigger-service-image-upload-btn,
 #mobooking-remove-service-image-btn {
-    margin-right: 5px; /* Space between buttons */
-}
-#mobooking-remove-service-image-btn.button-link-delete {
-    color: #a00; /* Standard WP delete link color */
-    vertical-align: middle; /* Align with button if needed */
-}
-#mobooking-remove-service-image-btn.button-link-delete:hover {
-    color: #c00;
+    margin-right: 5px;
+    /* Space between buttons */
 }
 
-#mobooking-service-image-upload { /* The actual file input */
-    display: none; /* Hidden, triggered by button */
+#mobooking-service-image-upload {
+    /* The actual file input */
+    display: none;
+    /* Hidden, triggered by button */
 }
 
 /* Toggle Switch */
 .mobooking-toggle-switch {
-    display: inline-flex; /* Changed from inline-block to inline-flex for better knob alignment */
+    display: inline-flex;
+    /* Changed from inline-block to inline-flex for better knob alignment */
     align-items: center;
-    width: 44px; /* Width of the toggle background */
-    height: 24px; /* Height of the toggle background */
-    background-color: #e5e7eb; /* Default background (inactive) - Tailwind gray-200 */
-    border-radius: 9999px; /* Fully rounded */
+    width: 44px;
+    /* Width of the toggle background */
+    height: 24px;
+    /* Height of the toggle background */
+    background-color: #e5e7eb;
+    /* Default background (inactive) - Tailwind gray-200 */
+    border-radius: 9999px;
+    /* Fully rounded */
     cursor: pointer;
     transition: background-color 0.2s ease-in-out;
-    vertical-align: middle; /* Align with text */
-    padding: 2px; /* Padding for the knob to move within */
-    box-sizing: content-box; /* Ensure padding doesn't shrink the knob area */
+    vertical-align: middle;
+    /* Align with text */
+    padding: 2px;
+    /* Padding for the knob to move within */
+    box-sizing: content-box;
+    /* Ensure padding doesn't shrink the knob area */
 }
 
 .mobooking-toggle-knob {
-    width: 20px; /* Diameter of the knob */
-    height: 20px; /* Diameter of the knob */
+    width: 20px;
+    /* Diameter of the knob */
+    height: 20px;
+    /* Diameter of the knob */
     background-color: white;
-    border-radius: 9999px; /* Fully rounded */
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    border-radius: 9999px;
+    /* Fully rounded */
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     transition: transform 0.2s ease-in-out;
-    transform: translateX(0px); /* Initial position for inactive */
+    transform: translateX(0px);
+    /* Initial position for inactive */
 }
 
 .mobooking-toggle-switch.active {
-    background-color: #2563eb; /* Active background - Tailwind blue-600 (example) */
+    background-color: #2563eb;
+    /* Active background - Tailwind blue-600 (example) */
 }
 
 .mobooking-toggle-switch.active .mobooking-toggle-knob {
-    transform: translateX(20px); /* (Switch Width - Knob Width - 2*Padding) = 44 - 20 - 4 = 20px */
+    transform: translateX(20px);
+    /* (Switch Width - Knob Width - 2*Padding) = 44 - 20 - 4 = 20px */
 }
 
 /* Focus styles for accessibility */
 .mobooking-toggle-switch:focus {
     outline: 2px solid transparent;
     outline-offset: 2px;
-    box-shadow: 0 0 0 2px #3b82f6; /* Example focus ring */
+    box-shadow: 0 0 0 2px #3b82f6;
+    /* Example focus ring */
 }
+
 #mobooking-service-status-text {
-    vertical-align: middle; /* Ensure text aligns with the switch */
+    vertical-align: middle;
+    /* Ensure text aligns with the switch */
 }
 
 /* New Service Option Visual Header Styles */
@@ -358,54 +432,48 @@
     margin-bottom: 10px;
 }
 
-.mobooking-option-image-placeholder {
-    width: 100%;
-    height: 100px; /* Adjustable */
-    background-color: #f0f0f0; /* Light grey placeholder */
-    border: 1px dashed #ccc;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 8px; /* Spacing between image and title */
-}
-
-.mobooking-option-image-placeholder span {
-    color: #777;
-    font-size: 0.9em;
-}
-
-h4.mobooking-option-title { /* Added h4 to make it more specific */
-    font-size: 1.1em; /* Adjust as needed */
+h4.mobooking-option-title {
+    /* Added h4 to make it more specific */
+    font-size: 1.1em;
+    /* Adjust as needed */
     font-weight: bold;
     margin-top: 0;
     margin-bottom: 5px;
 }
 
 /* Hide redundant Option Name label when visual header is present */
-.mobooking-service-option-row-content > .mobooking-option-visual-header + p > label[for*="[name]"] {
+.mobooking-service-option-row-content>.mobooking-option-visual-header+p>label[for*="[name]"] {
     display: none;
 }
 
 /* Price Impact Group Styling */
 .mobooking-price-impact-group {
-    background-color: #f0f0f0; /* Light grey background for the group */
+    background-color: #f0f0f0;
+    /* Light grey background for the group */
     padding: 10px;
     border-radius: 3px;
-    margin-top: 10px; /* Or adjust as needed */
-    margin-bottom: 8px; /* Replaces old margin on price-value-field */
+    margin-top: 10px;
+    /* Or adjust as needed */
+    margin-bottom: 8px;
+    /* Replaces old margin on price-value-field */
 }
 
-.mobooking-price-impact-group > p { /* Target the paragraph with the select */
-    margin-bottom: 5px !important; /* Reduce space between select and value field */
+.mobooking-price-impact-group>p {
+    /* Target the paragraph with the select */
+    margin-bottom: 5px !important;
+    /* Reduce space between select and value field */
 }
 
 .mobooking-option-price-value-field {
-    display: none; /* Hidden by default, JS will show it by adding .mobooking-active */
+    display: none;
+    /* Hidden by default, JS will show it by adding .mobooking-active */
     /* margin-bottom: 0; /* Removed, handled by group */
 }
 
-.mobooking-option-price-value-field.mobooking-active { /* JS will add this class */
-    display: flex !important; /* Use flex for adornment alignment */
+.mobooking-option-price-value-field.mobooking-active {
+    /* JS will add this class */
+    display: flex !important;
+    /* Use flex for adornment alignment */
     align-items: center;
 }
 
@@ -413,17 +481,22 @@ h4.mobooking-option-title { /* Added h4 to make it more specific */
     padding: 6px 8px;
     background-color: #e0e0e0;
     border: 1px solid #ccc;
-    border-right: none; /* Attach to the left of the input */
+    border-right: none;
+    /* Attach to the left of the input */
     font-size: 0.9em;
-    line-height: 1.5; /* Align with input text */
+    line-height: 1.5;
+    /* Align with input text */
     border-top-left-radius: 3px;
     border-bottom-left-radius: 3px;
     /* JS will populate content of this span */
 }
 
 .mobooking-option-price-value-field input[type="number"] {
-    border-top-left-radius: 0 !important; /* Ensure !important if needed to override general WP styles */
+    border-top-left-radius: 0 !important;
+    /* Ensure !important if needed to override general WP styles */
     border-bottom-left-radius: 0 !important;
-    margin-top: 0 !important; /* Remove margin-top from input */
-    flex-grow: 1; /* Allow input to take available space */
+    margin-top: 0 !important;
+    /* Remove margin-top from input */
+    flex-grow: 1;
+    /* Allow input to take available space */
 }
