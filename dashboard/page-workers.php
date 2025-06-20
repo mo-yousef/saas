@@ -52,13 +52,22 @@ $all_worker_roles = [
                         <label for="worker_role_invite"><?php esc_html_e( 'Assign Role', 'mobooking' ); ?></label>
                     </th>
                     <td>
-                        <select id="worker_role_invite" name="worker_role">
-                            <?php foreach ( $all_worker_roles as $role_value => $role_name ) : ?>
-                                <option value="<?php echo esc_attr( $role_value ); ?>">
-                                    <?php echo esc_html( $role_name ); ?>
-                                </option>
-                            <?php endforeach; ?>
+                        <select id="worker_role_invite" name="worker_role" required>
+                            <option value="<?php echo esc_attr(\MoBooking\Classes\Auth::ROLE_WORKER_STAFF); ?>">
+                                <?php
+                                // Ensure wp_roles() is available or use predefined display name
+                                $staff_role_display_name = __( 'Staff', 'mobooking' ); // Default
+                                if (function_exists('wp_roles')) {
+                                    $roles = wp_roles();
+                                    if (isset($roles->role_names[\MoBooking\Classes\Auth::ROLE_WORKER_STAFF])) {
+                                        $staff_role_display_name = $roles->role_names[\MoBooking\Classes\Auth::ROLE_WORKER_STAFF];
+                                    }
+                                }
+                                echo esc_html($staff_role_display_name);
+                                ?>
+                            </option>
                         </select>
+                        <p class="description"><?php esc_html_e( 'New workers will be assigned the "Staff" role.', 'mobooking' ); ?></p>
                     </td>
                 </tr>
             </tbody>
@@ -108,21 +117,6 @@ $all_worker_roles = [
                             <?php echo esc_html( !empty($worker_mobooking_roles) ? implode(', ', $worker_mobooking_roles) : 'N/A' ); ?>
                         </td>
                         <td>
-                            <form class="mobooking-change-role-form" style="display: inline-block; margin-right: 10px;">
-                                <?php wp_nonce_field( 'mobooking_change_worker_role_nonce_' . $worker->ID, 'mobooking_change_role_nonce' ); ?>
-                                <input type="hidden" name="action" value="mobooking_change_worker_role">
-                                <input type="hidden" name="worker_user_id" value="<?php echo esc_attr( $worker->ID ); ?>">
-                                <select name="new_role" aria-label="<?php esc_attr_e('New role', 'mobooking'); ?>">
-                                    <?php foreach ( $all_worker_roles as $role_value => $role_name ) : ?>
-                                        <option value="<?php echo esc_attr( $role_value ); ?>" <?php selected( $current_worker_role_key, $role_value ); ?>>
-                                            <?php echo esc_html( $role_name ); ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                </select>
-                                <button type="submit" class="button button-secondary mobooking-save-role-btn">
-                                    <?php esc_html_e( 'Save Role', 'mobooking' ); ?>
-                                </button>
-                            </form>
                             <form class="mobooking-revoke-access-form" style="display: inline-block;">
                                 <?php wp_nonce_field( 'mobooking_revoke_worker_access_nonce_' . $worker->ID, 'mobooking_revoke_access_nonce' ); ?>
                                 <input type="hidden" name="action" value="mobooking_revoke_worker_access">
@@ -177,38 +171,6 @@ jQuery(document).ready(function($) {
             }
         }).fail(function() {
             showFeedback('<?php echo esc_js( __( "An unexpected error occurred. Please try again.", "mobooking" ) ); ?>', false);
-        });
-    });
-
-    // Change Role
-    $('.mobooking-change-role-form').on('submit', function(e) {
-        e.preventDefault();
-        feedbackArea.hide();
-        var $form = $(this);
-        var workerId = $form.find('input[name="worker_user_id"]').val();
-        var newRole = $form.find('select[name="new_role"]').val();
-        var nonce = $form.find('input[name="mobooking_change_role_nonce"]').val();
-        var $button = $form.find('.mobooking-save-role-btn');
-        $button.prop('disabled', true).text('<?php echo esc_js( __("Saving...", "mobooking") ); ?>');
-
-
-        $.post(ajaxurl, {
-            action: 'mobooking_change_worker_role',
-            worker_user_id: workerId,
-            new_role: newRole,
-            mobooking_change_role_nonce: nonce
-        }, function(response) {
-            if (response.success) {
-                showFeedback(response.data.message, true);
-                // Update role display in the table
-                $('#worker-row-' + workerId + ' .worker-role-display').text(response.data.new_role_display_name || newRole.replace('mobooking_worker_', '').charAt(0).toUpperCase() + newRole.slice(1).replace('mobooking_worker_', ''));
-            } else {
-                showFeedback(response.data.message || '<?php echo esc_js( __( "An error occurred while changing role.", "mobooking" ) ); ?>', false);
-            }
-            $button.prop('disabled', false).text('<?php echo esc_js( __("Save Role", "mobooking") ); ?>');
-        }).fail(function() {
-            showFeedback('<?php echo esc_js( __( "An unexpected error occurred. Please try again.", "mobooking" ) ); ?>', false);
-            $button.prop('disabled', false).text('<?php echo esc_js( __("Save Role", "mobooking") ); ?>');
         });
     });
 

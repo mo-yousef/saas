@@ -40,6 +40,49 @@ class Auth {
 
     public function __construct() {
         // Constructor can be used to add initial hooks if needed
+        if ( is_admin() ) {
+            add_filter( 'manage_users_custom_column', [ __CLASS__, 'display_custom_roles_in_users_list_column' ], 10, 3 );
+        }
+    }
+
+    /**
+     * Displays custom MoBooking role names in the WordPress Users list table.
+     *
+     * @param string $output      Custom column output. Default empty.
+     * @param string $column_name Name of the custom column.
+     * @param int    $user_id     ID of the current user.
+     * @return string Modified output for the role column.
+     */
+    public static function display_custom_roles_in_users_list_column( $output, $column_name, $user_id ) {
+        if ( $column_name === 'role' ) {
+            $user = get_userdata( $user_id );
+            if ( ! $user ) {
+                return $output;
+            }
+
+            $mobooking_role_names = [];
+            $all_mobooking_roles = [
+                self::ROLE_BUSINESS_OWNER => __( 'Business Owner', 'mobooking' ),
+                self::ROLE_WORKER_MANAGER => __( 'Worker Manager', 'mobooking' ),
+                self::ROLE_WORKER_STAFF   => __( 'Worker Staff', 'mobooking' ),
+                self::ROLE_WORKER_VIEWER  => __( 'Worker Viewer', 'mobooking' ),
+            ];
+
+            foreach ( $user->roles as $role_slug ) {
+                if ( isset( $all_mobooking_roles[$role_slug] ) ) {
+                    $mobooking_role_names[] = $all_mobooking_roles[$role_slug];
+                }
+            }
+
+            if ( ! empty( $mobooking_role_names ) ) {
+                // If other roles are present, WordPress usually lists them.
+                // This filter primarily ensures our roles are clearly named if they are the ones WordPress picks up.
+                // Or, we can choose to *only* display our roles if present.
+                // For now, let's return our role names if any are found, potentially replacing default output.
+                return implode( ', ', $mobooking_role_names );
+            }
+        }
+        return $output;
     }
 
     public static function add_business_owner_role() {
@@ -254,14 +297,9 @@ class Auth {
             wp_send_json_error( array( 'message' => __( 'Please provide a valid email address for the worker.', 'mobooking' ) ) );
         }
 
-        // Validate role
-        $allowed_worker_roles = [
-            self::ROLE_WORKER_MANAGER,
-            self::ROLE_WORKER_STAFF,
-            self::ROLE_WORKER_VIEWER,
-        ];
-        if ( ! in_array( $assigned_role, $allowed_worker_roles ) ) {
-            wp_send_json_error( array( 'message' => __( 'Invalid worker role selected.', 'mobooking' ) ) );
+        // Validate role: Ensure it is exactly ROLE_WORKER_STAFF
+        if ( $assigned_role !== self::ROLE_WORKER_STAFF ) {
+            wp_send_json_error( array( 'message' => __( 'Invalid role. Only \'Worker - Staff\' can be assigned at this time.', 'mobooking' ) ) );
         }
 
         // Check if email is already registered as any kind of user
