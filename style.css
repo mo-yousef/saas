@@ -4,7 +4,7 @@ Theme URI: https://example.com/mobooking
 Author: Your Name/Company
 Author URI: https://example.com/
 Description: A multi-tenant SaaS application for cleaning service businesses to manage their bookings online.
-Version: 0.1.3
+Version: 0.1.4
 License: GNU General Public License v2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 Text Domain: mobooking
@@ -582,59 +582,8 @@ tbody tr:hover {
     z-index: 1001;
 }
 
-#mobooking-service-form-container {
-    display: none;
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background-color: hsl(0 0% 100%);
-    padding: 1.5rem;
-    border: 1px solid hsl(214.3 31.8% 91.4%);
-    border-radius: 0.5rem;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-    z-index: 1002;
-    width: 90%;
-    max-width: 32rem;
-    max-height: 90vh;
-    overflow-y: auto;
-}
-
 body.mobooking-modal-open {
     overflow: hidden;
-}
-
-#mobooking-service-form-container h2 {
-    margin-top: 0;
-    margin-bottom: 1.5rem;
-    font-size: 1.5rem;
-    font-weight: 600;
-}
-
-#mobooking-service-form-container p {
-    margin-bottom: 1rem;
-}
-
-#mobooking-service-form-container label {
-    font-size: 0.875rem;
-    margin-bottom: 0.5rem;
-}
-
-#mobooking-service-form-container input[type="text"],
-#mobooking-service-form-container input[type="number"],
-#mobooking-service-form-container input[type="url"],
-#mobooking-service-form-container textarea,
-#mobooking-service-form-container select {
-    margin-bottom: 1rem;
-    max-width: 100%;
-}
-
-#mobooking-service-form-container textarea {
-    min-height: 4rem;
-}
-
-#mobooking-service-form-container .button-primary {
-    margin-right: 0.5rem;
 }
 
 /*--------------------------------------------------------------

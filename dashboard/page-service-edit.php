@@ -183,9 +183,6 @@ wp_nonce_field('mobooking_services_nonce', 'mobooking_services_nonce_field');
                                 <span class="mobooking-option-drag-handle">&#x2630;</span>
                                 <div class="mobooking-service-option-row-content">
                                     <div class="mobooking-option-visual-header">
-                                        <div class="mobooking-option-image-placeholder">
-                                            <span><?php esc_html_e('Image', 'mobooking'); ?></span>
-                                        </div>
                                         <h4 class="mobooking-option-title"><?php echo esc_html( $option['name'] ); ?></h4>
                                     </div>
                                     <input type="hidden" name="options[<?php echo $option_idx; ?>][option_id]" value="<?php echo esc_attr( $option['option_id'] ); ?>">
@@ -238,7 +235,7 @@ wp_nonce_field('mobooking_services_nonce', 'mobooking_services_nonce_field');
                                             <option value="multiply_value" <?php selected( $option['price_impact_type'], 'multiply_value' ); ?>><?php esc_html_e('Multiply by Quantity/Value (for Type=Quantity/Number)', 'mobooking'); ?></option>
                                         </select>
                                     </p>
-                                    <div class="mobooking-option-price-value-field"> {/* Inline style removed, JS will add/remove mobooking-active class */}
+                                    <div class="mobooking-option-price-value-field"> 
                                         <label style="display:none;"><?php esc_html_e('Price Impact Value:', 'mobooking'); ?></label>{/* Label can be hidden if adornment makes it clear */}
                                         <span class="mobooking-price-impact-value-adornment"></span>
                                         <input type="number" name="options[<?php echo $option_idx; ?>][price_impact_value]" value="<?php echo esc_attr( $option['price_impact_value'] ); ?>" step="0.01" class="widefat">
@@ -265,9 +262,6 @@ wp_nonce_field('mobooking_services_nonce', 'mobooking_services_nonce_field');
                     <span class="mobooking-option-drag-handle">&#x2630;</span>
                     <div class="mobooking-service-option-row-content">
                         <div class="mobooking-option-visual-header">
-                            <div class="mobooking-option-image-placeholder">
-                                <span><?php esc_html_e('Image', 'mobooking'); ?></span>
-                            </div>
                             <h4 class="mobooking-option-title"><?php esc_html_e('New Option', 'mobooking'); ?></h4>
                         </div>
                         <input type="hidden" name="options[][option_id]" value=""> <!-- New options won't have an ID yet -->
@@ -315,7 +309,7 @@ wp_nonce_field('mobooking_services_nonce', 'mobooking_services_nonce_field');
                                 <option value="multiply_value"><?php esc_html_e('Multiply by Quantity/Value (for Type=Quantity/Number)', 'mobooking'); ?></option>
                             </select>
                         </p>
-                        <div class="mobooking-option-price-value-field"> {/* Inline style removed, JS will add/remove mobooking-active class */}
+                        <div class="mobooking-option-price-value-field"> 
                             <label style="display:none;"><?php esc_html_e('Price Impact Value:', 'mobooking'); ?></label>{/* Label can be hidden if adornment makes it clear */}
                             <span class="mobooking-price-impact-value-adornment"></span>
                             <input type="number" name="options[][price_impact_value]" step="0.01" class="widefat">
