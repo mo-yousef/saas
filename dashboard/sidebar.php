@@ -4,8 +4,35 @@
  * @package MoBooking
  */
 if ( ! defined( 'ABSPATH' ) ) exit;
+
 $current_page = isset($GLOBALS['mobooking_current_dashboard_view']) ? $GLOBALS['mobooking_current_dashboard_view'] : 'overview';
 $dashboard_base_url = home_url('/dashboard/');
+
+$user_mobooking_role_display_name = '';
+$current_user_id = get_current_user_id();
+
+if ( $current_user_id > 0 ) {
+    $user = get_userdata( $current_user_id );
+    if ( $user ) {
+        $mobooking_role_keys = [
+            \MoBooking\Classes\Auth::ROLE_BUSINESS_OWNER,
+            \MoBooking\Classes\Auth::ROLE_WORKER_MANAGER,
+            \MoBooking\Classes\Auth::ROLE_WORKER_STAFF,
+            \MoBooking\Classes\Auth::ROLE_WORKER_VIEWER,
+        ];
+
+        $all_roles = wp_roles(); // Get all role objects, which include names
+
+        foreach ( $user->roles as $user_role_key ) {
+            if ( in_array( $user_role_key, $mobooking_role_keys ) ) {
+                if ( isset( $all_roles->role_names[$user_role_key] ) ) {
+                    $user_mobooking_role_display_name = $all_roles->role_names[$user_role_key];
+                    break; // Found the primary MoBooking role
+                }
+            }
+        }
+    }
+}
 ?>
 <aside class="mobooking-dashboard-sidebar">
     <div class="dashboard-branding">
@@ -13,6 +40,13 @@ $dashboard_base_url = home_url('/dashboard/');
             <h3><?php esc_html_e('MoBooking', 'mobooking'); ?></h3>
         </a>
     </div>
+
+    <?php if ( ! empty( $user_mobooking_role_display_name ) ) : ?>
+        <div class="dashboard-user-role" style="padding: 10px 15px; color: #E0E0E0; text-align: center; background-color: rgba(0,0,0,0.1);">
+            <?php echo esc_html( sprintf( __( 'Role: %s', 'mobooking' ), $user_mobooking_role_display_name ) ); ?>
+        </div>
+    <?php endif; ?>
+
     <nav class="dashboard-nav">
         <ul>
             <?php if (current_user_can(\MoBooking\Classes\Auth::ACCESS_MOBOOKING_DASHBOARD)) : ?>
