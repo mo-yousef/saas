@@ -746,6 +746,7 @@ wp_nonce_field('mobooking_services_nonce', 'mobooking_services_nonce_field');
 
                                     <div class="mobooking-service-option-row-content space-y-4">
                                         <input type="hidden" name="options[<?php echo $option_idx; ?>][option_id]" value="<?php echo esc_attr( $option['option_id'] ); ?>">
+                                        <input type="hidden" name="options[<?php echo $option_idx; ?>][is_required]" value="<?php echo esc_attr( (isset($option['is_required']) && $option['is_required'] === '1') ? '1' : '0' ); ?>">
                                         
                                         <div class="grid gap-4" style="grid-template-columns: 1fr 1fr;">
                                             <div class="form-group">
@@ -840,36 +841,53 @@ wp_nonce_field('mobooking_services_nonce', 'mobooking_services_nonce_field');
                                             <textarea name="options[<?php echo $option_idx; ?>][description]" class="form-input form-textarea w-full" rows="2" placeholder="<?php esc_attr_e('Helpful description for customers...', 'mobooking'); ?>"><?php echo esc_textarea( $option['description'] ); ?></textarea>
                                         </div>
 
-                                        <!-- Option Choices Section (Non-collapsible) -->
-                                        <div class="mobooking-option-values-field" style="<?php echo ( in_array( $option['type'], ['select', 'radio'] ) ? '' : 'display:none;' ); ?>">
-                                            <div class="form-group">
-                                                <label class="form-label"><?php esc_html_e('Option Choices', 'mobooking'); ?></label>
-                                                <div class="mobooking-choices-ui-container">
-                                                    <div class="mobooking-choices-list space-y-2">
-                                                        <!-- Choices will be rendered here by JavaScript -->
+                                        <!-- Accordion for Option Choices -->
+                                        <div class="accordion mobooking-accordion-choices">
+                                            <div class="accordion-item">
+                                                <button type="button" class="accordion-trigger" aria-expanded="false">
+                                                    <span><?php esc_html_e('Option Choices', 'mobooking'); ?></span>
+                                                    <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                                                </button>
+                                                <div class="accordion-content mobooking-choices-accordion-content" aria-hidden="true">
+                                                    <?php // Content of original .mobooking-option-values-field starts here, style is handled by JS now ?>
+                                                    <div class="mobooking-option-values-field" style="<?php echo ( in_array( $option['type'], ['select', 'radio', 'checkbox'] ) ? '' : 'display:none;' ); ?>">
+                                                        <div class="form-group">
+                                                            <?php // The label that was here is now part of the accordion trigger ?>
+                                                            <div class="mobooking-choices-ui-container">
+                                                                <div class="mobooking-choices-list space-y-2">
+                                                                    <!-- Choices will be rendered here by JavaScript -->
+                                                                </div>
+                                                                <button type="button" class="btn btn-outline btn-sm mobooking-add-choice-btn mt-3">
+                                                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+                                                                    <?php esc_html_e('Add Choice', 'mobooking'); ?>
+                                                                </button>
+                                                            </div>
+                                                            <textarea name="options[<?php echo $option_idx; ?>][option_values]" class="form-input form-textarea w-full text-xs mt-3" rows="3" placeholder='[{"value":"opt1","label":"Choice 1"}]' readonly><?php
+                                                                $ov_json = '';
+                                                                if (isset($option['option_values'])) {
+                                                                    $ov_json = is_array($option['option_values']) ? wp_json_encode($option['option_values']) : $option['option_values'];
+                                                                }
+                                                                echo esc_textarea( $ov_json );
+                                                            ?></textarea>
+                                                            <p class="text-xs text-muted-foreground mt-1"><?php esc_html_e('This data is auto-generated. Use the interface above to manage choices.', 'mobooking'); ?></p>
+                                                        </div>
                                                     </div>
-                                                    <button type="button" class="btn btn-outline btn-sm mobooking-add-choice-btn mt-3">
-                                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2">
-                                                            <path d="M5 12h14"/>
-                                                            <path d="M12 5v14"/>
-                                                        </svg>
-                                                        <?php esc_html_e('Add Choice', 'mobooking'); ?>
-                                                    </button>
                                                 </div>
-                                                <textarea name="options[<?php echo $option_idx; ?>][option_values]" class="form-input form-textarea w-full text-xs mt-3" rows="3" placeholder='[{"value":"opt1","label":"Choice 1"}]' readonly><?php
-                                                    $ov_json = is_array($option['option_values']) ? wp_json_encode($option['option_values']) : $option['option_values'];
-                                                    echo esc_textarea( $ov_json );
-                                                ?></textarea>
-                                                <p class="text-xs text-muted-foreground mt-1"><?php esc_html_e('This data is auto-generated. Use the interface above to manage choices.', 'mobooking'); ?></p>
                                             </div>
                                         </div>
 
-                                        <!-- Pricing & Requirements Section (Non-collapsible) -->
-                                        <div class="form-group">
-                                            <label class="form-label"><?php esc_html_e('Pricing & Requirements', 'mobooking'); ?></label>
-                                            <div class="pricing-requirements-container">
-                                                <div class="flex items-center gap-4 mb-4">
-                                                    <label class="flex items-center gap-2 cursor-pointer">
+                                        <!-- Accordion for Pricing & Requirements -->
+                                        <div class="accordion mobooking-accordion-pricing">
+                                            <div class="accordion-item">
+                                                <button type="button" class="accordion-trigger" aria-expanded="false">
+                                                    <span><?php esc_html_e('Pricing & Requirements', 'mobooking'); ?></span>
+                                                    <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                                                </button>
+                                                <div class="accordion-content" aria-hidden="true">
+                                                    <?php // Original content of .pricing-requirements-container starts here ?>
+                                                    <div class="pricing-requirements-container">
+                                                        <div class="flex items-center gap-4 mb-4">
+                                                            <label class="flex items-center gap-2 cursor-pointer">
                                                         <input type="checkbox" name="options[<?php echo $option_idx; ?>][is_required_cb]" value="1" <?php checked( $option['is_required'], '1' ); ?> class="w-4 h-4 text-primary border border-gray-300 rounded focus:ring-primary">
                                                         <span class="text-sm font-medium"><?php esc_html_e('Required field', 'mobooking'); ?></span>
                                                     </label>
@@ -944,9 +962,11 @@ wp_nonce_field('mobooking_services_nonce', 'mobooking_services_nonce_field');
                                                     <p class="text-xs text-muted-foreground mt-1"><?php esc_html_e('Enter the value used for price calculations based on the selected impact type.', 'mobooking'); ?></p>
                                                 </div>
                                             </div>
+                                            <?php // Original content of .pricing-requirements-container ends here ?>
                                         </div>
                                     </div>
                                 </div>
+                            </div>
                             <?php endforeach; ?>
                         <?php else : ?>
                             <div class="text-center py-8 text-muted-foreground">
@@ -1026,6 +1046,7 @@ wp_nonce_field('mobooking_services_nonce', 'mobooking_services_nonce_field');
 
         <div class="mobooking-service-option-row-content space-y-4">
             <input type="hidden" name="options[][option_id]" value="">
+            <input type="hidden" name="options[][is_required]" value="0"> <!-- Default to 0 (not required) -->
             
             <div class="grid gap-4" style="grid-template-columns: 1fr 1fr;">
                 <div class="form-group">
@@ -1035,15 +1056,57 @@ wp_nonce_field('mobooking_services_nonce', 'mobooking_services_nonce_field');
 
                 <div class="form-group">
                     <label class="form-label"><?php esc_html_e('Type', 'mobooking'); ?></label>
-                    <select name="options[][type]" class="form-input form-select mobooking-option-type w-full">
-                        <option value="checkbox"><?php esc_html_e('Checkbox', 'mobooking'); ?></option>
-                        <option value="text"><?php esc_html_e('Text Input', 'mobooking'); ?></option>
-                        <option value="number"><?php esc_html_e('Number Input', 'mobooking'); ?></option>
-                        <option value="select"><?php esc_html_e('Dropdown', 'mobooking'); ?></option>
-                        <option value="radio"><?php esc_html_e('Radio Buttons', 'mobooking'); ?></option>
-                        <option value="textarea"><?php esc_html_e('Text Area', 'mobooking'); ?></option>
-                        <option value="quantity"><?php esc_html_e('Quantity', 'mobooking'); ?></option>
-                    </select>
+                    <div class="option-type-grid">
+                        <label class="option-type-card">
+                            <input type="radio" name="options[][type]" value="checkbox" class="option-type-radio mobooking-option-type" checked> <!-- Default to checkbox -->
+                            <div class="option-type-content">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="option-type-icon"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="m9 12 2 2 4-4"/></svg>
+                                <span class="option-type-label"><?php esc_html_e('Checkbox', 'mobooking'); ?></span>
+                            </div>
+                        </label>
+                        <label class="option-type-card">
+                            <input type="radio" name="options[][type]" value="text" class="option-type-radio mobooking-option-type">
+                            <div class="option-type-content">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="option-type-icon"><path d="M4 7h16"/><path d="M9 20V4"/><path d="M15 20V4"/></svg>
+                                <span class="option-type-label"><?php esc_html_e('Text', 'mobooking'); ?></span>
+                            </div>
+                        </label>
+                        <label class="option-type-card">
+                            <input type="radio" name="options[][type]" value="number" class="option-type-radio mobooking-option-type">
+                            <div class="option-type-content">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="option-type-icon"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="M9 9h.01"/><path d="M15 15h.01"/></svg>
+                                <span class="option-type-label"><?php esc_html_e('Number', 'mobooking'); ?></span>
+                            </div>
+                        </label>
+                        <label class="option-type-card">
+                            <input type="radio" name="options[][type]" value="select" class="option-type-radio mobooking-option-type">
+                            <div class="option-type-content">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="option-type-icon"><path d="m7 15 5 5 5-5"/><path d="m7 9 5-5 5 5"/></svg>
+                                <span class="option-type-label"><?php esc_html_e('Dropdown', 'mobooking'); ?></span>
+                            </div>
+                        </label>
+                        <label class="option-type-card">
+                            <input type="radio" name="options[][type]" value="radio" class="option-type-radio mobooking-option-type">
+                            <div class="option-type-content">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="option-type-icon"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
+                                <span class="option-type-label"><?php esc_html_e('Radio', 'mobooking'); ?></span>
+                            </div>
+                        </label>
+                        <label class="option-type-card">
+                            <input type="radio" name="options[][type]" value="textarea" class="option-type-radio mobooking-option-type">
+                            <div class="option-type-content">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="option-type-icon"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                                <span class="option-type-label"><?php esc_html_e('Text Area', 'mobooking'); ?></span>
+                            </div>
+                        </label>
+                        <label class="option-type-card">
+                            <input type="radio" name="options[][type]" value="quantity" class="option-type-radio mobooking-option-type">
+                            <div class="option-type-content">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="option-type-icon"><line x1="4" y1="12" x2="20" y2="12"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
+                                <span class="option-type-label"><?php esc_html_e('Quantity', 'mobooking'); ?></span>
+                            </div>
+                        </label>
+                    </div>
                 </div>
             </div>
 
@@ -1062,7 +1125,7 @@ wp_nonce_field('mobooking_services_nonce', 'mobooking_services_nonce_field');
                                 <path d="m6 9 6 6 6-6"/>
                             </svg>
                         </button>
-                        <div class="accordion-content" aria-hidden="true">
+                        <div class="accordion-content mobooking-choices-accordion-content" aria-hidden="true">
                             <div class="space-y-3">
                                 <div class="mobooking-choices-ui-container">
                                     <div class="mobooking-choices-list space-y-2">
@@ -1141,6 +1204,7 @@ wp_nonce_field('mobooking_services_nonce', 'mobooking_services_nonce_field');
                     <circle cx="15" cy="19" r="1"/>
                 </svg>
             </span>
+            <input type="checkbox" class="mobooking-choice-item-checked-state" style="margin-right: 5px; display: none;">
             <div class="grid gap-2 flex-1" style="grid-template-columns: 1fr 1fr auto auto;">
                 <input type="text" class="form-input form-input-sm mobooking-choice-label" placeholder="<?php esc_attr_e('Label', 'mobooking'); ?>">
                 <input type="text" class="form-input form-input-sm mobooking-choice-value" placeholder="<?php esc_attr_e('Value', 'mobooking'); ?>">
@@ -1295,34 +1359,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     }
-
-    // Option name update handler
-    document.addEventListener('input', function(e) {
-        if (e.target.matches('input[name*="[name]"]') && e.target.closest('.mobooking-service-option-row')) {
-            const optionRow = e.target.closest('.mobooking-service-option-row');
-            const titleElement = optionRow.querySelector('.mobooking-option-title');
-            if (titleElement) {
-                titleElement.textContent = e.target.value || '<?php esc_html_e('Untitled Option', 'mobooking'); ?>';
-            }
-        }
-    });
-
-    // Option type change handler
-    document.addEventListener('change', function(e) {
-        if (e.target.matches('.mobooking-option-type')) {
-            const optionRow = e.target.closest('.mobooking-service-option-row');
-            const valuesField = optionRow.querySelector('.mobooking-option-values-field');
-            const selectedType = e.target.value;
-            
-            if (valuesField) {
-                if (['select', 'radio'].includes(selectedType)) {
-                    valuesField.style.display = 'block';
-                } else {
-                    valuesField.style.display = 'none';
-                }
-            }
-        }
-    });
 
     // Radio button visual feedback for option types
     document.addEventListener('change', function(e) {
