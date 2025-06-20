@@ -330,15 +330,31 @@ jQuery(document).ready(function ($) {
     function toggleOptionDetailFields($row) {
       const type = $row.find(".mobooking-option-type, select[name^='options['][name$='[type]']").val();
       const $valuesField = $row.find(".mobooking-option-values-field");
-      if (type === "select" || type === "radio") $valuesField.slideDown();
+      if (type === "select" || type === "radio" || type === "checkbox") $valuesField.slideDown();
       else $valuesField.slideUp();
 
       const priceType = $row.find(".mobooking-option-price-type, select[name^='options['][name$='[price_impact_type]']").val();
       const $priceValueField = $row.find(".mobooking-option-price-value-field");
-      if (priceType && priceType !== "") $priceValueField.slideDown();
-      else {
-        $priceValueField.slideUp();
-        $row.find('input[name^="options["][name$="[price_impact_value]"], input[name="options[][price_impact_value]"]').val("");
+      const $adornment = $row.find('.mobooking-price-impact-value-adornment'); // Find the adornment
+
+      if (priceType && priceType !== "") {
+          $priceValueField.addClass('mobooking-active'); // Show field by adding class
+          // Update adornment text
+          if (priceType === 'fixed') {
+              // Use localized currency symbol if available, otherwise default to '$'
+              const currencySymbol = (typeof mobooking_services_params !== 'undefined' && mobooking_services_params.currency_symbol) ? mobooking_services_params.currency_symbol : '$';
+              $adornment.text(currencySymbol);
+          } else if (priceType === 'percentage') {
+              $adornment.text('%');
+          } else if (priceType === 'multiply_value') {
+              $adornment.text('x'); // Or 'Qty' or similar
+          } else {
+              $adornment.text(''); // Default or clear if no specific type
+          }
+      } else {
+          $priceValueField.removeClass('mobooking-active'); // Hide field by removing class
+          $adornment.text(''); // Clear adornment when field is hidden
+          $row.find('input[name^="options["][name$="[price_impact_value]"], input[name="options[][price_impact_value]"]').val("");
       }
     }
 
@@ -391,14 +407,25 @@ jQuery(document).ready(function ($) {
     function syncTextarea($optionRow) {
         const $choicesList = $optionRow.find('.mobooking-choices-list');
         const $textarea = $optionRow.find('textarea[name^="options["][name$="[option_values]"], textarea[name="options[][option_values]"]');
+        const parentOptionType = $optionRow.find('.mobooking-option-type, select[name^="options["][name$="[type]"]').val();
         let choicesData = [];
+
         $choicesList.find('.mobooking-choice-item').each(function() {
             const $item = $(this);
-            choicesData.push({
-                label: $item.find('.mobooking-choice-label').val(),
-                value: $item.find('.mobooking-choice-value').val(),
-                price_adjust: parseFloat($item.find('.mobooking-choice-price-adjust').val()) || 0
-            });
+            if (parentOptionType === 'checkbox') {
+                choicesData.push({
+                    label: $item.find('.mobooking-choice-checkbox-label-input').val(),
+                    value: $item.find('.mobooking-choice-checkbox-value-input').val(),
+                    checked: $item.find('.mobooking-choice-checkbox-input').is(':checked'),
+                    price_adjust: parseFloat($item.find('.mobooking-choice-price-adjust').val()) || 0
+                });
+            } else { // For select, radio
+                choicesData.push({
+                    label: $item.find('.mobooking-choice-label').val(),
+                    value: $item.find('.mobooking-choice-value').val(),
+                    price_adjust: parseFloat($item.find('.mobooking-choice-price-adjust').val()) || 0
+                });
+            }
         });
         try { $textarea.val(JSON.stringify(choicesData)); }
         catch (e) { console.error("Error stringifying choices: ", e); $textarea.val("[]"); }
@@ -407,6 +434,7 @@ jQuery(document).ready(function ($) {
     function renderChoices($optionRow) {
         const $choicesList = $optionRow.find('.mobooking-choices-list');
         const $textarea = $optionRow.find('textarea[name^="options["][name$="[option_values]"], textarea[name="options[][option_values]"]');
+        const parentOptionType = $optionRow.find('.mobooking-option-type, select[name^="options["][name$="[type]"]').val();
         $choicesList.empty();
         let choicesData = [];
         try { const jsonData = $textarea.val(); if (jsonData) choicesData = JSON.parse(jsonData); }
@@ -415,39 +443,81 @@ jQuery(document).ready(function ($) {
 
         choicesData.forEach(function(choice) {
             if (!choiceTemplateHTML) { console.error("Choice template HTML is missing for renderChoices"); return; }
-            const $newItem = $(choiceTemplateHTML);
-            $newItem.find('.mobooking-choice-label').val(choice.label || '');
-            $newItem.find('.mobooking-choice-value').val(choice.value || '');
-            $newItem.find('.mobooking-choice-price-adjust').val(choice.price_adjust || '');
+            let $newItem = $(choiceTemplateHTML); // Base structure
+
+            if (parentOptionType === 'checkbox') {
+                $newItem.empty(); // Clear template content for checkbox type
+                $newItem.append('<span class="mobooking-choice-drag-handle">&#x2630;</span>')
+                    .append($('<input type="checkbox" class="mobooking-choice-checkbox-input">')
+                        .val(choice.value || 'defaultValue') // Set value attribute
+                        .prop('checked', choice.checked || false))
+                    .append($('<input type="text" class="mobooking-choice-checkbox-label-input" placeholder="Label Text">')
+                        .val(choice.label || '').css({flexGrow: 1, marginLeft: '5px'}))
+                    .append($('<input type="text" class="mobooking-choice-checkbox-value-input" placeholder="Value">')
+                        .val(choice.value || '').css({flexBasis: '20%', marginLeft: '5px'}))
+                    .append($('<input type="number" step="0.01" class="mobooking-choice-price-adjust" placeholder="Price Adj.">')
+                        .val(choice.price_adjust || '').css({flexBasis: '20%', maxWidth: '100px', marginLeft: '5px'}))
+                    .append($('<button type="button" class="button-link mobooking-remove-choice-btn">&times;</button>'));
+            } else { // For select, radio
+                $newItem.find('.mobooking-choice-label').val(choice.label || '');
+                $newItem.find('.mobooking-choice-value').val(choice.value || '');
+                $newItem.find('.mobooking-choice-price-adjust').val(choice.price_adjust || '');
+            }
             $choicesList.append($newItem);
         });
     }
 
     function initializeChoiceManagementForRow($row) {
         if ($row.data('choice-management-fully-initialized')) return;
-        renderChoices($row);
+        renderChoices($row); // Initial render based on textarea
         const $choicesList = $row.find('.mobooking-choices-list');
+        const parentOptionType = $row.find('.mobooking-option-type, select[name^="options["][name$="[type]"]').val();
+
         $row.find('.mobooking-add-choice-btn').off('click.mobooking').on('click.mobooking', function() {
             const $optionRowLocal = $(this).closest('.mobooking-service-option-row');
+            const currentParentOptionType = $optionRowLocal.find('.mobooking-option-type, select[name^="options["][name$="[type]"]').val(); // Re-check type
             if (!choiceTemplateHTML) { console.error("Choice template HTML is missing for add choice"); return; }
-            const $newItem = $(choiceTemplateHTML);
-            $newItem.find('input').val('');
+            let $newItem = $(choiceTemplateHTML);
+
+            if (currentParentOptionType === 'checkbox') {
+                $newItem.empty();
+                $newItem.append('<span class="mobooking-choice-drag-handle">&#x2630;</span>')
+                    .append('<input type="checkbox" class="mobooking-choice-checkbox-input" value="defaultValue">') // Default new value
+                    .append($('<input type="text" class="mobooking-choice-checkbox-label-input" placeholder="Label Text">').css({flexGrow: 1, marginLeft: '5px'}))
+                    .append($('<input type="text" class="mobooking-choice-checkbox-value-input" placeholder="Value" value="defaultValue">').css({flexBasis: '20%', marginLeft: '5px'}))
+                    .append($('<input type="number" step="0.01" class="mobooking-choice-price-adjust" placeholder="Price Adj.">').css({flexBasis: '20%', maxWidth: '100px', marginLeft: '5px'}))
+                    .append('<button type="button" class="button-link mobooking-remove-choice-btn">&times;</button>');
+            } else {
+                $newItem.find('input').val(''); // Clear inputs for select/radio
+            }
             $optionRowLocal.find('.mobooking-choices-list').append($newItem);
             syncTextarea($optionRowLocal);
         });
+
         $choicesList.off('click.mobooking', '.mobooking-remove-choice-btn').on('click.mobooking', '.mobooking-remove-choice-btn', function() {
             const $optionRowLocal = $(this).closest('.mobooking-service-option-row');
             $(this).closest('.mobooking-choice-item').remove();
             syncTextarea($optionRowLocal);
         });
-        $choicesList.off('change.mobooking input.mobooking', '.mobooking-choice-label, .mobooking-choice-value, .mobooking-choice-price-adjust')
-            .on('change.mobooking input.mobooking', '.mobooking-choice-label, .mobooking-choice-value, .mobooking-choice-price-adjust', function() {
+
+        // Combined event handler for syncing
+        const syncEvents = 'change.mobooking input.mobooking';
+        const syncSelector = '.mobooking-choice-label, .mobooking-choice-value, .mobooking-choice-price-adjust, .mobooking-choice-checkbox-input, .mobooking-choice-checkbox-label-input, .mobooking-choice-checkbox-value-input';
+        $choicesList.off(syncEvents, syncSelector).on(syncEvents, syncSelector, function() {
             const $optionRowLocal = $(this).closest('.mobooking-service-option-row');
+            // If the changed input was the value field for a checkbox, update the actual checkbox's value
+            if ($(this).hasClass('mobooking-choice-checkbox-value-input')) {
+                $(this).siblings('.mobooking-choice-checkbox-input').val($(this).val());
+            }
             syncTextarea($optionRowLocal);
         });
+
+        // When parent option type changes, re-render choices
         $row.find('.mobooking-option-type, select[name^="options["][name$="[type]"]').off('change.mobookingChoices').on('change.mobookingChoices', function() {
-            renderChoices($row);
+            renderChoices($row); // This will now clear and re-render based on the new type
+            syncTextarea($row); // Sync (likely to an empty array if type changes from one with values)
         });
+
         if ($.fn.sortable && !$choicesList.hasClass('ui-sortable')) {
             $choicesList.sortable({
                 items: '.mobooking-choice-item', handle: '.mobooking-choice-drag-handle', axis: 'y',
