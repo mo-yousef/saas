@@ -144,7 +144,6 @@ $all_worker_roles = [
             <tbody>
                 <?php foreach ( $workers as $worker ) : ?>
                     <?php
-                    <?php
                     // $worker_mobooking_roles_display = []; // Keep for potential future if multiple roles come back
                     $current_worker_role_name = __('N/A', 'mobooking');
                     $current_worker_role_key = ''; // Keep this to ensure 'Staff' is selected in dropdown if they have it.
