@@ -13,9 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class Auth {
     const ROLE_BUSINESS_OWNER = 'mobooking_business_owner';
-    const ROLE_WORKER_MANAGER = 'mobooking_worker_manager';
     const ROLE_WORKER_STAFF = 'mobooking_worker_staff';
-    const ROLE_WORKER_VIEWER = 'mobooking_worker_viewer';
 
     const META_KEY_OWNER_ID = 'mobooking_owner_user_id';
 
@@ -63,9 +61,7 @@ class Auth {
             $mobooking_role_names = [];
             $all_mobooking_roles = [
                 self::ROLE_BUSINESS_OWNER => __( 'Business Owner', 'mobooking' ),
-                self::ROLE_WORKER_MANAGER => __( 'Worker Manager', 'mobooking' ),
                 self::ROLE_WORKER_STAFF   => __( 'Worker Staff', 'mobooking' ),
-                self::ROLE_WORKER_VIEWER  => __( 'Worker Viewer', 'mobooking' ),
             ];
 
             foreach ( $user->roles as $role_slug ) {
@@ -116,23 +112,6 @@ class Auth {
 
     public static function add_worker_roles() {
         add_role(
-            self::ROLE_WORKER_MANAGER,
-            __( 'Worker Manager', 'mobooking' ),
-            array(
-                'read' => true,
-                self::ACCESS_MOBOOKING_DASHBOARD => true,
-                self::CAP_MANAGE_BOOKINGS => true,
-                self::CAP_VIEW_BOOKINGS => true, // Managers can also view
-                self::CAP_MANAGE_SERVICES => true,
-                self::CAP_VIEW_SERVICES => true, // Managers can also view
-                self::CAP_MANAGE_DISCOUNTS => true,
-                self::CAP_VIEW_DISCOUNTS => true, // Managers can also view
-                self::CAP_MANAGE_AREAS => true,
-                self::CAP_VIEW_AREAS => true, // Managers can also view
-                self::CAP_MANAGE_BOOKING_FORM => true,
-            )
-        );
-        add_role(
             self::ROLE_WORKER_STAFF,
             __( 'Worker Staff', 'mobooking' ),
             array(
@@ -145,29 +124,11 @@ class Auth {
                 self::CAP_VIEW_AREAS => true,
             )
         );
-        add_role(
-            self::ROLE_WORKER_VIEWER,
-            __( 'Worker Viewer', 'mobooking' ),
-            array(
-                'read' => true,
-                self::ACCESS_MOBOOKING_DASHBOARD => true,
-                self::CAP_VIEW_BOOKINGS => true,
-                self::CAP_VIEW_SERVICES => true,
-                self::CAP_VIEW_DISCOUNTS => true,
-                self::CAP_VIEW_AREAS => true,
-            )
-        );
     }
 
     public static function remove_worker_roles() {
-        if ( get_role( self::ROLE_WORKER_MANAGER ) ) {
-            remove_role( self::ROLE_WORKER_MANAGER );
-        }
         if ( get_role( self::ROLE_WORKER_STAFF ) ) {
             remove_role( self::ROLE_WORKER_STAFF );
-        }
-        if ( get_role( self::ROLE_WORKER_VIEWER ) ) {
-            remove_role( self::ROLE_WORKER_VIEWER );
         }
     }
 
@@ -288,9 +249,7 @@ class Auth {
         $current_owner_id = get_current_user_id();
 
         $allowed_worker_roles = [
-            self::ROLE_WORKER_MANAGER,
             self::ROLE_WORKER_STAFF,
-            self::ROLE_WORKER_VIEWER,
         ];
 
         if ( empty($worker_user_id) || empty($new_role) || !in_array($new_role, $allowed_worker_roles) ) {
@@ -319,9 +278,9 @@ class Auth {
 
         // For display in JS callback
         $all_roles_map = [
-            self::ROLE_WORKER_MANAGER => __( 'Manager', 'mobooking' ),
+            // self::ROLE_WORKER_MANAGER => __( 'Manager', 'mobooking' ), // Removed
             self::ROLE_WORKER_STAFF   => __( 'Staff', 'mobooking' ),
-            self::ROLE_WORKER_VIEWER  => __( 'Viewer', 'mobooking' ),
+            // self::ROLE_WORKER_VIEWER  => __( 'Viewer', 'mobooking' ), // Removed
         ];
         $new_role_display_name = isset($all_roles_map[$new_role]) ? $all_roles_map[$new_role] : $new_role;
 
@@ -358,11 +317,11 @@ class Auth {
 
         // Remove MoBooking specific roles
         $mobooking_worker_roles = [
-            self::ROLE_WORKER_MANAGER,
             self::ROLE_WORKER_STAFF,
-            self::ROLE_WORKER_VIEWER,
         ];
-        foreach ( $mobooking_worker_roles as $role_to_remove ) {
+        // Also remove manager/viewer roles if they somehow still exist on the user from a previous version
+        $legacy_roles_to_check_and_remove = ['mobooking_worker_manager', 'mobooking_worker_viewer'];
+        foreach ( array_merge($mobooking_worker_roles, $legacy_roles_to_check_and_remove) as $role_to_remove ) {
             $worker_user->remove_role( $role_to_remove );
         }
 
@@ -493,7 +452,7 @@ class Auth {
                 $role_to_assign = sanitize_text_field( $_POST['role_to_assign'] );
 
                 // Validate the role
-                $worker_roles = [self::ROLE_WORKER_MANAGER, self::ROLE_WORKER_STAFF, self::ROLE_WORKER_VIEWER];
+                $worker_roles = [self::ROLE_WORKER_STAFF]; // Only staff can be assigned now
                 if ( $inviter_id > 0 && in_array( $role_to_assign, $worker_roles ) ) {
                     // Ensure inviter is a business owner (optional, but good practice)
                     $inviter_user = get_userdata( $inviter_id );
@@ -598,10 +557,9 @@ class Auth {
             return false;
         }
         $worker_roles = [
-            self::ROLE_WORKER_MANAGER,
             self::ROLE_WORKER_STAFF,
-            self::ROLE_WORKER_VIEWER,
         ];
+        // Check for legacy roles as well if needed, but primary check is for current valid worker roles
         foreach ( $worker_roles as $role ) {
             if ( in_array( $role, (array) $user->roles ) ) {
                 return true;
