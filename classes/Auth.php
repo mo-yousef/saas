@@ -177,7 +177,103 @@ class Auth {
         add_action( 'wp_ajax_mobooking_send_invitation', [ $this, 'handle_ajax_send_invitation' ] );
         add_action( 'wp_ajax_mobooking_change_worker_role', [ $this, 'handle_ajax_change_worker_role' ] );
         add_action( 'wp_ajax_mobooking_revoke_worker_access', [ $this, 'handle_ajax_revoke_worker_access' ] );
+        add_action( 'wp_ajax_mobooking_direct_add_staff', [ $this, 'handle_ajax_direct_add_staff' ] );
+        add_action( 'wp_ajax_mobooking_edit_worker_details', [ $this, 'handle_ajax_edit_worker_details' ] );
         // wp_ajax_mobooking_login for logged-in users if needed, but login is for non-logged-in
+    }
+
+    public function handle_ajax_edit_worker_details() {
+        $worker_user_id = isset( $_POST['worker_user_id'] ) ? absint( $_POST['worker_user_id'] ) : 0;
+        check_ajax_referer( 'mobooking_edit_worker_details_nonce_' . $worker_user_id, 'mobooking_edit_details_nonce_field' );
+
+        if ( ! current_user_can( self::CAP_MANAGE_WORKERS ) ) {
+            wp_send_json_error( array( 'message' => __( 'You do not have permission to edit workers.', 'mobooking' ) ) );
+        }
+
+        if ( empty( $worker_user_id ) ) {
+            wp_send_json_error( array( 'message' => __( 'Invalid worker ID.', 'mobooking' ) ) );
+        }
+
+        $current_owner_id = get_current_user_id();
+        $actual_owner_id = get_user_meta( $worker_user_id, self::META_KEY_OWNER_ID, true );
+
+        if ( (int) $actual_owner_id !== $current_owner_id ) {
+            wp_send_json_error( array( 'message' => __( 'You do not have permission to modify this worker or they are not assigned to you.', 'mobooking' ) ) );
+        }
+
+        $first_name = isset( $_POST['edit_first_name'] ) ? sanitize_text_field( $_POST['edit_first_name'] ) : null;
+        $last_name  = isset( $_POST['edit_last_name'] ) ? sanitize_text_field( $_POST['edit_last_name'] ) : null;
+
+        $update_args = array( 'ID' => $worker_user_id );
+        if ( $first_name !== null ) { // Allow empty string to clear name
+            $update_args['first_name'] = $first_name;
+        }
+        if ( $last_name !== null ) { // Allow empty string to clear name
+            $update_args['last_name'] = $last_name;
+        }
+
+        // Only proceed if there's something to update besides ID
+        if (count($update_args) > 1) {
+            $result = wp_update_user( $update_args );
+            if ( is_wp_error( $result ) ) {
+                wp_send_json_error( array( 'message' => $result->get_error_message() ) );
+            } else {
+                wp_send_json_success( array( 'message' => __( 'Worker details updated successfully.', 'mobooking' ) ) );
+            }
+        } else {
+            // Nothing to update, but not an error per se. Could be considered success.
+            wp_send_json_success( array( 'message' => __( 'No changes detected for worker details.', 'mobooking' ) ) );
+        }
+    }
+
+    public function handle_ajax_direct_add_staff() {
+        check_ajax_referer( 'mobooking_direct_add_staff_nonce', 'mobooking_direct_add_staff_nonce_field' );
+
+        if ( ! current_user_can( self::CAP_MANAGE_WORKERS ) ) {
+            wp_send_json_error( array( 'message' => __( 'You do not have permission to add workers.', 'mobooking' ) ) );
+        }
+
+        $email      = isset( $_POST['direct_add_staff_email'] ) ? sanitize_email( $_POST['direct_add_staff_email'] ) : '';
+        $password   = isset( $_POST['direct_add_staff_password'] ) ? $_POST['direct_add_staff_password'] : '';
+        $first_name = isset( $_POST['direct_add_staff_first_name'] ) ? sanitize_text_field( $_POST['direct_add_staff_first_name'] ) : '';
+        $last_name  = isset( $_POST['direct_add_staff_last_name'] ) ? sanitize_text_field( $_POST['direct_add_staff_last_name'] ) : '';
+        $current_user_id = get_current_user_id(); // This is the Business Owner
+
+        if ( empty( $email ) || ! is_email( $email ) ) {
+            wp_send_json_error( array( 'message' => __( 'Please provide a valid email address.', 'mobooking' ) ) );
+        }
+
+        if ( empty( $password ) || strlen( $password ) < 8 ) {
+            wp_send_json_error( array( 'message' => __( 'Password must be at least 8 characters long.', 'mobooking' ) ) );
+        }
+
+        if ( email_exists( $email ) ) {
+            wp_send_json_error( array( 'message' => __( 'This email address is already registered.', 'mobooking' ) ) );
+        }
+        // Using email as username, so email_exists check is sufficient for username_exists.
+
+        $user_data = array(
+            'user_login' => $email,
+            'user_email' => $email,
+            'user_pass'  => $password,
+            'role'       => self::ROLE_WORKER_STAFF,
+            'first_name' => $first_name,
+            'last_name'  => $last_name,
+        );
+
+        $new_user_id = wp_insert_user( $user_data );
+
+        if ( is_wp_error( $new_user_id ) ) {
+            wp_send_json_error( array( 'message' => $new_user_id->get_error_message() ) );
+        }
+
+        // Assign to Business Owner
+        update_user_meta( $new_user_id, self::META_KEY_OWNER_ID, $current_user_id );
+
+        // Optionally, send a welcome email or notification to the new worker
+        // wp_new_user_notification( $new_user_id, null, 'user' ); // 'user' to send to user, 'admin' to admin, 'both' for both
+
+        wp_send_json_success( array( 'message' => __( 'Worker Staff created and assigned successfully.', 'mobooking' ) ) );
     }
 
     public function handle_ajax_change_worker_role() {
