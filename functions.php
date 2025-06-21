@@ -326,6 +326,24 @@ function mobooking_enqueue_dashboard_scripts($current_page_slug) {
         // $currency_thousand_sep = $biz_settings['biz_currency_thousand_sep'];
     }
 
+    // General dashboard params
+    $dashboard_params = [
+        'ajax_url' => admin_url('admin-ajax.php'),
+        'nonce' => wp_create_nonce('mobooking_dashboard_nonce'), // General dashboard nonce
+        'availability_nonce' => wp_create_nonce('mobooking_availability_nonce'),
+        'services_nonce' => wp_create_nonce('mobooking_services_nonce'),
+        // Add other specific nonces here if they are widely used or needed for a base script
+        'currency_code' => $currency_code,
+        'currency_symbol' => $currency_symbol,
+        'currency_position' => $currency_pos,
+        'currency_decimals' => $currency_decimals,
+        'currency_decimal_sep' => $currency_decimal_sep,
+        'currency_thousand_sep' => $currency_thousand_sep,
+        'site_url' => site_url(),
+        'dashboard_slug' => 'dashboard', // Consistent dashboard slug
+    ];
+
+
     // Specific to Services page
     if ($current_page_slug === 'services' || $current_page_slug === 'service-edit') {
         wp_enqueue_script('mobooking-dashboard-services', MOBOOKING_THEME_URI . 'assets/js/dashboard-services.js', array('jquery', 'jquery-ui-sortable'), MOBOOKING_VERSION, true);
@@ -337,17 +355,9 @@ function mobooking_enqueue_dashboard_scripts($current_page_slug) {
             wp_enqueue_style('mobooking-dashboard-service-edit', MOBOOKING_THEME_URI . 'assets/css/dashboard-service-edit.css', array(), MOBOOKING_VERSION);
         }
 
-        wp_localize_script('mobooking-dashboard-services', 'mobooking_services_params', array(
-            'ajax_url' => admin_url('admin-ajax.php'),
-            'nonce' => wp_create_nonce('mobooking_services_nonce'),
-            'currency_code' => $currency_code, // Still useful for other context if needed
-            'currency_symbol' => $currency_symbol,
-            'currency_position' => $currency_pos,
-            'currency_decimals' => $currency_decimals,
-            'currency_decimal_sep' => $currency_decimal_sep,
-            'currency_thousand_sep' => $currency_thousand_sep,
-            'site_url' => site_url(), // Pass site_url for robust redirects
-            'dashboard_slug' => 'dashboard', // Pass dashboard slug
+        $services_params = array_merge($dashboard_params, [
+            // 'nonce' is already general, if services needs specific, it's services_nonce from dashboard_params
+            // 'currency_code', 'currency_symbol', etc. are already in dashboard_params
             'placeholder_image_url' => 'data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%22150%22%20height%3D%22150%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20150%20150%22%20preserveAspectRatio%3D%22none%22%3E%3Cdefs%3E%3Cstyle%20type%3D%22text%2Fcss%22%3E%23holder_17ea872690d%20text%20%7B%20fill%3A%23AAAAAA%3Bfont-weight%3Abold%3Bfont-family%3AArial%2C%20Helvetica%2C%20Open%20Sans%2C%20sans-serif%2C%20monospace%3Bfont-size%3A10pt%20%7D%20%3C%2Fstyle%3E%3C%2Fdefs%3E%3Cg%20id%3D%22holder_17ea872690d%22%3E%3Crect%20width%3D%22150%22%20height%3D%22150%22%20fill%3D%22%23EEEEEE%22%3E%3C%2Frect%3E%3Cg%3E%3Ctext%20x%3D%2250.00303268432617%22%20y%3D%2279.5%22%3E150x150%3C%2Ftext%3E%3C%2Fg%3E%3C%2Fg%3E%3C%2Fsvg%3E', // Fallback data URI
             'i18n' => [
                 'confirm_delete_service' => __('Are you sure you want to delete this service and all its options? This cannot be undone.', 'mobooking'),
@@ -384,7 +394,8 @@ function mobooking_enqueue_dashboard_scripts($current_page_slug) {
                 'inactive' => __('Inactive', 'mobooking'),
 
             ]
-        ));
+        ]);
+        wp_localize_script('mobooking-dashboard-services', 'mobooking_services_params', $services_params);
     }
     
     // Specific to Bookings page
@@ -398,10 +409,8 @@ function mobooking_enqueue_dashboard_scripts($current_page_slug) {
             $booking_statuses_for_js[$status] = ucfirst($status);
         }
 
-        wp_localize_script('mobooking-dashboard-bookings', 'mobooking_bookings_params', array(
-            'ajax_url' => admin_url('admin-ajax.php'),
-            'nonce' => wp_create_nonce('mobooking_dashboard_nonce'),
-            'currency_code' => $currency_code,
+        $bookings_params = array_merge($dashboard_params, [
+            // 'nonce' is already general from dashboard_params
             'statuses' => $booking_statuses_for_js,
             'i18n' => [
                 'loading_bookings' => __('Loading bookings...', 'mobooking'),
@@ -415,15 +424,14 @@ function mobooking_enqueue_dashboard_scripts($current_page_slug) {
                 'error_status_update' => __('Could not update status. Please try again.', 'mobooking'),
                 'error_status_update_ajax' => __('A network error occurred while updating status. Please try again.', 'mobooking'),
             ]
-        ));
+        ]);
+        wp_localize_script('mobooking-dashboard-bookings', 'mobooking_bookings_params', $bookings_params);
     }
 
     // Specific to Areas page
     if ($current_page_slug === 'areas') {
         wp_enqueue_script('mobooking-dashboard-areas', MOBOOKING_THEME_URI . 'assets/js/dashboard-areas.js', array('jquery'), MOBOOKING_VERSION, true);
-        wp_localize_script('mobooking-dashboard-areas', 'mobooking_areas_params', array(
-            'ajax_url' => admin_url('admin-ajax.php'),
-            'nonce' => wp_create_nonce('mobooking_dashboard_nonce'),
+        $areas_params = array_merge($dashboard_params, [
             'i18n' => [
                 'loading' => __('Loading areas...', 'mobooking'),
                 'no_areas' => __('No service areas defined yet.', 'mobooking'),
@@ -434,16 +442,15 @@ function mobooking_enqueue_dashboard_scripts($current_page_slug) {
                 'confirm_delete' => __('Are you sure you want to delete this service area?', 'mobooking'),
                 'error_deleting' => __('Error deleting area.', 'mobooking'),
             ]
-        ));
+        ]);
+        wp_localize_script('mobooking-dashboard-areas', 'mobooking_areas_params', $areas_params);
     }
 
     // Specific to Discounts page
     if ($current_page_slug === 'discounts') {
         wp_enqueue_script('jquery-ui-datepicker');
         wp_enqueue_script('mobooking-dashboard-discounts', MOBOOKING_THEME_URI . 'assets/js/dashboard-discounts.js', array('jquery', 'jquery-ui-datepicker'), MOBOOKING_VERSION, true);
-        wp_localize_script('mobooking-dashboard-discounts', 'mobooking_discounts_params', array(
-            'ajax_url' => admin_url('admin-ajax.php'),
-            'nonce' => wp_create_nonce('mobooking_dashboard_nonce'),
+        $discounts_params = array_merge($dashboard_params, [
             'types' => [
                 'percentage' => __('Percentage', 'mobooking'),
                 'fixed_amount' => __('Fixed Amount', 'mobooking'),
@@ -464,7 +471,8 @@ function mobooking_enqueue_dashboard_scripts($current_page_slug) {
                 'never' => __('Never', 'mobooking'),
                 'unlimited' => __('Unlimited', 'mobooking'),
             ]
-        ));
+        ]);
+        wp_localize_script('mobooking-dashboard-discounts', 'mobooking_discounts_params', $discounts_params);
     }
 
     // Specific to Booking Form Settings page
@@ -477,9 +485,7 @@ function mobooking_enqueue_dashboard_scripts($current_page_slug) {
             MOBOOKING_VERSION,
             true
         );
-        wp_localize_script('mobooking-dashboard-booking-form-settings', 'mobooking_bf_settings_params', array(
-            'ajax_url' => admin_url('admin-ajax.php'),
-            'nonce' => wp_create_nonce('mobooking_dashboard_nonce'),
+        $bf_settings_params = array_merge($dashboard_params, [
             'i18n' => [
                 'saving' => __('Saving...', 'mobooking'),
                 'save_success' => __('Settings saved successfully.', 'mobooking'),
@@ -488,7 +494,8 @@ function mobooking_enqueue_dashboard_scripts($current_page_slug) {
                 'error_ajax' => __('An AJAX error occurred.', 'mobooking'),
                 'invalid_json' => __('Invalid JSON format in Business Hours.', 'mobooking'),
             ]
-        ));
+        ]);
+        wp_localize_script('mobooking-dashboard-booking-form-settings', 'mobooking_bf_settings_params', $bf_settings_params);
     }
 
     // Specific to Business Settings page
@@ -500,9 +507,7 @@ function mobooking_enqueue_dashboard_scripts($current_page_slug) {
             MOBOOKING_VERSION,
             true
         );
-        wp_localize_script('mobooking-dashboard-business-settings', 'mobooking_biz_settings_params', array(
-            'ajax_url' => admin_url('admin-ajax.php'),
-            'nonce' => wp_create_nonce('mobooking_dashboard_nonce'),
+        $biz_settings_params = array_merge($dashboard_params, [
             'i18n' => [
                 'saving' => __('Saving...', 'mobooking'),
                 'save_success' => __('Business settings saved successfully.', 'mobooking'),
@@ -511,29 +516,77 @@ function mobooking_enqueue_dashboard_scripts($current_page_slug) {
                 'error_ajax' => __('An AJAX error occurred.', 'mobooking'),
                 'invalid_json' => __('Business Hours JSON is not valid.', 'mobooking'),
             ]
-        ));
+        ]);
+        wp_localize_script('mobooking-dashboard-business-settings', 'mobooking_biz_settings_params', $biz_settings_params);
     }
 
     // Specific to Overview page (Dashboard)
     if ($current_page_slug === 'overview') {
         wp_enqueue_script('mobooking-dashboard-overview', MOBOOKING_THEME_URI . 'assets/js/dashboard-overview.js', array('jquery'), MOBOOKING_VERSION, true);
-        wp_localize_script('mobooking-dashboard-overview', 'mobooking_overview_params', array(
-            'ajax_url' => admin_url('admin-ajax.php'),
-            'nonce' => wp_create_nonce('mobooking_dashboard_nonce'),
-            'currency_code' => $currency_code,
+        $overview_params = array_merge($dashboard_params, [
             'i18n' => [
                 'loading_data' => __('Loading dashboard data...', 'mobooking'),
                 'error_loading_data' => __('Error loading overview data.', 'mobooking'),
                 'error_ajax' => __('An AJAX error occurred.', 'mobooking'),
             ]
-        ));
+        ]);
+        wp_localize_script('mobooking-dashboard-overview', 'mobooking_overview_params', $overview_params);
+    }
+
+    // Specific to Availability page
+    if ($current_page_slug === 'availability') {
+        wp_enqueue_script('jquery-ui-datepicker'); // For calendar
+        wp_enqueue_script('mobooking-dashboard-availability', MOBOOKING_THEME_URI . 'assets/js/dashboard-availability.js', array('jquery', 'jquery-ui-datepicker'), MOBOOKING_VERSION, true);
+
+        $availability_i18n_strings = [
+            'sunday' => __('Sunday', 'mobooking'),
+            'monday' => __('Monday', 'mobooking'),
+            'tuesday' => __('Tuesday', 'mobooking'),
+            'wednesday' => __('Wednesday', 'mobooking'),
+            'thursday' => __('Thursday', 'mobooking'),
+            'friday' => __('Friday', 'mobooking'),
+            'saturday' => __('Saturday', 'mobooking'),
+            'edit' => __('Edit', 'mobooking'),
+            'delete' => __('Delete', 'mobooking'),
+            'active' => __('Active', 'mobooking'),
+            'inactive' => __('Inactive', 'mobooking'),
+            'unavailable_all_day' => __("Unavailable all day", 'mobooking'),
+            'no_recurring_slots' => __("No recurring slots defined yet.", 'mobooking'),
+            'add_recurring_slot' => __("Add Recurring Slot", 'mobooking'),
+            'edit_recurring_slot' => __("Edit Recurring Slot", 'mobooking'),
+            'error_loading_recurring_schedule' => __("Error loading recurring schedule.", 'mobooking'),
+            'error_loading_recurring_schedule_retry' => __("Could not load schedule. Please try again.", 'mobooking'),
+            'error_ajax' => __("An AJAX error occurred. Please try again.", 'mobooking'),
+            'start_end_time_required' => __("Start and End time are required.", 'mobooking'),
+            'start_time_before_end' => __("Start time must be before end time.", 'mobooking'),
+            'error_saving_slot' => __("Error saving slot.", 'mobooking'),
+            'error_slot_not_found' => __("Slot not found for editing.", 'mobooking'),
+            'error_general' => __("An error occurred.", 'mobooking'),
+            'confirm_delete_slot' => __("Are you sure you want to delete this recurring slot?", 'mobooking'),
+            'error_deleting_slot' => __("Error deleting slot.", 'mobooking'),
+            'manage_override_for' => __("Manage Override for:", 'mobooking'),
+            'selected_date' => __("Selected Date:", 'mobooking'),
+            'day_off' => __("Day Off", 'mobooking'),
+            'custom_availability' => __("Custom Availability", 'mobooking'),
+            'select_date_to_manage' => __('Select a date to manage overrides', 'mobooking'),
+            'error_loading_overrides' => __("Error loading date overrides.", 'mobooking'),
+            'start_end_time_required_override' => __("Start and End time are required for available overrides.", 'mobooking'),
+            'start_time_before_end_override' => __("Start time must be before end time for overrides.", 'mobooking'),
+            'error_saving_override' => __("Error saving override.", 'mobooking'),
+            'confirm_delete_override' => __("Are you sure you want to delete the override for this date?", 'mobooking'),
+            'error_no_override_to_delete' => __("No override selected to delete.", 'mobooking'),
+            'error_deleting_override' => __("Error deleting override.", 'mobooking'),
+        ];
+        $availability_params = array_merge($dashboard_params, ['i18n' => $availability_i18n_strings]);
+        wp_localize_script('mobooking-dashboard-availability', 'mobooking_availability_params', $availability_params);
+        // The JS side should refer to these as mobooking_availability_params.i18n.string_key
+        // So, I will update the JS to use mobooking_availability_params.i18n instead of mobooking_t
     }
 
     // Specific to Workers page
     if ($current_page_slug === 'workers') {
         wp_enqueue_script('mobooking-dashboard-workers', MOBOOKING_THEME_URI . 'assets/js/dashboard-workers.js', array('jquery'), MOBOOKING_VERSION, true);
-        wp_localize_script('mobooking-dashboard-workers', 'mobooking_workers_params', array(
-            'ajax_url' => admin_url('admin-ajax.php'),
+        $workers_params = array_merge($dashboard_params, [
             'i18n' => array(
                 'error_occurred' => esc_js(__( 'An error occurred.', 'mobooking')),
                 'error_unexpected' => esc_js(__( 'An unexpected error occurred. Please try again.', 'mobooking')),
@@ -545,7 +598,8 @@ function mobooking_enqueue_dashboard_scripts($current_page_slug) {
                 'error_server' => esc_js(__( 'An unexpected server error occurred. Please try again.', 'mobooking')),
                 'saving' => esc_js(__( 'Saving...', 'mobooking')),
             )
-        ));
+        ]);
+        wp_localize_script('mobooking-dashboard-workers', 'mobooking_workers_params', $workers_params);
     }
 }
 
@@ -626,6 +680,14 @@ if (class_exists('MoBooking\Classes\Bookings') &&
         $GLOBALS['mobooking_bookings_manager']->register_ajax_actions();
     }
 }
+// Initialize Availability Manager and register its AJAX actions
+if (class_exists('MoBooking\Classes\Availability')) {
+    if (!isset($GLOBALS['mobooking_availability_manager'])) {
+        $GLOBALS['mobooking_availability_manager'] = new MoBooking\Classes\Availability();
+        $GLOBALS['mobooking_availability_manager']->register_ajax_actions();
+    }
+}
+
 
 // Register Admin Pages
 if ( class_exists( 'MoBooking\Classes\Admin\UserManagementPage' ) ) {
@@ -794,6 +856,7 @@ function mobooking_get_dashboard_menu_icon(string $key): string {
             'services' => '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path><rect width="20" height="14" x="2" y="6" rx="2"></rect></svg>',
             'discounts' => '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"></path><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"></circle></svg>',
             // 'clients' icon from HTML uses 'lucide-users'. The sidebar.php doesn't have a 'Clients' link.
+            'availability' => '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4"></path><path d="M16 2v4"></path><rect width="18" height="18" x="3" y="4" rx="2"></rect><path d="M3 10h18"></path><path d="M8 14h.01"></path><path d="M12 14h.01"></path><path d="M16 14h.01"></path><path d="M8 18h.01"></path><path d="M12 18h.01"></path><path d="M16 18h.01"></path></svg>', // Calendar icon
             // 'my_profile' icon from HTML also uses 'lucide-users'. There isn't a 'My Profile' link in sidebar.php, but 'Settings' might cover it.
             'areas' => '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z"></path><path d="M15 5.764v15"></path><path d="M9 3.236v15"></path></svg>',
             'workers' => '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>', // Using the 'lucide-users' icon for Workers as it's staff related.
