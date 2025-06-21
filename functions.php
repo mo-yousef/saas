@@ -644,7 +644,7 @@ function mobooking_ensure_worker_roles_exist() {
             MoBooking\Classes\Auth::add_worker_roles();
             add_action('admin_notices', function() {
                 echo '<div class="notice notice-success is-dismissible"><p>' .
-                     esc_html__('MoBooking: One or more worker user roles (Manager, Staff, Viewer) were missing and have been successfully re-created. Please refresh if you were assigning roles.', 'mobooking') .
+                     esc_html__('MoBooking: The "Worker Staff" user role was missing and has been successfully re-created. Please refresh if you were assigning roles.', 'mobooking') .
                      '</p></div>';
             });
         }

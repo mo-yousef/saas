@@ -16,9 +16,7 @@ $current_user_id = get_current_user_id();
 
 // Define worker roles for the dropdowns
 $all_worker_roles = [
-    \MoBooking\Classes\Auth::ROLE_WORKER_MANAGER => __( 'Manager', 'mobooking' ),
     \MoBooking\Classes\Auth::ROLE_WORKER_STAFF   => __( 'Staff', 'mobooking' ),
-    \MoBooking\Classes\Auth::ROLE_WORKER_VIEWER  => __( 'Viewer', 'mobooking' ),
 ];
 
 ?>
@@ -72,7 +70,7 @@ $all_worker_roles = [
                 </tr>
             </tbody>
         </table>
-        <?php submit_button( __( 'Send Invitation', 'mobooking' ) ); ?>
+        <input type="submit" name="submit_invite" id="submit_invite" class="button button-primary" value="<?php echo esc_attr__( 'Send Invitation', 'mobooking' ); ?>">
     </form>
 
     <hr style="margin-top: 2em; margin-bottom: 2em;">
@@ -119,7 +117,7 @@ $all_worker_roles = [
                 </tr>
             </tbody>
         </table>
-        <?php submit_button( __( 'Create and Add Worker Staff', 'mobooking' ) ); ?>
+        <input type="submit" name="submit_direct_add" id="submit_direct_add" class="button button-primary" value="<?php echo esc_attr__( 'Create and Add Worker Staff', 'mobooking' ); ?>">
     </form>
 
     <hr>
@@ -146,15 +144,20 @@ $all_worker_roles = [
             <tbody>
                 <?php foreach ( $workers as $worker ) : ?>
                     <?php
-                    $worker_mobooking_roles_display = [];
-                    $current_worker_role_key = '';
-                    foreach($all_worker_roles as $role_key => $role_name) {
-                        if (in_array($role_key, $worker->roles)) {
-                            $worker_mobooking_roles_display[] = $role_name;
-                            if (empty($current_worker_role_key)) { // Capture the first MoBooking role as current
-                                $current_worker_role_key = $role_key;
-                            }
-                        }
+                    <?php
+                    // $worker_mobooking_roles_display = []; // Keep for potential future if multiple roles come back
+                    $current_worker_role_name = __('N/A', 'mobooking');
+                    $current_worker_role_key = ''; // Keep this to ensure 'Staff' is selected in dropdown if they have it.
+
+                    // Since we only have one worker role (Staff), this logic simplifies.
+                    // We primarily want to display 'Staff' if they have that role.
+                    if (in_array(\MoBooking\Classes\Auth::ROLE_WORKER_STAFF, $worker->roles)) {
+                        $current_worker_role_name = $all_worker_roles[\MoBooking\Classes\Auth::ROLE_WORKER_STAFF];
+                        $current_worker_role_key = \MoBooking\Classes\Auth::ROLE_WORKER_STAFF;
+                    } else {
+                        // If they have other WP roles but not staff, or no roles.
+                        // This part of the display might need more thought if users can have non-MoBooking roles simultaneously.
+                        // For now, if not explicitly staff, mark as N/A for MoBooking role.
                     }
                     ?>
                     <tr id="worker-row-<?php echo esc_attr( $worker->ID ); ?>">
@@ -162,18 +165,22 @@ $all_worker_roles = [
                         <td class="worker-first-name-display"><?php echo esc_html( $worker->first_name ); ?></td>
                         <td class="worker-last-name-display"><?php echo esc_html( $worker->last_name ); ?></td>
                         <td class="worker-role-display">
-                            <?php echo esc_html( !empty($worker_mobooking_roles_display) ? implode(', ', $worker_mobooking_roles_display) : 'N/A' ); ?>
+                            <?php echo esc_html( $current_worker_role_name ); ?>
                         </td>
                         <td>
                             <button type="button" class="button button-small mobooking-edit-worker-details-btn" data-worker-id="<?php echo esc_attr( $worker->ID ); ?>">
                                 <?php esc_html_e( 'Edit Info', 'mobooking' ); ?>
                             </button>
 
+                            <?php // The Change Role form is less useful if there's only one target role (Staff).
+                                  // However, it can serve as a "Re-affirm Staff Role" if a worker somehow lost it or to ensure capabilities are set.
+                                  // For now, we keep it but it will only show "Staff" as the option.
+                            ?>
                             <form class="mobooking-change-role-form" style="display: inline-block; margin-left: 5px;">
                                 <?php wp_nonce_field( 'mobooking_change_worker_role_nonce_' . $worker->ID, 'mobooking_change_role_nonce' ); ?>
                                 <input type="hidden" name="action" value="mobooking_change_worker_role">
                                 <input type="hidden" name="worker_user_id" value="<?php echo esc_attr( $worker->ID ); ?>">
-                                <select name="new_role" class="mobooking-role-select">
+                                <select name="new_role" class="mobooking-role-select" title="<?php esc_attr_e('Change worker role', 'mobooking'); ?>">
                                     <?php foreach ( $all_worker_roles as $role_key_option => $role_name_option ) : ?>
                                         <option value="<?php echo esc_attr( $role_key_option ); ?>" <?php selected( $current_worker_role_key, $role_key_option ); ?>>
                                             <?php echo esc_html( $role_name_option ); ?>
@@ -181,7 +188,8 @@ $all_worker_roles = [
                                     <?php endforeach; ?>
                                 </select>
                                 <button type="submit" class="button button-secondary button-small mobooking-change-role-submit-btn">
-                                    <?php esc_html_e( 'Change Role', 'mobooking' ); ?>
+                                    <?php esc_html_e( 'Set Role', 'mobooking' ); // Changed from "Change Role"
+                                    ?>
                                 </button>
                             </form>
 
