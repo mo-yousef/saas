@@ -16,9 +16,7 @@ if ( $current_user_id > 0 ) {
     if ( $user ) {
         $mobooking_role_keys = [
             \MoBooking\Classes\Auth::ROLE_BUSINESS_OWNER,
-            \MoBooking\Classes\Auth::ROLE_WORKER_MANAGER,
             \MoBooking\Classes\Auth::ROLE_WORKER_STAFF,
-            \MoBooking\Classes\Auth::ROLE_WORKER_VIEWER,
         ];
 
         $all_roles = wp_roles(); // Get all role objects, which include names
