@@ -82,6 +82,11 @@ jQuery(document).ready(function($) {
             if (response.success) {
                 showFeedback(response.data.message, true);
                 $form[0].reset();
+                // Reload the page to show the new worker in the list and clear state.
+                // The feedback message will be visible for a short duration due to showFeedback's delay().
+                setTimeout(function() {
+                    location.reload();
+                }, 1000); // Add a slight delay to ensure feedback is seen, adjust as needed.
             } else {
                 showFeedback(response.data.message || mobooking_workers_params.i18n.error_occurred, false);
             }
