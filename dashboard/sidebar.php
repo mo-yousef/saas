@@ -11,6 +11,19 @@ $dashboard_base_url = home_url('/dashboard/');
 $user_mobooking_role_display_name = '';
 $current_user_id = get_current_user_id();
 
+// Determine the display brand name
+$display_brand_name = esc_html__('MoBooking', 'mobooking'); // Default brand name
+if ($current_user_id > 0 && isset($GLOBALS['mobooking_settings_manager']) && class_exists('MoBooking\Classes\Settings')) {
+    // Ensure get_setting method and BUSINESS_NAME_KEY constant exist before calling
+    if (method_exists($GLOBALS['mobooking_settings_manager'], 'get_setting') && defined('MoBooking\Classes\Settings::BUSINESS_NAME_KEY')) {
+        $business_name_setting = $GLOBALS['mobooking_settings_manager']->get_setting($current_user_id, \MoBooking\Classes\Settings::BUSINESS_NAME_KEY, '');
+        if (!empty(trim($business_name_setting))) {
+            $display_brand_name = esc_html(trim($business_name_setting));
+        }
+    }
+}
+
+
 if ( $current_user_id > 0 ) {
     $user = get_userdata( $current_user_id );
     if ( $user ) {
@@ -35,7 +48,7 @@ if ( $current_user_id > 0 ) {
 <aside class="mobooking-dashboard-sidebar">
     <div class="dashboard-branding">
         <a href="<?php echo esc_url($dashboard_base_url); ?>">
-            <h3><?php esc_html_e('MoBooking', 'mobooking'); ?></h3>
+            <h3><?php echo $display_brand_name; ?></h3>
         </a>
     </div>
 
