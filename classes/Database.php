@@ -205,6 +205,77 @@ class Database {
         error_log('[MoBooking DB Debug] SQL for service_areas table: ' . preg_replace('/\s+/', ' ', $sql_service_areas));
         $dbDelta_results['service_areas'] = dbDelta( $sql_service_areas );
 
+        // Availability Slots Table (Recurring)
+        $table_name_slots = self::get_table_name('availability_slots');
+        error_log('[MoBooking DB Debug] Preparing SQL for availability_slots table: ' . $table_name_slots);
+        $sql_availability_slots = "CREATE TABLE $table_name_slots (
+            slot_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+            user_id BIGINT UNSIGNED NOT NULL,
+            day_of_week TINYINT UNSIGNED NOT NULL COMMENT '0 for Sunday, 1 for Monday, ..., 6 for Saturday',
+            start_time TIME NOT NULL,
+            end_time TIME NOT NULL,
+            capacity INT UNSIGNED NOT NULL DEFAULT 1 COMMENT 'Number of concurrent bookings allowed',
+            is_active BOOLEAN NOT NULL DEFAULT 1,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            PRIMARY KEY (slot_id),
+            INDEX user_id_day_idx (user_id, day_of_week),
+            CONSTRAINT check_day_of_week CHECK (day_of_week BETWEEN 0 AND 6)
+        ) $charset_collate;";
+        error_log('[MoBooking DB Debug] SQL for availability_slots table: ' . preg_replace('/\s+/', ' ', $sql_availability_slots));
+        $dbDelta_results['availability_slots'] = dbDelta( $sql_availability_slots );
+
+        // Availability Overrides Table (Specific Dates)
+        $table_name_overrides = self::get_table_name('availability_overrides');
+        error_log('[MoBooking DB Debug] Preparing SQL for availability_overrides table: ' . $table_name_overrides);
+        $sql_availability_overrides = "CREATE TABLE $table_name_overrides (
+            override_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+            user_id BIGINT UNSIGNED NOT NULL,
+            override_date DATE NOT NULL,
+            start_time TIME,
+            end_time TIME,
+            capacity INT UNSIGNED DEFAULT 1,
+            is_unavailable BOOLEAN NOT NULL DEFAULT 0 COMMENT 'If true, this whole day (or specific time range if start/end provided) is off',
+            notes TEXT,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            PRIMARY KEY (override_id),
+            UNIQUE KEY user_date_unique (user_id, override_date, start_time, end_time)
+        ) $charset_collate;";
+        // Note: The UNIQUE KEY on user_date_unique might be too restrictive if multiple distinct override slots are allowed on the same day.
+        // For now, it assumes an override is for the whole day (is_unavailable=true) or one specific slot if start/end are given.
+        // If multiple custom slots are needed for a single override day, this key needs adjustment or the table structure needs rethinking (e.g., a separate table for override slots).
+        // For the initial plan (one override definition per day, or marking day off), this unique key is okay.
+        // Let's adjust the unique key to be more flexible: a user can have multiple overrides on the same date IF they have different start/end times (or one is null for full day).
+        // To simplify, let's assume for now an override either makes the whole day unavailable OR defines a single available block for that day.
+        // A more robust solution might involve removing start_time/end_time from the override and linking to a new table `mobooking_override_slots` if a date has custom slots.
+        // For now, let's keep it simple: an override can define a single slot OR mark the day unavailable.
+        // The unique key should probably be `user_id` and `override_date` if we only allow one "override instruction" per day.
+        // Let's refine the unique key to `user_id, override_date` and handle logic in PHP if multiple slots are needed for an override day (e.g. by creating multiple override entries if that's the design).
+        // For simplicity of initial implementation: one override entry per date. If it's not `is_unavailable`, then `start_time` and `end_time` define the single available block for that day.
+        // Removing the start_time, end_time from unique key to allow a day to be marked unavailable, and also have specific slots (though that's a conflict, business logic must handle).
+        // Let's stick to: an override is EITHER "day off" OR "this is the new schedule for the day".
+        // So a unique key on (user_id, override_date) is appropriate. If start_time/end_time are NULL and is_unavailable=1, it's a day off.
+        // If start_time/end_time are NOT NULL and is_unavailable=0, it's a custom slot.
+        // It doesn't make sense to have is_unavailable=1 AND specific times. This will be handled by application logic.
+        $sql_availability_overrides = "CREATE TABLE $table_name_overrides (
+            override_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+            user_id BIGINT UNSIGNED NOT NULL,
+            override_date DATE NOT NULL,
+            start_time TIME NULL, -- Null if is_unavailable is true for the whole day
+            end_time TIME NULL,   -- Null if is_unavailable is true for the whole day
+            capacity INT UNSIGNED DEFAULT 1, -- Relevant if not is_unavailable
+            is_unavailable BOOLEAN NOT NULL DEFAULT 0 COMMENT 'True if this date is entirely unavailable, ignoring start/end time',
+            notes TEXT,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            PRIMARY KEY (override_id),
+            UNIQUE KEY user_override_date_unique (user_id, override_date) -- One override rule per day per user
+        ) $charset_collate;";
+        error_log('[MoBooking DB Debug] SQL for availability_overrides table: ' . preg_replace('/\s+/', ' ', $sql_availability_overrides));
+        $dbDelta_results['availability_overrides'] = dbDelta( $sql_availability_overrides );
+
+
         error_log('[MoBooking DB Debug] dbDelta execution results: ' . print_r($dbDelta_results, true));
         error_log('[MoBooking DB Debug] Custom tables creation/update attempt finished.');
     }
