@@ -75,20 +75,46 @@ class Bookings {
 
     public function handle_get_dashboard_overview_data_ajax() {
         check_ajax_referer('mobooking_dashboard_nonce', 'nonce');
-        $user_id = get_current_user_id();
-        if (!$user_id) { wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403); return; }
+        $current_user_id = get_current_user_id();
+        if (!$current_user_id) {
+            wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403);
+            return;
+        }
 
-        $kpis = $this->get_kpi_data($user_id);
+        $data_user_id = $current_user_id; // User ID to fetch data for (owner or current user)
+        $is_worker = false;
+
+        if (class_exists('MoBooking\Classes\Auth') && \MoBooking\Classes\Auth::is_user_worker($current_user_id)) {
+            $is_worker = true;
+            $owner_id = \MoBooking\Classes\Auth::get_business_owner_id_for_worker($current_user_id);
+            if ($owner_id) {
+                $data_user_id = $owner_id;
+            } else {
+                // Worker not associated with an owner, send minimal/empty data
+                wp_send_json_success([
+                    'kpis' => ['bookings_month' => 0, 'revenue_month' => null, 'upcoming_count' => 0],
+                    'recent_bookings' => []
+                ]);
+                return;
+            }
+        }
+
+        $kpis = $this->get_kpi_data($data_user_id);
+
+        // If the user is a worker, remove revenue KPI
+        if ($is_worker) {
+            $kpis['revenue_month'] = null; // Or unset($kpis['revenue_month']);
+        }
 
         $recent_bookings_args = [
             'limit' => 5,
             'orderby' => 'booking_date',
             'order' => 'ASC', // Show nearest upcoming first
-            // Fetching statuses that are "active" or need attention
             'status' => ['pending', 'confirmed', 'on-hold', 'processing'],
             'date_from' => current_time('Y-m-d') // From today onwards
         ];
-        $recent_bookings_data = $this->get_bookings_by_tenant($user_id, $recent_bookings_args);
+        // Recent bookings should also be fetched based on the $data_user_id (owner's ID for workers)
+        $recent_bookings_data = $this->get_bookings_by_tenant($data_user_id, $recent_bookings_args);
 
         wp_send_json_success([
             'kpis' => $kpis,

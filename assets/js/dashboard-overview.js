@@ -43,9 +43,21 @@ jQuery(document).ready(function($) {
                     if (response.data.kpis) {
                         const currencyCode = mobooking_overview_params.currency_code || 'USD';
                         kpiBookingsMonthEl.text(response.data.kpis.bookings_month || '0');
-                        const revenue = parseFloat(response.data.kpis.revenue_month) || 0;
-                        kpiRevenueMonthEl.text(currencyCode + ' ' + revenue.toFixed(2));
                         kpiUpcomingCountEl.text(response.data.kpis.upcoming_count || '0');
+
+                        // Conditionally display Revenue KPI
+                        if (response.data.kpis.revenue_month !== null && typeof response.data.kpis.revenue_month !== 'undefined') {
+                            const revenue = parseFloat(response.data.kpis.revenue_month) || 0;
+                            kpiRevenueMonthEl.text(currencyCode + ' ' + revenue.toFixed(2));
+                            kpiRevenueMonthEl.closest('.kpi-box').show(); // Ensure the parent box is visible
+                        } else {
+                            kpiRevenueMonthEl.closest('.kpi-box').hide(); // Hide the parent box if revenue is null
+                        }
+                    } else {
+                        // If no KPI data at all, hide all KPI related elements or show N/A
+                        kpiBookingsMonthEl.text('N/A');
+                        kpiRevenueMonthEl.closest('.kpi-box').hide();
+                        kpiUpcomingCountEl.text('N/A');
                     }
 
                     // Populate Recent Bookings

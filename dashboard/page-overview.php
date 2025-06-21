@@ -37,13 +37,37 @@ $user = wp_get_current_user();
         <div id="mobooking-overview-quick-actions-section" style="flex:1; min-width:200px; background:#fff; padding:20px; border:1px solid #ddd; border-radius:4px; box-shadow: 0 1px 1px rgba(0,0,0,.04);">
             <h3 style="border-bottom:1px solid #eee; padding-bottom:10px; margin-top:0;"><?php esc_html_e('Quick Actions', 'mobooking'); ?></h3>
             <ul style="list-style:none; padding-left:0;">
-                <li style="margin-bottom:10px;"><a href="<?php echo esc_url(home_url('/dashboard/bookings/')); ?>" class="button button-secondary button-large" style="width:100%; text-align:center;"><?php esc_html_e('View All Bookings', 'mobooking'); ?></a></li>
-                <li style="margin-bottom:10px;"><a href="<?php echo esc_url(home_url('/dashboard/services/')); ?>" class="button button-secondary button-large" style="width:100%; text-align:center;"><?php esc_html_e('Manage Services', 'mobooking'); ?></a></li>
-                <li style="margin-bottom:10px;"><a href="<?php echo esc_url(home_url('/dashboard/discounts/')); ?>" class="button button-secondary button-large" style="width:100%; text-align:center;"><?php esc_html_e('Manage Discounts', 'mobooking'); ?></a></li>
-                 <li style="margin-bottom:10px;"><a href="<?php echo esc_url(home_url('/dashboard/areas/')); ?>" class="button button-secondary button-large" style="width:100%; text-align:center;"><?php esc_html_e('Service Areas', 'mobooking'); ?></a></li>
-                <hr>
-                <li style="margin-bottom:10px; margin-top:15px;"><a href="<?php echo esc_url(home_url('/dashboard/booking-form/')); ?>" class="button button-secondary button-large" style="width:100%; text-align:center;"><?php esc_html_e('Booking Form Settings', 'mobooking'); ?></a></li>
-                <li style="margin-bottom:10px;"><a href="<?php echo esc_url(home_url('/dashboard/settings/')); ?>" class="button button-secondary button-large" style="width:100%; text-align:center;"><?php esc_html_e('Business Settings', 'mobooking'); ?></a></li>
+                <?php
+                // Common actions for all roles with dashboard access
+                if (current_user_can(\MoBooking\Classes\Auth::CAP_VIEW_BOOKINGS) || current_user_can(\MoBooking\Classes\Auth::CAP_MANAGE_BOOKINGS)) : ?>
+                    <li style="margin-bottom:10px;"><a href="<?php echo esc_url(home_url('/dashboard/bookings/')); ?>" class="button button-secondary button-large" style="width:100%; text-align:center;"><?php esc_html_e('View All Bookings', 'mobooking'); ?></a></li>
+                <?php endif; ?>
+
+                <?php if (current_user_can(\MoBooking\Classes\Auth::CAP_VIEW_SERVICES) || current_user_can(\MoBooking\Classes\Auth::CAP_MANAGE_SERVICES)) : ?>
+                    <li style="margin-bottom:10px;"><a href="<?php echo esc_url(home_url('/dashboard/services/')); ?>" class="button button-secondary button-large" style="width:100%; text-align:center;"><?php esc_html_e('Manage Services', 'mobooking'); ?></a></li>
+                <?php endif; ?>
+
+                <?php
+                // Actions typically for Business Owners or those with higher privileges
+                if (current_user_can(\MoBooking\Classes\Auth::CAP_MANAGE_DISCOUNTS)) : ?>
+                    <li style="margin-bottom:10px;"><a href="<?php echo esc_url(home_url('/dashboard/discounts/')); ?>" class="button button-secondary button-large" style="width:100%; text-align:center;"><?php esc_html_e('Manage Discounts', 'mobooking'); ?></a></li>
+                <?php endif; ?>
+
+                <?php if (current_user_can(\MoBooking\Classes\Auth::CAP_MANAGE_AREAS)) : ?>
+                    <li style="margin-bottom:10px;"><a href="<?php echo esc_url(home_url('/dashboard/areas/')); ?>" class="button button-secondary button-large" style="width:100%; text-align:center;"><?php esc_html_e('Service Areas', 'mobooking'); ?></a></li>
+                <?php endif; ?>
+
+                <?php if (current_user_can(\MoBooking\Classes\Auth::CAP_MANAGE_BOOKING_FORM) || current_user_can(\MoBooking\Classes\Auth::CAP_MANAGE_BUSINESS_SETTINGS)) : ?>
+                    <hr>
+                <?php endif; ?>
+
+                <?php if (current_user_can(\MoBooking\Classes\Auth::CAP_MANAGE_BOOKING_FORM)) : ?>
+                    <li style="margin-bottom:10px; margin-top:15px;"><a href="<?php echo esc_url(home_url('/dashboard/booking-form/')); ?>" class="button button-secondary button-large" style="width:100%; text-align:center;"><?php esc_html_e('Booking Form Settings', 'mobooking'); ?></a></li>
+                <?php endif; ?>
+
+                <?php if (current_user_can(\MoBooking\Classes\Auth::CAP_MANAGE_BUSINESS_SETTINGS)) : ?>
+                    <li style="margin-bottom:10px;"><a href="<?php echo esc_url(home_url('/dashboard/settings/')); ?>" class="button button-secondary button-large" style="width:100%; text-align:center;"><?php esc_html_e('Business Settings', 'mobooking'); ?></a></li>
+                <?php endif; ?>
             </ul>
         </div>
     </div>
