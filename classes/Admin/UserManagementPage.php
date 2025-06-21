@@ -79,12 +79,16 @@ class UserManagementPage {
                 if ( $user ) {
                     // Define all MoBooking role slugs to ensure only these are processed.
                     $all_mobooking_role_slugs_for_processing = [
-                        $auth_class::ROLE_BUSINESS_OWNER, $auth_class::ROLE_WORKER_MANAGER,
-                        $auth_class::ROLE_WORKER_STAFF, $auth_class::ROLE_WORKER_VIEWER,
+                        $auth_class::ROLE_BUSINESS_OWNER,
+                        $auth_class::ROLE_WORKER_STAFF,
                     ];
+                    // Add legacy roles to ensure they are cleaned up if present
+                    $legacy_roles_to_remove = ['mobooking_worker_manager', 'mobooking_worker_viewer'];
+                    $roles_to_iterate_for_removal = array_unique(array_merge($all_mobooking_role_slugs_for_processing, $legacy_roles_to_remove));
+
 
                     // Remove all existing MoBooking roles from the user before adding the new one.
-                    foreach ( $all_mobooking_role_slugs_for_processing as $role_slug_to_remove ) {
+                    foreach ( $roles_to_iterate_for_removal as $role_slug_to_remove ) {
                         if ( in_array( $role_slug_to_remove, $user->roles, true ) ) {
                             $user->remove_role( $role_slug_to_remove );
                         }
@@ -95,7 +99,7 @@ class UserManagementPage {
                         delete_user_meta( $target_user_id, $auth_class::META_KEY_OWNER_ID ); // Also remove worker owner assignment.
                         if ( empty( $user->roles ) ) { $user->set_role( 'subscriber' ); } // If no roles left, set to default WordPress subscriber.
                         add_action( 'admin_notices', function() { echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'MoBooking roles removed successfully.', 'mobooking' ) . '</p></div>'; });
-                    } elseif ( in_array( $new_role_key, $all_mobooking_role_slugs_for_processing, true ) ) {
+                    } elseif ( in_array( $new_role_key, $all_mobooking_role_slugs_for_processing, true ) ) { // Ensure new role is one of the current valid MoBooking roles
                         // If a specific MoBooking role was selected, add it.
                         $user->add_role( $new_role_key );
                         // If the new role is Business Owner, ensure they are not marked as a worker for anyone.
@@ -130,7 +134,8 @@ class UserManagementPage {
                 $worker_user = get_userdata( $target_worker_user_id );
                 if ( $worker_user ) {
                     $is_actually_worker = false;
-                    $worker_role_slugs = [$auth_class::ROLE_WORKER_MANAGER, $auth_class::ROLE_WORKER_STAFF, $auth_class::ROLE_WORKER_VIEWER];
+                    // Only ROLE_WORKER_STAFF is a valid worker role now
+                    $worker_role_slugs = [$auth_class::ROLE_WORKER_STAFF];
                     foreach ( $worker_role_slugs as $w_slug ) {
                         if ( in_array( $w_slug, $worker_user->roles ) ) {
                             $is_actually_worker = true;
@@ -140,7 +145,7 @@ class UserManagementPage {
 
                     if ( ! $is_actually_worker && $new_owner_id_input !== '0' && $new_owner_id_input !== '' ) {
                         add_action( 'admin_notices', function () use ( $worker_user ) {
-                            echo '<div class="notice notice-error is-dismissible"><p>' . sprintf( esc_html__( 'User %s must have a MoBooking worker role (Manager, Staff, or Viewer) to be assigned a Business Owner. Please assign a worker role first.', 'mobooking' ), esc_html( $worker_user->user_email ) ) . '</p></div>';
+                            echo '<div class="notice notice-error is-dismissible"><p>' . sprintf( esc_html__( 'User %s must have the MoBooking Worker Staff role to be assigned a Business Owner. Please assign the Worker Staff role first.', 'mobooking' ), esc_html( $worker_user->user_email ) ) . '</p></div>';
                         } );
                     } else {
                         if ( $new_owner_id_input === '0' || $new_owner_id_input === '' ) {
@@ -270,14 +275,14 @@ class UserManagementPage {
 
             <h2><?php _e( 'User Hierarchy', 'mobooking' ); ?></h2>
             <?php
+            // Define roles for display and logic, now simplified
             $all_mobooking_roles_display = [
                 $auth_class::ROLE_BUSINESS_OWNER => __( 'Business Owner', 'mobooking' ),
-                $auth_class::ROLE_WORKER_MANAGER => __( 'Worker Manager', 'mobooking' ),
                 $auth_class::ROLE_WORKER_STAFF   => __( 'Worker Staff', 'mobooking' ),
-                $auth_class::ROLE_WORKER_VIEWER  => __( 'Worker Viewer', 'mobooking' ),
             ];
+            // This variable might be used by JS or other parts if they specifically need to know what constitutes a "worker"
             $worker_role_slugs_only = [
-                $auth_class::ROLE_WORKER_MANAGER, $auth_class::ROLE_WORKER_STAFF, $auth_class::ROLE_WORKER_VIEWER,
+                $auth_class::ROLE_WORKER_STAFF,
             ];
 
             $business_owners_args = ['role__in' => [$auth_class::ROLE_BUSINESS_OWNER], 'orderby' => 'ID', 'order' => 'ASC'];
