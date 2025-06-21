@@ -301,6 +301,10 @@ add_filter( 'template_include', 'mobooking_dashboard_template_include', 99 );
 
 // New function to handle dashboard script enqueuing
 function mobooking_enqueue_dashboard_scripts($current_page_slug) {
+    // Ensure jQuery is always available for dashboard pages that might use it directly
+    // or have inline scripts depending on it (like page-workers.php).
+    wp_enqueue_script('jquery');
+
     $user_id = get_current_user_id();
     $currency_code = 'USD'; // Default
     $currency_symbol = '$';
