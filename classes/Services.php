@@ -98,7 +98,7 @@ class Services {
                 'description' => wp_kses_post($service_data['description']),
                 'price' => floatval($service_data['price']),
                 'duration' => intval($service_data['duration']),
-                'category' => sanitize_text_field($service_data['category']),
+                'category' => isset($service_data['category']) ? sanitize_text_field($service_data['category']) : '', // Default to empty string if not set
                 'icon' => sanitize_text_field($service_data['icon']),
                 'image_url' => esc_url_raw($service_data['image_url']),
                 'status' => sanitize_text_field($service_data['status']),
@@ -238,6 +238,11 @@ class Services {
         if (isset($data['description'])) { $update_data['description'] = wp_kses_post($data['description']); $update_formats[] = '%s'; }
         if (isset($data['price'])) { $update_data['price'] = floatval($data['price']); $update_formats[] = '%f'; }
         if (isset($data['duration'])) { $update_data['duration'] = intval($data['duration']); $update_formats[] = '%d'; }
+        // Add category handling for update_service
+        if (array_key_exists('category', $data)) { // Use array_key_exists to allow setting category to null or empty string
+            $update_data['category'] = is_null($data['category']) ? null : sanitize_text_field($data['category']);
+            $update_formats[] = '%s';
+        }
         if (isset($data['icon'])) { $update_data['icon'] = sanitize_text_field($data['icon']); $update_formats[] = '%s'; }
         if (isset($data['image_url'])) { $update_data['image_url'] = esc_url_raw($data['image_url']); $update_formats[] = '%s'; }
         if (isset($data['status'])) { $update_data['status'] = sanitize_text_field($data['status']); $update_formats[] = '%s'; }
@@ -822,6 +827,8 @@ class Services {
             'description' => wp_kses_post(isset($_POST['description']) ? $_POST['description'] : ''),
         'price' => floatval($price_from_post),
         'duration' => intval($duration_from_post),
+        // Add category to the data prepared for save/update methods
+        'category' => isset($_POST['category']) ? sanitize_text_field($_POST['category']) : '', // Default to empty string if not set, for consistency
         'icon' => !empty($icon_from_post) ? sanitize_text_field($icon_from_post) : null,
         'image_url' => !empty($image_url_from_post) ? esc_url_raw($image_url_from_post) : null,
             'status' => sanitize_text_field(isset($_POST['status']) ? $_POST['status'] : 'active'),
