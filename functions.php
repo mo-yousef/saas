@@ -628,9 +628,7 @@ add_action( 'init', 'mobooking_ensure_business_owner_role_exists' );
 function mobooking_ensure_worker_roles_exist() {
     if (class_exists('MoBooking\Classes\Auth')) {
         $roles_to_check = array(
-            MoBooking\Classes\Auth::ROLE_WORKER_MANAGER,
-            MoBooking\Classes\Auth::ROLE_WORKER_STAFF,
-            MoBooking\Classes\Auth::ROLE_WORKER_VIEWER
+            MoBooking\Classes\Auth::ROLE_WORKER_STAFF
         );
         $missing_roles = false;
         foreach ($roles_to_check as $role_name) {
