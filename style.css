@@ -13,22 +13,22 @@ Tags: booking, services, business, multi-tenant
 
 /* Remove all focus outlines */
 *:focus {
-    outline: none;
+  outline: none;
 }
 
 /* Global Resets and Base Styles */
 html,
 body {
-    margin: 0;
-    padding: 0;
-    height: 100%;
-    box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  box-sizing: border-box;
 }
 
 *,
 *::before,
 *::after {
-    box-sizing: inherit;
+  box-sizing: inherit;
 }
 
 /*--------------------------------------------------------------
@@ -48,20 +48,21 @@ body {
 1.0 General Body & Typography
 --------------------------------------------------------------*/
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
-    font-size: 0.875rem;
-    line-height: 1.5;
-    font-weight: 500;
-    color: hsl(222.2 84% 4.9%);
-    background-color: hsl(0 0% 100%);
-    font-feature-settings: "rlig" 1, "calt" 1;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+    Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  font-weight: 500;
+  color: hsl(222.2 84% 4.9%);
+  background-color: hsl(0 0% 100%);
+  font-feature-settings: "rlig" 1, "calt" 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body.mobooking-dashboard {
-    display: flex;
-    flex-direction: column;
+  display: flex;
+  flex-direction: column;
 }
 
 h1,
@@ -70,77 +71,77 @@ h3,
 h4,
 h5,
 h6 {
-    font-family: inherit;
-    margin-top: 0rem;
-    margin-bottom: 0.5rem;
-    font-weight: 600;
-    line-height: 1.25;
-    letter-spacing: -0.025em;
-    color: hsl(222.2 84% 4.9%);
+  font-family: inherit;
+  margin-top: 0rem;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.025em;
+  color: hsl(222.2 84% 4.9%);
 }
 
 h1 {
-    font-size: 2rem;
-    font-weight: 800;
+  font-size: 2rem;
+  font-weight: 800;
 }
 
 h2 {
-    font-size: 1.875rem;
-    font-weight: 700;
+  font-size: 1.875rem;
+  font-weight: 700;
 }
 
 h3 {
-    font-size: 1.5rem;
-    font-weight: 600;
+  font-size: 1.5rem;
+  font-weight: 600;
 }
 
 h4 {
-    font-size: 1.25rem;
-    font-weight: 600;
+  font-size: 1.25rem;
+  font-weight: 600;
 }
 
 h5 {
-    font-size: 1.125rem;
-    font-weight: 600;
+  font-size: 1.125rem;
+  font-weight: 600;
 }
 
 h6 {
-    font-size: 1rem;
-    font-weight: 600;
+  font-size: 1rem;
+  font-weight: 600;
 }
 
 p {
-    margin-bottom: 1rem;
-    color: hsl(215.4 16.3% 46.9%);
+  margin-bottom: 1rem;
+  color: hsl(215.4 16.3% 46.9%);
 }
 
 strong,
 b {
-    font-weight: 600;
+  font-weight: 600;
 }
 
 em,
 i {
-    font-style: italic;
+  font-style: italic;
 }
 
 small {
-    font-size: 0.75rem;
-    color: hsl(215.4 16.3% 46.9%);
+  font-size: 0.75rem;
+  color: hsl(215.4 16.3% 46.9%);
 }
 
 /*--------------------------------------------------------------
 2.0 Links & Buttons
 --------------------------------------------------------------*/
 a {
-    color: hsl(221.2 83.2% 53.3%);
-    text-decoration: none;
-    transition: color 0.15s ease;
+  color: hsl(221.2 83.2% 53.3%);
+  text-decoration: none;
+  transition: color 0.15s ease;
 }
 
 a:hover,
 a:focus {
-    text-decoration: underline;
+  text-decoration: underline;
 }
 
 /* Button Base Styles */
@@ -149,39 +150,39 @@ input[type="button"],
 input[type="reset"],
 input[type="submit"],
 .button {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    white-space: nowrap;
-    border-radius: 0.375rem;
-    font-size: 0.875rem;
-    font-weight: 500;
-    transition: all 0.15s ease;
-    cursor: pointer;
-    border: 1px solid transparent;
-    padding: 0.5rem 1rem;
-    height: 2.25rem;
-    text-decoration: none;
-    line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.15s ease;
+  cursor: pointer;
+  border: 1px solid transparent;
+  padding: 0.5rem 1rem;
+  height: 2.25rem;
+  text-decoration: none;
+  line-height: 1;
 }
 
 /* Primary Button */
 .button-primary,
 button.button-primary,
 input[type="submit"].button-primary {
-    background: hsl(221.2 83.2% 53.3%);
-    color: hsl(210 40% 98%);
-    border-color: hsl(221.2 83.2% 53.3%);
+  background: hsl(221.2 83.2% 53.3%);
+  color: hsl(210 40% 98%);
+  border-color: hsl(221.2 83.2% 53.3%);
 }
 
 .button-primary:hover,
 .button-primary:focus,
 button.button-primary:hover,
 input[type="submit"].button-primary:hover {
-    background: hsl(221.2 83.2% 53.3% / 0.9);
-    border-color: hsl(221.2 83.2% 53.3% / 0.9);
-    color: hsl(210 40% 98%);
-    text-decoration: none;
+  background: hsl(221.2 83.2% 53.3% / 0.9);
+  border-color: hsl(221.2 83.2% 53.3% / 0.9);
+  color: hsl(210 40% 98%);
+  text-decoration: none;
 }
 
 /* Secondary Button */
@@ -190,9 +191,9 @@ input[type="button"],
 input[type="reset"],
 input[type="submit"],
 .button {
-    background: hsl(0 0% 100%);
-    border-color: hsl(214.3 31.8% 91.4%);
-    color: hsl(222.2 84% 4.9%);
+  background: hsl(0 0% 100%);
+  border-color: hsl(214.3 31.8% 91.4%);
+  color: hsl(222.2 84% 4.9%);
 }
 
 button:hover,
@@ -200,38 +201,38 @@ input[type="button"]:hover,
 input[type="reset"]:hover,
 input[type="submit"]:hover,
 .button:hover {
-    background: hsl(210 40% 96%);
-    border-color: hsl(214.3 31.8% 91.4%);
-    color: hsl(222.2 84% 4.9%);
-    text-decoration: none;
+  background: hsl(210 40% 96%);
+  border-color: hsl(214.3 31.8% 91.4%);
+  color: hsl(222.2 84% 4.9%);
+  text-decoration: none;
 }
 
 /* Destructive Button */
 .button-link-delete,
 .mobooking-button-delete {
-    background: hsl(0 84.2% 60.2%);
-    border-color: hsl(0 84.2% 60.2%);
-    color: hsl(210 40% 98%);
+  background: hsl(0 84.2% 60.2%);
+  border-color: hsl(0 84.2% 60.2%);
+  color: hsl(210 40% 98%);
 }
 
 .button-link-delete:hover,
 .mobooking-button-delete:hover {
-    background: hsl(0 84.2% 60.2% / 0.9);
-    border-color: hsl(0 84.2% 60.2% / 0.9);
-    color: hsl(210 40% 98%);
-    text-decoration: none;
+  background: hsl(0 84.2% 60.2% / 0.9);
+  border-color: hsl(0 84.2% 60.2% / 0.9);
+  color: hsl(210 40% 98%);
+  text-decoration: none;
 }
 
 /* Ghost Button */
 .button-ghost {
-    background: transparent;
-    border-color: transparent;
-    color: hsl(222.2 84% 4.9%);
+  background: transparent;
+  border-color: transparent;
+  color: hsl(222.2 84% 4.9%);
 }
 
 .button-ghost:hover {
-    background: hsl(210 40% 96%);
-    color: hsl(222.2 84% 4.9%);
+  background: hsl(210 40% 96%);
+  color: hsl(222.2 84% 4.9%);
 }
 
 /*--------------------------------------------------------------
@@ -248,26 +249,26 @@ input[type="date"],
 input[type="time"],
 textarea,
 select {
-    display: flex;
-    height: 2.25rem;
-    width: 100%;
-    font-weight: 500;
-    border-radius: 0.375rem;
-    border: 1px solid hsl(214.3 31.8% 91.4%);
-    background-color: hsl(0 0% 100%);
-    padding: 0.5rem 0.75rem;
-    font-size: 0.875rem;
-    transition: border-color 0.15s ease, box-shadow 0.15s ease;
-    color: hsl(222.2 84% 4.9%);
-    max-width: 24rem;
-    margin-bottom: 0.75rem;
+  display: flex;
+  height: 2.25rem;
+  width: 100%;
+  font-weight: 500;
+  border-radius: 0.375rem;
+  border: 1px solid hsl(214.3 31.8% 91.4%);
+  background-color: hsl(0 0% 100%);
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  color: hsl(222.2 84% 4.9%);
+  max-width: 24rem;
+  margin-bottom: 0.75rem;
 }
 
 textarea {
-    min-height: 4rem;
-    height: auto;
-    resize: vertical;
-    max-width: 32rem;
+  min-height: 4rem;
+  height: auto;
+  resize: vertical;
+  max-width: 32rem;
 }
 
 input[type="text"]:focus,
@@ -281,632 +282,637 @@ input[type="date"]:focus,
 input[type="time"]:focus,
 textarea:focus,
 select:focus {
-    border-color: hsl(221.2 83.2% 53.3%);
-    box-shadow: 0 0 0 2px hsl(221.2 83.2% 53.3% / 0.2);
+  border-color: hsl(221.2 83.2% 53.3%);
+  box-shadow: 0 0 0 2px hsl(221.2 83.2% 53.3% / 0.2);
 }
 
 input::placeholder,
 textarea::placeholder {
-    color: hsl(215.4 16.3% 46.9%);
+  color: hsl(215.4 16.3% 46.9%);
 }
 
 label {
-    display: block;
-    margin-bottom: 0.5rem;
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: hsl(222.2 84% 4.9%);
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: hsl(222.2 84% 4.9%);
 }
 
 input[type="checkbox"],
 input[type="radio"] {
-    margin-right: 0.5rem;
-    vertical-align: middle;
-    width: auto;
-    height: auto;
-    max-width: none;
-    margin-bottom: 0;
+  margin-right: 0.5rem;
+  vertical-align: middle;
+  width: auto;
+  height: auto;
+  max-width: none;
+  margin-bottom: 0;
 }
 
 /* Form Field Sizing Classes */
 .regular-text {
-    width: 25rem;
+  width: 25rem;
 }
 
 .small-text {
-    width: 5rem;
+  width: 5rem;
 }
 
 .large-text {
-    width: 100%;
-    max-width: 40rem;
+  width: 100%;
+  max-width: 40rem;
 }
 
 .code {
-    font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
-    font-size: 0.8125rem;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas,
+    "Liberation Mono", Menlo, monospace;
+  font-size: 0.8125rem;
 }
 
 .mobooking-bf-input {
-    width: 100%;
-    max-width: none;
+  width: 100%;
+  max-width: none;
 }
 
 /*--------------------------------------------------------------
 4.0 Tables
 --------------------------------------------------------------*/
 table {
-    width: 100%;
-    caption-side: bottom;
-    border-spacing: 0;
-    border-collapse: collapse;
-    margin-bottom: 1.5rem;
+  width: 100%;
+  caption-side: bottom;
+  border-spacing: 0;
+  border-collapse: collapse;
+  margin-bottom: 1.5rem;
 }
 
 th,
 td {
-    padding: 0.75rem;
-    text-align: left;
-    border-bottom: 1px solid hsl(214.3 31.8% 91.4%);
-    vertical-align: top;
+  padding: 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid hsl(214.3 31.8% 91.4%);
+  vertical-align: top;
 }
 
 thead th {
-    background-color: hsl(210 40% 98%);
-    font-weight: 600;
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: hsl(215.4 16.3% 46.9%);
-    border-bottom: 1px solid hsl(214.3 31.8% 91.4%);
+  background-color: hsl(210 40% 98%);
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: hsl(215.4 16.3% 46.9%);
+  border-bottom: 1px solid hsl(214.3 31.8% 91.4%);
 }
 
 tbody tr:hover {
-    background-color: hsl(210 40% 98%);
+  background-color: hsl(210 40% 98%);
 }
 
 /* WordPress List Table Styles */
 .wp-list-table {
-    border: 1px solid hsl(214.3 31.8% 91.4%);
-    border-radius: 0.5rem;
-    overflow: hidden;
-    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  border: 1px solid hsl(214.3 31.8% 91.4%);
+  border-radius: 0.5rem;
+  overflow: hidden;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 }
 
 .wp-list-table thead th {
-    padding: 0.75rem 1rem;
-    background-color: hsl(210 40% 98%);
-    border-bottom: 1px solid hsl(214.3 31.8% 91.4%);
+  padding: 0.75rem 1rem;
+  background-color: hsl(210 40% 98%);
+  border-bottom: 1px solid hsl(214.3 31.8% 91.4%);
 }
 
 .wp-list-table tbody td {
-    padding: 1rem;
-    border-bottom: 1px solid hsl(214.3 31.8% 91.4%);
+  padding: 1rem;
+  border-bottom: 1px solid hsl(214.3 31.8% 91.4%);
 }
 
 .wp-list-table tbody tr:nth-child(odd) {
-    background-color: hsl(0 0% 100%);
+  background-color: hsl(0 0% 100%);
 }
 
-.wp-list-table.striped>tbody>tr:nth-child(even) {
-    background-color: hsl(210 40% 98%);
+.wp-list-table.striped > tbody > tr:nth-child(even) {
+  background-color: hsl(210 40% 98%);
 }
 
 .wp-list-table tbody tr.inactive-row td {
-    background-color: hsl(210 40% 98%);
-    color: hsl(215.4 16.3% 46.9%);
+  background-color: hsl(210 40% 98%);
+  color: hsl(215.4 16.3% 46.9%);
 }
 
 .wp-list-table tbody tr.inactive-row a {
-    color: hsl(215.4 16.3% 46.9%);
+  color: hsl(215.4 16.3% 46.9%);
 }
 
 /*--------------------------------------------------------------
 5.0 Basic Layout & Utility Classes
 --------------------------------------------------------------*/
 .wrap {
-    max-width: 68rem;
-    margin: 0 auto;
-    padding: 1.25rem;
+  max-width: 68rem;
+  margin: 0 auto;
+  padding: 1.25rem;
 }
 
 .mobooking-wrapper {
-    padding: 1.5rem;
-    background-color: hsl(0 0% 100%);
-    border: 1px solid hsl(214.3 31.8% 91.4%);
-    border-radius: 0.5rem;
-    margin-bottom: 1.5rem;
-    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  padding: 1.5rem;
+  background-color: hsl(0 0% 100%);
+  border: 1px solid hsl(214.3 31.8% 91.4%);
+  border-radius: 0.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 }
 
 /* Utility Classes */
 .text-center {
-    text-align: center;
+  text-align: center;
 }
 
 .hidden {
-    display: none;
+  display: none;
 }
 
 .required {
-    color: hsl(0 84.2% 60.2%);
-    margin-left: 0.125rem;
+  color: hsl(0 84.2% 60.2%);
+  margin-left: 0.125rem;
 }
 
 /* Status Badges */
 .booking-status,
 .status-active,
 .status-confirmed {
-    display: inline-flex;
-    align-items: center;
-    border-radius: 9999px;
-    padding: 0.25rem 0.75rem;
-    font-size: 0.75rem;
-    font-weight: 500;
-    background-color: hsl(142 76% 36% / 0.1);
-    color: hsl(142 76% 36%);
+  display: inline-flex;
+  align-items: center;
+  border-radius: 9999px;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  background-color: hsl(142 76% 36% / 0.1);
+  color: hsl(142 76% 36%);
 }
 
 .status-pending,
 .status-on-hold,
 .status-processing {
-    background-color: hsl(45 93% 47% / 0.1);
-    color: hsl(45 93% 47%);
+  background-color: hsl(45 93% 47% / 0.1);
+  color: hsl(45 93% 47%);
 }
 
 .status-cancelled,
 .status-inactive,
 .status-expired {
-    background-color: hsl(0 84.2% 60.2% / 0.1);
-    color: hsl(0 84.2% 60.2%);
+  background-color: hsl(0 84.2% 60.2% / 0.1);
+  color: hsl(0 84.2% 60.2%);
 }
 
 .status-completed {
-    background-color: hsl(221.2 83.2% 53.3% / 0.1);
-    color: hsl(221.2 83.2% 53.3%);
+  background-color: hsl(221.2 83.2% 53.3% / 0.1);
+  color: hsl(221.2 83.2% 53.3%);
 }
 
 /* Pagination */
 .mobooking-pagination {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    margin: 1.5rem 0;
-    padding: 0;
-    list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin: 1.5rem 0;
+  padding: 0;
+  list-style: none;
 }
 
 .mobooking-pagination li a,
 .mobooking-pagination li span {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0.5rem 0.75rem;
-    border: 1px solid hsl(214.3 31.8% 91.4%);
-    border-radius: 0.375rem;
-    text-decoration: none;
-    color: hsl(222.2 84% 4.9%);
-    background-color: hsl(0 0% 100%);
-    font-size: 0.875rem;
-    transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid hsl(214.3 31.8% 91.4%);
+  border-radius: 0.375rem;
+  text-decoration: none;
+  color: hsl(222.2 84% 4.9%);
+  background-color: hsl(0 0% 100%);
+  font-size: 0.875rem;
+  transition: all 0.15s ease;
 }
 
 .mobooking-pagination li.active a,
 .mobooking-pagination li.active span,
 .mobooking-pagination li a:hover {
-    background-color: hsl(221.2 83.2% 53.3%);
-    color: hsl(210 40% 98%);
-    border-color: hsl(221.2 83.2% 53.3%);
+  background-color: hsl(221.2 83.2% 53.3%);
+  color: hsl(210 40% 98%);
+  border-color: hsl(221.2 83.2% 53.3%);
 }
 
 .mobooking-pagination li.disabled span {
-    color: hsl(215.4 16.3% 46.9%);
-    background-color: hsl(210 40% 98%);
-    border-color: hsl(214.3 31.8% 91.4%);
-    cursor: not-allowed;
+  color: hsl(215.4 16.3% 46.9%);
+  background-color: hsl(210 40% 98%);
+  border-color: hsl(214.3 31.8% 91.4%);
+  cursor: not-allowed;
 }
 
 /* Filters Bar */
 .mobooking-filters-bar {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding: 1rem;
-    background-color: hsl(210 40% 98%);
-    border: 1px solid hsl(214.3 31.8% 91.4%);
-    border-radius: 0.5rem;
-    margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background-color: hsl(210 40% 98%);
+  border: 1px solid hsl(214.3 31.8% 91.4%);
+  border-radius: 0.5rem;
+  margin-bottom: 1.5rem;
 }
 
 .mobooking-filters-bar label {
-    margin-bottom: 0;
-    font-weight: 500;
+  margin-bottom: 0;
+  font-weight: 500;
 }
 
 .mobooking-filters-bar input[type="text"],
 .mobooking-filters-bar select {
-    margin-bottom: 0;
-    max-width: 12rem;
+  margin-bottom: 0;
+  max-width: 12rem;
 }
 
 .mobooking-filters-bar input[type="text"].mobooking-datepicker {
-    max-width: 10rem;
+  max-width: 10rem;
 }
 
 /*--------------------------------------------------------------
 6.0 WordPress Core Alignments & Generated Classes
 --------------------------------------------------------------*/
 .alignleft {
-    float: left;
-    margin-right: 1.5rem;
-    margin-bottom: 1rem;
+  float: left;
+  margin-right: 1.5rem;
+  margin-bottom: 1rem;
 }
 
 .alignright {
-    float: right;
-    margin-left: 1.5rem;
-    margin-bottom: 1rem;
+  float: right;
+  margin-left: 1.5rem;
+  margin-bottom: 1rem;
 }
 
 .aligncenter {
-    display: block;
-    margin-left: auto;
-    margin-right: auto;
-    margin-bottom: 1rem;
-    text-align: center;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 1rem;
+  text-align: center;
 }
 
 .screen-reader-text {
-    position: absolute !important;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border: 0;
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 /*--------------------------------------------------------------
 7.0 Modal Styles
 --------------------------------------------------------------*/
 #mobooking-service-form-modal-backdrop {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.4);
-    z-index: 1001;
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.4);
+  z-index: 1001;
 }
 
 body.mobooking-modal-open {
-    overflow: hidden;
+  overflow: hidden;
 }
 
 /*--------------------------------------------------------------
 8.0 Dashboard Layout
 --------------------------------------------------------------*/
 .mobooking-dashboard-layout {
-    display: flex;
-    flex-grow: 1;
-    min-height: 0;
+  display: flex;
+  flex-grow: 1;
+  min-height: 0;
 }
 
 /* Sidebar Styles */
 .mobooking-dashboard-sidebar {
-    width: 250px;
-    background: hsl(222.2 84% 4.9%);
-    color: hsl(210 40% 98%);
-    flex-shrink: 0;
-    display: flex;
-    flex-direction: column;
-    border-right: 1px solid hsl(214.3 31.8% 91.4%);
-    position: relative;
-    z-index: 100;
+  width: 250px;
+  background: hsl(222.2 84% 4.9%);
+  color: hsl(210 40% 98%);
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid hsl(214.3 31.8% 91.4%);
+  position: relative;
+  z-index: 100;
 }
 
 .mobooking-dashboard-sidebar .dashboard-branding {
-    padding: 1rem 1.5rem;
-    border-bottom: 1px solid hsl(217.2 32.6% 17.5%);
+  padding: 1rem 1rem;
+  border-bottom: 1px solid hsl(217.2 32.6% 17.5%);
 }
 
 .mobooking-dashboard-sidebar .dashboard-branding h3 {
-    margin: 0;
-    color: hsl(210 40% 98%);
-    font-size: 1.125rem;
-    font-weight: 600;
-    letter-spacing: -0.025em;
+  margin: 0;
+  color: hsl(210 40% 98%);
+  font-size: 1.125rem;
+  font-weight: 600;
+  letter-spacing: -0.025em;
 }
 
 .mobooking-dashboard-sidebar .dashboard-branding a {
-    text-decoration: none;
-    color: inherit;
-    transition: opacity 0.15s ease;
+  text-decoration: none;
+  color: inherit;
+  transition: opacity 0.15s ease;
 }
 
 .mobooking-dashboard-sidebar .dashboard-branding a:hover {
-    opacity: 0.8;
+  opacity: 0.8;
 }
 
 .mobooking-dashboard-sidebar .dashboard-nav {
-    flex-grow: 1;
-    padding: 0.5rem;
+  flex-grow: 1;
+  padding: 1rem;
 }
 
 .mobooking-dashboard-sidebar .dashboard-nav ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 0.125rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.325rem;
 }
 
 .mobooking-dashboard-sidebar .dashboard-nav li a {
-    display: flex;
-    align-items: center;
-    padding: 0.5rem 0.75rem;
-    color: hsl(0, 0%, 91%);
-    text-decoration: none;
-    font-size: 0.875rem;
-    font-weight: 500;
-    transition: all 0.15s ease;
-    border-radius: 0.375rem;
-    margin: 0;
+  display: flex;
+  padding: 0.5rem 0.75rem;
+  color: hsl(0, 0%, 91%);
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.15s ease;
+  border-radius: 0.375rem;
+  margin: 0;
+  align-items: center;
+  gap: 10px;
+}
+span.mobooking-menu-icon {
+  display: flex;
 }
 
 .mobooking-dashboard-sidebar .dashboard-nav li a:hover {
-    background: hsl(217.2 32.6% 17.5%);
-    color: hsl(210 40% 98%);
+  background: hsl(217.2 32.6% 17.5%);
+  color: hsl(210 40% 98%);
 }
 
 .mobooking-dashboard-sidebar .dashboard-nav li.active a {
-    background: hsl(210 40% 98%);
-    color: hsl(222.2 84% 4.9%);
-    font-weight: 500;
+  background: hsl(210 40% 98%);
+  color: hsl(222.2 84% 4.9%);
+  font-weight: 500;
 }
 
 /* Main Content Area */
 .mobooking-dashboard-main-wrapper {
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    min-width: 0;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 0;
 }
 
 /* Header Styles */
 .mobooking-dashboard-header {
-    background: hsl(0 0% 100%);
-    padding: 0 1.5rem;
-    border-bottom: 1px solid hsl(214.3 31.8% 91.4%);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    height: 3.5rem;
-    flex-shrink: 0;
-    position: relative;
-    z-index: 90;
+  background: hsl(0 0% 100%);
+  padding: 0 1.5rem;
+  border-bottom: 1px solid hsl(214.3 31.8% 91.4%);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 3.5rem;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 90;
 }
 
 .mobooking-dashboard-header .dashboard-header-left,
 .mobooking-dashboard-header .dashboard-header-right {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
 }
 
 .mobooking-dashboard-header .mobooking-breadcrumbs,
 .mobooking-dashboard-header .mobooking-breadcrumbs a {
-    color: hsl(215.4 16.3% 46.9%);
-    text-decoration: none;
-    font-size: 0.875rem;
-    transition: color 0.15s ease;
+  color: hsl(215.4 16.3% 46.9%);
+  text-decoration: none;
+  font-size: 0.875rem;
+  transition: color 0.15s ease;
 }
 
 .mobooking-dashboard-header .mobooking-breadcrumbs a:hover {
-    color: hsl(222.2 84% 4.9%);
+  color: hsl(222.2 84% 4.9%);
 }
 
 .mobooking-dashboard-header .user-menu {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }
 
 .mobooking-dashboard-header .user-menu span {
-    font-size: 0.875rem;
-    color: hsl(215.4 16.3% 46.9%);
+  font-size: 0.875rem;
+  color: hsl(215.4 16.3% 46.9%);
 }
 
 .mobooking-dashboard-header .user-menu a {
-    text-decoration: none;
-    color: hsl(222.2 84% 4.9%);
-    font-weight: 500;
-    padding: 0.5rem 0.75rem;
-    border-radius: 0.375rem;
-    transition: all 0.15s ease;
-    font-size: 0.875rem;
+  text-decoration: none;
+  color: hsl(222.2 84% 4.9%);
+  font-weight: 500;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.375rem;
+  transition: all 0.15s ease;
+  font-size: 0.875rem;
 }
 
 .mobooking-dashboard-header .user-menu a:hover {
-    background-color: hsl(210 40% 96%);
+  background-color: hsl(210 40% 96%);
 }
 
 /* Content Area */
 .dashboard-page-content-area {
-    padding: 1.5rem;
-    flex-grow: 1;
-    overflow-y: auto;
-    background-color: hsl(0 0% 100%);
+  padding: 1.5rem;
+  flex-grow: 1;
+  overflow-y: auto;
+  background-color: hsl(0 0% 100%);
 }
 
 /* Mobile Navigation Toggle */
 #mobooking-mobile-nav-toggle {
-    display: none;
-    font-size: 1.25rem;
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    color: hsl(222.2 84% 4.9%);
-    padding: 0.5rem;
-    border-radius: 0.375rem;
-    transition: background-color 0.15s ease;
+  display: none;
+  font-size: 1.25rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: hsl(222.2 84% 4.9%);
+  padding: 0.5rem;
+  border-radius: 0.375rem;
+  transition: background-color 0.15s ease;
 }
 
 #mobooking-mobile-nav-toggle:hover {
-    background-color: hsl(210 40% 96%);
+  background-color: hsl(210 40% 96%);
 }
 
 /* Mobile Styles */
 @media (max-width: 768px) {
-    #mobooking-mobile-nav-toggle {
-        display: block;
-    }
+  #mobooking-mobile-nav-toggle {
+    display: block;
+  }
 
-    .mobooking-dashboard-sidebar {
-        position: fixed;
-        left: -250px;
-        top: 0;
-        height: 100vh;
-        width: 250px;
-        z-index: 1000;
-        transition: left 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    }
+  .mobooking-dashboard-sidebar {
+    position: fixed;
+    left: -250px;
+    top: 0;
+    height: 100vh;
+    width: 250px;
+    z-index: 1000;
+    transition: left 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
 
-    .mobooking-dashboard-sidebar.open {
-        left: 0;
-    }
+  .mobooking-dashboard-sidebar.open {
+    left: 0;
+  }
 
-    .mobooking-dashboard-header {
-        padding: 0 1rem;
-        height: 3.25rem;
-    }
+  .mobooking-dashboard-header {
+    padding: 0 1rem;
+    height: 3.25rem;
+  }
 
-    .dashboard-page-content-area {
-        padding: 1rem;
-    }
+  .dashboard-page-content-area {
+    padding: 1rem;
+  }
 
-    /* Overlay for mobile sidebar */
-    .sidebar-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.4);
-        z-index: 999;
-        opacity: 0;
-        visibility: hidden;
-        transition: all 0.2s ease;
-    }
+  /* Overlay for mobile sidebar */
+  .sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 999;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s ease;
+  }
 
-    .sidebar-overlay.active {
-        opacity: 1;
-        visibility: visible;
-    }
+  .sidebar-overlay.active {
+    opacity: 1;
+    visibility: visible;
+  }
 }
 
 /* Tablet Styles */
 @media (max-width: 1024px) and (min-width: 769px) {
-    .mobooking-dashboard-sidebar {
-        width: 220px;
-    }
+  .mobooking-dashboard-sidebar {
+    width: 220px;
+  }
 
-    .dashboard-page-content-area {
-        padding: 1.25rem;
-    }
+  .dashboard-page-content-area {
+    padding: 1.25rem;
+  }
 }
 
 /*--------------------------------------------------------------
 8.1 WordPress Admin Enhancements
 --------------------------------------------------------------*/
 .wp-admin .wrap[id^="mobooking-"] {
-    background-color: hsl(0 0% 100%);
-    padding: 1.5rem;
-    border: 1px solid hsl(214.3 31.8% 91.4%);
-    border-radius: 0.5rem;
-    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    margin-top: 1.5rem;
+  background-color: hsl(0 0% 100%);
+  padding: 1.5rem;
+  border: 1px solid hsl(214.3 31.8% 91.4%);
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  margin-top: 1.5rem;
 }
 
 .wp-admin .wrap[id^="mobooking-"] h1 {
-    font-size: 1.875rem;
-    font-weight: 700;
-    margin-bottom: 1rem;
-    color: hsl(222.2 84% 4.9%);
+  font-size: 1.875rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  color: hsl(222.2 84% 4.9%);
 }
 
 .wp-admin .wrap[id^="mobooking-"] h2 {
-    font-size: 1.5rem;
-    font-weight: 600;
-    margin-top: 2rem;
-    margin-bottom: 1rem;
-    color: hsl(222.2 84% 4.9%);
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  color: hsl(222.2 84% 4.9%);
 }
 
 .wp-admin .wrap[id^="mobooking-"] h3 {
-    font-size: 1.25rem;
-    font-weight: 600;
-    margin-top: 1.5rem;
-    margin-bottom: 0.75rem;
-    color: hsl(222.2 84% 4.9%);
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  color: hsl(222.2 84% 4.9%);
 }
 
 /* Form Table Styling */
 .wp-admin .wrap[id^="mobooking-"] .form-table {
-    margin-bottom: 1.5rem;
+  margin-bottom: 1.5rem;
 }
 
 .wp-admin .wrap[id^="mobooking-"] .form-table th {
-    width: 14rem;
-    padding: 1rem 1.25rem 1rem 0;
-    vertical-align: top;
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: hsl(222.2 84% 4.9%);
+  width: 14rem;
+  padding: 1rem 1.25rem 1rem 0;
+  vertical-align: top;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: hsl(222.2 84% 4.9%);
 }
 
 .wp-admin .wrap[id^="mobooking-"] .form-table td {
-    padding: 0.75rem 0;
-    vertical-align: top;
+  padding: 0.75rem 0;
+  vertical-align: top;
 }
 
 .wp-admin .wrap[id^="mobooking-"] .form-table td .description {
-    font-size: 0.8125rem;
-    color: hsl(215.4 16.3% 46.9%);
-    margin-top: 0.5rem;
+  font-size: 0.8125rem;
+  color: hsl(215.4 16.3% 46.9%);
+  margin-top: 0.5rem;
 }
 
 /* Feedback Messages */
 #mobooking-settings-feedback.notice,
 #mobooking-discount-form-feedback.notice,
 #mobooking-service-form-feedback.notice {
-    padding: 1rem;
-    margin-bottom: 1rem;
-    border-radius: 0.375rem;
-    border: 1px solid;
-    font-size: 0.875rem;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border-radius: 0.375rem;
+  border: 1px solid;
+  font-size: 0.875rem;
 }
 
 #mobooking-settings-feedback.notice-success,
 #mobooking-discount-form-feedback.notice-success,
 #mobooking-service-form-feedback.notice-success {
-    background-color: hsl(142 76% 36% / 0.1);
-    border-color: hsl(142 76% 36% / 0.3);
-    color: hsl(142 76% 36%);
+  background-color: hsl(142 76% 36% / 0.1);
+  border-color: hsl(142 76% 36% / 0.3);
+  color: hsl(142 76% 36%);
 }
 
 #mobooking-settings-feedback.notice-error,
 #mobooking-discount-form-feedback.notice-error,
 #mobooking-service-form-feedback.notice-error {
-    background-color: hsl(0 84.2% 60.2% / 0.1);
-    border-color: hsl(0 84.2% 60.2% / 0.3);
-    color: hsl(0 84.2% 60.2%);
+  background-color: hsl(0 84.2% 60.2% / 0.1);
+  border-color: hsl(0 84.2% 60.2% / 0.3);
+  color: hsl(0 84.2% 60.2%);
 }
 
 /* Booking Form Feedback */
@@ -916,12 +922,12 @@ body.mobooking-modal-open {
 #mobooking-bf-step-4-feedback.success,
 #mobooking-bf-step-5-feedback.success,
 #mobooking-bf-discount-feedback.success {
-    color: hsl(142 76% 36%);
-    border: 1px solid hsl(142 76% 36% / 0.3);
-    background-color: hsl(142 76% 36% / 0.1);
-    padding: 0.75rem;
-    border-radius: 0.375rem;
-    margin-bottom: 1rem;
+  color: hsl(142 76% 36%);
+  border: 1px solid hsl(142 76% 36% / 0.3);
+  background-color: hsl(142 76% 36% / 0.1);
+  padding: 0.75rem;
+  border-radius: 0.375rem;
+  margin-bottom: 1rem;
 }
 
 #mobooking-bf-feedback.error,
@@ -930,12 +936,12 @@ body.mobooking-modal-open {
 #mobooking-bf-step-4-feedback.error,
 #mobooking-bf-step-5-feedback.error,
 #mobooking-bf-discount-feedback.error {
-    color: hsl(0 84.2% 60.2%);
-    border: 1px solid hsl(0 84.2% 60.2% / 0.3);
-    background-color: hsl(0 84.2% 60.2% / 0.1);
-    padding: 0.75rem;
-    border-radius: 0.375rem;
-    margin-bottom: 1rem;
+  color: hsl(0 84.2% 60.2%);
+  border: 1px solid hsl(0 84.2% 60.2% / 0.3);
+  background-color: hsl(0 84.2% 60.2% / 0.1);
+  padding: 0.75rem;
+  border-radius: 0.375rem;
+  margin-bottom: 1rem;
 }
 
 /*--------------------------------------------------------------
@@ -946,188 +952,191 @@ body.mobooking-modal-open {
 .mobooking-service-item,
 .mobooking-booking-item,
 .mobooking-area-item {
-    padding: 1rem;
-    margin-bottom: 1rem;
-    background: hsl(0 0% 100%);
-    border: 1px solid hsl(214.3 31.8% 91.4%);
-    border-radius: 0.5rem;
-    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  background: hsl(0 0% 100%);
+  border: 1px solid hsl(214.3 31.8% 91.4%);
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .wp-admin .mobooking-service-item h3,
 .wp-admin .mobooking-booking-item h3 {
-    font-size: 1.125rem;
-    font-weight: 600;
-    margin-bottom: 0.75rem;
-    margin-top: 0;
-    color: hsl(222.2 84% 4.9%);
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  margin-top: 0;
+  color: hsl(222.2 84% 4.9%);
 }
 
 .wp-admin .mobooking-service-item p,
 .wp-admin .mobooking-booking-item p {
-    margin-bottom: 0.5rem;
-    color: hsl(215.4 16.3% 46.9%);
-    font-size: 0.875rem;
+  margin-bottom: 0.5rem;
+  color: hsl(215.4 16.3% 46.9%);
+  font-size: 0.875rem;
 }
 
 /* Area Items Specific Layout */
 .wp-admin .mobooking-area-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.75rem 1rem;
-    margin-bottom: 0.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.5rem;
 }
 
 /* Overview Page KPI Boxes */
 .wp-admin #mobooking-overview-content .kpi-box,
-.wp-admin #mobooking-overview-content #mobooking-overview-recent-bookings-section,
-.wp-admin #mobooking-overview-content #mobooking-overview-quick-actions-section {
-    background-color: hsl(0 0% 100%);
-    padding: 1.5rem;
-    border: 1px solid hsl(214.3 31.8% 91.4%);
-    border-radius: 0.5rem;
-    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    margin-bottom: 1.5rem;
+.wp-admin
+  #mobooking-overview-content
+  #mobooking-overview-recent-bookings-section,
+.wp-admin
+  #mobooking-overview-content
+  #mobooking-overview-quick-actions-section {
+  background-color: hsl(0 0% 100%);
+  padding: 1.5rem;
+  border: 1px solid hsl(214.3 31.8% 91.4%);
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  margin-bottom: 1.5rem;
 }
 
 .wp-admin #mobooking-overview-content .kpi-box h4 {
-    font-size: 0.875rem;
-    font-weight: 500;
-    margin-top: 0;
-    margin-bottom: 0.5rem;
-    color: hsl(215.4 16.3% 46.9%);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+  color: hsl(215.4 16.3% 46.9%);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .wp-admin #mobooking-overview-content .kpi-box p {
-    font-size: 2rem;
-    font-weight: 700;
-    margin-bottom: 0;
-    color: hsl(222.2 84% 4.9%);
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 0;
+  color: hsl(222.2 84% 4.9%);
 }
 
 /* Quick Actions */
 .wp-admin #mobooking-overview-quick-actions-section ul {
-    padding-left: 0;
-    list-style: none;
-    margin-bottom: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
+  padding-left: 0;
+  list-style: none;
+  margin-bottom: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
 }
 
 .wp-admin #mobooking-overview-quick-actions-section .button.button-large {
-    width: 100%;
-    justify-content: center;
-    padding: 0.75rem 1rem;
-    font-weight: 500;
+  width: 100%;
+  justify-content: center;
+  padding: 0.75rem 1rem;
+  font-weight: 500;
 }
 
 /* Recent Bookings */
 .wp-admin .mobooking-overview-booking-item {
-    border-bottom: 1px solid hsl(214.3 31.8% 91.4%);
-    padding: 1rem 0;
-    margin-bottom: 1rem;
+  border-bottom: 1px solid hsl(214.3 31.8% 91.4%);
+  padding: 1rem 0;
+  margin-bottom: 1rem;
 }
 
 .wp-admin .mobooking-overview-booking-item:last-child {
-    border-bottom: none;
-    margin-bottom: 0;
+  border-bottom: none;
+  margin-bottom: 0;
 }
 
 .wp-admin .mobooking-overview-booking-item strong {
-    font-size: 1rem;
-    font-weight: 600;
-    color: hsl(222.2 84% 4.9%);
+  font-size: 1rem;
+  font-weight: 600;
+  color: hsl(222.2 84% 4.9%);
 }
 
 /*--------------------------------------------------------------
 8.3 Navigation Tabs
 --------------------------------------------------------------*/
 .wp-admin .nav-tab-wrapper {
-    border-bottom: 1px solid hsl(214.3 31.8% 91.4%);
-    padding-bottom: 0;
-    margin-bottom: 1.5rem;
+  border-bottom: 1px solid hsl(214.3 31.8% 91.4%);
+  padding-bottom: 0;
+  margin-bottom: 1.5rem;
 }
 
 .wp-admin .nav-tab {
-    padding: 0.75rem 1rem;
-    font-size: 0.875rem;
-    font-weight: 500;
-    background: hsl(210 40% 98%);
-    border: 1px solid hsl(214.3 31.8% 91.4%);
-    border-bottom: none;
-    margin-right: 0.25rem;
-    border-top-left-radius: 0.375rem;
-    border-top-right-radius: 0.375rem;
-    color: hsl(215.4 16.3% 46.9%);
-    text-decoration: none;
-    transition: all 0.15s ease;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  background: hsl(210 40% 98%);
+  border: 1px solid hsl(214.3 31.8% 91.4%);
+  border-bottom: none;
+  margin-right: 0.25rem;
+  border-top-left-radius: 0.375rem;
+  border-top-right-radius: 0.375rem;
+  color: hsl(215.4 16.3% 46.9%);
+  text-decoration: none;
+  transition: all 0.15s ease;
 }
 
 .wp-admin .nav-tab:hover {
-    background: hsl(0 0% 100%);
-    color: hsl(222.2 84% 4.9%);
+  background: hsl(0 0% 100%);
+  color: hsl(222.2 84% 4.9%);
 }
 
 .wp-admin .nav-tab-active,
 .wp-admin .nav-tab-active:hover {
-    background: hsl(0 0% 100%);
-    border-bottom-color: hsl(0 0% 100%);
-    border-top: 2px solid hsl(221.2 83.2% 53.3%);
-    padding-top: 0.6875rem;
-    font-weight: 600;
-    color: hsl(222.2 84% 4.9%);
+  background: hsl(0 0% 100%);
+  border-bottom-color: hsl(0 0% 100%);
+  border-top: 2px solid hsl(221.2 83.2% 53.3%);
+  padding-top: 0.6875rem;
+  font-weight: 600;
+  color: hsl(222.2 84% 4.9%);
 }
 
 .wp-admin .mobooking-settings-tab-content {
-    margin-top: -1px;
+  margin-top: -1px;
 }
 
 /*--------------------------------------------------------------
 8.4 Mobile Responsive Tables
 --------------------------------------------------------------*/
 @media screen and (max-width: 782px) {
+  .wp-list-table tbody th,
+  .wp-list-table tbody td {
+    display: block;
+    width: auto;
+    text-align: left;
+    border-bottom: 0;
+    padding: 0.5rem 1rem;
+  }
 
-    .wp-list-table tbody th,
-    .wp-list-table tbody td {
-        display: block;
-        width: auto;
-        text-align: left;
-        border-bottom: 0;
-        padding: 0.5rem 1rem;
-    }
+  .wp-list-table tbody td:before {
+    content: attr(data-label);
+    float: left;
+    width: 30%;
+    font-weight: 600;
+    margin-right: 0.75rem;
+    display: inline-block;
+    color: hsl(222.2 84% 4.9%);
+  }
 
-    .wp-list-table tbody td:before {
-        content: attr(data-label);
-        float: left;
-        width: 30%;
-        font-weight: 600;
-        margin-right: 0.75rem;
-        display: inline-block;
-        color: hsl(222.2 84% 4.9%);
-    }
+  .wp-list-table tbody tr {
+    border-bottom: 1px solid hsl(214.3 31.8% 91.4%);
+    margin-bottom: 1rem;
+  }
 
-    .wp-list-table tbody tr {
-        border-bottom: 1px solid hsl(214.3 31.8% 91.4%);
-        margin-bottom: 1rem;
-    }
+  .wp-list-table tbody td .button {
+    display: block;
+    margin-bottom: 0.5rem;
+    text-align: center;
+    width: 100%;
+  }
 
-    .wp-list-table tbody td .button {
-        display: block;
-        margin-bottom: 0.5rem;
-        text-align: center;
-        width: 100%;
-    }
-
-    .wp-list-table tbody td .button:last-child {
-        margin-bottom: 0;
-    }
+  .wp-list-table tbody td .button:last-child {
+    margin-bottom: 0;
+  }
 }
 
 /*--------------------------------------------------------------
@@ -1142,16 +1151,16 @@ body.mobooking-modal-open {
 .wp-admin .wrap[id^="mobooking-"] input[type="url"],
 .wp-admin .wrap[id^="mobooking-"] select,
 .wp-admin .wrap[id^="mobooking-"] textarea {
-    border: 1px solid hsl(214.3 31.8% 91.4%);
-    border-radius: 0.375rem;
-    padding: 0.5rem 0.75rem;
-    font-size: 0.875rem;
-    color: hsl(222.2 84% 4.9%);
-    background-color: hsl(0 0% 100%);
-    transition: border-color 0.15s ease, box-shadow 0.15s ease;
-    width: 100%;
-    max-width: 24rem;
-    margin-bottom: 0.75rem;
+  border: 1px solid hsl(214.3 31.8% 91.4%);
+  border-radius: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  color: hsl(222.2 84% 4.9%);
+  background-color: hsl(0 0% 100%);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  width: 100%;
+  max-width: 24rem;
+  margin-bottom: 0.75rem;
 }
 
 .wp-admin .wrap[id^="mobooking-"] input[type="text"]:focus,
@@ -1163,15 +1172,15 @@ body.mobooking-modal-open {
 .wp-admin .wrap[id^="mobooking-"] input[type="url"]:focus,
 .wp-admin .wrap[id^="mobooking-"] select:focus,
 .wp-admin .wrap[id^="mobooking-"] textarea:focus {
-    border-color: hsl(221.2 83.2% 53.3%);
-    box-shadow: 0 0 0 2px hsl(221.2 83.2% 53.3% / 0.2);
+  border-color: hsl(221.2 83.2% 53.3%);
+  box-shadow: 0 0 0 2px hsl(221.2 83.2% 53.3% / 0.2);
 }
 
 .wp-admin .wrap[id^="mobooking-"] label {
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: hsl(222.2 84% 4.9%);
-    margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: hsl(222.2 84% 4.9%);
+  margin-bottom: 0.5rem;
 }
 
 .wp-admin .wrap[id^="mobooking-"] .form-table input[type="text"],
@@ -1180,14 +1189,14 @@ body.mobooking-modal-open {
 .wp-admin .wrap[id^="mobooking-"] .form-table input[type="url"],
 .wp-admin .wrap[id^="mobooking-"] .form-table select,
 .wp-admin .wrap[id^="mobooking-"] .form-table textarea {
-    margin-bottom: 0;
+  margin-bottom: 0;
 }
 
 .wp-admin .wrap[id^="mobooking-"] textarea.large-text,
 .wp-admin .wrap[id^="mobooking-"] textarea.code {
-    max-width: 100%;
-    width: 100%;
-    min-height: 6rem;
+  max-width: 100%;
+  width: 100%;
+  min-height: 6rem;
 }
 
 /*--------------------------------------------------------------
@@ -1197,66 +1206,66 @@ body.mobooking-modal-open {
 .wp-admin input[type="submit"],
 .wp-admin input[type="button"],
 .wp-admin input[type="reset"] {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    white-space: nowrap;
-    border-radius: 0.375rem;
-    font-size: 0.875rem;
-    font-weight: 500;
-    transition: all 0.15s ease;
-    cursor: pointer;
-    border: 1px solid;
-    padding: 0.5rem 1rem;
-    height: 2.25rem;
-    text-decoration: none;
-    line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.15s ease;
+  cursor: pointer;
+  border: 1px solid;
+  padding: 0.5rem 1rem;
+  height: 2.25rem;
+  text-decoration: none;
+  line-height: 1;
 }
 
 .wp-admin .button-primary {
-    background: hsl(221.2 83.2% 53.3%);
-    color: hsl(210 40% 98%);
-    border-color: hsl(221.2 83.2% 53.3%);
+  background: hsl(221.2 83.2% 53.3%);
+  color: hsl(210 40% 98%);
+  border-color: hsl(221.2 83.2% 53.3%);
 }
 
 .wp-admin .button-primary:hover,
 .wp-admin .button-primary:focus {
-    background: hsl(221.2 83.2% 53.3% / 0.9);
-    border-color: hsl(221.2 83.2% 53.3% / 0.9);
-    color: hsl(210 40% 98%);
+  background: hsl(221.2 83.2% 53.3% / 0.9);
+  border-color: hsl(221.2 83.2% 53.3% / 0.9);
+  color: hsl(210 40% 98%);
 }
 
 .wp-admin .button.button-secondary,
 .wp-admin .mobooking-button-default {
-    background: hsl(0 0% 100%);
-    border-color: hsl(214.3 31.8% 91.4%);
-    color: hsl(222.2 84% 4.9%);
+  background: hsl(0 0% 100%);
+  border-color: hsl(214.3 31.8% 91.4%);
+  color: hsl(222.2 84% 4.9%);
 }
 
 .wp-admin .button.button-secondary:hover,
 .wp-admin .button.button-secondary:focus,
 .wp-admin .mobooking-button-default:hover,
 .wp-admin .mobooking-button-default:focus {
-    background: hsl(210 40% 96%);
-    border-color: hsl(214.3 31.8% 91.4%);
-    color: hsl(222.2 84% 4.9%);
+  background: hsl(210 40% 96%);
+  border-color: hsl(214.3 31.8% 91.4%);
+  color: hsl(222.2 84% 4.9%);
 }
 
 .wp-admin .button-link-delete,
 .wp-admin .mobooking-button-delete {
-    background: hsl(0 84.2% 60.2%);
-    border-color: hsl(0 84.2% 60.2%);
-    color: hsl(210 40% 98%);
+  background: hsl(0 84.2% 60.2%);
+  border-color: hsl(0 84.2% 60.2%);
+  color: hsl(210 40% 98%);
 }
 
 .wp-admin .button-link-delete:hover,
 .wp-admin .mobooking-button-delete:hover {
-    background: hsl(0 84.2% 60.2% / 0.9);
-    border-color: hsl(0 84.2% 60.2% / 0.9);
-    color: hsl(210 40% 98%);
+  background: hsl(0 84.2% 60.2% / 0.9);
+  border-color: hsl(0 84.2% 60.2% / 0.9);
+  color: hsl(210 40% 98%);
 }
 
 /* Smooth scrolling for content area */
 .dashboard-page-content-area {
-    scroll-behavior: smooth;
+  scroll-behavior: smooth;
 }
