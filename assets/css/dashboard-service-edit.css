@@ -484,3 +484,18 @@ h4.mobooking-option-title {
     flex-grow: 1;
     /* Allow input to take available space */
 }
+
+/* Basic styling for sidebar menu icons */
+.mobooking-menu-icon {
+    display: inline-block;
+    vertical-align: middle; /* Adjust as needed, e.g., text-bottom */
+    margin-right: 8px;    /* Space between icon and text */
+    width: 18px;          /* Default width from SVGs */
+    height: 18px;         /* Default height from SVGs */
+}
+
+.mobooking-menu-icon svg {
+    width: 100%;
+    height: 100%;
+    display: block; /* Ensures SVG scales within the span if dimensions differ */
+}
