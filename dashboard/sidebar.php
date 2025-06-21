@@ -73,6 +73,10 @@ if ( $current_user_id > 0 ) {
             <li class="<?php echo ($current_page === 'services') ? 'active' : ''; ?>"><a href="<?php echo esc_url(trailingslashit($dashboard_base_url) . 'services/'); ?>"><span class="mobooking-menu-icon"><?php echo mobooking_get_dashboard_menu_icon('services'); ?></span><?php esc_html_e('Services', 'mobooking'); ?></a></li>
             <?php endif; ?>
 
+            <?php if (current_user_can(\MoBooking\Classes\Auth::CAP_MANAGE_AVAILABILITY)) : ?>
+            <li class="<?php echo ($current_page === 'availability') ? 'active' : ''; ?>"><a href="<?php echo esc_url(trailingslashit($dashboard_base_url) . 'availability/'); ?>"><span class="mobooking-menu-icon"><?php echo mobooking_get_dashboard_menu_icon('availability'); ?></span><?php esc_html_e('Availability', 'mobooking'); ?></a></li>
+            <?php endif; ?>
+
             <?php if (current_user_can(\MoBooking\Classes\Auth::CAP_VIEW_DISCOUNTS) || current_user_can(\MoBooking\Classes\Auth::CAP_MANAGE_DISCOUNTS)) : ?>
             <li class="<?php echo ($current_page === 'discounts') ? 'active' : ''; ?>"><a href="<?php echo esc_url(trailingslashit($dashboard_base_url) . 'discounts/'); ?>"><span class="mobooking-menu-icon"><?php echo mobooking_get_dashboard_menu_icon('discounts'); ?></span><?php esc_html_e('Discounts', 'mobooking'); ?></a></li>
             <?php endif; ?>

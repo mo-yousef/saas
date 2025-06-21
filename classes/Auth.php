@@ -32,6 +32,7 @@ class Auth {
     const CAP_MANAGE_BOOKING_FORM = 'mobooking_manage_booking_form';
     const CAP_MANAGE_BUSINESS_SETTINGS = 'mobooking_manage_business_settings';
     const CAP_MANAGE_WORKERS = 'mobooking_manage_workers';
+    const CAP_MANAGE_AVAILABILITY = 'mobooking_manage_availability'; // New capability
 
     const LOGIN_NONCE_ACTION = 'mobooking_login_action';
     const REGISTER_NONCE_ACTION = 'mobooking_register_action';
@@ -99,6 +100,7 @@ class Auth {
                 self::CAP_MANAGE_BOOKING_FORM => true,
                 self::CAP_MANAGE_BUSINESS_SETTINGS => true,
                 self::CAP_MANAGE_WORKERS => true,
+                self::CAP_MANAGE_AVAILABILITY => true, // Assign to business owner
                 // 'edit_posts', 'upload_files' - examples, remove if not used by plugin features
             )
         );
