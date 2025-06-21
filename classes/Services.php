@@ -105,10 +105,13 @@ class Services {
                 'created_at' => current_time('mysql', 1), // GMT
                 'updated_at' => current_time('mysql', 1), // GMT
             ),
-            array('%d', '%s', '%s', '%f', '%d', '%s', '%s', '%s', '%s', '%s', '%s')
+            // Removed '%s' for category
+            array('%d', '%s', '%s', '%f', '%d', '%s', '%s', '%s', '%s', '%s')
         );
 
         if (false === $inserted) {
+            // Log the actual database error
+            error_log('[MoBooking Services DB Error] add_service failed: ' . $this->wpdb->last_error);
             return new \WP_Error('db_error', __('Could not add service to the database.', 'mobooking'));
         }
         return $this->wpdb->insert_id;
@@ -238,17 +241,18 @@ class Services {
         if (isset($data['description'])) { $update_data['description'] = wp_kses_post($data['description']); $update_formats[] = '%s'; }
         if (isset($data['price'])) { $update_data['price'] = floatval($data['price']); $update_formats[] = '%f'; }
         if (isset($data['duration'])) { $update_data['duration'] = intval($data['duration']); $update_formats[] = '%d'; }
-        // Add category handling for update_service
-        if (array_key_exists('category', $data)) { // Use array_key_exists to allow setting category to null or empty string
-            $update_data['category'] = is_null($data['category']) ? null : sanitize_text_field($data['category']);
-            $update_formats[] = '%s';
-        }
+        // Category handling removed for update_service
+        // if (array_key_exists('category', $data)) { ... }
         if (isset($data['icon'])) { $update_data['icon'] = sanitize_text_field($data['icon']); $update_formats[] = '%s'; }
         if (isset($data['image_url'])) { $update_data['image_url'] = esc_url_raw($data['image_url']); $update_formats[] = '%s'; }
         if (isset($data['status'])) { $update_data['status'] = sanitize_text_field($data['status']); $update_formats[] = '%s'; }
 
         if (empty($update_data)) {
-            return new \WP_Error('no_valid_data', __('No valid data provided for update.', 'mobooking'));
+            // If only 'category' was provided, $update_data might be empty now.
+            // However, the original check for 'no_data' was before adding 'updated_at'.
+            // If $update_data only contained 'category' and is now empty, we should probably not proceed.
+            // For now, if $update_data is empty here, it means no *valid* fields were provided.
+            return new \WP_Error('no_valid_data', __('No valid fields provided for update.', 'mobooking'));
         }
         $update_data['updated_at'] = current_time('mysql', 1); // GMT
         $update_formats[] = '%s';
@@ -262,6 +266,8 @@ class Services {
         );
 
         if (false === $updated) {
+            // Log the actual database error
+            error_log('[MoBooking Services DB Error] update_service failed for service_id ' . $service_id . ': ' . $this->wpdb->last_error);
             return new \WP_Error('db_error', __('Could not update service in the database.', 'mobooking'));
         }
         return true; // Or $updated which is number of rows affected
