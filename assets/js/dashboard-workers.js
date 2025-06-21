@@ -9,12 +9,18 @@ jQuery(document).ready(function($) {
     const feedbackArea = $('#mobooking-feedback-area');
     const feedbackP = feedbackArea.find('p');
 
-    function showFeedback(message, isSuccess) {
+    function showFeedback(message, isSuccess, customClass = '') {
         feedbackP.html(message);
+        // Reset classes first
+        feedbackArea.removeClass('notice-success notice-error mobooking-worker-created-success is-dismissible');
+
         if (isSuccess) {
-            feedbackArea.removeClass('notice-error').addClass('notice-success is-dismissible');
+            feedbackArea.addClass('notice-success is-dismissible');
+            if (customClass) {
+                feedbackArea.addClass(customClass);
+            }
         } else {
-            feedbackArea.removeClass('notice-success').addClass('notice-error is-dismissible');
+            feedbackArea.addClass('notice-error is-dismissible');
         }
         feedbackArea.show().delay(5000).fadeOut();
         $('html, body').animate({ scrollTop: feedbackArea.offset().top - 50 }, 500);
@@ -80,7 +86,7 @@ jQuery(document).ready(function($) {
 
         $.post(mobooking_workers_params.ajax_url, formData, function(response) {
             if (response.success) {
-                showFeedback(response.data.message, true);
+                showFeedback(response.data.message, true, 'mobooking-worker-created-success'); // Add custom class here
                 $form[0].reset();
                 // Reload the page to show the new worker in the list and clear state.
                 // The feedback message will be visible for a short duration due to showFeedback's delay().

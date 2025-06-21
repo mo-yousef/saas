@@ -14,9 +14,10 @@ $current_user_id = get_current_user_id();
 // Determine the display brand name
 $display_brand_name = esc_html__('MoBooking', 'mobooking'); // Default brand name
 if ($current_user_id > 0 && isset($GLOBALS['mobooking_settings_manager']) && class_exists('MoBooking\Classes\Settings')) {
-    // Ensure get_setting method and BUSINESS_NAME_KEY constant exist before calling
-    if (method_exists($GLOBALS['mobooking_settings_manager'], 'get_setting') && defined('MoBooking\Classes\Settings::BUSINESS_NAME_KEY')) {
-        $business_name_setting = $GLOBALS['mobooking_settings_manager']->get_setting($current_user_id, \MoBooking\Classes\Settings::BUSINESS_NAME_KEY, '');
+    // Ensure get_setting method exists before calling
+    if (method_exists($GLOBALS['mobooking_settings_manager'], 'get_setting')) {
+        // Use the correct string key 'biz_name' as defined in Settings.php
+        $business_name_setting = $GLOBALS['mobooking_settings_manager']->get_setting($current_user_id, 'biz_name', '');
         if (!empty(trim($business_name_setting))) {
             $display_brand_name = esc_html(trim($business_name_setting));
         }
