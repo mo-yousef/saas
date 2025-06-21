@@ -66,22 +66,15 @@ class UserManagementPage {
         $auth_class = '\MoBooking\Classes\Auth'; // Shorthand for Auth class constants
 
         // --- Section: Process "Save Role" Form Submission ---
-        // Check if the "Save Role" button was clicked and the nonce is valid.
-        if ( isset( $_POST['mobooking_update_role_submit'] ) && check_admin_referer( 'mobooking_manage_user_roles_nonce', '_mobooking_nonce' ) ) {
-            // Verify current user has 'manage_options' capability before proceeding.
+        if ( isset( $_POST['mobooking_update_role_submit'] ) && isset( $_POST['mobooking_target_user_id'] ) && check_admin_referer( 'mobooking_manage_user_roles_nonce', '_mobooking_nonce' ) ) {
             if ( ! current_user_can( 'manage_options' ) ) {
                 wp_die( esc_html__( 'Permission denied.', 'mobooking' ) );
             }
 
-            // Get and sanitize the target user ID from the submit button's value.
-            $target_user_id = intval( $_POST['mobooking_update_role_submit'] );
-            // Get and sanitize the selected new role key from the corresponding dropdown.
-            $new_role_key = isset($_POST['mobooking_role_change']['user_id_' . $target_user_id])
-                            ? sanitize_text_field( $_POST['mobooking_role_change']['user_id_' . $target_user_id] )
-                            : '';
+            $target_user_id = intval( $_POST['mobooking_target_user_id'] );
+            $new_role_key = isset( $_POST['mobooking_role_change_generic'] ) ? sanitize_text_field( $_POST['mobooking_role_change_generic'] ) : '';
 
-            // Proceed only if a valid user ID and new role key are present.
-            if ( $target_user_id > 0 && !empty($new_role_key) ) {
+            if ( $target_user_id > 0 && ! empty( $new_role_key ) ) {
                 $user = get_userdata( $target_user_id ); // Get WP_User object for the target user.
                 if ( $user ) {
                     // Define all MoBooking role slugs to ensure only these are processed.
@@ -125,238 +118,407 @@ class UserManagementPage {
 
         // --- Section: Process "Save Owner" Form Submission ---
         // Check if the "Save Owner" button was clicked and the nonce is valid.
-        if ( isset( $_POST['mobooking_update_owner_submit'] ) && check_admin_referer( 'mobooking_manage_user_roles_nonce', '_mobooking_nonce' ) ) {
-            // Verify current user has 'manage_options' capability.
+        if ( isset( $_POST['mobooking_update_owner_submit'] ) && isset( $_POST['mobooking_target_user_id'] ) && check_admin_referer( 'mobooking_manage_user_roles_nonce', '_mobooking_nonce' ) ) {
             if ( ! current_user_can( 'manage_options' ) ) {
                 wp_die( esc_html__( 'Permission denied.', 'mobooking' ) );
             }
 
-            // Get and sanitize the target worker user ID and the selected new owner ID.
-            $worker_user_id = intval( $_POST['mobooking_update_owner_submit'] );
-            $new_owner_id_input = isset($_POST['mobooking_assign_owner']['user_id_' . $worker_user_id])
-                            ? sanitize_text_field( $_POST['mobooking_assign_owner']['user_id_' . $worker_user_id] )
-                            : '';
+            $target_worker_user_id = intval( $_POST['mobooking_target_user_id'] );
+            $new_owner_id_input = isset( $_POST['mobooking_assign_owner_generic'] ) ? sanitize_text_field( $_POST['mobooking_assign_owner_generic'] ) : '';
 
-            if ( $worker_user_id > 0 ) {
-                $worker_user = get_userdata( $worker_user_id );
+            if ( $target_worker_user_id > 0 ) {
+                $worker_user = get_userdata( $target_worker_user_id );
                 if ( $worker_user ) {
-                    // Check if the target user actually has a MoBooking worker role.
                     $is_actually_worker = false;
                     $worker_role_slugs = [$auth_class::ROLE_WORKER_MANAGER, $auth_class::ROLE_WORKER_STAFF, $auth_class::ROLE_WORKER_VIEWER];
-                    foreach($worker_role_slugs as $w_slug) {
-                        if(in_array($w_slug, $worker_user->roles)) {
+                    foreach ( $worker_role_slugs as $w_slug ) {
+                        if ( in_array( $w_slug, $worker_user->roles ) ) {
                             $is_actually_worker = true;
                             break;
                         }
                     }
 
-                    // An owner can only be assigned if the user has a worker role, unless the action is to remove an existing assignment.
-                    if ( !$is_actually_worker && $new_owner_id_input !== '0' && $new_owner_id_input !== '') {
-                         add_action( 'admin_notices', function() use ($worker_user) { echo '<div class="notice notice-error is-dismissible"><p>' . sprintf(esc_html__( 'User %s must have a MoBooking worker role (Manager, Staff, or Viewer) to be assigned a Business Owner. Please assign a worker role first.', 'mobooking' ), esc_html($worker_user->user_email)) . '</p></div>'; });
+                    if ( ! $is_actually_worker && $new_owner_id_input !== '0' && $new_owner_id_input !== '' ) {
+                        add_action( 'admin_notices', function () use ( $worker_user ) {
+                            echo '<div class="notice notice-error is-dismissible"><p>' . sprintf( esc_html__( 'User %s must have a MoBooking worker role (Manager, Staff, or Viewer) to be assigned a Business Owner. Please assign a worker role first.', 'mobooking' ), esc_html( $worker_user->user_email ) ) . '</p></div>';
+                        } );
                     } else {
                         if ( $new_owner_id_input === '0' || $new_owner_id_input === '' ) {
-                            // If "Remove Assignment" or empty value was selected.
-                            delete_user_meta( $worker_user_id, $auth_class::META_KEY_OWNER_ID );
-                            add_action( 'admin_notices', function() { echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Business Owner assignment removed.', 'mobooking' ) . '</p></div>'; });
+                            delete_user_meta( $target_worker_user_id, $auth_class::META_KEY_OWNER_ID );
+                            add_action( 'admin_notices', function () {
+                                echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Business Owner assignment removed.', 'mobooking' ) . '</p></div>';
+                            } );
                         } else {
-                            // A specific owner ID was selected.
-                            $new_owner_id = intval($new_owner_id_input);
+                            $new_owner_id = intval( $new_owner_id_input );
                             $owner_user = get_userdata( $new_owner_id );
-                            // Validate that the selected new owner is indeed a Business Owner.
                             if ( $owner_user && in_array( $auth_class::ROLE_BUSINESS_OWNER, $owner_user->roles, true ) ) {
-                                update_user_meta( $worker_user_id, $auth_class::META_KEY_OWNER_ID, $new_owner_id );
-                                add_action( 'admin_notices', function() { echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Business Owner assigned successfully.', 'mobooking' ) . '</p></div>'; });
-                            } else { // Selected new owner is not a valid Business Owner.
-                                add_action( 'admin_notices', function() { echo '<div class="notice notice-error is-dismissible"><p>' . esc_html__( 'Invalid Business Owner selected. The selected user is not a Business Owner.', 'mobooking' ) . '</p></div>'; });
+                                update_user_meta( $target_worker_user_id, $auth_class::META_KEY_OWNER_ID, $new_owner_id );
+                                add_action( 'admin_notices', function () {
+                                    echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Business Owner assigned successfully.', 'mobooking' ) . '</p></div>';
+                                } );
+                            } else {
+                                add_action( 'admin_notices', function () {
+                                    echo '<div class="notice notice-error is-dismissible"><p>' . esc_html__( 'Invalid Business Owner selected. The selected user is not a Business Owner.', 'mobooking' ) . '</p></div>';
+                                } );
                             }
                         }
                     }
-                } else { // Worker user object not found.
-                    add_action( 'admin_notices', function() { echo '<div class="notice notice-error is-dismissible"><p>' . esc_html__( 'Target worker user not found for owner assignment.', 'mobooking' ) . '</p></div>'; });
+                } else {
+                    add_action( 'admin_notices', function () {
+                        echo '<div class="notice notice-error is-dismissible"><p>' . esc_html__( 'Target worker user not found for owner assignment.', 'mobooking' ) . '</p></div>';
+                    } );
                 }
-            } else { // Invalid $worker_user_id.
-                add_action( 'admin_notices', function() { echo '<div class="notice notice-error is-dismissible"><p>' . esc_html__( 'Invalid action or user ID for owner assignment.', 'mobooking' ) . '</p></div>'; });
+            } else {
+                add_action( 'admin_notices', function () {
+                    echo '<div class="notice notice-error is-dismissible"><p>' . esc_html__( 'Invalid action or user ID for owner assignment.', 'mobooking' ) . '</p></div>';
+                } );
             }
         }
         // --- End: Process "Save Owner" Form Submission ---
 
+        // --- Section: Process "Create New Worker Staff" Form Submission ---
+        if ( isset( $_POST['mobooking_create_worker_staff_submit'] ) && check_admin_referer( 'mobooking_create_worker_staff_nonce', '_mobooking_create_staff_nonce' ) ) {
+            if ( ! current_user_can( 'manage_options' ) ) {
+                wp_die( esc_html__( 'Permission denied.', 'mobooking' ) );
+            }
+
+            $new_staff_email = isset( $_POST['mobooking_new_staff_email'] ) ? sanitize_email( $_POST['mobooking_new_staff_email'] ) : '';
+            $new_staff_password = isset( $_POST['mobooking_new_staff_password'] ) ? $_POST['mobooking_new_staff_password'] : ''; // Password will be used by wp_insert_user, which handles its own hashing.
+            $new_staff_first_name = isset( $_POST['mobooking_new_staff_first_name'] ) ? sanitize_text_field( $_POST['mobooking_new_staff_first_name'] ) : '';
+            $new_staff_last_name = isset( $_POST['mobooking_new_staff_last_name'] ) ? sanitize_text_field( $_POST['mobooking_new_staff_last_name'] ) : '';
+            $selected_owner_id = isset( $_POST['mobooking_new_staff_owner_id'] ) ? intval( $_POST['mobooking_new_staff_owner_id'] ) : 0;
+
+            $errors = new \WP_Error();
+
+            if ( empty( $new_staff_email ) ) {
+                $errors->add( 'empty_email', __( 'Email address is required.', 'mobooking' ) );
+            } elseif ( ! is_email( $new_staff_email ) ) {
+                $errors->add( 'invalid_email', __( 'Invalid email address.', 'mobooking' ) );
+            }
+            if ( email_exists( $new_staff_email ) ) {
+                $errors->add( 'email_exists', __( 'This email address is already registered.', 'mobooking' ) );
+            }
+            if ( username_exists( $new_staff_email ) ) { // Assuming username is the email
+                $errors->add( 'username_exists', __( 'A user with this email as username already exists.', 'mobooking' ) );
+            }
+            if ( empty( $new_staff_password ) ) {
+                $errors->add( 'empty_password', __( 'Password is required.', 'mobooking' ) );
+            }
+            // Basic password length check (WordPress default is 7 characters, but wp_insert_user doesn't enforce this directly)
+            if ( !empty( $new_staff_password ) && strlen( $new_staff_password ) < 7 ) {
+                $errors->add( 'password_length', __( 'Password must be at least 7 characters long.', 'mobooking' ) );
+            }
+            if ( empty( $selected_owner_id ) ) {
+                $errors->add( 'empty_owner', __( 'Assigning a Business Owner is required.', 'mobooking' ) );
+            } else {
+                $owner_user_data = get_userdata( $selected_owner_id );
+                if ( ! $owner_user_data || ! in_array( $auth_class::ROLE_BUSINESS_OWNER, $owner_user_data->roles, true ) ) {
+                    $errors->add( 'invalid_owner', __( 'The selected Business Owner is not valid.', 'mobooking' ) );
+                }
+            }
+
+            if ( $errors->has_errors() ) {
+                foreach ( $errors->get_error_messages() as $message ) {
+                    add_action( 'admin_notices', function() use ( $message ) {
+                        echo '<div class="notice notice-error is-dismissible"><p>' . esc_html( $message ) . '</p></div>';
+                    });
+                }
+            } else {
+                // All checks passed, create the user
+                $user_data = array(
+                    'user_login' => $new_staff_email,
+                    'user_email' => $new_staff_email,
+                    'user_pass'  => $new_staff_password,
+                    'first_name' => $new_staff_first_name,
+                    'last_name'  => $new_staff_last_name,
+                    'role'       => $auth_class::ROLE_WORKER_STAFF,
+                );
+                $new_user_id = wp_insert_user( $user_data );
+
+                if ( is_wp_Error( $new_user_id ) ) {
+                    add_action( 'admin_notices', function() use ( $new_user_id ) {
+                        echo '<div class="notice notice-error is-dismissible"><p>' . esc_html( $new_user_id->get_error_message() ) . '</p></div>';
+                    });
+                } else {
+                    // User created successfully, assign the owner meta
+                    update_user_meta( $new_user_id, $auth_class::META_KEY_OWNER_ID, $selected_owner_id );
+                    add_action( 'admin_notices', function() {
+                        echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Worker Staff user created successfully.', 'mobooking' ) . '</p></div>';
+                    });
+                    // Clear POST data to prevent re-submission or to clear form fields - typically handled by redirect, but for now, just a notice.
+                    // Consider adding: $_POST = array();
+                }
+            }
+        }
+        // --- End: Process "Create New Worker Staff" Form Submission ---
+
         ?>
         <div class="wrap">
             <h1><?php _e( 'MoBooking User Management', 'mobooking' ); ?></h1>
-            <?php do_action('admin_notices'); // Display any admin notices generated by form handling. ?>
+            <?php do_action('admin_notices'); ?>
 
-            <h2><?php _e( 'All Users with MoBooking Roles', 'mobooking' ); ?></h2>
+            <style>
+                .mobooking-user-tree ul { list-style-type: none; padding-left: 20px; }
+                .mobooking-user-tree li { margin-bottom: 5px; padding: 5px; border-left: 1px solid #ccc; }
+                .mobooking-user-tree .owner-item > .user-info { font-weight: bold; }
+                .mobooking-user-tree .worker-list { margin-top: 5px; border-left: 1px dashed #eee; padding-left: 15px; }
+                .mobooking-user-tree .toggle-workers { cursor: pointer; margin-right: 5px; font-size: 0.8em; }
+                .mobooking-user-tree .user-actions a { margin-left: 10px; }
+                #mobooking-user-management-actions { margin-top: 20px; padding: 15px; border: 1px solid #ddd; background: #f5f5f5; display: none; }
+                #mobooking-user-management-actions h3 { margin-top: 0; }
+            </style>
+
+            <h2><?php _e( 'User Hierarchy', 'mobooking' ); ?></h2>
             <?php
-            // --- Section: Data Fetching for User Table ---
-            // Define MoBooking role slugs for querying users.
-            $mobooking_role_slugs = [
-                $auth_class::ROLE_BUSINESS_OWNER, $auth_class::ROLE_WORKER_MANAGER,
-                $auth_class::ROLE_WORKER_STAFF, $auth_class::ROLE_WORKER_VIEWER,
+            $all_mobooking_roles_display = [
+                $auth_class::ROLE_BUSINESS_OWNER => __( 'Business Owner', 'mobooking' ),
+                $auth_class::ROLE_WORKER_MANAGER => __( 'Worker Manager', 'mobooking' ),
+                $auth_class::ROLE_WORKER_STAFF   => __( 'Worker Staff', 'mobooking' ),
+                $auth_class::ROLE_WORKER_VIEWER  => __( 'Worker Viewer', 'mobooking' ),
             ];
-            // Define worker-specific roles for easier checks later.
             $worker_role_slugs_only = [
                 $auth_class::ROLE_WORKER_MANAGER, $auth_class::ROLE_WORKER_STAFF, $auth_class::ROLE_WORKER_VIEWER,
             ];
 
-            // Get all users who have one of the MoBooking roles.
-            $args = ['role__in' => $mobooking_role_slugs, 'orderby' => 'ID', 'order' => 'ASC'];
-            $users_with_mobooking_roles = get_users($args);
-
-            // Get all users who are Business Owners (for the owner assignment dropdown).
-            $business_owners_args = ['role__in' => [$auth_class::ROLE_BUSINESS_OWNER]];
+            $business_owners_args = ['role__in' => [$auth_class::ROLE_BUSINESS_OWNER], 'orderby' => 'ID', 'order' => 'ASC'];
             $business_owners_list = get_users($business_owners_args);
-
-            // Prepare an array of MoBooking role display names for use in the table and dropdowns.
-            $wp_roles_instance = wp_roles();
-            $all_mobooking_role_display_names = [];
-            foreach ($mobooking_role_slugs as $slug) {
-                if (isset($wp_roles_instance->role_names[$slug])) {
-                    $all_mobooking_role_display_names[$slug] = $wp_roles_instance->role_names[$slug];
-                } else { $all_mobooking_role_display_names[$slug] = $slug; } // Fallback to slug if name not found.
-            }
-            // --- End: Data Fetching for User Table ---
             ?>
-
-            <!-- Start: Main form for role and owner updates -->
-            <form method="post">
-                <?php wp_nonce_field( 'mobooking_manage_user_roles_nonce', '_mobooking_nonce' ); // Nonce for the entire form. ?>
-
-                <!-- Start: All MoBooking Users Table -->
-                <table class="wp-list-table widefat striped users">
-                    <thead>
-                        <tr>
-                            <th><?php _e( 'User', 'mobooking' ); ?></th>
-                            <th><?php _e( 'MoBooking Role(s)', 'mobooking' ); ?></th>
-                            <th><?php _e( 'Is Worker For (Owner)', 'mobooking' ); ?></th>
-                            <th><?php _e( 'Actions', 'mobooking' ); ?></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php if ( ! empty( $users_with_mobooking_roles ) ) : ?>
-                            <?php foreach ( $users_with_mobooking_roles as $user ) : ?>
+            <div class="mobooking-user-tree">
+                <ul>
+                    <?php if ( ! empty( $business_owners_list ) ) : ?>
+                        <?php foreach ( $business_owners_list as $owner ) : ?>
+                            <li class="owner-item">
+                                <span class="toggle-workers">▶</span>
+                                <span class="user-info">
+                                    <?php echo esc_html( $owner->display_name ?: $owner->user_login ); ?> (<?php echo esc_html( $owner->user_email ); ?>) - <?php echo esc_html( $all_mobooking_roles_display[$auth_class::ROLE_BUSINESS_OWNER] ); ?>
+                                </span>
+                                <span class="user-actions">
+                                    <a href="<?php echo esc_url( get_edit_user_link( $owner->ID ) ); ?>" target="_blank"><?php _e('View Profile', 'mobooking'); ?></a>
+                                    <a href="#" class="manage-user-link"
+                                       data-user-id="<?php echo esc_attr($owner->ID); ?>"
+                                       data-user-name="<?php echo esc_attr($owner->display_name ?: $owner->user_email); ?>"
+                                       data-current-role="<?php echo esc_attr($auth_class::ROLE_BUSINESS_OWNER); ?>"
+                                       data-current-owner-id="">
+                                        <?php _e('Manage', 'mobooking'); ?>
+                                    </a>
+                                </span>
                                 <?php
-                                // Determine if the current user in the loop is a worker type and their primary MoBooking role.
-                                $user_is_worker = false;
-                                $current_user_primary_mobooking_role = '';
-                                $user_mobooking_roles_display_list = [];
-                                foreach ( $user->roles as $role_slug ) {
-                                    if ( in_array( $role_slug, $mobooking_role_slugs ) ) {
-                                        $user_mobooking_roles_display_list[] = esc_html( $all_mobooking_role_display_names[$role_slug] );
-                                        if (empty($current_user_primary_mobooking_role)) { $current_user_primary_mobooking_role = $role_slug; }
-                                        if (in_array($role_slug, $worker_role_slugs_only)) { $user_is_worker = true; }
-                                    }
-                                }
+                                $workers_args = [
+                                    'meta_key' => $auth_class::META_KEY_OWNER_ID,
+                                    'meta_value' => $owner->ID,
+                                    'orderby' => 'ID',
+                                    'order' => 'ASC'
+                                ];
+                                $workers = get_users( $workers_args );
                                 ?>
-                                <tr>
-                                    <!-- User Column -->
-                                    <td>
-                                        <a href="<?php echo esc_url( get_edit_user_link( $user->ID ) ); ?>">
-                                            <?php echo esc_html( $user->user_email ?: $user->user_login ); ?>
-                                        </a>
-                                    </td>
-                                    <!-- MoBooking Role(s) Column -->
-                                    <td><?php echo implode( ', ', $user_mobooking_roles_display_list ); ?></td>
-                                    <!-- Is Worker For (Owner) Column -->
-                                    <td>
-                                        <?php
-                                        $current_owner_id = get_user_meta( $user->ID, $auth_class::META_KEY_OWNER_ID, true );
-                                        if ( $current_owner_id ) {
-                                            $owner_data = get_userdata( $current_owner_id );
-                                            echo esc_html( $owner_data ? ($owner_data->user_email ?: $owner_data->user_login) : __('Owner not found', 'mobooking') );
-                                        } else {
-                                            _e( 'N/A', 'mobooking' );
-                                        }
-                                        ?>
-                                    </td>
-                                    <!-- Actions Column -->
-                                    <td>
-                                        <!-- Role Change UI -->
-                                        <div style="margin-bottom: 5px;">
-                                            <select name="mobooking_role_change[user_id_<?php echo esc_attr($user->ID); ?>]" style="min-width: 150px;">
-                                                <option value=""><?php _e( '-- Select Role --', 'mobooking' ); ?></option>
-                                                <?php foreach ($all_mobooking_role_display_names as $slug => $name) : ?>
-                                                    <option value="<?php echo esc_attr($slug); ?>" <?php selected($current_user_primary_mobooking_role, $slug); ?>>
-                                                        <?php echo esc_html($name); ?>
-                                                    </option>
-                                                <?php endforeach; ?>
-                                                <option value="remove_mobooking_roles"><?php _e( 'Remove MoBooking Roles', 'mobooking' ); ?></option>
-                                            </select>
-                                            <button type="submit" name="mobooking_update_role_submit" value="<?php echo esc_attr($user->ID); ?>" class="button button-secondary button-small">
-                                                <?php _e( 'Save Role', 'mobooking' ); ?>
-                                            </button>
-                                        </div>
+                                <ul class="worker-list" style="display: none;">
+                                    <?php if ( ! empty( $workers ) ) : ?>
+                                        <?php foreach ( $workers as $worker ) : ?>
+                                            <?php
+                                            $worker_role_name = __('N/A', 'mobooking');
+                                            $current_worker_primary_role = '';
+                                            foreach ($worker->roles as $role_slug) {
+                                                if (isset($all_mobooking_roles_display[$role_slug])) {
+                                                    $worker_role_name = $all_mobooking_roles_display[$role_slug];
+                                                    $current_worker_primary_role = $role_slug;
+                                                    break;
+                                                }
+                                            }
+                                            ?>
+                                            <li>
+                                                <span class="user-info">
+                                                    <?php echo esc_html( $worker->display_name ?: $worker->user_login ); ?> (<?php echo esc_html( $worker->user_email ); ?>) - <?php echo esc_html( $worker_role_name ); ?>
+                                                </span>
+                                                <span class="user-actions">
+                                                    <a href="<?php echo esc_url( get_edit_user_link( $worker->ID ) ); ?>" target="_blank"><?php _e('View Profile', 'mobooking'); ?></a>
+                                                    <a href="#" class="manage-user-link"
+                                                       data-user-id="<?php echo esc_attr($worker->ID); ?>"
+                                                       data-user-name="<?php echo esc_attr($worker->display_name ?: $worker->user_email); ?>"
+                                                       data-current-role="<?php echo esc_attr($current_worker_primary_role); ?>"
+                                                       data-current-owner-id="<?php echo esc_attr($owner->ID); ?>">
+                                                        <?php _e('Manage', 'mobooking'); ?>
+                                                    </a>
+                                                </span>
+                                            </li>
+                                        <?php endforeach; ?>
+                                    <?php else : ?>
+                                        <li><?php _e( 'No workers found for this owner.', 'mobooking' ); ?></li>
+                                    <?php endif; ?>
+                                </ul>
+                            </li>
+                        <?php endforeach; ?>
+                    <?php else : ?>
+                        <li><?php _e( 'No Business Owners found.', 'mobooking' ); ?></li>
+                    <?php endif; ?>
+                </ul>
+            </div>
 
-                                        <!-- Owner Assignment UI (conditionally shown) -->
-                                        <?php
-                                        // Display owner assignment UI if the user is a worker type,
-                                        // or if they are not a Business Owner (as they could be changed to a worker role).
-                                        $can_have_owner = $user_is_worker || ($current_user_primary_mobooking_role !== $auth_class::ROLE_BUSINESS_OWNER);
-                                        if ($can_have_owner) :
-                                        ?>
-                                            <div class="owner-assignment-links">
-                                                <?php if ( $current_owner_id ) : ?>
-                                                    <a href="#" class="mobooking-change-owner-link" data-user-id="<?php echo esc_attr($user->ID); ?>">(<?php _e('Change Owner', 'mobooking'); ?>)</a>
-                                                <?php elseif ($user_is_worker) : // Only show "Assign Owner" if they are already a worker type and have no owner. ?>
-                                                    <a href="#" class="mobooking-assign-owner-link" data-user-id="<?php echo esc_attr($user->ID); ?>">(<?php _e('Assign Owner', 'mobooking'); ?>)</a>
-                                                <?php endif; ?>
-                                            </div>
-                                            <!-- Start: Owner Assignment Inline Form for user <?php echo esc_attr($user->ID); ?> -->
-                                            <div id="owner-assignment-form-<?php echo esc_attr($user->ID); ?>" class="owner-assignment-form" style="display:none; margin-top:5px; padding: 5px; border: 1px solid #ccc; background: #f9f9f9;">
-                                                <select name="mobooking_assign_owner[user_id_<?php echo esc_attr($user->ID); ?>]" style="min-width: 150px;">
-                                                    <option value="0"><?php _e( '-- Remove Assignment --', 'mobooking' ); ?></option>
-                                                    <?php foreach ($business_owners_list as $owner_option) : ?>
-                                                        <option value="<?php echo esc_attr($owner_option->ID); ?>" <?php selected($current_owner_id, $owner_option->ID); ?>>
-                                                            <?php echo esc_html( $owner_option->user_email ?: $owner_option->user_login ); ?>
-                                                        </option>
-                                                    <?php endforeach; ?>
-                                                </select>
-                                                <button type="submit" name="mobooking_update_owner_submit" value="<?php echo esc_attr($user->ID); ?>" class="button button-secondary button-small">
-                                                    <?php _e( 'Save Owner', 'mobooking' ); ?>
-                                                </button>
-                                                <a href="#" class="mobooking-cancel-owner-link" data-user-id="<?php echo esc_attr($user->ID); ?>" style="margin-left:5px;"><?php _e('Cancel', 'mobooking'); ?></a>
-                                            </div>
-                                            <!-- End: Owner Assignment Inline Form for user <?php echo esc_attr($user->ID); ?> -->
-                                        <?php endif; ?>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        <?php else : ?>
-                            <tr>
-                                <td colspan="4"><?php _e( 'No users found with MoBooking roles.', 'mobooking' ); ?></td>
-                            </tr>
-                        <?php endif; ?>
-                    </tbody>
+            <!-- Hidden Management Section -->
+            <div id="mobooking-user-management-actions" style="display:none; margin-top: 30px; padding: 20px; border: 1px solid #ccd0d4; background-color: #f6f7f7;">
+                <h3><?php _e('Manage User:', 'mobooking'); ?> <span id="managing-user-name"></span></h3>
+                <form method="post" id="mobooking-generic-role-form">
+                    <?php wp_nonce_field( 'mobooking_manage_user_roles_nonce', '_mobooking_nonce' ); ?>
+                    <input type="hidden" name="mobooking_target_user_id" id="mobooking_role_target_user_id" value="">
+                    <h4><?php _e('Change Role', 'mobooking'); ?></h4>
+                    <select name="mobooking_role_change_generic" id="mobooking_role_change_generic_select">
+                        <option value=""><?php _e( '-- Select Role --', 'mobooking' ); ?></option>
+                        <?php foreach ($all_mobooking_roles_display as $slug => $name) : ?>
+                            <option value="<?php echo esc_attr($slug); ?>"><?php echo esc_html($name); ?></option>
+                        <?php endforeach; ?>
+                        <option value="remove_mobooking_roles"><?php _e( 'Remove MoBooking Roles', 'mobooking' ); ?></option>
+                    </select>
+                    <button type="submit" name="mobooking_update_role_submit" id="mobooking_update_role_submit_button" value="" class="button button-primary">
+                        <?php _e( 'Save Role', 'mobooking' ); ?>
+                    </button>
+                </form>
+                <hr>
+                <form method="post" id="mobooking-generic-owner-form" style="margin-top:15px;">
+                     <?php wp_nonce_field( 'mobooking_manage_user_roles_nonce', '_mobooking_nonce' ); // Re-use nonce if appropriate, or create specific one ?>
+                    <input type="hidden" name="mobooking_target_user_id" id="mobooking_owner_target_user_id" value="">
+                    <h4><?php _e('Assign/Change Business Owner (for workers)', 'mobooking'); ?></h4>
+                    <p><small><?php _e('This only applies if the user is a worker. Assigning an owner to a Business Owner will have no effect or may be cleared if their role is Business Owner.', 'mobooking');?></small></p>
+                    <select name="mobooking_assign_owner_generic" id="mobooking_assign_owner_generic_select">
+                        <option value="0"><?php _e( '-- Remove/No Assignment --', 'mobooking' ); ?></option>
+                        <?php
+                        // Ensure $business_owners_list is available or re-fetch if needed for this scope
+                        // For now, assuming $business_owners_list fetched for the tree is still in scope.
+                        // If not, it might be better to pass this list via JS data attributes or fetch via AJAX.
+                        if ( ! empty( $business_owners_list ) ) {
+                            foreach ($business_owners_list as $owner_option) {
+                                echo '<option value="' . esc_attr($owner_option->ID) . '">' . esc_html( $owner_option->user_email ?: $owner_option->user_login ) . '</option>';
+                            }
+                        }
+                        ?>
+                    </select>
+                    <button type="submit" name="mobooking_update_owner_submit" id="mobooking_update_owner_submit_button" value="" class="button button-primary">
+                        <?php _e( 'Save Owner Assignment', 'mobooking' ); ?>
+                    </button>
+                </form>
+                 <button id="close-management-section" class="button" style="margin-top:15px;"><?php _e('Close Management Panel', 'mobooking'); ?></button>
+            </div>
+            <!-- End Hidden Management Section -->
+
+            <!-- Start: Create New Worker Staff Form -->
+            <h2><?php _e( 'Create New Worker Staff', 'mobooking' ); ?></h2>
+            <form method="post">
+                <?php wp_nonce_field( 'mobooking_create_worker_staff_nonce', '_mobooking_create_staff_nonce' ); ?>
+                <table class="form-table">
+                    <tr valign="top">
+                        <th scope="row">
+                            <label for="mobooking_new_staff_email"><?php _e( 'User Email', 'mobooking' ); ?></label>
+                        </th>
+                        <td>
+                            <input type="email" id="mobooking_new_staff_email" name="mobooking_new_staff_email" class="regular-text" required />
+                            <p class="description"><?php _e( 'Required. This will also be their username.', 'mobooking' ); ?></p>
+                        </td>
+                    </tr>
+                    <tr valign="top">
+                        <th scope="row">
+                            <label for="mobooking_new_staff_password"><?php _e( 'Password', 'mobooking' ); ?></label>
+                        </th>
+                        <td>
+                            <input type="password" id="mobooking_new_staff_password" name="mobooking_new_staff_password" class="regular-text" required />
+                             <p class="description"><?php _e( 'Required. Minimum 7 characters.', 'mobooking' ); ?></p>
+                        </td>
+                    </tr>
+                    <tr valign="top">
+                        <th scope="row">
+                            <label for="mobooking_new_staff_first_name"><?php _e( 'First Name', 'mobooking' ); ?></label>
+                        </th>
+                        <td>
+                            <input type="text" id="mobooking_new_staff_first_name" name="mobooking_new_staff_first_name" class="regular-text" />
+                        </td>
+                    </tr>
+                    <tr valign="top">
+                        <th scope="row">
+                            <label for="mobooking_new_staff_last_name"><?php _e( 'Last Name', 'mobooking' ); ?></label>
+                        </th>
+                        <td>
+                            <input type="text" id="mobooking_new_staff_last_name" name="mobooking_new_staff_last_name" class="regular-text" />
+                        </td>
+                    </tr>
+                    <tr valign="top">
+                        <th scope="row">
+                            <label for="mobooking_new_staff_owner_id"><?php _e( 'Assign to Business Owner', 'mobooking' ); ?></label>
+                        </th>
+                        <td>
+                            <select id="mobooking_new_staff_owner_id" name="mobooking_new_staff_owner_id" required>
+                                <option value=""><?php _e( '-- Select Business Owner --', 'mobooking' ); ?></option>
+                                <?php if ( ! empty( $business_owners_list ) ) : ?>
+                                    <?php foreach ( $business_owners_list as $owner ) : ?>
+                                        <option value="<?php echo esc_attr( $owner->ID ); ?>">
+                                            <?php echo esc_html( $owner->user_email ?: $owner->user_login ); ?> (ID: <?php echo esc_html($owner->ID); ?>)
+                                        </option>
+                                    <?php endforeach; ?>
+                                <?php else : ?>
+                                    <option value="" disabled><?php _e( 'No Business Owners found.', 'mobooking' ); ?></option>
+                                <?php endif; ?>
+                            </select>
+                            <p class="description"><?php _e( 'Required. Select the Business Owner this staff member will be associated with.', 'mobooking' ); ?></p>
+                        </td>
+                    </tr>
                 </table>
-                <!-- End: All MoBooking Users Table -->
+                <?php submit_button( __( 'Create Worker Staff', 'mobooking' ), 'primary', 'mobooking_create_worker_staff_submit' ); ?>
             </form>
-            <!-- End: Main form -->
+            <!-- End: Create New Worker Staff Form -->
 
             <h2><?php _e( 'Manage Business Owners and Their Workers', 'mobooking' ); ?></h2>
-            <p><em><?php _e( '(Business Owner list and worker management will be displayed here in a future update.)', 'mobooking' ); ?></em></p>
+            <p><em><?php _e( '(This section can be used for additional summary or actions related to owners and workers in the future.)', 'mobooking' ); ?></em></p>
         </div>
 
-        <?php // JavaScript for toggling the visibility of owner assignment forms. ?>
         <script type="text/javascript">
             jQuery(document).ready(function($) {
-                // Show/hide the owner assignment form when "Change Owner" or "Assign Owner" is clicked.
-                $('.mobooking-change-owner-link, .mobooking-assign-owner-link').on('click', function(e) {
-                    e.preventDefault();
-                    var userId = $(this).data('user-id');
-                    $('#owner-assignment-form-' + userId).slideToggle('fast');
-                    $(this).hide(); // Hide the link that was clicked.
+                // Tree view toggle
+                $('.mobooking-user-tree .toggle-workers').on('click', function() {
+                    var $this = $(this);
+                    $this.nextAll('.worker-list').slideToggle('fast');
+                    if ($this.text() === '▶') {
+                        $this.text('▼');
+                    } else {
+                        $this.text('▶');
+                    }
                 });
 
-                // Hide the owner assignment form and show the "Change/Assign" link when "Cancel" is clicked.
-                $('.mobooking-cancel-owner-link').on('click', function(e) {
+                // Manage user link
+                $('.manage-user-link').on('click', function(e) {
                     e.preventDefault();
                     var userId = $(this).data('user-id');
-                    $('#owner-assignment-form-' + userId).slideUp('fast');
-                    // Make sure to show the correct link again (either "Change" or "Assign")
-                    $('.owner-assignment-links[data-user-id="' + userId + '"] a').show(); // This might need refinement if both links exist structurally
-                    // Simpler: just show all links in that container, CSS/PHP logic should ensure only one is visible initially.
-                    $('.owner-assignment-links a[data-user-id="' + userId + '"]').show();
+                    var userName = $(this).data('user-name');
+                    var currentRole = $(this).data('current-role');
+                    var currentOwnerId = $(this).data('current-owner-id');
 
+                    $('#managing-user-name').text(userName + ' (ID: ' + userId + ')');
+
+                    // Populate Role Form
+                    $('#mobooking_role_target_user_id').val(userId);
+                    $('#mobooking_update_role_submit_button').val(userId); // Keep this for existing PHP handler compatibility
+                    $('#mobooking_role_change_generic_select').val(currentRole);
+
+                    // Populate Owner Assignment Form
+                    $('#mobooking_owner_target_user_id').val(userId);
+                    $('#mobooking_update_owner_submit_button').val(userId); // Keep this for existing PHP handler compatibility
+                    $('#mobooking_assign_owner_generic_select').val(currentOwnerId || '0');
+
+
+                    // Show the management section
+                    var managementSection = $('#mobooking-user-management-actions');
+                    managementSection.slideDown('fast');
+                    $('html, body').animate({
+                        scrollTop: managementSection.offset().top - 50 // 50px offset for admin bar or other fixed headers
+                    }, 500);
                 });
+
+                $('#close-management-section').on('click', function() {
+                    $('#mobooking-user-management-actions').slideUp('fast');
+                });
+
+                // Existing JS for owner assignment forms might need removal or adaptation if those specific forms are gone.
+                // For now, the generic forms will use the main page submit, handled by PHP.
+                // The old .mobooking-change-owner-link, .mobooking-assign-owner-link JS can be removed if those links are no longer used.
+                // Let's remove them to avoid conflicts.
+                // $('.mobooking-change-owner-link, .mobooking-assign-owner-link').off('click');
+                // $('.mobooking-cancel-owner-link').off('click');
+                // It's better to remove the old HTML elements that these were attached to.
             });
         </script>
         <?php
