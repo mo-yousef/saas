@@ -173,6 +173,29 @@ function mobooking_scripts() {
             'i18n' => $i18n_strings
         ));
     }
+
+    // Specific to Workers page
+    if ($current_page_slug === 'workers') {
+        wp_enqueue_script('mobooking-dashboard-workers', MOBOOKING_THEME_URI . 'assets/js/dashboard-workers.js', array('jquery'), MOBOOKING_VERSION, true);
+        wp_localize_script('mobooking-dashboard-workers', 'mobooking_workers_params', array(
+            'ajax_url' => admin_url('admin-ajax.php'),
+            // It's important that nonce fields are still generated within the PHP of page-workers.php for each form,
+            // as nonces can be specific to an action and user session.
+            // The JS will pick up these nonces from the form data when serializing.
+            // We only need to provide generic translated strings here that were previously inline.
+            'i18n' => array(
+                'error_occurred' => esc_js(__( 'An error occurred.', 'mobooking')),
+                'error_unexpected' => esc_js(__( 'An unexpected error occurred. Please try again.', 'mobooking')),
+                'confirm_revoke_access' => esc_js(__( "Are you sure you want to revoke this worker's access? This cannot be undone.", 'mobooking')),
+                'revoking' => esc_js(__( 'Revoking...', 'mobooking')),
+                'error_revoking_access' => esc_js(__( 'An error occurred while revoking access.', 'mobooking')),
+                'revoke_access' => esc_js(__( 'Revoke Access', 'mobooking')),
+                'changing_role' => esc_js(__( 'Changing...', 'mobooking')),
+                'error_server' => esc_js(__( 'An unexpected server error occurred. Please try again.', 'mobooking')),
+                'saving' => esc_js(__( 'Saving...', 'mobooking')),
+            )
+        ));
+    }
 }
 add_action( 'wp_enqueue_scripts', 'mobooking_scripts' );
 
