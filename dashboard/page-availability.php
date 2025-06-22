@@ -19,16 +19,17 @@ if ( ! current_user_can( \MoBooking\Classes\Auth::CAP_MANAGE_AVAILABILITY ) ) {
     <!-- Recurring Weekly Availability Section -->
     <div class="mobooking-section">
         <h2><?php esc_html_e('Recurring Weekly Schedule', 'mobooking'); ?></h2>
-        <p><?php esc_html_e('Set your standard availability for each day of the week. These are your default hours unless overridden by a specific date setting below.', 'mobooking'); ?></p>
+        <p><?php esc_html_e('Set your standard availability for each day of the week. These are your default hours unless overridden by a specific date setting below. You can mark entire days as off, or add specific time slots.', 'mobooking'); ?></p>
 
         <div id="recurring-slots-container">
-            <!-- JS will populate this -->
+            <!-- JS will populate this with days and their slots/toggles -->
             <p><?php esc_html_e('Loading recurring schedule...', 'mobooking'); ?></p>
         </div>
 
-        <button type="button" id="mobooking-add-recurring-slot-btn" class="button button-primary">
-            <span class="dashicons dashicons-plus-alt2" style="margin-top:3px;"></span> <?php esc_html_e('Add Recurring Slot', 'mobooking'); ?>
+        <button type="button" id="mobooking-add-recurring-slot-btn" class="button button-primary" style="margin-top: 15px;">
+            <span class="dashicons dashicons-plus-alt2" style="margin-top:3px;"></span> <?php esc_html_e('Add New Time Slot', 'mobooking'); ?>
         </button>
+        <p class="description"><?php esc_html_e('Use the "Add New Time Slot" button to add specific working hours to a day. To mark an entire day as off or on, use the toggles that appear next to each day above.', 'mobooking'); ?></p>
     </div>
 
     <!-- Specific Date Overrides Section -->
@@ -93,6 +94,7 @@ if ( ! current_user_can( \MoBooking\Classes\Auth::CAP_MANAGE_AVAILABILITY ) ) {
     <div id="mobooking-recurring-slot-modal" class="mobooking-modal">
         <div class="mobooking-modal-content">
             <h3 id="recurring-slot-modal-title"><?php esc_html_e('Add Recurring Slot', 'mobooking'); ?></h3>
+            <div id="mobooking-recurring-slot-modal-error" class="mobooking-notice notice-error" style="display:none; margin-bottom: 15px;"></div>
             <form id="mobooking-recurring-slot-form">
                 <input type="hidden" id="recurring-slot-id" name="slot_id">
                 <div class="form-field">
