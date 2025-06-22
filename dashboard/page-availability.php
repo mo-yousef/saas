@@ -137,4 +137,17 @@ if ( ! current_user_can( \MoBooking\Classes\Auth::CAP_MANAGE_AVAILABILITY ) ) {
     </div>
     <div id="mobooking-recurring-slot-modal-backdrop" class="mobooking-modal-backdrop"></div>
 
+    <!-- Generic Confirmation/Alert Modal -->
+    <div id="mobooking-generic-modal" class="mobooking-modal">
+        <div class="mobooking-modal-content">
+            <h3 id="mobooking-generic-modal-title"></h3>
+            <p id="mobooking-generic-modal-message"></p>
+            <div id="mobooking-generic-modal-actions" class="form-actions">
+                <button type="button" id="mobooking-generic-modal-confirm-btn" class="button button-primary"></button>
+                <button type="button" id="mobooking-generic-modal-cancel-btn" class="button mobooking-modal-close"></button>
+            </div>
+        </div>
+    </div>
+    <div id="mobooking-generic-modal-backdrop" class="mobooking-modal-backdrop"></div>
+
 </div>
