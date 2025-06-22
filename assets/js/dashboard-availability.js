@@ -85,13 +85,15 @@ jQuery(document).ready(function($) {
             $recurringSlotModalTitle.text(i18n.add_recurring_slot || 'Add Recurring Slot');
             $('#recurring-slot-id').val('');
         }
-        $recurringSlotModal.show();
-        $recurringSlotModalBackdrop.show();
+        // CSS now handles display via .active class
+        $recurringSlotModal.addClass('active');
+        $recurringSlotModalBackdrop.addClass('active');
     }
 
     function closeRecurringSlotModal() {
-        $recurringSlotModal.hide();
-        $recurringSlotModalBackdrop.hide();
+        // CSS now handles display via .active class
+        $recurringSlotModal.removeClass('active');
+        $recurringSlotModalBackdrop.removeClass('active');
     }
 
     function renderRecurringSlots(slots) {

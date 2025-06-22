@@ -1435,6 +1435,7 @@ span.mobooking-menu-icon {
 
 /* Modal Styles (ShadCN inspired: card-like) */
 .mobooking-modal-backdrop {
+  display: none; /* Initially hidden */
   position: fixed;
   top: 0;
   left: 0;
@@ -1443,15 +1444,17 @@ span.mobooking-menu-icon {
   background-color: hsl(0 0% 0% / 0.6); /* Darker backdrop */
   z-index: 1000; /* Below modal, above content */
   opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.2s ease, visibility 0.2s ease;
+  /* visibility: hidden;  Visibility transition isn't smooth with display none/block */
+  transition: opacity 0.2s ease;
 }
 .mobooking-modal-backdrop.active {
+  display: block; /* Show */
   opacity: 1;
-  visibility: visible;
+  /* visibility: visible; */
 }
 
 .mobooking-modal {
+  display: none; /* Initially hidden */
   position: fixed;
   top: 50%;
   left: 50%;
@@ -1464,12 +1467,13 @@ span.mobooking-menu-icon {
   width: 90%;
   max-width: 480px; /* Slightly narrower */
   opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.2s ease, visibility 0.2s ease, transform 0.2s ease;
+  /* visibility: hidden; */
+  transition: opacity 0.2s ease, transform 0.2s ease;
 }
 .mobooking-modal.active {
+  display: block; /* Show */
   opacity: 1;
-  visibility: visible;
+  /* visibility: visible; */
   transform: translate(-50%, -50%) scale(1);
 }
 
