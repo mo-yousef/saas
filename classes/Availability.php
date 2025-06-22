@@ -33,6 +33,9 @@ class Availability {
         add_action('wp_ajax_mobooking_get_date_overrides', [$this, 'ajax_get_date_overrides']); // For a range or specific date
         add_action('wp_ajax_mobooking_save_date_override', [$this, 'ajax_save_date_override']);
         add_action('wp_ajax_mobooking_delete_date_override', [$this, 'ajax_delete_date_override']);
+
+        // Recurring Day Status
+        add_action('wp_ajax_mobooking_set_recurring_day_status', [$this, 'ajax_set_recurring_day_status']);
     }
 
     // --- Recurring Availability Slot Methods ---
@@ -117,6 +120,39 @@ class Availability {
         $deleted = $this->wpdb->delete($this->slots_table_name, ['user_id' => $user_id, 'slot_id' => $slot_id], ['%d', '%d']);
         return ($deleted !== false);
     }
+
+    /**
+     * Set the status for an entire recurring day (e.g., mark all of Monday as off).
+     * This currently means deactivating all slots for that day.
+     * @param int $user_id
+     * @param int $day_of_week
+     * @param bool $is_day_off If true, marks day as off (deactivates slots). If false, (currently does nothing, user adds slots manually)
+     * @return bool True on success, false on failure.
+     */
+    public function set_recurring_day_status(int $user_id, int $day_of_week, bool $is_day_off): bool {
+        if (empty($user_id) || $day_of_week < 0 || $day_of_week > 6) {
+            return false;
+        }
+
+        if ($is_day_off) {
+            // Deactivate all existing slots for this user and day_of_week
+            $updated = $this->wpdb->update(
+                $this->slots_table_name,
+                ['is_active' => 0], // Set to inactive
+                ['user_id' => $user_id, 'day_of_week' => $day_of_week],
+                ['%d'], // format for data
+                ['%d', '%d']  // format for where
+            );
+            return ($updated !== false);
+        } else {
+            // If changing from "Day Off" to "Working Day", slots remain inactive.
+            // User needs to add/activate them explicitly.
+            // Potentially, we could activate all previously inactive slots for this day,
+            // but that might not be desired. Current approach: user rebuilds the schedule for that day.
+            return true; // No specific action to take other than UI will allow adding slots.
+        }
+    }
+
 
     // --- Date Override Methods ---
 
@@ -383,6 +419,31 @@ class Availability {
             wp_send_json_success(['message' => __('Date override deleted successfully.', 'mobooking')]);
         } else {
             wp_send_json_error(['message' => __('Failed to delete date override.', 'mobooking')], 500);
+        }
+    }
+
+    public function ajax_set_recurring_day_status() {
+        check_ajax_referer('mobooking_availability_nonce', 'nonce');
+        $user_id = get_current_user_id();
+        if (!$user_id) {
+            wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403);
+            return;
+        }
+
+        $day_of_week = isset($_POST['day_of_week']) ? intval($_POST['day_of_week']) : -1;
+        $is_day_off = isset($_POST['is_day_off']) ? filter_var($_POST['is_day_off'], FILTER_VALIDATE_BOOLEAN) : false;
+
+        if ($day_of_week < 0 || $day_of_week > 6) {
+            wp_send_json_error(['message' => __('Invalid day of the week.', 'mobooking')], 400);
+            return;
+        }
+
+        if ($this->set_recurring_day_status($user_id, $day_of_week, $is_day_off)) {
+            $message = $is_day_off ? __('Day marked as off. All existing slots for this day have been deactivated.', 'mobooking')
+                                   : __('Day status updated. You can now add or activate slots for this day.', 'mobooking');
+            wp_send_json_success(['message' => $message]);
+        } else {
+            wp_send_json_error(['message' => __('Failed to update recurring day status.', 'mobooking')], 500);
         }
     }
 }

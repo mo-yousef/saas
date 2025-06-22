@@ -576,6 +576,15 @@ function mobooking_enqueue_dashboard_scripts($current_page_slug) {
             'confirm_delete_override' => __("Are you sure you want to delete the override for this date?", 'mobooking'),
             'error_no_override_to_delete' => __("No override selected to delete.", 'mobooking'),
             'error_deleting_override' => __("Error deleting override.", 'mobooking'),
+            'capacity_must_be_positive' => __("Capacity must be a positive number.", "mobooking"),
+            'mark_day_off' => __('Mark as Day Off', 'mobooking'),
+            'set_as_working_day' => __('Set as Working Day', 'mobooking'),
+            'day_marked_as_off' => __('This day is marked as off.', 'mobooking'),
+            'no_slots_add_some' => __('No time slots. Add some below.', 'mobooking'),
+            'no_active_slots_for_working_day' => __('No active slots for this working day. Add some or edit existing ones.', 'mobooking'),
+            'confirm_mark_day_off' => __('Are you sure you want to mark this day as off? All existing slots for this day will be deactivated.', 'mobooking'),
+            'confirm_set_working_day' => __('Are you sure you want to set this as a working day? You will need to add or activate time slots.', 'mobooking'),
+            'error_updating_day_status' => __('Error updating day status.', 'mobooking'),
         ];
         $availability_params = array_merge($dashboard_params, ['i18n' => $availability_i18n_strings]);
         wp_localize_script('mobooking-dashboard-availability', 'mobooking_availability_params', $availability_params);
