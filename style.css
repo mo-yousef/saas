@@ -409,7 +409,7 @@ tbody tr:hover {
 .wrap {
   max-width: 68rem;
   margin: 0 auto;
-  padding: 1.25rem;
+  padding: 0rem;
 }
 
 .mobooking-wrapper {
@@ -1064,7 +1064,52 @@ span.mobooking-menu-icon {
   padding-bottom: 0;
   margin-bottom: 1.5rem;
 }
+.nav-tab-wrapper {
+  display: inline-flex;
+  height: 2.5rem;
+  align-items: center;
+  justify-content: center;
+  background-color: hsl(210 40% 98%);
+  padding: 0.25rem;
+  color: hsl(215.4 16.3% 46.9%);
+  margin-bottom: 2rem !important;
+  border-radius: 0.375rem;
+  border: 1px solid hsl(214.3 31.8% 91.4%);
+}
 
+.nav-tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  border-radius: 0.25rem;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  letter-spacing: 0px;
+  transition: all 0.15s ease-in-out;
+  text-decoration: none;
+  color: inherit;
+}
+.nav-tab:hover,
+.nav-tab:focus {
+  text-decoration: none !important;
+}
+.nav-tab:focus-visible {
+  outline: 2px solid hsl(215.4 16.3% 46.9%);
+  outline-offset: 2px;
+}
+
+.nav-tab:disabled {
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+.nav-tab-active {
+  background-color: hsl(0 0% 100%);
+  color: hsl(222.2 84% 4.9%);
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+}
 .wp-admin .nav-tab {
   padding: 0.75rem 1rem;
   font-size: 0.875rem;
@@ -1282,12 +1327,14 @@ span.mobooking-menu-icon {
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); /* Match .mobooking-wrapper */
 }
 
-.mobooking-availability-page h1 { /* Already styled globally, but ensure consistency if overridden */
+.mobooking-availability-page h1 {
+  /* Already styled globally, but ensure consistency if overridden */
   font-size: 1.875rem;
   font-weight: 700;
   margin-bottom: 0.75rem;
 }
-.mobooking-availability-page > p { /* Intro paragraph */
+.mobooking-availability-page > p {
+  /* Intro paragraph */
   font-size: 1rem;
   color: hsl(215.4 16.3% 46.9%);
   margin-bottom: 2rem;
@@ -1301,11 +1348,11 @@ span.mobooking-menu-icon {
   padding-bottom: 0.5rem;
   border-bottom: 1px solid hsl(214.3 31.8% 91.4%);
 }
-.mobooking-availability-page .mobooking-section > p { /* Paragraphs directly under section h2 */
+.mobooking-availability-page .mobooking-section > p {
+  /* Paragraphs directly under section h2 */
   margin-bottom: 1.5rem;
   color: hsl(215.4 16.3% 46.9%);
 }
-
 
 /* Recurring Slots Display */
 .recurring-day-group {
@@ -1355,7 +1402,8 @@ span.mobooking-menu-icon {
   background-color: hsl(210 40% 96%);
 }
 
-.recurring-slots-list li .slot-details { /* Create a span for left side content if needed */
+.recurring-slots-list li .slot-details {
+  /* Create a span for left side content if needed */
   flex-grow: 1;
 }
 
@@ -1392,7 +1440,8 @@ span.mobooking-menu-icon {
   border: 1px solid hsl(214.3 31.8% 91.4%);
 }
 
-.mobooking-override-form-container h3 { /* Title like "Manage Override for DATE" */
+.mobooking-override-form-container h3 {
+  /* Title like "Manage Override for DATE" */
   font-size: 1.25rem; /* h4 equivalent */
   font-weight: 600;
   margin-top: 0;
@@ -1431,8 +1480,8 @@ span.mobooking-menu-icon {
   max-width: none; /* Override default max-width for inputs in this context */
 }
 .mobooking-availability-page .form-field input[type="checkbox"] {
-    width: auto; /* Keep checkbox sizing normal */
-    margin-right: 0.5rem;
+  width: auto; /* Keep checkbox sizing normal */
+  margin-right: 0.5rem;
 }
 
 .mobooking-availability-page .form-field .description {
@@ -1470,7 +1519,8 @@ span.mobooking-menu-icon {
   background-color: hsl(0 0% 100%);
   padding: 1.5rem; /* Consistent padding */
   border-radius: 0.5rem; /* Larger radius */
-  box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04); /* Softer shadow */
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04); /* Softer shadow */
   z-index: 1001;
   width: 90%;
   max-width: 480px; /* Slightly narrower */
@@ -1498,7 +1548,6 @@ span.mobooking-menu-icon {
   justify-content: flex-end; /* Align buttons to the right */
   gap: 0.75rem;
 }
-
 
 /* jQuery UI Datepicker Customization */
 .mobooking-calendar-container .ui-datepicker {
@@ -1531,7 +1580,8 @@ span.mobooking-menu-icon {
   background-color: hsl(210 40% 96%);
   border-color: hsl(214.3 31.8% 91.4%);
 }
-.mobooking-calendar-container .ui-datepicker th { /* Day names */
+.mobooking-calendar-container .ui-datepicker th {
+  /* Day names */
   color: hsl(215.4 16.3% 46.9%);
   font-size: 0.8125rem;
   font-weight: 500;
@@ -1549,7 +1599,8 @@ span.mobooking-menu-icon {
   color: hsl(222.2 84% 4.9%);
   border-radius: 0.25rem;
   border: 1px solid transparent;
-  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  transition: background-color 0.15s ease, border-color 0.15s ease,
+    color 0.15s ease;
 }
 .mobooking-calendar-container .ui-datepicker td a:hover {
   background-color: hsl(210 40% 96%);
@@ -1583,40 +1634,40 @@ span.mobooking-menu-icon {
 
 /* Feedback div from JS */
 #mobooking-availability-feedback {
-    padding: 1rem;
-    margin-bottom: 1.5rem;
-    border-radius: 0.375rem;
-    border: 1px solid;
-    font-size: 0.875rem;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  border-radius: 0.375rem;
+  border: 1px solid;
+  font-size: 0.875rem;
 }
 #mobooking-availability-feedback.notice-success {
-    background-color: hsl(142 76% 36% / 0.1);
-    border-color: hsl(142 76% 36% / 0.3);
-    color: hsl(142 76% 36%);
+  background-color: hsl(142 76% 36% / 0.1);
+  border-color: hsl(142 76% 36% / 0.3);
+  color: hsl(142 76% 36%);
 }
 #mobooking-availability-feedback.notice-error {
-    background-color: hsl(0 84.2% 60.2% / 0.1);
-    border-color: hsl(0 84.2% 60.2% / 0.3);
-    color: hsl(0 84.2% 60.2%);
+  background-color: hsl(0 84.2% 60.2% / 0.1);
+  border-color: hsl(0 84.2% 60.2% / 0.3);
+  color: hsl(0 84.2% 60.2%);
 }
 #mobooking-availability-feedback.notice-info,
-#mobooking-availability-feedback.notice-warning { /* Treat warning as info for now */
-    background-color: hsl(200 80% 95%);
-    border-color: hsl(200 70% 70%);
-    color: hsl(200 70% 40%);
+#mobooking-availability-feedback.notice-warning {
+  /* Treat warning as info for now */
+  background-color: hsl(200 80% 95%);
+  border-color: hsl(200 70% 70%);
+  color: hsl(200 70% 40%);
 }
-
 
 /* Ensure button styling from global is applied if specific selectors were used previously */
 .mobooking-availability-page .button,
 .mobooking-modal .button {
-    /* Styles from 2.0 Links & Buttons should apply */
+  /* Styles from 2.0 Links & Buttons should apply */
 }
 .mobooking-availability-page .button-primary,
 .mobooking-modal .button-primary {
-    /* Styles from 2.0 Links & Buttons should apply */
+  /* Styles from 2.0 Links & Buttons should apply */
 }
 .mobooking-availability-page .mobooking-button-delete,
 .mobooking-modal .mobooking-button-delete {
-     /* Styles from 2.0 Links & Buttons should apply */
+  /* Styles from 2.0 Links & Buttons should apply */
 }
