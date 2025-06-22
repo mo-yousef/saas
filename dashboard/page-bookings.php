@@ -137,21 +137,24 @@ if ($current_user_id) {
     }
 
     // Basic pagination (JS will handle more complex pagination) - plan to restyle this too
+    if (isset($bookings_result['total_count']) && isset($bookings_result['per_page']) && $bookings_result['total_count'] > 0) { // Ensure keys exist before calculation
         $total_pages = ceil($bookings_result['total_count'] / $bookings_result['per_page']);
         if ($total_pages > 1) {
             $initial_pagination_html .= '<div class="pagination-links">';
             for ($i = 1; $i <= $total_pages; $i++) {
-                $active_class = ($i == $bookings_result['current_page']) ? 'current' : '';
+                $active_class = (isset($bookings_result['current_page']) && $i == $bookings_result['current_page']) ? 'current' : '';
                 $initial_pagination_html .= '<a href="#" class="page-numbers ' . $active_class . '" data-page="' . $i . '">' . $i . '</a> ';
             }
             $initial_pagination_html .= '</div>';
         }
-
-    } else {
-        $initial_bookings_html = '<p>' . __('No bookings found.', 'mobooking') . '</p>';
     }
-} else {
+    // Removed the redundant 'else' that was causing the parse error.
+    // The main 'else' for 'if ($current_user_id)' is below and handles the case where user is not identified.
+
+} else { // This 'else' corresponds to 'if ($current_user_id)'
     $initial_bookings_html = '<p>' . __('Could not load bookings. User not identified.', 'mobooking') . '</p>';
+    // KPIs would also not be loaded, $kpi_data would remain default.
+    // $initial_pagination_html would remain empty.
 }
 
 
