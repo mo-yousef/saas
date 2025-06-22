@@ -90,7 +90,7 @@ if ( ! current_user_can( \MoBooking\Classes\Auth::CAP_MANAGE_AVAILABILITY ) ) {
     </div>
 
     <!-- Modal for Adding/Editing Recurring Slot -->
-    <div id="mobooking-recurring-slot-modal" class="mobooking-modal" style="display:none;">
+    <div id="mobooking-recurring-slot-modal" class="mobooking-modal">
         <div class="mobooking-modal-content">
             <h3 id="recurring-slot-modal-title"><?php esc_html_e('Add Recurring Slot', 'mobooking'); ?></h3>
             <form id="mobooking-recurring-slot-form">
@@ -133,6 +133,6 @@ if ( ! current_user_can( \MoBooking\Classes\Auth::CAP_MANAGE_AVAILABILITY ) ) {
             </form>
         </div>
     </div>
-    <div id="mobooking-recurring-slot-modal-backdrop" class="mobooking-modal-backdrop" style="display:none;"></div>
+    <div id="mobooking-recurring-slot-modal-backdrop" class="mobooking-modal-backdrop"></div>
 
 </div>
