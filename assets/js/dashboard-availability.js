@@ -14,6 +14,8 @@ jQuery(document).ready(function($) {
     const $recurringSlotModalBackdrop = $('#mobooking-recurring-slot-modal-backdrop');
     const $recurringSlotForm = $('#mobooking-recurring-slot-form');
     const $recurringSlotModalTitle = $('#recurring-slot-modal-title');
+    const $recurringSlotModalError = $('#mobooking-recurring-slot-modal-error'); // Added
+    let currentRecurringSlots = []; // Store loaded slots
     // Date Overrides
     const $datepicker = $('#mobooking-availability-datepicker');
     const $overrideDetailsDiv = $('#mobooking-override-details');
@@ -71,6 +73,7 @@ jQuery(document).ready(function($) {
     // --- Recurring Slots ---
     function openRecurringSlotModal(slotData = null) {
         $recurringSlotForm[0].reset();
+        $recurringSlotModalError.hide().empty(); // Clear previous errors
         $('#recurring-is-active').prop('checked', true); // Default to active
 
         if (slotData) {
@@ -96,48 +99,77 @@ jQuery(document).ready(function($) {
         $recurringSlotModalBackdrop.removeClass('active');
     }
 
-    function renderRecurringSlots(slots) {
+    function renderRecurringSlots() { // Now uses currentRecurringSlots global
         $recurringSlotsContainer.empty();
-        if (!slots || slots.length === 0) {
-            $recurringSlotsContainer.append(`<p>${i18n.no_recurring_slots || 'No recurring slots defined yet.'}</p>`);
-            return;
-        }
 
         const slotsByDay = {};
-        daysOfWeek.forEach((day, index) => slotsByDay[index] = []); // Initialize for all days
+        daysOfWeek.forEach((day, index) => slotsByDay[index] = []);
 
-        slots.forEach(slot => {
-            if (slotsByDay[slot.day_of_week]) {
+        currentRecurringSlots.forEach(slot => {
+            if (slotsByDay[slot.day_of_week] !== undefined) { // Ensure day_of_week is valid
                 slotsByDay[slot.day_of_week].push(slot);
             }
         });
 
         daysOfWeek.forEach((dayName, dayIndex) => {
             const $dayGroup = $('<div class="recurring-day-group"></div>');
-            $dayGroup.append(`<h4>${dayName}</h4>`);
+            const daySlots = slotsByDay[dayIndex] || [];
+            // A day is considered "off" if ALL its slots are inactive, or if there are no slots.
+            // However, our new toggle means "off" is when we explicitly set it, which deactivates slots.
+            // So, if all slots for a day are inactive, it's effectively a day off.
+            const isEffectivelyDayOff = daySlots.length === 0 || daySlots.every(slot => !parseInt(slot.is_active));
+
+            let dayOffButtonText = isEffectivelyDayOff ? (i18n.set_as_working_day || 'Set as Working Day') : (i18n.mark_day_off || 'Mark as Day Off');
+            let dayOffButtonClass = isEffectivelyDayOff ? 'button-primary' : 'mobooking-button-delete';
+
+            $dayGroup.append(`
+                <div class="recurring-day-header">
+                    <h4>${dayName}</h4>
+                    <button type="button" class="button button-small mobooking-toggle-day-off-btn ${dayOffButtonClass}" data-day-index="${dayIndex}" data-is-currently-off="${isEffectivelyDayOff}">
+                        ${dayOffButtonText}
+                    </button>
+                </div>
+            `);
+
             const $ul = $('<ul class="recurring-slots-list"></ul>');
 
-            if (slotsByDay[dayIndex] && slotsByDay[dayIndex].length > 0) {
-                slotsByDay[dayIndex].forEach(slot => {
-                    const activeText = !!parseInt(slot.is_active) ? (i18n.active || 'Active') : (i18n.inactive || 'Inactive');
-                    const activeClass = !!parseInt(slot.is_active) ? 'status-active' : 'status-inactive';
-                    const $li = $(`
-                        <li>
-                            <span>
-                                ${formatTimeForDisplay(slot.start_time)} - ${formatTimeForDisplay(slot.end_time)}
-                                (Capacity: ${slot.capacity})
-                                <span class="booking-status ${activeClass}" style="margin-left: 10px;">${activeText}</span>
-                            </span>
-                            <span class="slot-actions">
-                                <button type="button" class="button button-small mobooking-edit-recurring-slot-btn" data-slot-id="${slot.slot_id}">${i18n.edit || 'Edit'}</button>
-                                <button type="button" class="button button-small button-link-delete mobooking-delete-recurring-slot-btn" data-slot-id="${slot.slot_id}">${i18n.delete || 'Delete'}</button>
-                            </span>
-                        </li>
-                    `);
-                    $ul.append($li);
+            if (daySlots.length > 0 && !isEffectivelyDayOff) { // Only show slots if not effectively a day off
+                daySlots.forEach(slot => {
+                    // Only render active slots if the day is not marked as off.
+                    // If a slot is individually inactive but the day is a "working day", it should still be shown as inactive.
+                    if (parseInt(slot.is_active)) {
+                        const activeText = i18n.active || 'Active';
+                        const activeClass = 'status-active';
+                        const $li = $(`
+                            <li>
+                                <span>
+                                    ${formatTimeForDisplay(slot.start_time)} - ${formatTimeForDisplay(slot.end_time)}
+                                    (Capacity: ${slot.capacity})
+                                    <span class="booking-status ${activeClass}" style="margin-left: 10px;">${activeText}</span>
+                                </span>
+                                <span class="slot-actions">
+                                    <button type="button" class="button button-small mobooking-edit-recurring-slot-btn" data-slot-id="${slot.slot_id}">${i18n.edit || 'Edit'}</button>
+                                    <button type="button" class="button button-small button-link-delete mobooking-delete-recurring-slot-btn" data-slot-id="${slot.slot_id}">${i18n.delete || 'Delete'}</button>
+                                </span>
+                            </li>
+                        `);
+                        $ul.append($li);
+                    } else {
+                        // Optionally show inactive slots differently or hide them if day is working
+                        // For now, if a day is working, we only list its *active* slots.
+                        // If all slots are inactive, it's covered by isEffectivelyDayOff
+                    }
                 });
-            } else {
-                $ul.append(`<li class="empty-day-slot">${i18n.unavailable_all_day || 'Unavailable all day'}</li>`);
+                 // If all slots were inactive but day wasn't explicitly "off", this logic needs refinement.
+                 // The definition of isEffectivelyDayOff should be the primary driver.
+                 if ($ul.children().length === 0 && !isEffectivelyDayOff) {
+                     $ul.append(`<li class="empty-day-slot">${i18n.no_active_slots_for_working_day || 'No active slots. Add some or edit existing ones.'}</li>`);
+                 }
+
+            } else if (isEffectivelyDayOff) {
+                $ul.append(`<li class="empty-day-slot">${i18n.day_marked_as_off || 'This day is marked as off.'}</li>`);
+            } else { // No slots at all for a working day
+                 $ul.append(`<li class="empty-day-slot">${i18n.no_slots_add_some || 'No time slots. Add some below.'}</li>`);
             }
             $dayGroup.append($ul);
             $recurringSlotsContainer.append($dayGroup);
@@ -154,7 +186,8 @@ jQuery(document).ready(function($) {
             },
             success: function(response) {
                 if (response.success) {
-                    renderRecurringSlots(response.data);
+                    currentRecurringSlots = response.data; // Store the loaded slots
+                    renderRecurringSlots(); // Re-render with the new data
                 } else {
                     showFeedback(response.data.message || (i18n.error_loading_recurring_schedule || 'Error loading recurring schedule.'), 'error');
                     $recurringSlotsContainer.html(`<p>${i18n.error_loading_recurring_schedule_retry || 'Could not load schedule. Please try again.'}</p>`);
@@ -188,13 +221,18 @@ jQuery(document).ready(function($) {
 
         // Basic client-side validation
         if (!slotData.start_time || !slotData.end_time) {
-            showFeedback(i18n.start_end_time_required || 'Start and End time are required.', 'error');
+            $recurringSlotModalError.html(i18n.start_end_time_required || 'Start and End time are required.').show();
             return;
         }
         if (slotData.start_time >= slotData.end_time) {
-            showFeedback(i18n.start_time_before_end || 'Start time must be before end time.', 'error');
+            $recurringSlotModalError.html(i18n.start_time_before_end || 'Start time must be before end time.').show();
             return;
         }
+        if (parseInt(slotData.capacity) < 1) {
+            $recurringSlotModalError.html(i18n.capacity_must_be_positive || 'Capacity must be a positive number.').show();
+            return;
+        }
+        $recurringSlotModalError.hide().empty(); // Clear errors if validation passes
 
 
         $.ajax({
@@ -207,15 +245,17 @@ jQuery(document).ready(function($) {
             },
             success: function(response) {
                 if (response.success) {
-                    showFeedback(response.data.message, 'success');
+                    showFeedback(response.data.message, 'success'); // Global feedback for success
                     loadRecurringSlots(); // Refresh list
                     closeRecurringSlotModal();
                 } else {
-                    showFeedback(response.data.message || (i18n.error_saving_slot || 'Error saving slot.'), 'error');
+                    // Show error inside the modal
+                    $recurringSlotModalError.html(response.data.message || (i18n.error_saving_slot || 'Error saving slot.')).show();
                 }
             },
             error: function() {
-                showFeedback(i18n.error_ajax || 'AJAX error.', 'error');
+                // Show error inside the modal
+                $recurringSlotModalError.html(i18n.error_ajax || 'AJAX error. Please try again.').show();
             }
         });
     });
@@ -226,19 +266,15 @@ jQuery(document).ready(function($) {
         // For simplicity, assuming we can refetch or have it stored if loadRecurringSlots stores data globally.
         // Better: fetch the specific slot for editing to ensure fresh data.
         // For now, we'll re-fetch all and find. In a more complex app, store slots in a JS variable.
-        $.ajax({
-            url: ajaxUrl, type: 'POST', data: { action: 'mobooking_get_recurring_slots', nonce: availabilityNonce },
-            success: function(response) {
-                if (response.success) {
-                    const slotToEdit = response.data.find(s => s.slot_id == slotId);
-                    if (slotToEdit) {
-                        openRecurringSlotModal(slotToEdit);
-                    } else {
-                        showFeedback(i18n.error_slot_not_found || 'Slot not found for editing.', 'error');
-                    }
-                } else { showFeedback(i18n.error_general || 'An error occurred.', 'error'); }
-            }, error: function() { showFeedback(i18n.error_ajax || 'AJAX error.', 'error'); }
-        });
+        // Find slot from the stored currentRecurringSlots array
+        const slotToEdit = currentRecurringSlots.find(s => s.slot_id == slotId);
+        if (slotToEdit) {
+            openRecurringSlotModal(slotToEdit);
+        } else {
+            // Fallback to refetch if not found, though it should be there
+            showFeedback(i18n.error_slot_not_found || 'Slot not found for editing. Refreshing list...', 'warning');
+            loadRecurringSlots();
+        }
     });
 
     $recurringSlotsContainer.on('click', '.mobooking-delete-recurring-slot-btn', function() {
@@ -483,6 +519,46 @@ jQuery(document).ready(function($) {
 
 
     // --- Initializations ---
+
+    // Event handler for toggling day off status
+    $recurringSlotsContainer.on('click', '.mobooking-toggle-day-off-btn', function() {
+        const $button = $(this);
+        const dayIndex = $button.data('day-index');
+        const isCurrentlyOff = $button.data('is-currently-off');
+        const setToDayOff = !isCurrentlyOff; // If it's currently a working day, we want to mark it as off.
+
+        const confirmMessage = setToDayOff ?
+                                (i18n.confirm_mark_day_off || 'Are you sure you want to mark this day as off? All existing slots for this day will be deactivated.') :
+                                (i18n.confirm_set_working_day || 'Are you sure you want to set this as a working day? You will need to add or activate time slots.');
+
+        if (!confirm(confirmMessage)) {
+            return;
+        }
+
+        $.ajax({
+            url: ajaxUrl,
+            type: 'POST',
+            data: {
+                action: 'mobooking_set_recurring_day_status',
+                nonce: availabilityNonce,
+                day_of_week: dayIndex,
+                is_day_off: setToDayOff
+            },
+            success: function(response) {
+                if (response.success) {
+                    showFeedback(response.data.message, 'success');
+                    loadRecurringSlots(); // Refresh the entire recurring slots display
+                } else {
+                    showFeedback(response.data.message || (i18n.error_updating_day_status || 'Error updating day status.'), 'error');
+                }
+            },
+            error: function() {
+                showFeedback(i18n.error_ajax, 'error');
+            }
+        });
+    });
+
+
     loadRecurringSlots();
     // Load overrides for the current month on page load
     const initialDate = $datepicker.datepicker('getDate') || new Date();
