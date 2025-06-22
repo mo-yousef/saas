@@ -152,9 +152,21 @@ class Bookings {
         return $booking;
     }
 
-    public function get_bookings_by_tenant(int $tenant_user_id, array $args = []) {
-        if (empty($tenant_user_id)) {
+    public function get_bookings_by_tenant(int $current_logged_in_user_id, array $args = []) {
+        if (empty($current_logged_in_user_id)) {
             return ['bookings' => [], 'total_count' => 0, 'per_page' => 20, 'current_page' => 1];
+        }
+
+        $user_to_fetch_for_id = $current_logged_in_user_id; // Default to the logged-in user
+
+        if (class_exists('MoBooking\Classes\Auth') && \MoBooking\Classes\Auth::is_user_worker($current_logged_in_user_id)) {
+            $owner_id = \MoBooking\Classes\Auth::get_business_owner_id_for_worker($current_logged_in_user_id);
+            if ($owner_id) {
+                $user_to_fetch_for_id = $owner_id;
+            } else {
+                // Worker not associated with an owner, return empty results
+                return ['bookings' => [], 'total_count' => 0, 'per_page' => 20, 'current_page' => 1];
+            }
         }
 
         $defaults = [
@@ -170,7 +182,7 @@ class Bookings {
         $sql_count_select = "SELECT COUNT(booking_id)";
         $sql_from = " FROM $bookings_table";
         $sql_where = " WHERE user_id = %d";
-        $params = [$tenant_user_id];
+        $params = [$user_to_fetch_for_id];
 
         if (!empty($args['status'])) {
             if (is_array($args['status'])) {
@@ -230,25 +242,50 @@ class Bookings {
             return new \WP_Error('invalid_status', __('Invalid booking status provided.', 'mobooking'));
         }
 
-        // Verify ownership by attempting to fetch the booking first
+        $bookings_table = Database::get_table_name('bookings');
+        // Fetch the booking to get its owner_id (user_id column in bookings table)
         $current_booking = $this->wpdb->get_row($this->wpdb->prepare(
-            "SELECT * FROM " . Database::get_table_name('bookings') . " WHERE booking_id = %d AND user_id = %d",
-            $booking_id, $tenant_user_id
+            "SELECT * FROM $bookings_table WHERE booking_id = %d",
+            $booking_id
         ));
 
         if (!$current_booking) {
-            return new \WP_Error('not_found_or_owner', __('Booking not found or you do not have permission to update it.', 'mobooking'));
+            return new \WP_Error('not_found', __('Booking not found.', 'mobooking'));
+        }
+
+        $booking_owner_id = (int)$current_booking->user_id;
+
+        // Permission check
+        $can_update = false;
+        if (class_exists('MoBooking\Classes\Auth') && \MoBooking\Classes\Auth::is_user_worker($tenant_user_id)) {
+            $business_owner_id_of_worker = \MoBooking\Classes\Auth::get_business_owner_id_for_worker($tenant_user_id);
+            if ($business_owner_id_of_worker && $booking_owner_id === (int)$business_owner_id_of_worker) {
+                $can_update = true;
+            }
+        } elseif (class_exists('MoBooking\Classes\Auth') && \MoBooking\Classes\Auth::is_user_business_owner($tenant_user_id)) {
+            if ($booking_owner_id === $tenant_user_id) {
+                $can_update = true;
+            }
+        } else { // Fallback for other user types or if Auth class is not available, check direct ownership
+             if ($booking_owner_id === $tenant_user_id) {
+                $can_update = true;
+            }
+        }
+
+        if (!$can_update) {
+            return new \WP_Error('permission_denied', __('You do not have permission to update this booking status.', 'mobooking'));
         }
 
         if ($current_booking->status === $new_status) {
             return true; // No change needed
         }
 
-        $bookings_table = Database::get_table_name('bookings');
+        // Proceed with update, ensuring WHERE clause uses the actual owner_id of the booking
         $updated = $this->wpdb->update(
             $bookings_table,
             ['status' => $new_status, 'updated_at' => current_time('mysql', 1)],
-            ['booking_id' => $booking_id, 'user_id' => $tenant_user_id], // Ensure user_id in WHERE for security
+            // Important: The user_id in the WHERE clause here is the booking_owner_id
+            ['booking_id' => $booking_id, 'user_id' => $booking_owner_id],
             ['%s', '%s'], // format for data
             ['%d', '%d']  // format for where
         );
