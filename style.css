@@ -1322,8 +1322,16 @@ span.mobooking-menu-icon {
 .recurring-day-group h4 {
   font-size: 1.125rem; /* h5 equivalent */
   font-weight: 600;
-  margin-bottom: 0.75rem;
+  /* margin-bottom: 0.75rem; Remove bottom margin as it's part of flex now */
   color: hsl(222.2 84% 4.9%);
+  margin: 0; /* Reset margin for flex item */
+}
+
+.recurring-day-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
 }
 
 .recurring-slots-list {
