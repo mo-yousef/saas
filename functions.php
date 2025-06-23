@@ -344,17 +344,12 @@ function mobooking_template_include_logic( $template ) {
                 status_header(200);
                 return $public_booking_template;
             } else {
-                error_log('[MoBooking Debug] CRITICAL ERROR: Public booking form template file not found: ' . $public_booking_template);
+                error_log('[MoBooking Debug] CRITICAL ERROR: Public booking form template file not found: ' . $public_booking_template . '. WordPress will attempt to handle the URL with default template logic.');
                 // Fall through to default template or 404
             }
         } else {
-            error_log('[MoBooking Debug] No tenant_id found for slug: ' . $business_slug . '. Will proceed to 404.');
-            // Let WordPress handle it as a 404 by not returning a template here and setting status.
-            // global $wp_query;
-            // $wp_query->set_404();
-            // status_header(404);
-            // return get_404_template(); // This might be too aggressive, let WP do its default.
-            // Returning original template will likely lead to WP's 404 handling.
+            error_log('[MoBooking Debug] No tenant_id found for slug: ' . $business_slug . '. WordPress will attempt to handle the URL with default template logic.');
+            // Let WordPress handle it as a 404 by not returning a template here.
         }
     }
     // --- Handle Dashboard ---
