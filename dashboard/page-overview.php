@@ -41,12 +41,6 @@ $dashboard_base_url = home_url('/dashboard/');
 ?>
 
 <style>
-/* Shadcn/UI inspired styles for MoBooking Dashboard */
-/* .mobooking-overview {
-    padding: 1.5rem;
-    background-color: hsl(210 40% 98%);
-    min-height: 100vh;
-} */
 
 .overview-header {
     margin-bottom: 2rem;
@@ -86,16 +80,6 @@ $dashboard_base_url = home_url('/dashboard/');
 .kpi-card:hover {
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
     transform: translateY(-1px);
-}
-
-.kpi-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: linear-gradient(90deg, hsl(221.2 83.2% 53.3%), hsl(262.1 83.3% 57.8%));
 }
 
 .kpi-header {
@@ -573,7 +557,7 @@ jQuery(document).ready(function($) {
             type: 'POST',
             data: {
                 action: 'mobooking_get_dashboard_overview_data',
-                nonce: '<?php echo wp_create_nonce('mobooking_overview_nonce'); ?>'
+                nonce: '<?php echo wp_create_nonce('mobooking_dashboard_nonce'); ?>'
             },
             success: function(response) {
                 console.log('KPI Response:', response);
@@ -626,14 +610,16 @@ jQuery(document).ready(function($) {
             url: ajaxurl,
             type: 'POST',
             data: {
-                action: 'mobooking_get_recent_bookings',
-                nonce: '<?php echo wp_create_nonce('mobooking_overview_nonce'); ?>',
-                limit: 5
+                action: 'mobooking_get_tenant_bookings',
+                nonce: '<?php echo wp_create_nonce('mobooking_dashboard_nonce'); ?>',
+                limit: 5,
+                orderby: 'created_at',
+                order: 'DESC'
             },
             success: function(response) {
                 console.log('Recent bookings response:', response);
-                if (response.success && response.data && response.data.length > 0) {
-                    renderRecentBookings(response.data);
+                if (response.success && response.data && response.data.bookings && response.data.bookings.length > 0) {
+                    renderRecentBookings(response.data.bookings);
                 } else {
                     container.html('<p style="text-align: center; color: hsl(215.4 16.3% 46.9%); padding: 2rem;">No recent bookings found.</p>');
                 }
