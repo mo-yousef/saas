@@ -39,20 +39,13 @@ wp_nonce_field('mobooking_services_nonce', 'mobooking_services_nonce_field');
 ?>
 
 <style>
-/* Modern shadcn/ui inspired styles */
-.services-page-container {
-    background-color: hsl(0 0% 100%);
-    border-radius: 0.5rem;
-    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-    overflow: hidden;
-}
+
 
 .services-header {
     display: flex;
     flex-direction: column;
     gap: 1rem;
-    padding: 1.5rem;
-    border-bottom: 1px solid hsl(214.3 31.8% 91.4%);
+    padding-bottom: 1.5rem;
 }
 
 .services-header-top {
@@ -150,11 +143,6 @@ wp_nonce_field('mobooking_services_nonce', 'mobooking_services_nonce_field');
     border-color: hsl(221.2 83.2% 53.3%);
     box-shadow: 0 0 0 3px hsl(221.2 83.2% 53.3% / 0.1);
 }
-
-.services-content {
-    padding: 1.5rem;
-}
-
 .services-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
@@ -322,9 +310,7 @@ wp_nonce_field('mobooking_services_nonce', 'mobooking_services_nonce_field');
     align-items: center;
     gap: 0.5rem;
     margin-top: 2rem;
-    padding-top: 1.5rem;
-    border-top: 1px solid hsl(214.3 31.8% 91.4%);
-}
+    padding-top: 1.5rem;}
 
 .page-numbers {
     display: flex;

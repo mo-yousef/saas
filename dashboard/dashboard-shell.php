@@ -13,6 +13,8 @@ if ( ! is_user_logged_in() ) {
     exit;
 }
 
+
+
 // Ensure Auth class is available. This might be better handled by an autoloader or ensuring it's included earlier.
 if ( ! class_exists('\MoBooking\Classes\Auth') ) {
     // This is a critical error, means the plugin structure or loading is incorrect.
