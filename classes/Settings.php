@@ -10,9 +10,13 @@ class Settings {
     private static $default_tenant_settings = [
         // Booking Form Settings (prefix bf_)
         'bf_theme_color'              => '#1abc9c',
+        'bf_secondary_color'          => '#34495e',
+        'bf_background_color'         => '#ffffff',
+        'bf_font_family'              => 'system-ui',
+        'bf_border_radius'            => '8',
         'bf_header_text'              => 'Book Our Services Online',
         'bf_show_progress_bar'        => '1', // '1' for true, '0' for false
-        'bf_allow_cancellation_hours' => 24,  // Integer hours, 0 for no cancellation allowed
+        'bf_allow_cancellation_hours' => '24',  // Integer hours, 0 for no cancellation allowed
         'bf_custom_css'               => '',
         'bf_terms_conditions_url'     => '',
         'bf_business_slug'            => '', // New setting for business slug
@@ -21,7 +25,27 @@ class Settings {
         'bf_step_3_title'             => 'Step 3: Service Options',
         'bf_step_4_title'             => 'Step 4: Your Details',
         'bf_step_5_title'             => 'Step 5: Review & Confirm',
-        'bf_thank_you_message'        => 'Thank you for your booking! A confirmation email has been sent to you.',
+        'bf_success_message'          => 'Thank you for your booking! We will contact you soon to confirm the details. A confirmation email has been sent to you.',
+        
+        // Form Control Settings
+        'bf_form_enabled'             => '1', // Enable/disable entire form
+        'bf_maintenance_message'      => 'We are temporarily not accepting new bookings. Please check back later or contact us directly.',
+        'bf_allow_service_selection'  => '1', // Allow customers to select services
+        'bf_allow_date_time_selection'=> '1', // Allow customers to select date and time
+        'bf_require_phone'            => '1', // Require phone number
+        'bf_allow_special_instructions'=> '1', // Allow special instructions/notes
+        'bf_show_pricing'             => '1', // Show pricing information
+        'bf_allow_discount_codes'     => '1', // Allow discount code application
+        'bf_booking_lead_time_hours'  => '24', // Minimum lead time for bookings
+        'bf_max_booking_days_ahead'   => '30', // Maximum days ahead for bookings
+        'bf_time_slot_duration'       => '30', // Time slot duration in minutes
+        
+        // Advanced Form Settings
+        'bf_google_analytics_id'      => '', // Google Analytics tracking ID
+        'bf_webhook_url'              => '', // Webhook URL for integrations
+        'bf_enable_recaptcha'         => '0', // Enable reCAPTCHA protection
+        'bf_enable_ssl_required'      => '1', // Require SSL/HTTPS
+        'bf_debug_mode'               => '0', // Enable debug mode
 
         // Business Settings (prefix biz_ or email_)
         'biz_name'                            => '', // Tenant's business name
@@ -153,6 +177,10 @@ Please review this booking in your dashboard: {{admin_booking_link}}",
         }
 
         error_log('[MoBooking Settings] handle_save_booking_form_settings_ajax: Received POST settings: ' . print_r($_POST['settings'], true));
+        
+        // Validate and sanitize specific settings
+        $settings_data = $this->validate_booking_form_settings($settings_data);
+        
         $result = $this->save_booking_form_settings($user_id, $settings_data);
 
         if ($result) {
@@ -161,6 +189,76 @@ Please review this booking in your dashboard: {{admin_booking_link}}",
             error_log('[MoBooking Settings] handle_save_booking_form_settings_ajax: save_booking_form_settings returned false.');
             wp_send_json_error(['message' => __('Failed to save some settings. Please check logs if issues persist.', 'mobooking')], 500);
         }
+    }
+
+    /**
+     * Validate and sanitize booking form settings
+     */
+    private function validate_booking_form_settings($settings_data) {
+        // Sanitize business slug
+        if (isset($settings_data['bf_business_slug'])) {
+            $settings_data['bf_business_slug'] = sanitize_title($settings_data['bf_business_slug']);
+        }
+
+        // Validate numeric fields
+        $numeric_fields = [
+            'bf_allow_cancellation_hours' => ['min' => 0, 'max' => 720], // 30 days max
+            'bf_booking_lead_time_hours' => ['min' => 0, 'max' => 168], // 1 week max
+            'bf_max_booking_days_ahead' => ['min' => 1, 'max' => 365], // 1 year max
+            'bf_time_slot_duration' => ['min' => 15, 'max' => 480], // 8 hours max
+            'bf_border_radius' => ['min' => 0, 'max' => 50]
+        ];
+
+        foreach ($numeric_fields as $field => $limits) {
+            if (isset($settings_data[$field])) {
+                $value = intval($settings_data[$field]);
+                $settings_data[$field] = max($limits['min'], min($limits['max'], $value));
+            }
+        }
+
+        // Validate color fields
+        $color_fields = ['bf_theme_color', 'bf_secondary_color', 'bf_background_color'];
+        foreach ($color_fields as $field) {
+            if (isset($settings_data[$field])) {
+                $color = sanitize_hex_color($settings_data[$field]);
+                if ($color) {
+                    $settings_data[$field] = $color;
+                } else {
+                    unset($settings_data[$field]); // Remove invalid color, will use default
+                }
+            }
+        }
+
+        // Validate URLs
+        $url_fields = ['bf_terms_conditions_url', 'bf_webhook_url'];
+        foreach ($url_fields as $field) {
+            if (isset($settings_data[$field]) && !empty($settings_data[$field])) {
+                $url = esc_url_raw($settings_data[$field]);
+                if (!$url) {
+                    $settings_data[$field] = ''; // Clear invalid URL
+                } else {
+                    $settings_data[$field] = $url;
+                }
+            }
+        }
+
+        // Sanitize text fields
+        $text_fields = [
+            'bf_header_text', 'bf_maintenance_message', 'bf_success_message',
+            'bf_google_analytics_id', 'bf_font_family'
+        ];
+        foreach ($text_fields as $field) {
+            if (isset($settings_data[$field])) {
+                $settings_data[$field] = sanitize_text_field($settings_data[$field]);
+            }
+        }
+
+        // Sanitize textarea fields
+        if (isset($settings_data['bf_custom_css'])) {
+            $settings_data['bf_custom_css'] = wp_strip_all_tags($settings_data['bf_custom_css']);
+        }
+
+        return $settings_data;
     }
 
     public function get_setting(int $user_id, string $setting_name, $default_value = null) {
@@ -175,7 +273,8 @@ Please review this booking in your dashboard: {{admin_booking_link}}",
         ));
 
         if (is_null($value)) {
-            return array_key_exists($setting_name, self::$default_tenant_settings) ? self::$default_tenant_settings[$setting_name] : $default_value;
+            return array_key_exists($setting_name, self::$default_tenant_settings) ?
+                self::$default_tenant_settings[$setting_name] : $default_value;
         }
         return maybe_unserialize($value);
     }
@@ -250,113 +349,39 @@ Please review this booking in your dashboard: {{admin_booking_link}}",
             $user_info = null;
             if (empty($parsed_settings['biz_email'])) {
                 $user_info = $user_info ?: get_userdata($user_id);
-                $parsed_settings['biz_email'] = $user_info ? $user_info->user_email : '';
+                if ($user_info) {
+                    $parsed_settings['biz_email'] = $user_info->user_email;
+                }
             }
             if (empty($parsed_settings['email_from_name'])) {
-                $biz_name_val = !empty($parsed_settings['biz_name']) ? $parsed_settings['biz_name'] : '';
-                $parsed_settings['email_from_name'] = !empty($biz_name_val) ? $biz_name_val : get_bloginfo('name');
+                $user_info = $user_info ?: get_userdata($user_id);
+                if ($user_info) {
+                    $parsed_settings['email_from_name'] = !empty($parsed_settings['biz_name']) 
+                        ? $parsed_settings['biz_name'] 
+                        : $user_info->display_name;
+                }
             }
             if (empty($parsed_settings['email_from_address'])) {
-                 $biz_email_val = !empty($parsed_settings['biz_email']) && is_email($parsed_settings['biz_email']) ? $parsed_settings['biz_email'] : '';
-                $parsed_settings['email_from_address'] = !empty($biz_email_val) ? $biz_email_val : get_option('admin_email');
+                $parsed_settings['email_from_address'] = !empty($parsed_settings['biz_email']) 
+                    ? $parsed_settings['biz_email'] 
+                    : get_option('admin_email');
             }
         }
+
         return $parsed_settings;
     }
 
-    public function save_settings_group(int $user_id, array $settings_data, array $default_keys_for_group): bool {
-        if (empty($user_id)) return false;
+    private function save_settings_group(int $user_id, array $settings_data, array $default_keys_for_group): bool {
+        if (empty($user_id) && $user_id !== 0) return false;
+        if (empty($settings_data)) return true; // Nothing to save is technically successful
+
         $all_successful = true;
-        error_log('[MoBooking Settings] save_settings_group for user_id: ' . $user_id . ' with data: ' . print_r($settings_data, true));
-
-
         foreach ($settings_data as $key => $value) {
             if (array_key_exists($key, $default_keys_for_group)) {
-                error_log("[MoBooking Settings] Processing key: $key, Original value: " . print_r($value, true));
-                $sanitized_value = $value;
-
-                // General sanitization based on expected type from default
-                $default_type = gettype($default_keys_for_group[$key]);
-                if (is_string($value)) {
-                    if (strpos($key, 'email_') === 0 && strpos($key, 'body') !== false) {
-                        $sanitized_value = sanitize_textarea_field($value);
-                    } else if (strpos($key, 'css') !== false) {
-                         $sanitized_value = sanitize_textarea_field($value); // Keep CSS as is, but WP might strip some.
-                    } else {
-                        $sanitized_value = sanitize_text_field($value);
-                    }
-                } elseif (is_bool($value) || $default_type === 'boolean' || $key === 'bf_show_progress_bar') {
-                     $sanitized_value = ($value === '1' || $value === true || $value === 'on') ? '1' : '0';
-                } elseif (is_numeric($value) || $default_type === 'integer' || $default_type === 'double') {
-                     if (strpos($key, 'hours') !== false) $sanitized_value = intval($value); else $sanitized_value = strval($value); // Ensure numbers are numbers
-                } else {
-                     // Fallback for other types if any, though most should be covered
-                     $sanitized_value = sanitize_text_field(strval($value));
-                }
-                error_log("[MoBooking Settings] General Sanitized value for $key: " . print_r($sanitized_value, true));
-
-                // Specific key-based sanitization overrides
-                switch ($key) {
-                    case 'bf_theme_color': $sanitized_value = sanitize_hex_color($value); break;
-                    case 'bf_terms_conditions_url': case 'biz_logo_url': $sanitized_value = esc_url_raw($value); break;
-                    case 'bf_business_slug':
-                        $sanitized_value = sanitize_title($value);
-                        // Ensure it's not empty after sanitization, could fall back to a default or disallow empty
-                        if (empty($sanitized_value)) {
-                            // Option: generate a unique one, or rely on validation to prevent empty save
-                            // For now, allow empty, which might mean "don't use slug" or use user ID.
-                            // However, the form logic tries to prefill from biz_name, so it's unlikely to be empty if biz_name exists.
-                        }
-                        break;
-                    case 'biz_email': case 'email_from_address': $sanitized_value = sanitize_email($value); break;
-                    case 'biz_hours_json':
-                        $json_val = stripslashes($value); // Remove slashes added by WP
-                        // Basic check if it's a potentially valid JSON structure before decoding
-                        if (is_string($json_val) && strlen($json_val) > 1 && 
-                            (($json_val[0] == '{' && $json_val[strlen($json_val)-1] == '}') || 
-                             ($json_val[0] == '[' && $json_val[strlen($json_val)-1] == ']'))) {
-                            
-                            json_decode($json_val); // Try to decode
-                            if (json_last_error() === JSON_ERROR_NONE) {
-                                $sanitized_value = wp_kses_post($json_val); // Sanitize string content if JSON is valid
-                            } else {
-                                error_log("[MoBooking Settings] Invalid JSON for $key: " . $json_val . " - Error: " . json_last_error_msg());
-                                $sanitized_value = '{}'; // Default to empty JSON object if invalid
-                            }
-                        } elseif (empty($json_val)) {
-                            $sanitized_value = '{}';
-                        } else {
-                             error_log("[MoBooking Settings] Non-JSON string or empty for $key: " . $json_val);
-                            $sanitized_value = '{}'; // Default if not a typical JSON structure string
-                        }
-                        break;
-                    case 'biz_currency_code':
-                        $sanitized_code = preg_replace('/[^A-Z]/', '', strtoupper(trim($value)));
-                        if (strlen($sanitized_code) === 3 && ctype_upper($sanitized_code)) {
-                            $sanitized_value = $sanitized_code;
-                        } else {
-                            $sanitized_value = 'USD'; // Default if validation fails
-                            error_log("[MoBooking Settings] Invalid currency code '$value', defaulted to USD for key $key.");
-                        }
-                        break;
-                    case 'biz_user_language':
-                         if (preg_match('/^[a-z]{2,3}(_[A-Z]{2})?$/', trim($value))) { // allow xx or xx_XX
-                            $sanitized_value = trim($value);
-                        } else {
-                            $sanitized_value = 'en_US'; // Default if validation fails
-                            error_log("[MoBooking Settings] Invalid language code '$value', defaulted to en_US for key $key.");
-                        }
-                        break;
-                    case 'bf_custom_css': // Re-affirm specific handling for CSS if wp_kses_post is too aggressive
-                        $sanitized_value = wp_strip_all_tags(stripslashes($value)); // Basic tag stripping, but allows CSS characters
-                        break;
-                }
-                error_log("[MoBooking Settings] Specific Sanitized value for $key: " . print_r($sanitized_value, true));
-
-
-                error_log("[MoBooking Settings] Attempting to save for user $user_id, key $key, value: " . print_r($sanitized_value, true));
-                $update_result = $this->update_setting($user_id, $key, $sanitized_value);
-                error_log("[MoBooking Settings] Result of update_setting for $key: " . ($update_result ? 'Success' : 'Failure'));
+                $update_result = $this->update_setting($user_id, $key, $value);
+                error_log("[MoBooking Settings] save_settings_group - Key: $key, Value: " . 
+                    (is_array($value) ? json_encode($value) : $value) . ', Result: ' . 
+                    ($update_result ? 'Success' : 'Failure'));
 
                 if (!$update_result) {
                     $all_successful = false;
@@ -407,15 +432,61 @@ Please review this booking in your dashboard: {{admin_booking_link}}",
                     $value_to_set = !empty($biz_name_val) ? $biz_name_val : get_bloginfo('name');
                 }
                 if ($key === 'email_from_address' && empty($default_value)) {
-                    // Prefer dynamically set biz_email if available, then user_info->user_email
                     $biz_email_val = $settings_instance->get_setting($user_id, 'biz_email');
-                    if (empty($biz_email_val) || !is_email($biz_email_val)) $biz_email_val = $user_info->user_email;
-
-                    $value_to_set = !empty($biz_email_val) && is_email($biz_email_val) ? $biz_email_val : get_option('admin_email');
+                    if (empty($biz_email_val)) $biz_email_val = $user_info->user_email;
+                    if (empty($biz_email_val)) $biz_email_val = get_option('admin_email');
+                    $value_to_set = $biz_email_val;
                 }
             }
 
-            $settings_instance->update_setting($user_id, $key, $value_to_set);
+            if (!is_null($value_to_set)) {
+                $settings_instance->update_setting($user_id, $key, $value_to_set);
+            }
         }
+    }
+
+    /**
+     * Check if booking form is enabled for a specific user
+     */
+    public function is_booking_form_enabled(int $user_id): bool {
+        $form_enabled = $this->get_setting($user_id, 'bf_form_enabled', '1');
+        return $form_enabled === '1';
+    }
+
+    /**
+     * Get the public booking form URL for a user
+     */
+    public function get_public_booking_url(int $user_id): string {
+        $business_slug = $this->get_setting($user_id, 'bf_business_slug', '');
+        if (!empty($business_slug)) {
+            return trailingslashit(site_url()) . $business_slug . '/booking/';
+        }
+        return '';
+    }
+
+    /**
+     * Check if a business slug is unique
+     */
+    public function is_business_slug_unique(string $slug, int $exclude_user_id = 0): bool {
+        if (empty($slug)) return false;
+
+        $table_name = Database::get_table_name('tenant_settings');
+        $query = "SELECT user_id FROM $table_name WHERE setting_name = 'bf_business_slug' AND setting_value = %s";
+        $params = [$slug];
+
+        if ($exclude_user_id > 0) {
+            $query .= " AND user_id != %d";
+            $params[] = $exclude_user_id;
+        }
+
+        $existing_user = $this->wpdb->get_var($this->wpdb->prepare($query, ...$params));
+        return is_null($existing_user);
+    }
+
+    /**
+     * Get all default settings (useful for initialization)
+     */
+    public static function get_all_default_settings(): array {
+        return self::$default_tenant_settings;
     }
 }
