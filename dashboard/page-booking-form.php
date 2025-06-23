@@ -9,6 +9,7 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 $settings_manager = new \MoBooking\Classes\Settings();
 $user_id = get_current_user_id();
 $bf_settings = $settings_manager->get_booking_form_settings($user_id);
+$biz_settings = $settings_manager->get_business_settings($user_id); // For biz_name
 
 // Helper to get value, escape it, and provide default
 function mobooking_get_setting_value($settings, $key, $default = '') {
@@ -31,65 +32,6 @@ function mobooking_is_setting_checked($settings, $key, $default_is_checked = fal
         <?php wp_nonce_field('mobooking_dashboard_nonce', 'mobooking_dashboard_nonce_field'); ?>
         <div id="mobooking-settings-feedback" style="margin-bottom:15px; margin-top:10px;"></div>
 
-        <!-- Share and Embed Section -->
-        <div id="mobooking-share-embed-section" style="margin-bottom: 30px; padding: 15px; border: 1px solid #ccd0d4; background-color: #fff;">
-            <h2><?php esc_html_e('Share Your Booking Form', 'mobooking'); ?></h2>
-            <?php
-            $current_user_id = get_current_user_id();
-            $business_slug = get_user_meta($current_user_id, 'mobooking_business_slug', true);
-            $public_link = '';
-            $link_message = '';
-
-            if (!empty($business_slug)) {
-                $public_link = trailingslashit(site_url()) . esc_attr($business_slug) . '/booking/';
-            } else {
-                // Option 1: Link to profile to set slug
-                $profile_url = admin_url('profile.php');
-                $link_message = sprintf(
-                    wp_kses(
-                        __('Please <a href="%s">set your Business Slug</a> in your profile to generate a user-friendly public link.', 'mobooking'),
-                        ['a' => ['href' => []]]
-                    ),
-                    esc_url($profile_url)
-                );
-                // Option 2: Fallback to ?tid= (requires a generic /booking/ page to be set up by admin)
-                // $generic_booking_page_url = site_url('/booking/'); // Assuming a page exists at /booking/
-                // $public_link = add_query_arg('tid', $current_user_id, $generic_booking_page_url);
-                // $link_message = __('Your generic booking link (requires a page at /booking/ with the public form template assigned):', 'mobooking');
-            }
-            ?>
-            <table class="form-table">
-                <tr valign="top">
-                    <th scope="row"><label for="mobooking-public-link"><?php esc_html_e('Your Public Link', 'mobooking'); ?></label></th>
-                    <td>
-                        <?php if ($public_link): ?>
-                            <input type="text" id="mobooking-public-link" value="<?php echo esc_url($public_link); ?>" readonly class="regular-text" style="width: 70%;">
-                            <button type="button" id="mobooking-copy-public-link-btn" class="button" style="margin-left: 10px;"><?php esc_html_e('Copy Link', 'mobooking'); ?></button>
-                            <span id="mobooking-copy-link-feedback" style="margin-left:10px; color: green;"></span>
-                        <?php else: ?>
-                            <p><?php echo $link_message; ?></p>
-                        <?php endif; ?>
-                    </td>
-                </tr>
-                <tr valign="top">
-                    <th scope="row"><label for="mobooking-embed-code"><?php esc_html_e('Embed Code (iframe)', 'mobooking'); ?></label></th>
-                    <td>
-                        <?php if ($public_link): ?>
-                            <textarea id="mobooking-embed-code" readonly class="large-text" rows="4" style="width: 70%;"><?php
-                                echo esc_textarea(sprintf('<iframe src="%s" title="%s" style="width:100%%; height:800px; border:1px solid #ccc;"></iframe>', esc_url($public_link), esc_attr__('Booking Form', 'mobooking')));
-                            ?></textarea>
-                            <button type="button" id="mobooking-copy-embed-code-btn" class="button" style="margin-left: 10px; vertical-align: top;"><?php esc_html_e('Copy Code', 'mobooking'); ?></button>
-                            <span id="mobooking-copy-embed-feedback" style="margin-left:10px; color: green; vertical-align: top; display: inline-block;"></span>
-                        <?php else: ?>
-                            <p><?php esc_html_e('Set your Business Slug to generate the embed code.', 'mobooking'); ?></p>
-                        <?php endif; ?>
-                    </td>
-                </tr>
-            </table>
-        </div>
-        <!-- End Share and Embed Section -->
-
-
         <h2 class="nav-tab-wrapper" style="margin-bottom:20px;">
             <a href="#mobooking-general-settings-tab" class="nav-tab nav-tab-active" data-tab="general"><?php esc_html_e('General Settings', 'mobooking'); ?></a>
             <a href="#mobooking-design-settings-tab" class="nav-tab" data-tab="design"><?php esc_html_e('Design Settings', 'mobooking'); ?></a>
@@ -99,6 +41,20 @@ function mobooking_is_setting_checked($settings, $key, $default_is_checked = fal
         <div id="mobooking-general-settings-tab" class="mobooking-settings-tab-content">
             <h3><?php esc_html_e('General Settings', 'mobooking'); ?></h3>
             <table class="form-table">
+                <tr valign="top">
+                    <th scope="row"><label for="bf_business_slug"><?php esc_html_e('Business Slug', 'mobooking'); ?></label></th>
+                    <td>
+                        <?php
+                        $current_slug = mobooking_get_setting_value($bf_settings, 'bf_business_slug', '');
+                        if (empty($current_slug) && !empty($biz_settings['biz_name'])) {
+                            $current_slug = sanitize_title($biz_settings['biz_name']);
+                        }
+                        ?>
+                        <input name="bf_business_slug" type="text" id="bf_business_slug" value="<?php echo esc_attr($current_slug); ?>" class="regular-text">
+                        <p class="description"><?php esc_html_e('Unique slug for your public booking page URL (e.g., your-business-name). It will be used like: ', 'mobooking'); ?><code><?php echo trailingslashit(site_url()); ?>your-business-slug/booking/</code></p>
+                        <p class="description"><?php esc_html_e('Changing this will change your public booking form URL. Only use lowercase letters, numbers, and hyphens.', 'mobooking'); ?></p>
+                    </td>
+                </tr>
                 <tr valign="top">
                     <th scope="row"><label for="bf_header_text"><?php esc_html_e('Form Header Text', 'mobooking'); ?></label></th>
                     <td><input name="bf_header_text" type="text" id="bf_header_text" value="<?php echo mobooking_get_setting_value($bf_settings, 'bf_header_text', 'Book Our Services Online'); ?>" class="regular-text">
@@ -178,4 +134,56 @@ function mobooking_is_setting_checked($settings, $key, $default_is_checked = fal
             <button type="submit" name="save_booking_form_settings" id="mobooking-save-bf-settings-btn" class="button button-primary"><?php esc_html_e('Save Booking Form Settings', 'mobooking'); ?></button>
         </p>
     </form>
+
+    <!-- Share and Embed Section -->
+    <div id="mobooking-share-embed-section" style="margin-top: 40px; padding: 20px; border: 1px solid #ccd0d4; background-color: #f9f9f9;">
+        <h2><?php esc_html_e('Share Your Booking Form', 'mobooking'); ?></h2>
+        <?php
+        // Use the new bf_business_slug from settings, falling back to previous logic only if it's not yet saved.
+        $final_business_slug = mobooking_get_setting_value($bf_settings, 'bf_business_slug', '');
+
+        // If bf_business_slug is empty (e.g. first load and biz_name was also empty, or it was explicitly cleared and saved)
+        // then we might not have a slug to show here until it's configured and saved.
+        // The JavaScript will dynamically update this based on the input field.
+
+        $public_link = '';
+        $link_message = '';
+
+        if (!empty($final_business_slug)) {
+            $public_link = trailingslashit(site_url()) . esc_attr($final_business_slug) . '/booking/';
+        } else {
+            // Show a generic message if the slug isn't set up yet.
+            $link_message = __('Please set and save your Business Slug above to generate your public link.', 'mobooking');
+        }
+        ?>
+        <table class="form-table">
+            <tr valign="top">
+                <th scope="row"><label for="mobooking-public-link"><?php esc_html_e('Your Public Link', 'mobooking'); ?></label></th>
+                <td>
+                    <input type="text" id="mobooking-public-link" value="<?php echo esc_url($public_link); ?>" readonly class="regular-text" style="width: 70%;" placeholder="<?php esc_attr_e('Link will appear here once slug is saved.', 'mobooking'); ?>">
+                    <button type="button" id="mobooking-copy-public-link-btn" class="button" style="margin-left: 10px;" <?php if (empty($public_link)) echo 'disabled'; ?>><?php esc_html_e('Copy Link', 'mobooking'); ?></button>
+                    <span id="mobooking-copy-link-feedback" style="margin-left:10px; color: green;"></span>
+                    <?php if (!empty($link_message) && empty($public_link)): ?>
+                        <p class="description"><?php echo $link_message; ?></p>
+                    <?php endif; ?>
+                </td>
+            </tr>
+            <tr valign="top">
+                <th scope="row"><label for="mobooking-embed-code"><?php esc_html_e('Embed Code (iframe)', 'mobooking'); ?></label></th>
+                <td>
+                    <textarea id="mobooking-embed-code" readonly class="large-text" rows="4" style="width: 70%;" placeholder="<?php esc_attr_e('Embed code will appear here once slug is saved.', 'mobooking'); ?>"><?php
+                        if (!empty($public_link)) {
+                            echo esc_textarea(sprintf('<iframe src="%s" title="%s" style="width:100%%; height:800px; border:1px solid #ccc;"></iframe>', esc_url($public_link), esc_attr__('Booking Form', 'mobooking')));
+                        }
+                    ?></textarea>
+                    <button type="button" id="mobooking-copy-embed-code-btn" class="button" style="margin-left: 10px; vertical-align: top;" <?php if (empty($public_link)) echo 'disabled'; ?>><?php esc_html_e('Copy Code', 'mobooking'); ?></button>
+                    <span id="mobooking-copy-embed-feedback" style="margin-left:10px; color: green; vertical-align: top; display: inline-block;"></span>
+                     <?php if (!empty($link_message) && empty($public_link)): ?>
+                        <p class="description" style="vertical-align: top; display: inline-block; margin-left: 10px;"><?php echo $link_message; ?></p>
+                    <?php endif; ?>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <!-- End Share and Embed Section -->
 </div>

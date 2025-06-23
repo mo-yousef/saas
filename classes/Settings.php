@@ -15,6 +15,7 @@ class Settings {
         'bf_allow_cancellation_hours' => 24,  // Integer hours, 0 for no cancellation allowed
         'bf_custom_css'               => '',
         'bf_terms_conditions_url'     => '',
+        'bf_business_slug'            => '', // New setting for business slug
         'bf_step_1_title'             => 'Step 1: Location & Date',
         'bf_step_2_title'             => 'Step 2: Choose Services',
         'bf_step_3_title'             => 'Step 3: Service Options',
@@ -298,6 +299,15 @@ Please review this booking in your dashboard: {{admin_booking_link}}",
                 switch ($key) {
                     case 'bf_theme_color': $sanitized_value = sanitize_hex_color($value); break;
                     case 'bf_terms_conditions_url': case 'biz_logo_url': $sanitized_value = esc_url_raw($value); break;
+                    case 'bf_business_slug':
+                        $sanitized_value = sanitize_title($value);
+                        // Ensure it's not empty after sanitization, could fall back to a default or disallow empty
+                        if (empty($sanitized_value)) {
+                            // Option: generate a unique one, or rely on validation to prevent empty save
+                            // For now, allow empty, which might mean "don't use slug" or use user ID.
+                            // However, the form logic tries to prefill from biz_name, so it's unlikely to be empty if biz_name exists.
+                        }
+                        break;
                     case 'biz_email': case 'email_from_address': $sanitized_value = sanitize_email($value); break;
                     case 'biz_hours_json':
                         $json_val = stripslashes($value); // Remove slashes added by WP

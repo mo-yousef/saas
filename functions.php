@@ -560,6 +560,9 @@ function mobooking_enqueue_dashboard_scripts($current_page_slug) {
                 'invalid_json' => __('Invalid JSON format in Business Hours.', 'mobooking'),
                 'copied' => __('Copied!', 'mobooking'),
                 'copy_failed' => __('Copy failed. Please try manually.', 'mobooking'),
+                'booking_form_title' => __('Booking Form', 'mobooking'), // New i18n string
+                'link_will_appear_here' => __('Link will appear here once slug is saved.', 'mobooking'), // New i18n string
+                'embed_will_appear_here' => __('Embed code will appear here once slug is saved.', 'mobooking'), // New i18n string
             ]
         ]);
         wp_localize_script('mobooking-dashboard-booking-form-settings', 'mobooking_bf_settings_params', $bf_settings_params);
@@ -914,95 +917,47 @@ function mobooking_restore_user_locale() {
 }
 add_action( 'shutdown', 'mobooking_restore_user_locale' );
 
-// --- Business Slug for User Profiles ---
-if ( ! function_exists( 'mobooking_add_business_slug_field_to_profile' ) ) {
-    function mobooking_add_business_slug_field_to_profile( $user ) {
-        // Only show for users who can be business owners or for site admins editing them
-        if ( ! current_user_can( 'edit_user', $user->ID ) ) {
-            return;
-        }
-        // Check if the user is a business owner or if the current admin is editing a business owner
-        $is_business_owner = user_can($user, MoBooking\Classes\Auth::ROLE_BUSINESS_OWNER);
+// --- Business Slug for User Profiles (REMOVED as per refactor) ---
+// The functions mobooking_add_business_slug_field_to_profile and mobooking_save_business_slug_field
+// and their associated add_action calls have been removed.
+// Business Slug is now managed via Booking Form Settings page.
 
-        if (!$is_business_owner && !current_user_can('manage_options')) { // Let site admins see it for any user they edit
-            $user_object_for_role_check = new WP_User($user->ID);
-            if (!in_array(MoBooking\Classes\Auth::ROLE_BUSINESS_OWNER, (array) $user_object_for_role_check->roles)) {
-                 return;
-            }
-        }
-
-
-        ?>
-        <h3><?php esc_html_e( 'MoBooking Settings', 'mobooking' ); ?></h3>
-        <table class="form-table">
-            <tr>
-                <th><label for="mobooking_business_slug"><?php esc_html_e( 'Business Slug', 'mobooking' ); ?></label></th>
-                <td>
-                    <input type="text" name="mobooking_business_slug" id="mobooking_business_slug" value="<?php echo esc_attr( get_user_meta( $user->ID, 'mobooking_business_slug', true ) ); ?>" class="regular-text" />
-                    <p class="description">
-                        <?php esc_html_e( 'Enter a unique, URL-friendly slug for this business (e.g., "my-business-name"). Used for public booking form URLs like yoursite.com/slug/booking/.', 'mobooking' ); ?>
-                        <br>
-                        <?php esc_html_e( 'Allowed characters: lowercase letters, numbers, and hyphens.', 'mobooking' ); ?>
-                    </p>
-                </td>
-            </tr>
-        </table>
-        <?php
-    }
-}
-add_action( 'show_user_profile', 'mobooking_add_business_slug_field_to_profile' );
-add_action( 'edit_user_profile', 'mobooking_add_business_slug_field_to_profile' );
-
-
-if ( ! function_exists( 'mobooking_save_business_slug_field' ) ) {
-    function mobooking_save_business_slug_field( $user_id ) {
-        if ( ! current_user_can( 'edit_user', $user_id ) ) {
-            return false;
-        }
-
-        if ( isset( $_POST['mobooking_business_slug'] ) ) {
-            $new_slug = sanitize_title_with_dashes( $_POST['mobooking_business_slug'] );
-
-            // Basic uniqueness check (does not prevent race conditions but good for UI feedback)
-            // More robust check might be needed if high contention is expected
-            $existing_user_id_for_slug = mobooking_get_user_id_by_slug($new_slug);
-
-            if ( $existing_user_id_for_slug && $existing_user_id_for_slug != $user_id ) {
-                // Add an admin notice if the slug is already taken by another user
-                add_action( 'user_profile_update_errors', function( $errors ) use ($new_slug) {
-                    $errors->add( 'mobooking_slug_exists', sprintf(__( 'The business slug "%s" is already in use. Please choose a different one.', 'mobooking' ), $new_slug) );
-                }, 10, 1 );
-                return; // Don't save if it's taken by someone else
-            }
-            
-            // If the slug is empty, delete the meta. If not empty, update it.
-            if (empty($new_slug)) {
-                delete_user_meta( $user_id, 'mobooking_business_slug' );
-            } else {
-                update_user_meta( $user_id, 'mobooking_business_slug', $new_slug );
-            }
-        }
-    }
-}
-add_action( 'personal_options_update', 'mobooking_save_business_slug_field' );
-add_action( 'edit_user_profile_update', 'mobooking_save_business_slug_field' );
-
+// Function to get user ID by the new bf_business_slug setting
+// (This function was already updated in a previous step, ensuring it's correct here)
 if ( ! function_exists('mobooking_get_user_id_by_slug')) {
     function mobooking_get_user_id_by_slug(string $slug): ?int {
         if (empty($slug)) {
+            error_log('[MoBooking Slug Lookup] Attempted lookup with empty slug.');
             return null;
         }
         global $wpdb;
+        // Ensure the Database class is available for get_table_name
+        if (!class_exists('MoBooking\Classes\Database')) {
+            error_log('[MoBooking Slug Lookup] CRITICAL: MoBooking\Classes\Database class not found.');
+            return null;
+        }
+        $settings_table = \MoBooking\Classes\Database::get_table_name('tenant_settings');
+        if (empty($settings_table)) {
+            error_log('[MoBooking Slug Lookup] CRITICAL: Tenant settings table name is empty.');
+            return null;
+        }
+
         $user_id = $wpdb->get_var($wpdb->prepare(
-            "SELECT user_id FROM $wpdb->usermeta WHERE meta_key = 'mobooking_business_slug' AND meta_value = %s",
-            $slug
+            "SELECT user_id FROM %i WHERE setting_name = 'bf_business_slug' AND setting_value = %s",
+            $settings_table, $slug
         ));
+
         if ($user_id) {
-            // Verify the user actually has the business owner role
+            // Verify the user actually has the business owner role (or is an admin)
             $user = get_userdata($user_id);
-            if ($user && in_array(MoBooking\Classes\Auth::ROLE_BUSINESS_OWNER, (array)$user->roles)) {
+            if ($user && (in_array(MoBooking\Classes\Auth::ROLE_BUSINESS_OWNER, (array)$user->roles) || user_can($user, 'manage_options'))) {
+                error_log('[MoBooking Slug Lookup] Found user_id: ' . $user_id . ' for slug: ' . $slug);
                 return (int) $user_id;
+            } else {
+                error_log('[MoBooking Slug Lookup] User ID ' . $user_id . ' found for slug ' . $slug . ', but user is not a business owner or admin.');
             }
+        } else {
+            error_log('[MoBooking Slug Lookup] No user_id found for slug: ' . $slug . ' in table ' . $settings_table);
         }
         return null;
     }
