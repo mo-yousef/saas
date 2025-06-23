@@ -604,9 +604,6 @@ jQuery(document).ready(function($) {
     const $statusFilter = $('#status-filter');
     const $sortFilter = $('#sort-filter');
     
-    // Get template
-    const serviceCardTemplate = $('#service-card-template').html();
-    
     // Current filters and pagination
     let currentFilters = {
         search: '',
@@ -660,46 +657,91 @@ jQuery(document).ready(function($) {
         }, 5000);
     }
     
-    // Simple template function to replace Underscore.js
-    function simpleTemplate(template, data) {
-        return template.replace(/<%=\s*([^%>]+)\s*%>/g, function(match, expr) {
-            // Handle nested property access and expressions
-            try {
-                // Clean up the expression
-                const cleanExpr = expr.trim();
+    // Simple HTML builder function - no template parsing needed
+    function buildServiceCard(service) {
+        const formattedPrice = formatCurrency(service.price);
+        const displayStatus = service.status === 'active' 
+            ? window.mobookingServicesData.i18n.active 
+            : window.mobookingServicesData.i18n.inactive;
+        
+        const shortDescription = service.description 
+            ? (service.description.length > 60 
+                ? service.description.substring(0, 60) + '...' 
+                : service.description)
+            : '';
+        
+        const hasCategory = !!(service.category && service.category.trim());
+        const hasDescription = !!(service.description && service.description.trim());
+        
+        const editUrl = '<?php echo esc_url(site_url('/dashboard/service-edit/')); ?>?service_id=' + service.service_id;
+        
+        let html = `
+            <div class="service-card" data-service-id="${service.service_id}">
+                <div class="service-card-header">
+                    <h3 class="service-name">${escapeHtml(service.name)}</h3>
+                    <span class="service-status ${service.status}">${escapeHtml(displayStatus)}</span>
+                </div>
                 
-                // Handle simple property access
-                if (/^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(cleanExpr)) {
-                    return data[cleanExpr] !== undefined ? data[cleanExpr] : '';
-                }
+                <div class="service-details">
+                    <div class="service-detail-row">
+                        <span class="service-detail-label"><?php esc_html_e('Price', 'mobooking'); ?></span>
+                        <span class="service-detail-value service-price">${escapeHtml(formattedPrice)}</span>
+                    </div>
+                    <div class="service-detail-row">
+                        <span class="service-detail-label"><?php esc_html_e('Duration', 'mobooking'); ?></span>
+                        <span class="service-detail-value">${escapeHtml(service.duration)} <?php esc_html_e('min', 'mobooking'); ?></span>
+                    </div>`;
+        
+        if (hasCategory) {
+            html += `
+                    <div class="service-detail-row">
+                        <span class="service-detail-label"><?php esc_html_e('Category', 'mobooking'); ?></span>
+                        <span class="service-detail-value">${escapeHtml(service.category)}</span>
+                    </div>`;
+        }
+        
+        if (hasDescription) {
+            html += `
+                    <div class="service-detail-row">
+                        <span class="service-detail-label"><?php esc_html_e('Description', 'mobooking'); ?></span>
+                        <span class="service-detail-value">${escapeHtml(shortDescription)}</span>
+                    </div>`;
+        }
+        
+        html += `
+                </div>
                 
-                // Handle complex expressions safely
-                const func = new Function('data', `
-                    try {
-                        with(data) {
-                            return (${cleanExpr});
-                        }
-                    } catch(e) {
-                        return '';
-                    }
-                `);
-                
-                const result = func(data);
-                return result !== undefined && result !== null ? String(result) : '';
-            } catch(e) {
-                console.warn('Template expression error:', expr, e);
-                return '';
-            }
-        });
+                <div class="service-actions">
+                    <a href="${editUrl}" class="btn btn-edit">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                        </svg>
+                        <?php esc_html_e('Edit', 'mobooking'); ?>
+                    </a>
+                    <button class="btn btn-delete service-delete-btn" data-service-id="${service.service_id}" data-service-name="${escapeHtml(service.name)}">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="3,6 5,6 21,6"></polyline>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2 2h4a2 2 0 0 1 2 2v2"></path>
+                        </svg>
+                        <?php esc_html_e('Delete', 'mobooking'); ?>
+                    </button>
+                </div>
+            </div>`;
+        
+        return html;
+    }
+    
+    // HTML escape function for security
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
     }
     
     // Render services grid
     function renderServices(services) {
-        if (!serviceCardTemplate) {
-            console.error('Service card template not found');
-            return;
-        }
-        
         if (!services || services.length === 0) {
             $servicesContainer.html(`
                 <div class="empty-state">
@@ -722,14 +764,7 @@ jQuery(document).ready(function($) {
         let servicesHtml = '<div class="services-grid" id="services-grid">';
         
         services.forEach(service => {
-            const serviceData = {
-                ...service,
-                formatted_price: formatCurrency(service.price),
-                display_status: service.status === 'active' 
-                    ? window.mobookingServicesData.i18n.active 
-                    : window.mobookingServicesData.i18n.inactive
-            };
-            servicesHtml += simpleTemplate(serviceCardTemplate, serviceData);
+            servicesHtml += buildServiceCard(service);
         });
         
         servicesHtml += '</div>';
