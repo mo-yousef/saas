@@ -95,26 +95,30 @@ function mobooking_scripts() {
         );
     }
 
-    // For Public Booking Form page
-    if ( is_page_template('templates/booking-form-public.php') ) {
+    // For Public Booking Form page (standard page template OR slug-based route)
+    if ( is_page_template('templates/booking-form-public.php') || get_query_var('mobooking_page_type') === 'public_booking' ) {
         wp_enqueue_script('jquery-ui-datepicker');
         wp_enqueue_script('mobooking-booking-form', MOBOOKING_THEME_URI . 'assets/js/booking-form.js', array('jquery', 'jquery-ui-datepicker'), MOBOOKING_VERSION, true);
 
-        $tenant_id_on_page = get_query_var('mobooking_tenant_id_on_page', 0);
         $effective_tenant_id_for_public_form = 0;
-
-        // Try to get tenant_id from query var first for public form context
-        if (!empty($_GET['tid'])) {
-            $effective_tenant_id_for_public_form = intval($_GET['tid']);
-        } elseif ($tenant_id_on_page) {
-            $effective_tenant_id_for_public_form = intval($tenant_id_on_page);
+        // Prioritize tenant_id set by the slug-based routing via query_var
+        if (get_query_var('mobooking_page_type') === 'public_booking') {
+            $effective_tenant_id_for_public_form = get_query_var('mobooking_tenant_id_on_page', 0);
+            error_log('[MoBooking Scripts] Public booking form (slug route). Tenant ID from query_var mobooking_tenant_id_on_page: ' . $effective_tenant_id_for_public_form);
         }
+        // Fallback to ?tid if not a slug route or if tenant_id_on_page wasn't set by slug logic (e.g. direct page template usage)
+        if (empty($effective_tenant_id_for_public_form) && !empty($_GET['tid'])) {
+            $effective_tenant_id_for_public_form = intval($_GET['tid']);
+            error_log('[MoBooking Scripts] Public booking form (tid route). Tenant ID from $_GET[tid]: ' . $effective_tenant_id_for_public_form);
+        }
+        // If it's a direct page template assignment without slug/tid, $effective_tenant_id_for_public_form will be 0.
+        // The JS should handle this (e.g. show an error or expect tenant_id to be entered manually if that was a feature).
+        // Currently, the JS expects tenant_id to be available for most operations.
 
         if ($effective_tenant_id_for_public_form && isset($GLOBALS['mobooking_settings_manager'])) {
-            // $public_form_currency_symbol = $GLOBALS['mobooking_settings_manager']->get_setting($effective_tenant_id_for_public_form, 'biz_currency_symbol', '$'); // REMOVED
-            // $public_form_currency_position = $GLOBALS['mobooking_settings_manager']->get_setting($effective_tenant_id_for_public_form, 'biz_currency_position', 'before'); // REMOVED
             $public_form_currency_code = $GLOBALS['mobooking_settings_manager']->get_setting($effective_tenant_id_for_public_form, 'biz_currency_code', 'USD');
         }
+        error_log('[MoBooking Scripts] Effective Tenant ID for public form localization: ' . $effective_tenant_id_for_public_form);
 
         $i18n_strings = [
             // Step 1
@@ -209,15 +213,16 @@ spl_autoload_register(function ($class_name) {
     return false;
 });
 
-// Dashboard Routing and Template Handling
+// Routing and Template Handling
 function mobooking_flush_rewrite_rules_on_activation_deactivation() {
-    mobooking_add_dashboard_rewrite_rules();
+    mobooking_add_rewrite_rules(); // Renamed function
     flush_rewrite_rules();
 }
 add_action('after_switch_theme', 'mobooking_flush_rewrite_rules_on_activation_deactivation');
 add_action('switch_theme', 'mobooking_flush_rewrite_rules_on_activation_deactivation');
 
-function mobooking_add_dashboard_rewrite_rules() {
+function mobooking_add_rewrite_rules() { // Renamed function
+    // Dashboard Rules
     add_rewrite_rule(
         '^dashboard/?$',
         'index.php?mobooking_dashboard_page=overview',
@@ -233,73 +238,133 @@ function mobooking_add_dashboard_rewrite_rules() {
         'index.php?mobooking_dashboard_page=$matches[1]&mobooking_dashboard_action=$matches[2]',
         'top'
     );
+
+    // Public Booking Form by Business Slug Rule
+    add_rewrite_rule(
+        '^([^/]+)/booking/?$', // Matches {slug}/booking/
+        'index.php?mobooking_business_slug=$matches[1]&mobooking_page_type=public_booking',
+        'top'
+    );
 }
-add_action('init', 'mobooking_add_dashboard_rewrite_rules');
+add_action('init', 'mobooking_add_rewrite_rules'); // Renamed function
 
 function mobooking_add_query_vars($vars) {
     $vars[] = 'mobooking_dashboard_page';
     $vars[] = 'mobooking_dashboard_action';
+    $vars[] = 'mobooking_business_slug'; // New query var for business slug
+    $vars[] = 'mobooking_page_type';     // New query var for page type (e.g., public_booking)
     return $vars;
 }
 add_filter('query_vars', 'mobooking_add_query_vars');
 
-function mobooking_dashboard_template_include( $template ) {
-    error_log('[MoBooking Debug] ====== New Request ======');
+function mobooking_template_include_logic( $template ) {
+    error_log('[MoBooking Debug] ====== New Request Processing in mobooking_template_include_logic ======');
     error_log('[MoBooking Debug] REQUEST_URI: ' . $_SERVER['REQUEST_URI']);
 
-    $is_dashboard_request = false;
-    $current_page_slug = get_query_var('mobooking_dashboard_page');
-    error_log('[MoBooking Debug] Initial query_var "mobooking_dashboard_page": ' . print_r($current_page_slug, true));
+    $page_type = get_query_var('mobooking_page_type');
+    $dashboard_page_slug = get_query_var('mobooking_dashboard_page');
+    $business_slug = get_query_var('mobooking_business_slug');
 
-    if (!empty($current_page_slug)) {
+    error_log('[MoBooking Debug] Query Vars: page_type=' . $page_type . '; dashboard_page_slug=' . $dashboard_page_slug . '; business_slug=' . $business_slug);
+
+    // --- Handle Public Booking Form by Slug ---
+    if ($page_type === 'public_booking' && !empty($business_slug)) {
+        error_log('[MoBooking Debug] Matched public_booking page type with slug: ' . $business_slug);
+        $tenant_id = mobooking_get_user_id_by_slug($business_slug);
+
+        if ($tenant_id) {
+            error_log('[MoBooking Debug] Found tenant_id: ' . $tenant_id . ' for slug: ' . $business_slug);
+            $GLOBALS['mobooking_public_form_tenant_id_from_slug'] = $tenant_id;
+
+            // Set a query var that the original public booking form template might use or can be adapted to use.
+            // This helps in case the template has logic relying on a query_var for tenant_id.
+            set_query_var('mobooking_tenant_id_on_page', $tenant_id);
+
+            $public_booking_template = MOBOOKING_THEME_DIR . 'templates/booking-form-public.php';
+            if (file_exists($public_booking_template)) {
+                error_log('[MoBooking Debug] Loading public booking form template: ' . $public_booking_template);
+                // Enqueue scripts for public booking form
+                // Note: mobooking_scripts() already has a condition for this template,
+                // but we might need to ensure it runs correctly in this context.
+                // For now, relying on the existing is_page_template check in mobooking_scripts might be tricky
+                // as we are directly returning a template path.
+                // Explicitly enqueue here or ensure mobooking_scripts() can detect this.
+                // For simplicity, let's assume mobooking_scripts() needs adjustment or we enqueue here.
+                // Let's try to make mobooking_scripts work by ensuring the query var is set.
+
+                // For the `is_page_template('templates/booking-form-public.php')` check in `mobooking_scripts` to work,
+                // we need to ensure that the global $wp_query->is_page_template flag is set, or we directly call
+                // the script enqueueing logic. Setting `mobooking_tenant_id_on_page` query var is a step towards that.
+
+                remove_filter('template_redirect', 'redirect_canonical'); // Important for custom URLs
+                status_header(200);
+                return $public_booking_template;
+            } else {
+                error_log('[MoBooking Debug] CRITICAL ERROR: Public booking form template file not found: ' . $public_booking_template);
+                // Fall through to default template or 404
+            }
+        } else {
+            error_log('[MoBooking Debug] No tenant_id found for slug: ' . $business_slug . '. Will proceed to 404.');
+            // Let WordPress handle it as a 404 by not returning a template here and setting status.
+            // global $wp_query;
+            // $wp_query->set_404();
+            // status_header(404);
+            // return get_404_template(); // This might be too aggressive, let WP do its default.
+            // Returning original template will likely lead to WP's 404 handling.
+        }
+    }
+    // --- Handle Dashboard ---
+    // This logic needs to be robust enough not to misinterpret parts of a business slug URL as a dashboard URL.
+    // The rewrite rules are processed in order, 'top' means they are tried first.
+    // If `mobooking_page_type` is not 'public_booking', then it might be a dashboard request or something else.
+    // The original dashboard detection was based on `mobooking_dashboard_page` or URI segments.
+
+    $is_dashboard_request = false;
+    if (!empty($dashboard_page_slug)) { // Primarily rely on the query var from dashboard rewrite rules
         $is_dashboard_request = true;
-        error_log('[MoBooking Debug] Detected dashboard from query_var.');
-    } else {
+        error_log('[MoBooking Debug] Detected dashboard from query_var "mobooking_dashboard_page": ' . $dashboard_page_slug);
+    } else if (empty($page_type)) { // Only check URI segments if it's not a handled page_type (like public_booking)
         $path = trim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');
         $segments = explode('/', $path);
-        error_log('[MoBooking Debug] Path segments from URI: ' . print_r($segments, true));
-
         if (isset($segments[0]) && strtolower($segments[0]) === 'dashboard') {
             $is_dashboard_request = true;
-            $current_page_slug = isset($segments[1]) && !empty($segments[1]) ? $segments[1] : 'overview';
-            error_log('[MoBooking Debug] Detected dashboard from URI. Page slug determined as: ' . $current_page_slug);
+            $dashboard_page_slug = isset($segments[1]) && !empty($segments[1]) ? $segments[1] : 'overview';
+            set_query_var('mobooking_dashboard_page', $dashboard_page_slug); // Ensure query var is set for consistency
+            error_log('[MoBooking Debug] Detected dashboard from URI segments. Page slug set to: ' . $dashboard_page_slug);
         }
     }
 
-    error_log('[MoBooking Debug] Is dashboard request? ' . ($is_dashboard_request ? 'Yes' : 'No'));
 
     if ($is_dashboard_request) {
-        // Authentication check
+        error_log('[MoBooking Debug] Processing as dashboard request for page: ' . $dashboard_page_slug);
         if (!is_user_logged_in() || !current_user_can('read')) {
             error_log('[MoBooking Debug] User not authenticated for dashboard access.');
-            wp_redirect(wp_login_url());
+            wp_redirect(wp_login_url(get_permalink())); // Redirect to login, then back to current URL
             exit;
         }
 
-        // Set global variable for the current dashboard view
-        $GLOBALS['mobooking_current_dashboard_view'] = $current_page_slug;
-        error_log('[MoBooking Debug] Set global dashboard view to: ' . $current_page_slug);
+        $GLOBALS['mobooking_current_dashboard_view'] = $dashboard_page_slug;
+        mobooking_enqueue_dashboard_scripts($dashboard_page_slug);
 
-        // *** IMPORTANT FIX: Enqueue dashboard scripts here ***
-        // This ensures the global variable is set before scripts are enqueued
-        mobooking_enqueue_dashboard_scripts($current_page_slug);
-
-        $new_template = MOBOOKING_THEME_DIR . 'dashboard/dashboard-shell.php';
-        if ( file_exists( $new_template ) ) {
-            error_log('[MoBooking Debug] Loading dashboard shell: ' . $new_template);
+        $dashboard_shell_template = MOBOOKING_THEME_DIR . 'dashboard/dashboard-shell.php';
+        if (file_exists($dashboard_shell_template)) {
+            error_log('[MoBooking Debug] Loading dashboard shell: ' . $dashboard_shell_template);
             remove_filter('template_redirect', 'redirect_canonical');
             status_header(200);
-            return $new_template;
+            return $dashboard_shell_template;
         } else {
-            error_log('[MoBooking Debug] CRITICAL ERROR: Dashboard shell file not found: ' . $new_template);
+            error_log('[MoBooking Debug] CRITICAL ERROR: Dashboard shell file not found: ' . $dashboard_shell_template);
         }
     }
     
+    // If neither public booking form by slug nor dashboard, return original template
+    error_log('[MoBooking Debug] No specific MoBooking template matched. Returning original template: ' . $template);
     return $template;
 }
-add_filter( 'template_include', 'mobooking_dashboard_template_include', 99 );
+add_filter( 'template_include', 'mobooking_template_include_logic', 99 );
 
-// New function to handle dashboard script enqueuing
+// Function to handle script enqueuing (was mobooking_enqueue_dashboard_scripts)
+// No changes needed to its definition, only to its invocation if necessary
 function mobooking_enqueue_dashboard_scripts($current_page_slug) {
     // Ensure jQuery is always available for dashboard pages that might use it directly
     // or have inline scripts depending on it (like page-workers.php).
@@ -846,6 +911,101 @@ function mobooking_restore_user_locale() {
     // error_log("MoBooking Debug: Attempted to restore locale. Current locale after restore: " . get_locale());
 }
 add_action( 'shutdown', 'mobooking_restore_user_locale' );
+
+// --- Business Slug for User Profiles ---
+if ( ! function_exists( 'mobooking_add_business_slug_field_to_profile' ) ) {
+    function mobooking_add_business_slug_field_to_profile( $user ) {
+        // Only show for users who can be business owners or for site admins editing them
+        if ( ! current_user_can( 'edit_user', $user->ID ) ) {
+            return;
+        }
+        // Check if the user is a business owner or if the current admin is editing a business owner
+        $is_business_owner = user_can($user, MoBooking\Classes\Auth::ROLE_BUSINESS_OWNER);
+
+        if (!$is_business_owner && !current_user_can('manage_options')) { // Let site admins see it for any user they edit
+            $user_object_for_role_check = new WP_User($user->ID);
+            if (!in_array(MoBooking\Classes\Auth::ROLE_BUSINESS_OWNER, (array) $user_object_for_role_check->roles)) {
+                 return;
+            }
+        }
+
+
+        ?>
+        <h3><?php esc_html_e( 'MoBooking Settings', 'mobooking' ); ?></h3>
+        <table class="form-table">
+            <tr>
+                <th><label for="mobooking_business_slug"><?php esc_html_e( 'Business Slug', 'mobooking' ); ?></label></th>
+                <td>
+                    <input type="text" name="mobooking_business_slug" id="mobooking_business_slug" value="<?php echo esc_attr( get_user_meta( $user->ID, 'mobooking_business_slug', true ) ); ?>" class="regular-text" />
+                    <p class="description">
+                        <?php esc_html_e( 'Enter a unique, URL-friendly slug for this business (e.g., "my-business-name"). Used for public booking form URLs like yoursite.com/slug/booking/.', 'mobooking' ); ?>
+                        <br>
+                        <?php esc_html_e( 'Allowed characters: lowercase letters, numbers, and hyphens.', 'mobooking' ); ?>
+                    </p>
+                </td>
+            </tr>
+        </table>
+        <?php
+    }
+}
+add_action( 'show_user_profile', 'mobooking_add_business_slug_field_to_profile' );
+add_action( 'edit_user_profile', 'mobooking_add_business_slug_field_to_profile' );
+
+
+if ( ! function_exists( 'mobooking_save_business_slug_field' ) ) {
+    function mobooking_save_business_slug_field( $user_id ) {
+        if ( ! current_user_can( 'edit_user', $user_id ) ) {
+            return false;
+        }
+
+        if ( isset( $_POST['mobooking_business_slug'] ) ) {
+            $new_slug = sanitize_title_with_dashes( $_POST['mobooking_business_slug'] );
+
+            // Basic uniqueness check (does not prevent race conditions but good for UI feedback)
+            // More robust check might be needed if high contention is expected
+            $existing_user_id_for_slug = mobooking_get_user_id_by_slug($new_slug);
+
+            if ( $existing_user_id_for_slug && $existing_user_id_for_slug != $user_id ) {
+                // Add an admin notice if the slug is already taken by another user
+                add_action( 'user_profile_update_errors', function( $errors ) use ($new_slug) {
+                    $errors->add( 'mobooking_slug_exists', sprintf(__( 'The business slug "%s" is already in use. Please choose a different one.', 'mobooking' ), $new_slug) );
+                }, 10, 1 );
+                return; // Don't save if it's taken by someone else
+            }
+
+            // If the slug is empty, delete the meta. If not empty, update it.
+            if (empty($new_slug)) {
+                delete_user_meta( $user_id, 'mobooking_business_slug' );
+            } else {
+                update_user_meta( $user_id, 'mobooking_business_slug', $new_slug );
+            }
+        }
+    }
+}
+add_action( 'personal_options_update', 'mobooking_save_business_slug_field' );
+add_action( 'edit_user_profile_update', 'mobooking_save_business_slug_field' );
+
+if ( ! function_exists('mobooking_get_user_id_by_slug')) {
+    function mobooking_get_user_id_by_slug(string $slug): ?int {
+        if (empty($slug)) {
+            return null;
+        }
+        global $wpdb;
+        $user_id = $wpdb->get_var($wpdb->prepare(
+            "SELECT user_id FROM $wpdb->usermeta WHERE meta_key = 'mobooking_business_slug' AND meta_value = %s",
+            $slug
+        ));
+        if ($user_id) {
+            // Verify the user actually has the business owner role
+            $user = get_userdata($user_id);
+            if ($user && in_array(MoBooking\Classes\Auth::ROLE_BUSINESS_OWNER, (array)$user->roles)) {
+                return (int) $user_id;
+            }
+        }
+        return null;
+    }
+}
+
 
 /**
  * Retrieves an SVG icon string for a given dashboard menu key.
