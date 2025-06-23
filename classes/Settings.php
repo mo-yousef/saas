@@ -176,18 +176,25 @@ Please review this booking in your dashboard: {{admin_booking_link}}",
             return;
         }
 
-        error_log('[MoBooking Settings] handle_save_booking_form_settings_ajax: Received POST settings: ' . print_r($_POST['settings'], true));
+        error_log('[MoBooking Settings AJAX Save - Received Settings Data Before Validation] ' . print_r($settings_data, true));
         
         // Validate and sanitize specific settings
-        $settings_data = $this->validate_booking_form_settings($settings_data);
+        $validated_settings_data = $this->validate_booking_form_settings($settings_data);
+        error_log('[MoBooking Settings AJAX Save - Validated Settings Data Before Save] ' . print_r($validated_settings_data, true));
+
+        // Check if validation significantly altered or emptied the data
+        if (empty($validated_settings_data) && !empty($settings_data)) {
+            error_log('[MoBooking Settings AJAX Save] All settings data was removed or invalidated by validate_booking_form_settings.');
+        }
         
-        $result = $this->save_booking_form_settings($user_id, $settings_data);
+        $result = $this->save_booking_form_settings($user_id, $validated_settings_data);
 
         if ($result) {
+            error_log('[MoBooking Settings AJAX Save] save_booking_form_settings returned TRUE.');
             wp_send_json_success(['message' => __('Booking form settings saved successfully.', 'mobooking')]);
         } else {
-            error_log('[MoBooking Settings] handle_save_booking_form_settings_ajax: save_booking_form_settings returned false.');
-            wp_send_json_error(['message' => __('Failed to save some settings. Please check logs if issues persist.', 'mobooking')], 500);
+            error_log('[MoBooking Settings AJAX Save] save_booking_form_settings returned FALSE.');
+            wp_send_json_error(['message' => __('Failed to save some settings. Please check server logs if issues persist.', 'mobooking')], 500);
         }
     }
 
@@ -195,9 +202,14 @@ Please review this booking in your dashboard: {{admin_booking_link}}",
      * Validate and sanitize booking form settings
      */
     private function validate_booking_form_settings($settings_data) {
+        error_log('[MoBooking Settings Validate - Input] ' . print_r($settings_data, true));
         // Sanitize business slug
         if (isset($settings_data['bf_business_slug'])) {
+            $original_slug = $settings_data['bf_business_slug'];
             $settings_data['bf_business_slug'] = sanitize_title($settings_data['bf_business_slug']);
+            if ($original_slug !== $settings_data['bf_business_slug']) {
+                error_log("[MoBooking Settings Validate] bf_business_slug changed from '$original_slug' to '{$settings_data['bf_business_slug']}'");
+            }
         }
 
         // Validate numeric fields
@@ -211,8 +223,12 @@ Please review this booking in your dashboard: {{admin_booking_link}}",
 
         foreach ($numeric_fields as $field => $limits) {
             if (isset($settings_data[$field])) {
+                $original_val = $settings_data[$field];
                 $value = intval($settings_data[$field]);
                 $settings_data[$field] = max($limits['min'], min($limits['max'], $value));
+                if ($original_val != $settings_data[$field]) { // Use != because intval can change type
+                     error_log("[MoBooking Settings Validate] Numeric field $field changed from '$original_val' to '{$settings_data[$field]}'");
+                }
             }
         }
 
@@ -220,11 +236,17 @@ Please review this booking in your dashboard: {{admin_booking_link}}",
         $color_fields = ['bf_theme_color', 'bf_secondary_color', 'bf_background_color'];
         foreach ($color_fields as $field) {
             if (isset($settings_data[$field])) {
+                $original_color = $settings_data[$field];
                 $color = sanitize_hex_color($settings_data[$field]);
                 if ($color) {
                     $settings_data[$field] = $color;
+                    if ($original_color !== $settings_data[$field]) {
+                         error_log("[MoBooking Settings Validate] Color field $field changed from '$original_color' to '{$settings_data[$field]}'");
+                    }
                 } else {
-                    unset($settings_data[$field]); // Remove invalid color, will use default
+                    // Log if a color was invalid and is being removed/defaulted
+                    error_log("[MoBooking Settings Validate] Invalid color for $field: '$original_color'. Field will revert to default or be unset.");
+                    unset($settings_data[$field]);
                 }
             }
         }
@@ -232,12 +254,21 @@ Please review this booking in your dashboard: {{admin_booking_link}}",
         // Validate URLs
         $url_fields = ['bf_terms_conditions_url', 'bf_webhook_url'];
         foreach ($url_fields as $field) {
-            if (isset($settings_data[$field]) && !empty($settings_data[$field])) {
-                $url = esc_url_raw($settings_data[$field]);
-                if (!$url) {
-                    $settings_data[$field] = ''; // Clear invalid URL
+            if (isset($settings_data[$field])) { // Process even if empty to ensure it's cleared or validated
+                $original_url = $settings_data[$field];
+                if (!empty($settings_data[$field])) {
+                    $url = esc_url_raw($settings_data[$field]);
+                    if (!$url) {
+                        $settings_data[$field] = ''; // Clear invalid URL
+                        error_log("[MoBooking Settings Validate] URL field $field cleared due to invalid value: '$original_url'");
+                    } else {
+                        $settings_data[$field] = $url;
+                        if ($original_url !== $settings_data[$field]) {
+                            error_log("[MoBooking Settings Validate] URL field $field sanitized from '$original_url' to '$url'");
+                        }
+                    }
                 } else {
-                    $settings_data[$field] = $url;
+                    $settings_data[$field] = ''; // Ensure empty if submitted empty
                 }
             }
         }
@@ -246,18 +277,55 @@ Please review this booking in your dashboard: {{admin_booking_link}}",
         $text_fields = [
             'bf_header_text', 'bf_maintenance_message', 'bf_success_message',
             'bf_google_analytics_id', 'bf_font_family'
+            // Note: bf_custom_css is handled separately to allow certain CSS content.
         ];
         foreach ($text_fields as $field) {
             if (isset($settings_data[$field])) {
+                $original_text = $settings_data[$field];
                 $settings_data[$field] = sanitize_text_field($settings_data[$field]);
+                if ($original_text !== $settings_data[$field]) {
+                    error_log("[MoBooking Settings Validate] Text field $field sanitized. Original: '$original_text' New: '{$settings_data[$field]}'");
+                }
             }
         }
 
-        // Sanitize textarea fields
+        // Sanitize textarea fields (like bf_custom_css)
+        // For bf_custom_css, wp_strip_all_tags might be too aggressive if user needs to input e.g. specific CSS functions or selectors.
+        // A more nuanced sanitization might be needed if issues arise, or rely on user inputting safe CSS.
+        // For now, wp_strip_all_tags is a strong security measure.
         if (isset($settings_data['bf_custom_css'])) {
-            $settings_data['bf_custom_css'] = wp_strip_all_tags($settings_data['bf_custom_css']);
+            $original_css = $settings_data['bf_custom_css'];
+            // Using wp_kses_post might be an alternative if some HTML/CSS like structures are needed, but for raw CSS, this is tricky.
+            // wp_strip_all_tags is very restrictive.
+            // Let's use a more balanced approach: remove script tags and dangerous attributes.
+            // However, a simpler approach for now is just to log if it changes.
+            // For security, keeping wp_strip_all_tags is safer if we're unsure about all possible malicious inputs.
+            $settings_data['bf_custom_css'] = wp_strip_all_tags($settings_data['bf_custom_css']); // Keeping it strict for now
+            if ($original_css !== $settings_data['bf_custom_css']) {
+                 error_log("[MoBooking Settings Validate] bf_custom_css was modified by wp_strip_all_tags.");
+                 // Consider logging the before and after if it's short enough or a hash of it.
+            }
         }
 
+        // Log for boolean/checkbox like values (0 or 1)
+        $boolean_like_fields = [
+            'bf_show_progress_bar', 'bf_form_enabled', 'bf_allow_service_selection',
+            'bf_allow_date_time_selection', 'bf_require_phone', 'bf_allow_special_instructions',
+            'bf_show_pricing', 'bf_allow_discount_codes', 'bf_enable_recaptcha',
+            'bf_enable_ssl_required', 'bf_debug_mode'
+        ];
+        foreach ($boolean_like_fields as $field) {
+            if (isset($settings_data[$field])) {
+                $original_bool_val = $settings_data[$field];
+                $settings_data[$field] = ($settings_data[$field] === '1' || $settings_data[$field] === true) ? '1' : '0';
+                if ($original_bool_val !== $settings_data[$field]) {
+                    error_log("[MoBooking Settings Validate] Boolean field $field normalized from '$original_bool_val' to '{$settings_data[$field]}'");
+                }
+            }
+        }
+
+
+        error_log('[MoBooking Settings Validate - Output] ' . print_r($settings_data, true));
         return $settings_data;
     }
 
