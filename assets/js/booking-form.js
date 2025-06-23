@@ -36,6 +36,20 @@ jQuery(document).ready(function ($) {
       ? mobooking_booking_form_params.currency_code
       : "USD";
 
+  // Access settings, ensure defaults if not fully populated
+  const formSettings = (typeof mobooking_booking_form_params !== 'undefined' && mobooking_booking_form_params.settings)
+    ? mobooking_booking_form_params.settings
+    : { // Fallback defaults matching Settings.php if params totally fail (should not happen with PHP logic)
+        bf_header_text: 'Book Our Services',
+        bf_show_pricing: '1',
+        bf_allow_discount_codes: '1',
+        bf_theme_color: '#1abc9c',
+        bf_custom_css: '',
+        bf_form_enabled: '1',
+        bf_maintenance_message: 'Booking form is currently unavailable.'
+      };
+
+
   // Step 6 elements
   const step6ConfirmDiv = $("#mobooking-bf-step-6-confirmation");
   const confirmationMessageDiv = $("#mobooking-bf-confirmation-message");
@@ -643,7 +657,8 @@ jQuery(document).ready(function ($) {
     });
 
     let discountAmount = 0;
-    if (discountInfo && discountInfo.valid && discountInfo.discount) {
+    // Apply discount only if discounts are enabled by settings
+    if (window.mobookingShouldShowDiscounts() && discountInfo && discountInfo.valid && discountInfo.discount) {
       const disc = discountInfo.discount;
       if (disc.type === "percentage")
         discountAmount = subtotal * (parseFloat(disc.value) / 100);
@@ -660,13 +675,28 @@ jQuery(document).ready(function ($) {
       final_total_raw: finalTotal,
       serviceDetailsForSummary: serviceDetailsForSummary,
       appliedDiscountCode:
-        discountInfo && discountInfo.valid ? discountInfo.discount.code : null,
+        window.mobookingShouldShowDiscounts() && discountInfo && discountInfo.valid ? discountInfo.discount.code : null,
     };
   }
 
   function displayStep5_ReviewBooking() {
     step5FeedbackDiv.empty().hide();
     discountFeedbackDiv.empty().removeClass("success error").hide();
+
+    // Hide or show pricing related elements based on settings
+    if (window.mobookingShouldShowPricing()) {
+        $('#mobooking-bf-pricing-summary-section').show(); // Assuming you wrap totals in this div
+    } else {
+        $('#mobooking-bf-pricing-summary-section').hide();
+    }
+    if(window.mobookingShouldShowDiscounts()){
+        $('#mobooking-bf-discount-section').show(); // Already handled at init, but good to re-check
+        if(discountAppliedDisplay.closest('p').length) discountAppliedDisplay.closest('p').show();
+
+    } else {
+        $('#mobooking-bf-discount-section').hide();
+        if(discountAppliedDisplay.closest('p').length) discountAppliedDisplay.closest('p').hide();
+    }
     const tenantId = sessionStorage.getItem("mobooking_cart_tenant_id"),
       selectedServicesString = sessionStorage.getItem(
         "mobooking_cart_selected_services"
@@ -902,10 +932,19 @@ jQuery(document).ready(function ($) {
           sessionStorage.removeItem("mobooking_cart_discount_info");
           // sessionStorage.removeItem('mobooking_final_booking_data'); // This was never stored with this key
 
-          confirmationMessageDiv.html(
-            "<p>" + $("<div>").text(response.data.message).html() + "</p>"
-          );
-          if (response.data.booking_reference) {
+          const successMsg = formSettings.bf_success_message || response.data.message || mobooking_booking_form_params.i18n.your_booking_confirmed || "Booking Confirmed!";
+          // Replace placeholders in success message
+          let finalSuccessMsg = successMsg.replace(/\{\{booking_reference\}\}/g, $("<div>").text(response.data.booking_reference).html());
+          // Add more placeholder replacements if needed: {{customer_name}}, {{total_price}} etc.
+          // For example, if customer_name is available in finalBookingData (passed to this function)
+          if (finalBookingData && finalBookingData.customer_details && finalBookingData.customer_details.customer_name) {
+            finalSuccessMsg = finalSuccessMsg.replace(/\{\{customer_name\}\}/g, $("<div>").text(finalBookingData.customer_details.customer_name).html());
+          }
+
+
+          confirmationMessageDiv.html("<p>" + finalSuccessMsg + "</p>");
+
+          if (response.data.booking_reference && !successMsg.includes('{{booking_reference}}')) {
             confirmationMessageDiv.append(
               "<p>" +
                 (mobooking_booking_form_params.i18n.your_ref_is || "Ref:") +
@@ -953,5 +992,68 @@ jQuery(document).ready(function ($) {
   });
 
   // Initial setup on page load: Ensure Step 1 is shown.
+  // Apply settings from localized params
+  if (formSettings.bf_form_enabled === '0') {
+    // Form is disabled, show maintenance message and hide all steps
+    $('#mobooking-public-booking-form-wrapper').html(
+        `<div style="padding:20px; text-align:center; border:1px solid #eee; background:#f9f9f9;">
+            <h1>${formSettings.bf_maintenance_message || 'Bookings are temporarily unavailable.'}</h1>
+         </div>`
+    );
+    // No need to proceed further with form initialization if it's disabled.
+    return; // Exit ready function
+  }
+
+
+  if (formSettings.bf_header_text) {
+    $('#mobooking-public-booking-form-wrapper > h1').text(formSettings.bf_header_text);
+  }
+
+  if (formSettings.bf_custom_css) {
+    $('<style type="text/css"></style>')
+      .html(formSettings.bf_custom_css)
+      .appendTo("head");
+  }
+
+  if (formSettings.bf_theme_color) {
+    const themeColorStyle = `
+      .mobooking-bf-step button.button-primary,
+      #mobooking-bf-review-confirm-btn,
+      #mobooking-bf-apply-discount-btn {
+        background-color: ${formSettings.bf_theme_color} !important;
+        border-color: ${formSettings.bf_theme_color} !important;
+        color: #fff !important;
+      }
+      /* Example for progress bar (if implemented) or active step headers */
+      /* .mobooking-progress-bar .step.active { background-color: ${formSettings.bf_theme_color}; } */
+    `;
+    $('<style type="text/css"></style>')
+      .html(themeColorStyle)
+      .appendTo("head");
+  }
+
+  if (formSettings.bf_allow_discount_codes === '1') {
+    $('#mobooking-bf-discount-section').show();
+  } else {
+    $('#mobooking-bf-discount-section').hide();
+    sessionStorage.removeItem('mobooking_cart_discount_info'); // Clear any stored discount
+  }
+
+  // Initial display
   displayStep(1);
+
+  // Helper function to check if pricing should be shown
+  window.mobookingShouldShowPricing = function() {
+    return formSettings.bf_show_pricing === '1';
+  }
+  window.mobookingShouldShowDiscounts = function() {
+    return formSettings.bf_allow_discount_codes === '1';
+  }
+
+  // Update success message on confirmation step
+  if (formSettings.bf_success_message) {
+    // This needs to be applied when step 6 is shown.
+    // Let's modify displayStep6_Confirmation success part.
+  }
+
 });
