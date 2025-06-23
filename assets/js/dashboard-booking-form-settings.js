@@ -14,7 +14,8 @@ jQuery(document).ready(function ($) {
     navTabs.removeClass("nav-tab-active");
     $(this).addClass("nav-tab-active");
     tabContents.hide();
-    $("#" + $(this).data("tab") + "-settings-tab").show();
+    // Correctly construct the ID including the "mobooking-" prefix
+    $("#mobooking-" + $(this).data("tab") + "-settings-tab").show();
   });
 
   // Initialize Color Picker
@@ -29,8 +30,58 @@ jQuery(document).ready(function ($) {
   // Initial settings are now loaded by PHP.
   // The loadSettings() and populateForm() functions are no longer needed for initial load.
 
+  // Dynamic update for public link and embed code
+  const businessSlugInput = $("#bf_business_slug");
+  const publicLinkInput = $("#mobooking-public-link");
+  const embedCodeTextarea = $("#mobooking-embed-code");
+  const copyLinkBtn = $("#mobooking-copy-public-link-btn");
+  const copyEmbedBtn = $("#mobooking-copy-embed-code-btn");
+  // Assuming mobooking_bf_settings_params.site_url is available (should be added via wp_localize_script)
+  let baseSiteUrl = mobooking_bf_settings_params.site_url || (window.location.origin); // Fallback, not perfect
+
+  // Ensure baseSiteUrl has a trailing slash, like trailingslashit()
+  if (baseSiteUrl.slice(-1) !== '/') {
+    baseSiteUrl += '/';
+  }
+
+  function updateShareableLinks(slug) {
+    const sanitizedSlug = slug.trim().toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, '');
+
+    if (sanitizedSlug) {
+      const bookingFormTitle = mobooking_bf_settings_params.i18n.booking_form_title || 'Booking Form';
+      const publicLink = baseSiteUrl + sanitizedSlug + '/booking/'; // baseSiteUrl now guaranteed to have trailing slash
+      const embedCode = `<iframe src="${publicLink}" title="${bookingFormTitle}" style="width:100%; height:800px; border:1px solid #ccc;"></iframe>`;
+
+      publicLinkInput.val(publicLink);
+      embedCodeTextarea.val(embedCode);
+      copyLinkBtn.prop("disabled", false);
+      copyEmbedBtn.prop("disabled", false);
+    } else {
+      publicLinkInput.val("").attr("placeholder", mobooking_bf_settings_params.i18n.link_will_appear_here || "Link will appear here once slug is saved.");
+      embedCodeTextarea.val("").attr("placeholder", mobooking_bf_settings_params.i18n.embed_will_appear_here || "Embed code will appear here once slug is saved.");
+      copyLinkBtn.prop("disabled", true);
+      copyEmbedBtn.prop("disabled", true);
+    }
+  }
+
+  if (businessSlugInput.length) {
+    businessSlugInput.on("input", function () {
+      updateShareableLinks($(this).val());
+    });
+    // Initial update on page load based on current field value
+    updateShareableLinks(businessSlugInput.val());
+  }
+
+
   form.on("submit", function (e) {
     e.preventDefault();
+
+    // Sanitize slug client-side before sending (mirror of sanitize_title)
+    // This is for immediate feedback in the input field if desired, but server will always sanitize.
+    let currentSlug = businessSlugInput.val();
+    let sanitizedClientSlug = currentSlug.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]+/g, '').replace(/^-+|-+$/g, '');
+    businessSlugInput.val(sanitizedClientSlug); // Update field with sanitized version
+
     feedbackDiv
       .empty()
       .removeClass("success error notice notice-success notice-error")
