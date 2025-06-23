@@ -151,12 +151,14 @@ Please review this booking in your dashboard: {{admin_booking_link}}",
             return;
         }
 
+        error_log('[MoBooking Settings] handle_save_booking_form_settings_ajax: Received POST settings: ' . print_r($_POST['settings'], true));
         $result = $this->save_booking_form_settings($user_id, $settings_data);
 
         if ($result) {
             wp_send_json_success(['message' => __('Booking form settings saved successfully.', 'mobooking')]);
         } else {
-            wp_send_json_error(['message' => __('Failed to save some settings.', 'mobooking')], 500);
+            error_log('[MoBooking Settings] handle_save_booking_form_settings_ajax: save_booking_form_settings returned false.');
+            wp_send_json_error(['message' => __('Failed to save some settings. Please check logs if issues persist.', 'mobooking')], 500);
         }
     }
 
@@ -264,9 +266,12 @@ Please review this booking in your dashboard: {{admin_booking_link}}",
     public function save_settings_group(int $user_id, array $settings_data, array $default_keys_for_group): bool {
         if (empty($user_id)) return false;
         $all_successful = true;
+        error_log('[MoBooking Settings] save_settings_group for user_id: ' . $user_id . ' with data: ' . print_r($settings_data, true));
+
 
         foreach ($settings_data as $key => $value) {
             if (array_key_exists($key, $default_keys_for_group)) {
+                error_log("[MoBooking Settings] Processing key: $key, Original value: " . print_r($value, true));
                 $sanitized_value = $value;
 
                 // General sanitization based on expected type from default
@@ -275,17 +280,19 @@ Please review this booking in your dashboard: {{admin_booking_link}}",
                     if (strpos($key, 'email_') === 0 && strpos($key, 'body') !== false) {
                         $sanitized_value = sanitize_textarea_field($value);
                     } else if (strpos($key, 'css') !== false) {
-                         $sanitized_value = sanitize_textarea_field($value);
+                         $sanitized_value = sanitize_textarea_field($value); // Keep CSS as is, but WP might strip some.
                     } else {
                         $sanitized_value = sanitize_text_field($value);
                     }
                 } elseif (is_bool($value) || $default_type === 'boolean' || $key === 'bf_show_progress_bar') {
                      $sanitized_value = ($value === '1' || $value === true || $value === 'on') ? '1' : '0';
                 } elseif (is_numeric($value) || $default_type === 'integer' || $default_type === 'double') {
-                     if (strpos($key, 'hours') !== false) $sanitized_value = intval($value); else $sanitized_value = strval($value);
+                     if (strpos($key, 'hours') !== false) $sanitized_value = intval($value); else $sanitized_value = strval($value); // Ensure numbers are numbers
                 } else {
+                     // Fallback for other types if any, though most should be covered
                      $sanitized_value = sanitize_text_field(strval($value));
                 }
+                error_log("[MoBooking Settings] General Sanitized value for $key: " . print_r($sanitized_value, true));
 
                 // Specific key-based sanitization overrides
                 switch ($key) {
@@ -293,43 +300,64 @@ Please review this booking in your dashboard: {{admin_booking_link}}",
                     case 'bf_terms_conditions_url': case 'biz_logo_url': $sanitized_value = esc_url_raw($value); break;
                     case 'biz_email': case 'email_from_address': $sanitized_value = sanitize_email($value); break;
                     case 'biz_hours_json':
-                        $json_val = stripslashes($value);
-                        if (is_null(json_decode($json_val)) && !empty($json_val) && $json_val !== '{}' && $json_val !== '[]') {
-                            $sanitized_value = '{}';
-                        } else { $sanitized_value = sanitize_text_field($json_val); }
-                        break;
-                    // Removed biz_currency_symbol and biz_currency_position cases
-                    case 'biz_currency_code':
-                        // Since this will be a select dropdown, values should be valid.
-                        // This sanitization ensures it's 3 uppercase letters or defaults to USD.
-                        $sanitized_value = preg_replace('/[^A-Z]/', '', strtoupper(trim($value)));
-                        if (strlen($sanitized_value) !== 3) {
-                            // Attempt to take first 3 if longer and valid, otherwise default
-                            $sanitized_value = substr($sanitized_value, 0, 3);
-                            if (strlen($sanitized_value) !== 3 || !ctype_upper($sanitized_value)) {
-                                $sanitized_value = 'USD'; // Default if validation fails
+                        $json_val = stripslashes($value); // Remove slashes added by WP
+                        // Basic check if it's a potentially valid JSON structure before decoding
+                        if (is_string($json_val) && strlen($json_val) > 1 &&
+                            (($json_val[0] == '{' && $json_val[strlen($json_val)-1] == '}') ||
+                             ($json_val[0] == '[' && $json_val[strlen($json_val)-1] == ']'))) {
+
+                            json_decode($json_val); // Try to decode
+                            if (json_last_error() === JSON_ERROR_NONE) {
+                                $sanitized_value = wp_kses_post($json_val); // Sanitize string content if JSON is valid
+                            } else {
+                                error_log("[MoBooking Settings] Invalid JSON for $key: " . $json_val . " - Error: " . json_last_error_msg());
+                                $sanitized_value = '{}'; // Default to empty JSON object if invalid
                             }
-                        } else if (!ctype_upper($sanitized_value)) {
-                             $sanitized_value = 'USD'; // Default if not all uppercase
+                        } elseif (empty($json_val)) {
+                            $sanitized_value = '{}';
+                        } else {
+                             error_log("[MoBooking Settings] Non-JSON string or empty for $key: " . $json_val);
+                            $sanitized_value = '{}'; // Default if not a typical JSON structure string
+                        }
+                        break;
+                    case 'biz_currency_code':
+                        $sanitized_code = preg_replace('/[^A-Z]/', '', strtoupper(trim($value)));
+                        if (strlen($sanitized_code) === 3 && ctype_upper($sanitized_code)) {
+                            $sanitized_value = $sanitized_code;
+                        } else {
+                            $sanitized_value = 'USD'; // Default if validation fails
+                            error_log("[MoBooking Settings] Invalid currency code '$value', defaulted to USD for key $key.");
                         }
                         break;
                     case 'biz_user_language':
-                        // Allow format like xx_XX (e.g., en_US, fr_CA)
-                        // For a select dropdown, this validation is less critical if options are controlled,
-                        // but good for direct API calls or data integrity.
-                        if (preg_match('/^[a-z]{2}_[A-Z]{2}$/', trim($value))) {
+                         if (preg_match('/^[a-z]{2,3}(_[A-Z]{2})?$/', trim($value))) { // allow xx or xx_XX
                             $sanitized_value = trim($value);
                         } else {
                             $sanitized_value = 'en_US'; // Default if validation fails
+                            error_log("[MoBooking Settings] Invalid language code '$value', defaulted to en_US for key $key.");
                         }
                         break;
+                    case 'bf_custom_css': // Re-affirm specific handling for CSS if wp_kses_post is too aggressive
+                        $sanitized_value = wp_strip_all_tags(stripslashes($value)); // Basic tag stripping, but allows CSS characters
+                        break;
                 }
+                error_log("[MoBooking Settings] Specific Sanitized value for $key: " . print_r($sanitized_value, true));
 
-                if (!$this->update_setting($user_id, $key, $sanitized_value)) {
+
+                error_log("[MoBooking Settings] Attempting to save for user $user_id, key $key, value: " . print_r($sanitized_value, true));
+                $update_result = $this->update_setting($user_id, $key, $sanitized_value);
+                error_log("[MoBooking Settings] Result of update_setting for $key: " . ($update_result ? 'Success' : 'Failure'));
+
+                if (!$update_result) {
                     $all_successful = false;
+                    $db_error = $this->wpdb->last_error;
+                    error_log("[MoBooking Settings] DB Error for $key (User: $user_id): " . $db_error);
                 }
+            } else {
+                error_log("[MoBooking Settings] Skipped key (not in default_keys_for_group): $key");
             }
         }
+        error_log('[MoBooking Settings] save_settings_group final result for user_id ' . $user_id . ': ' . ($all_successful ? 'All Successful' : 'Some Failed'));
         return $all_successful;
     }
 
