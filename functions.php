@@ -167,14 +167,58 @@ function mobooking_scripts() {
             'your_ref_is' => __('Your booking reference is:', 'mobooking'),
         ];
 
+        $booking_form_settings_for_js = [];
+        if ($effective_tenant_id_for_public_form && class_exists('MoBooking\\Classes\\Settings')) {
+            $settings_manager = new \MoBooking\Classes\Settings();
+            $all_bf_settings = $settings_manager->get_booking_form_settings($effective_tenant_id_for_public_form);
+
+            $keys_to_pass = [
+                'bf_header_text', 'bf_show_pricing', 'bf_allow_discount_codes',
+                'bf_theme_color', 'bf_custom_css', 'bf_success_message',
+                // Add other relevant keys from Settings::$default_tenant_settings if needed by JS/template
+                'bf_form_enabled', 'bf_maintenance_message',
+            ];
+            foreach ($keys_to_pass as $key) {
+                if (isset($all_bf_settings[$key])) {
+                    $booking_form_settings_for_js[$key] = $all_bf_settings[$key];
+                } else {
+                    // Fallback to general defaults if a specific setting is not in DB for the user
+                    $default_settings_array = \MoBooking\Classes\Settings::get_all_default_settings();
+                    if (array_key_exists($key, $default_settings_array)) {
+                        $booking_form_settings_for_js[$key] = $default_settings_array[$key];
+                    }
+                }
+            }
+        }
+
+        // Ensure critical defaults if settings couldn't be loaded or are empty
+        // (get_all_default_settings() should provide these, but as a safeguard)
+        $default_settings_source = class_exists('MoBooking\\Classes\\Settings') ? \MoBooking\Classes\Settings::get_all_default_settings() : [];
+
+        if (empty($booking_form_settings_for_js['bf_header_text'])) {
+            $booking_form_settings_for_js['bf_header_text'] = $default_settings_source['bf_header_text'] ?? 'Book Our Services';
+        }
+        if (!isset($booking_form_settings_for_js['bf_show_pricing'])) {
+            $booking_form_settings_for_js['bf_show_pricing'] = $default_settings_source['bf_show_pricing'] ?? '1';
+        }
+        if (!isset($booking_form_settings_for_js['bf_allow_discount_codes'])) {
+            $booking_form_settings_for_js['bf_allow_discount_codes'] = $default_settings_source['bf_allow_discount_codes'] ?? '1';
+        }
+        if (!isset($booking_form_settings_for_js['bf_form_enabled'])) {
+            $booking_form_settings_for_js['bf_form_enabled'] = $default_settings_source['bf_form_enabled'] ?? '1';
+        }
+         if (empty($booking_form_settings_for_js['bf_maintenance_message'])) {
+            $booking_form_settings_for_js['bf_maintenance_message'] = $default_settings_source['bf_maintenance_message'] ?? 'Booking form is currently unavailable.';
+        }
+
+
         wp_localize_script('mobooking-booking-form', 'mobooking_booking_form_params', array(
             'ajax_url' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce('mobooking_booking_form_nonce'),
             'tenant_id' => $effective_tenant_id_for_public_form,
-            // 'currency_symbol' => $public_form_currency_symbol, // REMOVED
-            // 'currency_position' => $public_form_currency_position, // REMOVED
             'currency_code' => $public_form_currency_code,
-            'i18n' => $i18n_strings
+            'i18n' => $i18n_strings,
+            'settings' => $booking_form_settings_for_js // NEW: Add bf settings
         ));
     }
 }
