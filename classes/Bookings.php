@@ -124,16 +124,35 @@ class Bookings {
 
 
     public function get_booking(int $booking_id, int $tenant_user_id) {
-        if (empty($booking_id) || empty($tenant_user_id)) {
+        if (empty($booking_id) || empty($current_logged_in_user_id)) {
+            error_log("[MoBooking Bookings->get_booking] Error: Booking ID or Current Logged In User ID is empty.");
             return null;
         }
+
+        $user_id_to_query_for = $current_logged_in_user_id; // Default to the logged-in user
+
+        if (class_exists('MoBooking\Classes\Auth') && \MoBooking\Classes\Auth::is_user_worker($current_logged_in_user_id)) {
+            $owner_id = \MoBooking\Classes\Auth::get_business_owner_id_for_worker($current_logged_in_user_id);
+            if ($owner_id) {
+                $user_id_to_query_for = $owner_id;
+                error_log("[MoBooking Bookings->get_booking] Worker {$current_logged_in_user_id} is viewing. Querying for owner_id: {$owner_id}");
+            } else {
+                // Worker not associated with an owner, cannot fetch any specific booking by this logic.
+                error_log("[MoBooking Bookings->get_booking] Worker {$current_logged_in_user_id} has no associated owner. Cannot fetch booking {$booking_id}.");
+                return null;
+            }
+        } else {
+             error_log("[MoBooking Bookings->get_booking] User {$current_logged_in_user_id} is not a worker (or Auth class missing). Querying for self.");
+        }
+
         $bookings_table = Database::get_table_name('bookings');
         $booking = $this->wpdb->get_row($this->wpdb->prepare(
             "SELECT * FROM $bookings_table WHERE booking_id = %d AND user_id = %d",
-            $booking_id, $tenant_user_id
+            $booking_id, $user_id_to_query_for
         ), ARRAY_A);
 
         if ($booking) {
+            error_log("[MoBooking Bookings->get_booking] Booking {$booking_id} found for user_id_to_query_for: {$user_id_to_query_for}.");
             $items_table = Database::get_table_name('booking_items');
             $booking_items_raw = $this->wpdb->get_results($this->wpdb->prepare(
                 "SELECT * FROM $items_table WHERE booking_id = %d ORDER BY item_id ASC", $booking_id

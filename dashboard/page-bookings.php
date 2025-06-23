@@ -173,72 +173,107 @@ $booking_statuses = [
 // These styles will be moved to a dedicated CSS file as part of the CSS implementation step.
 ?>
 
-<div class="mobooking-bookings-page-wrapper"> <?php // Main page wrapper ?>
+<div class="wrap mobooking-dashboard-wrap mobooking-bookings-page-wrapper"> <?php // Main page wrapper with WP admin styles ?>
 
     <div class="mobooking-page-header">
-        <h1><?php esc_html_e('Manage Bookings', 'mobooking'); ?></h1>
-        <button id="mobooking-add-booking-btn" class="button button-primary">
+        <h1 class="wp-heading-inline"><?php esc_html_e('Manage Bookings', 'mobooking'); ?></h1>
+        <?php
+        // Only show "Add New Booking" button to non-workers (i.e., Business Owners)
+        $current_user_can_add_booking = true; // Default to true
+        if (class_exists('MoBooking\Classes\Auth') && \MoBooking\Classes\Auth::is_user_worker(get_current_user_id())) {
+            $current_user_can_add_booking = false;
+        }
+        if ($current_user_can_add_booking) :
+        ?>
+        <button id="mobooking-add-booking-btn" class="page-title-action">
             <?php esc_html_e('Add New Booking', 'mobooking'); ?>
         </button>
-    </div>
-
-    <?php // KPI Section ?>
-    <div class="mobooking-kpi-grid">
-        <div class="mobooking-kpi-card">
-            <h4><?php esc_html_e('Bookings This Month', 'mobooking'); ?></h4>
-            <p><?php echo esc_html($kpi_data['bookings_month']); ?></p>
-        </div>
-        <?php if ($kpi_data['revenue_month'] !== null) : // Only show revenue if not a worker or if worker is allowed (currently not) ?>
-        <div class="mobooking-kpi-card">
-            <h4><?php esc_html_e('Revenue This Month', 'mobooking'); ?></h4>
-            <p><?php echo esc_html($currency_symbol . number_format_i18n(floatval($kpi_data['revenue_month']), 2)); ?></p>
-        </div>
         <?php endif; ?>
-        <div class="mobooking-kpi-card">
-            <h4><?php esc_html_e('Upcoming Confirmed Bookings', 'mobooking'); ?></h4>
-            <p><?php echo esc_html($kpi_data['upcoming_count']); ?></p>
+    </div>
+
+    <?php // KPI Section - Using WordPress dashboard widget structure for styling consistency ?>
+    <div id="dashboard-widgets-wrap">
+        <div id="dashboard_primary" class="metabox-holder">
+            <div class="postbox-container mobooking-kpi-grid"> <?php // Added .postbox-container to group KPI cards ?>
+                <div class="mobooking-kpi-card postbox">
+                    <h2 class="hndle"><span><?php esc_html_e('Bookings This Month', 'mobooking'); ?></span></h2>
+                    <div class="inside">
+                        <p class="mobooking-kpi-value"><?php echo esc_html($kpi_data['bookings_month']); ?></p>
+                    </div>
+                </div>
+
+                <?php if ($kpi_data['revenue_month'] !== null) : ?>
+                <div class="mobooking-kpi-card postbox">
+                    <h2 class="hndle"><span><?php esc_html_e('Revenue This Month', 'mobooking'); ?></span></h2>
+                    <div class="inside">
+                        <p class="mobooking-kpi-value"><?php echo esc_html($currency_symbol . number_format_i18n(floatval($kpi_data['revenue_month']), 2)); ?></p>
+                    </div>
+                </div>
+                <?php endif; ?>
+
+                <div class="mobooking-kpi-card postbox">
+                    <h2 class="hndle"><span><?php esc_html_e('Upcoming Confirmed Bookings', 'mobooking'); ?></span></h2>
+                    <div class="inside">
+                        <p class="mobooking-kpi-value"><?php echo esc_html($kpi_data['upcoming_count']); ?></p>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <div id="mobooking-bookings-filters" class="mobooking-filters-bar mobooking-card"> <?php // Styled as a card ?>
-        <form id="mobooking-bookings-filter-form" class="mobooking-filters-form">
-            <div class="mobooking-filter-item">
-                <label for="mobooking-status-filter"><?php esc_html_e('Status:', 'mobooking'); ?></label>
-                <select id="mobooking-status-filter" name="status_filter">
-                    <?php foreach ($booking_statuses as $value => $label) : ?>
-                        <option value="<?php echo esc_attr($value); ?>"><?php echo esc_html($label); ?></option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-
-            <div class="mobooking-filter-item">
-                <label for="mobooking-date-from-filter"><?php esc_html_e('From:', 'mobooking'); ?></label>
-                <input type="text" id="mobooking-date-from-filter" name="date_from_filter" class="mobooking-datepicker" placeholder="YYYY-MM-DD">
-            </div>
-
-            <div class="mobooking-filter-item">
-                <label for="mobooking-date-to-filter"><?php esc_html_e('To:', 'mobooking'); ?></label>
-                <input type="text" id="mobooking-date-to-filter" name="date_to_filter" class="mobooking-datepicker" placeholder="YYYY-MM-DD">
-            </div>
-
-            <div class="mobooking-filter-item">
-                <label for="mobooking-search-query"><?php esc_html_e('Search:', 'mobooking'); ?></label>
-                <input type="text" id="mobooking-search-query" name="search_query" placeholder="<?php esc_attr_e('Ref, Name, Email', 'mobooking'); ?>">
-            </div>
-
-            <div class="mobooking-filter-actions">
-                <button type="submit" class="button button-secondary"><?php esc_html_e('Filter', 'mobooking'); ?></button>
-                <button type="button" id="mobooking-clear-filters-btn" class="button"><?php esc_html_e('Clear', 'mobooking'); ?></button>
-            </div>
-        </form>
+    <?php // Filters Bar - Using .postbox for card-like appearance ?>
+    <div class="postbox mobooking-filters-wrapper" style="margin-top: 20px;">
+        <h2 class="hndle mobooking-filters-handle"><span><?php esc_html_e('Filter Bookings', 'mobooking'); ?></span></h2>
+        <div class="inside">
+            <form id="mobooking-bookings-filter-form" class="mobooking-filters-form">
+                <div class="mobooking-filter-row">
+                    <div class="mobooking-filter-item">
+                        <label for="mobooking-status-filter"><?php esc_html_e('Status:', 'mobooking'); ?></label>
+                        <select id="mobooking-status-filter" name="status_filter" class="mobooking-filter-select">
+                            <?php foreach ($booking_statuses as $value => $label) : ?>
+                                <option value="<?php echo esc_attr($value); ?>"><?php echo esc_html($label); ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="mobooking-filter-item">
+                        <label for="mobooking-date-from-filter"><?php esc_html_e('From:', 'mobooking'); ?></label>
+                        <input type="text" id="mobooking-date-from-filter" name="date_from_filter" class="mobooking-datepicker regular-text" placeholder="YYYY-MM-DD">
+                    </div>
+                    <div class="mobooking-filter-item">
+                        <label for="mobooking-date-to-filter"><?php esc_html_e('To:', 'mobooking'); ?></label>
+                        <input type="text" id="mobooking-date-to-filter" name="date_to_filter" class="mobooking-datepicker regular-text" placeholder="YYYY-MM-DD">
+                    </div>
+                </div>
+                <div class="mobooking-filter-row">
+                     <div class="mobooking-filter-item mobooking-filter-item-search"> <?php // Search on its own row or make it flexible ?>
+                        <label for="mobooking-search-query"><?php esc_html_e('Search:', 'mobooking'); ?></label>
+                        <input type="search" id="mobooking-search-query" name="search_query" class="regular-text" placeholder="<?php esc_attr_e('Ref, Name, Email', 'mobooking'); ?>">
+                    </div>
+                </div>
+                <div class="mobooking-filter-actions">
+                    <button type="submit" class="button button-secondary"><?php esc_html_e('Filter', 'mobooking'); ?></button>
+                    <button type="button" id="mobooking-clear-filters-btn" class="button"><?php esc_html_e('Clear Filters', 'mobooking'); ?></button>
+                </div>
+            </form>
+        </div>
     </div>
 
-    <div id="mobooking-bookings-list-container"> <?php // Container for the table or "no bookings" message ?>
-        <?php echo $initial_bookings_html; // WPCS: XSS ok. Escaped above. ?>
+    <?php // Bookings List Table ?>
+    <div id="mobooking-bookings-list-container" class="mobooking-list-table-wrapper">
+        <?php
+        // Initial bookings HTML is generated by PHP and includes the table structure
+        // Ensure $initial_bookings_html uses class="wp-list-table widefat fixed striped" for the table
+        echo $initial_bookings_html; // WPCS: XSS ok. Escaped above.
+        ?>
     </div>
 
-    <div id="mobooking-bookings-pagination-container" class="mobooking-pagination">
-        <?php echo $initial_pagination_html; // WPCS: XSS ok. Escaped above. ?>
+    <?php // Pagination ?>
+    <div id="mobooking-bookings-pagination-container" class="tablenav bottom">
+        <div class="tablenav-pages">
+            <span class="pagination-links">
+                 <?php echo $initial_pagination_html; // WPCS: XSS ok. Escaped above. ?>
+            </span>
+        </div>
     </div>
 
 <script type="text/template" id="mobooking-booking-item-template">
@@ -255,44 +290,5 @@ $booking_statuses = [
     </tr>
 </script>
 
-<?php // The Modal HTML structure is now removed as per the new plan. ?>
-
-        <?php
-        // Temporary Styles block has been removed.
-        // All styles are now expected to be loaded from 'assets/css/dashboard-bookings-responsive.css'
-        // which should be enqueued by the plugin's main asset handling logic.
-        ?>
-
-        <?php // The modal sections are also removed as the modal itself is gone. ?>
-            <select id="modal-booking-status-select" style="min-width:150px;"></select> <?php // Options populated by JS ?>
-            <button id="modal-save-status-btn" class="button button-primary button-small"><?php esc_html_e('Save Status', 'mobooking'); ?></button>
-            <span id="modal-status-feedback" style="margin-left:10px; font-style:italic;"></span>
-        </div>
-
-        <div class="modal-section">
-            <h4><?php esc_html_e('Customer Information', 'mobooking'); ?></h4>
-            <p><strong><?php esc_html_e('Name:', 'mobooking'); ?></strong> <span id="modal-customer-name"></span></p>
-            <p><strong><?php esc_html_e('Email:', 'mobooking'); ?></strong> <span id="modal-customer-email"></span></p>
-            <p><strong><?php esc_html_e('Phone:', 'mobooking'); ?></strong> <span id="modal-customer-phone"></span></p>
-            <p><strong><?php esc_html_e('Address:', 'mobooking'); ?></strong><br><span id="modal-service-address" style="white-space: pre-wrap;"></span></p>
-        </div>
-
-        <div class="modal-section">
-            <h4><?php esc_html_e('Booking Schedule & Details', 'mobooking'); ?></h4>
-            <p><strong><?php esc_html_e('Booked Date:', 'mobooking'); ?></strong> <span id="modal-booking-date"></span></p>
-            <p><strong><?php esc_html_e('Booked Time:', 'mobooking'); ?></strong> <span id="modal-booking-time"></span></p>
-            <p><strong><?php esc_html_e('Special Instructions:', 'mobooking'); ?></strong><br><span id="modal-special-instructions" style="white-space: pre-wrap;"></span></p>
-        </div>
-
-        <div class="modal-section">
-            <h4><?php esc_html_e('Services & Options Booked', 'mobooking'); ?></h4>
-            <div id="modal-services-items-list"></div>
-        </div>
-
-        <div class="modal-section">
-            <h4><?php esc_html_e('Pricing Information', 'mobooking'); ?></h4>
-            <p><strong><?php esc_html_e('Discount Applied:', 'mobooking'); ?></strong> <span id="modal-discount-amount">0.00</span></p>
-            <p><strong><?php esc_html_e('Final Total:', 'mobooking'); ?></strong> <span id="modal-final-total" style="font-weight:bold;">0.00</span></p>
-        </div>
-    </div>
-</div>
+<?php // Modal HTML structure and old style blocks were confirmed removed previously. ?>
+</div> <?php // This closes .mobooking-bookings-page-wrapper ?>
