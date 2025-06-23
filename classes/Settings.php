@@ -302,10 +302,10 @@ Please review this booking in your dashboard: {{admin_booking_link}}",
                     case 'biz_hours_json':
                         $json_val = stripslashes($value); // Remove slashes added by WP
                         // Basic check if it's a potentially valid JSON structure before decoding
-                        if (is_string($json_val) && strlen($json_val) > 1 &&
-                            (($json_val[0] == '{' && $json_val[strlen($json_val)-1] == '}') ||
+                        if (is_string($json_val) && strlen($json_val) > 1 && 
+                            (($json_val[0] == '{' && $json_val[strlen($json_val)-1] == '}') || 
                              ($json_val[0] == '[' && $json_val[strlen($json_val)-1] == ']'))) {
-
+                            
                             json_decode($json_val); // Try to decode
                             if (json_last_error() === JSON_ERROR_NONE) {
                                 $sanitized_value = wp_kses_post($json_val); // Sanitize string content if JSON is valid

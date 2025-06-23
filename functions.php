@@ -275,7 +275,7 @@ function mobooking_template_include_logic( $template ) {
         if ($tenant_id) {
             error_log('[MoBooking Debug] Found tenant_id: ' . $tenant_id . ' for slug: ' . $business_slug);
             $GLOBALS['mobooking_public_form_tenant_id_from_slug'] = $tenant_id;
-
+            
             // Set a query var that the original public booking form template might use or can be adapted to use.
             // This helps in case the template has logic relying on a query_var for tenant_id.
             set_query_var('mobooking_tenant_id_on_page', $tenant_id);
@@ -318,7 +318,7 @@ function mobooking_template_include_logic( $template ) {
     // The rewrite rules are processed in order, 'top' means they are tried first.
     // If `mobooking_page_type` is not 'public_booking', then it might be a dashboard request or something else.
     // The original dashboard detection was based on `mobooking_dashboard_page` or URI segments.
-
+    
     $is_dashboard_request = false;
     if (!empty($dashboard_page_slug)) { // Primarily rely on the query var from dashboard rewrite rules
         $is_dashboard_request = true;
@@ -558,6 +558,8 @@ function mobooking_enqueue_dashboard_scripts($current_page_slug) {
                 'error_loading' => __('Error loading settings.', 'mobooking'),
                 'error_ajax' => __('An AJAX error occurred.', 'mobooking'),
                 'invalid_json' => __('Invalid JSON format in Business Hours.', 'mobooking'),
+                'copied' => __('Copied!', 'mobooking'),
+                'copy_failed' => __('Copy failed. Please try manually.', 'mobooking'),
             ]
         ]);
         wp_localize_script('mobooking-dashboard-booking-form-settings', 'mobooking_bf_settings_params', $bf_settings_params);
@@ -972,7 +974,7 @@ if ( ! function_exists( 'mobooking_save_business_slug_field' ) ) {
                 }, 10, 1 );
                 return; // Don't save if it's taken by someone else
             }
-
+            
             // If the slug is empty, delete the meta. If not empty, update it.
             if (empty($new_slug)) {
                 delete_user_meta( $user_id, 'mobooking_business_slug' );
