@@ -188,6 +188,27 @@ get_header();
             <!-- Booking summary will be displayed here -->
             <p><?php esc_html_e('Booking summary will appear here.', 'mobooking'); ?></p>
         </div>
+
+        <!-- Discount Code Section -->
+        <div id="mobooking-bf-discount-section" style="margin-top:15px; margin-bottom:15px; padding-bottom:15px; border-bottom:1px dashed #eee;">
+            <p>
+                <label for="mobooking-bf-discount-code"><strong><?php esc_html_e('Discount Code:', 'mobooking'); ?></strong></label><br>
+                <input type="text" id="mobooking-bf-discount-code" name="discount_code" class="mobooking-bf-input" style="width:calc(100% - 100px); margin-right:5px;">
+                <button type="button" id="mobooking-bf-apply-discount-btn" class="button button-secondary" style="padding:8px 12px;"><?php esc_html_e('Apply', 'mobooking'); ?></button>
+            </p>
+            <div id="mobooking-bf-discount-feedback" style="margin-top:5px; padding:8px; border-radius:3px;"></div>
+        </div>
+        <!-- End Discount Code Section -->
+
+        <!-- Pricing Summary Section -->
+        <div id="mobooking-bf-pricing-summary-section" style="margin-top:20px; padding-top:15px; border-top:1px solid #eee;">
+            <h4><?php esc_html_e('Total Summary', 'mobooking'); ?></h4>
+            <p><?php esc_html_e('Subtotal:', 'mobooking'); ?> <span id="mobooking-bf-subtotal"></span></p>
+            <p><?php esc_html_e('Discount Applied:', 'mobooking'); ?> <span id="mobooking-bf-discount-applied"></span></p>
+            <p><strong><?php esc_html_e('Final Total:', 'mobooking'); ?> <span id="mobooking-bf-final-total" style="font-size:1.2em;"></span></strong></p>
+        </div>
+        <!-- End Pricing Summary Section -->
+
         <div id="mobooking-bf-step-5-feedback" style="margin-top:10px; color:red; padding:8px; border-radius:3px;"></div>
         <button type="button" id="mobooking-bf-review-back-btn" class="button" style="margin-right:10px;"><?php esc_html_e('Back to Details', 'mobooking'); ?></button>
         <button type="button" id="mobooking-bf-review-confirm-btn" class="button button-primary"><?php esc_html_e('Confirm Booking', 'mobooking'); ?></button>
@@ -198,7 +219,10 @@ get_header();
     <div class="mobooking-bf-service-item" style="padding:10px; border:1px solid #f0f0f0; margin-bottom:10px; border-radius:3px;">
         <label style="display:block; font-weight:bold;">
             <input type="checkbox" name="selected_services[]" value="<%= service_id %>" data-service-id="<%= service_id %>">
-            <%= name %> - <span class="service-price"><%= price_formatted %></span>
+            <%= name %>
+            <% if (typeof mobookingShouldShowPricing !== 'undefined' && mobookingShouldShowPricing()) { %>
+                - <span class="service-price"><%= price_formatted %></span>
+            <% } %>
             (<span class="service-duration"><%= duration %></span> <?php esc_html_e('min', 'mobooking'); ?>)
         </label>
         <% if (description) { %><p class="service-description" style="font-size:0.9em; margin-left:25px;"><%= description %></p><% } %>
@@ -206,5 +230,48 @@ get_header();
 </script>
 
 <?php
+// Add the discount section wrapper to Step 5 if it's not already perfectly structured.
+// The JS expects #mobooking-bf-discount-section to exist.
+// Assuming the discount code input, button, and feedback div are already in the HTML for Step 5,
+// ensure they are wrapped by a div with id="mobooking-bf-discount-section".
+// The previous JS change added this div ID to the example HTML, so ensure the template matches.
+// The existing HTML for Step 5 in templates/booking-form-public.php (as of last view)
+// did not have the explicit discount section. It should be added if not present.
+// For now, I'll assume the structure seen in the JS diff for the discount section exists or will be added.
+// The primary change here is the service item template.
+
+// The original Step 5 structure from `templates/booking-form-public.php` was:
+/*
+    <div id="mobooking-bf-step-5-review" class="mobooking-bf-step" style="display:none;">
+        <h2 id="mobooking-bf-step-5-title" style="border-bottom: 1px solid #eee; padding-bottom:10px; margin-bottom:20px;"><?php esc_html_e('Step 5: Review & Confirm Booking', 'mobooking'); ?></h2>
+        <div id="mobooking-bf-review-summary" style="margin-bottom:20px;">
+            <p><?php esc_html_e('Booking summary will appear here.', 'mobooking'); ?></p>
+        </div>
+        <div id="mobooking-bf-pricing-summary-section" style="margin-top:20px; padding-top:15px; border-top:1px solid #eee;"> ...totals... </div>
+        <div id="mobooking-bf-step-5-feedback" style="margin-top:10px; color:red; padding:8px; border-radius:3px;"></div>
+        <button type="button" id="mobooking-bf-review-back-btn" class="button" style="margin-right:10px;"><?php esc_html_e('Back to Details', 'mobooking'); ?></button>
+        <button type="button" id="mobooking-bf-review-confirm-btn" class="button button-primary"><?php esc_html_e('Confirm Booking', 'mobooking'); ?></button>
+    </div>
+*/
+// We need to ensure the discount section is part of this.
+// Let's add it similar to how it's structured in the JS expectations for hiding/showing.
+// The previous diff added the pricing summary section. Now, ensure discount section is explicitly there.
+
+// The JS `$('#mobooking-bf-discount-section').show();` requires this div:
+// I will ensure it's in the correct place in Step 5.
+// The previous diff for `templates/booking-form-public.php` already added the pricing summary.
+// The discount section should be before the pricing summary or integrated if part of it.
+// Let's assume it's placed before the totals summary.
+
+// Corrected structure for Step 5 should be:
+// Review Summary
+// Discount Section (conditionally shown by JS)
+// Pricing Totals (conditionally shown by JS)
+// Feedback & Buttons
+
+// The service item template change is the main part of *this* diff.
+// The structural change for discount section will be handled in a separate diff if required,
+// but the JS already targets `#mobooking-bf-discount-section`.
+
 get_footer(); // Or a custom minimal footer
 ?>

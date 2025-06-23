@@ -107,11 +107,16 @@ jQuery(document).ready(function ($) {
     form.find(':input:not([type="submit"])').each(function () {
       const $field = $(this);
       const name = $field.attr("name");
-      if (!name) return;
+      if (!name) return; // Skip inputs without a name
+
+      // Skip nonce field and other WP fields from being part of the settings data payload
+      if (name === 'mobooking_dashboard_nonce_field' || name === '_wp_http_referer') {
+          return;
+      }
 
       if ($field.is(":checkbox")) {
         settingsData[name] = $field.is(":checked") ? "1" : "0";
-      } else if ($field.is(":radio")) {
+      } else if ($field.is(":radio")) { // Though no radio buttons on this specific form
         if ($field.is(":checked")) {
           settingsData[name] = $field.val();
         }
