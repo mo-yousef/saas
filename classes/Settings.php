@@ -162,16 +162,21 @@ Please review this booking in your dashboard: {{admin_booking_link}}",
     }
 
     public function handle_save_booking_form_settings_ajax() {
+        error_log('[MoBooking Settings AJAX Save] ABSOLUTE TOP: handle_save_booking_form_settings_ajax reached.'); // New very early log
+
         check_ajax_referer('mobooking_dashboard_nonce', 'nonce');
         $user_id = get_current_user_id();
         if (!$user_id) {
+            error_log('[MoBooking Settings AJAX Save] User not authenticated.'); // Added log
             wp_send_json_error(['message' => __('User not authenticated.', 'mobooking')], 403);
             return;
         }
+        error_log("[MoBooking Settings AJAX Save] User ID: $user_id"); // Added log
 
         $settings_data = isset($_POST['settings']) ? (array) $_POST['settings'] : [];
 
         if (empty($settings_data)) {
+            error_log('[MoBooking Settings AJAX Save] No settings data received in $_POST[\'settings\'].'); // Added log
             wp_send_json_error(['message' => __('No settings data received.', 'mobooking')], 400);
             return;
         }
