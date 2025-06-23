@@ -558,6 +558,8 @@ function mobooking_enqueue_dashboard_scripts($current_page_slug) {
                 'error_loading' => __('Error loading settings.', 'mobooking'),
                 'error_ajax' => __('An AJAX error occurred.', 'mobooking'),
                 'invalid_json' => __('Invalid JSON format in Business Hours.', 'mobooking'),
+                'copied' => __('Copied!', 'mobooking'),
+                'copy_failed' => __('Copy failed. Please try manually.', 'mobooking'),
             ]
         ]);
         wp_localize_script('mobooking-dashboard-booking-form-settings', 'mobooking_bf_settings_params', $bf_settings_params);

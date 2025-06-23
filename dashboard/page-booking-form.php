@@ -31,9 +31,68 @@ function mobooking_is_setting_checked($settings, $key, $default_is_checked = fal
         <?php wp_nonce_field('mobooking_dashboard_nonce', 'mobooking_dashboard_nonce_field'); ?>
         <div id="mobooking-settings-feedback" style="margin-bottom:15px; margin-top:10px;"></div>
 
+        <!-- Share and Embed Section -->
+        <div id="mobooking-share-embed-section" style="margin-bottom: 30px; padding: 15px; border: 1px solid #ccd0d4; background-color: #fff;">
+            <h2><?php esc_html_e('Share Your Booking Form', 'mobooking'); ?></h2>
+            <?php
+            $current_user_id = get_current_user_id();
+            $business_slug = get_user_meta($current_user_id, 'mobooking_business_slug', true);
+            $public_link = '';
+            $link_message = '';
+
+            if (!empty($business_slug)) {
+                $public_link = trailingslashit(site_url()) . esc_attr($business_slug) . '/booking/';
+            } else {
+                // Option 1: Link to profile to set slug
+                $profile_url = admin_url('profile.php');
+                $link_message = sprintf(
+                    wp_kses(
+                        __('Please <a href="%s">set your Business Slug</a> in your profile to generate a user-friendly public link.', 'mobooking'),
+                        ['a' => ['href' => []]]
+                    ),
+                    esc_url($profile_url)
+                );
+                // Option 2: Fallback to ?tid= (requires a generic /booking/ page to be set up by admin)
+                // $generic_booking_page_url = site_url('/booking/'); // Assuming a page exists at /booking/
+                // $public_link = add_query_arg('tid', $current_user_id, $generic_booking_page_url);
+                // $link_message = __('Your generic booking link (requires a page at /booking/ with the public form template assigned):', 'mobooking');
+            }
+            ?>
+            <table class="form-table">
+                <tr valign="top">
+                    <th scope="row"><label for="mobooking-public-link"><?php esc_html_e('Your Public Link', 'mobooking'); ?></label></th>
+                    <td>
+                        <?php if ($public_link): ?>
+                            <input type="text" id="mobooking-public-link" value="<?php echo esc_url($public_link); ?>" readonly class="regular-text" style="width: 70%;">
+                            <button type="button" id="mobooking-copy-public-link-btn" class="button" style="margin-left: 10px;"><?php esc_html_e('Copy Link', 'mobooking'); ?></button>
+                            <span id="mobooking-copy-link-feedback" style="margin-left:10px; color: green;"></span>
+                        <?php else: ?>
+                            <p><?php echo $link_message; ?></p>
+                        <?php endif; ?>
+                    </td>
+                </tr>
+                <tr valign="top">
+                    <th scope="row"><label for="mobooking-embed-code"><?php esc_html_e('Embed Code (iframe)', 'mobooking'); ?></label></th>
+                    <td>
+                        <?php if ($public_link): ?>
+                            <textarea id="mobooking-embed-code" readonly class="large-text" rows="4" style="width: 70%;"><?php
+                                echo esc_textarea(sprintf('<iframe src="%s" title="%s" style="width:100%%; height:800px; border:1px solid #ccc;"></iframe>', esc_url($public_link), esc_attr__('Booking Form', 'mobooking')));
+                            ?></textarea>
+                            <button type="button" id="mobooking-copy-embed-code-btn" class="button" style="margin-left: 10px; vertical-align: top;"><?php esc_html_e('Copy Code', 'mobooking'); ?></button>
+                            <span id="mobooking-copy-embed-feedback" style="margin-left:10px; color: green; vertical-align: top; display: inline-block;"></span>
+                        <?php else: ?>
+                            <p><?php esc_html_e('Set your Business Slug to generate the embed code.', 'mobooking'); ?></p>
+                        <?php endif; ?>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <!-- End Share and Embed Section -->
+
+
         <h2 class="nav-tab-wrapper" style="margin-bottom:20px;">
-            <a href="#mobooking-general-settings-tab" class="nav-tab nav-tab-active" data-tab="general"><?php esc_html_e('General', 'mobooking'); ?></a>
-            <a href="#mobooking-design-settings-tab" class="nav-tab" data-tab="design"><?php esc_html_e('Design', 'mobooking'); ?></a>
+            <a href="#mobooking-general-settings-tab" class="nav-tab nav-tab-active" data-tab="general"><?php esc_html_e('General Settings', 'mobooking'); ?></a>
+            <a href="#mobooking-design-settings-tab" class="nav-tab" data-tab="design"><?php esc_html_e('Design Settings', 'mobooking'); ?></a>
             <a href="#mobooking-advanced-settings-tab" class="nav-tab" data-tab="advanced"><?php esc_html_e('Advanced', 'mobooking'); ?></a>
         </h2>
 

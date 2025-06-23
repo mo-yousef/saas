@@ -78,11 +78,57 @@ jQuery(document).ready(function($) {
     });
 
     // Initial load by JavaScript is removed. PHP handles populating the form.
+
+    // Copy to clipboard functionality
+    function copyToClipboard(element, feedbackElement, buttonElement) {
+        if (!element || !element.value) return;
+
+        navigator.clipboard.writeText(element.value)
+            .then(function() {
+                const originalButtonText = buttonElement.text();
+                feedbackElement.text(mobooking_bf_settings_params.i18n.copied || 'Copied!').show();
+                buttonElement.text(mobooking_bf_settings_params.i18n.copied || 'Copied!');
+                setTimeout(function() {
+                    feedbackElement.fadeOut().empty();
+                    buttonElement.text(originalButtonText);
+                }, 2000);
+            })
+            .catch(function(err) {
+                console.error('Failed to copy text: ', err);
+                feedbackElement.text(mobooking_bf_settings_params.i18n.copy_failed || 'Copy failed.').addClass('error').show();
+                 setTimeout(function() {
+                    feedbackElement.fadeOut().empty().removeClass('error');
+                }, 2000);
+            });
+    }
+
+    $('#mobooking-copy-public-link-btn').on('click', function() {
+        copyToClipboard(
+            document.getElementById('mobooking-public-link'),
+            $('#mobooking-copy-link-feedback'),
+            $(this)
+        );
+    });
+
+    $('#mobooking-copy-embed-code-btn').on('click', function() {
+        copyToClipboard(
+            document.getElementById('mobooking-embed-code'),
+            $('#mobooking-copy-embed-feedback'),
+            $(this)
+        );
+    });
+
+
     // Ensure mobooking_bf_settings_params (especially nonce, ajax_url, and i18n strings)
     // are correctly localized in your plugin's PHP enqueue script.
     if (typeof mobooking_bf_settings_params === 'undefined') {
         console.error('mobooking_bf_settings_params is not defined. Please ensure it is localized.');
         // Provide a fallback to prevent JS errors if params are missing, though functionality will be broken.
-        window.mobooking_bf_settings_params = { nonce: '', ajax_url: '', i18n: {} };
+        window.mobooking_bf_settings_params = { nonce: '', ajax_url: '', i18n: { copied: "Copied!", copy_failed: "Copy failed."} };
+    } else if (typeof mobooking_bf_settings_params.i18n === 'undefined') {
+        mobooking_bf_settings_params.i18n = { copied: "Copied!", copy_failed: "Copy failed."};
+    } else {
+        mobooking_bf_settings_params.i18n.copied = mobooking_bf_settings_params.i18n.copied || "Copied!";
+        mobooking_bf_settings_params.i18n.copy_failed = mobooking_bf_settings_params.i18n.copy_failed || "Copy failed.";
     }
 });
