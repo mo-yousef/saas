@@ -170,7 +170,7 @@ function mobooking_scripts() {
         wp_localize_script('mobooking-booking-form', 'mobooking_booking_form_params', array(
             'ajax_url' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce('mobooking_booking_form_nonce'),
-            'tenant_id' => $tenant_id_on_page,
+            'tenant_id' => $effective_tenant_id_for_public_form,
             // 'currency_symbol' => $public_form_currency_symbol, // REMOVED
             // 'currency_position' => $public_form_currency_position, // REMOVED
             'currency_code' => $public_form_currency_code,
