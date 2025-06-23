@@ -30,23 +30,31 @@ jQuery(document).ready(function($) {
     const subtotalDisplay = $('#mobooking-bf-subtotal');
     const discountAppliedDisplay = $('#mobooking-bf-discount-applied');
     const finalTotalDisplay = $('#mobooking-bf-final-total');
-    const currencyCode = mobooking_booking_form_params.currency_code || 'USD'; // Default to USD if not provided
+    const currencyCode = (typeof mobooking_booking_form_params !== 'undefined' && mobooking_booking_form_params.currency_code)
+        ? mobooking_booking_form_params.currency_code
+        : 'USD';
 
     // Step 6 elements
     const step6ConfirmDiv = $('#mobooking-bf-step-6-confirmation');
     const confirmationMessageDiv = $('#mobooking-bf-confirmation-message');
 
-
     let mobooking_current_step = 1; // Keep track of the current visible step
     let publicServicesCache = []; // Cache for service data from Step 2
 
-    // Attempt to get tenant_id from URL query param 'tid'
-    const urlParams = new URLSearchParams(window.location.search);
-    const tenantIdFromUrl = urlParams.get('tid');
-    if (tenantIdFromUrl) {
-        tenantIdField.val(tenantIdFromUrl);
-    } else if (typeof mobooking_booking_form_params !== 'undefined' && mobooking_booking_form_params.tenant_id) {
-        tenantIdField.val(mobooking_booking_form_params.tenant_id);
+    // Initialize tenant_id from PHP parameters (which now handles slug or ?tid=)
+    let initialTenantId = '';
+    if (typeof mobooking_booking_form_params !== 'undefined' && mobooking_booking_form_params.tenant_id) {
+        initialTenantId = String(mobooking_booking_form_params.tenant_id); // Ensure it's a string
+    }
+
+    if (initialTenantId && initialTenantId !== "0") { // Check it's not 0 or empty
+        tenantIdField.val(initialTenantId);
+        // Pre-populate sessionStorage as the tenant ID is known.
+        sessionStorage.setItem('mobooking_cart_tenant_id', initialTenantId);
+        // console.log('Booking form initialized with Tenant ID:', initialTenantId);
+    } else {
+        // console.warn('Booking form: Tenant ID is missing or invalid from mobooking_booking_form_params.');
+        // The location form validation will catch if tenantIdField is empty later.
     }
 
     locationForm.on('submit', function(e) {
