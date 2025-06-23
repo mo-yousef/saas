@@ -924,6 +924,8 @@ add_action( 'shutdown', 'mobooking_restore_user_locale' );
 
 // Function to get user ID by the new bf_business_slug setting
 // (This function was already updated in a previous step, ensuring it's correct here)
+// Function to get user ID by the new bf_business_slug setting
+// (This function replaces the existing one in functions.php)
 if ( ! function_exists('mobooking_get_user_id_by_slug')) {
     function mobooking_get_user_id_by_slug(string $slug): ?int {
         if (empty($slug)) {
@@ -931,26 +933,31 @@ if ( ! function_exists('mobooking_get_user_id_by_slug')) {
             return null;
         }
         global $wpdb;
+        
         // Ensure the Database class is available for get_table_name
         if (!class_exists('MoBooking\Classes\Database')) {
             error_log('[MoBooking Slug Lookup] CRITICAL: MoBooking\Classes\Database class not found.');
             return null;
         }
+        
         $settings_table = \MoBooking\Classes\Database::get_table_name('tenant_settings');
         if (empty($settings_table)) {
             error_log('[MoBooking Slug Lookup] CRITICAL: Tenant settings table name is empty.');
             return null;
         }
 
+        // Use direct table name substitution instead of %i placeholder
+        $query = "SELECT user_id FROM {$settings_table} WHERE setting_name = %s AND setting_value = %s";
         $user_id = $wpdb->get_var($wpdb->prepare(
-            "SELECT user_id FROM %i WHERE setting_name = 'bf_business_slug' AND setting_value = %s",
-            $settings_table, $slug
+            $query,
+            'bf_business_slug', 
+            $slug
         ));
 
         if ($user_id) {
             // Verify the user actually has the business owner role (or is an admin)
             $user = get_userdata($user_id);
-            if ($user && (in_array(MoBooking\Classes\Auth::ROLE_BUSINESS_OWNER, (array)$user->roles) || user_can($user, 'manage_options'))) {
+            if ($user && (in_array(\MoBooking\Classes\Auth::ROLE_BUSINESS_OWNER, (array)$user->roles) || user_can($user, 'manage_options'))) {
                 error_log('[MoBooking Slug Lookup] Found user_id: ' . $user_id . ' for slug: ' . $slug);
                 return (int) $user_id;
             } else {
@@ -958,6 +965,13 @@ if ( ! function_exists('mobooking_get_user_id_by_slug')) {
             }
         } else {
             error_log('[MoBooking Slug Lookup] No user_id found for slug: ' . $slug . ' in table ' . $settings_table);
+            
+            // Debug: Let's check what's actually in the database
+            $all_slugs = $wpdb->get_results($wpdb->prepare(
+                "SELECT user_id, setting_value FROM {$settings_table} WHERE setting_name = %s",
+                'bf_business_slug'
+            ));
+            error_log('[MoBooking Slug Lookup] DEBUG: All business slugs in database: ' . print_r($all_slugs, true));
         }
         return null;
     }
@@ -991,3 +1005,83 @@ function mobooking_get_dashboard_menu_icon(string $key): string {
     }
     return $icons[$key] ?? '';
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Add this debug function to your functions.php temporarily to troubleshoot
+function mobooking_debug_booking_form_access() {
+    if (!current_user_can('manage_options')) {
+        return; // Only allow admins to see debug info
+    }
+    
+    if (isset($_GET['mobooking_debug']) && $_GET['mobooking_debug'] === '1') {
+        global $wpdb;
+        
+        echo '<div style="background: #f0f0f0; padding: 20px; margin: 20px; border: 1px solid #ccc;">';
+        echo '<h2>MoBooking Debug Information</h2>';
+        
+        // Check if rewrite rules are working
+        echo '<h3>1. Rewrite Rules Check</h3>';
+        $rules = get_option('rewrite_rules');
+        $booking_rules = array_filter($rules, function($key) {
+            return strpos($key, 'booking') !== false;
+        }, ARRAY_FILTER_USE_KEY);
+        echo '<pre>Booking-related rewrite rules: ' . print_r($booking_rules, true) . '</pre>';
+        
+        // Check current user settings
+        echo '<h3>2. Current User Settings</h3>';
+        $user_id = get_current_user_id();
+        $settings_table = \MoBooking\Classes\Database::get_table_name('tenant_settings');
+        $user_settings = $wpdb->get_results($wpdb->prepare(
+            "SELECT * FROM {$settings_table} WHERE user_id = %d AND setting_name LIKE 'bf_%'",
+            $user_id
+        ));
+        echo '<pre>Current user booking form settings: ' . print_r($user_settings, true) . '</pre>';
+        
+        // Check all business slugs
+        echo '<h3>3. All Business Slugs</h3>';
+        $all_slugs = $wpdb->get_results($wpdb->prepare(
+            "SELECT user_id, setting_value FROM {$settings_table} WHERE setting_name = %s",
+            'bf_business_slug'
+        ));
+        echo '<pre>All business slugs: ' . print_r($all_slugs, true) . '</pre>';
+        
+        // Test slug lookup
+        echo '<h3>4. Test Slug Lookup</h3>';
+        if (!empty($user_settings)) {
+            foreach ($user_settings as $setting) {
+                if ($setting->setting_name === 'bf_business_slug' && !empty($setting->setting_value)) {
+                    $test_user_id = mobooking_get_user_id_by_slug($setting->setting_value);
+                    echo '<p>Testing slug "' . $setting->setting_value . '" returns user_id: ' . ($test_user_id ?: 'NULL') . '</p>';
+                    
+                    // Test the actual URL
+                    $test_url = home_url('/' . $setting->setting_value . '/booking/');
+                    echo '<p>Expected booking URL: <a href="' . $test_url . '" target="_blank">' . $test_url . '</a></p>';
+                }
+            }
+        }
+        
+        // Check template file existence
+        echo '<h3>5. Template File Check</h3>';
+        $template_path = get_template_directory() . '/templates/booking-form-public.php';
+        echo '<p>Template exists: ' . (file_exists($template_path) ? 'YES' : 'NO') . '</p>';
+        echo '<p>Template path: ' . $template_path . '</p>';
+        
+        echo '</div>';
+    }
+}
+add_action('wp_footer', 'mobooking_debug_booking_form_access');
+add_action('admin_footer', 'mobooking_debug_booking_form_access');
