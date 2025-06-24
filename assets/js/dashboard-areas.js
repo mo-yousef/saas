@@ -13,7 +13,20 @@ jQuery(document).ready(function ($) {
   const paginationContainer = $("#mobooking-areas-pagination-container");
   const itemTemplate = $("#mobooking-area-item-template").html();
 
+  // New selectors for area selection UI
+  const countrySelector = $("#mobooking-country-selector");
+  const citySelector = $("#mobooking-city-selector");
+  const areaZipSelectorContainer = $("#mobooking-area-zip-selector-container");
+  const addSelectedAreasBtn = $("#mobooking-add-selected-areas-btn");
+  const selectionFeedbackDiv = $("#mobooking-selection-feedback").hide();
+
   let currentFilters = { paged: 1, limit: 20 }; // Default limit, adjust as needed
+
+  // Ensure mobooking_areas_params and i18n are initialized to prevent errors if not localized
+  window.mobooking_areas_params = window.mobooking_areas_params || {};
+  window.mobooking_areas_params.i18n = window.mobooking_areas_params.i18n || {};
+  const i18n = window.mobooking_areas_params.i18n;
+
 
   // Basic XSS protection for display
   function sanitizeHTML(str) {
@@ -287,11 +300,225 @@ jQuery(document).ready(function ($) {
 
   // Initial load is now handled by PHP.
   // Ensure mobooking_areas_params is localized with nonce, ajax_url, and i18n strings.
-  if (typeof mobooking_areas_params === "undefined") {
-    console.error(
-      "mobooking_areas_params is not defined. Please ensure it is localized correctly."
-    );
-    // Fallback for i18n to prevent crashes if params are missing
-    window.mobooking_areas_params = { i18n: {} };
+  // The check for mobooking_areas_params is done earlier now.
+
+  // --- New Area Selection Logic ---
+
+  function populateCountries() {
+    countrySelector.prop("disabled", true);
+    selectionFeedbackDiv.hide().empty();
+
+    $.ajax({
+      url: mobooking_areas_params.ajax_url,
+      type: "POST",
+      data: {
+        action: "mobooking_get_countries",
+        nonce: mobooking_areas_params.nonce,
+      },
+      success: function (response) {
+        if (response.success && response.data.countries) {
+          countrySelector.empty().append($("<option>", { value: "", text: i18n.select_country || "-- Select a Country --" }));
+          response.data.countries.forEach(function (country) {
+            countrySelector.append($("<option>", { value: country.code, text: country.name + " (" + country.code + ")" }));
+          });
+        } else {
+          selectionFeedbackDiv.text(i18n.error_loading_countries || "Error loading countries.").addClass("error").show();
+          console.error("Error loading countries:", response.data ? response.data.message : "Unknown error");
+        }
+      },
+      error: function (jqXHR, textStatus, errorThrown) {
+        selectionFeedbackDiv.text(i18n.error_loading_countries_ajax || "AJAX error loading countries.").addClass("error").show();
+        console.error("AJAX error loading countries:", textStatus, errorThrown);
+      },
+      complete: function () {
+        countrySelector.prop("disabled", false);
+      }
+    });
+  }
+
+  countrySelector.on("change", function () {
+    const selectedCountry = $(this).val();
+    citySelector.empty().append($("<option>", { value: "", text: i18n.select_city || "-- Select a City --" })).prop("disabled", true);
+    areaZipSelectorContainer.html(`<small>${i18n.select_city_first || "Select a city to see areas."}</small>`);
+    addSelectedAreasBtn.prop("disabled", true);
+    selectionFeedbackDiv.hide().empty();
+
+    if (!selectedCountry) return;
+
+    citySelector.prop("disabled", true); // Disable while loading
+    $.ajax({
+      url: mobooking_areas_params.ajax_url,
+      type: "POST",
+      data: {
+        action: "mobooking_get_cities_for_country",
+        nonce: mobooking_areas_params.nonce,
+        country_code: selectedCountry,
+      },
+      success: function (response) {
+        if (response.success && response.data.cities) {
+          if (response.data.cities.length > 0) {
+            response.data.cities.forEach(function (city) {
+              citySelector.append($("<option>", { value: city.name, text: city.name }));
+            });
+            citySelector.prop("disabled", false);
+          } else {
+             areaZipSelectorContainer.html(`<small>${i18n.no_cities_found || "No cities found for this country."}</small>`);
+          }
+        } else {
+          selectionFeedbackDiv.text(i18n.error_loading_cities || "Error loading cities.").addClass("error").show();
+           console.error("Error loading cities:", response.data ? response.data.message : "Unknown error");
+        }
+      },
+      error: function (jqXHR, textStatus, errorThrown) {
+         selectionFeedbackDiv.text(i18n.error_loading_cities_ajax || "AJAX error loading cities.").addClass("error").show();
+         console.error("AJAX error loading cities:", textStatus, errorThrown);
+      },
+      complete: function() {
+        // Re-enable even on error, unless it was intentionally disabled due to no cities
+        if (citySelector.find('option').length > 1) { // Has more than the default "-- Select a City --"
+            citySelector.prop("disabled", false);
+        }
+      }
+    });
+  });
+
+  citySelector.on("change", function () {
+    const selectedCountry = countrySelector.val();
+    const selectedCity = $(this).val();
+    areaZipSelectorContainer.html(`<small>${i18n.loading_areas || "Loading areas..."}</small>`);
+    addSelectedAreasBtn.prop("disabled", true);
+    selectionFeedbackDiv.hide().empty();
+
+    if (!selectedCountry || !selectedCity) {
+        areaZipSelectorContainer.html(`<small>${i18n.select_country_city_first || "Select a country and city first."}</small>`);
+        return;
+    }
+
+    areaZipSelectorContainer.empty(); // Clear previous content
+
+    $.ajax({
+      url: mobooking_areas_params.ajax_url,
+      type: "POST",
+      data: {
+        action: "mobooking_get_areas_for_city",
+        nonce: mobooking_areas_params.nonce,
+        country_code: selectedCountry,
+        city_name: selectedCity,
+      },
+      success: function (response) {
+        if (response.success && response.data.areas) {
+          if (response.data.areas.length > 0) {
+            response.data.areas.forEach(function (area) {
+              const checkboxId = `mobooking-area-zip-${sanitizeHTML(area.zip.replace(/\s+/g, ''))}-${sanitizeHTML(selectedCountry)}`;
+              const label = $("<label>").attr("for", checkboxId).css({ display: 'block', marginBottom: '5px' });
+              const checkbox = $("<input type='checkbox'>")
+                .attr("id", checkboxId)
+                .attr("name", "selected_areas")
+                .val(area.zip)
+                .data("country-code", selectedCountry) // Store country code with the checkbox
+                .data("area-name", area.name);
+
+              label.append(checkbox).append(` ${sanitizeHTML(area.name)} (${sanitizeHTML(area.zip)})`);
+              areaZipSelectorContainer.append(label);
+            });
+            addSelectedAreasBtn.prop("disabled", false);
+          } else {
+            areaZipSelectorContainer.html(`<small>${i18n.no_areas_found || "No areas found for this city."}</small>`);
+          }
+        } else {
+          selectionFeedbackDiv.text(i18n.error_loading_areas || "Error loading areas.").addClass("error").show();
+          console.error("Error loading areas:", response.data ? response.data.message : "Unknown error");
+        }
+      },
+      error: function (jqXHR, textStatus, errorThrown) {
+        selectionFeedbackDiv.text(i18n.error_loading_areas_ajax || "AJAX error loading areas.").addClass("error").show();
+        console.error("AJAX error loading areas:", textStatus, errorThrown);
+        areaZipSelectorContainer.html(`<small>${i18n.error_loading_areas_ajax || "AJAX error loading areas."}</small>`);
+      }
+    });
+  });
+
+  addSelectedAreasBtn.on("click", function () {
+    const selectedCheckboxes = areaZipSelectorContainer.find("input[type='checkbox']:checked");
+    const countryCode = countrySelector.val();
+    selectionFeedbackDiv.hide().empty().removeClass("success error");
+
+    if (!countryCode) {
+        selectionFeedbackDiv.text(i18n.select_country_first || "Please select a country first.").addClass("error").show();
+        return;
+    }
+
+    if (selectedCheckboxes.length === 0) {
+      selectionFeedbackDiv.text(i18n.no_area_selected || "Please select at least one area/ZIP to add.").addClass("error").show();
+      return;
+    }
+
+    let promises = [];
+    let results = { success: [], error: [] };
+    const originalButtonText = $(this).text();
+    $(this).prop("disabled", true).text(i18n.adding_areas || "Adding...");
+
+    selectedCheckboxes.each(function () {
+      const zip = $(this).val();
+      // const areaName = $(this).data("area-name"); // Available if needed for feedback
+
+      promises.push(
+        $.ajax({
+          url: mobooking_areas_params.ajax_url,
+          type: "POST",
+          data: {
+            action: "mobooking_add_area",
+            nonce: mobooking_areas_params.nonce,
+            country_code: countryCode, // Use country from the main selector
+            area_value: zip,
+            area_type: "zip_code" // Ensure this matches what backend expects
+          },
+        }).then(
+            response => { // Success
+                if (response.success) {
+                    results.success.push(`ZIP ${zip}: ${response.data.message || (i18n.added_successfully || 'Added successfully')}`);
+                } else {
+                    results.error.push(`ZIP ${zip}: ${response.data.message || (i18n.error_adding_zip || 'Error adding ZIP')}`);
+                }
+            },
+            () => { // Error
+                results.error.push(`ZIP ${zip}: ` + (i18n.error_adding_zip_ajax || 'AJAX error adding ZIP.'));
+            }
+        )
+      );
+    });
+
+    $.when.apply($, promises).always(function () {
+        let feedbackMessages = [];
+        if(results.success.length > 0) {
+            feedbackMessages.push(`${i18n.successfully_added || 'Successfully added'}:<br>` + results.success.join('<br>'));
+        }
+        if(results.error.length > 0) {
+            feedbackMessages.push(`${i18n.errors_encountered || 'Errors encountered'}:<br>` + results.error.join('<br>'));
+        }
+
+        selectionFeedbackDiv.html(feedbackMessages.join('<br><br>'))
+            .addClass(results.error.length > 0 ? 'error' : 'success')
+            .show();
+
+        addSelectedAreasBtn.prop("disabled", false).text(originalButtonText);
+        fetchAndRenderAreas(1); // Refresh the main list of areas to show new additions
+
+        // Uncheck checkboxes after processing
+        selectedCheckboxes.prop('checked', false);
+
+        setTimeout(function () {
+          selectionFeedbackDiv.fadeOut().empty();
+        }, 7000); // Longer timeout for multiple messages
+    });
+  });
+
+
+  // --- End New Area Selection Logic ---
+
+
+  // Initial load of countries for the new selection UI
+  if (countrySelector.length) { // Check if the selector exists on the page
+    populateCountries();
   }
 });
