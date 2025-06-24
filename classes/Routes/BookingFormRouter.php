@@ -84,109 +84,101 @@ class BookingFormRouter {
         // it might be an issue. Assuming it's available or using get_template_directory().
         $theme_dir = defined('MOBOOKING_THEME_DIR') ? MOBOOKING_THEME_DIR : trailingslashit(get_template_directory());
 
-        error_log('[MoBooking Router Debug] ====== New Request Processing in BookingFormRouter::template_include ======');
-        error_log('[MoBooking Router Debug] REQUEST_URI: ' . ($_SERVER['REQUEST_URI'] ?? 'N/A'));
+        $theme_dir = defined('MOBOOKING_THEME_DIR') ? MOBOOKING_THEME_DIR : trailingslashit(get_template_directory());
+        $request_path = trim(parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH), '/');
+        $path_segments = explode('/', $request_path);
 
-        $page_type = get_query_var('mobooking_page_type');
-        $dashboard_page_slug = get_query_var('mobooking_dashboard_page');
-        $business_slug = get_query_var('mobooking_slug');
+        error_log('[MoBooking Router Debug] URI-First Check. Path: /' . $request_path);
 
-        error_log('[MoBooking Router Debug] Query Vars: page_type=' . $page_type . '; dashboard_page_slug=' . $dashboard_page_slug . '; business_slug=' . $business_slug);
+        // --- Match /bookings/{slug}/ ---
+        if (isset($path_segments[0]) && $path_segments[0] === 'bookings' && isset($path_segments[1])) {
+            $business_slug = sanitize_title($path_segments[1]);
+            set_query_var('mobooking_slug', $business_slug); // Ensure query var is set
+            set_query_var('mobooking_page_type', 'public'); // Ensure query var is set
+            error_log('[MoBooking Router Debug] Matched URI pattern: /bookings/' . $business_slug);
 
-        // --- Handle Public/Embed Booking Form by Slug ---
-        if (($page_type === 'public' || $page_type === 'embed') && !empty($business_slug)) {
-            error_log('[MoBooking Router Debug] Matched ' . $page_type . ' page type with slug: ' . $business_slug);
-            // Use the static method from this class
             $tenant_id = self::get_user_id_by_slug($business_slug);
-
             if ($tenant_id) {
-                error_log('[MoBooking Router Debug] Found tenant_id: ' . $tenant_id . ' for slug: ' . $business_slug);
-                // $GLOBALS['mobooking_public_form_tenant_id_from_slug'] = $tenant_id; // Avoid globals if possible
                 set_query_var('mobooking_tenant_id_on_page', $tenant_id);
-
                 $public_booking_template = $theme_dir . 'templates/booking-form-public.php';
                 if (file_exists($public_booking_template)) {
-                    error_log('[MoBooking Router Debug] Loading public booking form template: ' . $public_booking_template);
+                    error_log('[MoBooking Router Debug] Loading public booking form template.');
                     remove_filter('template_redirect', 'redirect_canonical');
                     status_header(200);
                     return $public_booking_template;
-                } else {
-                    error_log('[MoBooking Router Debug] CRITICAL ERROR: Public booking form template file not found: ' . $public_booking_template);
                 }
+                error_log('[MoBooking Router Debug] CRITICAL: Public booking template not found: ' . $public_booking_template);
             } else {
-                error_log('[MoBooking Router Debug] No tenant_id found for slug: ' . $business_slug . '. WordPress will attempt to handle the URL with default template logic (404).');
-                // Let WordPress handle it, which should lead to a 404 if no other rule matches.
+                error_log('[MoBooking Router Debug] No tenant_id for slug: ' . $business_slug . '. Letting WP 404.');
+                // WordPress will naturally 404 if no other rule matches and we don't return a template.
+                // Explicitly setting 404 here can be done if needed:
+                // global $wp_query; $wp_query->set_404(); status_header(404);
             }
-        }
-        // --- Handle Dashboard ---
-        // This logic also moved from functions.php.
-        // Ensure mobooking_enqueue_dashboard_scripts is available or its logic is also moved/accessible.
-        // For now, assuming mobooking_enqueue_dashboard_scripts is a global function.
-
-        $is_dashboard_request = false;
-        $current_path = trim(parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH), '/');
-        $path_segments = explode('/', $current_path);
-        $is_dashboard_uri = isset($path_segments[0]) && strtolower($path_segments[0]) === 'dashboard';
-
-        if (!empty($dashboard_page_slug)) {
-            // Query var is set, BUT also check if the path actually starts with 'dashboard'
-            // to protect against misconfigured rewrite rules setting the query var too broadly.
-            if ($is_dashboard_uri) {
-                $is_dashboard_request = true;
-                error_log('[MoBooking Router Debug] Detected dashboard from query_var "mobooking_dashboard_page": ' . $dashboard_page_slug . ' AND matching URI.');
-            } else {
-                error_log('[MoBooking Router Debug] Query_var "mobooking_dashboard_page" (' . $dashboard_page_slug . ') is set, but URI (' . $current_path . ') does not start with /dashboard/. Ignoring for dashboard.');
-                // Unset the erroneously set query var to prevent issues if $template is returned and WP re-evaluates.
-                // However, simply not acting on it (i.e., not setting $is_dashboard_request=true) is safer here.
-            }
-        } else if (empty($page_type) && empty($business_slug) && $is_dashboard_uri) {
-            // No booking page vars, no dashboard query var, but URI starts with /dashboard/
-            $is_dashboard_request = true;
-            $dashboard_page_slug = isset($path_segments[1]) && !empty($path_segments[1]) ? $path_segments[1] : 'overview';
-            set_query_var('mobooking_dashboard_page', $dashboard_page_slug); // Set for consistency if detected by URI
-            if(isset($path_segments[2]) && !empty($path_segments[2])) {
-                set_query_var('mobooking_dashboard_action', $path_segments[2]);
-            }
-            error_log('[MoBooking Router Debug] Detected dashboard from URI segments. Page slug set to: ' . $dashboard_page_slug);
+            return $template; // Fallback to WP's default handling (likely 404) if tenant not found or template missing
         }
 
-        if ($is_dashboard_request) {
-            // Ensure $dashboard_page_slug is set if it was only determined by $is_dashboard_uri and not query_var initially for this block
-            if (empty($dashboard_page_slug)) { // Should be set by the logic above if $is_dashboard_request is true
-                 $dashboard_page_slug = get_query_var('mobooking_dashboard_page'); // Re-fetch, should have been set by URI detection
-            }
-            error_log('[MoBooking Router Debug] Processing as dashboard request for page: ' . $dashboard_page_slug);
+        // --- Match /embed-booking/{slug}/ ---
+        else if (isset($path_segments[0]) && $path_segments[0] === 'embed-booking' && isset($path_segments[1])) {
+            $business_slug = sanitize_title($path_segments[1]);
+            set_query_var('mobooking_slug', $business_slug); // Ensure query var is set
+            set_query_var('mobooking_page_type', 'embed');   // Ensure query var is set
+            error_log('[MoBooking Router Debug] Matched URI pattern: /embed-booking/' . $business_slug);
 
-            if (!is_user_logged_in() || !current_user_can('read')) { // 'read' is a basic capability for logged-in users
-                error_log('[MoBooking Router Debug] User not authenticated for dashboard access. Redirecting to login.');
-                // Get current URL to redirect back after login
-                $current_url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
+            $tenant_id = self::get_user_id_by_slug($business_slug);
+            if ($tenant_id) {
+                set_query_var('mobooking_tenant_id_on_page', $tenant_id);
+                $public_booking_template = $theme_dir . 'templates/booking-form-public.php'; // Same template, JS/PHP inside handles 'embed' type
+                if (file_exists($public_booking_template)) {
+                    error_log('[MoBooking Router Debug] Loading embed booking form template.');
+                    remove_filter('template_redirect', 'redirect_canonical');
+                    status_header(200);
+                    return $public_booking_template;
+                }
+                error_log('[MoBooking Router Debug] CRITICAL: Embed booking template not found: ' . $public_booking_template);
+            } else {
+                error_log('[MoBooking Router Debug] No tenant_id for embed slug: ' . $business_slug . '. Letting WP 404.');
+            }
+            return $template; // Fallback to WP's default handling
+        }
+
+        // --- Match /dashboard/... ---
+        else if (isset($path_segments[0]) && $path_segments[0] === 'dashboard') {
+            $dashboard_page_slug = isset($path_segments[1]) && !empty($path_segments[1]) ? sanitize_title($path_segments[1]) : 'overview';
+            $dashboard_action = isset($path_segments[2]) && !empty($path_segments[2]) ? sanitize_title($path_segments[2]) : '';
+
+            set_query_var('mobooking_dashboard_page', $dashboard_page_slug);
+            if(!empty($dashboard_action)) set_query_var('mobooking_dashboard_action', $dashboard_action);
+
+            error_log('[MoBooking Router Debug] Matched URI pattern: /dashboard/. Page: ' . $dashboard_page_slug . ', Action: ' . $dashboard_action);
+
+            if (!is_user_logged_in() || !current_user_can('read')) {
+                error_log('[MoBooking Router Debug] User not authenticated for dashboard. Redirecting to login.');
+                $current_url = home_url($request_path); // Reconstruct full URL
                 wp_redirect(wp_login_url($current_url));
                 exit;
             }
 
-            // $GLOBALS['mobooking_current_dashboard_view'] = $dashboard_page_slug; // Avoid globals
-            set_query_var('mobooking_current_dashboard_view', $dashboard_page_slug); // Use query var for template access
-
+            set_query_var('mobooking_current_dashboard_view', $dashboard_page_slug);
             if (function_exists('mobooking_enqueue_dashboard_scripts')) {
-                 mobooking_enqueue_dashboard_scripts($dashboard_page_slug);
+                mobooking_enqueue_dashboard_scripts($dashboard_page_slug);
             } else {
                 error_log('[MoBooking Router Debug] CRITICAL: mobooking_enqueue_dashboard_scripts() function not found.');
             }
 
             $dashboard_shell_template = $theme_dir . 'dashboard/dashboard-shell.php';
             if (file_exists($dashboard_shell_template)) {
-                error_log('[MoBooking Router Debug] Loading dashboard shell: ' . $dashboard_shell_template);
+                error_log('[MoBooking Router Debug] Loading dashboard shell.');
                 remove_filter('template_redirect', 'redirect_canonical');
                 status_header(200);
                 return $dashboard_shell_template;
-            } else {
-                error_log('[MoBooking Router Debug] CRITICAL ERROR: Dashboard shell file not found: ' . $dashboard_shell_template);
             }
+            error_log('[MoBooking Router Debug] CRITICAL: Dashboard shell template not found: ' . $dashboard_shell_template);
+            return $template; // Fallback if shell is missing
         }
 
-        error_log('[MoBooking Router Debug] No specific MoBooking template matched by Router. Returning original template: ' . $template);
-        return $template;
+        // --- Default: Not a MoBooking custom route ---
+        error_log('[MoBooking Router Debug] URI /' . $request_path . ' did not match any custom MoBooking patterns. Returning original template: ' . $template);
+        return $template; // This is crucial
     }
 
     /**
