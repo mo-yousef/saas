@@ -1,0 +1,654 @@
+/* MoBooking Dashboard Areas Styles */
+
+/* Grid Layout */
+.mobooking-dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+@media (max-width: 1024px) {
+    .mobooking-dashboard-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+}
+
+/* Cards */
+.mobooking-card {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e5e7eb;
+    overflow: hidden;
+}
+
+.mobooking-card-full-width {
+    grid-column: 1 / -1;
+}
+
+.mobooking-card-header {
+    padding: 1.5rem 1.5rem 1rem;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.mobooking-card-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0 0 0.5rem;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #111827;
+}
+
+.mobooking-card-description {
+    margin: 0;
+    font-size: 0.875rem;
+    color: #6b7280;
+    line-height: 1.5;
+}
+
+/* Icons */
+.mobooking-icon {
+    width: 1rem;
+    height: 1rem;
+    flex-shrink: 0;
+}
+
+.mobooking-page-icon {
+    width: 1.5rem;
+    height: 1.5rem;
+}
+
+.mobooking-empty-state-icon {
+    width: 3rem;
+    height: 3rem;
+    color: #9ca3af;
+    margin-bottom: 1rem;
+}
+
+/* Forms */
+.mobooking-form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+@media (max-width: 768px) {
+    .mobooking-form-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+.mobooking-form-group {
+    margin-bottom: 1rem;
+}
+
+.mobooking-form-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #374151;
+}
+
+.mobooking-required {
+    color: #ef4444;
+    margin-left: 0.25rem;
+}
+
+.mobooking-form-input,
+.mobooking-form-select {
+    width: 100%;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    background-color: #ffffff;
+}
+
+.mobooking-form-input:focus,
+.mobooking-form-select:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.mobooking-form-select:disabled {
+    background-color: #f9fafb;
+    color: #6b7280;
+    cursor: not-allowed;
+}
+
+.mobooking-form-select-sm {
+    padding: 0.5rem;
+    font-size: 0.8125rem;
+}
+
+.mobooking-form-helper {
+    display: block;
+    margin-top: 0.25rem;
+    font-size: 0.75rem;
+    color: #6b7280;
+}
+
+.mobooking-form-actions {
+    display: flex;
+    gap: 0.75rem;
+    padding: 1.5rem;
+    border-top: 1px solid #f3f4f6;
+    background-color: #f9fafb;
+}
+
+/* Buttons */
+.mobooking-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.mobooking-btn:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.mobooking-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.mobooking-btn-primary {
+    background-color: #3b82f6;
+    color: #ffffff;
+    border-color: #3b82f6;
+}
+
+.mobooking-btn-primary:hover:not(:disabled) {
+    background-color: #2563eb;
+    border-color: #2563eb;
+}
+
+.mobooking-btn-secondary {
+    background-color: #ffffff;
+    color: #374151;
+    border-color: #d1d5db;
+}
+
+.mobooking-btn-secondary:hover:not(:disabled) {
+    background-color: #f9fafb;
+    border-color: #9ca3af;
+}
+
+.mobooking-btn-outline {
+    background-color: transparent;
+    color: #6b7280;
+    border-color: #d1d5db;
+}
+
+.mobooking-btn-outline:hover:not(:disabled) {
+    background-color: #f9fafb;
+    color: #374151;
+}
+
+.mobooking-btn-danger {
+    background-color: #ef4444;
+    color: #ffffff;
+    border-color: #ef4444;
+}
+
+.mobooking-btn-danger:hover:not(:disabled) {
+    background-color: #dc2626;
+    border-color: #dc2626;
+}
+
+.mobooking-btn-text {
+    background-color: transparent;
+    color: #6b7280;
+    border-color: transparent;
+    padding: 0.5rem 0.75rem;
+}
+
+.mobooking-btn-text:hover:not(:disabled) {
+    color: #374151;
+    background-color: #f3f4f6;
+}
+
+.mobooking-btn-sm {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8125rem;
+}
+
+/* Area Selection */
+.mobooking-zip-selector {
+    min-height: 200px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 1rem;
+    background-color: #fafafa;
+}
+
+.mobooking-areas-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 0.75rem;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.mobooking-area-checkbox-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background-color: #ffffff;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.mobooking-area-checkbox-item:hover {
+    border-color: #3b82f6;
+    background-color: #f8faff;
+}
+
+.mobooking-area-checkbox-item:has(.mobooking-area-checkbox:checked) {
+    border-color: #3b82f6;
+    background-color: #eff6ff;
+}
+
+.mobooking-area-checkbox {
+    margin: 0;
+    cursor: pointer;
+}
+
+.mobooking-area-checkbox-content {
+    flex: 1;
+}
+
+.mobooking-area-checkbox-name {
+    font-weight: 500;
+    color: #111827;
+    margin-bottom: 0.25rem;
+}
+
+.mobooking-area-checkbox-zip {
+    font-size: 0.875rem;
+    color: #6b7280;
+}
+
+/* Areas List */
+.mobooking-areas-list-grid {
+    display: grid;
+    gap: 1rem;
+}
+
+.mobooking-area-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background-color: #ffffff;
+    transition: all 0.2s;
+}
+
+.mobooking-area-item:hover {
+    border-color: #d1d5db;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.mobooking-area-info {
+    flex: 1;
+}
+
+.mobooking-area-primary {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+}
+
+.mobooking-area-name {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #111827;
+}
+
+.mobooking-area-zipcode {
+    font-size: 0.875rem;
+    color: #6b7280;
+    background-color: #f3f4f6;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-family: monospace;
+}
+
+.mobooking-area-secondary {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-size: 0.875rem;
+    color: #6b7280;
+}
+
+.mobooking-area-country {
+    font-weight: 500;
+}
+
+.mobooking-area-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-left: 1rem;
+}
+
+/* Filters */
+.mobooking-filters-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #f3f4f6;
+    background-color: #fafafa;
+}
+
+@media (max-width: 768px) {
+    .mobooking-filters-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.75rem;
+    }
+}
+
+.mobooking-search-wrapper {
+    position: relative;
+    flex: 1;
+    max-width: 320px;
+}
+
+.mobooking-search-input {
+    width: 100%;
+    padding: 0.75rem 1rem 0.75rem 2.5rem;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    background-color: #ffffff;
+}
+
+.mobooking-search-input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.mobooking-search-icon {
+    position: absolute;
+    left: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 1rem;
+    height: 1rem;
+    color: #9ca3af;
+    pointer-events: none;
+}
+
+.mobooking-filter-group {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+/* States */
+.mobooking-empty-state,
+.mobooking-loading-state,
+.mobooking-error-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 1rem;
+    text-align: center;
+}
+
+.mobooking-empty-state-text {
+    margin: 0;
+    color: #6b7280;
+    font-size: 0.875rem;
+}
+
+.mobooking-loading-state p,
+.mobooking-error-state p {
+    margin: 0.5rem 0 0;
+    color: #6b7280;
+    font-size: 0.875rem;
+}
+
+/* Spinner */
+.mobooking-spinner {
+    width: 2rem;
+    height: 2rem;
+    border: 2px solid #f3f4f6;
+    border-top: 2px solid #3b82f6;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.mobooking-spinner-sm {
+    width: 1rem;
+    height: 1rem;
+    border-width: 1px;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Feedback Messages */
+.mobooking-feedback {
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    margin-bottom: 1rem;
+}
+
+.mobooking-feedback.success {
+    background-color: #ecfdf5;
+    color: #065f46;
+    border: 1px solid #a7f3d0;
+}
+
+.mobooking-feedback.error {
+    background-color: #fef2f2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+}
+
+.mobooking-feedback.info {
+    background-color: #eff6ff;
+    color: #1e40af;
+    border: 1px solid #bfdbfe;
+}
+
+/* Pagination */
+.mobooking-pagination-wrapper {
+    padding: 1.5rem;
+    border-top: 1px solid #f3f4f6;
+    background-color: #fafafa;
+}
+
+.mobooking-pagination {
+    display: flex;
+    justify-content: center;
+}
+
+.pagination-links {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    gap: 0.25rem;
+}
+
+.pagination-links li {
+    margin: 0;
+}
+
+.page-numbers {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2.5rem;
+    height: 2.5rem;
+    padding: 0 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-decoration: none;
+    color: #6b7280;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    background-color: #ffffff;
+    transition: all 0.2s;
+}
+
+.page-numbers:hover:not(.current):not(.dots) {
+    color: #374151;
+    border-color: #d1d5db;
+    background-color: #f9fafb;
+}
+
+.page-numbers.current {
+    color: #ffffff;
+    background-color: #3b82f6;
+    border-color: #3b82f6;
+}
+
+.page-numbers.dots {
+    border: none;
+    background: none;
+    cursor: default;
+}
+
+.page-numbers.prev,
+.page-numbers.next {
+    padding: 0 1rem;
+}
+
+/* Page Header */
+.mobooking-page-header {
+    margin-bottom: 2rem;
+}
+
+.mobooking-page-header-content {
+    max-width: none;
+}
+
+.mobooking-page-title {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 0 0 0.5rem;
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: #111827;
+}
+
+.mobooking-page-description {
+    margin: 0;
+    color: #6b7280;
+    font-size: 1rem;
+    line-height: 1.6;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .mobooking-area-item {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
+    }
+
+    .mobooking-area-actions {
+        margin-left: 0;
+        justify-content: flex-end;
+    }
+
+    .mobooking-area-primary {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .mobooking-form-actions {
+        flex-direction: column;
+    }
+
+    .mobooking-btn {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .mobooking-page-title {
+        font-size: 1.5rem;
+    }
+
+    .mobooking-areas-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .mobooking-card-header {
+        padding: 1rem;
+    }
+
+    .mobooking-form-actions {
+        padding: 1rem;
+    }
+}
+
+/* Focus States for Accessibility */
+.mobooking-area-checkbox:focus {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+}
+
+.mobooking-area-checkbox-item:focus-within {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Print Styles */
+@media print {
+
+    .mobooking-btn,
+    .mobooking-form-actions,
+    .mobooking-pagination-wrapper {
+        display: none;
+    }
+
+    .mobooking-card {
+        box-shadow: none;
+        border: 1px solid #000;
+        break-inside: avoid;
+    }
+}

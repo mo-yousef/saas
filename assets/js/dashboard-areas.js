@@ -1,312 +1,132 @@
 jQuery(document).ready(function ($) {
   "use strict";
 
-  const areasListContainer = $("#mobooking-areas-list-container");
-  const areaForm = $("#mobooking-area-form"); // Updated form ID
-  const areaFormTitle = $("#mobooking-area-form-title");
-  const areaIdField = $("#mobooking-area-id");
-  const areaCountryCodeField = $("#mobooking-area-country-code");
-  const areaValueField = $("#mobooking-area-value");
-  const saveAreaBtn = $("#mobooking-save-area-btn");
-  const cancelEditBtn = $("#mobooking-cancel-edit-area-btn");
-  const feedbackDiv = $("#mobooking-area-form-feedback").hide();
-  const paginationContainer = $("#mobooking-areas-pagination-container");
+  // Cache DOM elements with debugging
+  console.log("Caching DOM elements...");
+  const $areasListContainer = $("#mobooking-areas-list-container");
+  const $areaForm = $("#mobooking-area-form");
+  const $areaFormTitle = $("#mobooking-area-form-title");
+  const $areaIdField = $("#mobooking-area-id");
+  const $areaCountryField = $("#mobooking-area-country");
+  const $areaNameField = $("#mobooking-area-name");
+  const $areaZipcodeField = $("#mobooking-area-zipcode");
+  const $saveAreaBtn = $("#mobooking-save-area-btn");
+  const $cancelEditBtn = $("#mobooking-cancel-edit-area-btn");
+  const $feedbackDiv = $("#mobooking-area-form-feedback").hide();
+  const $paginationContainer = $("#mobooking-areas-pagination-container");
   const itemTemplate = $("#mobooking-area-item-template").html();
 
-  // New selectors for area selection UI
-  const countrySelector = $("#mobooking-country-selector");
-  const citySelector = $("#mobooking-city-selector");
-  const areaZipSelectorContainer = $("#mobooking-area-zip-selector-container");
-  const addSelectedAreasBtn = $("#mobooking-add-selected-areas-btn");
-  const selectionFeedbackDiv = $("#mobooking-selection-feedback").hide();
+  // Area selection elements
+  const $countrySelector = $("#mobooking-country-selector");
+  const $citySelector = $("#mobooking-city-selector");
+  const $areaZipSelectorContainer = $("#mobooking-area-zip-selector-container");
+  const $addSelectedAreasBtn = $("#mobooking-add-selected-areas-btn");
+  const $selectionFeedbackDiv = $("#mobooking-selection-feedback").hide();
 
-  let currentFilters = { paged: 1, limit: 20 }; // Default limit, adjust as needed
+  // Filter elements
+  const $areasSearch = $("#mobooking-areas-search");
+  const $countryFilter = $("#mobooking-country-filter");
+  const $clearFiltersBtn = $("#mobooking-clear-filters");
 
-  // Ensure mobooking_areas_params and i18n are initialized to prevent errors if not localized
+  // Debug element existence
+  console.log("DOM Elements Check:", {
+    countrySelector: $countrySelector.length,
+    areaCountryField: $areaCountryField.length,
+    countryFilter: $countryFilter.length,
+    citySelector: $citySelector.length,
+    areasListContainer: $areasListContainer.length,
+  });
+
+  // Check if key elements exist
+  if ($countrySelector.length === 0) {
+    console.error(
+      "Country selector not found! Looking for #mobooking-country-selector"
+    );
+  }
+  if ($areaCountryField.length === 0) {
+    console.error(
+      "Area country field not found! Looking for #mobooking-area-country"
+    );
+  }
+
+  let currentFilters = {
+    paged: 1,
+    limit: 20,
+    search: "",
+    country: "",
+  };
+
+  let countriesInitialized = false; // Prevent multiple initializations
+
+  // Ensure parameters exist
   window.mobooking_areas_params = window.mobooking_areas_params || {};
   window.mobooking_areas_params.i18n = window.mobooking_areas_params.i18n || {};
   const i18n = window.mobooking_areas_params.i18n;
 
-
-  // Basic XSS protection for display
+  // Utility functions
   function sanitizeHTML(str) {
     if (typeof str !== "string") return "";
-    var temp = document.createElement("div");
+    const temp = document.createElement("div");
     temp.textContent = str;
     return temp.innerHTML;
   }
 
-  function renderTemplate(templateId, data) {
-    // Template rendering is now simpler as it's only for one item type
-    if (!itemTemplate) return "";
-    let currentItemHtml = itemTemplate;
+  function renderTemplate(templateHtml, data) {
+    if (!templateHtml) return "";
+    let html = templateHtml;
     for (const key in data) {
       const value =
         data[key] === null || typeof data[key] === "undefined" ? "" : data[key];
-      currentItemHtml = currentItemHtml.replace(
-        new RegExp("<%=\\s*" + key + "\\s*%>", "g"),
-        sanitizeHTML(String(value))
-      );
+      const placeholder = new RegExp(`{{${key}}}`, "g");
+      html = html.replace(placeholder, sanitizeHTML(String(value)));
     }
-    return currentItemHtml;
+    return html;
   }
 
-  function fetchAndRenderAreas(page = 1) {
-    currentFilters.paged = page;
-    areasListContainer.html(
-      "<p>" + (mobooking_areas_params.i18n.loading || "Loading...") + "</p>"
-    );
-    paginationContainer.empty();
+  function showFeedback($element, message, type = "success", duration = 5000) {
+    $element
+      .removeClass("success error info")
+      .addClass(type)
+      .html(message)
+      .fadeIn();
 
-    $.ajax({
-      url: mobooking_areas_params.ajax_url,
-      type: "POST",
-      data: {
-        action: "mobooking_get_areas",
-        nonce: mobooking_areas_params.nonce, // This should be localized from mobooking_dashboard_nonce
-        ...currentFilters,
-      },
-      success: function (response) {
-        areasListContainer.empty();
-        if (
-          response.success &&
-          response.data.areas &&
-          response.data.areas.length
-        ) {
-          response.data.areas.forEach(function (area) {
-            areasListContainer.append(
-              renderTemplate("#mobooking-area-item-template", area)
-            );
-          });
-          renderPagination(
-            response.data.total_count,
-            response.data.per_page,
-            response.data.current_page
-          );
-        } else if (response.success) {
-          areasListContainer.html(
-            "<p>" +
-              (mobooking_areas_params.i18n.no_areas || "No areas found.") +
-              "</p>"
-          );
-        } else {
-          areasListContainer.html(
-            "<p>" +
-              sanitizeHTML(
-                response.data.message ||
-                  mobooking_areas_params.i18n.error_loading
-              ) +
-              "</p>"
-          );
-        }
-      },
-      error: function () {
-        areasListContainer.html(
-          "<p>" +
-            (mobooking_areas_params.i18n.error_loading ||
-              "Error loading areas.") +
-            "</p>"
-        );
-      },
-    });
-  }
-
-  function renderPagination(totalItems, itemsPerPage, currentPage) {
-    paginationContainer.empty();
-    const totalPages = Math.ceil(totalItems / itemsPerPage);
-    if (totalPages <= 1) return;
-    let paginationHtml = '<ul class="pagination-links">';
-    for (let i = 1; i <= totalPages; i++) {
-      paginationHtml += `<li style="display:inline; margin-right:5px;"><a href="#" data-page="${i}" class="page-numbers ${
-        i == currentPage ? "current" : ""
-      }">${i}</a></li>`;
+    if (duration > 0) {
+      setTimeout(() => $element.fadeOut(), duration);
     }
-    paginationHtml += "</ul>";
-    paginationContainer.html(paginationHtml);
   }
 
   function resetForm() {
-    areaForm[0].reset();
-    areaIdField.val("");
-    areaFormTitle.text(
-      mobooking_areas_params.i18n.add_title || "Add New Service Area"
+    $areaForm[0].reset();
+    $areaIdField.val("");
+    $areaFormTitle.find("span").remove();
+    $areaFormTitle.append(
+      "<span> " + (i18n.manual_area_entry || "Manual Area Entry") + "</span>"
     );
-    saveAreaBtn.text(mobooking_areas_params.i18n.add_button || "Add Area");
-    cancelEditBtn.hide();
-    feedbackDiv.empty().removeClass("success error").hide();
+    $saveAreaBtn.html(`
+            <svg class="mobooking-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+            </svg>
+            ${i18n.add_area || "Add Area"}
+        `);
+    $cancelEditBtn.hide();
+    $feedbackDiv.empty().removeClass("success error info").hide();
   }
 
-  areaForm.on("submit", function (e) {
-    e.preventDefault();
-    feedbackDiv.empty().removeClass("success error").hide();
-
-    const areaId = areaIdField.val();
-    const countryCode = areaCountryCodeField.val().trim();
-    const areaValue = areaValueField.val().trim();
-
-    if (!countryCode || !areaValue) {
-      feedbackDiv
-        .text(
-          mobooking_areas_params.i18n.fields_required ||
-            "Country code and ZIP/Area value are required."
-        )
-        .addClass("error")
-        .show();
+  // Initialize countries for both dropdowns
+  function initializeCountries() {
+    if (countriesInitialized) {
+      console.log("Countries already initialized, skipping...");
       return;
     }
 
-    const originalButtonText = saveAreaBtn.text();
-    saveAreaBtn
-      .prop("disabled", true)
-      .text(mobooking_areas_params.i18n.saving || "Saving...");
+    console.log("Initializing countries...");
 
-    let ajaxData = {
-      nonce: mobooking_areas_params.nonce,
-      country_code: countryCode,
-      area_value: areaValue,
-    };
-
-    if (areaId) {
-      ajaxData.action = "mobooking_update_area";
-      ajaxData.area_id = areaId;
-    } else {
-      ajaxData.action = "mobooking_add_area";
+    if (!mobooking_areas_params || !mobooking_areas_params.ajax_url) {
+      console.error("mobooking_areas_params not available");
+      return;
     }
 
-    $.ajax({
-      url: mobooking_areas_params.ajax_url,
-      type: "POST",
-      data: ajaxData,
-      success: function (response) {
-        if (response.success) {
-          feedbackDiv
-            .text(response.data.message)
-            .removeClass("error")
-            .addClass("success")
-            .show();
-          resetForm();
-          fetchAndRenderAreas(areaId ? currentFilters.paged : 1); // Refresh current page on edit, or go to page 1 on add
-        } else {
-          feedbackDiv
-            .text(
-              response.data.message || mobooking_areas_params.i18n.error_general
-            )
-            .removeClass("success")
-            .addClass("error")
-            .show();
-        }
-      },
-      error: function () {
-        feedbackDiv
-          .text(
-            mobooking_areas_params.i18n.error_general ||
-              "An AJAX error occurred."
-          )
-          .removeClass("success")
-          .addClass("error")
-          .show();
-      },
-      complete: function () {
-        saveAreaBtn.prop("disabled", false).text(originalButtonText);
-        setTimeout(function () {
-          feedbackDiv.fadeOut().empty();
-        }, 4000);
-      },
-    });
-  });
-
-  areasListContainer.on("click", ".mobooking-edit-area-btn", function () {
-    const $itemRow = $(this).closest(".mobooking-area-item");
-    const areaIdToEdit = $itemRow.data("area-id");
-    // Assuming country_code and area_value are available from the displayed item or need fetching.
-    // For simplicity, let's extract from text if possible, though data attributes would be better.
-    const itemText = $itemRow.find("span").text(); // "CC - ZIP"
-    const parts = itemText.split(" - ");
-    const countryCode = parts[0].trim();
-    const areaValue = parts[1].trim();
-
-    areaIdField.val(areaIdToEdit);
-    areaCountryCodeField.val(countryCode);
-    areaValueField.val(areaValue);
-
-    areaFormTitle.text(
-      mobooking_areas_params.i18n.edit_title || "Edit Service Area"
-    );
-    saveAreaBtn.text(mobooking_areas_params.i18n.save_button || "Save Changes");
-    cancelEditBtn.show();
-    feedbackDiv.empty().hide();
-    $("html, body").animate(
-      { scrollTop: areaFormWrapper.offset().top - 50 },
-      500
-    ); // Scroll to form
-  });
-
-  cancelEditBtn.on("click", function () {
-    resetForm();
-  });
-
-  areasListContainer.on("click", ".mobooking-delete-area-btn", function () {
-    const areaIdToDelete = $(this).data("id");
-    if (
-      confirm(
-        mobooking_areas_params.i18n.confirm_delete ||
-          "Are you sure you want to delete this area?"
-      )
-    ) {
-      $.ajax({
-        url: mobooking_areas_params.ajax_url,
-        type: "POST",
-        data: {
-          action: "mobooking_delete_area",
-          nonce: mobooking_areas_params.nonce,
-          area_id: areaIdToDelete,
-        },
-        success: function (response) {
-          if (response.success) {
-            fetchAndRenderAreas(currentFilters.paged);
-            // Show a more prominent success message if needed
-            alert(
-              response.data.message ||
-                mobooking_areas_params.i18n.deleted_successfully
-            );
-          } else {
-            alert(
-              sanitizeHTML(
-                response.data.message ||
-                  mobooking_areas_params.i18n.error_deleting
-              )
-            );
-          }
-        },
-        error: function () {
-          alert(
-            mobooking_areas_params.i18n.error_deleting ||
-              "AJAX error deleting area."
-          );
-        },
-      });
-    }
-  });
-
-  paginationContainer.on("click", "a.page-numbers", function (e) {
-    e.preventDefault();
-    const page =
-      $(this).data("page") ||
-      $(this).attr("href").split("paged=")[1]?.split("&")[0];
-    if (page) {
-      fetchAndRenderAreas(parseInt(page));
-    }
-  });
-
-  // Initial load is now handled by PHP.
-  // Ensure mobooking_areas_params is localized with nonce, ajax_url, and i18n strings.
-  // The check for mobooking_areas_params is done earlier now.
-
-  // --- New Area Selection Logic ---
-
-  function populateCountries() {
-    countrySelector.prop("disabled", true);
-    selectionFeedbackDiv.hide().empty();
+    countriesInitialized = true; // Mark as initialized
 
     $.ajax({
       url: mobooking_areas_params.ajax_url,
@@ -315,37 +135,141 @@ jQuery(document).ready(function ($) {
         action: "mobooking_get_countries",
         nonce: mobooking_areas_params.nonce,
       },
+      beforeSend: function () {
+        console.log("Loading countries...");
+      },
       success: function (response) {
-        if (response.success && response.data.countries) {
-          countrySelector.empty().append($("<option>", { value: "", text: i18n.select_country || "-- Select a Country --" }));
+        console.log("Countries response received:", response);
+
+        if (response.success && response.data && response.data.countries) {
+          console.log("Processing countries:", response.data.countries);
+
+          // Clear and populate quick selector dropdown
+          $countrySelector.empty().append(
+            $("<option>", {
+              value: "",
+              text: i18n.choose_country || "Choose a country...",
+            })
+          );
+
+          // Clear and populate manual entry dropdown
+          $areaCountryField.empty().append(
+            $("<option>", {
+              value: "",
+              text: i18n.select_country || "Select a country...",
+            })
+          );
+
+          // Clear and populate filter dropdown
+          $countryFilter.empty().append(
+            $("<option>", {
+              value: "",
+              text: i18n.all_countries || "All Countries",
+            })
+          );
+
+          // Add each country to all dropdowns
           response.data.countries.forEach(function (country) {
-            countrySelector.append($("<option>", { value: country.code, text: country.name + " (" + country.code + ")" }));
+            console.log("Adding country:", country);
+
+            const optionText = country.name;
+
+            // Add to quick selector (uses country code as value)
+            $countrySelector.append(
+              $("<option>", {
+                value: country.code,
+                text: optionText,
+              })
+            );
+
+            // Add to manual entry (uses country name as value)
+            $areaCountryField.append(
+              $("<option>", {
+                value: country.name,
+                "data-code": country.code,
+                text: optionText,
+              })
+            );
+
+            // Add to filter
+            $countryFilter.append(
+              $("<option>", {
+                value: country.name,
+                text: optionText,
+              })
+            );
           });
+
+          console.log("Countries populated successfully");
+
+          // Verify population immediately after
+          setTimeout(function () {
+            console.log("=== POST-POPULATION VERIFICATION ===");
+            console.log(
+              "Country Selector options count:",
+              $countrySelector.find("option").length
+            );
+            console.log(
+              "Area Country Field options count:",
+              $areaCountryField.find("option").length
+            );
+            console.log(
+              "Country Filter options count:",
+              $countryFilter.find("option").length
+            );
+
+            // List all options
+            console.log("Quick selector options:");
+            $countrySelector.find("option").each(function (i, opt) {
+              console.log(`  ${i}: "${opt.value}" - "${opt.text}"`);
+            });
+          }, 100);
         } else {
-          selectionFeedbackDiv.text(i18n.error_loading_countries || "Error loading countries.").addClass("error").show();
-          console.error("Error loading countries:", response.data ? response.data.message : "Unknown error");
+          console.error("Invalid response structure:", response);
+          countriesInitialized = false; // Reset if failed
         }
       },
-      error: function (jqXHR, textStatus, errorThrown) {
-        selectionFeedbackDiv.text(i18n.error_loading_countries_ajax || "AJAX error loading countries.").addClass("error").show();
-        console.error("AJAX error loading countries:", textStatus, errorThrown);
+      error: function (xhr, status, error) {
+        console.error("AJAX error loading countries:", {
+          status: status,
+          error: error,
+          responseText: xhr.responseText,
+        });
+        countriesInitialized = false; // Reset if failed
       },
-      complete: function () {
-        countrySelector.prop("disabled", false);
-      }
     });
   }
 
-  countrySelector.on("change", function () {
+  // Handle country selection in quick selector
+  $countrySelector.on("change", function () {
     const selectedCountry = $(this).val();
-    citySelector.empty().append($("<option>", { value: "", text: i18n.select_city || "-- Select a City --" })).prop("disabled", true);
-    areaZipSelectorContainer.html(`<small>${i18n.select_city_first || "Select a city to see areas."}</small>`);
-    addSelectedAreasBtn.prop("disabled", true);
-    selectionFeedbackDiv.hide().empty();
+    $citySelector.prop("disabled", true).empty();
+    $areaZipSelectorContainer.html(`
+            <div class="mobooking-empty-state">
+                <svg class="mobooking-empty-state-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                </svg>
+                <p class="mobooking-empty-state-text">
+                    ${
+                      i18n.select_city ||
+                      "Select a city to view available areas"
+                    }
+                </p>
+            </div>
+        `);
+    $addSelectedAreasBtn.prop("disabled", true);
 
-    if (!selectedCountry) return;
+    if (!selectedCountry) {
+      $citySelector.append(
+        $("<option>", {
+          value: "",
+          text: i18n.select_country || "First select a country...",
+        })
+      );
+      return;
+    }
 
-    citySelector.prop("disabled", true); // Disable while loading
+    // Load cities for selected country
     $.ajax({
       url: mobooking_areas_params.ajax_url,
       type: "POST",
@@ -354,48 +278,78 @@ jQuery(document).ready(function ($) {
         nonce: mobooking_areas_params.nonce,
         country_code: selectedCountry,
       },
+      beforeSend: function () {
+        $citySelector.append(
+          $("<option>", {
+            value: "",
+            text: i18n.loading || "Loading cities...",
+          })
+        );
+      },
       success: function (response) {
+        $citySelector.empty();
         if (response.success && response.data.cities) {
-          if (response.data.cities.length > 0) {
-            response.data.cities.forEach(function (city) {
-              citySelector.append($("<option>", { value: city.name, text: city.name }));
-            });
-            citySelector.prop("disabled", false);
-          } else {
-             areaZipSelectorContainer.html(`<small>${i18n.no_cities_found || "No cities found for this country."}</small>`);
-          }
+          $citySelector.append(
+            $("<option>", {
+              value: "",
+              text: i18n.select_city || "Select a city...",
+            })
+          );
+
+          response.data.cities.forEach(function (city) {
+            $citySelector.append(
+              $("<option>", {
+                value: city.code || city.name,
+                text: city.name,
+              })
+            );
+          });
+          $citySelector.prop("disabled", false);
         } else {
-          selectionFeedbackDiv.text(i18n.error_loading_cities || "Error loading cities.").addClass("error").show();
-           console.error("Error loading cities:", response.data ? response.data.message : "Unknown error");
+          $citySelector.append(
+            $("<option>", {
+              value: "",
+              text: i18n.no_cities_found || "No cities found",
+            })
+          );
         }
       },
-      error: function (jqXHR, textStatus, errorThrown) {
-         selectionFeedbackDiv.text(i18n.error_loading_cities_ajax || "AJAX error loading cities.").addClass("error").show();
-         console.error("AJAX error loading cities:", textStatus, errorThrown);
+      error: function () {
+        $citySelector.empty().append(
+          $("<option>", {
+            value: "",
+            text: i18n.error_loading || "Error loading cities",
+          })
+        );
       },
-      complete: function() {
-        // Re-enable even on error, unless it was intentionally disabled due to no cities
-        if (citySelector.find('option').length > 1) { // Has more than the default "-- Select a City --"
-            citySelector.prop("disabled", false);
-        }
-      }
     });
   });
 
-  citySelector.on("change", function () {
-    const selectedCountry = countrySelector.val();
+  // Handle city selection
+  $citySelector.on("change", function () {
     const selectedCity = $(this).val();
-    areaZipSelectorContainer.html(`<small>${i18n.loading_areas || "Loading areas..."}</small>`);
-    addSelectedAreasBtn.prop("disabled", true);
-    selectionFeedbackDiv.hide().empty();
+    const selectedCountry = $countrySelector.val();
 
-    if (!selectedCountry || !selectedCity) {
-        areaZipSelectorContainer.html(`<small>${i18n.select_country_city_first || "Select a country and city first."}</small>`);
-        return;
+    $addSelectedAreasBtn.prop("disabled", true);
+
+    if (!selectedCity || !selectedCountry) {
+      $areaZipSelectorContainer.html(`
+                <div class="mobooking-empty-state">
+                    <svg class="mobooking-empty-state-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                    </svg>
+                    <p class="mobooking-empty-state-text">
+                        ${
+                          i18n.select_city ||
+                          "Select a city to view available areas"
+                        }
+                    </p>
+                </div>
+            `);
+      return;
     }
 
-    areaZipSelectorContainer.empty(); // Clear previous content
-
+    // Load areas for selected city
     $.ajax({
       url: mobooking_areas_params.ajax_url,
       type: "POST",
@@ -403,122 +357,561 @@ jQuery(document).ready(function ($) {
         action: "mobooking_get_areas_for_city",
         nonce: mobooking_areas_params.nonce,
         country_code: selectedCountry,
-        city_name: selectedCity,
+        city_code: selectedCity,
+      },
+      beforeSend: function () {
+        $areaZipSelectorContainer.html(`
+                    <div class="mobooking-loading-state">
+                        <div class="mobooking-spinner"></div>
+                        <p>${i18n.loading || "Loading areas..."}</p>
+                    </div>
+                `);
       },
       success: function (response) {
-        if (response.success && response.data.areas) {
-          if (response.data.areas.length > 0) {
-            response.data.areas.forEach(function (area) {
-              const checkboxId = `mobooking-area-zip-${sanitizeHTML(area.zip.replace(/\s+/g, ''))}-${sanitizeHTML(selectedCountry)}`;
-              const label = $("<label>").attr("for", checkboxId).css({ display: 'block', marginBottom: '5px' });
-              const checkbox = $("<input type='checkbox'>")
-                .attr("id", checkboxId)
-                .attr("name", "selected_areas")
-                .val(area.zip)
-                .data("country-code", selectedCountry) // Store country code with the checkbox
-                .data("area-name", area.name);
+        if (
+          response.success &&
+          response.data.areas &&
+          response.data.areas.length > 0
+        ) {
+          let areasHtml = '<div class="mobooking-areas-grid">';
 
-              label.append(checkbox).append(` ${sanitizeHTML(area.name)} (${sanitizeHTML(area.zip)})`);
-              areaZipSelectorContainer.append(label);
-            });
-            addSelectedAreasBtn.prop("disabled", false);
-          } else {
-            areaZipSelectorContainer.html(`<small>${i18n.no_areas_found || "No areas found for this city."}</small>`);
-          }
+          response.data.areas.forEach(function (area) {
+            areasHtml += `
+                            <label class="mobooking-area-checkbox-item">
+                                <input type="checkbox" class="mobooking-area-checkbox" 
+                                       value="${sanitizeHTML(
+                                         area.zip_code || area.code
+                                       )}" 
+                                       data-area-name="${sanitizeHTML(
+                                         area.name
+                                       )}"
+                                       data-country-code="${sanitizeHTML(
+                                         selectedCountry
+                                       )}"
+                                       data-country-name="${sanitizeHTML(
+                                         $countrySelector
+                                           .find("option:selected")
+                                           .text()
+                                       )}">
+                                <div class="mobooking-area-checkbox-content">
+                                    <div class="mobooking-area-checkbox-name">${sanitizeHTML(
+                                      area.name
+                                    )}</div>
+                                    <div class="mobooking-area-checkbox-zip">${sanitizeHTML(
+                                      area.zip_code || area.code
+                                    )}</div>
+                                </div>
+                            </label>
+                        `;
+          });
+
+          areasHtml += "</div>";
+          $areaZipSelectorContainer.html(areasHtml);
+
+          // Enable bulk select button when areas are available
+          updateAddSelectedAreasButton();
         } else {
-          selectionFeedbackDiv.text(i18n.error_loading_areas || "Error loading areas.").addClass("error").show();
-          console.error("Error loading areas:", response.data ? response.data.message : "Unknown error");
+          $areaZipSelectorContainer.html(`
+                        <div class="mobooking-empty-state">
+                            <svg class="mobooking-empty-state-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 12l-2-2m0 4l2-2m2 2v8a2 2 0 01-2 2H6a2 2 0 01-2-2v-8m14 0V9a2 2 0 00-2-2H5a2 2 0 00-2 2v3"/>
+                            </svg>
+                            <p class="mobooking-empty-state-text">
+                                ${
+                                  i18n.no_areas_found ||
+                                  "No areas found for this city"
+                                }
+                            </p>
+                        </div>
+                    `);
         }
       },
-      error: function (jqXHR, textStatus, errorThrown) {
-        selectionFeedbackDiv.text(i18n.error_loading_areas_ajax || "AJAX error loading areas.").addClass("error").show();
-        console.error("AJAX error loading areas:", textStatus, errorThrown);
-        areaZipSelectorContainer.html(`<small>${i18n.error_loading_areas_ajax || "AJAX error loading areas."}</small>`);
-      }
+      error: function () {
+        $areaZipSelectorContainer.html(`
+                    <div class="mobooking-error-state">
+                        <p>${i18n.error_loading || "Error loading areas"}</p>
+                    </div>
+                `);
+      },
     });
   });
 
-  addSelectedAreasBtn.on("click", function () {
-    const selectedCheckboxes = areaZipSelectorContainer.find("input[type='checkbox']:checked");
-    const countryCode = countrySelector.val();
-    selectionFeedbackDiv.hide().empty().removeClass("success error");
+  // Handle area selection checkboxes
+  $(document).on("change", ".mobooking-area-checkbox", function () {
+    updateAddSelectedAreasButton();
+  });
 
-    if (!countryCode) {
-        selectionFeedbackDiv.text(i18n.select_country_first || "Please select a country first.").addClass("error").show();
-        return;
+  function updateAddSelectedAreasButton() {
+    const $selectedCheckboxes = $(".mobooking-area-checkbox:checked");
+    const selectedCount = $selectedCheckboxes.length;
+
+    if (selectedCount > 0) {
+      $addSelectedAreasBtn.prop("disabled", false).html(`
+                    <svg class="mobooking-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                    </svg>
+                    ${
+                      i18n.add_selected_areas || "Add Selected Areas"
+                    } (${selectedCount})
+                `);
+    } else {
+      $addSelectedAreasBtn.prop("disabled", true).html(`
+                    <svg class="mobooking-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                    </svg>
+                    ${i18n.add_selected_areas || "Add Selected Areas"}
+                `);
     }
+  }
 
-    if (selectedCheckboxes.length === 0) {
-      selectionFeedbackDiv.text(i18n.no_area_selected || "Please select at least one area/ZIP to add.").addClass("error").show();
+  // Handle bulk area addition
+  $addSelectedAreasBtn.on("click", function () {
+    const $selectedCheckboxes = $(".mobooking-area-checkbox:checked");
+
+    if ($selectedCheckboxes.length === 0) {
+      showFeedback(
+        $selectionFeedbackDiv,
+        i18n.no_areas_selected || "Please select at least one area to add.",
+        "error"
+      );
       return;
     }
 
-    let promises = [];
-    let results = { success: [], error: [] };
-    const originalButtonText = $(this).text();
-    $(this).prop("disabled", true).text(i18n.adding_areas || "Adding...");
+    const originalButtonText = $(this).html();
+    $(this).prop("disabled", true).html(`
+            <div class="mobooking-spinner mobooking-spinner-sm"></div>
+            ${i18n.adding || "Adding..."}
+        `);
 
-    selectedCheckboxes.each(function () {
-      const zip = $(this).val();
-      // const areaName = $(this).data("area-name"); // Available if needed for feedback
-
-      promises.push(
-        $.ajax({
-          url: mobooking_areas_params.ajax_url,
-          type: "POST",
-          data: {
-            action: "mobooking_add_area",
-            nonce: mobooking_areas_params.nonce,
-            country_code: countryCode, // Use country from the main selector
-            area_value: zip,
-            area_type: "zip_code" // Ensure this matches what backend expects
-          },
-        }).then(
-            response => { // Success
-                if (response.success) {
-                    results.success.push(`ZIP ${zip}: ${response.data.message || (i18n.added_successfully || 'Added successfully')}`);
-                } else {
-                    results.error.push(`ZIP ${zip}: ${response.data.message || (i18n.error_adding_zip || 'Error adding ZIP')}`);
-                }
-            },
-            () => { // Error
-                results.error.push(`ZIP ${zip}: ` + (i18n.error_adding_zip_ajax || 'AJAX error adding ZIP.'));
-            }
-        )
-      );
+    const areasToAdd = [];
+    $selectedCheckboxes.each(function () {
+      const $checkbox = $(this);
+      areasToAdd.push({
+        area_name: $checkbox.data("area-name"),
+        area_zipcode: $checkbox.val(),
+        country_name: $checkbox.data("country-name"),
+        country_code: $checkbox.data("country-code"),
+      });
     });
 
-    $.when.apply($, promises).always(function () {
-        let feedbackMessages = [];
-        if(results.success.length > 0) {
-            feedbackMessages.push(`${i18n.successfully_added || 'Successfully added'}:<br>` + results.success.join('<br>'));
+    $.ajax({
+      url: mobooking_areas_params.ajax_url,
+      type: "POST",
+      data: {
+        action: "mobooking_add_bulk_areas",
+        nonce: mobooking_areas_params.nonce,
+        areas: JSON.stringify(areasToAdd),
+      },
+      success: function (response) {
+        if (response.success) {
+          const addedCount = response.data.added_count || areasToAdd.length;
+          const message =
+            response.data.message ||
+            (
+              i18n.areas_added ||
+              "Selected areas have been added to your service coverage!"
+            ).replace("%d", addedCount);
+
+          showFeedback($selectionFeedbackDiv, message, "success");
+
+          // Refresh the areas list
+          fetchAndRenderAreas(1);
+
+          // Clear selections
+          $selectedCheckboxes.prop("checked", false);
+          updateAddSelectedAreasButton();
+        } else {
+          showFeedback(
+            $selectionFeedbackDiv,
+            response.data?.message ||
+              i18n.error_generic ||
+              "An error occurred. Please try again.",
+            "error"
+          );
         }
-        if(results.error.length > 0) {
-            feedbackMessages.push(`${i18n.errors_encountered || 'Errors encountered'}:<br>` + results.error.join('<br>'));
-        }
-
-        selectionFeedbackDiv.html(feedbackMessages.join('<br><br>'))
-            .addClass(results.error.length > 0 ? 'error' : 'success')
-            .show();
-
-        addSelectedAreasBtn.prop("disabled", false).text(originalButtonText);
-        fetchAndRenderAreas(1); // Refresh the main list of areas to show new additions
-
-        // Uncheck checkboxes after processing
-        selectedCheckboxes.prop('checked', false);
-
-        setTimeout(function () {
-          selectionFeedbackDiv.fadeOut().empty();
-        }, 7000); // Longer timeout for multiple messages
+      },
+      error: function () {
+        showFeedback(
+          $selectionFeedbackDiv,
+          i18n.error_generic || "An error occurred. Please try again.",
+          "error"
+        );
+      },
+      complete: function () {
+        $addSelectedAreasBtn.prop("disabled", false).html(originalButtonText);
+      },
     });
   });
 
+  // Fetch and render areas list
+  function fetchAndRenderAreas(page = 1, showLoading = true) {
+    currentFilters.paged = page;
 
-  // --- End New Area Selection Logic ---
+    if (showLoading) {
+      $areasListContainer.html(`
+                <div class="mobooking-loading-state">
+                    <div class="mobooking-spinner"></div>
+                    <p>${i18n.loading || "Loading your service areas..."}</p>
+                </div>
+            `);
+    }
 
-
-  // Initial load of countries for the new selection UI
-  if (countrySelector.length) { // Check if the selector exists on the page
-    populateCountries();
+    $.ajax({
+      url: mobooking_areas_params.ajax_url,
+      type: "POST",
+      data: {
+        action: "mobooking_get_areas",
+        nonce: mobooking_areas_params.nonce,
+        ...currentFilters,
+      },
+      success: function (response) {
+        if (response.success && response.data) {
+          renderAreasList(response.data);
+        } else {
+          $areasListContainer.html(`
+                        <div class="mobooking-empty-state">
+                            <svg class="mobooking-empty-state-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                            </svg>
+                            <p class="mobooking-empty-state-text">
+                                ${
+                                  response.data?.message ||
+                                  i18n.no_areas_found ||
+                                  "No service areas found. Add your first area above."
+                                }
+                            </p>
+                        </div>
+                    `);
+        }
+      },
+      error: function () {
+        $areasListContainer.html(`
+                    <div class="mobooking-error-state">
+                        <p>${
+                          i18n.error_loading ||
+                          "Error loading areas. Please try again."
+                        }</p>
+                    </div>
+                `);
+      },
+    });
   }
+
+  function renderAreasList(data) {
+    if (!data.areas || data.areas.length === 0) {
+      $areasListContainer.html(`
+                <div class="mobooking-empty-state">
+                    <svg class="mobooking-empty-state-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                    </svg>
+                    <p class="mobooking-empty-state-text">
+                        ${
+                          i18n.no_areas_found ||
+                          "No service areas found. Add your first area above."
+                        }
+                    </p>
+                </div>
+            `);
+      $paginationContainer.empty();
+      return;
+    }
+
+    let areasHtml = '<div class="mobooking-areas-list-grid">';
+
+    data.areas.forEach(function (area) {
+      // Format the created date
+      const createdDate = area.created_at
+        ? new Date(area.created_at).toLocaleDateString()
+        : "";
+
+      const areaData = {
+        area_id: area.area_id,
+        area_name: area.area_name || area.area_value, // Fallback for existing data
+        area_zipcode: area.area_zipcode || area.area_value,
+        country_name: area.country_name || area.country_code,
+        created_at_formatted: createdDate,
+      };
+
+      areasHtml += renderTemplate(itemTemplate, areaData);
+    });
+
+    areasHtml += "</div>";
+    $areasListContainer.html(areasHtml);
+
+    // Render pagination
+    renderPagination(data.total_count, data.per_page, data.current_page);
+  }
+
+  function renderPagination(totalItems, itemsPerPage, currentPage) {
+    $paginationContainer.empty();
+
+    if (!totalItems || totalItems <= itemsPerPage) return;
+
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
+    let paginationHtml =
+      '<div class="mobooking-pagination"><ul class="pagination-links">';
+
+    // Previous button
+    if (currentPage > 1) {
+      paginationHtml += `
+                <li><a href="#" class="page-numbers prev" data-page="${
+                  currentPage - 1
+                }">
+                    ← ${i18n.previous || "Previous"}
+                </a></li>
+            `;
+    }
+
+    // Page numbers
+    const startPage = Math.max(1, currentPage - 2);
+    const endPage = Math.min(totalPages, currentPage + 2);
+
+    if (startPage > 1) {
+      paginationHtml +=
+        '<li><a href="#" class="page-numbers" data-page="1">1</a></li>';
+      if (startPage > 2) {
+        paginationHtml += '<li><span class="page-numbers dots">…</span></li>';
+      }
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      paginationHtml += `
+                <li><a href="#" class="page-numbers ${
+                  i === currentPage ? "current" : ""
+                }" data-page="${i}">${i}</a></li>
+            `;
+    }
+
+    if (endPage < totalPages) {
+      if (endPage < totalPages - 1) {
+        paginationHtml += '<li><span class="page-numbers dots">…</span></li>';
+      }
+      paginationHtml += `<li><a href="#" class="page-numbers" data-page="${totalPages}">${totalPages}</a></li>`;
+    }
+
+    // Next button
+    if (currentPage < totalPages) {
+      paginationHtml += `
+                <li><a href="#" class="page-numbers next" data-page="${
+                  currentPage + 1
+                }">
+                    ${i18n.next || "Next"} →
+                </a></li>
+            `;
+    }
+
+    paginationHtml += "</ul></div>";
+    $paginationContainer.html(paginationHtml);
+  }
+
+  // Handle pagination clicks
+  $(document).on("click", ".page-numbers", function (e) {
+    e.preventDefault();
+    if ($(this).hasClass("current") || $(this).hasClass("dots")) return;
+
+    const page = parseInt($(this).data("page"));
+    if (page) {
+      fetchAndRenderAreas(page);
+    }
+  });
+
+  // Handle search and filters
+  let searchTimeout;
+  $areasSearch.on("input", function () {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+      currentFilters.search = $(this).val().trim();
+      fetchAndRenderAreas(1);
+    }, 500);
+  });
+
+  $countryFilter.on("change", function () {
+    currentFilters.country = $(this).val();
+    fetchAndRenderAreas(1);
+  });
+
+  $clearFiltersBtn.on("click", function () {
+    $areasSearch.val("");
+    $countryFilter.val("");
+    currentFilters.search = "";
+    currentFilters.country = "";
+    fetchAndRenderAreas(1);
+  });
+
+  // Handle manual area form submission
+  $areaForm.on("submit", function (e) {
+    e.preventDefault();
+    $feedbackDiv.empty().removeClass("success error info").hide();
+
+    const areaId = $areaIdField.val();
+    const countryName = $areaCountryField.val();
+    const areaName = $areaNameField.val().trim();
+    const areaZipcode = $areaZipcodeField.val().trim();
+
+    if (!countryName || !areaName || !areaZipcode) {
+      showFeedback(
+        $feedbackDiv,
+        i18n.fields_required || "All fields are required.",
+        "error"
+      );
+      return;
+    }
+
+    const originalButtonText = $saveAreaBtn.html();
+    $saveAreaBtn.prop("disabled", true).html(`
+            <div class="mobooking-spinner mobooking-spinner-sm"></div>
+            ${i18n.saving || "Saving..."}
+        `);
+
+    const actionName = areaId ? "mobooking_update_area" : "mobooking_add_area";
+    const requestData = {
+      action: actionName,
+      nonce: mobooking_areas_params.nonce,
+      country_name: countryName,
+      area_name: areaName,
+      area_zipcode: areaZipcode,
+    };
+
+    if (areaId) {
+      requestData.area_id = areaId;
+    }
+
+    $.ajax({
+      url: mobooking_areas_params.ajax_url,
+      type: "POST",
+      data: requestData,
+      success: function (response) {
+        if (response.success) {
+          const message = areaId
+            ? i18n.success_updated || "Service area updated successfully!"
+            : i18n.success_added || "Service area added successfully!";
+
+          showFeedback($feedbackDiv, message, "success");
+
+          if (!areaId) {
+            resetForm();
+          }
+
+          fetchAndRenderAreas(currentFilters.paged);
+        } else {
+          showFeedback(
+            $feedbackDiv,
+            response.data?.message ||
+              i18n.error_generic ||
+              "An error occurred. Please try again.",
+            "error"
+          );
+        }
+      },
+      error: function () {
+        showFeedback(
+          $feedbackDiv,
+          i18n.error_generic || "An error occurred. Please try again.",
+          "error"
+        );
+      },
+      complete: function () {
+        $saveAreaBtn.prop("disabled", false).html(originalButtonText);
+      },
+    });
+  });
+
+  // Handle edit area
+  $(document).on("click", ".mobooking-edit-area-btn", function () {
+    const areaId = $(this).data("area-id");
+    const $areaItem = $(this).closest(".mobooking-area-item");
+
+    const areaData = {
+      area_id: areaId,
+      area_name: $areaItem.find(".mobooking-area-name").text(),
+      area_zipcode: $areaItem.find(".mobooking-area-zipcode").text(),
+      country_name: $areaItem.find(".mobooking-area-country").text(),
+    };
+
+    // Populate form
+    $areaIdField.val(areaData.area_id);
+    $areaNameField.val(areaData.area_name);
+    $areaZipcodeField.val(areaData.area_zipcode);
+    $areaCountryField.val(areaData.country_name);
+
+    // Update form title and button
+    $areaFormTitle.find("span").remove();
+    $areaFormTitle.append(
+      "<span> " + (i18n.edit_area || "Edit Area") + "</span>"
+    );
+
+    $saveAreaBtn.html(`
+            <svg class="mobooking-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+            ${i18n.update_area || "Update Area"}
+        `);
+
+    $cancelEditBtn.show();
+
+    // Scroll to form
+    $areaForm[0].scrollIntoView({ behavior: "smooth" });
+  });
+
+  // Handle cancel edit
+  $cancelEditBtn.on("click", function () {
+    resetForm();
+  });
+
+  // Handle delete area
+  $(document).on("click", ".mobooking-delete-area-btn", function () {
+    const areaId = $(this).data("area-id");
+    const $areaItem = $(this).closest(".mobooking-area-item");
+    const areaName = $areaItem.find(".mobooking-area-name").text();
+
+    const confirmMessage =
+      (i18n.confirm_delete ||
+        "Are you sure you want to delete this service area?") +
+      `\n\n"${areaName}"`;
+
+    if (!confirm(confirmMessage)) return;
+
+    const $deleteBtn = $(this);
+    const originalButtonText = $deleteBtn.html();
+
+    $deleteBtn.prop("disabled", true).html(`
+            <div class="mobooking-spinner mobooking-spinner-sm"></div>
+        `);
+
+    $.ajax({
+      url: mobooking_areas_params.ajax_url,
+      type: "POST",
+      data: {
+        action: "mobooking_delete_area",
+        nonce: mobooking_areas_params.nonce,
+        area_id: areaId,
+      },
+      success: function (response) {
+        if (response.success) {
+          $areaItem.fadeOut(300, function () {
+            $(this).remove();
+            // Check if we need to reload the page if this was the last item
+            if ($(".mobooking-area-item").length === 0) {
+              fetchAndRenderAreas(Math.max(1, currentFilters.paged - 1));
+            }
+          });
+        } else {
+          alert(
+            response.data?.message ||
+              i18n.error_generic ||
+              "An error occurred. Please try again."
+          );
+          $deleteBtn.prop("disabled", false).html(originalButtonText);
+        }
+      },
+      error: function () {
+        alert(i18n.error_generic || "An error occurred. Please try again.");
+        $deleteBtn.prop("disabled", false).html(originalButtonText);
+      },
+    });
+  });
+
+  // Initialize on page load
+  initializeCountries();
+  fetchAndRenderAreas(1);
 });
