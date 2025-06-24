@@ -67,6 +67,7 @@ wp_nonce_field('mobooking_dashboard_nonce', 'mobooking_dashboard_nonce_field');
         <button type="button" id="mobooking-cancel-edit-area-btn" class="button" style="display:none; margin-left:5px;"><?php esc_html_e('Cancel Edit', 'mobooking'); ?></button>
         <div id="mobooking-area-form-feedback" style="margin-top:10px; padding:8px; border-radius:3px;"></div>
     </form>
+    
 </div>
 
 <h3 style="margin-top:30px;"><?php esc_html_e('Your Defined Service Areas', 'mobooking'); ?></h3>
