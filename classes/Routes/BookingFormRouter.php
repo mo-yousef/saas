@@ -122,23 +122,41 @@ class BookingFormRouter {
         // This logic also moved from functions.php.
         // Ensure mobooking_enqueue_dashboard_scripts is available or its logic is also moved/accessible.
         // For now, assuming mobooking_enqueue_dashboard_scripts is a global function.
+
         $is_dashboard_request = false;
+        $current_path = trim(parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH), '/');
+        $path_segments = explode('/', $current_path);
+        $is_dashboard_uri = isset($path_segments[0]) && strtolower($path_segments[0]) === 'dashboard';
+
         if (!empty($dashboard_page_slug)) {
-            $is_dashboard_request = true;
-            error_log('[MoBooking Router Debug] Detected dashboard from query_var "mobooking_dashboard_page": ' . $dashboard_page_slug);
-        } else if (empty($page_type) && empty($business_slug)) { // Avoid conflict with booking slugs
-            $path = trim(parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH), '/');
-            $segments = explode('/', $path);
-            if (isset($segments[0]) && strtolower($segments[0]) === 'dashboard') {
+            // Query var is set, BUT also check if the path actually starts with 'dashboard'
+            // to protect against misconfigured rewrite rules setting the query var too broadly.
+            if ($is_dashboard_uri) {
                 $is_dashboard_request = true;
-                $dashboard_page_slug = isset($segments[1]) && !empty($segments[1]) ? $segments[1] : 'overview';
-                set_query_var('mobooking_dashboard_page', $dashboard_page_slug);
-                error_log('[MoBooking Router Debug] Detected dashboard from URI segments. Page slug set to: ' . $dashboard_page_slug);
+                error_log('[MoBooking Router Debug] Detected dashboard from query_var "mobooking_dashboard_page": ' . $dashboard_page_slug . ' AND matching URI.');
+            } else {
+                error_log('[MoBooking Router Debug] Query_var "mobooking_dashboard_page" (' . $dashboard_page_slug . ') is set, but URI (' . $current_path . ') does not start with /dashboard/. Ignoring for dashboard.');
+                // Unset the erroneously set query var to prevent issues if $template is returned and WP re-evaluates.
+                // However, simply not acting on it (i.e., not setting $is_dashboard_request=true) is safer here.
             }
+        } else if (empty($page_type) && empty($business_slug) && $is_dashboard_uri) {
+            // No booking page vars, no dashboard query var, but URI starts with /dashboard/
+            $is_dashboard_request = true;
+            $dashboard_page_slug = isset($path_segments[1]) && !empty($path_segments[1]) ? $path_segments[1] : 'overview';
+            set_query_var('mobooking_dashboard_page', $dashboard_page_slug); // Set for consistency if detected by URI
+            if(isset($path_segments[2]) && !empty($path_segments[2])) {
+                set_query_var('mobooking_dashboard_action', $path_segments[2]);
+            }
+            error_log('[MoBooking Router Debug] Detected dashboard from URI segments. Page slug set to: ' . $dashboard_page_slug);
         }
 
         if ($is_dashboard_request) {
+            // Ensure $dashboard_page_slug is set if it was only determined by $is_dashboard_uri and not query_var initially for this block
+            if (empty($dashboard_page_slug)) { // Should be set by the logic above if $is_dashboard_request is true
+                 $dashboard_page_slug = get_query_var('mobooking_dashboard_page'); // Re-fetch, should have been set by URI detection
+            }
             error_log('[MoBooking Router Debug] Processing as dashboard request for page: ' . $dashboard_page_slug);
+
             if (!is_user_logged_in() || !current_user_can('read')) { // 'read' is a basic capability for logged-in users
                 error_log('[MoBooking Router Debug] User not authenticated for dashboard access. Redirecting to login.');
                 // Get current URL to redirect back after login
