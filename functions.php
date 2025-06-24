@@ -1062,3 +1062,568 @@ if (!function_exists('mobooking_handle_dashboard_overview_ajax')) {
 
 // Register the AJAX action (only add this line to functions.php)
 add_action('wp_ajax_mobooking_get_dashboard_overview_data', 'mobooking_handle_dashboard_overview_ajax');
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/**
+ * Add this to your functions.php to debug public booking form issues
+ * This will help identify why the booking form is showing the homepage instead
+ */
+
+// Debug function for public booking form routing
+function mobooking_debug_public_booking_routing() {
+    // Only show debug info for admin users
+    if (!current_user_can('manage_options')) {
+        return;
+    }
+    
+    // Only show debug when visiting a bookings URL or when debug param is present
+    $request_uri = $_SERVER['REQUEST_URI'] ?? '';
+    $should_debug = (strpos($request_uri, '/bookings/') !== false) || isset($_GET['mobooking_debug']);
+    
+    if (!$should_debug) {
+        return;
+    }
+    
+    global $wp, $wpdb;
+    
+    echo '<div style="background: #fff; border: 2px solid #dc3232; padding: 20px; margin: 20px; position: fixed; top: 50px; left: 20px; z-index: 99999; max-width: 500px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); max-height: 80vh; overflow-y: auto;">';
+    echo '<h3 style="margin: 0 0 15px 0; color: #dc3232;">MoBooking Public Form Debug</h3>';
+    
+    // Current request info
+    echo '<h4>1. Request Info</h4>';
+    echo '<p><strong>Request URI:</strong> ' . esc_html($request_uri) . '</p>';
+    echo '<p><strong>WordPress Request:</strong> ' . esc_html($wp->request ?? 'Not Set') . '</p>';
+    
+    // Parse URL segments
+    $path = trim(parse_url($request_uri, PHP_URL_PATH), '/');
+    $path_segments = explode('/', $path);
+    echo '<p><strong>URL Segments:</strong> ' . esc_html(print_r($path_segments, true)) . '</p>';
+    
+    // Check if this looks like a booking URL
+    if (isset($path_segments[0]) && $path_segments[0] === 'bookings' && isset($path_segments[1])) {
+        $business_slug = $path_segments[1];
+        echo '<p><strong>Detected Business Slug:</strong> ' . esc_html($business_slug) . '</p>';
+        
+        // Check if slug exists in database
+        echo '<h4>2. Slug Lookup</h4>';
+        try {
+            $settings_table = \MoBooking\Classes\Database::get_table_name('tenant_settings');
+            echo '<p><strong>Settings Table:</strong> ' . esc_html($settings_table) . '</p>';
+            
+            $user_id = $wpdb->get_var($wpdb->prepare(
+                "SELECT user_id FROM {$settings_table} WHERE setting_name = 'bf_business_slug' AND setting_value = %s",
+                $business_slug
+            ));
+            
+            echo '<p><strong>User ID Found:</strong> ' . ($user_id ? esc_html($user_id) : 'NULL') . '</p>';
+            
+            if ($user_id) {
+                $user = get_userdata($user_id);
+                if ($user) {
+                    echo '<p><strong>User Info:</strong> ' . esc_html($user->user_login) . ' (' . esc_html(implode(', ', $user->roles)) . ')</p>';
+                } else {
+                    echo '<p style="color: red;"><strong>ERROR:</strong> User ID exists but user not found!</p>';
+                }
+            } else {
+                // Show all available slugs for debugging
+                $all_slugs = $wpdb->get_results($wpdb->prepare(
+                    "SELECT user_id, setting_value FROM {$settings_table} WHERE setting_name = 'bf_business_slug'"
+                ));
+                echo '<p><strong>Available Slugs:</strong></p>';
+                echo '<ul>';
+                foreach ($all_slugs as $slug_data) {
+                    echo '<li>' . esc_html($slug_data->setting_value) . ' (User ID: ' . esc_html($slug_data->user_id) . ')</li>';
+                }
+                echo '</ul>';
+            }
+        } catch (Exception $e) {
+            echo '<p style="color: red;"><strong>Database Error:</strong> ' . esc_html($e->getMessage()) . '</p>';
+        }
+    }
+    
+    // Check query vars
+    echo '<h4>3. Query Variables</h4>';
+    echo '<p><strong>mobooking_slug:</strong> ' . esc_html(get_query_var('mobooking_slug')) . '</p>';
+    echo '<p><strong>mobooking_page_type:</strong> ' . esc_html(get_query_var('mobooking_page_type')) . '</p>';
+    echo '<p><strong>mobooking_tenant_id_on_page:</strong> ' . esc_html(get_query_var('mobooking_tenant_id_on_page')) . '</p>';
+    
+    // Check template
+    echo '<h4>4. Template Check</h4>';
+    $template_path = get_template_directory() . '/templates/booking-form-public.php';
+    echo '<p><strong>Template Path:</strong> ' . esc_html($template_path) . '</p>';
+    echo '<p><strong>Template Exists:</strong> ' . (file_exists($template_path) ? 'YES' : 'NO') . '</p>';
+    
+    // Check rewrite rules
+    echo '<h4>5. Rewrite Rules</h4>';
+    $rules = get_option('rewrite_rules');
+    $booking_rules = [];
+    foreach ($rules as $pattern => $rewrite) {
+        if (strpos($pattern, 'bookings') !== false || strpos($rewrite, 'mobooking') !== false) {
+            $booking_rules[$pattern] = $rewrite;
+        }
+    }
+    echo '<p><strong>Booking Rules Found:</strong> ' . count($booking_rules) . '</p>';
+    if (!empty($booking_rules)) {
+        echo '<ul>';
+        foreach ($booking_rules as $pattern => $rewrite) {
+            echo '<li>' . esc_html($pattern) . ' => ' . esc_html($rewrite) . '</li>';
+        }
+        echo '</ul>';
+    } else {
+        echo '<p style="color: red;">No booking rewrite rules found! This might be the issue.</p>';
+        echo '<p><a href="' . add_query_arg('flush_rewrites', '1') . '">Click here to flush rewrite rules</a></p>';
+    }
+    
+    // Check if BookingFormRouter is loaded
+    echo '<h4>6. Router Status</h4>';
+    echo '<p><strong>BookingFormRouter Class Exists:</strong> ' . (class_exists('MoBooking\\Classes\\Routes\\BookingFormRouter') ? 'YES' : 'NO') . '</p>';
+    
+    // Current template being used
+    global $template;
+    echo '<p><strong>Current Template:</strong> ' . esc_html($template ?? 'Not Set') . '</p>';
+    
+    echo '<button onclick="this.parentElement.style.display=\'none\'" style="float: right; background: #dc3232; color: white; border: none; padding: 5px 10px; cursor: pointer; margin-top: 10px;">Close Debug</button>';
+    echo '<div style="clear: both;"></div>';
+    echo '</div>';
+}
+add_action('wp_head', 'mobooking_debug_public_booking_routing');
+add_action('wp_footer', 'mobooking_debug_public_booking_routing');
+
+/**
+ * Enhanced BookingFormRouter with better debugging and fixes
+ * Replace your existing BookingFormRouter.php with this version
+ */
+
+// Also add this to help with debugging in admin
+function mobooking_admin_debug_booking_urls() {
+    if (!current_user_can('manage_options') || !isset($_GET['mobooking_debug_admin'])) {
+        return;
+    }
+    
+    global $wpdb;
+    
+    echo '<div class="wrap">';
+    echo '<h1>MoBooking Debug - Admin</h1>';
+    
+    // Test all business slugs
+    $settings_table = \MoBooking\Classes\Database::get_table_name('tenant_settings');
+    $all_slugs = $wpdb->get_results($wpdb->prepare(
+        "SELECT user_id, setting_value FROM {$settings_table} WHERE setting_name = 'bf_business_slug'"
+    ));
+    
+    echo '<h2>Business Slugs Test</h2>';
+    echo '<table class="wp-list-table widefat fixed striped">';
+    echo '<thead><tr><th>User ID</th><th>Slug</th><th>URL</th><th>Test Link</th></tr></thead>';
+    echo '<tbody>';
+    
+    foreach ($all_slugs as $slug_data) {
+        $url = home_url('/bookings/' . $slug_data->setting_value . '/');
+        echo '<tr>';
+        echo '<td>' . esc_html($slug_data->user_id) . '</td>';
+        echo '<td>' . esc_html($slug_data->setting_value) . '</td>';
+        echo '<td>' . esc_html($url) . '</td>';
+        echo '<td><a href="' . esc_url($url . '?mobooking_debug=1') . '" target="_blank">Test</a></td>';
+        echo '</tr>';
+    }
+    
+    echo '</tbody></table>';
+    
+    // Show rewrite rules
+    echo '<h2>Rewrite Rules</h2>';
+    $rules = get_option('rewrite_rules');
+    echo '<pre>';
+    foreach ($rules as $pattern => $rewrite) {
+        if (strpos($pattern, 'booking') !== false || strpos($rewrite, 'mobooking') !== false) {
+            echo esc_html($pattern . ' => ' . $rewrite) . "\n";
+        }
+    }
+    echo '</pre>';
+    
+    echo '<p><a href="' . add_query_arg('flush_rewrites', '1') . '" class="button">Flush Rewrite Rules</a></p>';
+    echo '</div>';
+    
+    // Stop normal page rendering
+    exit;
+}
+add_action('admin_init', 'mobooking_admin_debug_booking_urls');
+
+/**
+ * Quick fix function to ensure the template_include filter is working
+ * Add this to functions.php to help debug template loading
+ */
+function mobooking_debug_template_include($template) {
+    // Only for admin users and booking URLs
+    if (!current_user_can('manage_options')) {
+        return $template;
+    }
+    
+    $request_uri = $_SERVER['REQUEST_URI'] ?? '';
+    if (strpos($request_uri, '/bookings/') !== false || isset($_GET['mobooking_debug'])) {
+        error_log('[MoBooking Debug] template_include called with: ' . $template);
+        error_log('[MoBooking Debug] Request URI: ' . $request_uri);
+        
+        // Check if our router is actually running
+        global $wp;
+        $path = trim($wp->request ?? '', '/');
+        $path_segments = explode('/', $path);
+        
+        error_log('[MoBooking Debug] Path segments: ' . print_r($path_segments, true));
+        
+        if (isset($path_segments[0]) && $path_segments[0] === 'bookings') {
+            error_log('[MoBooking Debug] This should be handled by MoBooking router!');
+            
+            // Manual check if template exists
+            $booking_template = get_template_directory() . '/templates/booking-form-public.php';
+            error_log('[MoBooking Debug] Booking template path: ' . $booking_template);
+            error_log('[MoBooking Debug] Booking template exists: ' . (file_exists($booking_template) ? 'YES' : 'NO'));
+        }
+    }
+    
+    return $template;
+}
+add_filter('template_include', 'mobooking_debug_template_include', 999);
+
+/**
+ * Force flush rewrite rules if requested
+ */
+function mobooking_manual_flush_rewrites() {
+    if (isset($_GET['flush_rewrites']) && current_user_can('manage_options')) {
+        flush_rewrite_rules();
+        wp_redirect(remove_query_arg('flush_rewrites'));
+        exit;
+    }
+}
+add_action('init', 'mobooking_manual_flush_rewrites');
+
+/**
+ * Check if rewrite rules are missing and auto-flush them
+ */
+function mobooking_auto_check_rewrite_rules() {
+    $rules = get_option('rewrite_rules');
+    $has_booking_rules = false;
+    
+    foreach ($rules as $pattern => $rewrite) {
+        if (strpos($pattern, 'bookings') !== false && strpos($rewrite, 'mobooking') !== false) {
+            $has_booking_rules = true;
+            break;
+        }
+    }
+    
+    if (!$has_booking_rules) {
+        error_log('[MoBooking] Missing booking rewrite rules, auto-flushing...');
+        flush_rewrite_rules();
+    }
+}
+add_action('wp_loaded', 'mobooking_auto_check_rewrite_rules');
+
+
+
+
+
+
+
+
+
+/**
+ * Add this to your functions.php to set up business slugs and debug the saving process
+ * This will help you get your first business slug working
+ */
+
+// Quick setup function - run this once to create a business slug for your user
+function mobooking_quick_setup_business_slug() {
+    // Only run when specifically requested
+    if (!isset($_GET['mobooking_setup_slug']) || !current_user_can('manage_options')) {
+        return;
+    }
+    
+    $user_id = get_current_user_id();
+    if (!$user_id) {
+        wp_die('No user logged in');
+    }
+    
+    // Get or create the slug from URL parameter
+    $slug = isset($_GET['slug']) ? sanitize_title($_GET['slug']) : 'bolio';
+    
+    if (empty($slug)) {
+        wp_die('No slug provided. Use ?mobooking_setup_slug=1&slug=your-slug');
+    }
+    
+    echo '<div style="background: #fff; padding: 20px; margin: 20px; border: 1px solid #ccc;">';
+    echo '<h2>MoBooking Business Slug Setup</h2>';
+    
+    // Check if Settings class exists
+    if (!class_exists('MoBooking\\Classes\\Settings')) {
+        echo '<p style="color: red;">ERROR: Settings class not found!</p>';
+        echo '</div>';
+        return;
+    }
+    
+    // Check if Database class exists and table is ready
+    if (!class_exists('MoBooking\\Classes\\Database')) {
+        echo '<p style="color: red;">ERROR: Database class not found!</p>';
+        echo '</div>';
+        return;
+    }
+    
+    $settings_table = \MoBooking\Classes\Database::get_table_name('tenant_settings');
+    echo '<p><strong>Settings Table:</strong> ' . esc_html($settings_table) . '</p>';
+    
+    // Check if table exists
+    global $wpdb;
+    $table_exists = $wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $settings_table));
+    
+    if (!$table_exists) {
+        echo '<p style="color: red;">ERROR: Settings table does not exist: ' . esc_html($settings_table) . '</p>';
+        echo '<p>You may need to run database creation scripts.</p>';
+        echo '</div>';
+        return;
+    }
+    
+    echo '<p style="color: green;">✓ Settings table exists</p>';
+    
+    // Try to save the business slug
+    $settings_manager = new \MoBooking\Classes\Settings();
+    
+    echo '<h3>Setting up business slug "' . esc_html($slug) . '" for user ID ' . $user_id . '</h3>';
+    
+    $result = $settings_manager->update_setting($user_id, 'bf_business_slug', $slug);
+    
+    if ($result) {
+        echo '<p style="color: green;">✓ Business slug saved successfully!</p>';
+        
+        // Verify it was saved
+        $saved_slug = $settings_manager->get_setting($user_id, 'bf_business_slug');
+        echo '<p><strong>Saved slug:</strong> ' . esc_html($saved_slug) . '</p>';
+        
+        if ($saved_slug === $slug) {
+            echo '<p style="color: green;">✓ Slug verification successful!</p>';
+            
+            // Test the URL
+            $test_url = home_url('/bookings/' . $slug . '/');
+            echo '<h3>Test Your Booking Form</h3>';
+            echo '<p><strong>Your booking form URL:</strong></p>';
+            echo '<p><a href="' . esc_url($test_url) . '" target="_blank" style="background: #0073aa; color: white; padding: 10px 20px; text-decoration: none; border-radius: 3px;">' . esc_html($test_url) . '</a></p>';
+            
+            // Flush rewrite rules
+            flush_rewrite_rules();
+            echo '<p style="color: green;">✓ Rewrite rules flushed</p>';
+            
+        } else {
+            echo '<p style="color: red;">ERROR: Slug was not saved correctly. Expected "' . esc_html($slug) . '", got "' . esc_html($saved_slug) . '"</p>';
+        }
+    } else {
+        echo '<p style="color: red;">ERROR: Failed to save business slug</p>';
+        
+        // Debug the insert
+        echo '<h3>Database Debug</h3>';
+        echo '<p>Last database error: ' . esc_html($wpdb->last_error) . '</p>';
+        echo '<p>Last query: ' . esc_html($wpdb->last_query) . '</p>';
+    }
+    
+    // Show all current slugs
+    echo '<h3>All Business Slugs in Database</h3>';
+    $all_slugs = $wpdb->get_results($wpdb->prepare(
+        "SELECT user_id, setting_value FROM {$settings_table} WHERE setting_name = %s",
+        'bf_business_slug'
+    ));
+    
+    if (!empty($all_slugs)) {
+        echo '<table border="1" style="border-collapse: collapse; width: 100%;">';
+        echo '<tr><th style="padding: 10px;">User ID</th><th style="padding: 10px;">Business Slug</th><th style="padding: 10px;">Test URL</th></tr>';
+        foreach ($all_slugs as $slug_data) {
+            $test_url = home_url('/bookings/' . $slug_data->setting_value . '/');
+            echo '<tr>';
+            echo '<td style="padding: 10px;">' . esc_html($slug_data->user_id) . '</td>';
+            echo '<td style="padding: 10px;">' . esc_html($slug_data->setting_value) . '</td>';
+            echo '<td style="padding: 10px;"><a href="' . esc_url($test_url) . '" target="_blank">Test</a></td>';
+            echo '</tr>';
+        }
+        echo '</table>';
+    } else {
+        echo '<p>No business slugs found in database.</p>';
+    }
+    
+    echo '</div>';
+    exit; // Stop normal page rendering
+}
+add_action('init', 'mobooking_quick_setup_business_slug');
+
+/**
+ * Enhanced AJAX handler for booking form settings to ensure saving works
+ */
+function mobooking_debug_settings_save() {
+    // Only run when specifically requested
+    if (!isset($_GET['debug_settings_save']) || !current_user_can('manage_options')) {
+        return;
+    }
+    
+    echo '<div style="background: #fff; padding: 20px; margin: 20px; border: 1px solid #ccc;">';
+    echo '<h2>Settings Save Debug</h2>';
+    
+    // Test the settings saving process
+    $user_id = get_current_user_id();
+    $test_slug = 'test-business-' . time(); // Unique slug
+    
+    echo '<p>Testing settings save with user ID: ' . $user_id . '</p>';
+    echo '<p>Test slug: ' . esc_html($test_slug) . '</p>';
+    
+    if (class_exists('MoBooking\\Classes\\Settings')) {
+        $settings_manager = new \MoBooking\Classes\Settings();
+        
+        echo '<h3>Before Save</h3>';
+        $before = $settings_manager->get_setting($user_id, 'bf_business_slug');
+        echo '<p>Current slug: ' . esc_html($before) . '</p>';
+        
+        echo '<h3>Saving...</h3>';
+        $result = $settings_manager->update_setting($user_id, 'bf_business_slug', $test_slug);
+        echo '<p>Save result: ' . ($result ? 'SUCCESS' : 'FAILED') . '</p>';
+        
+        if (!$result) {
+            global $wpdb;
+            echo '<p>Database error: ' . esc_html($wpdb->last_error) . '</p>';
+            echo '<p>Last query: ' . esc_html($wpdb->last_query) . '</p>';
+        }
+        
+        echo '<h3>After Save</h3>';
+        $after = $settings_manager->get_setting($user_id, 'bf_business_slug');
+        echo '<p>Retrieved slug: ' . esc_html($after) . '</p>';
+        
+        if ($after === $test_slug) {
+            echo '<p style="color: green;">✓ Settings save/retrieve working correctly!</p>';
+        } else {
+            echo '<p style="color: red;">✗ Settings save/retrieve not working correctly!</p>';
+        }
+    } else {
+        echo '<p style="color: red;">Settings class not found!</p>';
+    }
+    
+    echo '</div>';
+    exit;
+}
+add_action('init', 'mobooking_debug_settings_save');
+
+/**
+ * Check and fix database table structure if needed
+ */
+function mobooking_check_database_structure() {
+    if (!isset($_GET['check_db']) || !current_user_can('manage_options')) {
+        return;
+    }
+    
+    global $wpdb;
+    
+    echo '<div style="background: #fff; padding: 20px; margin: 20px; border: 1px solid #ccc;">';
+    echo '<h2>Database Structure Check</h2>';
+    
+    if (!class_exists('MoBooking\\Classes\\Database')) {
+        echo '<p style="color: red;">Database class not found!</p>';
+        echo '</div>';
+        return;
+    }
+    
+    $settings_table = \MoBooking\Classes\Database::get_table_name('tenant_settings');
+    echo '<p><strong>Expected table name:</strong> ' . esc_html($settings_table) . '</p>';
+    
+    // Check if table exists
+    $table_exists = $wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $settings_table));
+    
+    if ($table_exists) {
+        echo '<p style="color: green;">✓ Table exists</p>';
+        
+        // Check table structure
+        $columns = $wpdb->get_results("DESCRIBE {$settings_table}");
+        echo '<h3>Table Structure</h3>';
+        echo '<table border="1" style="border-collapse: collapse;">';
+        echo '<tr><th style="padding: 10px;">Column</th><th style="padding: 10px;">Type</th><th style="padding: 10px;">Null</th><th style="padding: 10px;">Key</th></tr>';
+        foreach ($columns as $column) {
+            echo '<tr>';
+            echo '<td style="padding: 10px;">' . esc_html($column->Field) . '</td>';
+            echo '<td style="padding: 10px;">' . esc_html($column->Type) . '</td>';
+            echo '<td style="padding: 10px;">' . esc_html($column->Null) . '</td>';
+            echo '<td style="padding: 10px;">' . esc_html($column->Key) . '</td>';
+            echo '</tr>';
+        }
+        echo '</table>';
+        
+        // Show some sample data
+        $sample_data = $wpdb->get_results("SELECT * FROM {$settings_table} LIMIT 5");
+        if (!empty($sample_data)) {
+            echo '<h3>Sample Data</h3>';
+            echo '<pre>' . print_r($sample_data, true) . '</pre>';
+        } else {
+            echo '<p>No data in table yet.</p>';
+        }
+        
+    } else {
+        echo '<p style="color: red;">✗ Table does not exist!</p>';
+        echo '<p>You may need to run the database creation scripts.</p>';
+        
+        // Try to create the table
+        echo '<h3>Attempting to create table...</h3>';
+        
+        $charset_collate = $wpdb->get_charset_collate();
+        $sql = "CREATE TABLE {$settings_table} (
+            id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+            user_id bigint(20) unsigned NOT NULL,
+            setting_name varchar(255) NOT NULL,
+            setting_value longtext,
+            PRIMARY KEY (id),
+            UNIQUE KEY user_setting (user_id, setting_name),
+            KEY user_id (user_id),
+            KEY setting_name (setting_name)
+        ) {$charset_collate};";
+        
+        require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+        $result = dbDelta($sql);
+        
+        echo '<pre>' . print_r($result, true) . '</pre>';
+        
+        // Check if it was created
+        $table_exists_now = $wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $settings_table));
+        if ($table_exists_now) {
+            echo '<p style="color: green;">✓ Table created successfully!</p>';
+        } else {
+            echo '<p style="color: red;">✗ Failed to create table</p>';
+        }
+    }
+    
+    echo '</div>';
+    exit;
+}
+add_action('init', 'mobooking_check_database_structure');
