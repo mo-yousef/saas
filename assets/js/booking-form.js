@@ -167,17 +167,57 @@ jQuery(document).ready(function ($) {
   });
 
   function displayStep(stepToShow) {
-    $(".mobooking-bf-step").hide();
+    const steps = $(".mobooking-bf__step");
     let targetStepDiv;
+
     if (stepToShow === 1) targetStepDiv = step1Div;
     else if (stepToShow === 2) targetStepDiv = step2ServicesDiv;
     else if (stepToShow === 3) targetStepDiv = step3OptionsDiv;
     else if (stepToShow === 4) targetStepDiv = step4DetailsDiv;
     else if (stepToShow === 5) targetStepDiv = step5ReviewDiv;
     else if (stepToShow === 6) targetStepDiv = step6ConfirmDiv;
+
+    steps.each(function() {
+      const currentStep = $(this);
+      if (currentStep.is(targetStepDiv)) {
+        // If it's the target step and not already visible, fade it in
+        if (!currentStep.hasClass('fade-in')) {
+          currentStep.removeClass('fade-out mobooking-bf__hidden').show(); // Remove hidden, show for animation
+          // Timeout to allow display:block to take effect before adding animation class
+          setTimeout(() => {
+            currentStep.addClass('fade-in');
+          }, 10);
+        }
+      } else {
+        // If it's not the target step and is visible, fade it out
+        if (currentStep.hasClass('fade-in')) {
+          currentStep.removeClass('fade-in').addClass('fade-out');
+          // Hide after animation - listen for animationend
+          currentStep.one('animationend', function() {
+            if (currentStep.hasClass('fade-out')) { // Check if it's still meant to be hidden
+              currentStep.addClass('mobooking-bf__hidden').hide();
+            }
+          });
+        } else if (!currentStep.hasClass('mobooking-bf__hidden')) {
+            // If it was never faded in but is visible, just hide it
+            currentStep.addClass('mobooking-bf__hidden').hide();
+        }
+      }
+    });
+
+    // Ensure the target step is not accidentally hidden by animationend if re-shown quickly
     if (targetStepDiv && targetStepDiv.length) {
-      targetStepDiv.slideDown();
+        if (targetStepDiv.hasClass('fade-out')) { // If it was fading out, reverse that
+            targetStepDiv.removeClass('fade-out mobooking-bf__hidden').show().addClass('fade-in');
+        } else if (targetStepDiv.hasClass('mobooking-bf__hidden')) { // If it was hidden, show and fade in
+            targetStepDiv.removeClass('mobooking-bf__hidden').show();
+            setTimeout(() => {
+                targetStepDiv.addClass('fade-in');
+            }, 10);
+        }
     }
+
+
     mobooking_current_step = stepToShow;
   }
 
@@ -1041,6 +1081,46 @@ jQuery(document).ready(function ($) {
 
   // Initial display
   displayStep(1);
+
+  // --- Apply Dynamic Styles from Settings ---
+  const formWrapper = $('#mobooking-public-booking-form-wrapper');
+  if (formWrapper.length) {
+    if (formSettings.bf_theme_color) {
+      formWrapper.css('--mobk-color-primary', formSettings.bf_theme_color);
+      // Potentially derive a ring color if not set separately
+      formWrapper.css('--mobk-color-ring', formSettings.bf_theme_color);
+    }
+    if (formSettings.bf_secondary_color) { // Assuming this is for secondary button BG or similar accents
+      formWrapper.css('--mobk-color-secondary', formSettings.bf_secondary_color);
+    }
+    if (formSettings.bf_background_color) {
+      formWrapper.css('--mobk-color-background', formSettings.bf_background_color);
+      // If card background is same as page background, this might need adjustment or card specific var
+      formWrapper.css('--mobk-color-card', formSettings.bf_background_color); // Example: card matches page bg
+                                                                            // Or, keep card default white and let this be page bg only
+    }
+    if (formSettings.bf_font_family) {
+      formWrapper.css('--mobk-font-family', formSettings.bf_font_family);
+      // Also apply to body if the form is the main content and not embedded
+      if (!$('body').hasClass('mobooking-form-embed-active')) {
+        $('body').css('font-family', formSettings.bf_font_family);
+      }
+    }
+    if (formSettings.bf_border_radius) {
+      // Assuming bf_border_radius is a number, append 'px' or use as is if it's a full CSS value.
+      // Shadcn uses rem, e.g., 0.5rem. If bf_border_radius stores "8", it could be "8px".
+      // The CSS variables are defined with 'rem'. Let's assume bf_border_radius is a number for pixels.
+      const radiusValue = parseFloat(formSettings.bf_border_radius);
+      if (!isNaN(radiusValue)) {
+        formWrapper.css('--mobk-border-radius', radiusValue + 'px');
+        // Potentially derive sm and lg based on this, or expect them to be set if customizable
+        formWrapper.css('--mobk-border-radius-sm', Math.max(0, radiusValue - 2) + 'px');
+        formWrapper.css('--mobk-border-radius-lg', (radiusValue + 4) + 'px');
+      }
+    }
+  }
+  // --- End Apply Dynamic Styles ---
+
 
   // Helper function to check if pricing should be shown
   window.mobookingShouldShowPricing = function() {
