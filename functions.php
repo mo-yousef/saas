@@ -98,6 +98,9 @@ function mobooking_scripts() {
     // For Public Booking Form page (standard page template OR slug-based route)
     $page_type_for_scripts = get_query_var('mobooking_page_type');
     if ( is_page_template('templates/booking-form-public.php') || $page_type_for_scripts === 'public_booking' || $page_type_for_scripts === 'embed_booking' ) {
+        // Enqueue the new modern booking form CSS
+        wp_enqueue_style( 'mobooking-booking-form-modern', MOBOOKING_THEME_URI . 'assets/css/booking-form-modern.css', array('mobooking-style'), MOBOOKING_VERSION );
+
         wp_enqueue_script('jquery-ui-datepicker');
         wp_enqueue_script('mobooking-booking-form', MOBOOKING_THEME_URI . 'assets/js/booking-form.js', array('jquery', 'jquery-ui-datepicker'), MOBOOKING_VERSION, true);
 
