@@ -189,48 +189,272 @@ Please review this booking in your dashboard: {{admin_booking_link}}",
         wp_send_json_success(['settings' => $settings]);
     }
 
-    public function handle_save_booking_form_settings_ajax() {
-        error_log('[MoBooking Settings AJAX Save] ABSOLUTE TOP: handle_save_booking_form_settings_ajax reached.'); // New very early log
+public function handle_save_booking_form_settings_ajax() {
+    // Verify nonce first
+    if (!check_ajax_referer('mobooking_dashboard_nonce', 'nonce', false)) {
+        wp_send_json_error(['message' => __('Security check failed.', 'mobooking')], 403);
+        return;
+    }
 
-        check_ajax_referer('mobooking_dashboard_nonce', 'nonce');
-        $user_id = get_current_user_id();
-        if (!$user_id) {
-            error_log('[MoBooking Settings AJAX Save] User not authenticated.'); // Added log
-            wp_send_json_error(['message' => __('User not authenticated.', 'mobooking')], 403);
-            return;
-        }
-        error_log("[MoBooking Settings AJAX Save] User ID: $user_id"); // Added log
+    // Check user authentication
+    $user_id = get_current_user_id();
+    if (!$user_id) {
+        wp_send_json_error(['message' => __('User not authenticated.', 'mobooking')], 403);
+        return;
+    }
 
-        $settings_data = isset($_POST['settings']) ? (array) $_POST['settings'] : [];
+    // Get and validate settings data
+    $settings_data = isset($_POST['settings']) ? (array) $_POST['settings'] : [];
+    
+    if (empty($settings_data)) {
+        wp_send_json_error(['message' => __('No settings data received.', 'mobooking')], 400);
+        return;
+    }
 
-        if (empty($settings_data)) {
-            error_log('[MoBooking Settings AJAX Save] No settings data received in $_POST[\'settings\'].'); // Added log
-            wp_send_json_error(['message' => __('No settings data received.', 'mobooking')], 400);
-            return;
-        }
+    // Enhanced validation and sanitization
+    $validated_settings = $this->validate_and_sanitize_booking_form_settings($settings_data);
+    
+    if (is_wp_error($validated_settings)) {
+        wp_send_json_error(['message' => $validated_settings->get_error_message()], 400);
+        return;
+    }
 
-        error_log('[MoBooking Settings AJAX Save - Received Settings Data Before Validation] ' . print_r($settings_data, true));
+    // Save settings with improved error handling
+    try {
+        $result = $this->save_booking_form_settings($user_id, $validated_settings);
         
-        // Validate and sanitize specific settings
-        $validated_settings_data = $this->validate_booking_form_settings($settings_data);
-        error_log('[MoBooking Settings AJAX Save - Validated Settings Data Before Save] ' . print_r($validated_settings_data, true));
-
-        // Check if validation significantly altered or emptied the data
-        if (empty($validated_settings_data) && !empty($settings_data)) {
-            error_log('[MoBooking Settings AJAX Save] All settings data was removed or invalidated by validate_booking_form_settings.');
-        }
-        
-        $result = $this->save_booking_form_settings($user_id, $validated_settings_data);
-
         if ($result) {
-            error_log('[MoBooking Settings AJAX Save] save_booking_form_settings returned TRUE.');
-            wp_send_json_success(['message' => __('Booking form settings saved successfully.', 'mobooking')]);
+            // Return success with any processed data
+            $response_data = [
+                'message' => __('Booking form settings saved successfully.', 'mobooking')
+            ];
+            
+            // Include processed slug if it was sanitized
+            if (isset($validated_settings['bf_business_slug'])) {
+                $response_data['processed_slug'] = $validated_settings['bf_business_slug'];
+            }
+            
+            wp_send_json_success($response_data);
         } else {
-            error_log('[MoBooking Settings AJAX Save] save_booking_form_settings returned FALSE.');
-            wp_send_json_error(['message' => __('Failed to save some settings. Please check server logs if issues persist.', 'mobooking')], 500);
+            wp_send_json_error([
+                'message' => __('Failed to save settings. Please try again.', 'mobooking')
+            ], 500);
+        }
+        
+    } catch (Exception $e) {
+        error_log('[MoBooking Settings Save] Exception: ' . $e->getMessage());
+        wp_send_json_error([
+            'message' => __('An error occurred while saving settings.', 'mobooking')
+        ], 500);
+    }
+}
+
+
+/**
+ * Enhanced validation and sanitization for booking form settings
+ */
+private function validate_and_sanitize_booking_form_settings($settings_data) {
+    $sanitized = [];
+    $errors = [];
+
+    // Define field validation rules
+    $validation_rules = [
+        'bf_business_slug' => [
+            'type' => 'slug',
+            'required' => false,
+            'max_length' => 50
+        ],
+        'bf_header_text' => [
+            'type' => 'text',
+            'max_length' => 200
+        ],
+        'bf_show_pricing' => [
+            'type' => 'boolean'
+        ],
+        'bf_allow_discount_codes' => [
+            'type' => 'boolean'
+        ],
+        'bf_theme_color' => [
+            'type' => 'color'
+        ],
+        'bf_secondary_color' => [
+            'type' => 'color'
+        ],
+        'bf_background_color' => [
+            'type' => 'color'
+        ],
+        'bf_custom_css' => [
+            'type' => 'css',
+            'max_length' => 5000
+        ],
+        'bf_success_message' => [
+            'type' => 'textarea',
+            'max_length' => 1000
+        ],
+        'bf_allow_cancellation_hours' => [
+            'type' => 'number',
+            'min' => 0,
+            'max' => 720
+        ],
+        'bf_booking_lead_time_hours' => [
+            'type' => 'number',
+            'min' => 0,
+            'max' => 168
+        ],
+        'bf_max_booking_days_ahead' => [
+            'type' => 'number',
+            'min' => 1,
+            'max' => 365
+        ],
+        'bf_time_slot_duration' => [
+            'type' => 'number',
+            'min' => 15,
+            'max' => 480
+        ],
+        'bf_border_radius' => [
+            'type' => 'number',
+            'min' => 0,
+            'max' => 50
+        ]
+    ];
+
+    // Process each field
+    foreach ($settings_data as $key => $value) {
+        // Skip if not a valid booking form setting
+        if (strpos($key, 'bf_') !== 0 && !isset($validation_rules[$key])) {
+            continue;
+        }
+
+        $rules = $validation_rules[$key] ?? ['type' => 'text'];
+        $sanitized_value = $this->sanitize_field_value($value, $rules);
+
+        if (is_wp_error($sanitized_value)) {
+            $errors[] = sprintf(__('Invalid value for %s: %s', 'mobooking'), $key, $sanitized_value->get_error_message());
+            continue;
+        }
+
+        $sanitized[$key] = $sanitized_value;
+    }
+
+    // Return errors if any
+    if (!empty($errors)) {
+        return new WP_Error('validation_failed', implode(' ', $errors));
+    }
+
+    return $sanitized;
+}
+
+
+
+
+/**
+ * Sanitize individual field values based on type
+ */
+private function sanitize_field_value($value, $rules) {
+    $type = $rules['type'] ?? 'text';
+
+    switch ($type) {
+        case 'slug':
+            $sanitized = sanitize_title($value);
+            if (!empty($rules['max_length']) && strlen($sanitized) > $rules['max_length']) {
+                $sanitized = substr($sanitized, 0, $rules['max_length']);
+            }
+            // Ensure slug is unique if required
+            if (!empty($sanitized) && isset($rules['unique']) && $rules['unique']) {
+                $sanitized = $this->ensure_unique_slug($sanitized);
+            }
+            return $sanitized;
+
+        case 'color':
+            $sanitized = sanitize_hex_color($value);
+            return $sanitized ?: '';
+
+        case 'boolean':
+            return in_array($value, ['1', 'true', true, 1], true) ? '1' : '0';
+
+        case 'number':
+            $number = intval($value);
+            if (isset($rules['min']) && $number < $rules['min']) {
+                $number = $rules['min'];
+            }
+            if (isset($rules['max']) && $number > $rules['max']) {
+                $number = $rules['max'];
+            }
+            return $number;
+
+        case 'css':
+            // Basic CSS sanitization - remove dangerous functions
+            $sanitized = wp_strip_all_tags($value);
+            $dangerous_functions = ['expression', 'javascript:', 'eval(', 'import'];
+            foreach ($dangerous_functions as $func) {
+                $sanitized = str_ireplace($func, '', $sanitized);
+            }
+            if (!empty($rules['max_length']) && strlen($sanitized) > $rules['max_length']) {
+                $sanitized = substr($sanitized, 0, $rules['max_length']);
+            }
+            return $sanitized;
+
+        case 'textarea':
+            $sanitized = sanitize_textarea_field($value);
+            if (!empty($rules['max_length']) && strlen($sanitized) > $rules['max_length']) {
+                $sanitized = substr($sanitized, 0, $rules['max_length']);
+            }
+            return $sanitized;
+
+        case 'text':
+        default:
+            $sanitized = sanitize_text_field($value);
+            if (!empty($rules['max_length']) && strlen($sanitized) > $rules['max_length']) {
+                $sanitized = substr($sanitized, 0, $rules['max_length']);
+            }
+            return $sanitized;
+    }
+}
+
+
+/**
+ * Ensure business slug is unique (optional enhancement)
+ */
+private function ensure_unique_slug($slug, $user_id = null) {
+    global $wpdb;
+    
+    if (empty($slug)) {
+        return $slug;
+    }
+
+    $table_name = Database::get_table_name('tenant_settings');
+    $original_slug = $slug;
+    $counter = 1;
+
+    while (true) {
+        $query = $wpdb->prepare(
+            "SELECT COUNT(*) FROM {$table_name} WHERE setting_name = 'bf_business_slug' AND setting_value = %s",
+            $slug
+        );
+
+        // Exclude current user if provided
+        if ($user_id) {
+            $query .= $wpdb->prepare(" AND user_id != %d", $user_id);
+        }
+
+        $exists = $wpdb->get_var($query);
+
+        if (!$exists) {
+            break;
+        }
+
+        $slug = $original_slug . '-' . $counter;
+        $counter++;
+
+        // Prevent infinite loop
+        if ($counter > 100) {
+            $slug = $original_slug . '-' . time();
+            break;
         }
     }
 
+    return $slug;
+}
     /**
      * Validate and sanitize booking form settings
      */
@@ -497,12 +721,36 @@ Please review this booking in your dashboard: {{admin_booking_link}}",
         return $all_successful;
     }
 
-    public function save_booking_form_settings(int $user_id, array $settings_data): bool {
-        $booking_form_defaults = array_filter(self::$default_tenant_settings, function($key) {
-            return strpos($key, 'bf_') === 0;
-        }, ARRAY_FILTER_USE_KEY);
-        return $this->save_settings_group($user_id, $settings_data, $booking_form_defaults);
+/**
+ * Enhanced save method with better error handling
+ */
+public function save_booking_form_settings(int $user_id, array $settings_data): bool {
+    if (empty($user_id) || empty($settings_data)) {
+        return false;
     }
+
+    $success_count = 0;
+    $total_count = 0;
+
+    foreach ($settings_data as $key => $value) {
+        $total_count++;
+        
+        try {
+            $result = $this->update_setting($user_id, $key, $value);
+            if ($result) {
+                $success_count++;
+            } else {
+                error_log("[MoBooking Settings] Failed to save setting: {$key} for user: {$user_id}");
+            }
+        } catch (Exception $e) {
+            error_log("[MoBooking Settings] Exception saving {$key}: " . $e->getMessage());
+        }
+    }
+
+    // Consider it successful if at least 80% of settings were saved
+    $success_rate = $total_count > 0 ? ($success_count / $total_count) : 0;
+    return $success_rate >= 0.8;
+}
 
     public function save_business_settings(int $user_id, array $settings_data): bool {
         $business_setting_keys = array_filter(array_keys(self::$default_tenant_settings), function($key) {
