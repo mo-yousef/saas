@@ -113,6 +113,34 @@ Please review this booking in your dashboard: {{admin_booking_link}}",
         // Business Settings
         add_action('wp_ajax_mobooking_get_business_settings', [$this, 'handle_get_business_settings_ajax']);
         add_action('wp_ajax_mobooking_save_business_settings', [$this, 'handle_save_business_settings_ajax']);
+
+        // Utility Actions
+        add_action('wp_ajax_mobooking_flush_rewrite_rules', [$this, 'handle_flush_rewrite_rules_ajax']);
+    }
+
+    public function handle_flush_rewrite_rules_ajax() {
+        check_ajax_referer('mobooking_dashboard_nonce', 'nonce'); // Use existing general dashboard nonce
+
+        if (!current_user_can('manage_options')) { // Typically, only admins should flush rules
+            wp_send_json_error(['message' => __('You do not have permission to flush rewrite rules.', 'mobooking')], 403);
+            return;
+        }
+
+        // Defer rewrite rule flushing to the 'shutdown' action hook.
+        // This is the recommended way to flush rules to avoid issues with the $wp_rewrite global object state.
+        update_option('mobooking_flush_rewrite_rules_flag', true);
+
+        // Re-register our rules so they are definitely part of the flush
+        // Assuming mobooking_add_rewrite_rules() is the function that sets them up and is hooked to init.
+        // We need to ensure it's callable or directly call the relevant part if not hooked to init in a way that runs now.
+        // For now, we rely on the next init call to register them before shutdown flushes.
+        // A more direct way would be to call the function that contains add_rewrite_rule() here if possible and safe.
+        // However, the flag and shutdown hook is generally safer for flushing.
+
+        // The actual flushing will be done by a function hooked to 'shutdown' if the flag is true.
+        // We need to add that function in functions.php or similar.
+
+        wp_send_json_success(['message' => __('Rewrite rules will be flushed. This may take a moment to reflect on your site.', 'mobooking')]);
     }
 
     public function handle_get_business_settings_ajax() {

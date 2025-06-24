@@ -191,4 +191,38 @@ jQuery(document).ready(function ($) {
   $("#mobooking-copy-embed-code-btn").on("click", function () {
     copyToClipboard(document.getElementById("mobooking-embed-code"), $("#mobooking-copy-embed-feedback"), $(this));
   });
+
+  // Flush Rewrite Rules Button
+  const flushRulesBtn = $("#mobooking-flush-rewrite-rules-btn");
+  const flushRulesFeedback = $("#mobooking-flush-rules-feedback");
+
+  flushRulesBtn.on("click", function() {
+    const originalButtonText = $(this).text();
+    $(this).prop("disabled", true).text(mobooking_bf_settings_params.i18n.saving || "Processing..."); // Using 'saving' as a generic processing text
+    flushRulesFeedback.empty().removeClass("notice-success notice-error").hide();
+
+    $.ajax({
+      url: mobooking_bf_settings_params.ajax_url,
+      type: "POST",
+      data: {
+        action: "mobooking_flush_rewrite_rules",
+        nonce: mobooking_bf_settings_params.nonce, // General dashboard nonce from existing params
+      },
+      success: function (response) {
+        if (response.success) {
+          flushRulesFeedback.text(response.data.message || "Rewrite rules scheduled for flushing.").addClass("notice notice-success").show();
+        } else {
+          flushRulesFeedback.text(response.data.message || "Failed to schedule rewrite rule flushing.").addClass("notice notice-error").show();
+        }
+      },
+      error: function () {
+        flushRulesFeedback.text(mobooking_bf_settings_params.i18n.error_ajax || "AJAX error.").addClass("notice notice-error").show();
+      },
+      complete: function () {
+        flushRulesBtn.prop("disabled", false).text(originalButtonText);
+        setTimeout(function () { flushRulesFeedback.fadeOut(); }, 7000); // Longer timeout for this message
+      },
+    });
+  });
+
 });
