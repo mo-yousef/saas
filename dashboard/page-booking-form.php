@@ -380,13 +380,6 @@ if (!empty($current_slug)) {
 </div>
 
 <style>
-/* Enhanced styling for the booking form settings page */
-.mobooking-settings-tab-content {
-    background: #fff;
-    padding: 20px;
-    border: 1px solid #ccd0d4;
-    border-top: none;
-}
 
 .form-table th {
     width: 200px;
