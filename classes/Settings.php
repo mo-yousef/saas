@@ -532,7 +532,8 @@ Please review this booking in your dashboard: {{admin_booking_link}}",
     public function get_public_booking_url(int $user_id): string {
         $business_slug = $this->get_setting($user_id, 'bf_business_slug', '');
         if (!empty($business_slug)) {
-            return trailingslashit(site_url()) . $business_slug . '/booking/';
+            // Use the new standardized URL structure
+            return trailingslashit(site_url()) . 'bookings/' . $business_slug . '/';
         }
         return '';
     }
