@@ -69,8 +69,9 @@ jQuery(document).ready(function ($) {
     const sanitizedSlug = slug.trim().toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, '');
     if (sanitizedSlug) {
       const bookingFormTitle = mobooking_bf_settings_params.i18n.booking_form_title;
-      const publicLink = baseSiteUrl + sanitizedSlug + '/booking/';
-      const embedCode = `<iframe src="${publicLink}" title="${bookingFormTitle}" style="width:100%; height:800px; border:1px solid #ccc;"></iframe>`;
+      const publicLink = baseSiteUrl + 'bookings/' + sanitizedSlug + '/';
+      const embedLink = baseSiteUrl + 'embed-booking/' + sanitizedSlug + '/';
+      const embedCode = `<iframe src="${embedLink}" title="${bookingFormTitle}" style="width:100%; height:800px; border:1px solid #ccc;"></iframe>`;
       publicLinkInput.val(publicLink);
       embedCodeTextarea.val(embedCode);
       copyLinkBtn.prop("disabled", false);
