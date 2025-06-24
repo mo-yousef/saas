@@ -693,3 +693,81 @@ jQuery(document).ready(function($) {
     console.log('MoBooking Enhanced Booking Form Settings initialized successfully.');
 });
 </script>
+
+
+<script type="text/javascript">
+jQuery(document).ready(function($) {
+    // Simple form submission handler
+    $('#mobooking-booking-form-settings-form').on('submit', function(e) {
+        e.preventDefault();
+        
+        const $form = $(this);
+        const $button = $('#mobooking-save-bf-settings-btn');
+        const $feedback = $('#mobooking-settings-feedback');
+        
+        // Show loading
+        $button.prop('disabled', true).text('Saving...');
+        $feedback.hide().removeClass('notice-success notice-error');
+        
+        // Collect form data
+        const formData = new FormData(this);
+        const settings = {};
+        
+        // Convert FormData to object
+        $form.find('input, textarea, select').each(function() {
+            const $field = $(this);
+            const name = $field.attr('name');
+            if (name && name !== 'save_booking_form_settings') {
+                if ($field.is(':checkbox')) {
+                    settings[name] = $field.is(':checked') ? '1' : '0';
+                } else {
+                    settings[name] = $field.val();
+                }
+            }
+        });
+        
+        console.log('Sending data:', settings);
+        
+        // Make AJAX request
+        $.ajax({
+            url: ajaxurl || '/wp-admin/admin-ajax.php',
+            type: 'POST',
+            data: {
+                action: 'mobooking_save_booking_form_settings',
+                nonce: $('[name="mobooking_dashboard_nonce_field"]').val(),
+                settings: settings
+            },
+            success: function(response) {
+                console.log('Response:', response);
+                if (response.success) {
+                    $feedback.text(response.data.message || 'Settings saved successfully!')
+                           .addClass('notice notice-success')
+                           .show();
+                } else {
+                    $feedback.text(response.data.message || 'Error saving settings')
+                           .addClass('notice notice-error')
+                           .show();
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('AJAX Error:', xhr, status, error);
+                $feedback.text('Network error: ' + error)
+                       .addClass('notice notice-error')
+                       .show();
+            },
+            complete: function() {
+                $button.prop('disabled', false).text('Save Booking Form Settings');
+            }
+        });
+    });
+    
+    // Test if scripts are loaded
+    console.log('Booking form settings script loaded');
+    if (typeof ajaxurl !== 'undefined') {
+        console.log('AJAX URL:', ajaxurl);
+    } else {
+        console.log('ajaxurl not defined, using fallback');
+        window.ajaxurl = '/wp-admin/admin-ajax.php';
+    }
+});
+</script>

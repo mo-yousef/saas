@@ -1627,3 +1627,48 @@ function mobooking_check_database_structure() {
     exit;
 }
 add_action('init', 'mobooking_check_database_structure');
+
+
+
+
+
+
+
+
+/**
+ * Simple Fix for Booking Form Settings AJAX
+ * Add this to your functions.php mobooking_enqueue_dashboard_scripts function
+ */
+
+// Find this section in functions.php around line 334 and ADD the missing booking-form case:
+
+// Specific to Booking Form Settings page (ADD THIS BLOCK)
+if ($current_page_slug === 'booking-form') {
+    wp_enqueue_script('wp-color-picker');
+    wp_enqueue_style('wp-color-picker');
+    wp_enqueue_script(
+        'mobooking-dashboard-booking-form-settings',
+        MOBOOKING_THEME_URI . 'assets/js/dashboard-booking-form-settings.js',
+        array('jquery', 'wp-color-picker'),
+        MOBOOKING_VERSION,
+        true
+    );
+    
+    $bf_settings_params = array_merge($dashboard_params, [
+        'site_url' => home_url('/'),
+        'i18n' => [
+            'saving' => __('Saving...', 'mobooking'),
+            'save_success' => __('Settings saved successfully.', 'mobooking'),
+            'error_saving' => __('Error saving settings.', 'mobooking'),
+            'error_loading' => __('Error loading settings.', 'mobooking'),
+            'error_ajax' => __('An AJAX error occurred.', 'mobooking'),
+            'invalid_json' => __('Invalid JSON format in Business Hours.', 'mobooking'),
+            'copied' => __('Copied!', 'mobooking'),
+            'copy_failed' => __('Copy failed. Please try manually.', 'mobooking'),
+            'booking_form_title' => __('Booking Form', 'mobooking'),
+            'link_will_appear_here' => __('Link will appear here once slug is saved.', 'mobooking'),
+            'embed_will_appear_here' => __('Embed code will appear here once slug is saved.', 'mobooking'),
+        ]
+    ]);
+    wp_localize_script('mobooking-dashboard-booking-form-settings', 'mobooking_bf_settings_params', $bf_settings_params);
+}
