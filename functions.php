@@ -287,24 +287,24 @@ function mobooking_add_rewrite_rules() { // Renamed function
     // Public Booking Form by Business Slug Rule
     add_rewrite_rule(
         '^bookings/([^/]+)/?$', // Matches bookings/{slug}/
-        'index.php?mobooking_business_slug=$matches[1]&mobooking_page_type=public_booking',
+        'index.php?mobooking_slug=$matches[1]&mobooking_page_type=public', // Use mobooking_slug and 'public'
         'top'
     );
 
     // Embed Booking Form by Business Slug Rule
     add_rewrite_rule(
         '^embed-booking/([^/]+)/?$', // Matches embed-booking/{slug}/
-        'index.php?mobooking_business_slug=$matches[1]&mobooking_page_type=embed_booking',
+        'index.php?mobooking_slug=$matches[1]&mobooking_page_type=embed', // Use mobooking_slug and 'embed'
         'top'
     );
 }
-add_action('init', 'mobooking_add_rewrite_rules'); // Renamed function
+add_action('init', 'mobooking_add_rewrite_rules');
 
 function mobooking_add_query_vars($vars) {
     $vars[] = 'mobooking_dashboard_page';
     $vars[] = 'mobooking_dashboard_action';
-    $vars[] = 'mobooking_business_slug'; // New query var for business slug
-    $vars[] = 'mobooking_page_type';     // Query var for page type (e.g., public_booking, embed_booking)
+    $vars[] = 'mobooking_slug';          // Changed from mobooking_business_slug for consistency
+    $vars[] = 'mobooking_page_type';     // Query var for page type (e.g., public, embed)
     return $vars;
 }
 add_filter('query_vars', 'mobooking_add_query_vars');
@@ -315,13 +315,12 @@ function mobooking_template_include_logic( $template ) {
 
     $page_type = get_query_var('mobooking_page_type');
     $dashboard_page_slug = get_query_var('mobooking_dashboard_page');
-    $business_slug = get_query_var('mobooking_business_slug');
+    $business_slug = get_query_var('mobooking_slug'); // Changed from mobooking_business_slug
 
     error_log('[MoBooking Debug] Query Vars: page_type=' . $page_type . '; dashboard_page_slug=' . $dashboard_page_slug . '; business_slug=' . $business_slug);
 
     // --- Handle Public Booking Form by Slug ---
-    // Handles 'public_booking' and later will handle 'embed_booking'
-    if (($page_type === 'public_booking' || $page_type === 'embed_booking') && !empty($business_slug)) {
+    if (($page_type === 'public' || $page_type === 'embed') && !empty($business_slug)) { // Check for 'public' or 'embed'
         error_log('[MoBooking Debug] Matched ' . $page_type . ' page type with slug: ' . $business_slug);
         $tenant_id = mobooking_get_user_id_by_slug($business_slug);
 
@@ -881,6 +880,18 @@ function mobooking_ensure_custom_tables_exist() {
     }
 }
 add_action( 'admin_init', 'mobooking_ensure_custom_tables_exist' );
+
+// Function to actually flush rewrite rules, hooked to shutdown if a flag is set.
+function mobooking_conditionally_flush_rewrite_rules() {
+    if (get_option('mobooking_flush_rewrite_rules_flag')) {
+        delete_option('mobooking_flush_rewrite_rules_flag');
+        // Ensure our rules are registered before flushing
+        // mobooking_add_rewrite_rules(); // This function is hooked to init, so rules should be registered.
+        flush_rewrite_rules();
+        error_log('[MoBooking] Rewrite rules flushed via shutdown hook.');
+    }
+}
+add_action('shutdown', 'mobooking_conditionally_flush_rewrite_rules');
 
 // Locale switching functions
 function mobooking_switch_user_locale() {
