@@ -292,6 +292,14 @@ if (!empty($current_slug)) {
                         </fieldset>
                     </td>
                 </tr>
+                <tr valign="top">
+                    <th scope="row"><?php esc_html_e('Rewrite Rules', 'mobooking'); ?></th>
+                    <td>
+                        <button type="button" id="mobooking-flush-rewrite-rules-btn" class="button button-secondary"><?php esc_html_e('Flush Rewrite Rules', 'mobooking'); ?></button>
+                        <p class="description"><?php esc_html_e('If your booking form URLs are not working (e.g., showing a 404 error or homepage), flushing rewrite rules might help. This is especially needed after plugin activation or changes to URL structures.', 'mobooking'); ?></p>
+                        <div id="mobooking-flush-rules-feedback" style="margin-top:10px;"></div>
+                    </td>
+                </tr>
             </table>
         </div>
 

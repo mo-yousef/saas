@@ -6,12 +6,12 @@
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
 // Conditionally load header/footer for public vs embed view
-if (get_query_var('mobooking_page_type') !== 'embed_booking') {
+if (get_query_var('mobooking_page_type') !== 'embed') { // Check for 'embed'
     get_header();
 }
 ?>
-<div id="mobooking-public-booking-form-wrapper" class="mobooking-wrapper" style="max-width: 700px; margin: 20px auto; padding: 20px; <?php if (get_query_var('mobooking_page_type') !== 'embed_booking') { echo 'box-shadow: 0 0 10px rgba(0,0,0,0.1);'; } ?>">
-    <?php if (get_query_var('mobooking_page_type') !== 'embed_booking'): ?>
+<div id="mobooking-public-booking-form-wrapper" class="mobooking-wrapper" style="max-width: 700px; margin: 20px auto; padding: 20px; <?php if (get_query_var('mobooking_page_type') !== 'embed') { echo 'box-shadow: 0 0 10px rgba(0,0,0,0.1);'; } ?>"> // Check for 'embed'
+    <?php if (get_query_var('mobooking_page_type') !== 'embed'): // Check for 'embed' ?>
     <h1 style="text-align:center;"><?php esc_html_e('Book Our Services', 'mobooking'); ?></h1>
     <?php endif; ?>
 
@@ -277,7 +277,7 @@ if (get_query_var('mobooking_page_type') !== 'embed_booking') {
 // The structural change for discount section will be handled in a separate diff if required,
 // but the JS already targets `#mobooking-bf-discount-section`.
 
-if (get_query_var('mobooking_page_type') !== 'embed_booking') {
+if (get_query_var('mobooking_page_type') !== 'embed') { // Check for 'embed'
     get_footer(); // Or a custom minimal footer
 }
 ?>
