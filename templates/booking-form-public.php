@@ -5,11 +5,15 @@
  */
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
-// Consider using a more minimal header/footer for a focused booking experience
-get_header();
+// Conditionally load header/footer for public vs embed view
+if (get_query_var('mobooking_page_type') !== 'embed_booking') {
+    get_header();
+}
 ?>
-<div id="mobooking-public-booking-form-wrapper" class="mobooking-wrapper" style="max-width: 700px; margin: 20px auto; padding: 20px; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
+<div id="mobooking-public-booking-form-wrapper" class="mobooking-wrapper" style="max-width: 700px; margin: 20px auto; padding: 20px; <?php if (get_query_var('mobooking_page_type') !== 'embed_booking') { echo 'box-shadow: 0 0 10px rgba(0,0,0,0.1);'; } ?>">
+    <?php if (get_query_var('mobooking_page_type') !== 'embed_booking'): ?>
     <h1 style="text-align:center;"><?php esc_html_e('Book Our Services', 'mobooking'); ?></h1>
+    <?php endif; ?>
 
     <!-- Step 1: Location -->
     <div id="mobooking-bf-step-1-location" class="mobooking-bf-step">
@@ -273,5 +277,7 @@ get_header();
 // The structural change for discount section will be handled in a separate diff if required,
 // but the JS already targets `#mobooking-bf-discount-section`.
 
-get_footer(); // Or a custom minimal footer
+if (get_query_var('mobooking_page_type') !== 'embed_booking') {
+    get_footer(); // Or a custom minimal footer
+}
 ?>
