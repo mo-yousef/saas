@@ -132,6 +132,12 @@ if (!empty($current_slug)) {
                                 <input name="bf_allow_service_selection" type="checkbox" id="bf_allow_service_selection" value="1" <?php echo mobooking_is_setting_checked($bf_settings, 'bf_allow_service_selection', true); ?>>
                                 <?php esc_html_e('Allow customers to select services', 'mobooking'); ?>
                             </label><br><br>
+
+                            <label for="bf_enable_location_check">
+                                <input name="bf_enable_location_check" type="checkbox" id="bf_enable_location_check" value="1" <?php echo mobooking_is_setting_checked($bf_settings, 'bf_enable_location_check', true); ?>>
+                                <?php esc_html_e('Enable Location Check Step (Step 1)', 'mobooking'); ?>
+                            </label>
+                            <p class="description" style="margin-left:22px; margin-top:0; margin-bottom:10px;"><?php esc_html_e('If unchecked, Step 1 (Location Check) will be skipped. Services will be assumed available everywhere.', 'mobooking'); ?></p>
                             
                             <label for="bf_allow_date_time_selection">
                                 <input name="bf_allow_date_time_selection" type="checkbox" id="bf_allow_date_time_selection" value="1" <?php echo mobooking_is_setting_checked($bf_settings, 'bf_allow_date_time_selection', true); ?>>
