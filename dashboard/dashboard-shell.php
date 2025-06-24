@@ -13,8 +13,6 @@ if ( ! is_user_logged_in() ) {
     exit;
 }
 
-
-
 // Ensure Auth class is available. This might be better handled by an autoloader or ensuring it's included earlier.
 if ( ! class_exists('\MoBooking\Classes\Auth') ) {
     // This is a critical error, means the plugin structure or loading is incorrect.
@@ -25,7 +23,32 @@ if ( ! current_user_can( \MoBooking\Classes\Auth::ACCESS_MOBOOKING_DASHBOARD ) )
     wp_die( esc_html__( 'You do not have sufficient permissions to access this dashboard.', 'mobooking' ) );
 }
 
-$requested_page = isset($GLOBALS['mobooking_current_dashboard_view']) ? $GLOBALS['mobooking_current_dashboard_view'] : 'overview';
+// FIXED: Get the requested page from query vars set by the router
+$requested_page = get_query_var('mobooking_dashboard_page');
+
+// Fallback methods if query var is not set
+if (empty($requested_page)) {
+    // Try global variable as fallback
+    $requested_page = isset($GLOBALS['mobooking_current_dashboard_view']) ? $GLOBALS['mobooking_current_dashboard_view'] : '';
+}
+
+if (empty($requested_page)) {
+    // Try to parse from URL as final fallback
+    $request_uri = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '';
+    $path = trim(parse_url($request_uri, PHP_URL_PATH), '/');
+    $path_segments = explode('/', $path);
+    
+    if (isset($path_segments[0]) && $path_segments[0] === 'dashboard') {
+        $requested_page = isset($path_segments[1]) && !empty($path_segments[1]) ? sanitize_title($path_segments[1]) : 'overview';
+    }
+}
+
+// Final fallback to overview
+if (empty($requested_page)) {
+    $requested_page = 'overview';
+}
+
+error_log('[MoBooking Shell Debug] Final determined requested page: ' . $requested_page);
 
 // Page-specific capability check
 $page_capabilities = [
@@ -67,7 +90,6 @@ if ( ! current_user_can( $required_capability_for_page ) ) {
     }
 }
 
-
 error_log('[MoBooking Shell Debug] dashboard-shell.php execution started. User logged in and has basic dashboard access.');
 
 ?>
@@ -82,7 +104,9 @@ error_log('[MoBooking Shell Debug] dashboard-shell.php execution started. User l
 <body <?php body_class('mobooking-dashboard'); ?>>
     <div class="mobooking-dashboard-layout">
         <?php
-        error_log('[MoBooking Shell Debug] Including sidebar.php. Current view for sidebar: ' . (isset($GLOBALS['mobooking_current_dashboard_view']) ? $GLOBALS['mobooking_current_dashboard_view'] : 'Not Set'));
+        error_log('[MoBooking Shell Debug] Including sidebar.php. Current view for sidebar: ' . $requested_page);
+        // Set the global variable for the sidebar to use
+        $GLOBALS['mobooking_current_dashboard_view'] = $requested_page;
         include_once MOBOOKING_THEME_DIR . 'dashboard/sidebar.php';
         error_log('[MoBooking Shell Debug] sidebar.php included.');
         ?>
@@ -97,6 +121,7 @@ error_log('[MoBooking Shell Debug] dashboard-shell.php execution started. User l
                 error_log('[MoBooking Shell Debug] Determined requested page for content: ' . $requested_page);
                 $template_file = MOBOOKING_THEME_DIR . 'dashboard/page-' . sanitize_key($requested_page) . '.php';
                 error_log('[MoBooking Shell Debug] Template file path to include: ' . $template_file);
+                
                 if ( !file_exists( $template_file ) ) {
                     error_log('[MoBooking Shell Debug] CRITICAL ERROR: Content template file NOT FOUND: ' . $template_file);
                 }
@@ -107,7 +132,7 @@ error_log('[MoBooking Shell Debug] dashboard-shell.php execution started. User l
                     // If a specific page file doesn't exist, try to load a default or overview.
                     // For now, ensure page-overview.php exists or handle this more gracefully.
                     $overview_file = MOBOOKING_THEME_DIR . 'dashboard/page-overview.php';
-                     error_log('[MoBooking Shell Debug] Fallback: Attempting to load overview_file: ' . $overview_file);
+                    error_log('[MoBooking Shell Debug] Fallback: Attempting to load overview_file: ' . $overview_file);
                     if (file_exists($overview_file)) {
                         include_once $overview_file;
                     } else {

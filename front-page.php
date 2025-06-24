@@ -7,19 +7,6 @@
 
 get_header();
 ?>
-
-
-<iframe src="http://saas.local/bolio-v5/booking/" title="Booking Form" style="width:100%; height:700px; border:10px solid red;"></iframe>    <br>
-    <br>
-    <br>
-    <br>
-    <br>
-    <br>
-    <br>
-    <br>
-    <br>
-    <br>
-    
     <style>
         header#masthead,footer#colophon {
     display: none;
