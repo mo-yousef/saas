@@ -96,15 +96,16 @@ function mobooking_scripts() {
     }
 
     // For Public Booking Form page (standard page template OR slug-based route)
-    if ( is_page_template('templates/booking-form-public.php') || get_query_var('mobooking_page_type') === 'public_booking' ) {
+    $page_type_for_scripts = get_query_var('mobooking_page_type');
+    if ( is_page_template('templates/booking-form-public.php') || $page_type_for_scripts === 'public_booking' || $page_type_for_scripts === 'embed_booking' ) {
         wp_enqueue_script('jquery-ui-datepicker');
         wp_enqueue_script('mobooking-booking-form', MOBOOKING_THEME_URI . 'assets/js/booking-form.js', array('jquery', 'jquery-ui-datepicker'), MOBOOKING_VERSION, true);
 
         $effective_tenant_id_for_public_form = 0;
         // Prioritize tenant_id set by the slug-based routing via query_var
-        if (get_query_var('mobooking_page_type') === 'public_booking') {
+        if ($page_type_for_scripts === 'public_booking' || $page_type_for_scripts === 'embed_booking') {
             $effective_tenant_id_for_public_form = get_query_var('mobooking_tenant_id_on_page', 0);
-            error_log('[MoBooking Scripts] Public booking form (slug route). Tenant ID from query_var mobooking_tenant_id_on_page: ' . $effective_tenant_id_for_public_form);
+            error_log('[MoBooking Scripts] Booking form (' . esc_html($page_type_for_scripts) . ' route). Tenant ID from query_var mobooking_tenant_id_on_page: ' . $effective_tenant_id_for_public_form);
         }
         // Fallback to ?tid if not a slug route or if tenant_id_on_page wasn't set by slug logic (e.g. direct page template usage)
         if (empty($effective_tenant_id_for_public_form) && !empty($_GET['tid'])) {
@@ -285,8 +286,15 @@ function mobooking_add_rewrite_rules() { // Renamed function
 
     // Public Booking Form by Business Slug Rule
     add_rewrite_rule(
-        '^([^/]+)/booking/?$', // Matches {slug}/booking/
+        '^bookings/([^/]+)/?$', // Matches bookings/{slug}/
         'index.php?mobooking_business_slug=$matches[1]&mobooking_page_type=public_booking',
+        'top'
+    );
+
+    // Embed Booking Form by Business Slug Rule
+    add_rewrite_rule(
+        '^embed-booking/([^/]+)/?$', // Matches embed-booking/{slug}/
+        'index.php?mobooking_business_slug=$matches[1]&mobooking_page_type=embed_booking',
         'top'
     );
 }
@@ -296,7 +304,7 @@ function mobooking_add_query_vars($vars) {
     $vars[] = 'mobooking_dashboard_page';
     $vars[] = 'mobooking_dashboard_action';
     $vars[] = 'mobooking_business_slug'; // New query var for business slug
-    $vars[] = 'mobooking_page_type';     // New query var for page type (e.g., public_booking)
+    $vars[] = 'mobooking_page_type';     // Query var for page type (e.g., public_booking, embed_booking)
     return $vars;
 }
 add_filter('query_vars', 'mobooking_add_query_vars');
@@ -312,8 +320,9 @@ function mobooking_template_include_logic( $template ) {
     error_log('[MoBooking Debug] Query Vars: page_type=' . $page_type . '; dashboard_page_slug=' . $dashboard_page_slug . '; business_slug=' . $business_slug);
 
     // --- Handle Public Booking Form by Slug ---
-    if ($page_type === 'public_booking' && !empty($business_slug)) {
-        error_log('[MoBooking Debug] Matched public_booking page type with slug: ' . $business_slug);
+    // Handles 'public_booking' and later will handle 'embed_booking'
+    if (($page_type === 'public_booking' || $page_type === 'embed_booking') && !empty($business_slug)) {
+        error_log('[MoBooking Debug] Matched ' . $page_type . ' page type with slug: ' . $business_slug);
         $tenant_id = mobooking_get_user_id_by_slug($business_slug);
 
         if ($tenant_id) {
