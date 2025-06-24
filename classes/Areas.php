@@ -42,18 +42,7 @@ class Areas {
             return $cached_data;
         }
 
-        $json_file_path = MOBOOKING_PLUGIN_DIR . 'data/service-areas-data.json'; // Assuming MOBOOKING_PLUGIN_DIR is defined
-        if (!defined('MOBOOKING_PLUGIN_DIR')) {
-            // Fallback if the constant is not defined, adjust path as necessary
-            // This might happen if the plugin's main file hasn't defined it yet when this class is instantiated.
-            // A better approach would be to pass the plugin base path to the constructor or define it early.
-            // For now, assuming it's accessible relative to this file's directory.
-            $json_file_path = dirname(__DIR__) . '/data/service-areas-data.json';
-             if (!file_exists($json_file_path)) { // Try one level up for data if classes is in plugin_root/classes/
-                $json_file_path = dirname(dirname(__DIR__)) . '/data/service-areas-data.json';
-            }
-        }
-
+        $json_file_path = get_template_directory() . '/data/service-areas-data.json';
 
         if (!file_exists($json_file_path)) {
             error_log("MoBooking Areas: JSON data file not found at $json_file_path");
@@ -351,99 +340,117 @@ class Areas {
     }
 
     // New AJAX Handlers for Country/City/Area selection
-    public function handle_get_countries_ajax() {
-        check_ajax_referer('mobooking_dashboard_nonce', 'nonce'); // Assuming dashboard nonce for these admin actions
-        if (!current_user_can('manage_options')) { // Or a more specific capability
-            wp_send_json_error(['message' => __('You do not have permission to perform this action.', 'mobooking')], 403);
-            return;
-        }
 
-        $data = $this->load_area_data_from_json();
-        if (is_wp_error($data)) {
-            wp_send_json_error(['message' => $data->get_error_message()], 500);
-            return;
-        }
+public function handle_get_countries_ajax() {
+    check_ajax_referer('mobooking_dashboard_nonce', 'nonce');
+    
+    // Check if user has the proper MoBooking capability instead of 'manage_options'
+    if (!current_user_can(\MoBooking\Classes\Auth::CAP_VIEW_AREAS)) {
+        wp_send_json_error(['message' => __('You do not have permission to perform this action.', 'mobooking')], 403);
+        return;
+    }
 
-        $countries = [];
-        foreach ($data as $country_code => $country_data) {
-            $countries[] = [
-                'code' => $country_code,
-                'name' => isset($country_data['name']) ? $country_data['name'] : $country_code
+    $data = $this->load_area_data_from_json();
+    if (is_wp_error($data)) {
+        wp_send_json_error(['message' => $data->get_error_message()], 500);
+        return;
+    }
+
+    $countries = [];
+    foreach ($data as $country_code => $country_data) {
+        $countries[] = [
+            'code' => $country_code,
+            'name' => isset($country_data['name']) ? $country_data['name'] : $country_code
+        ];
+    }
+
+    wp_send_json_success(['countries' => $countries]);
+}
+
+public function handle_get_cities_for_country_ajax() {
+    check_ajax_referer('mobooking_dashboard_nonce', 'nonce');
+    
+    // Check if user has the proper MoBooking capability instead of 'manage_options'
+    if (!current_user_can(\MoBooking\Classes\Auth::CAP_VIEW_AREAS)) {
+        wp_send_json_error(['message' => __('You do not have permission to perform this action.', 'mobooking')], 403);
+        return;
+    }
+
+    $country_code = isset($_POST['country_code']) ? sanitize_text_field(strtoupper($_POST['country_code'])) : '';
+    if (empty($country_code)) {
+        wp_send_json_error(['message' => __('Country code is required.', 'mobooking')], 400);
+        return;
+    }
+
+    $data = $this->load_area_data_from_json();
+    if (is_wp_error($data)) {
+        wp_send_json_error(['message' => $data->get_error_message()], 500);
+        return;
+    }
+
+    if (!isset($data[$country_code])) {
+        wp_send_json_error(['message' => __('Country not found.', 'mobooking')], 404);
+        return;
+    }
+
+    $country_data = $data[$country_code];
+    $cities = [];
+
+    if (isset($country_data['cities'])) {
+        foreach ($country_data['cities'] as $city_name => $city_data) {
+            $cities[] = [
+                'name' => $city_name,
+                'data' => $city_data
             ];
         }
-
-        wp_send_json_success(['countries' => $countries]);
     }
 
-    public function handle_get_cities_for_country_ajax() {
-        check_ajax_referer('mobooking_dashboard_nonce', 'nonce');
-        if (!current_user_can('manage_options')) {
-            wp_send_json_error(['message' => __('You do not have permission to perform this action.', 'mobooking')], 403);
-            return;
-        }
+    wp_send_json_success(['cities' => $cities]);
+}
 
-        $country_code = isset($_POST['country_code']) ? sanitize_text_field(strtoupper($_POST['country_code'])) : '';
-        if (empty($country_code)) {
-            wp_send_json_error(['message' => __('Country code is required.', 'mobooking')], 400);
-            return;
-        }
-
-        $data = $this->load_area_data_from_json();
-        if (is_wp_error($data)) {
-            wp_send_json_error(['message' => $data->get_error_message()], 500);
-            return;
-        }
-
-        if (!isset($data[$country_code]) || !isset($data[$country_code]['cities'])) {
-            wp_send_json_success(['cities' => []]); // Send empty array if country or cities not found
-            return;
-        }
-
-        $cities = [];
-        foreach ($data[$country_code]['cities'] as $city_name => $city_data) {
-            $cities[] = ['name' => $city_name]; // Assuming city name is the key
-        }
-        // Sort cities alphabetically by name
-        usort($cities, function($a, $b) {
-            return strcmp($a['name'], $b['name']);
-        });
-
-
-        wp_send_json_success(['cities' => $cities]);
+public function handle_get_areas_for_city_ajax() {
+    check_ajax_referer('mobooking_dashboard_nonce', 'nonce');
+    
+    // Check if user has the proper MoBooking capability instead of 'manage_options'
+    if (!current_user_can(\MoBooking\Classes\Auth::CAP_VIEW_AREAS)) {
+        wp_send_json_error(['message' => __('You do not have permission to perform this action.', 'mobooking')], 403);
+        return;
     }
 
-    public function handle_get_areas_for_city_ajax() {
-        check_ajax_referer('mobooking_dashboard_nonce', 'nonce');
-        if (!current_user_can('manage_options')) {
-            wp_send_json_error(['message' => __('You do not have permission to perform this action.', 'mobooking')], 403);
-            return;
-        }
+    $country_code = isset($_POST['country_code']) ? sanitize_text_field(strtoupper($_POST['country_code'])) : '';
+    $city_name = isset($_POST['city_name']) ? sanitize_text_field($_POST['city_name']) : '';
 
-        $country_code = isset($_POST['country_code']) ? sanitize_text_field(strtoupper($_POST['country_code'])) : '';
-        $city_name = isset($_POST['city_name']) ? sanitize_text_field($_POST['city_name']) : '';
-
-        if (empty($country_code) || empty($city_name)) {
-            wp_send_json_error(['message' => __('Country code and city name are required.', 'mobooking')], 400);
-            return;
-        }
-
-        $data = $this->load_area_data_from_json();
-        if (is_wp_error($data)) {
-            wp_send_json_error(['message' => $data->get_error_message()], 500);
-            return;
-        }
-
-        if (!isset($data[$country_code]['cities'][$city_name])) {
-            wp_send_json_success(['areas' => []]); // Send empty array if city not found
-            return;
-        }
-
-        $areas_in_city = $data[$country_code]['cities'][$city_name];
-        // Sort areas by name
-        usort($areas_in_city, function($a, $b) {
-            return strcmp($a['name'], $b['name']);
-        });
-
-        wp_send_json_success(['areas' => $areas_in_city]);
+    if (empty($country_code) || empty($city_name)) {
+        wp_send_json_error(['message' => __('Country code and city name are required.', 'mobooking')], 400);
+        return;
     }
+
+    $data = $this->load_area_data_from_json();
+    if (is_wp_error($data)) {
+        wp_send_json_error(['message' => $data->get_error_message()], 500);
+        return;
+    }
+
+    if (!isset($data[$country_code]['cities'][$city_name])) {
+        wp_send_json_error(['message' => __('City not found.', 'mobooking')], 404);
+        return;
+    }
+
+    $city_data = $data[$country_code]['cities'][$city_name];
+    $areas = [];
+
+    // Assuming the city data contains areas/zip codes
+    if (isset($city_data['areas'])) {
+        $areas = $city_data['areas'];
+    } elseif (isset($city_data['zip_codes'])) {
+        $areas = $city_data['zip_codes'];
+    } elseif (is_array($city_data)) {
+        // If city_data itself is an array of areas/zip codes
+        $areas = $city_data;
+    }
+
+    wp_send_json_success(['areas' => $areas]);
+}
+
+
 }
