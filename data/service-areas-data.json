@@ -1,0 +1,59 @@
+{
+  "SE": {
+    "name": "Sweden",
+    "cities": {
+      "Stockholm": [
+        {"name": "Norrmalm", "zip": "11120"},
+        {"name": "Södermalm", "zip": "11620"},
+        {"name": "Kungsholmen", "zip": "11220"},
+        {"name": "Östermalm", "zip": "11420"}
+      ],
+      "Gothenburg": [
+        {"name": "Majorna", "zip": "41450"},
+        {"name": "Linné", "zip": "41304"},
+        {"name": "Hisingen", "zip": "41700"}
+      ],
+      "Malmo": [
+        {"name": "Västra Hamnen", "zip": "21110"},
+        {"name": "Gamla Staden", "zip": "21122"}
+      ]
+    }
+  },
+  "NO": {
+    "name": "Norway",
+    "cities": {
+      "Oslo": [
+        {"name": "Sentrum", "zip": "0150"},
+        {"name": "Grünerløkka", "zip": "0550"},
+        {"name": "Frogner", "zip": "0250"}
+      ],
+      "Bergen": [
+        {"name": "Bryggen", "zip": "5003"},
+        {"name": "Nordnes", "zip": "5005"}
+      ],
+      "Trondheim": [
+        {"name": "Midtbyen", "zip": "7010"},
+        {"name": "Bakklandet", "zip": "7014"}
+      ]
+    }
+  },
+  "DK": {
+    "name": "Denmark",
+    "cities": {
+      "Copenhagen": [
+        {"name": "Indre By", "zip": "1000"},
+        {"name": "Vesterbro", "zip": "1600"},
+        {"name": "Nørrebro", "zip": "2200"},
+        {"name": "Østerbro", "zip": "2100"}
+      ],
+      "Aarhus": [
+        {"name": "Aarhus C", "zip": "8000"},
+        {"name": "Trøjborg", "zip": "8200"}
+      ],
+      "Odense": [
+        {"name": "Odense C", "zip": "5000"},
+        {"name": "Dalum", "zip": "5250"}
+      ]
+    }
+  }
+}

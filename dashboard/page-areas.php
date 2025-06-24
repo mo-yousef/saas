@@ -22,11 +22,37 @@ $total_pages = ceil($total_areas / $per_page);
 // Nonce for JS operations
 wp_nonce_field('mobooking_dashboard_nonce', 'mobooking_dashboard_nonce_field');
 ?>
-<h1><?php esc_html_e('Manage Service Areas (ZIP Codes)', 'mobooking'); ?></h1>
-<p><?php esc_html_e('Define the ZIP codes where you offer your services.', 'mobooking'); ?></p>
+<h1><?php esc_html_e('Manage Service Areas', 'mobooking'); ?></h1>
+<p><?php esc_html_e('Define the areas where you offer your services by selecting from a list or adding ZIP codes manually.', 'mobooking'); ?></p>
+
+<div id="mobooking-area-selection-wrapper" style="background:#f0f0f0; padding:20px; margin-bottom:20px; border:1px solid #ccd0d4; max-width:500px;">
+    <h3 style="margin-top:0;"><?php esc_html_e('Add Areas by Selection', 'mobooking'); ?></h3>
+    <p>
+        <label for="mobooking-country-selector"><?php esc_html_e('Select Country:', 'mobooking'); ?></label><br>
+        <select id="mobooking-country-selector" name="mobooking_country_selector" class="regular-text" style="width:100%;">
+            <option value=""><?php esc_html_e('-- Select a Country --', 'mobooking'); ?></option>
+        </select>
+    </p>
+    <p>
+        <label for="mobooking-city-selector"><?php esc_html_e('Select City:', 'mobooking'); ?></label><br>
+        <select id="mobooking-city-selector" name="mobooking_city_selector" class="regular-text" style="width:100%;" disabled>
+            <option value=""><?php esc_html_e('-- Select a City --', 'mobooking'); ?></option>
+        </select>
+    </p>
+    <p>
+        <label for="mobooking-area-zip-selector"><?php esc_html_e('Available Service Areas/ZIPs:', 'mobooking'); ?></label><br>
+        <div id="mobooking-area-zip-selector-container" style="border:1px solid #ddd; background-color:white; padding:10px; min-height:100px; max-height:200px; overflow-y:auto;">
+            <small><?php esc_html_e('Select a country and city to see available areas.', 'mobooking'); ?></small>
+        </div>
+    </p>
+    <button type="button" id="mobooking-add-selected-areas-btn" class="button button-primary" disabled><?php esc_html_e('Add Selected Areas from City', 'mobooking'); ?></button>
+    <div id="mobooking-selection-feedback" style="margin-top:10px; padding:8px; border-radius:3px;"></div>
+</div>
+
+<hr style="margin: 30px 0;">
 
 <div id="mobooking-area-form-wrapper" style="background:#fff; padding:20px; margin-bottom:20px; border:1px solid #ccd0d4; max-width:400px;">
-    <h3 id="mobooking-area-form-title" style="margin-top:0;"><?php esc_html_e('Add New Service Area', 'mobooking'); ?></h3>
+    <h3 id="mobooking-area-form-title" style="margin-top:0;"><?php esc_html_e('Add or Edit Service Area Manually', 'mobooking'); ?></h3>
     <form id="mobooking-area-form">
         <input type="hidden" id="mobooking-area-id" name="area_id" value="">
         <p>
