@@ -1079,8 +1079,37 @@ jQuery(document).ready(function ($) {
     sessionStorage.removeItem('mobooking_cart_discount_info'); // Clear any stored discount
   }
 
-  // Initial display
-  displayStep(1);
+  // Initial display logic modified by bf_enable_location_check
+  if (formSettings.bf_enable_location_check === '0') {
+    // Location check is disabled, skip Step 1
+    step1Div.hide(); // Ensure it's hidden
+    // Attempt to get tenant_id from localized params directly for Step 2
+    const tenantIdFromParams = (typeof mobooking_booking_form_params !== 'undefined' && mobooking_booking_form_params.tenant_id)
+        ? String(mobooking_booking_form_params.tenant_id)
+        : null;
+
+    if (tenantIdFromParams && tenantIdFromParams !== "0") {
+        sessionStorage.setItem("mobooking_cart_tenant_id", tenantIdFromParams);
+        // console.log('Location check disabled. Tenant ID for direct Step 2:', tenantIdFromParams);
+        displayStep(2);
+        displayStep2_LoadServices(); // Load services for Step 2
+    } else {
+        // console.warn('Booking form: Location check disabled, but Tenant ID is missing. Cannot proceed.');
+        // Display a generic error or hide the form if tenant ID is crucial and missing.
+        // For now, let's assume if location check is disabled, a valid tenant_id MUST be passed via params.
+        // If not, the form won't initialize correctly.
+        // Show a message in the form wrapper or Step 1's feedback div if it's not hidden.
+        $('#mobooking-public-booking-form-wrapper').html(
+            `<div class="mobooking-bf__step" style="display:block;">
+                <h2 class="mobooking-bf__step-title">Error</h2>
+                <p>${mobooking_booking_form_params.i18n.tenant_id_missing || "Business identifier is missing. Cannot load form."}</p>
+            </div>`
+        );
+    }
+  } else {
+    // Location check is enabled, default behavior
+    displayStep(1);
+  }
 
   // --- Apply Dynamic Styles from Settings ---
   const formWrapper = $('#mobooking-public-booking-form-wrapper');
@@ -1124,16 +1153,18 @@ jQuery(document).ready(function ($) {
 
   // Helper function to check if pricing should be shown
   window.mobookingShouldShowPricing = function() {
-    return formSettings.bf_show_pricing === '1';
+    // Ensure formSettings is available and bf_show_pricing is defined
+    return typeof formSettings !== 'undefined' && formSettings.bf_show_pricing === '1';
   }
   window.mobookingShouldShowDiscounts = function() {
-    return formSettings.bf_allow_discount_codes === '1';
+    // Ensure formSettings is available and bf_allow_discount_codes is defined
+    return typeof formSettings !== 'undefined' && formSettings.bf_allow_discount_codes === '1';
   }
 
   // Update success message on confirmation step
-  if (formSettings.bf_success_message) {
+  if (typeof formSettings !== 'undefined' && formSettings.bf_success_message) {
     // This needs to be applied when step 6 is shown.
-    // Let's modify displayStep6_Confirmation success part.
+    // The logic in displayStep6_Confirmation already handles this.
   }
 
 });
