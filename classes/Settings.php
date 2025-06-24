@@ -39,6 +39,7 @@ class Settings {
         'bf_booking_lead_time_hours'  => '24', // Minimum lead time for bookings
         'bf_max_booking_days_ahead'   => '30', // Maximum days ahead for bookings
         'bf_time_slot_duration'       => '30', // Time slot duration in minutes
+        'bf_enable_location_check'    => '1', // '1' to enable Step 1 (Location), '0' to disable
         
         // Advanced Form Settings
         'bf_google_analytics_id'      => '', // Google Analytics tracking ID
