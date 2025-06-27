@@ -288,6 +288,8 @@ wp_localize_script('mobooking-dashboard-areas', 'mobooking_areas_params', [
                 </span>
             </div>
         </div>
+
+        
         <div class="mobooking-area-actions">
             <button type="button" class="mobooking-btn mobooking-btn-sm mobooking-btn-outline mobooking-edit-area-btn" 
                     data-area-id="{{area_id}}" title="<?php esc_attr_e('Edit Area', 'mobooking'); ?>">
