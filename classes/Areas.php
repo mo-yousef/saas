@@ -23,10 +23,83 @@ class Areas {
         add_action('wp_ajax_mobooking_get_cities_for_country', [$this, 'handle_get_cities_for_country_ajax']);
         add_action('wp_ajax_mobooking_get_areas_for_city', [$this, 'handle_get_areas_for_city_ajax']);
         add_action('wp_ajax_mobooking_add_bulk_areas', [$this, 'handle_add_bulk_areas_ajax']);
+        add_action('wp_ajax_mobooking_debug_areas', [$this, 'handle_debug_areas_ajax']); // Added action for debug
 
         // Public AJAX actions
         add_action('wp_ajax_nopriv_mobooking_check_zip_availability', [$this, 'handle_check_zip_code_public_ajax']);
         add_action('wp_ajax_mobooking_check_zip_availability', [$this, 'handle_check_zip_code_public_ajax']);
+    }
+
+    /**
+     * Handle Debug Areas AJAX request (moved from page template)
+     */
+    public function handle_debug_areas_ajax() {
+        // Nonce check is typically here, but original debug code skipped it.
+        // For a debug tool, this might be acceptable, but for production features, always check nonces.
+        // if (!check_ajax_referer('mobooking_dashboard_nonce', 'nonce', false)) {
+        //     wp_send_json_error(['message' => __('Invalid nonce.', 'mobooking')], 403);
+        //     return;
+        // }
+
+        $debug_info = [];
+
+        // 1. Check if user is logged in
+        $debug_info['user_logged_in'] = is_user_logged_in();
+        $debug_info['current_user_id'] = get_current_user_id();
+
+        // 2. Check file existence
+        // Note: get_template_directory() is theme-specific. If this class could be used
+        // outside a theme context or in a child theme, a more robust path might be needed.
+        // For this plugin, assuming it's tied to its theme structure.
+        $json_file_path = get_template_directory() . '/data/service-areas-data.json';
+        $debug_info['json_file_exists'] = file_exists($json_file_path);
+        $debug_info['json_file_path'] = $json_file_path;
+
+        if (file_exists($json_file_path)) {
+            // 3. Check file contents
+            $json_content = file_get_contents($json_file_path);
+            $debug_info['json_content_length'] = strlen($json_content);
+            $debug_info['json_first_100_chars'] = substr($json_content, 0, 100);
+
+            // 4. Try to decode JSON
+            $data = json_decode($json_content, true);
+            $debug_info['json_decode_error'] = json_last_error_msg();
+            $debug_info['json_data_type'] = gettype($data); // Using gettype() for basic type string
+
+            if (is_array($data)) {
+                $debug_info['json_keys'] = array_keys($data);
+                $debug_info['json_count'] = count($data);
+
+                // Get first country as example
+                $first_key = null;
+                if (count($data) > 0) { // Ensure array is not empty before accessing keys
+                    $keys = array_keys($data);
+                    $first_key = $keys[0];
+                }
+
+                if ($first_key !== null) {
+                    $debug_info['first_country_code'] = $first_key;
+                    $debug_info['first_country_data'] = $data[$first_key];
+                } else {
+                    $debug_info['first_country_code'] = null;
+                    $debug_info['first_country_data'] = null;
+                }
+            }
+        }
+
+        // 5. Check AJAX parameters (some are less relevant when running from class context)
+        $debug_info['ajax_url'] = admin_url('admin-ajax.php');
+        // Re-creating nonce here for info; actual check would be at start of method
+        $debug_info['nonce_to_be_created_for_other_actions'] = wp_create_nonce('mobooking_dashboard_nonce');
+
+        // 6. Check if Areas class exists (will be true if this code runs)
+        $debug_info['areas_class_exists'] = class_exists(__CLASS__); // Check self
+        $debug_info['this_class_name'] = __CLASS__;
+
+        // Check other classes if needed
+        $debug_info['database_class_exists'] = class_exists('MoBooking\Classes\Database');
+
+        wp_send_json_success($debug_info);
     }
 
     /**
