@@ -73,12 +73,14 @@ class Areas {
         }
 
         $countries = [];
-        if (isset($data['countries']) && is_array($data['countries'])) {
-            foreach ($data['countries'] as $country_code => $country_data) {
-                $countries[] = [
-                    'code' => $country_code,
-                    'name' => $country_data['name'] ?? $country_code
-                ];
+        if (is_array($data)) { // Changed: Iterate directly over $data
+            foreach ($data as $country_code => $country_data) {
+                if (is_array($country_data) && isset($country_data['name'])) {
+                    $countries[] = [
+                        'code' => $country_code,
+                        'name' => $country_data['name']
+                    ];
+                }
             }
         }
 
@@ -100,11 +102,14 @@ class Areas {
         }
 
         $cities = [];
-        if (isset($data['countries'][$country_code]['cities']) && is_array($data['countries'][$country_code]['cities'])) {
-            foreach ($data['countries'][$country_code]['cities'] as $city_code => $city_data) {
+        // Changed: Use $data[$country_code] directly
+        if (isset($data[$country_code]['cities']) && is_array($data[$country_code]['cities'])) {
+            // $city_code is the city name (e.g., "Stockholm")
+            // $city_data is the array of area objects for that city
+            foreach ($data[$country_code]['cities'] as $city_name => $areas_in_city) {
                 $cities[] = [
-                    'code' => $city_code,
-                    'name' => $city_data['name'] ?? $city_code
+                    'code' => $city_name, // Use city name as the code, as JS expects
+                    'name' => $city_name  // City name is the key
                 ];
             }
         }
@@ -127,15 +132,20 @@ class Areas {
         }
 
         $areas = [];
-        if (isset($data['countries'][$country_code]['cities'][$city_code]['areas']) && 
-            is_array($data['countries'][$country_code]['cities'][$city_code]['areas'])) {
+        // Changed: Path to $data[$country_code]['cities'][$city_code] which is the array of areas
+        if (isset($data[$country_code]['cities'][$city_code]) &&
+            is_array($data[$country_code]['cities'][$city_code])) {
             
-            foreach ($data['countries'][$country_code]['cities'][$city_code]['areas'] as $area_data) {
-                $areas[] = [
-                    'name' => $area_data['name'] ?? '',
-                    'zip_code' => $area_data['zip_code'] ?? $area_data['code'] ?? '',
-                    'code' => $area_data['code'] ?? $area_data['zip_code'] ?? ''
-                ];
+            // $city_code here is the city name (e.g. "Stockholm")
+            // $data[$country_code]['cities'][$city_code] is the array of area objects
+            foreach ($data[$country_code]['cities'][$city_code] as $area_data_item) {
+                if (is_array($area_data_item) && isset($area_data_item['name']) && isset($area_data_item['zip'])) {
+                    $areas[] = [
+                        'name' => $area_data_item['name'],
+                        'zip_code' => $area_data_item['zip'], // Use 'zip' from JSON
+                        'code' => $area_data_item['zip']     // Use 'zip' as code for consistency if needed
+                    ];
+                }
             }
         }
 
@@ -641,10 +651,11 @@ class Areas {
             }
         }
 
-        // If no countries found, provide fallback data
+        // If no countries found, data might be malformed or empty.
         if (empty($countries)) {
-            error_log("MoBooking: No countries found in JSON, using fallback data");
-            $countries = $this->get_fallback_countries();
+            error_log("MoBooking: No countries extracted from JSON data. JSON structure might be different than expected or file is empty/corrupted. Path: " . get_template_directory() . '/data/service-areas-data.json');
+            // Sending empty array is better than a non-existent method call.
+            // The frontend JS should handle empty country lists gracefully.
         }
 
         // Debug: Log the countries array
