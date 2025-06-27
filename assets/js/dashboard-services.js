@@ -288,7 +288,7 @@ jQuery(document).ready(function ($) {
       let dataToSend = {};
       formData.forEach((item) => (dataToSend[item.name] = item.value));
       dataToSend.action = "mobooking_save_service";
-      dataToSend.nonce = mobooking_services_params.nonce;
+      dataToSend.nonce = mobooking_services_params.services_nonce; // Use the correct services_nonce
 
       let service_options_array = [];
       $("#mobooking-service-options-list .mobooking-service-option-row").each(
