@@ -315,55 +315,7 @@ wp_localize_script('mobooking-dashboard-areas', 'mobooking_areas_params', [
  * Add this to functions.php or create as a separate file to debug the issue
  */
 
-// Add this debug AJAX handler to help troubleshoot
-add_action('wp_ajax_mobooking_debug_areas', 'mobooking_debug_areas_handler');
-
-function mobooking_debug_areas_handler() {
-    // Skip nonce check for debugging
-    $debug_info = [];
-    
-    // 1. Check if user is logged in
-    $debug_info['user_logged_in'] = is_user_logged_in();
-    $debug_info['current_user_id'] = get_current_user_id();
-    
-    // 2. Check file existence
-    $json_file_path = get_template_directory() . '/data/service-areas-data.json';
-    $debug_info['json_file_exists'] = file_exists($json_file_path);
-    $debug_info['json_file_path'] = $json_file_path;
-    
-    if (file_exists($json_file_path)) {
-        // 3. Check file contents
-        $json_content = file_get_contents($json_file_path);
-        $debug_info['json_content_length'] = strlen($json_content);
-        $debug_info['json_first_100_chars'] = substr($json_content, 0, 100);
-        
-        // 4. Try to decode JSON
-        $data = json_decode($json_content, true);
-        $debug_info['json_decode_error'] = json_last_error_msg();
-        $debug_info['json_data_type'] = gettype($data);
-        
-        if (is_array($data)) {
-            $debug_info['json_keys'] = array_keys($data);
-            $debug_info['json_count'] = count($data);
-            
-            // Get first country as example
-            $first_key = array_keys($data)[0] ?? null;
-            if ($first_key) {
-                $debug_info['first_country_code'] = $first_key;
-                $debug_info['first_country_data'] = $data[$first_key];
-            }
-        }
-    }
-    
-    // 5. Check AJAX parameters
-    $debug_info['ajax_url'] = admin_url('admin-ajax.php');
-    $debug_info['nonce_created'] = wp_create_nonce('mobooking_dashboard_nonce');
-    
-    // 6. Check if Areas class exists
-    $debug_info['areas_class_exists'] = class_exists('MoBooking\Classes\Areas');
-    
-    wp_send_json_success($debug_info);
-}
+// Debug AJAX handler and its action hook have been moved to Classes/Areas.php
 
 // Add this JavaScript to your page-areas.php for debugging
 ?>
