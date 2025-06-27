@@ -244,16 +244,31 @@ class Areas {
                 continue; // Skip duplicates
             }
 
+            // Determine country_code to be used for insertion
+            // Prioritize country_code from JS if available and valid
+            $db_country_code = '';
+            if (!empty($area_data['country_code'])) {
+                // Assume it's valid if provided from JS, as JS gets it from the JSON source's codes.
+                $db_country_code = sanitize_text_field(strtoupper($area_data['country_code']));
+            } else {
+                // Fallback to deriving from name if code not provided by JS
+                // (current JS version should always provide it)
+                error_log("MoBooking Areas: country_code missing in bulk add payload for country name '" . $country_name . "'. Falling back to deriving from name. This may indicate an issue with JS payload if it happens frequently.");
+                $db_country_code = $this->get_country_code_from_name($country_name);
+            }
+            // If $db_country_code is still empty here, it means neither direct code nor derived code was found/valid.
+            // It will be stored as empty string in DB which is acceptable by schema.
+
             $inserted = $this->wpdb->insert(
                 $table_name,
                 [
                     'user_id' => $user_id,
                     'area_type' => 'zip_code',
-                    'country_name' => $country_name,
+                    'country_name' => $country_name, // Still store country_name for readability/other uses
                     'area_name' => $area_name,
                     'area_zipcode' => $area_zipcode,
-                    'area_value' => $area_zipcode,
-                    'country_code' => $this->get_country_code_from_name($country_name),
+                    'area_value' => $area_zipcode, // For backward compatibility
+                    'country_code' => $db_country_code, // Uses the (preferably direct) country_code
                     'created_at' => current_time('mysql', 1)
                 ],
                 ['%d', '%s', '%s', '%s', '%s', '%s', '%s', '%s']
@@ -261,6 +276,11 @@ class Areas {
 
             if ($inserted) {
                 $added_count++;
+        } else {
+            // If insert fails, it doesn't explicitly add to $errors array here,
+            // but the $added_count won't increment.
+            // It might be good to log $this->wpdb->last_error if $inserted is false.
+            $errors[] = sprintf(__('Failed to insert area: Country - %s, Area - %s, ZIP - %s. DB Error: %s', 'mobooking'), esc_html($country_name), esc_html($area_name), esc_html($area_zipcode), esc_html($this->wpdb->last_error));
             }
         }
 
@@ -730,7 +750,7 @@ class Areas {
 
         $areas_data = json_decode(stripslashes($areas_json), true);
         if (json_last_error() !== JSON_ERROR_NONE) {
-            wp_send_json_error(['message' => __('Invalid areas data format.', 'mobooking')]);
+        wp_send_json_error(['message' => __('Invalid areas data format.', 'mobooking') . ' JSON Error: ' . json_last_error_msg()]);
             return;
         }
 
