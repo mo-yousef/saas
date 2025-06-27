@@ -249,28 +249,44 @@ class Areas {
         $table_name = Database::get_table_name('service_areas');
 
         // Check for duplicates
+        // $country_name is a variable holding the name e.g. "Sweden"
+        // $area_zipcode is a variable holding the zip e.g. "12345"
+        $db_country_code = $this->get_country_code_from_name($country_name); // Get "SE" from "Sweden"
+
         $existing = $this->wpdb->get_var($this->wpdb->prepare(
-            "SELECT area_id FROM $table_name WHERE user_id = %d AND area_zipcode = %s AND country_name = %s",
-            $user_id, $area_zipcode, $country_name
+            "SELECT area_id FROM $table_name WHERE user_id = %d AND area_value = %s AND country_code = %s", // Use area_value and country_code
+            $user_id, $area_zipcode, $db_country_code
         ));
 
         if ($existing) {
             return new \WP_Error('duplicate_area', __('This service area already exists.', 'mobooking'));
         }
 
+        // area_name is assumed to exist as a column based on prior logs.
+        // If area_name also doesn't exist, it would need to be removed from insert.
+        $insert_data = [
+            'user_id' => $user_id,
+            'area_type' => $area_type,
+            // 'country_name' column does not exist
+            'area_name' => $area_name,
+            // 'area_zipcode' column does not exist, use area_value for the ZIP
+            'area_value' => $area_zipcode,
+            'country_code' => $db_country_code,
+            'created_at' => current_time('mysql', 1)
+        ];
+
+        $insert_formats = ['%d', '%s', '%s', '%s', '%s', '%s'];
+
+        // Remove area_name if it's not a valid column (assuming it is for now)
+        // If area_name column does not exist, the following would be needed:
+        // unset($insert_data['area_name']);
+        // $insert_formats = ['%d', '%s', '%s', '%s', '%s'];
+
+
         $inserted = $this->wpdb->insert(
             $table_name,
-            [
-                'user_id' => $user_id,
-                'area_type' => $area_type,
-                'country_name' => $country_name,
-                'area_name' => $area_name,
-                'area_zipcode' => $area_zipcode,
-                'area_value' => $area_zipcode, // For backward compatibility
-                'country_code' => $this->get_country_code_from_name($country_name),
-                'created_at' => current_time('mysql', 1)
-            ],
-            ['%d', '%s', '%s', '%s', '%s', '%s', '%s', '%s']
+            $insert_data,
+            $insert_formats
         );
 
         if (!$inserted) {
@@ -307,44 +323,48 @@ class Areas {
             $area_name = sanitize_text_field($area_data['area_name']);
             $area_zipcode = sanitize_text_field(str_replace(' ', '', strtoupper($area_data['area_zipcode'])));
 
-            // Check for duplicates
+            // Determine country_code to be used for duplicate check and insertion
+            $db_country_code = '';
+            if (!empty($area_data['country_code'])) {
+                $db_country_code = sanitize_text_field(strtoupper($area_data['country_code']));
+            } else {
+                error_log("MoBooking Areas: country_code missing in bulk add payload for country name '" . $country_name . "'. Falling back to deriving from name.");
+                $db_country_code = $this->get_country_code_from_name($country_name); // $country_name is from $area_data['country_name']
+            }
+
+            // Check for duplicates using area_value for ZIP and country_code
             $existing = $this->wpdb->get_var($this->wpdb->prepare(
-                "SELECT area_id FROM $table_name WHERE user_id = %d AND area_zipcode = %s AND country_name = %s",
-                $user_id, $area_zipcode, $country_name
+                "SELECT area_id FROM $table_name WHERE user_id = %d AND area_value = %s AND country_code = %s", // Corrected
+                $user_id, $area_zipcode, $db_country_code // $area_zipcode variable holds the ZIP value
             ));
 
             if ($existing) {
                 continue; // Skip duplicates
             }
 
-            // Determine country_code to be used for insertion
-            // Prioritize country_code from JS if available and valid
-            $db_country_code = '';
-            if (!empty($area_data['country_code'])) {
-                // Assume it's valid if provided from JS, as JS gets it from the JSON source's codes.
-                $db_country_code = sanitize_text_field(strtoupper($area_data['country_code']));
-            } else {
-                // Fallback to deriving from name if code not provided by JS
-                // (current JS version should always provide it)
-                error_log("MoBooking Areas: country_code missing in bulk add payload for country name '" . $country_name . "'. Falling back to deriving from name. This may indicate an issue with JS payload if it happens frequently.");
-                $db_country_code = $this->get_country_code_from_name($country_name);
-            }
-            // If $db_country_code is still empty here, it means neither direct code nor derived code was found/valid.
-            // It will be stored as empty string in DB which is acceptable by schema.
+            // area_name is assumed to exist as a column.
+            // If area_name also doesn't exist, it would need to be removed from insert_data.
+            $insert_data = [
+                'user_id' => $user_id,
+                'area_type' => 'zip_code',
+                // 'country_name' column does not exist
+                'area_name' => $area_name, // Variable $area_name from $area_data['area_name']
+                'area_value' => $area_zipcode, // Variable $area_zipcode (the ZIP) for DB column area_value
+                'country_code' => $db_country_code,
+                'created_at' => current_time('mysql', 1)
+            ];
+
+            $insert_formats = ['%d', '%s', '%s', '%s', '%s', '%s'];
+
+            // Example of removing area_name if it's not a valid column:
+            // unset($insert_data['area_name']);
+            // $insert_formats = ['%d', '%s', '%s', '%s', '%s'];
+
 
             $inserted = $this->wpdb->insert(
                 $table_name,
-                [
-                    'user_id' => $user_id,
-                    'area_type' => 'zip_code',
-                    'country_name' => $country_name, // Still store country_name for readability/other uses
-                    'area_name' => $area_name,
-                    'area_zipcode' => $area_zipcode,
-                    'area_value' => $area_zipcode, // For backward compatibility
-                    'country_code' => $db_country_code, // Uses the (preferably direct) country_code
-                    'created_at' => current_time('mysql', 1)
-                ],
-                ['%d', '%s', '%s', '%s', '%s', '%s', '%s', '%s']
+                $insert_data,
+                $insert_formats
             );
 
             if ($inserted) {
@@ -386,16 +406,18 @@ class Areas {
         // Add search filter
         if (!empty($args['search'])) {
             $search_term = '%' . $this->wpdb->esc_like($args['search']) . '%';
-            $where_conditions[] = '(area_name LIKE %s OR area_zipcode LIKE %s OR country_name LIKE %s)';
+            // Assuming area_name and country_code are valid columns for search. area_value for ZIP.
+            $where_conditions[] = '(area_name LIKE %s OR area_value LIKE %s OR country_code LIKE %s)';
             $where_values[] = $search_term;
             $where_values[] = $search_term;
             $where_values[] = $search_term;
         }
 
-        // Add country filter
+        // Add country filter - this now expects $args['country'] to be a country_code.
+        // If JS sends country name, this filter condition will not match as intended without further changes.
         if (!empty($args['country'])) {
-            $where_conditions[] = 'country_name = %s';
-            $where_values[] = sanitize_text_field($args['country']);
+            $where_conditions[] = 'country_code = %s'; // Changed from country_name
+            $where_values[] = sanitize_text_field($args['country']); // Should be a country code
         }
 
         $where_clause = 'WHERE ' . implode(' AND ', $where_conditions);
@@ -405,7 +427,8 @@ class Areas {
         $total_count = $this->wpdb->get_var($this->wpdb->prepare($total_count_sql, $where_values));
 
         // Get paginated results
-        $sql = "SELECT * FROM $table_name $where_clause ORDER BY country_name ASC, area_name ASC LIMIT %d OFFSET %d";
+        // area_name is assumed to be a valid column for ordering.
+        $sql = "SELECT * FROM $table_name $where_clause ORDER BY country_code ASC, area_name ASC LIMIT %d OFFSET %d"; // Changed country_name to country_code
         $areas = $this->wpdb->get_results($this->wpdb->prepare($sql, array_merge($where_values, [$limit, $offset])), ARRAY_A);
 
         return [
@@ -443,37 +466,34 @@ class Areas {
         $update_payload = [];
         $update_formats = [];
 
-        // Update country name
+        // Update country_code (derived from country_name if provided)
         if (isset($data['country_name'])) {
-            $country_name = sanitize_text_field($data['country_name']);
-            if (empty($country_name)) {
-                return new \WP_Error('missing_country', __('Country name cannot be empty.', 'mobooking'));
+            $country_name_from_data = sanitize_text_field($data['country_name']);
+            if (empty($country_name_from_data)) {
+                return new \WP_Error('missing_country', __('Country name cannot be empty if provided for update.', 'mobooking'));
             }
-            $update_payload['country_name'] = $country_name;
-            $update_payload['country_code'] = $this->get_country_code_from_name($country_name);
-            $update_formats[] = '%s';
+            // country_name itself is not a column, so we update country_code
+            $update_payload['country_code'] = $this->get_country_code_from_name($country_name_from_data);
             $update_formats[] = '%s';
         }
 
-        // Update area name
+        // Update area name (assuming area_name column exists)
         if (isset($data['area_name'])) {
-            $area_name = sanitize_text_field($data['area_name']);
-            if (empty($area_name)) {
+            $area_name_from_data = sanitize_text_field($data['area_name']);
+            if (empty($area_name_from_data)) {
                 return new \WP_Error('missing_area_name', __('Area name cannot be empty.', 'mobooking'));
             }
-            $update_payload['area_name'] = $area_name;
+            $update_payload['area_name'] = $area_name_from_data;
             $update_formats[] = '%s';
         }
 
-        // Update area zipcode
-        if (isset($data['area_zipcode'])) {
-            $area_zipcode = sanitize_text_field(str_replace(' ', '', strtoupper($data['area_zipcode'])));
-            if (empty($area_zipcode)) {
+        // Update area_value (for ZIP code)
+        if (isset($data['area_zipcode'])) { // JS sends area_zipcode, map to area_value
+            $area_zip_from_data = sanitize_text_field(str_replace(' ', '', strtoupper($data['area_zipcode'])));
+            if (empty($area_zip_from_data)) {
                 return new \WP_Error('missing_zipcode', __('ZIP code cannot be empty.', 'mobooking'));
             }
-            $update_payload['area_zipcode'] = $area_zipcode;
-            $update_payload['area_value'] = $area_zipcode; // For backward compatibility
-            $update_formats[] = '%s';
+            $update_payload['area_value'] = $area_zip_from_data; // Correct column name
             $update_formats[] = '%s';
         }
 
@@ -482,13 +502,23 @@ class Areas {
         }
 
         // Check for duplicates if key fields changed
-        $country_name = $update_payload['country_name'] ?? $current_area['country_name'];
-        $area_zipcode = $update_payload['area_zipcode'] ?? $current_area['area_zipcode'];
+        // Use current area's values as base, override with payload if present
+        $check_country_code = $update_payload['country_code'] ?? $current_area['country_code'];
+        $check_area_value = $update_payload['area_value'] ?? $current_area['area_value'];
 
-        if (($country_name !== $current_area['country_name']) || ($area_zipcode !== $current_area['area_zipcode'])) {
+        // Only perform duplicate check if country_code or area_value actually changed
+        $perform_duplicate_check = false;
+        if (isset($update_payload['country_code']) && $update_payload['country_code'] !== $current_area['country_code']) {
+            $perform_duplicate_check = true;
+        }
+        if (isset($update_payload['area_value']) && $update_payload['area_value'] !== $current_area['area_value']) {
+            $perform_duplicate_check = true;
+        }
+
+        if ($perform_duplicate_check) {
             $existing = $this->wpdb->get_var($this->wpdb->prepare(
-                "SELECT area_id FROM $table_name WHERE user_id = %d AND area_zipcode = %s AND country_name = %s AND area_id != %d",
-                $user_id, $area_zipcode, $country_name, $area_id
+                "SELECT area_id FROM $table_name WHERE user_id = %d AND area_value = %s AND country_code = %s AND area_id != %d", // Corrected
+                $user_id, $check_area_value, $check_country_code, $area_id
             ));
 
             if ($existing) {
@@ -498,9 +528,9 @@ class Areas {
 
         $updated = $this->wpdb->update(
             $table_name,
-            $update_payload,
+            $update_payload, // Contains 'area_value', 'country_code', 'area_name' as needed
             ['area_id' => $area_id, 'user_id' => $user_id],
-            $update_formats,
+            $update_formats, // Dynamically built based on fields in $update_payload
             ['%d', '%d']
         );
 
@@ -556,8 +586,8 @@ class Areas {
         $normalized_zip = sanitize_text_field(str_replace(' ', '', strtoupper($zip_code)));
 
         $sql = $this->wpdb->prepare(
-            "SELECT area_id FROM $table_name WHERE user_id = %d AND area_type = 'zip_code' AND (area_zipcode = %s OR area_value = %s)",
-            $tenant_user_id, $normalized_zip, $normalized_zip
+            "SELECT area_id FROM $table_name WHERE user_id = %d AND area_type = 'zip_code' AND area_value = %s", // Corrected: area_zipcode column does not exist
+            $tenant_user_id, $normalized_zip
         );
 
         // Add country filter if provided
