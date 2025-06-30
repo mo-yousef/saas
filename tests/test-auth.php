@@ -15,10 +15,13 @@ class Test_MoBooking_Auth extends WP_UnitTestCase {
     protected $worker_staff_id;
     protected $worker_viewer_id;
     protected $unrelated_user_id;
+    private $emails_sent = [];
 
     public function setUp(): void {
         parent::setUp();
         $this->auth_instance = new Auth();
+        $this->reset_mailer(); // Reset mailer before each test
+        add_filter('wp_mail', [$this, 'capture_wp_mail_args']);
 
         // It's important that roles are added before users are created with those roles.
         // WordPress's testing suite usually resets roles between tests, but explicit add is safer.
@@ -39,20 +42,43 @@ class Test_MoBooking_Auth extends WP_UnitTestCase {
 
     public function tearDown(): void {
         parent::tearDown();
+        remove_filter('wp_mail', [$this, 'capture_wp_mail_args']);
         // WordPress test suite usually handles user deletion.
         // Roles might need to be removed if they interfere with other tests, but usually okay.
         // Auth::remove_worker_roles();
         // Auth::remove_business_owner_role();
     }
 
+    // Mailer capture helper methods
+    public function capture_wp_mail_args($args) {
+        $this->emails_sent[] = (object) $args; // Store as object for easier access
+        return $args; // Return args to allow other hooks and actual (mocked) sending
+    }
+
+    protected function reset_mailer() {
+        $this->emails_sent = [];
+    }
+
+    protected function get_last_email() {
+        if (empty($this->emails_sent)) {
+            return null;
+        }
+        return end($this->emails_sent);
+    }
+
+    protected function get_email_count() {
+        return count($this->emails_sent);
+    }
+
+
     /**
      * Test if roles are added correctly.
      */
     public function test_roles_are_added() {
         $this->assertNotNull( get_role( Auth::ROLE_BUSINESS_OWNER ), 'Business Owner role should exist.' );
-        $this->assertNotNull( get_role( Auth::ROLE_WORKER_MANAGER ), 'Worker Manager role should exist.' );
+        // $this->assertNotNull( get_role( Auth::ROLE_WORKER_MANAGER ), 'Worker Manager role should exist.' ); // This role was removed
         $this->assertNotNull( get_role( Auth::ROLE_WORKER_STAFF ), 'Worker Staff role should exist.' );
-        $this->assertNotNull( get_role( Auth::ROLE_WORKER_VIEWER ), 'Worker Viewer role should exist.' );
+        // $this->assertNotNull( get_role( Auth::ROLE_WORKER_VIEWER ), 'Worker Viewer role should exist.' ); // This role was removed
     }
 
     /**
@@ -264,12 +290,23 @@ class Test_MoBooking_Auth extends WP_UnitTestCase {
         $slug = $settings_manager->get_setting($user->ID, 'bf_business_slug');
         $this->assertEquals('test-company-inc', $slug); // Assuming sanitize_title behavior
 
+        // Check that wp_mail was called for the welcome email
+        $this->assertNotNull($this->get_last_email(), 'Welcome email should have been sent to business owner.');
+        $last_email = $this->get_last_email();
+        $this->assertEquals('newowner@example.com', $last_email->to[0]);
+        $this->assertStringContainsString('Welcome to', $last_email->subject);
+        $this->assertStringContainsString('Test Owner', $last_email->subject); // Display name
+        $this->assertStringContainsString('Thank you for registering', $last_email->message);
+        $this->assertStringContainsString(home_url('/dashboard/'), $last_email->message);
+
+
         // Clean up
         wp_delete_user($user->ID);
         global $wpdb;
         $settings_table = \MoBooking\Classes\Database::get_table_name('tenant_settings');
         $wpdb->delete($settings_table, ['user_id' => $user->ID, 'setting_name' => 'bf_business_slug']);
         unset($_POST);
+        $this->reset_mailer();
     }
 
     /**
@@ -429,9 +466,14 @@ class Test_MoBooking_Auth extends WP_UnitTestCase {
         // Check transient was deleted
         $this->assertFalse(get_transient($invitation_option_key));
 
+        // Check that the general welcome email was NOT sent
+        $this->assertEquals(0, $this->get_email_count(), "Welcome email should not be sent to invited workers via this flow.");
+
+
         // Clean up
         wp_delete_user($user->ID);
         unset($_POST);
+        $this->reset_mailer();
     }
 
 
