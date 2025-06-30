@@ -5,7 +5,8 @@
     display: flex;
     min-height: 100vh;
     width: 100%;
-    background-color: hsl(210 40% 98%); /* bg-muted */
+    background-color: hsl(210 40% 98%);
+    /* bg-muted */
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
 }
 
@@ -16,47 +17,62 @@
     width: 100%;
     max-width: 1280px;
     margin: auto;
-    box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04); /* shadow-xl */
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    /* shadow-xl */
     overflow: hidden;
-    border-radius: 0.75rem; /* rounded-lg */
+    border-radius: 0.75rem;
+    /* rounded-lg */
 }
 
 /* Left column: Illustration/Image */
 .mobooking-auth-image-column {
-    background-color: hsl(222.2 47.4% 11.2%); /* bg-slate-900 (primary dark) */
+    background-color: hsl(222.2 47.4% 11.2%);
+    /* bg-slate-900 (primary dark) */
     background-size: cover;
     background-position: center;
     display: flex;
-    flex-direction: column; /* Stack content vertically */
+    flex-direction: column;
+    /* Stack content vertically */
     align-items: center;
     justify-content: center;
-    padding: 2.5rem; /* p-10 */
+    padding: 2.5rem;
+    /* p-10 */
     color: hsl(0 0% 100%);
 }
 
 .mobooking-auth-image-column .placeholder-content {
     text-align: center;
 }
+
 .mobooking-auth-image-column .placeholder-content h1 {
-    font-size: 1.875rem; /* text-3xl */
-    font-weight: 700; /* font-bold */
+    font-size: 1.875rem;
+    /* text-3xl */
+    font-weight: 700;
+    /* font-bold */
     color: hsl(0 0% 100%);
-    margin-bottom: 1rem; /* mb-4 */
+    margin-bottom: 1rem;
+    /* mb-4 */
 }
+
 .mobooking-auth-image-column .placeholder-content p {
-    font-size: 0.875rem; /* text-sm */
-    color: hsl(215 20.2% 65.1%); /* text-slate-400 (muted-foreground dark) */
+    font-size: 0.875rem;
+    /* text-sm */
+    color: hsl(215 20.2% 65.1%);
+    /* text-slate-400 (muted-foreground dark) */
     line-height: 1.5;
 }
 
 /* Right column: Form content */
 .mobooking-auth-form-column {
-    background-color: hsl(0 0% 100%); /* bg-card (white) */
-    padding: 2.5rem; /* p-10 */
+    background-color: hsl(0 0% 100%);
+    /* bg-card (white) */
+    padding: 2.5rem;
+    /* p-10 */
     display: flex;
     flex-direction: column;
     justify-content: center;
-    overflow-y: auto; /* For smaller heights if form is long */
+    overflow-y: auto;
+    /* For smaller heights if form is long */
 }
 
 .mobooking-auth-form-wrapper {
@@ -66,44 +82,66 @@
 }
 
 .mobooking-auth-form-wrapper h2 {
-    font-size: 1.5rem; /* text-2xl */
-    font-weight: 600; /* font-semibold */
-    color: hsl(222.2 84% 4.9%); /* text-card-foreground (primary text) */
-    margin-bottom: 1.5rem; /* mb-6 */
+    font-size: 1.5rem;
+    /* text-2xl */
+    font-weight: 600;
+    /* font-semibold */
+    color: hsl(222.2 84% 4.9%);
+    /* text-card-foreground (primary text) */
+    margin-bottom: 1.5rem;
+    /* mb-6 */
     text-align: center;
-    letter-spacing: -0.025em; /* tracking-tight */
+    letter-spacing: -0.025em;
+    /* tracking-tight */
 }
-.mobooking-auth-form-wrapper h3 { /* For step titles */
-    font-size: 1.125rem; /* text-lg */
-    font-weight: 500; /* font-medium */
+
+.mobooking-auth-form-wrapper h3 {
+    /* For step titles */
+    font-size: 1.125rem;
+    /* text-lg */
+    font-weight: 500;
+    /* font-medium */
     color: hsl(222.2 84% 4.9%);
     margin-bottom: 1rem;
     padding-bottom: 0.5rem;
-    border-bottom: 1px solid hsl(214.3 31.8% 91.4%); /* border */
+    border-bottom: 1px solid hsl(214.3 31.8% 91.4%);
+    /* border */
 }
 
 
 /* Input field styling (based on shadcn/ui Input) */
 .mobooking-auth-form-wrapper .input {
     display: flex;
-    height: 2.5rem; /* h-10 */
+    height: 2.5rem;
+    /* h-10 */
     width: 100%;
-    border-radius: 0.375rem; /* rounded-md */
-    border: 1px solid hsl(214.3 31.8% 91.4%); /* border-input */
-    background-color: hsl(0 0% 100%); /* bg-background */
-    padding: 0.5rem 0.75rem; /* px-3 py-2 */
-    font-size: 0.875rem; /* text-sm */
+    border-radius: 0.375rem;
+    /* rounded-md */
+    border: 1px solid hsl(214.3 31.8% 91.4%);
+    /* border-input */
+    background-color: hsl(0 0% 100%);
+    /* bg-background */
+    padding: 0.5rem 0.75rem;
+    /* px-3 py-2 */
+    font-size: 0.875rem;
+    /* text-sm */
     color: hsl(222.2 84% 4.9%);
-    line-height: 1.25rem; /* leading-5 (approx) */
+    line-height: 1.25rem;
+    /* leading-5 (approx) */
     transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 }
+
 .mobooking-auth-form-wrapper .input::placeholder {
-    color: hsl(215.4 16.3% 46.9%); /* text-muted-foreground */
+    color: hsl(215.4 16.3% 46.9%);
+    /* text-muted-foreground */
 }
+
 .mobooking-auth-form-wrapper .input:focus {
     outline: none;
-    border-color: hsl(221.2 83.2% 53.3%); /* ring-ring (focus) */
-    box-shadow: 0 0 0 2px hsl(221.2 83.2% 53.3% / 0.4); /* focus ring with opacity */
+    border-color: hsl(221.2 83.2% 53.3%);
+    /* ring-ring (focus) */
+    box-shadow: 0 0 0 2px hsl(221.2 83.2% 53.3% / 0.4);
+    /* focus ring with opacity */
 }
 
 /* Button styling (based on shadcn/ui Button) */
@@ -112,54 +150,81 @@
     align-items: center;
     justify-content: center;
     white-space: nowrap;
-    border-radius: 0.375rem; /* rounded-md */
-    font-size: 0.875rem; /* text-sm */
-    font-weight: 500; /* font-medium */
+    border-radius: 0.375rem;
+    /* rounded-md */
+    font-size: 0.875rem;
+    /* text-sm */
+    font-weight: 500;
+    /* font-medium */
     transition: background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, color 0.15s ease-in-out;
     cursor: pointer;
     border: 1px solid transparent;
-    padding: 0.5rem 1rem; /* h-10 px-4 py-2 (approx) */
+    padding: 0.5rem 1rem;
+    /* h-10 px-4 py-2 (approx) */
     height: 2.5rem;
     text-decoration: none;
     line-height: 1.25rem;
 }
+
 .mobooking-auth-form-wrapper .button:focus-visible {
     outline: none;
-    box-shadow: 0 0 0 2px hsl(221.2 83.2% 53.3% / 0.4); /* focus ring */
+    box-shadow: 0 0 0 2px hsl(221.2 83.2% 53.3% / 0.4);
+    /* focus ring */
 }
+
 .mobooking-auth-form-wrapper .button.button-primary {
-    background-color: hsl(222.2 47.4% 11.2%); /* bg-primary (dark blue) */
-    color: hsl(210 40% 98%); /* text-primary-foreground (light) */
+    background-color: hsl(222.2 47.4% 11.2%);
+    /* bg-primary (dark blue) */
+    color: hsl(210 40% 98%);
+    /* text-primary-foreground (light) */
     border-color: hsl(222.2 47.4% 11.2%);
 }
+
 .mobooking-auth-form-wrapper .button.button-primary:hover {
-    background-color: hsl(222.2 47.4% 11.2% / 0.9); /* bg-primary/90 */
+    background-color: hsl(222.2 47.4% 11.2% / 0.9);
+    /* bg-primary/90 */
 }
-.mobooking-auth-form-wrapper .button:not(.button-primary) { /* Secondary/Default button */
-    background-color: hsl(0 0% 100%); /* bg-background */
-    border-color: hsl(214.3 31.8% 91.4%); /* border-input */
-    color: hsl(222.2 84% 4.9%); /* text-accent-foreground */
+
+.mobooking-auth-form-wrapper .button:not(.button-primary) {
+    /* Secondary/Default button */
+    background-color: hsl(0 0% 100%);
+    /* bg-background */
+    border-color: hsl(214.3 31.8% 91.4%);
+    /* border-input */
+    color: hsl(222.2 84% 4.9%);
+    /* text-accent-foreground */
 }
+
 .mobooking-auth-form-wrapper .button:not(.button-primary):hover {
-    background-color: hsl(210 40% 96.1%); /* bg-accent */
-    color: hsl(222.2 84% 4.9%); /* text-accent-foreground */
+    background-color: hsl(210 40% 96.1%);
+    /* bg-accent */
+    color: hsl(222.2 84% 4.9%);
+    /* text-accent-foreground */
 }
 
 
 /* Links below the form */
 .mobooking-auth-links {
-    margin-top: 1.5rem; /* mt-6 */
+    margin-top: 1.5rem;
+    /* mt-6 */
     text-align: center;
-    font-size: 0.875rem; /* text-sm */
+    font-size: 0.875rem;
+    /* text-sm */
 }
+
 .mobooking-auth-links p {
-    margin-bottom: 0.25rem; /* Minimal spacing between links */
+    margin-bottom: 0.25rem;
+    /* Minimal spacing between links */
 }
+
 .mobooking-auth-links a {
-    color: hsl(221.2 83.2% 53.3%); /* text-primary */
+    color: hsl(221.2 83.2% 53.3%);
+    /* text-primary */
     text-decoration: none;
-    font-weight: 500; /* font-medium */
+    font-weight: 500;
+    /* font-medium */
 }
+
 .mobooking-auth-links a:hover {
     text-decoration: underline;
 }
@@ -167,23 +232,34 @@
 /* Styles for form rows (e.g., First Name / Last Name) */
 .form-row {
     display: flex;
-    gap: 1rem; /* Space between items in the row */
-    margin-bottom: 1rem; /* Default margin for p tags was 1rem, so row takes that */
+    gap: 1rem;
+    /* Space between items in the row */
+    margin-bottom: 1rem;
+    /* Default margin for p tags was 1rem, so row takes that */
 }
+
 .form-row .form-group-half {
-    flex: 1; /* Each item takes equal width */
-    margin-bottom: 0; /* Remove bottom margin from p tags inside form-row */
+    flex: 1;
+    /* Each item takes equal width */
+    margin-bottom: 0;
+    /* Remove bottom margin from p tags inside form-row */
 }
 
 /* Responsive adjustment for form rows if needed */
-@media (max-width: 480px) { /* Example breakpoint for stacking */
+@media (max-width: 480px) {
+
+    /* Example breakpoint for stacking */
     .form-row {
         flex-direction: column;
-        gap: 0; /* Remove gap when stacked, p tags will have their own margin if needed */
+        gap: 0;
+        /* Remove gap when stacked, p tags will have their own margin if needed */
     }
+
     .form-row .form-group-half {
-        margin-bottom: 1rem; /* Add back margin when stacked */
+        margin-bottom: 1rem;
+        /* Add back margin when stacked */
     }
+
     .form-row .form-group-half:last-child {
         margin-bottom: 0;
     }
@@ -197,73 +273,107 @@
         margin: 2rem auto;
         border-radius: 0.5rem;
     }
+
     .mobooking-auth-image-column {
         min-height: 200px;
-        /* display: none; */ /* Option: hide image on smaller screens */
+        /* display: none; */
+        /* Option: hide image on smaller screens */
     }
+
     .mobooking-auth-form-column {
         padding: 2rem;
     }
 }
+
 @media (max-width: 576px) {
     .mobooking-auth-page-container {
-        padding: 1rem; /* Add padding to page itself on mobile */
+        padding: 1rem;
+        /* Add padding to page itself on mobile */
     }
+
     .mobooking-auth-grid {
         margin: 1rem auto;
-        box-shadow: none; /* Remove shadow on very small screens if it looks odd */
+        box-shadow: none;
+        /* Remove shadow on very small screens if it looks odd */
         border-radius: 0.375rem;
     }
+
     .mobooking-auth-image-column {
-         display: none; /* Hide image column on very small screens */
+        display: none;
+        /* Hide image column on very small screens */
     }
+
     .mobooking-auth-form-column {
         padding: 1.5rem;
     }
+
     .mobooking-auth-form-wrapper h2 {
-        font-size: 1.25rem; /* text-xl */
+        font-size: 1.25rem;
+        /* text-xl */
         margin-bottom: 1rem;
     }
 }
 
 /* General form element layout */
 .mobooking-auth-form-wrapper .input,
-.mobooking-auth-form-wrapper .button.button-primary[type="submit"] { /* Full width only for main submit button */
+.mobooking-auth-form-wrapper .button.button-primary[type="submit"] {
+    /* Full width only for main submit button */
     width: 100%;
 }
+
 .mobooking-auth-form-wrapper p {
-    margin-bottom: 1rem; /* mb-4 */
+    margin-bottom: 1rem;
+    /* mb-4 */
 }
-.mobooking-auth-form-wrapper p.login-remember { /* Specific for remember me checkbox */
+
+.mobooking-auth-form-wrapper p.login-remember {
+    /* Specific for remember me checkbox */
     display: flex;
     align-items: center;
-    margin-bottom: 1.25rem; /* mb-5 */
+    margin-bottom: 1.25rem;
+    /* mb-5 */
 }
+
 .mobooking-auth-form-wrapper p.login-remember label {
-    font-weight: 400; /* normal */
-    font-size: 0.875rem; /* text-sm */
+    font-weight: 400;
+    /* normal */
+    font-size: 0.875rem;
+    /* text-sm */
     margin-bottom: 0;
-    margin-left: 0.5rem; /* ml-2 */
+    margin-left: 0.5rem;
+    /* ml-2 */
     color: hsl(215.4 16.3% 46.9%);
 }
+
 .mobooking-auth-form-wrapper p.login-remember input[type="checkbox"] {
-    height: 1rem; width: 1rem; /* h-4 w-4 */
-    border-radius: 0.25rem; /* rounded-sm */
-    border-color: hsl(214.3 31.8% 91.4%); /* border-primary */
+    height: 1rem;
+    width: 1rem;
+    /* h-4 w-4 */
+    border-radius: 0.25rem;
+    /* rounded-sm */
+    border-color: hsl(214.3 31.8% 91.4%);
+    /* border-primary */
 }
 
 .mobooking-auth-form-wrapper p label:not(.login-remember label) {
     display: block;
-    margin-bottom: 0.5rem; /* mb-2 */
-    font-weight: 500; /* font-medium */
-    font-size: 0.875rem; /* text-sm */
+    margin-bottom: 0.5rem;
+    /* mb-2 */
+    font-weight: 500;
+    /* font-medium */
+    font-size: 0.875rem;
+    /* text-sm */
     color: hsl(222.2 84% 4.9%);
 }
+
 .mobooking-auth-form-wrapper small {
-    font-size: 0.75rem; /* text-xs */
-    color: hsl(215.4 16.3% 46.9%); /* text-muted-foreground */
+    font-size: 0.75rem;
+    /* text-xs */
+    color: hsl(215.4 16.3% 46.9%);
+    /* text-muted-foreground */
     display: block;
-    margin-top: 0.375rem; /* mt-1.5 */
+    margin-top: 0.375rem;
+    /* mt-1.5 */
 }
 
 /* Progress bar styling */
@@ -273,6 +383,7 @@
     margin-bottom: 1.5rem;
     gap: 0.5rem;
 }
+
 .mobooking-progress-step {
     flex: 1;
     text-align: center;
@@ -284,12 +395,16 @@
     font-size: 0.8rem;
     transition: all 0.2s ease-in-out;
 }
+
 .mobooking-progress-step.active {
-    background-color: hsl(222.2 47.4% 11.2%); /* bg-primary */
-    color: hsl(210 40% 98%); /* text-primary-foreground */
+    background-color: hsl(222.2 47.4% 11.2%);
+    /* bg-primary */
+    color: hsl(210 40% 98%);
+    /* text-primary-foreground */
     border-color: hsl(222.2 47.4% 11.2%);
     font-weight: 500;
 }
+
 /* Step transitions */
 .mobooking-register-step {
     opacity: 0;
@@ -298,17 +413,21 @@
     display: none;
     visibility: hidden;
 }
+
 .mobooking-register-step.active {
     opacity: 1;
     transform: translateY(0);
     display: block;
     visibility: visible;
 }
+
 .form-navigation {
-    margin-top: 1.5rem; /* mt-6 */
+    margin-top: 1.5rem;
+    /* mt-6 */
     display: flex;
     justify-content: space-between;
 }
+
 .form-navigation .button {
     min-width: 100px;
 }
@@ -317,24 +436,35 @@
 /* Error and Success Messages */
 #mobooking-register-message,
 #mobooking-login-message {
-    padding: 0.75rem 1rem; /* p-3 */
-    margin-top: 1rem; /* mt-4 */
-    border-radius: 0.375rem; /* rounded-md */
-    font-size: 0.875rem; /* text-sm */
+    padding: 0.75rem 1rem;
+    /* p-3 */
+    margin-top: 1rem;
+    /* mt-4 */
+    border-radius: 0.375rem;
+    /* rounded-md */
+    font-size: 0.875rem;
+    /* text-sm */
     text-align: center;
     border-width: 1px;
     border-style: solid;
 }
+
 #mobooking-register-message.error,
 #mobooking-login-message.error {
-    color: hsl(0 72.2% 50.6%); /* text-destructive */
-    background-color: hsl(0 100% 98%); /* destructive/10: #fff1f1 or similar */
-    border-color: hsl(0 84.2% 60.2%); /* border-destructive */
+    color: hsl(0 72.2% 50.6%);
+    /* text-destructive */
+    background-color: hsl(0 100% 98%);
+    /* destructive/10: #fff1f1 or similar */
+    border-color: hsl(0 84.2% 60.2%);
+    /* border-destructive */
 }
+
 #mobooking-register-message.success,
 #mobooking-login-message.success {
-    color: hsl(142.1 70.6% 35.3%); /* Adjusted for better contrast on light bg */
-    background-color: hsl(145 75% 96.3%); /* Light green */
+    color: hsl(142.1 70.6% 35.3%);
+    /* Adjusted for better contrast on light bg */
+    background-color: hsl(145 75% 96.3%);
+    /* Light green */
     border-color: hsl(142.1 70.6% 45.3%);
 }
 
@@ -344,9 +474,11 @@
     font-size: 0.8rem;
     margin-top: 0.25rem;
 }
+
 .input-error {
     border-color: hsl(0 84.2% 60.2%) !important;
 }
+
 .input-error:focus {
     border-color: hsl(0 84.2% 60.2%) !important;
     box-shadow: 0 0 0 2px hsl(0 84.2% 60.2% / 0.4) !important;
@@ -355,25 +487,38 @@
 /* AJAX feedback styling for individual fields (email, company name checks) */
 .field-error-ajax {
     font-size: 0.8rem;
-    margin-top: 0.375rem; /* Consistent with .field-error but can be adjusted */
+    margin-top: 0.375rem;
+    /* Consistent with .field-error but can be adjusted */
     padding: 0.375rem 0.5rem;
-    border-radius: 0.25rem; /* rounded-sm */
+    border-radius: 0.25rem;
+    /* rounded-sm */
     display: block;
     line-height: 1.4;
 }
-.field-error-ajax.error { /* For actual errors from AJAX, though typically handled by main .field-error */
+
+.field-error-ajax.error {
+    /* For actual errors from AJAX, though typically handled by main .field-error */
     color: hsl(0 72.2% 50.6%);
     background-color: hsl(0 100% 98%);
 }
-.field-error-ajax.success { /* For "email available" type messages */
+
+.field-error-ajax.success {
+    /* For "email available" type messages */
     color: hsl(142.1 70.6% 35.3%);
-    background-color: hsl(145 75% 97%); /* Lighter green */
+    background-color: hsl(145 75% 97%);
+    /* Lighter green */
 }
-.field-error-ajax.warning { /* For "company name might be taken" type messages */
-    color: hsl(38 92.3% 50.2%); /* Amber/Orange text */
-    background-color: hsl(45 100% 97.1%); /* Light amber/yellow */
+
+.field-error-ajax.warning {
+    /* For "company name might be taken" type messages */
+    color: hsl(38 92.3% 50.2%);
+    /* Amber/Orange text */
+    background-color: hsl(45 100% 97.1%);
+    /* Light amber/yellow */
 }
-.checking-email, .checking-slug {
+
+.checking-email,
+.checking-slug {
     /* Optional: add a subtle background or border change during AJAX check */
     /* background-image: url('spinner.gif');
     background-repeat: no-repeat;
@@ -386,19 +531,22 @@
 #mobooking-confirmation-details p {
     margin-bottom: 0.75rem;
     font-size: 0.9rem;
-    color: hsl(215.4 16.3% 46.9%); /* text-muted-foreground */
+    color: hsl(215.4 16.3% 46.9%);
+    /* text-muted-foreground */
 }
+
 #mobooking-confirmation-details p strong {
-    color: hsl(222.2 84% 4.9%); /* text-foreground */
+    color: hsl(222.2 84% 4.9%);
+    /* text-foreground */
     margin-right: 0.5rem;
     font-weight: 500;
 }
 
 /* Hide default theme header/footer on these pages */
-body.page-template-page-login #page > #masthead,
-body.page-template-page-login #page > #colophon,
-body.page-template-page-register #page > #masthead,
-body.page-template-page-register #page > #colophon {
+body.page-template-page-login #page>#masthead,
+body.page-template-page-login #page>#colophon,
+body.page-template-page-register #page>#masthead,
+body.page-template-page-register #page>#colophon {
     display: none;
 }
 
@@ -410,5 +558,3 @@ body.page-template-page-register #content {
     margin: 0;
     max-width: none;
 }
-
-```
