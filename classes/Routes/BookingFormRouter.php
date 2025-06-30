@@ -217,7 +217,7 @@ class BookingFormRouter {
     /**
      * Get user ID by business slug with enhanced error handling
      */
-    private function get_user_id_by_slug($slug) {
+    public static function get_user_id_by_slug($slug) { // Changed to public static
         global $wpdb;
 
         if (empty($slug)) {

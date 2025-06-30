@@ -654,7 +654,10 @@ get_header();
                     <li><a href="#pricing">Pricing</a></li>
                     <li><a href="#testimonials">Reviews</a></li>
                 </ul>
-                <a href="/dashboard" class="btn btn-primary btn-sm">Get Started</a>
+                <div style="display: flex; gap: 0.75rem;">
+                    <a href="<?php echo esc_url(home_url('/login/')); ?>" class="btn btn-outline btn-sm">Login</a>
+                    <a href="<?php echo esc_url(home_url('/register/')); ?>" class="btn btn-primary btn-sm">Sign Up</a>
+                </div>
                 <button class="mobile-menu-toggle">☰</button>
             </nav>
         </div>
@@ -677,8 +680,8 @@ get_header();
                 </p>
 
                 <div class="hero-actions slide-up delay-200">
-                    <a href="/dashboard" class="btn btn-primary btn-xl">Start Free Trial</a>
-                    <a href="/dashboard" class="btn btn-outline btn-xl">Book Demo</a>
+                    <a href="<?php echo esc_url(home_url('/register/')); ?>" class="btn btn-primary btn-xl">Start Free Trial</a>
+                    <a href="/dashboard" class="btn btn-outline btn-xl">Book Demo</a> <!-- Assuming /dashboard or a contact page for demo -->
                 </div>
 
                 <div class="hero-stats fade-in delay-300">
@@ -827,7 +830,7 @@ get_header();
                                 <li>Customer management</li>
                                 <li>Basic integrations</li>
                             </ul>
-                            <a href="/dashboard" class="btn btn-outline btn-lg" style="width: 100%;">Choose Starter</a>
+                            <a href="<?php echo esc_url(home_url('/register/')); ?>" class="btn btn-outline btn-lg" style="width: 100%;">Choose Starter</a>
                         </div>
                     </div>
 
@@ -848,7 +851,7 @@ get_header();
                                 <li>Discount codes & promotions</li>
                                 <li>WooCommerce & Stripe integration</li>
                             </ul>
-                            <a href="/dashboard" class="btn btn-primary btn-lg" style="width: 100%;">Choose Professional</a>
+                            <a href="<?php echo esc_url(home_url('/register/')); ?>" class="btn btn-primary btn-lg" style="width: 100%;">Choose Professional</a>
                         </div>
                     </div>
 
@@ -868,7 +871,7 @@ get_header();
                                 <li>Custom integrations</li>
                                 <li>Advanced security features</li>
                             </ul>
-                            <a href="/dashboard" class="btn btn-outline btn-lg" style="width: 100%;">Contact Sales</a>
+                            <a href="/dashboard" class="btn btn-outline btn-lg" style="width: 100%;">Contact Sales</a> <!-- Assuming /dashboard or contact page -->
                         </div>
                     </div>
                 </div>
@@ -1025,8 +1028,8 @@ get_header();
                 </p>
 
                 <div class="hero-actions slide-up delay-200">
-                    <a href="/dashboard" class="btn btn-primary btn-xl">Start Free Trial</a>
-                    <a href="/dashboard" class="btn btn-outline btn-xl">Schedule Demo</a>
+                    <a href="<?php echo esc_url(home_url('/register/')); ?>" class="btn btn-primary btn-xl">Start Free Trial</a>
+                    <a href="/dashboard" class="btn btn-outline btn-xl">Schedule Demo</a> <!-- Assuming /dashboard or contact page -->
                 </div>
 
                 <p style="margin-top: 1rem; font-size: 0.875rem; color: hsl(var(--muted-foreground));">
