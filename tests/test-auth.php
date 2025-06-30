@@ -439,5 +439,137 @@ class Test_MoBooking_Auth extends WP_UnitTestCase {
     // - Attempting to change role of a worker not owned by current business owner (expect error)
     // - Attempting to revoke access for a worker not owned (expect error)
     // - Passing invalid nonces (requires more advanced AJAX test setup)
+
+    /**
+     * @runInSeparateProcess
+     * @preserveGlobalState disabled
+     */
+    public function test_handle_send_password_reset_link_ajax_success() {
+        $user_email = 'existinguser@example.com';
+        $this->factory->user->create(['user_email' => $user_email, 'user_login' => 'existinguser']);
+
+        $_POST = [
+            'nonce'      => wp_create_nonce('mobooking_forgot_password_nonce_action'),
+            'user_email' => $user_email,
+        ];
+
+        // Hook to capture wp_mail arguments
+        $sent_mail_args = null;
+        add_filter('wp_mail', function($args) use (&$sent_mail_args) {
+            $sent_mail_args = $args;
+            return $args; // Continue to allow email sending (though test suite usually prevents actual sending)
+        });
+
+        $response = $this->call_ajax_handler([$this->auth_instance, 'handle_send_password_reset_link_ajax']);
+
+        $this->assertTrue($response['success']);
+        $this->assertEquals('If an account with that email exists, a password reset link has been sent.', $response['data']['message']);
+
+        $this->assertNotNull($sent_mail_args, 'wp_mail was not called.');
+        $this->assertEquals($user_email, $sent_mail_args['to']);
+        $this->assertStringContainsString('Password Reset', $sent_mail_args['subject']);
+        $this->assertStringContainsString('wp-login.php?action=rp&key=', $sent_mail_args['message']);
+        $this->assertStringContainsString('login=existinguser', $sent_mail_args['message']);
+
+        // Check if reset key was stored (WordPress stores it in user_activation_key column)
+        $user = get_user_by('email', $user_email);
+        $this->assertNotEmpty($user->user_activation_key); // This is where WP stores the key temporarily
+
+        unset($_POST);
+        remove_all_filters('wp_mail');
+    }
+
+    /**
+     * @runInSeparateProcess
+     * @preserveGlobalState disabled
+     */
+    public function test_handle_send_password_reset_link_ajax_non_existent_email() {
+        $_POST = [
+            'nonce'      => wp_create_nonce('mobooking_forgot_password_nonce_action'),
+            'user_email' => 'nonexistent@example.com',
+        ];
+
+        $wp_mail_called = false;
+        add_filter('wp_mail', function($args) use (&$wp_mail_called) {
+            $wp_mail_called = true;
+            return false; // Prevent email sending for this test
+        });
+
+        $response = $this->call_ajax_handler([$this->auth_instance, 'handle_send_password_reset_link_ajax']);
+
+        $this->assertTrue($response['success']); // Should still be success to prevent enumeration
+        $this->assertEquals('If an account with that email exists, a password reset link has been sent.', $response['data']['message']);
+        $this->assertFalse($wp_mail_called, 'wp_mail should not have been called for a non-existent email.');
+
+        unset($_POST);
+        remove_all_filters('wp_mail');
+    }
+
+    /**
+     * @runInSeparateProcess
+     * @preserveGlobalState disabled
+     */
+    public function test_handle_send_password_reset_link_ajax_invalid_email() {
+        $_POST = [
+            'nonce'      => wp_create_nonce('mobooking_forgot_password_nonce_action'),
+            'user_email' => 'invalid-email',
+        ];
+        $response = $this->call_ajax_handler([$this->auth_instance, 'handle_send_password_reset_link_ajax']);
+        $this->assertFalse($response['success']);
+        $this->assertEquals('Please provide a valid email address.', $response['data']['message']);
+        unset($_POST);
+    }
+
+    /**
+     * @runInSeparateProcess
+     * @preserveGlobalState disabled
+     */
+    public function test_handle_send_password_reset_link_ajax_missing_email() {
+        $_POST = [
+            'nonce'      => wp_create_nonce('mobooking_forgot_password_nonce_action'),
+            // 'user_email' is missing
+        ];
+        $response = $this->call_ajax_handler([$this->auth_instance, 'handle_send_password_reset_link_ajax']);
+        $this->assertFalse($response['success']);
+        $this->assertEquals('Please provide a valid email address.', $response['data']['message']); // Or "Email not provided"
+        unset($_POST);
+    }
+
+     /**
+     * @runInSeparateProcess
+     * @preserveGlobalState disabled
+     */
+    public function test_handle_send_password_reset_link_ajax_invalid_nonce() {
+        $_POST = [
+            'nonce'      => 'invalidnonce',
+            'user_email' => 'test@example.com',
+        ];
+        // check_ajax_referer dies with a -1 or specific message if not caught.
+        // The call_ajax_handler catches the WP_UnitTest_Exception from wp_die().
+        // We expect the response to be null or an error structure if wp_die output something before exiting.
+        // WordPress's default die message for bad nonce is often just "-1" or a specific string.
+        // Since check_ajax_referer dies, the $response might not be a typical JSON error.
+        // We might need to expect an exception or check the output buffer directly.
+        // For simplicity, let's check if the output is NOT a success JSON.
+
+        ob_start();
+        try {
+            $this->auth_instance->handle_send_password_reset_link_ajax();
+        } catch (\WP_UnitTest_Exception $e) {
+            // Expected
+        }
+        $output = ob_get_clean();
+
+        // A failed nonce check usually results in wp_die('-1') or similar status code if headers not sent.
+        // If headers are sent, it will output an error message.
+        // The key is that it shouldn't be a JSON success response.
+        $json_output = json_decode($output, true);
+        $this->assertFalse(isset($json_output['success']) && $json_output['success'] === true);
+        // More specific check if WP_DIE_AJAX_HANDLER is customized or for default WP behavior:
+        // $this->assertEquals('-1', $output); // Or check for part of the die message.
+
+        unset($_POST);
+    }
+
 }
 ?>
