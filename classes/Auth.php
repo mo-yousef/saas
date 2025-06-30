@@ -420,9 +420,10 @@ class Auth {
         check_ajax_referer( self::REGISTER_NONCE_ACTION, 'nonce' );
 
         // Step 1 Data: Personal Information
-        $name     = isset($_POST['name']) ? sanitize_text_field(trim($_POST['name'])) : '';
-        $email    = isset($_POST['email']) ? sanitize_email( $_POST['email'] ) : '';
-        $password = isset($_POST['password']) ? $_POST['password'] : '';
+        $first_name = isset($_POST['first_name']) ? sanitize_text_field(trim($_POST['first_name'])) : '';
+        $last_name  = isset($_POST['last_name']) ? sanitize_text_field(trim($_POST['last_name'])) : '';
+        $email      = isset($_POST['email']) ? sanitize_email( $_POST['email'] ) : '';
+        $password   = isset($_POST['password']) ? $_POST['password'] : '';
         $password_confirm = isset($_POST['password_confirm']) ? $_POST['password_confirm'] : '';
 
         // Step 2 Data: Business Information
@@ -430,8 +431,11 @@ class Auth {
 
         // --- Server-Side Validation ---
         // Personal Information
-        if ( empty( $name ) ) {
-            wp_send_json_error( array( 'message' => __( 'Full name is required.', 'mobooking' ) ) );
+        if ( empty( $first_name ) ) {
+            wp_send_json_error( array( 'message' => __( 'First name is required.', 'mobooking' ) ) );
+        }
+        if ( empty( $last_name ) ) {
+            wp_send_json_error( array( 'message' => __( 'Last name is required.', 'mobooking' ) ) );
         }
         if ( empty( $email ) || ! is_email( $email ) ) {
             wp_send_json_error( array( 'message' => __( 'A valid email address is required.', 'mobooking' ) ) );
@@ -463,16 +467,19 @@ class Auth {
         } else {
             $user = new \WP_User( $user_id );
 
-            // Process and save name
-            $name_parts = explode( ' ', $name, 2 );
-            $first_name = $name_parts[0];
-            $last_name  = isset( $name_parts[1] ) ? $name_parts[1] : '';
+            // Update user with first name, last name, and display name
+            // For display name, we'll concatenate first and last if both exist, otherwise use email prefix.
+            $display_name = trim($first_name . ' ' . $last_name);
+            if(empty($display_name)) {
+                $email_parts = explode('@', $email);
+                $display_name = $email_parts[0];
+            }
 
             wp_update_user( array(
                 'ID' => $user_id,
                 'first_name' => $first_name,
                 'last_name' => $last_name,
-                'display_name' => $name // Use full name for display name
+                'display_name' => $display_name
             ) );
 
             // Check if this is a worker registration (invitation flow)
