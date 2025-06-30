@@ -10,7 +10,7 @@ if ( is_user_logged_in() ) {
     exit;
 }
 
-get_header();
+get_header(); // This will be hidden by CSS in auth-pages.css for these templates
 
 $invitation_token = null;
 $invitation_data = null;
@@ -52,136 +52,121 @@ if ( isset( $_GET['invitation_token'] ) ) {
         $invitation_token = null;
     }
 }
-
 ?>
-<main id="main" class="site-main">
-    <div id="mobooking-register-form-container" class="mobooking-auth-form-wrapper">
-        <style>
-            .mobooking-auth-form-wrapper { max-width: 500px; margin: 2rem auto; padding: 2rem; background: #fff; border: 1px solid #e2e8f0; border-radius: 0.5rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06); }
-            /* .mobooking-register-step { animation: fadeIn 0.5s; }
-            @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } } */
-            .mobooking-register-step {
-                opacity: 0;
-                transform: translateY(10px);
-                transition: opacity 0.3s ease-out, transform 0.3s ease-out;
-                display: none;
-                visibility: hidden;
-            }
-            .mobooking-register-step.active {
-                opacity: 1;
-                transform: translateY(0);
-                display: block;
-                visibility: visible;
-            }
-            .mobooking-register-step h3 { margin-top: 0; margin-bottom: 1.5rem; font-size: 1.25rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.75rem; }
-            .form-navigation { margin-top: 1.5rem; display: flex; justify-content: space-between; }
-            .form-navigation .button { min-width: 100px; }
-            .mobooking-progress-step { padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 4px; background-color: #f8fafc; color: #64748b; transition: all 0.3s ease; }
-            .mobooking-progress-step.active { background-color: #3b82f6; color: white; border-color: #3b82f6; font-weight: 500; }
-            #mobooking-register-message.error { color: #dc2626; background-color: #fee2e2; border: 1px solid #ef4444; padding: 10px; border-radius: 4px;}
-            #mobooking-register-message.success { color: #166534; background-color: #dcfce7; border: 1px solid #22c55e; padding: 10px; border-radius: 4px;}
-        </style>
-        <h2><?php
-            if ($is_invitation) {
-                esc_html_e( 'Complete Your Worker Registration', 'mobooking' );
-            } else {
-                esc_html_e( 'Register Your Business', 'mobooking' );
-            }
-        ?></h2>
 
-        <?php if ( ! empty( $invitation_error ) ) : ?>
-            <div class="mobooking-message error"><p><?php echo $invitation_error; ?></p></div>
-        <?php endif; ?>
-
-        <?php if ( ! empty( $invitation_message ) ) : ?>
-            <div class="mobooking-message success"><p><?php echo $invitation_message; ?></p></div>
-        <?php endif; ?>
-
-        <div id="mobooking-progress-bar" style="display: flex; justify-content: space-between; margin-bottom: 20px;">
-            <div class="mobooking-progress-step active" data-step="1"><?php esc_html_e('Account', 'mobooking'); ?></div>
-            <div class="mobooking-progress-step" data-step="2"><?php esc_html_e('Personal', 'mobooking'); ?></div>
-            <div class="mobooking-progress-step" data-step="3"><?php esc_html_e('Business', 'mobooking'); ?></div>
+<div class="mobooking-auth-page-container">
+    <div class="mobooking-auth-grid">
+        <div class="mobooking-auth-image-column">
+            <div class="placeholder-content">
+                <h1><?php bloginfo('name'); ?></h1>
+                <p><?php esc_html_e('Join us and streamline your business operations.', 'mobooking'); ?></p>
+            </div>
         </div>
+        <div class="mobooking-auth-form-column">
+            <main id="main" class="site-main">
+                <div id="mobooking-register-form-container" class="mobooking-auth-form-wrapper">
+                    <?php /* Inline styles previously here are now removed and handled by auth-pages.css */ ?>
+                    <h2><?php
+                        if ($is_invitation) {
+                            esc_html_e( 'Complete Your Worker Registration', 'mobooking' );
+                        } else {
+                            esc_html_e( 'Register Your Business', 'mobooking' );
+                        }
+                    ?></h2>
 
-        <form id="mobooking-register-form">
-            <?php if ( $is_invitation && $invitation_token ) : ?>
-                <input type="hidden" name="inviter_id" id="mobooking-inviter-id" value="<?php echo esc_attr( $inviter_id ); ?>" />
-                <input type="hidden" name="assigned_role" id="mobooking-assigned-role" value="<?php echo esc_attr( $assigned_role ); ?>" />
-                <input type="hidden" name="invitation_token" id="mobooking-invitation-token" value="<?php echo esc_attr( $invitation_token ); ?>" />
-            <?php endif; ?>
+                    <?php if ( ! empty( $invitation_error ) ) : ?>
+                        <div class="mobooking-message error"><p><?php echo $invitation_error; ?></p></div>
+                    <?php endif; ?>
 
-            <!-- Step 1: Account Setup -->
-            <div id="mobooking-register-step-1" class="mobooking-register-step active">
-                <h3><?php esc_html_e( 'Step 1: Account Setup', 'mobooking' ); ?></h3>
-                <p class="register-email">
-                    <label for="mobooking-user-email"><?php esc_html_e( 'Email Address', 'mobooking' ); ?></label>
-                    <input type="email" name="email" id="mobooking-user-email" class="input" value="<?php echo esc_attr( $worker_email ); ?>" required <?php if ( $is_invitation && !empty($worker_email) ) echo 'readonly'; ?> />
-                </p>
-                <p class="register-password">
-                    <label for="mobooking-user-pass"><?php esc_html_e( 'Password (min. 8 characters)', 'mobooking' ); ?></label>
-                    <input type="password" name="password" id="mobooking-user-pass" class="input" value="" required />
-                </p>
-                <p class="register-password-confirm">
-                    <label for="mobooking-user-pass-confirm"><?php esc_html_e( 'Confirm Password', 'mobooking' ); ?></label>
-                    <input type="password" name="password_confirm" id="mobooking-user-pass-confirm" class="input" value="" required />
-                </p>
-                <div class="form-navigation">
-                    <button type="button" id="mobooking-step-1-next" class="button button-primary"><?php esc_html_e( 'Next', 'mobooking' ); ?></button>
+                    <?php if ( ! empty( $invitation_message ) ) : ?>
+                        <div class="mobooking-message success"><p><?php echo $invitation_message; ?></p></div>
+                    <?php endif; ?>
+
+                    <div id="mobooking-progress-bar">
+                        <div class="mobooking-progress-step active" data-step="1"><?php esc_html_e('Personal Info', 'mobooking'); ?></div>
+                        <div class="mobooking-progress-step" data-step="2"><?php esc_html_e('Business Info', 'mobooking'); ?></div>
+                        <div class="mobooking-progress-step" data-step="3"><?php esc_html_e('Confirm', 'mobooking'); ?></div>
+                    </div>
+
+                    <form id="mobooking-register-form">
+                        <?php if ( $is_invitation && $invitation_token ) : ?>
+                            <input type="hidden" name="inviter_id" id="mobooking-inviter-id" value="<?php echo esc_attr( $inviter_id ); ?>" />
+                            <input type="hidden" name="assigned_role" id="mobooking-assigned-role" value="<?php echo esc_attr( $assigned_role ); ?>" />
+                            <input type="hidden" name="invitation_token" id="mobooking-invitation-token" value="<?php echo esc_attr( $invitation_token ); ?>" />
+                        <?php endif; ?>
+
+                        <!-- Step 1: Personal Information -->
+                        <div id="mobooking-register-step-1" class="mobooking-register-step active">
+                            <h3><?php esc_html_e( 'Step 1: Personal Information', 'mobooking' ); ?></h3>
+                            <p class="register-name">
+                                <label for="mobooking-user-name"><?php esc_html_e( 'Full Name', 'mobooking' ); ?></label>
+                                <input type="text" name="name" id="mobooking-user-name" class="input" value="" required />
+                            </p>
+                            <p class="register-email">
+                                <label for="mobooking-user-email"><?php esc_html_e( 'Email Address', 'mobooking' ); ?></label>
+                                <input type="email" name="email" id="mobooking-user-email" class="input" value="<?php echo esc_attr( $worker_email ); ?>" required <?php if ( $is_invitation && !empty($worker_email) ) echo 'readonly'; ?> />
+                            </p>
+                            <p class="register-password">
+                                <label for="mobooking-user-pass"><?php esc_html_e( 'Password (min. 8 characters)', 'mobooking' ); ?></label>
+                                <input type="password" name="password" id="mobooking-user-pass" class="input" value="" required />
+                            </p>
+                            <p class="register-password-confirm">
+                                <label for="mobooking-user-pass-confirm"><?php esc_html_e( 'Confirm Password', 'mobooking' ); ?></label>
+                                <input type="password" name="password_confirm" id="mobooking-user-pass-confirm" class="input" value="" required />
+                            </p>
+                            <div class="form-navigation">
+                                <button type="button" id="mobooking-step-1-next" class="button button-primary"><?php esc_html_e( 'Next', 'mobooking' ); ?></button>
+                            </div>
+                        </div>
+
+                        <!-- Step 2: Business Information -->
+                        <div id="mobooking-register-step-2" class="mobooking-register-step" style="display:none;">
+                            <h3><?php esc_html_e( 'Step 2: Business Information', 'mobooking' ); ?></h3>
+                             <?php if ( !$is_invitation ): // Don't show company name for invited workers ?>
+                            <p class="register-company-name">
+                                <label for="mobooking-company-name"><?php esc_html_e( 'Company Name', 'mobooking' ); ?></label>
+                                <input type="text" name="company_name" id="mobooking-company-name" class="input" value="" required />
+                                <small><?php esc_html_e( 'This will be used to generate your unique business URL (slug).', 'mobooking' ); ?></small>
+                            </p>
+                            <?php else: ?>
+                                <p><?php esc_html_e('You are being invited as a worker. No company information is needed from you at this step.', 'mobooking'); ?></p>
+                                <input type="hidden" name="company_name" id="mobooking-company-name" value="" /> <!-- Send empty for workers -->
+                            <?php endif; ?>
+                            <div class="form-navigation">
+                                <button type="button" id="mobooking-step-2-prev" class="button"><?php esc_html_e( 'Previous', 'mobooking' ); ?></button>
+                                <button type="button" id="mobooking-step-2-next" class="button button-primary"><?php esc_html_e( 'Next', 'mobooking' ); ?></button>
+                            </div>
+                        </div>
+
+                        <!-- Step 3: Confirmation -->
+                        <div id="mobooking-register-step-3" class="mobooking-register-step" style="display:none;">
+                            <h3><?php esc_html_e( 'Step 3: Confirm Your Details', 'mobooking' ); ?></h3>
+                            <div id="mobooking-confirmation-details">
+                                <p><strong><?php esc_html_e('Name:', 'mobooking'); ?></strong> <span id="confirm-name"></span></p>
+                                <p><strong><?php esc_html_e('Email:', 'mobooking'); ?></strong> <span id="confirm-email"></span></p>
+                                <?php if ( !$is_invitation ): ?>
+                                <p><strong><?php esc_html_e('Company Name:', 'mobooking'); ?></strong> <span id="confirm-company-name"></span></p>
+                                <?php endif; ?>
+                            </div>
+                            <div class="form-navigation">
+                                <button type="button" id="mobooking-step-3-prev" class="button"><?php esc_html_e( 'Previous', 'mobooking' ); ?></button>
+                                <input type="submit" name="wp-submit" id="mobooking-wp-submit-register" class="button button-primary" value="<?php esc_attr_e( 'Confirm & Register', 'mobooking' ); ?>" />
+                            </div>
+                        </div>
+
+                        <div id="mobooking-register-message" style="display:none; margin-top: 15px;"></div>
+                    </form>
+                    <div class="mobooking-auth-links">
+                        <p>
+                            <?php esc_html_e( 'Already have an account?', 'mobooking' ); ?>
+                            <a href="<?php echo esc_url( home_url( '/login/' ) ); ?>"><?php esc_html_e( 'Log In', 'mobooking' ); ?></a>
+                        </p>
+                    </div>
                 </div>
-            </div>
-
-            <!-- Step 2: Personal Details -->
-            <div id="mobooking-register-step-2" class="mobooking-register-step" style="display:none;">
-                <h3><?php esc_html_e( 'Step 2: Personal Details', 'mobooking' ); ?></h3>
-                <p class="register-first-name">
-                    <label for="mobooking-first-name"><?php esc_html_e( 'First Name', 'mobooking' ); ?></label>
-                    <input type="text" name="first_name" id="mobooking-first-name" class="input" value="" required />
-                </p>
-                <p class="register-last-name">
-                    <label for="mobooking-last-name"><?php esc_html_e( 'Last Name', 'mobooking' ); ?></label>
-                    <input type="text" name="last_name" id="mobooking-last-name" class="input" value="" required />
-                </p>
-                <div class="form-navigation">
-                    <button type="button" id="mobooking-step-2-prev" class="button"><?php esc_html_e( 'Previous', 'mobooking' ); ?></button>
-                    <button type="button" id="mobooking-step-2-next" class="button button-primary"><?php esc_html_e( 'Next', 'mobooking' ); ?></button>
-                </div>
-            </div>
-
-            <!-- Step 3: Business Information -->
-            <div id="mobooking-register-step-3" class="mobooking-register-step" style="display:none;">
-                <h3><?php esc_html_e( 'Step 3: Business Information', 'mobooking' ); ?></h3>
-                <p class="register-company-name">
-                    <label for="mobooking-company-name"><?php esc_html_e( 'Company Name', 'mobooking' ); ?></label>
-                    <input type="text" name="company_name" id="mobooking-company-name" class="input" value="" required />
-                    <small><?php esc_html_e( 'This will be used to generate your unique business URL (slug).', 'mobooking' ); ?></small>
-                </p>
-                <div class="form-navigation">
-                    <button type="button" id="mobooking-step-3-prev" class="button"><?php esc_html_e( 'Previous', 'mobooking' ); ?></button>
-                    <input type="submit" name="wp-submit" id="mobooking-wp-submit-register" class="button button-primary" value="<?php esc_attr_e( 'Register', 'mobooking' ); ?>" />
-                </div>
-            </div>
-
-            <div id="mobooking-register-message" style="display:none; margin-top: 15px;"></div>
-        </form>
-        <p style="margin-top: 20px;">
-            <?php esc_html_e( 'Already have an account?', 'mobooking' ); ?>
-            <a href="<?php echo esc_url( home_url( '/login/' ) ); ?>"><?php esc_html_e( 'Log In', 'mobooking' ); ?></a>
-        </p>
+            </main>
+        </div>
     </div>
-</main>
-
-<style>
-    .mobooking-auth-form-wrapper { max-width: 500px; margin: 2rem auto; padding: 2rem; background: #fff; border: 1px solid #e2e8f0; border-radius: 0.5rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06); }
-    .mobooking-register-step { animation: fadeIn 0.5s; }
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-    .mobooking-register-step h3 { margin-top: 0; margin-bottom: 1.5rem; font-size: 1.25rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.75rem; }
-    .form-navigation { margin-top: 1.5rem; display: flex; justify-content: space-between; }
-    .form-navigation .button { min-width: 100px; }
-    .mobooking-progress-step { padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 4px; background-color: #f8fafc; color: #64748b; transition: all 0.3s ease; }
-    .mobooking-progress-step.active { background-color: #3b82f6; color: white; border-color: #3b82f6; font-weight: 500; }
-    #mobooking-register-message.error { color: #dc2626; background-color: #fee2e2; border: 1px solid #ef4444; padding: 10px; border-radius: 4px;}
-    #mobooking-register-message.success { color: #166534; background-color: #dcfce7; border: 1px solid #22c55e; padding: 10px; border-radius: 4px;}
-</style>
+</div>
 
 <?php
-get_footer();
+get_footer(); // This will be hidden by CSS
