@@ -164,6 +164,31 @@
     text-decoration: underline;
 }
 
+/* Styles for form rows (e.g., First Name / Last Name) */
+.form-row {
+    display: flex;
+    gap: 1rem; /* Space between items in the row */
+    margin-bottom: 1rem; /* Default margin for p tags was 1rem, so row takes that */
+}
+.form-row .form-group-half {
+    flex: 1; /* Each item takes equal width */
+    margin-bottom: 0; /* Remove bottom margin from p tags inside form-row */
+}
+
+/* Responsive adjustment for form rows if needed */
+@media (max-width: 480px) { /* Example breakpoint for stacking */
+    .form-row {
+        flex-direction: column;
+        gap: 0; /* Remove gap when stacked, p tags will have their own margin if needed */
+    }
+    .form-row .form-group-half {
+        margin-bottom: 1rem; /* Add back margin when stacked */
+    }
+    .form-row .form-group-half:last-child {
+        margin-bottom: 0;
+    }
+}
+
 /* Responsive adjustments */
 @media (max-width: 992px) {
     .mobooking-auth-grid {
