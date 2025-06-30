@@ -613,5 +613,132 @@ class Test_MoBooking_Auth extends WP_UnitTestCase {
         unset($_POST);
     }
 
+    // --- Tests for handle_ajax_login ---
+
+    /**
+     * @runInSeparateProcess
+     * @preserveGlobalState disabled
+     */
+    public function test_handle_ajax_login_success() {
+        $email = 'logintest@example.com';
+        $password = 'password123';
+        $user = $this->factory->user->create_and_get(['user_login' => $email, 'user_email' => $email, 'user_pass' => $password, 'role' => Auth::ROLE_BUSINESS_OWNER]);
+        $this->assertInstanceOf(WP_User::class, $user); // Ensure user was created
+
+        $_POST = [
+            'nonce'      => wp_create_nonce(Auth::LOGIN_NONCE_ACTION),
+            'log'        => $email,
+            'pwd'        => $password,
+            'rememberme' => 'forever',
+        ];
+
+        $response = $this->call_ajax_handler([$this->auth_instance, 'handle_ajax_login']);
+
+        $this->assertTrue($response['success'], "Login failed. Response: " . print_r($response, true));
+        $this->assertEquals('Login successful. Redirecting...', $response['data']['message']);
+        $this->assertEquals(home_url('/dashboard/'), $response['data']['redirect_url']);
+        $this->assertEquals($user->ID, get_current_user_id(), "User should be logged in.");
+
+        // Clean up
+        wp_logout(); // Ensure user is logged out for next test
+        unset($_POST);
+    }
+
+    /**
+     * @runInSeparateProcess
+     * @preserveGlobalState disabled
+     */
+    public function test_handle_ajax_login_incorrect_password() {
+        $email = 'loginfail@example.com';
+        $password = 'password123';
+        $this->factory->user->create(['user_login' => $email, 'user_email' => $email, 'user_pass' => $password, 'role' => Auth::ROLE_BUSINESS_OWNER]);
+
+        $_POST = [
+            'nonce'      => wp_create_nonce(Auth::LOGIN_NONCE_ACTION),
+            'log'        => $email,
+            'pwd'        => 'wrongpassword',
+        ];
+
+        $response = $this->call_ajax_handler([$this->auth_instance, 'handle_ajax_login']);
+
+        $this->assertFalse($response['success']);
+        // The exact error message can vary based on WP version or filters.
+        // Checking for a common part of the message.
+        $this->assertStringContainsString('The password you entered for the email address ' . $email . ' is incorrect.', $response['data']['message']);
+        $this->assertEquals(0, get_current_user_id(), "User should not be logged in.");
+        unset($_POST);
+    }
+
+    /**
+     * @runInSeparateProcess
+     * @preserveGlobalState disabled
+     */
+    public function test_handle_ajax_login_unknown_email() {
+        $_POST = [
+            'nonce'      => wp_create_nonce(Auth::LOGIN_NONCE_ACTION),
+            'log'        => 'unknown@example.com',
+            'pwd'        => 'password123',
+        ];
+
+        $response = $this->call_ajax_handler([$this->auth_instance, 'handle_ajax_login']);
+
+        $this->assertFalse($response['success']);
+        $this->assertStringContainsString('Unknown email address. Check again or try your username.', $response['data']['message']);
+        $this->assertEquals(0, get_current_user_id(), "User should not be logged in.");
+        unset($_POST);
+    }
+
+    /**
+     * @runInSeparateProcess
+     * @preserveGlobalState disabled
+     */
+    public function test_handle_ajax_login_user_without_dashboard_access() {
+        $email = 'subscriber@example.com';
+        $password = 'password123';
+        // Create a user with a role that does NOT have ACCESS_MOBOOKING_DASHBOARD cap
+        $this->factory->user->create(['user_login' => $email, 'user_email' => $email, 'user_pass' => $password, 'role' => 'subscriber']);
+
+        $_POST = [
+            'nonce'      => wp_create_nonce(Auth::LOGIN_NONCE_ACTION),
+            'log'        => $email,
+            'pwd'        => $password,
+        ];
+
+        $response = $this->call_ajax_handler([$this->auth_instance, 'handle_ajax_login']);
+
+        $this->assertFalse($response['success']);
+        $this->assertEquals('You do not have sufficient permissions to access the dashboard.', $response['data']['message']);
+        $this->assertEquals(0, get_current_user_id(), "User should not be logged in after trying to access dashboard without permission.");
+        unset($_POST);
+    }
+
+
+    /**
+     * @runInSeparateProcess
+     * @preserveGlobalState disabled
+     */
+    public function test_handle_ajax_login_invalid_nonce() {
+        $_POST = [
+            'nonce'      => 'invalid_login_nonce',
+            'log'        => 'test@example.com',
+            'pwd'        => 'password123',
+        ];
+
+        ob_start();
+        try {
+            $this->auth_instance->handle_ajax_login();
+        } catch (\WP_UnitTest_Exception $e) {
+            // Expected
+        }
+        $output = ob_get_clean();
+        $json_output = json_decode($output, true);
+
+        // Expecting check_ajax_referer to die, which often results in a non-JSON output or a specific error code.
+        // The key is that it should not be a successful login.
+        $this->assertFalse(isset($json_output['success']) && $json_output['success'] === true);
+        $this->assertEquals(0, get_current_user_id(), "User should not be logged in with invalid nonce.");
+        unset($_POST);
+    }
+
 }
 ?>
