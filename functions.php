@@ -1704,3 +1704,58 @@ add_action('init', 'mobooking_check_database_structure');
 //     ]);
 //     wp_localize_script('mobooking-dashboard-booking-form-settings', 'mobooking_bf_settings_params', $bf_settings_params);
 // }
+
+
+
+
+
+
+
+
+
+
+// Add this to your functions.php - Simple fix for AJAX pending issue
+
+// 1. Fix the action name mismatch
+add_action('wp_ajax_nopriv_mobooking_register', 'handle_registration_ajax');
+
+function handle_registration_ajax() {
+    // Basic validation
+    if (!wp_verify_nonce($_POST['nonce'], 'mobooking_register_nonce')) {
+        wp_send_json_error(['message' => 'Security check failed']);
+    }
+    
+    $email = sanitize_email($_POST['email']);
+    $password = $_POST['password'];
+    $first_name = sanitize_text_field($_POST['first_name']);
+    $last_name = sanitize_text_field($_POST['last_name']);
+    
+    // Check if email exists
+    if (email_exists($email)) {
+        wp_send_json_error(['message' => 'Email already exists']);
+    }
+    
+    // Create user
+    $user_id = wp_create_user($email, $password, $email);
+    
+    if (is_wp_error($user_id)) {
+        wp_send_json_error(['message' => 'Registration failed']);
+    }
+    
+    // Update user info
+    wp_update_user([
+        'ID' => $user_id,
+        'first_name' => $first_name,
+        'last_name' => $last_name,
+        'display_name' => $first_name . ' ' . $last_name
+    ]);
+    
+    // Log user in
+    wp_set_current_user($user_id);
+    wp_set_auth_cookie($user_id, true);
+    
+    wp_send_json_success([
+        'message' => 'Registration successful!',
+        'redirect_url' => home_url('/dashboard/')
+    ]);
+}
