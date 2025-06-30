@@ -133,18 +133,20 @@ jQuery(document).ready(function($) {
     function validateEmailField() {
         const $field = $('#mobooking-user-email');
         const value = $field.val().trim();
+        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // Moved to the top of the function
         clearError($field);
+
         if (!value) {
             addError($field, 'Email is required.');
             return false;
         } else {
-            const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!emailPattern.test(value)) {
                 addError($field, 'Invalid email format.');
                 return false;
             }
         }
         // Perform AJAX check only if basic format is valid and field is not empty
+        // This condition is slightly redundant due to above checks but ensures clarity
         if (value && emailPattern.test(value)) {
             // Add a visual indicator for checking
             $field.addClass('checking-email');
