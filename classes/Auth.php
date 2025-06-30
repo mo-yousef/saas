@@ -419,10 +419,19 @@ class Auth {
     public function handle_ajax_registration() {
         check_ajax_referer( self::REGISTER_NONCE_ACTION, 'nonce' );
 
-        $email    = sanitize_email( $_POST['email'] );
-        $password = $_POST['password'];
-        $password_confirm = $_POST['password_confirm'];
+        // Step 1 Data
+        $email    = isset($_POST['email']) ? sanitize_email( $_POST['email'] ) : '';
+        $password = isset($_POST['password']) ? $_POST['password'] : '';
+        $password_confirm = isset($_POST['password_confirm']) ? $_POST['password_confirm'] : '';
 
+        // Step 2 Data
+        $first_name = isset($_POST['first_name']) ? sanitize_text_field( $_POST['first_name'] ) : '';
+        $last_name  = isset($_POST['last_name']) ? sanitize_text_field( $_POST['last_name'] ) : '';
+
+        // Step 3 Data
+        $company_name = isset($_POST['company_name']) ? sanitize_text_field( $_POST['company_name'] ) : '';
+
+        // Validation for Step 1 fields (critical for user creation)
         if ( empty( $email ) || ! is_email( $email ) ) {
             wp_send_json_error( array( 'message' => __( 'Please provide a valid email address.', 'mobooking' ) ) );
         }
@@ -432,15 +441,25 @@ class Auth {
         if ( $password !== $password_confirm ) {
             wp_send_json_error( array( 'message' => __( 'Passwords do not match.', 'mobooking' ) ) );
         }
-        if ( strlen( $password ) < 8 ) { // Example: enforce minimum password length
+        if ( strlen( $password ) < 8 ) {
             wp_send_json_error( array( 'message' => __( 'Password must be at least 8 characters long.', 'mobooking' ) ) );
+        }
+         // Validation for Step 2 fields
+        if ( empty( $first_name ) ) {
+            wp_send_json_error( array( 'message' => __( 'First name is required.', 'mobooking' ) ) );
+        }
+        if ( empty( $last_name ) ) {
+            wp_send_json_error( array( 'message' => __( 'Last name is required.', 'mobooking' ) ) );
+        }
+        // Validation for Step 3 fields
+        if ( empty( $company_name ) && !(isset( $_POST['inviter_id'] ) && isset( $_POST['role_to_assign'] ))) { // Company name not required for invited workers
+            wp_send_json_error( array( 'message' => __( 'Company name is required for business registration.', 'mobooking' ) ) );
         }
 
         if ( username_exists( $email ) || email_exists( $email ) ) {
             wp_send_json_error( array( 'message' => __( 'This email is already registered. Please login.', 'mobooking' ) ) );
         }
 
-        // Use email as username
         $user_id = wp_create_user( $email, $password, $email );
 
         if ( is_wp_error( $user_id ) ) {
@@ -448,22 +467,21 @@ class Auth {
         } else {
             $user = new \WP_User( $user_id );
 
-            // Check if this is a worker registration
+            // Update user with first name and last name
+            wp_update_user( array( 'ID' => $user_id, 'first_name' => $first_name, 'last_name' => $last_name ) );
+
+            // Check if this is a worker registration (invitation flow)
             if ( isset( $_POST['inviter_id'] ) && isset( $_POST['role_to_assign'] ) ) {
                 $inviter_id = absint( $_POST['inviter_id'] );
                 $role_to_assign = sanitize_text_field( $_POST['role_to_assign'] );
+                $worker_roles = [self::ROLE_WORKER_STAFF];
 
-                // Validate the role
-                $worker_roles = [self::ROLE_WORKER_STAFF]; // Only staff can be assigned now
                 if ( $inviter_id > 0 && in_array( $role_to_assign, $worker_roles ) ) {
-                    // Ensure inviter is a business owner (optional, but good practice)
                     $inviter_user = get_userdata( $inviter_id );
                     if ( $inviter_user && in_array( self::ROLE_BUSINESS_OWNER, (array) $inviter_user->roles ) ) {
                         $user->set_role( $role_to_assign );
                         update_user_meta( $user_id, self::META_KEY_OWNER_ID, $inviter_id );
-                        // TODO: Consider if workers need default settings initialized or a different set
 
-                        // If registration was via token, delete the token
                         if ( isset( $_POST['invitation_token'] ) ) {
                             $invitation_token = sanitize_text_field( $_POST['invitation_token'] );
                             if ( ! empty( $invitation_token ) ) {
@@ -471,39 +489,58 @@ class Auth {
                             }
                         }
                     } else {
-                        // Handle error: inviter is not a business owner or doesn't exist
-                        // For now, we'll let it fall through to business owner registration,
-                        // or you could send an error.
-                        // wp_delete_user( $user_id ); // Clean up created user
-                        // wp_send_json_error( array( 'message' => __( 'Invalid inviter ID or inviter is not a business owner.', 'mobooking' ) ) );
-                        // For this subtask, falling through to default owner role if inviter check fails.
-                        $user->set_role( self::ROLE_BUSINESS_OWNER );
-                        if (class_exists('MoBooking\Classes\Settings')) {
-                            \MoBooking\Classes\Settings::initialize_default_settings( $user_id );
-                        }
+                        // Fallback: if inviter is invalid, register as business owner (should ideally not happen with proper token)
+                        // Or, delete user and send error. For now, let's make them a business owner.
+                        // This path is unlikely if token validation on page load works.
+                        wp_delete_user( $user_id );
+                        wp_send_json_error( array( 'message' => __( 'Invalid invitation details. Could not register worker.', 'mobooking' ) ) );
+                        wp_die();
                     }
                 } else {
-                    // Invalid role or inviter_id, assign default business owner role
-                    $user->set_role( self::ROLE_BUSINESS_OWNER );
-                    if (class_exists('MoBooking\Classes\Settings')) {
-                        \MoBooking\Classes\Settings::initialize_default_settings( $user_id );
-                    }
+                     // Invalid role or inviter_id for worker flow
+                    wp_delete_user( $user_id );
+                    wp_send_json_error( array( 'message' => __( 'Invalid role or inviter ID for worker registration.', 'mobooking' ) ) );
+                    wp_die();
                 }
             } else {
                 // Default registration: Business Owner
                 $user->set_role( self::ROLE_BUSINESS_OWNER );
-                // Initialize default settings for the new business owner
+                update_user_meta( $user_id, 'mobooking_company_name', $company_name );
+
+                // Generate and save unique business slug using Settings class
+                if ( !empty($company_name) && class_exists('MoBooking\Classes\Settings') && class_exists('MoBooking\Classes\Routes\BookingFormRouter') ) {
+                    // Ensure $GLOBALS['mobooking_settings_manager'] is available or instantiate
+                    if (!isset($GLOBALS['mobooking_settings_manager'])) {
+                        $GLOBALS['mobooking_settings_manager'] = new \MoBooking\Classes\Settings();
+                    }
+                    $settings_manager = $GLOBALS['mobooking_settings_manager'];
+
+                    $base_slug = sanitize_title( $company_name );
+                    $final_slug = $base_slug;
+                    $counter = 1;
+
+                    // Check for uniqueness. BookingFormRouter::get_user_id_by_slug queries the tenant_settings table.
+                    // A result of 0 means the slug is not found/is unique.
+                    while ( \MoBooking\Classes\Routes\BookingFormRouter::get_user_id_by_slug( $final_slug ) !== 0 ) {
+                        $counter++;
+                        $final_slug = $base_slug . '-' . $counter;
+                    }
+                    $settings_manager->update_setting( $user_id, 'bf_business_slug', $final_slug );
+                }
+
                 if (class_exists('MoBooking\Classes\Settings')) {
+                     if (!isset($GLOBALS['mobooking_settings_manager'])) { // Ensure it's set if not already
+                        $GLOBALS['mobooking_settings_manager'] = new \MoBooking\Classes\Settings();
+                    }
                     \MoBooking\Classes\Settings::initialize_default_settings( $user_id );
                 }
             }
 
-            // Log the user in
             wp_set_current_user( $user_id, $email );
             wp_set_auth_cookie( $user_id, true, is_ssl() );
 
             wp_send_json_success( array(
-                'message' => __( 'Registration successful. Redirecting to your dashboard...', 'mobooking' ),
+                'message' => __( 'Registration successful! Redirecting to your dashboard...', 'mobooking' ),
                 'redirect_url' => home_url( '/dashboard/' )
             ) );
         }

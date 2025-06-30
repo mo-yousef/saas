@@ -8,12 +8,24 @@
 
 // Redirect logged-in users to the dashboard
 if ( is_user_logged_in() ) {
-    // Check if user has the 'mobooking_business_owner' role
     $user = wp_get_current_user();
-    if ( in_array( 'mobooking_business_owner', (array) $user->roles ) ) {
+    // Check if user has the capability to access the MoBooking dashboard
+    if ( user_can( $user, \MoBooking\Classes\Auth::ACCESS_MOBOOKING_DASHBOARD ) ) {
         wp_redirect( home_url( '/dashboard/' ) ); // Adjust dashboard URL if needed
         exit;
     }
+    // For other logged-in users (e.g. standard WordPress subscriber without MoBooking access)
+    // you might redirect them to the WP admin profile or the site homepage.
+    // For now, let them stay or redirect to home_url() if they are not MoBooking users.
+    // If they are logged in but don't have ACCESS_MOBOOKING_DASHBOARD, they shouldn't be on this custom login.
+    // Redirecting to home_url() might be a safe default.
+    // wp_redirect( home_url() );
+    // exit;
+    // However, if a logged-in user without dashboard access lands here, it's a bit odd.
+    // The current behaviour (showing the login form again) is not ideal but also not breaking.
+    // For this task, ensuring dashboard users are redirected is key.
+    // The AJAX login handler already prevents login if capability is missing.
+    // This top-level redirect is for users already having a session.
     // For other logged-in users, maybe redirect to account or homepage
     // wp_redirect( home_url( '/account/' ) );
     // exit;
@@ -23,7 +35,7 @@ get_header();
 ?>
 
 <main id="main" class="site-main">
-    <div id="mobooking-login-form-container">
+    <div id="mobooking-login-form-container" class="mobooking-auth-form-wrapper">
         <h2><?php esc_html_e( 'Business Owner Login', 'mobooking' ); ?></h2>
         <form id="mobooking-login-form">
             <p class="login-username">
@@ -55,4 +67,16 @@ get_header();
 <?php
 // We might not want the standard footer on the login page, or a simplified one.
 // For now, including the standard one.
+?>
+<style>
+    .mobooking-auth-form-wrapper { max-width: 500px; margin: 2rem auto; padding: 2rem; background: #fff; border: 1px solid #e2e8f0; border-radius: 0.5rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06); }
+    .mobooking-auth-form-wrapper h2 { margin-top: 0; margin-bottom: 1.5rem; font-size: 1.5rem; text-align: center; }
+    .mobooking-auth-form-wrapper .input { margin-bottom: 1rem; }
+    .mobooking-auth-form-wrapper .button-primary { width: 100%; }
+    .mobooking-auth-form-wrapper p { margin-bottom: 1rem; }
+    .mobooking-auth-form-wrapper p:last-of-type { margin-bottom: 0; } /* For the links below the form */
+    #mobooking-login-message.error { color: #dc2626; background-color: #fee2e2; border: 1px solid #ef4444; padding: 10px; border-radius: 4px; margin-bottom: 1rem; }
+    #mobooking-login-message.success { color: #166534; background-color: #dcfce7; border: 1px solid #22c55e; padding: 10px; border-radius: 4px; margin-bottom: 1rem; }
+</style>
+<?php
 get_footer();
