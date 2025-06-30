@@ -352,6 +352,36 @@
     box-shadow: 0 0 0 2px hsl(0 84.2% 60.2% / 0.4) !important;
 }
 
+/* AJAX feedback styling for individual fields (email, company name checks) */
+.field-error-ajax {
+    font-size: 0.8rem;
+    margin-top: 0.375rem; /* Consistent with .field-error but can be adjusted */
+    padding: 0.375rem 0.5rem;
+    border-radius: 0.25rem; /* rounded-sm */
+    display: block;
+    line-height: 1.4;
+}
+.field-error-ajax.error { /* For actual errors from AJAX, though typically handled by main .field-error */
+    color: hsl(0 72.2% 50.6%);
+    background-color: hsl(0 100% 98%);
+}
+.field-error-ajax.success { /* For "email available" type messages */
+    color: hsl(142.1 70.6% 35.3%);
+    background-color: hsl(145 75% 97%); /* Lighter green */
+}
+.field-error-ajax.warning { /* For "company name might be taken" type messages */
+    color: hsl(38 92.3% 50.2%); /* Amber/Orange text */
+    background-color: hsl(45 100% 97.1%); /* Light amber/yellow */
+}
+.checking-email, .checking-slug {
+    /* Optional: add a subtle background or border change during AJAX check */
+    /* background-image: url('spinner.gif');
+    background-repeat: no-repeat;
+    background-position: right 0.5rem center;
+    background-size: 1rem 1rem; */
+}
+
+
 /* Confirmation step styling */
 #mobooking-confirmation-details p {
     margin-bottom: 0.75rem;
