@@ -51,6 +51,16 @@ jQuery(document).ready(function($) {
     const totalSteps = 3;
     let registrationData = {}; // Single declaration
 
+    // Debounce utility
+    function debounce(func, delay) {
+        let timeout;
+        return function(...args) {
+            const context = this;
+            clearTimeout(timeout);
+            timeout = setTimeout(() => func.apply(context, args), delay);
+        };
+    }
+
     function updateProgressBar() {
         $('.mobooking-progress-step').removeClass('active');
         $('.mobooking-progress-step[data-step="' + currentStep + '"]').addClass('active');
@@ -328,12 +338,19 @@ jQuery(document).ready(function($) {
     if ($registerForm.length) {
         showStep(currentStep);
 
-        $('#mobooking-first-name').on('blur', function() { validateFirstNameField(); });
-        $('#mobooking-last-name').on('blur', function() { validateLastNameField(); });
-        $('#mobooking-user-email').on('blur', function() { validateEmailField(); });
-        $('#mobooking-user-pass').on('keyup', function() { validatePasswordField(); });
-        $('#mobooking-user-pass-confirm').on('keyup', function() { validatePasswordConfirmField(); });
-        $('#mobooking-company-name').on('blur', function() { validateCompanyNameField(); });
+        const debouncedValidateFirstName = debounce(validateFirstNameField, 500);
+        const debouncedValidateLastName = debounce(validateLastNameField, 500);
+        const debouncedValidateEmail = debounce(validateEmailField, 750); // Email check involves AJAX, so longer debounce
+        const debouncedValidateCompanyName = debounce(validateCompanyNameField, 750); // Company name also involves AJAX
+
+        $('#mobooking-first-name').on('blur', validateFirstNameField).on('keyup', debouncedValidateFirstName);
+        $('#mobooking-last-name').on('blur', validateLastNameField).on('keyup', debouncedValidateLastName);
+        $('#mobooking-user-email').on('blur', validateEmailField).on('keyup', debouncedValidateEmail);
+
+        $('#mobooking-user-pass').on('keyup', validatePasswordField); // Keep as keyup for immediate password feedback
+        $('#mobooking-user-pass-confirm').on('keyup', validatePasswordConfirmField); // Keep as keyup
+
+        $('#mobooking-company-name').on('blur', validateCompanyNameField).on('keyup', debouncedValidateCompanyName);
 
         $('#mobooking-step-1-next').on('click', function() {
             collectStepData(1);
@@ -401,26 +418,56 @@ jQuery(document).ready(function($) {
                 data: formData,
                 dataType: 'json',
                 beforeSend: function() {
+                    console.log('MoBooking Register: AJAX beforeSend');
                     $registerForm.find('input[type="submit"]').prop('disabled', true).val('Registering...');
                 },
                 success: function(response) {
-                    if (response.success) {
+                    console.log('MoBooking Register: AJAX success response:', response);
+                    if (response && response.success) {
                         $registerMessageDiv.addClass('success').html(response.data.message).show();
                         if (response.data.redirect_url) {
                             $registerForm.hide();
                             $('#mobooking-progress-bar').hide();
+                            console.log('MoBooking Register: Redirecting to ' + response.data.redirect_url);
                             setTimeout(function() {
                                 window.location.href = response.data.redirect_url;
                             }, 1500);
                         }
                     } else {
-                        $registerMessageDiv.addClass('error').html(response.data.message).show();
+                        console.error('MoBooking Register: AJAX success but response.success is false or response is malformed.', response);
+                        $registerMessageDiv.addClass('error').html(response && response.data && response.data.message ? response.data.message : 'An unknown error occurred.').show();
                         $registerForm.find('input[type="submit"]').prop('disabled', false).val('Confirm & Register');
                     }
                 },
-                error: function() {
-                    $registerMessageDiv.addClass('error').html('An unexpected error occurred. Please try again.').show();
+                error: function(jqXHR, textStatus, errorThrown) {
+                    console.error('MoBooking Register: AJAX error. Status:', textStatus, 'Error:', errorThrown, 'Response Text:', jqXHR.responseText, 'jqXHR:', jqXHR);
+                    let errorMessage = 'An unexpected AJAX error occurred. Please check the console and try again.';
+                    if (jqXHR.responseText) {
+                        try {
+                            const errorResponse = JSON.parse(jqXHR.responseText);
+                            if (errorResponse && errorResponse.data && errorResponse.data.message) {
+                                errorMessage = errorResponse.data.message;
+                            } else if (jqXHR.responseText.length < 200) { // Avoid showing full HTML page as error
+                                errorMessage = jqXHR.responseText;
+                            }
+                        } catch (e) {
+                            // Response was not JSON, use a generic message or part of the text if short
+                             if (jqXHR.responseText && jqXHR.responseText.length < 200) {
+                                errorMessage = "Error: " + jqXHR.responseText;
+                            } else {
+                                errorMessage = "An unexpected error occurred. The server's response was not in the expected format.";
+                            }
+                        }
+                    }
+                    $registerMessageDiv.addClass('error').html(errorMessage).show();
                     $registerForm.find('input[type="submit"]').prop('disabled', false).val('Confirm & Register');
+                },
+                complete: function(jqXHR, textStatus) {
+                    console.log('MoBooking Register: AJAX complete. Status:', textStatus);
+                    // Ensure button is re-enabled if not already redirected
+                    if (!$registerMessageDiv.hasClass('success') || ($registerMessageDiv.hasClass('success') && !$registerForm.is(':hidden'))) {
+                         $registerForm.find('input[type="submit"]').prop('disabled', false).val('Confirm & Register');
+                    }
                 }
             });
         });

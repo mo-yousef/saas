@@ -98,14 +98,16 @@ if ( isset( $_GET['invitation_token'] ) ) {
                         <!-- Step 1: Personal Information -->
                         <div id="mobooking-register-step-1" class="mobooking-register-step active">
                             <h3><?php esc_html_e( 'Step 1: Personal Information', 'mobooking' ); ?></h3>
-                            <p class="register-first-name">
-                                <label for="mobooking-first-name"><?php esc_html_e( 'First Name', 'mobooking' ); ?></label>
-                                <input type="text" name="first_name" id="mobooking-first-name" class="input" value="" required />
-                            </p>
-                            <p class="register-last-name">
-                                <label for="mobooking-last-name"><?php esc_html_e( 'Last Name', 'mobooking' ); ?></label>
-                                <input type="text" name="last_name" id="mobooking-last-name" class="input" value="" required />
-                            </p>
+                            <div class="form-row">
+                                <p class="register-first-name form-group-half">
+                                    <label for="mobooking-first-name"><?php esc_html_e( 'First Name', 'mobooking' ); ?></label>
+                                    <input type="text" name="first_name" id="mobooking-first-name" class="input" value="" required />
+                                </p>
+                                <p class="register-last-name form-group-half">
+                                    <label for="mobooking-last-name"><?php esc_html_e( 'Last Name', 'mobooking' ); ?></label>
+                                    <input type="text" name="last_name" id="mobooking-last-name" class="input" value="" required />
+                                </p>
+                            </div>
                             <p class="register-email">
                                 <label for="mobooking-user-email"><?php esc_html_e( 'Email Address', 'mobooking' ); ?></label>
                                 <input type="email" name="email" id="mobooking-user-email" class="input" value="<?php echo esc_attr( $worker_email ); ?>" required <?php if ( $is_invitation && !empty($worker_email) ) echo 'readonly'; ?> />
