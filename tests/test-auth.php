@@ -192,7 +192,15 @@ class Test_MoBooking_Auth extends WP_UnitTestCase {
         $_POST['mobooking_revoke_access_nonce'] = wp_create_nonce( 'mobooking_revoke_worker_access_nonce_' . $this->worker_staff_id );
 
         // Similar to above, direct call for simplified check
-        $this->auth_instance->handle_ajax_revoke_worker_access();
+        // @TODO: Improve AJAX testing to capture wp_send_json_* output properly.
+        // For now, we might get 'headers already sent' warning if not run in separate process.
+        try {
+            $this->auth_instance->handle_ajax_revoke_worker_access();
+        } catch (\WP_UnitTest_Exception $e) {
+            // Expected exception due to wp_die()
+            $this->assertStringContainsString('wp_die() was called', $e->getMessage());
+        }
+
 
         $worker_user_after = get_userdata($this->worker_staff_id);
         $this->assertFalse(in_array(Auth::ROLE_WORKER_STAFF, $worker_user_after->roles), "Worker Staff role should be removed.");
@@ -208,10 +216,226 @@ class Test_MoBooking_Auth extends WP_UnitTestCase {
         unset($_POST['mobooking_revoke_access_nonce']);
     }
 
+    /**
+     * Helper to call AJAX handlers and get JSON response.
+     * Note: This requires the test method using it to have `@runInSeparateProcess`.
+     */
+    private function call_ajax_handler($action_callable) {
+        ob_start();
+        try {
+            call_user_func($action_callable);
+        } catch (\WP_UnitTest_Exception $e) {
+            // Expected due to wp_die() in wp_send_json_*
+        }
+        return json_decode(ob_get_clean(), true);
+    }
+
+    /**
+     * @runInSeparateProcess
+     * @preserveGlobalState disabled
+     */
+    public function test_handle_ajax_registration_success_business_owner() {
+        $_POST = [
+            'nonce'            => wp_create_nonce(Auth::REGISTER_NONCE_ACTION),
+            'email'            => 'newowner@example.com',
+            'password'         => 'password123',
+            'password_confirm' => 'password123',
+            'first_name'       => 'Test',
+            'last_name'        => 'Owner',
+            'company_name'     => 'Test Company Inc.',
+        ];
+
+        $response = $this->call_ajax_handler([$this->auth_instance, 'handle_ajax_registration']);
+
+        $this->assertTrue($response['success']);
+        $this->assertEquals('Registration successful! Redirecting to your dashboard...', $response['data']['message']);
+        $this->assertEquals(home_url('/dashboard/'), $response['data']['redirect_url']);
+
+        $user = get_user_by('email', 'newowner@example.com');
+        $this->assertInstanceOf(WP_User::class, $user);
+        $this->assertEquals('Test', $user->first_name);
+        $this->assertEquals('Owner', $user->last_name);
+        $this->assertEquals('Test Company Inc.', get_user_meta($user->ID, 'mobooking_company_name', true));
+        $this->assertTrue(in_array(Auth::ROLE_BUSINESS_OWNER, $user->roles));
+
+        // Check for business slug in tenant_settings
+        $settings_manager = new \MoBooking\Classes\Settings();
+        $slug = $settings_manager->get_setting($user->ID, 'bf_business_slug');
+        $this->assertEquals('test-company-inc', $slug); // Assuming sanitize_title behavior
+
+        // Clean up
+        wp_delete_user($user->ID);
+        global $wpdb;
+        $settings_table = \MoBooking\Classes\Database::get_table_name('tenant_settings');
+        $wpdb->delete($settings_table, ['user_id' => $user->ID, 'setting_name' => 'bf_business_slug']);
+        unset($_POST);
+    }
+
+    /**
+     * @runInSeparateProcess
+     * @preserveGlobalState disabled
+     */
+    public function test_handle_ajax_registration_slug_uniqueness() {
+        // User 1
+        $_POST = [
+            'nonce'            => wp_create_nonce(Auth::REGISTER_NONCE_ACTION),
+            'email'            => 'owner1@example.com',
+            'password'         => 'password123',
+            'password_confirm' => 'password123',
+            'first_name'       => 'Owner',
+            'last_name'        => 'One',
+            'company_name'     => 'Unique Company',
+        ];
+        $this->call_ajax_handler([$this->auth_instance, 'handle_ajax_registration']);
+        $user1 = get_user_by('email', 'owner1@example.com');
+        $settings_manager = new \MoBooking\Classes\Settings();
+        $slug1 = $settings_manager->get_setting($user1->ID, 'bf_business_slug');
+        $this->assertEquals('unique-company', $slug1);
+
+        // User 2 - same company name
+        $_POST = [
+            'nonce'            => wp_create_nonce(Auth::REGISTER_NONCE_ACTION),
+            'email'            => 'owner2@example.com',
+            'password'         => 'password123',
+            'password_confirm' => 'password123',
+            'first_name'       => 'Owner',
+            'last_name'        => 'Two',
+            'company_name'     => 'Unique Company',
+        ];
+        $this->call_ajax_handler([$this->auth_instance, 'handle_ajax_registration']);
+        $user2 = get_user_by('email', 'owner2@example.com');
+        $slug2 = $settings_manager->get_setting($user2->ID, 'bf_business_slug');
+        $this->assertEquals('unique-company-2', $slug2);
+
+        // User 3 - company name that would result in 'unique-company-2' if not for user2
+        $_POST = [
+            'nonce'            => wp_create_nonce(Auth::REGISTER_NONCE_ACTION),
+            'email'            => 'owner3@example.com',
+            'password'         => 'password123',
+            'password_confirm' => 'password123',
+            'first_name'       => 'Owner',
+            'last_name'        => 'Three',
+            'company_name'     => 'Unique Company 2', // sanitize_title makes this 'unique-company-2'
+        ];
+        $this->call_ajax_handler([$this->auth_instance, 'handle_ajax_registration']);
+        $user3 = get_user_by('email', 'owner3@example.com');
+        $slug3 = $settings_manager->get_setting($user3->ID, 'bf_business_slug');
+        $this->assertEquals('unique-company-2-2', $slug3);
+
+
+        // Clean up
+        wp_delete_user($user1->ID);
+        wp_delete_user($user2->ID);
+        wp_delete_user($user3->ID);
+        global $wpdb;
+        $settings_table = \MoBooking\Classes\Database::get_table_name('tenant_settings');
+        $wpdb->delete($settings_table, ['user_id' => $user1->ID]);
+        $wpdb->delete($settings_table, ['user_id' => $user2->ID]);
+        $wpdb->delete($settings_table, ['user_id' => $user3->ID]);
+        unset($_POST);
+    }
+
+    /**
+     * @runInSeparateProcess
+     * @preserveGlobalState disabled
+     */
+    public function test_handle_ajax_registration_missing_fields() {
+        $test_cases = [
+            ['email', 'Please provide a valid email address.'],
+            ['password', 'Please enter a password.'],
+            ['password_confirm', 'Passwords do not match.'], // Assuming password is set
+            ['first_name', 'First name is required.'],
+            ['last_name', 'Last name is required.'],
+            ['company_name', 'Company name is required for business registration.'],
+        ];
+
+        $base_data = [
+            'nonce'            => wp_create_nonce(Auth::REGISTER_NONCE_ACTION),
+            'email'            => 'missingfields@example.com',
+            'password'         => 'password123',
+            'password_confirm' => 'password123',
+            'first_name'       => 'Test',
+            'last_name'        => 'User',
+            'company_name'     => 'Test Co',
+        ];
+
+        foreach ($test_cases as $case) {
+            $field_to_remove = $case[0];
+            $expected_message = $case[1];
+
+            $_POST = $base_data;
+            if ($field_to_remove === 'password_confirm') { // Specific case for password mismatch
+                 $_POST['password_confirm'] = 'wrongpassword';
+            } else {
+                unset($_POST[$field_to_remove]);
+                if($field_to_remove === 'email') $_POST['email'] = ''; // Test empty email
+            }
+
+            $response = $this->call_ajax_handler([$this->auth_instance, 'handle_ajax_registration']);
+            $this->assertFalse($response['success'], "Test failed for missing/invalid field: {$field_to_remove}");
+            $this->assertEquals($expected_message, $response['data']['message'], "Test failed for missing/invalid field: {$field_to_remove}");
+        }
+        unset($_POST);
+    }
+
+    /**
+     * @runInSeparateProcess
+     * @preserveGlobalState disabled
+     */
+    public function test_handle_ajax_registration_invited_worker() {
+        $inviter = get_userdata($this->business_owner_id);
+        $token = wp_generate_password(32, false);
+        $invitation_option_key = 'mobooking_invitation_' . $token;
+        $invitation_data = [
+            'inviter_id'    => $this->business_owner_id,
+            'worker_email'  => 'invitedworker@example.com',
+            'assigned_role' => Auth::ROLE_WORKER_STAFF,
+            'timestamp'     => time(),
+        ];
+        set_transient($invitation_option_key, $invitation_data, DAY_IN_SECONDS);
+
+        $_POST = [
+            'nonce'             => wp_create_nonce(Auth::REGISTER_NONCE_ACTION),
+            'email'             => 'invitedworker@example.com',
+            'password'          => 'password123',
+            'password_confirm'  => 'password123',
+            'first_name'        => 'Invited',
+            'last_name'         => 'Worker',
+            // company_name is not required for invited worker
+            'inviter_id'        => $this->business_owner_id,
+            'role_to_assign'    => Auth::ROLE_WORKER_STAFF,
+            'invitation_token'  => $token,
+        ];
+
+        $response = $this->call_ajax_handler([$this->auth_instance, 'handle_ajax_registration']);
+
+        $this->assertTrue($response['success'], "Invited worker registration failed. Response: " . print_r($response, true));
+        $this->assertEquals('Registration successful! Redirecting to your dashboard...', $response['data']['message']);
+
+        $user = get_user_by('email', 'invitedworker@example.com');
+        $this->assertInstanceOf(WP_User::class, $user);
+        $this->assertEquals('Invited', $user->first_name);
+        $this->assertEquals('Worker', $user->last_name);
+        $this->assertTrue(in_array(Auth::ROLE_WORKER_STAFF, $user->roles));
+        $this->assertEquals($this->business_owner_id, get_user_meta($user->ID, Auth::META_KEY_OWNER_ID, true));
+
+        // Company name and business slug should not be set for worker
+        $this->assertEmpty(get_user_meta($user->ID, 'mobooking_company_name', true));
+        $settings_manager = new \MoBooking\Classes\Settings();
+        $this->assertEmpty($settings_manager->get_setting($user->ID, 'bf_business_slug'));
+
+        // Check transient was deleted
+        $this->assertFalse(get_transient($invitation_option_key));
+
+        // Clean up
+        wp_delete_user($user->ID);
+        unset($_POST);
+    }
+
+
     // Further tests could include:
     // - Attempting to change role of a worker not owned by current business owner (expect error)
     // - Attempting to revoke access for a worker not owned (expect error)
     // - Passing invalid nonces (requires more advanced AJAX test setup)
-    // - Testing registration logic with and without invitation tokens (already partially covered by manual testing, but unit tests are good)
 }
 ?>
