@@ -574,6 +574,28 @@ class Auth {
             wp_set_current_user( $user_id, $email );
             wp_set_auth_cookie( $user_id, true, is_ssl() );
 
+            // Send Welcome Email
+            if ( ! $is_invitation_flow ) { // Send only to new business owners, not invited workers
+                $user_info = get_userdata( $user_id );
+                $user_email = $user_info->user_email;
+                $user_display_name = $user_info->display_name;
+
+                $subject = sprintf( __( 'Welcome to %s, %s!', 'mobooking' ), get_bloginfo( 'name' ), $user_display_name );
+
+                $message = sprintf( __( 'Hi %s,', 'mobooking' ), $user_display_name ) . "\r\n\r\n";
+                $message .= sprintf( __( 'Thank you for registering at %s. We are excited to have you on board.', 'mobooking' ), get_bloginfo( 'name' ) ) . "\r\n\r\n";
+                // $message .= __( 'You can now log in to your dashboard here: ', 'mobooking' ) . home_url( '/login/' ) . "\r\n\r\n"; // Or /dashboard/ if already logged in by this point
+                $message .= __( 'Access your dashboard directly here: ', 'mobooking' ) . home_url( '/dashboard/' ) . "\r\n\r\n";
+                $message .= __( 'If you have any questions, feel free to contact our support team.', 'mobooking' ) . "\r\n\r\n";
+                $message .= sprintf( __( 'Thanks,', 'mobooking' ) ) . "\r\n" . get_bloginfo( 'name' );
+
+                // Optional: Add headers for HTML email or From address if needed
+                // $headers = array('Content-Type: text/html; charset=UTF-8');
+                // $headers[] = 'From: My Site Name <info@example.com>';
+
+                wp_mail( $user_email, $subject, $message ); //, $headers );
+            }
+
             wp_send_json_success( array(
                 'message' => __( 'Registration successful! Redirecting to your dashboard...', 'mobooking' ),
                 'redirect_url' => home_url( '/dashboard/' )
