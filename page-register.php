@@ -98,9 +98,13 @@ if ( isset( $_GET['invitation_token'] ) ) {
                         <!-- Step 1: Personal Information -->
                         <div id="mobooking-register-step-1" class="mobooking-register-step active">
                             <h3><?php esc_html_e( 'Step 1: Personal Information', 'mobooking' ); ?></h3>
-                            <p class="register-name">
-                                <label for="mobooking-user-name"><?php esc_html_e( 'Full Name', 'mobooking' ); ?></label>
-                                <input type="text" name="name" id="mobooking-user-name" class="input" value="" required />
+                            <p class="register-first-name">
+                                <label for="mobooking-first-name"><?php esc_html_e( 'First Name', 'mobooking' ); ?></label>
+                                <input type="text" name="first_name" id="mobooking-first-name" class="input" value="" required />
+                            </p>
+                            <p class="register-last-name">
+                                <label for="mobooking-last-name"><?php esc_html_e( 'Last Name', 'mobooking' ); ?></label>
+                                <input type="text" name="last_name" id="mobooking-last-name" class="input" value="" required />
                             </p>
                             <p class="register-email">
                                 <label for="mobooking-user-email"><?php esc_html_e( 'Email Address', 'mobooking' ); ?></label>
@@ -125,7 +129,7 @@ if ( isset( $_GET['invitation_token'] ) ) {
                              <?php if ( !$is_invitation ): // Don't show company name for invited workers ?>
                             <p class="register-company-name">
                                 <label for="mobooking-company-name"><?php esc_html_e( 'Company Name', 'mobooking' ); ?></label>
-                                <input type="text" name="company_name" id="mobooking-company-name" class="input" value="" required />
+                    <input type="text" name="company_name" id="mobooking-company-name" class="input" value="" /> <!-- Removed required -->
                                 <small><?php esc_html_e( 'This will be used to generate your unique business URL (slug).', 'mobooking' ); ?></small>
                             </p>
                             <?php else: ?>
@@ -142,7 +146,8 @@ if ( isset( $_GET['invitation_token'] ) ) {
                         <div id="mobooking-register-step-3" class="mobooking-register-step" style="display:none;">
                             <h3><?php esc_html_e( 'Step 3: Confirm Your Details', 'mobooking' ); ?></h3>
                             <div id="mobooking-confirmation-details">
-                                <p><strong><?php esc_html_e('Name:', 'mobooking'); ?></strong> <span id="confirm-name"></span></p>
+                                <p><strong><?php esc_html_e('First Name:', 'mobooking'); ?></strong> <span id="confirm-first-name"></span></p>
+                                <p><strong><?php esc_html_e('Last Name:', 'mobooking'); ?></strong> <span id="confirm-last-name"></span></p>
                                 <p><strong><?php esc_html_e('Email:', 'mobooking'); ?></strong> <span id="confirm-email"></span></p>
                                 <?php if ( !$is_invitation ): ?>
                                 <p><strong><?php esc_html_e('Company Name:', 'mobooking'); ?></strong> <span id="confirm-company-name"></span></p>

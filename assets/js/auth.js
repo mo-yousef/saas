@@ -91,135 +91,155 @@ jQuery(document).ready(function($) {
 
         // Populate confirmation step if showing step 3
         if (stepNumber === 3) {
-            $('#confirm-name').text(registrationData.name || 'N/A');
+            $('#confirm-first-name').text(registrationData.first_name || 'N/A');
+            $('#confirm-last-name').text(registrationData.last_name || 'N/A');
             $('#confirm-email').text(registrationData.email || 'N/A');
-            // Only show company name if it's not an invitation (invitation check done in PHP, JS just checks if element exists)
-            if ($('#confirm-company-name').length) {
+            if ($('#confirm-company-name').length) { // Only if element exists (not for worker invite)
                  $('#confirm-company-name').text(registrationData.company_name || 'N/A');
             }
         }
     }
 
+    // --- Main Step Validation Logic ---
     function validateStep(stepNumber) {
         $registerMessageDiv.hide().removeClass('error success').empty();
         let isValid = true;
         let $currentStepDiv = $('#mobooking-register-step-' + stepNumber);
 
-        // $currentStepDiv.find('.field-error').remove(); // Errors are cleared per field now
-        // $currentStepDiv.find('.input-error').removeClass('input-error'); // Errors are cleared per field now
-        let overallStepIsValid = true; // Tracks validity of the whole step
+    let registrationData = {};
 
-        function clearError($field) {
-            $field.removeClass('input-error');
-            $field.next('.field-error').remove();
+    // --- Validation Helper Functions (moved to outer scope) ---
+    function clearError($field) {
+        $field.removeClass('input-error');
+        $field.next('.field-error').remove();
+    }
+
+    function addErrorToStep($field, message, $stepDiv) {
+        clearError($field);
+        $field.addClass('input-error');
+        $field.after('<div class="field-error">' + message + '</div>');
+        // This function will now be used by validateStep,
+        // so overallStepIsValid will be managed there.
+    }
+
+    // --- Individual Field Validation Functions (now in correct scope) ---
+    function validateFirstNameField() {
+        const $field = $('#mobooking-first-name'); // Assuming ID is mobooking-first-name
+        const value = $field.val().trim();
+        clearError($field);
+        if (!value) {
+            addErrorToStep($field, 'First name is required.', $field.closest('.mobooking-register-step'));
+            return false;
         }
+        return true;
+    }
 
-        function addError($field, message) {
-            clearError($field); // Clear previous error for this field first
-            $field.addClass('input-error');
-            $field.after('<div class="field-error">' + message + '</div>');
-            overallStepIsValid = false; // If any field has an error, the step is invalid
+    function validateLastNameField() {
+        const $field = $('#mobooking-last-name'); // Assuming ID is mobooking-last-name
+        const value = $field.val().trim();
+        clearError($field);
+        if (!value) {
+            addErrorToStep($field, 'Last name is required.', $field.closest('.mobooking-register-step'));
+            return false;
         }
+        return true;
+    }
 
-        // --- Define validation functions for individual fields ---
-        function validateNameField() {
-            const $field = $('#mobooking-user-name');
+    function validateEmailField() {
+        const $field = $('#mobooking-user-email');
+        const value = $field.val().trim();
+        clearError($field);
+        if (!value) {
+            addErrorToStep($field, 'Email is required.', $field.closest('.mobooking-register-step'));
+            return false;
+        } else {
+            const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailPattern.test(value)) {
+                addErrorToStep($field, 'Invalid email format.', $field.closest('.mobooking-register-step'));
+                return false;
+            }
+        }
+        return true;
+    }
+
+    function validatePasswordField() {
+        const $field = $('#mobooking-user-pass');
+        const $confirmField = $('#mobooking-user-pass-confirm');
+        const value = $field.val();
+        clearError($field);
+        let isValidPassword = true;
+        if (!value) {
+            addErrorToStep($field, 'Password is required.', $field.closest('.mobooking-register-step'));
+            isValidPassword = false;
+        } else if (value.length < 8) {
+            addErrorToStep($field, 'Password must be at least 8 characters.', $field.closest('.mobooking-register-step'));
+            isValidPassword = false;
+        }
+        if ($confirmField.val()) { // Re-validate confirm field if password changes
+            validatePasswordConfirmField();
+        }
+        return isValidPassword;
+    }
+
+    function validatePasswordConfirmField() {
+        const $field = $('#mobooking-user-pass-confirm');
+        const $passwordField = $('#mobooking-user-pass');
+        const value = $field.val();
+        const passwordValue = $passwordField.val();
+        clearError($field);
+        if (!value && $passwordField.val()) { // Only required if password is also entered
+            addErrorToStep($field, 'Password confirmation is required.', $field.closest('.mobooking-register-step'));
+            return false;
+        } else if (value !== passwordValue) {
+            addErrorToStep($field, 'Passwords do not match.', $field.closest('.mobooking-register-step'));
+            return false;
+        }
+        return true;
+    }
+
+    function validateCompanyNameField() {
+        const $field = $('#mobooking-company-name');
+        if ($field.is(':visible') && $field.prop('required')) {
             const value = $field.val().trim();
             clearError($field);
             if (!value) {
-                addError($field, 'Full name is required.');
+                addErrorToStep($field, 'Company name is required.', $field.closest('.mobooking-register-step'));
                 return false;
             }
-            return true;
+        } else {
+             clearError($field);
         }
+        return true;
+    }
 
-        function validateEmailField() {
-            const $field = $('#mobooking-user-email');
-            const value = $field.val().trim();
-            clearError($field);
-            if (!value) {
-                addError($field, 'Email is required.');
-                return false;
-            } else {
-                const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                if (!emailPattern.test(value)) {
-                    addError($field, 'Invalid email format.');
-                    return false;
-                }
-            }
-            // Advanced: AJAX check for email uniqueness could be added here for real-time feedback
-            return true;
-        }
+    // --- Main Step Validation Logic ---
+    function validateStep(stepNumber) {
+        $registerMessageDiv.hide().removeClass('error success').empty();
+        let overallStepIsValid = true;
+        let $currentStepDiv = $('#mobooking-register-step-' + stepNumber);
 
-        function validatePasswordField() {
-            const $field = $('#mobooking-user-pass');
-            const $confirmField = $('#mobooking-user-pass-confirm');
-            const value = $field.val(); // No trim for password
-            clearError($field);
-            let isValidPassword = true;
-            if (!value) {
-                addError($field, 'Password is required.');
-                isValidPassword = false;
-            } else if (value.length < 8) {
-                addError($field, 'Password must be at least 8 characters.');
-                isValidPassword = false;
-            }
-            // Trigger confirmation validation if password changes
-            if ($confirmField.val()) {
-                validatePasswordConfirmField();
-            }
-            return isValidPassword;
-        }
+        // Clear previous errors for the current step before re-validating
+        $currentStepDiv.find('.field-error').remove();
+        $currentStepDiv.find('.input-error').removeClass('input-error');
 
-        function validatePasswordConfirmField() {
-            const $field = $('#mobooking-user-pass-confirm');
-            const $passwordField = $('#mobooking-user-pass');
-            const value = $field.val();
-            const passwordValue = $passwordField.val();
-            clearError($field);
-            if (!value) {
-                addError($field, 'Password confirmation is required.');
-                return false;
-            } else if (value !== passwordValue) {
-                addError($field, 'Passwords do not match.');
-                return false;
-            }
-            return true;
-        }
-
-        function validateCompanyNameField() {
-            const $field = $('#mobooking-company-name');
-            // Only validate if visible and required (not an invitation)
-            if ($field.is(':visible') && $field.prop('required')) {
-                const value = $field.val().trim();
-                clearError($field);
-                if (!value) {
-                    addError($field, 'Company name is required.');
-                    return false;
-                }
-            } else {
-                 clearError($field); // Clear any previous error if field is no longer relevant
-            }
-            return true;
-        }
-
-        // --- Perform validation based on current step ---
         if (stepNumber === 1) {
-            // Validate all fields in step 1, and update overallStepIsValid
-            if (!validateNameField()) overallStepIsValid = false;
+            // Order of validation matters for user experience, so check one by one
+            if (!validateFirstNameField()) overallStepIsValid = false;
+            if (!validateLastNameField()) overallStepIsValid = false; // Validate last name after first
             if (!validateEmailField()) overallStepIsValid = false;
             if (!validatePasswordField()) overallStepIsValid = false;
-            if (!validatePasswordConfirmField()) overallStepIsValid = false; // Also validate confirm here
+            // Only validate confirm_password if password field itself is valid and has content
+            if (overallStepIsValid && $('#mobooking-user-pass').val() && !validatePasswordConfirmField()) {
+                overallStepIsValid = false;
+            }
         } else if (stepNumber === 2) {
             if (!validateCompanyNameField()) overallStepIsValid = false;
         }
-        // No validation needed for step 3 (confirmation) as it's display only before submit
 
         if (!overallStepIsValid) {
-            // Find the first field with an error in the current step and focus it
             let $firstErrorField = $currentStepDiv.find('.input-error').first();
             if ($firstErrorField.length) {
-                $firstErrorField.focus();
+                // $firstErrorField.focus(); // Focusing can be disruptive, especially if field is hidden by other UI
             }
             $registerMessageDiv.addClass('error').html('Please correct the errors highlighted above.').show();
         } else {
@@ -230,21 +250,22 @@ jQuery(document).ready(function($) {
 
     function collectStepData(stepNumber) {
         if (stepNumber === 1) {
-            registrationData.name = $('#mobooking-user-name').val();
+            registrationData.first_name = $('#mobooking-first-name').val();
+            registrationData.last_name = $('#mobooking-last-name').val();
             registrationData.email = $('#mobooking-user-email').val();
             registrationData.password = $('#mobooking-user-pass').val();
             registrationData.password_confirm = $('#mobooking-user-pass-confirm').val();
         } else if (stepNumber === 2) {
             registrationData.company_name = $('#mobooking-company-name').val();
         }
-        // No data collection for step 3, it's for display
     }
 
     if ($registerForm.length) {
         showStep(currentStep);
 
         // Real-time validation event listeners
-        $('#mobooking-user-name').on('blur', function() { validateNameField(); });
+        $('#mobooking-first-name').on('blur', function() { validateFirstNameField(); });
+        $('#mobooking-last-name').on('blur', function() { validateLastNameField(); });
         $('#mobooking-user-email').on('blur', function() { validateEmailField(); });
         $('#mobooking-user-pass').on('keyup', function() { validatePasswordField(); });
         $('#mobooking-user-pass-confirm').on('keyup', function() { validatePasswordConfirmField(); });
