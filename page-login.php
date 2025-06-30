@@ -66,7 +66,7 @@ get_header(); // This will be hidden by CSS in auth-pages.css for these template
                     </form>
                     <div class="mobooking-auth-links">
                         <p>
-                            <a href="<?php echo esc_url( wp_lostpassword_url() ); ?>"><?php esc_html_e( 'Lost your password?', 'mobooking' ); ?></a>
+                            <a href="<?php echo esc_url( home_url( '/forgot-password/' ) ); ?>"><?php esc_html_e( 'Lost your password?', 'mobooking' ); ?></a>
                         </p>
                         <p>
                             <?php esc_html_e( 'Don\'t have an account?', 'mobooking' ); ?>

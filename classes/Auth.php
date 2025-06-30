@@ -137,6 +137,9 @@ class Auth {
     public function init_ajax_handlers() {
         add_action( 'wp_ajax_nopriv_mobooking_login', [ $this, 'handle_ajax_login' ] );
         add_action( 'wp_ajax_nopriv_mobooking_register', [ $this, 'handle_ajax_registration' ] );
+        add_action( 'wp_ajax_nopriv_mobooking_check_email_exists', [ $this, 'handle_check_email_exists_ajax' ] );
+        add_action( 'wp_ajax_nopriv_mobooking_check_company_slug_exists', [ $this, 'handle_check_company_slug_exists_ajax' ] );
+        add_action( 'wp_ajax_nopriv_mobooking_send_password_reset_link', [ $this, 'handle_send_password_reset_link_ajax' ] ); // New action
         add_action( 'wp_ajax_mobooking_send_invitation', [ $this, 'handle_ajax_send_invitation' ] );
         add_action( 'wp_ajax_mobooking_change_worker_role', [ $this, 'handle_ajax_change_worker_role' ] );
         add_action( 'wp_ajax_mobooking_revoke_worker_access', [ $this, 'handle_ajax_revoke_worker_access' ] );
@@ -416,6 +419,26 @@ class Auth {
         wp_die();
     }
 
+    public function handle_check_email_exists_ajax() {
+        // No nonce check needed for this read-only, public-facing check,
+        // but consider adding one if you want to restrict requests.
+        // check_ajax_referer('mobooking_check_email_nonce', 'nonce');
+
+        $email = isset($_POST['email']) ? sanitize_email($_POST['email']) : '';
+
+        if (empty($email) || !is_email($email)) {
+            wp_send_json_error(['message' => __('Invalid email format provided for check.', 'mobooking')]);
+            wp_die();
+        }
+
+        if (email_exists($email)) {
+            wp_send_json_success(['exists' => true, 'message' => __('This email is already registered.', 'mobooking')]);
+        } else {
+            wp_send_json_success(['exists' => false, 'message' => __('This email is available.', 'mobooking')]);
+        }
+        wp_die();
+    }
+
     public function handle_ajax_registration() {
         check_ajax_referer( self::REGISTER_NONCE_ACTION, 'nonce' );
 
@@ -555,6 +578,94 @@ class Auth {
                 'message' => __( 'Registration successful! Redirecting to your dashboard...', 'mobooking' ),
                 'redirect_url' => home_url( '/dashboard/' )
             ) );
+        }
+        wp_die();
+    }
+
+    public function handle_check_company_slug_exists_ajax() {
+        // Consider adding a nonce check for security if desired
+        // check_ajax_referer('mobooking_check_slug_nonce_action', 'nonce');
+
+        $company_name = isset($_POST['company_name']) ? sanitize_text_field(trim($_POST['company_name'])) : '';
+
+        if (empty($company_name)) {
+            wp_send_json_error(['message' => __('Company name not provided for check.', 'mobooking')]);
+            wp_die();
+        }
+
+        if (!class_exists('MoBooking\Classes\Routes\BookingFormRouter')) {
+            wp_send_json_error(['message' => __('System error: Router class not found.', 'mobooking')]);
+            wp_die();
+        }
+
+        $base_slug = sanitize_title($company_name);
+        $original_slug_check_user_id = \MoBooking\Classes\Routes\BookingFormRouter::get_user_id_by_slug($base_slug);
+
+        if ($original_slug_check_user_id !== 0) {
+            // Slug already exists, suggest alternatives or just inform
+            // For simplicity, we'll just say it might be taken and will be suffixed.
+            // A more advanced version could try to find the next available -NUMBER suffix.
+            wp_send_json_success([
+                'exists' => true,
+                'message' => __('This company name might already be in use or result in a similar URL. It will be made unique if necessary (e.g., by adding a number).', 'mobooking'),
+                'slug_preview' => $base_slug . '-2' // Example suffix
+            ]);
+        } else {
+            wp_send_json_success([
+                'exists' => false,
+                'message' => __('This company name looks available!', 'mobooking'),
+                'slug_preview' => $base_slug
+            ]);
+        }
+        wp_die();
+    }
+
+    public function handle_send_password_reset_link_ajax() {
+        // It's good practice to use a nonce here, even for "public" forms, to prevent abuse.
+        check_ajax_referer('mobooking_forgot_password_nonce_action', 'nonce');
+
+        $email = isset($_POST['user_email']) ? sanitize_email($_POST['user_email']) : '';
+
+        if (empty($email) || !is_email($email)) {
+            wp_send_json_error(['message' => __('Please provide a valid email address.', 'mobooking')]);
+            wp_die();
+        }
+
+        $user_data = get_user_by('email', $email);
+
+        if (empty($user_data)) {
+            // Email does not exist, but send a generic success message to prevent user enumeration.
+            wp_send_json_success(['message' => __('If an account with that email exists, a password reset link has been sent.', 'mobooking')]);
+            wp_die();
+        }
+
+        // Generate password reset key
+        $key = get_password_reset_key($user_data);
+        if (is_wp_error($key)) {
+            wp_send_json_error(['message' => __('Error generating reset key. Please try again later.', 'mobooking')]);
+            wp_die();
+        }
+
+        // Construct the password reset URL.
+        // This uses the standard WordPress reset mechanism.
+        $reset_link = network_site_url("wp-login.php?action=rp&key=$key&login=" . rawurlencode($user_data->user_login), 'login');
+
+        // Prepare email content
+        $message = __('Someone has requested a password reset for the following account:') . "\r\n\r\n";
+        $message .= sprintf(__('Site Name: %s'), get_bloginfo('name')) . "\r\n\r\n";
+        $message .= sprintf(__('Username: %s'), $user_data->user_login) . "\r\n\r\n";
+        $message .= __('If this was a mistake, just ignore this email and nothing will happen.') . "\r\n\r\n";
+        $message .= __('To reset your password, visit the following address:') . "\r\n\r\n";
+        $message .= $reset_link . "\r\n";
+
+        $blogname = wp_specialchars_decode(get_option('blogname'), ENT_QUOTES);
+        $title = sprintf(__('[%s] Password Reset'), $blogname);
+
+        // Send the email
+        if (wp_mail($email, $title, $message)) {
+            wp_send_json_success(['message' => __('If an account with that email exists, a password reset link has been sent.', 'mobooking')]);
+        } else {
+            wp_send_json_error(['message' => __('The email could not be sent. Please try again later or contact an administrator.', 'mobooking')]);
         }
         wp_die();
     }
