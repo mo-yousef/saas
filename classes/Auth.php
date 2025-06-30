@@ -419,21 +419,22 @@ class Auth {
     public function handle_ajax_registration() {
         check_ajax_referer( self::REGISTER_NONCE_ACTION, 'nonce' );
 
-        // Step 1 Data
+        // Step 1 Data: Personal Information
+        $name     = isset($_POST['name']) ? sanitize_text_field(trim($_POST['name'])) : '';
         $email    = isset($_POST['email']) ? sanitize_email( $_POST['email'] ) : '';
         $password = isset($_POST['password']) ? $_POST['password'] : '';
         $password_confirm = isset($_POST['password_confirm']) ? $_POST['password_confirm'] : '';
 
-        // Step 2 Data
-        $first_name = isset($_POST['first_name']) ? sanitize_text_field( $_POST['first_name'] ) : '';
-        $last_name  = isset($_POST['last_name']) ? sanitize_text_field( $_POST['last_name'] ) : '';
+        // Step 2 Data: Business Information
+        $company_name = isset($_POST['company_name']) ? sanitize_text_field(trim($_POST['company_name'])) : '';
 
-        // Step 3 Data
-        $company_name = isset($_POST['company_name']) ? sanitize_text_field( $_POST['company_name'] ) : '';
-
-        // Validation for Step 1 fields (critical for user creation)
+        // --- Server-Side Validation ---
+        // Personal Information
+        if ( empty( $name ) ) {
+            wp_send_json_error( array( 'message' => __( 'Full name is required.', 'mobooking' ) ) );
+        }
         if ( empty( $email ) || ! is_email( $email ) ) {
-            wp_send_json_error( array( 'message' => __( 'Please provide a valid email address.', 'mobooking' ) ) );
+            wp_send_json_error( array( 'message' => __( 'A valid email address is required.', 'mobooking' ) ) );
         }
         if ( empty( $password ) ) {
             wp_send_json_error( array( 'message' => __( 'Please enter a password.', 'mobooking' ) ) );
@@ -444,15 +445,10 @@ class Auth {
         if ( strlen( $password ) < 8 ) {
             wp_send_json_error( array( 'message' => __( 'Password must be at least 8 characters long.', 'mobooking' ) ) );
         }
-         // Validation for Step 2 fields
-        if ( empty( $first_name ) ) {
-            wp_send_json_error( array( 'message' => __( 'First name is required.', 'mobooking' ) ) );
-        }
-        if ( empty( $last_name ) ) {
-            wp_send_json_error( array( 'message' => __( 'Last name is required.', 'mobooking' ) ) );
-        }
-        // Validation for Step 3 fields
-        if ( empty( $company_name ) && !(isset( $_POST['inviter_id'] ) && isset( $_POST['role_to_assign'] ))) { // Company name not required for invited workers
+
+        // Business Information (only required if not an invitation flow)
+        $is_invitation_flow = isset( $_POST['inviter_id'] ) && isset( $_POST['role_to_assign'] );
+        if ( !$is_invitation_flow && empty( $company_name ) ) {
             wp_send_json_error( array( 'message' => __( 'Company name is required for business registration.', 'mobooking' ) ) );
         }
 
@@ -467,11 +463,20 @@ class Auth {
         } else {
             $user = new \WP_User( $user_id );
 
-            // Update user with first name and last name
-            wp_update_user( array( 'ID' => $user_id, 'first_name' => $first_name, 'last_name' => $last_name ) );
+            // Process and save name
+            $name_parts = explode( ' ', $name, 2 );
+            $first_name = $name_parts[0];
+            $last_name  = isset( $name_parts[1] ) ? $name_parts[1] : '';
+
+            wp_update_user( array(
+                'ID' => $user_id,
+                'first_name' => $first_name,
+                'last_name' => $last_name,
+                'display_name' => $name // Use full name for display name
+            ) );
 
             // Check if this is a worker registration (invitation flow)
-            if ( isset( $_POST['inviter_id'] ) && isset( $_POST['role_to_assign'] ) ) {
+            if ( $is_invitation_flow ) {
                 $inviter_id = absint( $_POST['inviter_id'] );
                 $role_to_assign = sanitize_text_field( $_POST['role_to_assign'] );
                 $worker_roles = [self::ROLE_WORKER_STAFF];

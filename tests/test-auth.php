@@ -240,21 +240,21 @@ class Test_MoBooking_Auth extends WP_UnitTestCase {
             'email'            => 'newowner@example.com',
             'password'         => 'password123',
             'password_confirm' => 'password123',
-            'first_name'       => 'Test',
-            'last_name'        => 'Owner',
+            'name'             => 'Test Owner FullName', // Changed to 'name'
             'company_name'     => 'Test Company Inc.',
         ];
 
         $response = $this->call_ajax_handler([$this->auth_instance, 'handle_ajax_registration']);
 
-        $this->assertTrue($response['success']);
+        $this->assertTrue($response['success'], "Registration failed. Response: " . print_r($response, true));
         $this->assertEquals('Registration successful! Redirecting to your dashboard...', $response['data']['message']);
         $this->assertEquals(home_url('/dashboard/'), $response['data']['redirect_url']);
 
         $user = get_user_by('email', 'newowner@example.com');
         $this->assertInstanceOf(WP_User::class, $user);
-        $this->assertEquals('Test', $user->first_name);
-        $this->assertEquals('Owner', $user->last_name);
+        $this->assertEquals('Test', $user->first_name); // Based on splitting logic "Test Owner FullName" -> "Test"
+        $this->assertEquals('Owner FullName', $user->last_name); // and "Owner FullName"
+        $this->assertEquals('Test Owner FullName', $user->display_name);
         $this->assertEquals('Test Company Inc.', get_user_meta($user->ID, 'mobooking_company_name', true));
         $this->assertTrue(in_array(Auth::ROLE_BUSINESS_OWNER, $user->roles));
 
@@ -282,8 +282,7 @@ class Test_MoBooking_Auth extends WP_UnitTestCase {
             'email'            => 'owner1@example.com',
             'password'         => 'password123',
             'password_confirm' => 'password123',
-            'first_name'       => 'Owner',
-            'last_name'        => 'One',
+            'name'             => 'Owner One',
             'company_name'     => 'Unique Company',
         ];
         $this->call_ajax_handler([$this->auth_instance, 'handle_ajax_registration']);
@@ -298,8 +297,7 @@ class Test_MoBooking_Auth extends WP_UnitTestCase {
             'email'            => 'owner2@example.com',
             'password'         => 'password123',
             'password_confirm' => 'password123',
-            'first_name'       => 'Owner',
-            'last_name'        => 'Two',
+            'name'             => 'Owner Two',
             'company_name'     => 'Unique Company',
         ];
         $this->call_ajax_handler([$this->auth_instance, 'handle_ajax_registration']);
@@ -313,8 +311,7 @@ class Test_MoBooking_Auth extends WP_UnitTestCase {
             'email'            => 'owner3@example.com',
             'password'         => 'password123',
             'password_confirm' => 'password123',
-            'first_name'       => 'Owner',
-            'last_name'        => 'Three',
+            'name'             => 'Owner Three',
             'company_name'     => 'Unique Company 2', // sanitize_title makes this 'unique-company-2'
         ];
         $this->call_ajax_handler([$this->auth_instance, 'handle_ajax_registration']);
@@ -341,21 +338,19 @@ class Test_MoBooking_Auth extends WP_UnitTestCase {
      */
     public function test_handle_ajax_registration_missing_fields() {
         $test_cases = [
-            ['email', 'Please provide a valid email address.'],
+            ['name', 'Full name is required.'],
+            ['email', 'A valid email address is required.'],
             ['password', 'Please enter a password.'],
-            ['password_confirm', 'Passwords do not match.'], // Assuming password is set
-            ['first_name', 'First name is required.'],
-            ['last_name', 'Last name is required.'],
+            ['password_confirm', 'Passwords do not match.'],
             ['company_name', 'Company name is required for business registration.'],
         ];
 
         $base_data = [
             'nonce'            => wp_create_nonce(Auth::REGISTER_NONCE_ACTION),
+            'name'             => 'Test User FullName',
             'email'            => 'missingfields@example.com',
             'password'         => 'password123',
             'password_confirm' => 'password123',
-            'first_name'       => 'Test',
-            'last_name'        => 'User',
             'company_name'     => 'Test Co',
         ];
 
@@ -399,9 +394,8 @@ class Test_MoBooking_Auth extends WP_UnitTestCase {
             'email'             => 'invitedworker@example.com',
             'password'          => 'password123',
             'password_confirm'  => 'password123',
-            'first_name'        => 'Invited',
-            'last_name'         => 'Worker',
-            // company_name is not required for invited worker
+            'name'              => 'Invited Worker FullName', // Changed to 'name'
+            // company_name is not required and should be empty or not sent for invited worker
             'inviter_id'        => $this->business_owner_id,
             'role_to_assign'    => Auth::ROLE_WORKER_STAFF,
             'invitation_token'  => $token,
@@ -414,8 +408,9 @@ class Test_MoBooking_Auth extends WP_UnitTestCase {
 
         $user = get_user_by('email', 'invitedworker@example.com');
         $this->assertInstanceOf(WP_User::class, $user);
-        $this->assertEquals('Invited', $user->first_name);
-        $this->assertEquals('Worker', $user->last_name);
+        $this->assertEquals('Invited', $user->first_name); // Based on splitting "Invited Worker FullName"
+        $this->assertEquals('Worker FullName', $user->last_name);
+        $this->assertEquals('Invited Worker FullName', $user->display_name);
         $this->assertTrue(in_array(Auth::ROLE_WORKER_STAFF, $user->roles));
         $this->assertEquals($this->business_owner_id, get_user_meta($user->ID, Auth::META_KEY_OWNER_ID, true));
 
