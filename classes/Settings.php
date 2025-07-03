@@ -316,6 +316,9 @@ private function validate_and_sanitize_booking_form_settings($settings_data) {
             'type' => 'number',
             'min' => 0,
             'max' => 50
+        ],
+        'bf_enable_location_check' => [ // Added for explicit boolean handling
+            'type' => 'boolean'
         ]
     ];
 
