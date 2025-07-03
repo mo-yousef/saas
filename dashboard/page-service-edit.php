@@ -107,7 +107,7 @@ if ( $edit_mode && $service_id > 0 ) {
 .mb-w-full { width: 100%; }
 .mb-flex { display: flex; }
 .mb-grid { display: grid; }
-.mb-hidden { display: none; }
+.mb-hidden { display: none !important; }
 .mb-block { display: block; }
 .mb-items-center { align-items: center; }
 .mb-justify-between { justify-content: space-between; }
