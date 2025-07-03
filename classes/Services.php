@@ -368,12 +368,13 @@ class Services {
         }
 
         // Modify the upload path
-        add_filter('upload_dir', function($dirs) use ($user_images_dir_base) {
+        $custom_upload_dir_filter = function($dirs) use ($user_images_dir_base) {
             $dirs['path'] = $dirs['basedir'] . '/' . $user_images_dir_base;
             $dirs['url'] = $dirs['baseurl'] . '/' . $user_images_dir_base;
             $dirs['subdir'] = '/' . $user_images_dir_base; // Not strictly necessary but good for consistency
             return $dirs;
-        });
+        };
+        add_filter('upload_dir', $custom_upload_dir_filter);
 
         $uploaded_file = $_FILES['service_image'];
         // Generate a unique filename using WordPress function
@@ -383,7 +384,7 @@ class Services {
         $movefile = wp_handle_upload($uploaded_file, $upload_overrides);
 
         // Remove the filter immediately after use
-        remove_filter('upload_dir', 'upload_dir'); // This needs a proper way to remove the anonymous function
+        remove_filter('upload_dir', $custom_upload_dir_filter);
 
         if ($movefile && !isset($movefile['error'])) {
             // $movefile contains 'url', 'file' (path), 'type'
