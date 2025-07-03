@@ -40,6 +40,24 @@ $biz_settings = $settings_manager->get_business_settings($user_id);
 $currency_symbol = $biz_settings['biz_currency_symbol'];
 $currency_pos = $biz_settings['biz_currency_position'];
 
+// Define option types and price types to be globally available for the template
+$option_types = [
+    'checkbox' => __('Checkbox', 'mobooking'),
+    'text' => __('Text Input', 'mobooking'),
+    'number' => __('Number', 'mobooking'),
+    'select' => __('Dropdown', 'mobooking'),
+    'radio' => __('Radio Buttons', 'mobooking'),
+    'textarea' => __('Text Area', 'mobooking'),
+    'quantity' => __('Quantity', 'mobooking')
+];
+
+$price_types = [
+    '' => __('None', 'mobooking'), // Empty value for 'None'
+    'fixed' => __('Fixed Amount', 'mobooking'),
+    'percentage' => __('Percentage', 'mobooking'),
+    'multiply' => __('Multiply', 'mobooking')
+];
+
 // Fetch Service Data in Edit Mode
 if ( $edit_mode && $service_id > 0 ) {
     if ( class_exists('\MoBooking\Classes\Services') ) {
@@ -935,15 +953,7 @@ input:checked + .mb-toggle-slider:before {
                                     <label class="mb-form-label"><?php esc_html_e('Option Type', 'mobooking'); ?></label>
                                     <div class="mb-radio-group">
                                         <?php 
-                                        $option_types = [
-                                            'checkbox' => __('Checkbox', 'mobooking'),
-                                            'text' => __('Text Input', 'mobooking'),
-                                            'number' => __('Number', 'mobooking'),
-                                            'select' => __('Dropdown', 'mobooking'),
-                                            'radio' => __('Radio Buttons', 'mobooking'),
-                                            'textarea' => __('Text Area', 'mobooking'),
-                                            'quantity' => __('Quantity', 'mobooking')
-                                        ];
+                                        // $option_types is now defined globally at the top of the script
                                         foreach ($option_types as $type_value => $type_label): 
                                         ?>
                                             <div class="mb-radio-option">
@@ -959,12 +969,7 @@ input:checked + .mb-toggle-slider:before {
                                         <label class="mb-form-label"><?php esc_html_e('Price Impact Type', 'mobooking'); ?></label>
                                         <div class="mb-radio-group">
                                             <?php 
-                                            $price_types = [
-                                                '' => __('None', 'mobooking'),
-                                                'fixed' => __('Fixed Amount', 'mobooking'),
-                                                'percentage' => __('Percentage', 'mobooking'),
-                                                'multiply' => __('Multiply', 'mobooking')
-                                            ];
+                                            // $price_types is now defined globally at the top of the script
                                             foreach ($price_types as $price_value => $price_label): 
                                             ?>
                                                 <div class="mb-radio-option">
@@ -1499,37 +1504,39 @@ jQuery(document).ready(function($) {
         console.log('[MoBooking Debug] Price Impact Type Group found:', $priceImpactTypeGroup.length > 0, 'Visible:', $priceImpactTypeGroup.is(':visible'), 'offsetParent:', $priceImpactTypeGroup.offsetParent !== null);
 
         // Ensure 'Option Type' is set and initialized
-        let $checkedOptionType = $optionElement.find('input[name*="[type]"]:checked');
-        if (!$checkedOptionType.length) {
-            console.log('[MoBooking Debug] No Option Type checked by default, forcing "checkbox".');
-            $checkedOptionType = $optionElement.find('input[name*="[type]"][value="checkbox"]');
-            if ($checkedOptionType.length) {
-                $checkedOptionType.prop('checked', true);
-            }
-        }
+        // PHP's checked() in the template should ensure one is checked.
+        const $checkedOptionType = $optionElement.find('input[name*="[type]"]:checked');
         if ($checkedOptionType.length) {
-            console.log('[MoBooking Debug] Triggering change for Option Type:', $checkedOptionType.val());
+            console.log('[MoBooking Debug] Default Option Type (from template):', $checkedOptionType.val());
             $checkedOptionType.closest('.mb-form-group').show(); // Ensure parent form group is visible
             $checkedOptionType.trigger('change'); // This calls handleOptionTypeChange
         } else {
-            console.error('[MoBooking Debug] Could not find or set default Option Type.');
+            // This case should ideally not be reached if the PHP template fix is correct.
+            console.error('[MoBooking Debug] Critical: No Option Type radio was checked in the template by PHP.');
+            // As a very defensive measure, try to check 'checkbox' anyway and trigger change.
+            const $fallbackOptionType = $optionElement.find('input[name*="[type]"][value="checkbox"]');
+            if ($fallbackOptionType.length) {
+                console.warn('[MoBooking Debug] Fallback: Forcing "checkbox" for Option Type and triggering change.');
+                $fallbackOptionType.prop('checked', true).closest('.mb-form-group').show();
+                $fallbackOptionType.trigger('change');
+            }
         }
 
         // Ensure 'Price Impact Type' is set and initialized
-        let $checkedPriceImpactType = $optionElement.find('input[name*="[price_impact_type]"]:checked');
-        if (!$checkedPriceImpactType.length) {
-            console.log('[MoBooking Debug] No Price Impact Type checked by default, forcing "" (None).');
-            $checkedPriceImpactType = $optionElement.find('input[name*="[price_impact_type]"][value=""]');
-            if ($checkedPriceImpactType.length) {
-                $checkedPriceImpactType.prop('checked', true);
-            }
-        }
+        // PHP's checked() in the template should ensure one is checked.
+        const $checkedPriceImpactType = $optionElement.find('input[name*="[price_impact_type]"]:checked');
         if ($checkedPriceImpactType.length) {
-            console.log('[MoBooking Debug] Triggering change for Price Impact Type:', $checkedPriceImpactType.val());
+            console.log('[MoBooking Debug] Default Price Impact Type (from template):', $checkedPriceImpactType.val());
             $checkedPriceImpactType.closest('.mb-form-group').show(); // Ensure parent form group is visible
-             // $checkedPriceImpactType.trigger('change'); // Trigger change if there's a handler for it (currently none apparent)
+            // No specific change handler for Price Impact Type seems to exist that alters other UI, so triggering change is optional.
         } else {
-            console.error('[MoBooking Debug] Could not find or set default Price Impact Type.');
+            // This case should ideally not be reached.
+            console.error('[MoBooking Debug] Critical: No Price Impact Type radio was checked in the template by PHP.');
+            const $fallbackPriceImpactType = $optionElement.find('input[name*="[price_impact_type]"][value=""]');
+            if($fallbackPriceImpactType.length) {
+                console.warn('[MoBooking Debug] Fallback: Forcing "" (None) for Price Impact Type.');
+                $fallbackPriceImpactType.prop('checked', true).closest('.mb-form-group').show();
+            }
         }
         
         // Initialize sortable for new option's choices if they exist
