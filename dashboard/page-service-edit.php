@@ -48,7 +48,8 @@ $option_types = [
     'select' => __('Dropdown', 'mobooking'),
     'radio' => __('Radio Buttons', 'mobooking'),
     'textarea' => __('Text Area', 'mobooking'),
-    'quantity' => __('Quantity', 'mobooking')
+    'quantity' => __('Quantity', 'mobooking'),
+    'sqm' => __('Square Meter (SQM)', 'mobooking') // New SQM option type
 ];
 
 $price_types = [
@@ -1009,7 +1010,7 @@ input:checked + .mb-toggle-slider:before {
                                     <div class="mb-choices-list mb-choices-sortable">
                                         <?php 
                                         $choices = [];
-                                        if (!empty($option['option_values'])) {
+                                        if (!empty($option['option_values']) && ($option['type'] === 'select' || $option['type'] === 'radio')) {
                                             $choices = is_string($option['option_values']) ? json_decode($option['option_values'], true) : $option['option_values'];
                                             if (!is_array($choices)) $choices = [];
                                         }
@@ -1058,6 +1059,50 @@ input:checked + .mb-toggle-slider:before {
                                         <?php 
                                             endforeach;
                                         endif; 
+                                        ?>
+                                    </div>
+                                </div>
+
+                                <!-- SQM Ranges Container (for sqm type) -->
+                                <div class="mb-sqm-ranges-container" style="display: <?php echo ($option['type'] ?? '') === 'sqm' ? 'block' : 'none'; ?>;">
+                                    <div class="mb-flex mb-items-center mb-justify-between mb-mb-3">
+                                        <label class="mb-form-label" style="margin-bottom: 0;"><?php esc_html_e('SQM Pricing Ranges', 'mobooking'); ?></label>
+                                        <button type="button" class="mb-btn mb-btn-secondary mb-btn-sm add-sqm-range-btn">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M5 12h14"/>
+                                                <path d="m12 5 7 7-7 7"/>
+                                            </svg>
+                                            <?php esc_html_e('Add New Range', 'mobooking'); ?>
+                                        </button>
+                                    </div>
+                                    <div class="mb-sqm-ranges-list">
+                                        <!-- Table Header -->
+                                        <div class="mb-grid mb-gap-2 mb-text-sm mb-font-medium mb-text-muted-foreground" style="grid-template-columns: 1fr 1fr 1fr auto; padding-bottom: 0.5rem; border-bottom: 1px solid var(--mb-border);">
+                                            <div><?php esc_html_e('From (SQM)', 'mobooking'); ?></div>
+                                            <div><?php esc_html_e('To (SQM)', 'mobooking'); ?></div>
+                                            <div><?php esc_html_e('Price per SQM', 'mobooking'); ?></div>
+                                            <div><?php esc_html_e('Action', 'mobooking'); ?></div>
+                                        </div>
+                                        <!-- SQM Range Items will be populated here by JS or PHP for existing options -->
+                                        <?php
+                                        $sqm_ranges = [];
+                                        if (!empty($option['option_values']) && ($option['type'] === 'sqm')) {
+                                            $sqm_ranges = is_string($option['option_values']) ? json_decode($option['option_values'], true) : $option['option_values'];
+                                            if (!is_array($sqm_ranges)) $sqm_ranges = [];
+                                        }
+
+                                        if (!empty($sqm_ranges)):
+                                            foreach ($sqm_ranges as $range_idx => $range):
+                                        ?>
+                                        <div class="mb-sqm-range-item mb-grid mb-gap-2 mb-items-center" style="grid-template-columns: 1fr 1fr 1fr auto; padding-top: 0.5rem;">
+                                            <input type="number" name="sqm_range_from[]" class="mb-form-input mb-form-input-sm" placeholder="0" value="<?php echo esc_attr($range['from_sqm'] ?? ''); ?>" min="0" step="1" required>
+                                            <input type="text" name="sqm_range_to[]" class="mb-form-input mb-form-input-sm" placeholder="<?php esc_attr_e('e.g., 50 or ∞', 'mobooking'); ?>" value="<?php echo ($range['to_sqm'] == INF || strtolower($range['to_sqm'] ?? '') === 'infinity') ? '∞' : esc_attr($range['to_sqm'] ?? ''); ?>" required>
+                                            <input type="number" name="sqm_range_price[]" class="mb-form-input mb-form-input-sm" placeholder="5.00" value="<?php echo esc_attr($range['price_per_sqm'] ?? ''); ?>" min="0.01" step="0.01" required>
+                                            <button type="button" class="mb-btn mb-btn-destructive mb-btn-sm remove-sqm-range-btn" title="<?php esc_attr_e('Remove range', 'mobooking'); ?>">×</button>
+                                        </div>
+                                        <?php
+                                            endforeach;
+                                        endif;
                                         ?>
                                     </div>
                                 </div>
@@ -1205,6 +1250,30 @@ input:checked + .mb-toggle-slider:before {
                 </div>
                 <div class="mb-choices-list mb-choices-sortable"></div>
             </div>
+
+            <!-- SQM Ranges Container (for sqm type) -->
+            <div class="mb-sqm-ranges-container" style="display: none;">
+                <div class="mb-flex mb-items-center mb-justify-between mb-mb-3">
+                    <label class="mb-form-label" style="margin-bottom: 0;"><?php esc_html_e('SQM Pricing Ranges', 'mobooking'); ?></label>
+                    <button type="button" class="mb-btn mb-btn-secondary mb-btn-sm add-sqm-range-btn">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M5 12h14"/>
+                            <path d="m12 5 7 7-7 7"/>
+                        </svg>
+                        <?php esc_html_e('Add New Range', 'mobooking'); ?>
+                    </button>
+                </div>
+                <div class="mb-sqm-ranges-list">
+                    <!-- Table Header -->
+                    <div class="mb-grid mb-gap-2 mb-text-sm mb-font-medium mb-text-muted-foreground" style="grid-template-columns: 1fr 1fr 1fr auto; padding-bottom: 0.5rem; border-bottom: 1px solid var(--mb-border);">
+                        <div><?php esc_html_e('From (SQM)', 'mobooking'); ?></div>
+                        <div><?php esc_html_e('To (SQM)', 'mobooking'); ?></div>
+                        <div><?php esc_html_e('Price per SQM', 'mobooking'); ?></div>
+                        <div><?php esc_html_e('Action', 'mobooking'); ?></div>
+                    </div>
+                    <!-- SQM Range Items will be populated by JS -->
+                </div>
+            </div>
         </div>
     </div>
 </script>
@@ -1245,6 +1314,16 @@ input:checked + .mb-toggle-slider:before {
             style="max-width: 80px;"
         >
         <button type="button" class="mb-choice-remove-btn" title="<?php esc_attr_e('Remove choice', 'mobooking'); ?>">×</button>
+    </div>
+</script>
+
+<!-- SQM Range Item Template -->
+<script type="text/template" id="sqm-range-item-template">
+    <div class="mb-sqm-range-item mb-grid mb-gap-2 mb-items-center" style="grid-template-columns: 1fr 1fr 1fr auto; padding-top: 0.5rem;">
+        <input type="number" name="sqm_range_from[]" class="mb-form-input mb-form-input-sm" placeholder="0" min="0" step="1" required>
+        <input type="text" name="sqm_range_to[]" class="mb-form-input mb-form-input-sm" placeholder="<?php esc_attr_e('e.g., 50 or ∞', 'mobooking'); ?>" required>
+        <input type="number" name="sqm_range_price[]" class="mb-form-input mb-form-input-sm" placeholder="5.00" min="0.01" step="0.01" required>
+        <button type="button" class="mb-btn mb-btn-destructive mb-btn-sm remove-sqm-range-btn" title="<?php esc_attr_e('Remove range', 'mobooking'); ?>">×</button>
     </div>
 </script>
 
@@ -1443,6 +1522,16 @@ jQuery(document).ready(function($) {
         $optionsContainer.on('input', 'input[name*="[name]"]', function() {
             updateOptionTitle($(this));
         });
+
+        // Add SQM range button
+        $optionsContainer.on('click', '.add-sqm-range-btn', function() {
+            addSqmRange($(this).closest('.mb-option-item'));
+        });
+
+        // Remove SQM range button
+        $optionsContainer.on('click', '.remove-sqm-range-btn', function() {
+            removeSqmRange($(this).closest('.mb-sqm-range-item'));
+        });
     }
 
     function addNewOption() {
@@ -1450,28 +1539,20 @@ jQuery(document).ready(function($) {
     }
 
     function addOption(optionData = null, index = 0) {
-        console.log('[MoBooking Debug] addOption called. Index:', index, 'OptionData:', optionData);
+        // console.log('[MoBooking Debug] addOption called. Index:', index, 'OptionData:', optionData);
         const template = $('#option-template').html();
         if (!template) {
-            console.error('[MoBooking Debug] Option template not found!');
+            // console.error('[MoBooking Debug] Option template not found!');
             return;
         }
-        console.log('[MoBooking Debug] Raw template HTML:', template);
         const $optionsContainer = $('#options-container');
-        
-        // Remove no-options message if it exists
         $optionsContainer.find('.mb-no-options').remove();
 
-        // Clone template and update placeholders
         let optionHtml = template.replace(/{INDEX}/g, index);
-        console.log('[MoBooking Debug] Processed optionHtml (with index replaced):', optionHtml);
         const $optionElement = $(optionHtml);
-        console.log('[MoBooking Debug] $optionElement created. outerHTML:', $optionElement[0].outerHTML.substring(0, 500) + '...'); // Log part of it
         
-        // Set unique attributes
         $optionElement.attr('data-option-index', index);
         
-        // Update input names for indexed array
         $optionElement.find('input, textarea, select').each(function() {
             const $input = $(this);
             let name = $input.attr('name');
@@ -1480,89 +1561,49 @@ jQuery(document).ready(function($) {
                 $input.attr('name', name);
             }
         });
-        console.log('[MoBooking Debug] Input names updated. Example name (type):', $optionElement.find('input[value="checkbox"]').attr('name'));
 
-
-        // Set sort order
         $optionElement.find('input[name*="[sort_order]"]').val(index + 1);
 
-        // Populate with existing data if provided
         if (optionData) {
-            console.log('[MoBooking Debug] Populating option data for existing option.');
             populateOptionData($optionElement, optionData);
+        } else {
+            // For new options, if SQM type is default or selected, add an initial range
+            const $checkedType = $optionElement.find('input[name*="[type]"]:checked');
+            if ($checkedType.val() === 'sqm') {
+                 addSqmRange($optionElement, { from_sqm: 0, to_sqm: '∞', price_per_sqm: '' }); // Add a default initial range
+            }
         }
 
-        console.log('[MoBooking Debug] Appending $optionElement to $optionsContainer.');
         $optionsContainer.append($optionElement);
-        console.log('[MoBooking Debug] $optionElement appended.');
 
-        // Log visibility status after appending
-        const $optionTypeGroup = $optionElement.find('input[name*="[type]"]').first().closest('.mb-form-group');
-        const $priceImpactTypeGroup = $optionElement.find('input[name*="[price_impact_type]"]').first().closest('.mb-form-group');
-
-        console.log('[MoBooking Debug] Option Type Group found:', $optionTypeGroup.length > 0, 'Visible:', $optionTypeGroup.is(':visible'), 'offsetParent:', $optionTypeGroup.offsetParent !== null);
-        console.log('[MoBooking Debug] Price Impact Type Group found:', $priceImpactTypeGroup.length > 0, 'Visible:', $priceImpactTypeGroup.is(':visible'), 'offsetParent:', $priceImpactTypeGroup.offsetParent !== null);
-
-        // Ensure 'Option Type' is set and initialized
-        // PHP's checked() in the template should ensure one is checked.
         const $checkedOptionType = $optionElement.find('input[name*="[type]"]:checked');
         if ($checkedOptionType.length) {
-            console.log('[MoBooking Debug] Default Option Type (from template):', $checkedOptionType.val());
-            $checkedOptionType.closest('.mb-form-group').show(); // Ensure parent form group is visible
-            $checkedOptionType.trigger('change'); // This calls handleOptionTypeChange
+            $checkedOptionType.trigger('change');
         } else {
-            // This case should ideally not be reached if the PHP template fix is correct.
-            console.error('[MoBooking Debug] Critical: No Option Type radio was checked in the template by PHP.');
-            // As a very defensive measure, try to check 'checkbox' anyway and trigger change.
-            const $fallbackOptionType = $optionElement.find('input[name*="[type]"][value="checkbox"]');
-            if ($fallbackOptionType.length) {
-                console.warn('[MoBooking Debug] Fallback: Forcing "checkbox" for Option Type and triggering change.');
-                $fallbackOptionType.prop('checked', true).closest('.mb-form-group').show();
-                $fallbackOptionType.trigger('change');
-            }
-        }
-
-        // Ensure 'Price Impact Type' is set and initialized
-        // PHP's checked() in the template should ensure one is checked.
-        const $checkedPriceImpactType = $optionElement.find('input[name*="[price_impact_type]"]:checked');
-        if ($checkedPriceImpactType.length) {
-            console.log('[MoBooking Debug] Default Price Impact Type (from template):', $checkedPriceImpactType.val());
-            $checkedPriceImpactType.closest('.mb-form-group').show(); // Ensure parent form group is visible
-            // No specific change handler for Price Impact Type seems to exist that alters other UI, so triggering change is optional.
-        } else {
-            // This case should ideally not be reached.
-            console.error('[MoBooking Debug] Critical: No Price Impact Type radio was checked in the template by PHP.');
-            const $fallbackPriceImpactType = $optionElement.find('input[name*="[price_impact_type]"][value=""]');
-            if($fallbackPriceImpactType.length) {
-                console.warn('[MoBooking Debug] Fallback: Forcing "" (None) for Price Impact Type.');
-                $fallbackPriceImpactType.prop('checked', true).closest('.mb-form-group').show();
-            }
+            // Default to checkbox if nothing is checked in template (should not happen)
+            $optionElement.find('input[name*="[type]"][value="checkbox"]').prop('checked', true).trigger('change');
         }
         
-        // Initialize sortable for new option's choices if they exist
-        const $choicesList = $optionElement.find('.mb-choices-sortable');
-        if ($choicesList.length) {
-            $choicesList.sortable({
-                handle: '.mb-choice-drag-handle',
-                placeholder: 'ui-sortable-placeholder mb-choice-item',
-                tolerance: 'pointer',
-                cursor: 'move',
-                opacity: 0.8,
-                distance: 5,
-                start: function(event, ui) {
-                    ui.placeholder.height(ui.item.height());
-                }
-            });
-        }
+        initializeChoicesSortableForElement($optionElement.find('.mb-choices-sortable'));
+        // SQM ranges are not sortable by default in this design, but if they were:
+        // initializeSqmRangesSortableForElement($optionElement.find('.mb-sqm-ranges-list'));
         
-        // Focus on name input for new options
         if (!optionData) {
             $optionElement.find('input[name*="[name]"]').focus();
         }
-
-        // Update sort orders after adding
         updateOptionSortOrders();
     }
+
+    function initializeChoicesSortableForElement($element) {
+        if ($element.length && !$element.hasClass('ui-sortable-instance')) {
+            $element.sortable({
+                handle: '.mb-choice-drag-handle',
+                placeholder: 'ui-sortable-placeholder mb-choice-item',
+                // ... other sortable options
+            }).addClass('ui-sortable-instance');
+        }
+    }
+
 
     function populateOptionData($optionElement, optionData) {
         // Basic fields
@@ -1572,52 +1613,48 @@ jQuery(document).ready(function($) {
         $optionElement.find('input[name*="[option_id]"]').val(optionData.option_id || '');
 
         // Type selection
-        $optionElement.find('input[name*="[type]"]').each(function() {
-            if ($(this).val() === optionData.type) {
-                $(this).prop('checked', true);
-            }
-        });
+        $optionElement.find('input[name*="[type]"]').filter(`[value="${optionData.type}"]`).prop('checked', true).trigger('change');
 
-        // Price impact
-        $optionElement.find('input[name*="[price_impact_type]"]').each(function() {
-            if ($(this).val() === (optionData.price_impact_type || '')) {
-                $(this).prop('checked', true);
-            }
-        });
-
+        // Price impact (will be hidden by JS if type is SQM)
+        $optionElement.find('input[name*="[price_impact_type]"]').filter(`[value="${optionData.price_impact_type || ''}"]`).prop('checked', true);
         $optionElement.find('input[name*="[price_impact_value]"]').val(optionData.price_impact_value || '');
 
-        // Update title
         $optionElement.find('.mb-option-title').text(optionData.name || strings.newOption);
 
-        // Handle choices for select/radio types
-        if ((optionData.type === 'select' || optionData.type === 'radio') && optionData.option_values) {
-            let choices = [];
+        // Handle choices for select/radio types OR SQM ranges
+        if (optionData.option_values) {
+            let values;
             try {
-                choices = typeof optionData.option_values === 'string' 
+                values = typeof optionData.option_values === 'string'
                     ? JSON.parse(optionData.option_values) 
                     : optionData.option_values;
             } catch (e) {
-                console.error('Error parsing option values:', e);
+                // console.error('Error parsing option_values for option:', optionData.name, e);
+                values = [];
             }
 
-            if (Array.isArray(choices) && choices.length > 0) {
-                const $choicesList = $optionElement.find('.mb-choices-list');
-                choices.forEach(function(choice) {
-                    addChoiceToContainer($choicesList, choice);
-                });
+            if (Array.isArray(values)) {
+                if (optionData.type === 'select' || optionData.type === 'radio') {
+                    const $choicesList = $optionElement.find('.mb-choices-list');
+                    $choicesList.empty(); // Clear any template defaults
+                    values.forEach(choice => addChoiceToContainer($choicesList, choice));
+                } else if (optionData.type === 'sqm') {
+                    const $sqmRangesList = $optionElement.find('.mb-sqm-ranges-list');
+                     // Clear existing (header row is not part of this div, so it's safe)
+                    $sqmRangesList.find('.mb-sqm-range-item').remove();
+                    values.forEach(range => addSqmRangeToContainer($sqmRangesList, range));
+                }
             }
         }
+         // Trigger change on the type radio again after populating to ensure UI consistency
+        $optionElement.find('input[name*="[type]"]:checked').trigger('change');
     }
+
 
     function removeOption($optionElement) {
         if (confirm(strings.confirmDeleteOption)) {
             $optionElement.remove();
-            
-            // Update sort orders after removal
             updateOptionSortOrders();
-            
-            // Check if no options remain
             const $optionsContainer = $('#options-container');
             if ($optionsContainer.find('.mb-option-item').length === 0) {
                 $optionsContainer.html('<div class="mb-no-options">' + strings.noOptionsYet + '</div>');
@@ -1627,20 +1664,34 @@ jQuery(document).ready(function($) {
 
     function handleOptionTypeChange($typeInput) {
         const $optionItem = $typeInput.closest('.mb-option-item');
+        const selectedType = $typeInput.val();
+
+        // Hide/show relevant sections based on type
         const $choicesContainer = $optionItem.find('.mb-option-choices');
-        
-        if ($typeInput.val() === 'select' || $typeInput.val() === 'radio') {
+        const $sqmRangesContainer = $optionItem.find('.mb-sqm-ranges-container');
+        const $priceImpactGroup = $optionItem.find('input[name*="[price_impact_type]"]').closest('.mb-form-grid'); // Assuming type and value are in same grid
+
+        if (selectedType === 'select' || selectedType === 'radio') {
             $choicesContainer.show();
-            
-            // Add default choice if none exist
-            const $choicesList = $choicesContainer.find('.mb-choices-list');
-            if ($choicesList.find('.mb-choice-item').length === 0) {
-                addChoiceToContainer($choicesList);
+            $sqmRangesContainer.hide();
+            $priceImpactGroup.show(); // Or hide, depending on whether choices have their own price impacts
+            if ($choicesContainer.find('.mb-choices-list .mb-choice-item').length === 0) {
+                addChoiceToContainer($choicesContainer.find('.mb-choices-list'));
             }
-        } else {
+        } else if (selectedType === 'sqm') {
             $choicesContainer.hide();
+            $sqmRangesContainer.show();
+            $priceImpactGroup.hide(); // SQM ranges define price, so hide generic price impact fields
+            if ($sqmRangesContainer.find('.mb-sqm-ranges-list .mb-sqm-range-item').length === 0) {
+                 addSqmRangeToContainer($sqmRangesContainer.find('.mb-sqm-ranges-list'), { from_sqm: 0, to_sqm: '∞', price_per_sqm: '' });
+            }
+        } else { // For text, number, checkbox, textarea, quantity
+            $choicesContainer.hide();
+            $sqmRangesContainer.hide();
+            $priceImpactGroup.show();
         }
     }
+
 
     function addChoice($optionItem) {
         const $choicesList = $optionItem.find('.mb-choices-list');
@@ -1649,6 +1700,7 @@ jQuery(document).ready(function($) {
 
     function addChoiceToContainer($choicesContainer, choiceData = null) {
         const template = $('#choice-template').html();
+        if (!template) return;
         const $choiceElement = $(template);
         
         if (choiceData) {
@@ -1656,27 +1708,36 @@ jQuery(document).ready(function($) {
             $choiceElement.find('input[name="choice_value[]"]').val(choiceData.value || '');
             $choiceElement.find('input[name="choice_price[]"]').val(choiceData.price || '');
         }
-        
         $choicesContainer.append($choiceElement);
-        
-        // Re-initialize sortable if this is the first choice being added
-        if (!$choicesContainer.hasClass('ui-sortable')) {
-            $choicesContainer.sortable({
-                handle: '.mb-choice-drag-handle',
-                placeholder: 'ui-sortable-placeholder mb-choice-item',
-                tolerance: 'pointer',
-                cursor: 'move',
-                opacity: 0.8,
-                distance: 5,
-                start: function(event, ui) {
-                    ui.placeholder.height(ui.item.height());
-                }
-            });
-        }
+        initializeChoicesSortableForElement($choicesContainer);
     }
 
     function removeChoice($choiceItem) {
         $choiceItem.remove();
+    }
+
+    function addSqmRange($optionItem, rangeData = null) {
+        const $sqmRangesList = $optionItem.find('.mb-sqm-ranges-list');
+        addSqmRangeToContainer($sqmRangesList, rangeData);
+    }
+
+    function addSqmRangeToContainer($sqmRangesList, rangeData = null) {
+        const template = $('#sqm-range-item-template').html();
+        if(!template) return;
+        const $rangeElement = $(template);
+
+        if (rangeData) {
+            $rangeElement.find('input[name="sqm_range_from[]"]').val(rangeData.from_sqm);
+            // Handle infinity for display
+            const toValue = (rangeData.to_sqm === Infinity || String(rangeData.to_sqm).toLowerCase() === 'infinity' || rangeData.to_sqm === '∞') ? '∞' : rangeData.to_sqm;
+            $rangeElement.find('input[name="sqm_range_to[]"]').val(toValue);
+            $rangeElement.find('input[name="sqm_range_price[]"]').val(rangeData.price_per_sqm);
+        }
+        $sqmRangesList.append($rangeElement);
+    }
+
+    function removeSqmRange($rangeItem) {
+        $rangeItem.remove();
     }
 
     function updateOptionTitle($nameInput) {
@@ -1685,24 +1746,117 @@ jQuery(document).ready(function($) {
         $titleElement.text($nameInput.val() || strings.newOption);
     }
 
+    function validateSqmRanges($optionItem) {
+        const $sqmRangesList = $optionItem.find('.mb-sqm-ranges-list');
+        let isValid = true;
+        let prevToSqm = -1;
+        const ranges = [];
+
+        $sqmRangesList.find('.mb-sqm-range-item').each(function(index) {
+            const $row = $(this);
+            const fromSqmStr = $row.find('input[name="sqm_range_from[]"]').val();
+            const toSqmStr = $row.find('input[name="sqm_range_to[]"]').val();
+            const pricePerSqmStr = $row.find('input[name="sqm_range_price[]"]').val();
+
+            const fromSqm = parseFloat(fromSqmStr);
+            const pricePerSqm = parseFloat(pricePerSqmStr);
+            const isLastRange = index === $sqmRangesList.find('.mb-sqm-range-item').length - 1;
+            let toSqm = (toSqmStr === '∞' || toSqmStr === '' && isLastRange) ? Infinity : parseFloat(toSqmStr);
+
+
+            if (isNaN(fromSqm) || fromSqm < 0) {
+                showAlert(`Range ${index + 1}: "From SQM" must be a non-negative number.`, 'error');
+                isValid = false; return false;
+            }
+            if (isNaN(pricePerSqm) || pricePerSqm <= 0) {
+                showAlert(`Range ${index + 1}: "Price per SQM" must be a positive number.`, 'error');
+                isValid = false; return false;
+            }
+            if (toSqm !== Infinity && (isNaN(toSqm) || toSqm < 0)) {
+                showAlert(`Range ${index + 1}: "To SQM" must be a non-negative number or ∞.`, 'error');
+                isValid = false; return false;
+            }
+            if (toSqm !== Infinity && fromSqm >= toSqm) {
+                showAlert(`Range ${index + 1}: "From SQM" must be less than "To SQM".`, 'error');
+                isValid = false; return false;
+            }
+            if (isLastRange && toSqm !== Infinity) {
+                 // Allow empty "To" for last range to mean infinity
+                if (toSqmStr !== '' && toSqmStr !== '∞') {
+                    showAlert(`Last range's "To SQM" must be empty or ∞ for infinity.`, 'error');
+                    isValid = false; return false;
+                }
+                toSqm = Infinity; // Normalize for internal check
+            }
+            if (!isLastRange && toSqm === Infinity) {
+                showAlert(`Only the last range's "To SQM" can be ∞.`, 'error');
+                isValid = false; return false;
+            }
+
+            // Continuity and overlap (simplified for client-side, server will do more robust check)
+            if (index > 0) {
+                if (prevToSqm !== Infinity && fromSqm != (prevToSqm + 1)) {
+                     // This check is strict for integer continuity.
+                     // showAlert(`Range ${index + 1}: "From SQM" should be ${prevToSqm + 1} to be continuous.`, 'warning');
+                     // isValid = false; return false; // Decide if this is a hard stop or warning
+                }
+                if (prevToSqm !== Infinity && fromSqm <= prevToSqm) {
+                    showAlert(`Range ${index + 1}: "From SQM" overlaps with previous range.`, 'error');
+                    isValid = false; return false;
+                }
+            }
+
+            ranges.push({from_sqm: fromSqm, to_sqm: toSqm, price_per_sqm: pricePerSqm});
+            prevToSqm = toSqm;
+        });
+
+        if (!isValid) return false; // Validation failed
+
+        // Check if first range starts at 0 or 1 if there are any ranges
+        if (ranges.length > 0 && ranges[0].from_sqm !== 0 && ranges[0].from_sqm !== 1) {
+            // showAlert('The first SQM range should ideally start from 0 or 1.', 'warning');
+            // This might be a soft warning, not a validation failure depending on requirements.
+        }
+
+        return ranges; // Return collected ranges if valid
+    }
+
+
     function handleFormSubmit(e) {
         e.preventDefault();
+        hideAlert(); // Clear previous alerts
+
+        let allSqmOptionsValid = true;
+        // Perform SQM validation before collecting all data
+        $('.mb-option-item').each(function() {
+            const $item = $(this);
+            const $selectedType = $item.find('input[name*="[type]"]:checked');
+            if ($selectedType.val() === 'sqm') {
+                const ranges = validateSqmRanges($item);
+                if (ranges === false) { // validateSqmRanges returns false on validation failure
+                    allSqmOptionsValid = false;
+                    return false; // Break .each loop
+                }
+            }
+        });
+
+        if (!allSqmOptionsValid) {
+            // showAlert is called by validateSqmRanges
+            return; // Stop submission
+        }
         
         const $saveBtn = $('#save-btn');
         const $saveText = $('#save-text');
         const $saveSpinner = $('#save-spinner');
         const $saveIcon = $saveBtn.find('.mb-btn-icon');
         
-        // Disable form and show loading
         $saveBtn.prop('disabled', true);
         $saveText.text(isEditMode ? strings.updating : strings.creating);
         $saveSpinner.removeClass('mb-hidden');
-        $saveIcon.hide(); // Hide save icon during loading
+        $saveIcon.hide();
         
         const formData = collectFormData();
-        
-        // Add debugging
-        console.log('Submitting form data:', formData);
+        // console.log('Submitting form data:', formData);
         
         $.ajax({
             url: ajaxUrl,
@@ -1710,159 +1864,148 @@ jQuery(document).ready(function($) {
             data: {
                 action: 'mobooking_save_service',
                 nonce: nonce,
-                ...formData
+                ...formData // Spread collected data
             },
             success: function(response) {
-                console.log('Server response:', response);
-                
+                // console.log('Server response:', response);
                 if (response.success) {
                     showAlert(response.data.message, 'success');
-                    
-                    // Redirect after success
                     setTimeout(function() {
                         if (!isEditMode && response.data.service_id) {
-                            // New service was created, redirect to its edit page
                             let currentUrl = new URL(window.location.href);
                             currentUrl.searchParams.set('service_id', response.data.service_id);
-                            // If there are other params specific to 'add new' mode that should be removed, clear them.
-                            // For now, just setting service_id should switch to edit mode for this page.
-                            console.log('[MoBooking Debug] Redirecting to new service edit page:', currentUrl.toString());
                             window.location.href = currentUrl.toString();
                         } else {
-                            // Existing service updated, or new service creation didn't return ID (fallback)
-                            // Redirect to the services list page
-                            console.log('[MoBooking Debug] Redirecting to services list page:', '<?php echo esc_url($breadcrumb_services); ?>');
-                            window.location.href = '<?php echo esc_url($breadcrumb_services); ?>';
+                            window.location.href = '<?php echo esc_url(admin_url("admin.php?page=mobooking-services")); ?>';
                         }
                     }, 1500);
                 } else {
-                    showAlert(response.data?.message || strings.errorGeneric || 'Failed to save service', 'error');
+                    showAlert(response.data?.message || strings.errorGeneric, 'error');
                 }
             },
             error: function(xhr, status, error) {
-                console.error('AJAX Error:', {xhr, status, error, responseText: xhr.responseText});
-                
+                // console.error('AJAX Error:', {xhr, status, error, responseText: xhr.responseText});
                 let errorMessage = strings.networkError;
                 if (xhr.responseText) {
                     try {
                         const errorData = JSON.parse(xhr.responseText);
-                        if (errorData.data && errorData.data.message) {
-                            errorMessage = errorData.data.message;
-                        }
-                    } catch (e) {
-                        errorMessage += ': ' + error;
-                    }
-                } else {
-                    errorMessage += ': ' + error;
+                        errorMessage = errorData.data?.message || errorMessage;
+                    } catch (e) { /* Do nothing, use default */ }
                 }
-                
                 showAlert(errorMessage, 'error');
             },
             complete: function() {
-                // Re-enable form
                 $saveBtn.prop('disabled', false);
                 $saveText.text(isEditMode ? strings.updateService : strings.createService);
                 $saveSpinner.addClass('mb-hidden');
-                $saveIcon.show(); // Show save icon again
+                $saveIcon.show();
             }
         });
     }
 
+
     function collectFormData() {
         const $form = $('#mobooking-service-form');
-        const data = {};
+        const serviceData = {}; // Changed name from 'data' to 'serviceData' to avoid conflict
         
-        // Collect basic form data
-        $form.find('input, textarea, select').each(function() {
+        // Collect basic service data (non-option fields)
+        $form.find('input[type="text"], input[type="number"], input[type="hidden"], textarea, select').not('[name*="options["], [name*="choice_"], [name*="sqm_range_"]').each(function() {
             const $input = $(this);
             const name = $input.attr('name');
-            
-            if (name && !name.includes('options[') && !name.includes('choice_')) {
-                if ($input.attr('type') === 'checkbox') {
-                    data[name] = $input.is(':checked') ? ($input.val() || '1') : '0';
+            if (name) {
+                 // Check if it's the status toggle
+                if (name === 'status' && $input.attr('type') === 'checkbox') {
+                    serviceData[name] = $input.is(':checked') ? 'active' : 'inactive';
                 } else if ($input.attr('type') !== 'radio' || $input.is(':checked')) {
-                    data[name] = $input.val();
+                    serviceData[name] = $input.val();
                 }
             }
         });
-        
-        // Handle status toggle
-        data.status = $('#service-status').is(':checked') ? 'active' : 'inactive';
-        
-        // Collect options data in the order they appear (respecting sort order)
+        // Ensure status from the actual toggle if it wasn't caught above
+        if (typeof serviceData.status === 'undefined') {
+             serviceData.status = $('#service-status').is(':checked') ? 'active' : 'inactive';
+        }
+
         const options = [];
         $('.mb-option-item').each(function(index) {
             const $item = $(this);
-            const option = {
+            const optionType = $item.find('input[name*="[type]"]:checked').val();
+            const currentOption = {
                 option_id: $item.find('input[name*="[option_id]"]').val() || '',
                 name: $item.find('input[name*="[name]"]').val() || '',
                 description: $item.find('textarea[name*="[description]"]').val() || '',
                 is_required: $item.find('input[name*="[is_required]"]').is(':checked') ? 1 : 0,
-                sort_order: index + 1 // Use current position as sort order
+                sort_order: index + 1,
+                type: optionType
             };
-            
-            // Get selected type
-            const $selectedType = $item.find('input[name*="[type]"]:checked');
-            option.type = $selectedType.val() || 'checkbox';
-            
-            // Get price impact
-            const $selectedPriceType = $item.find('input[name*="[price_impact_type]"]:checked');
-            option.price_impact_type = $selectedPriceType.val() || '';
-            option.price_impact_value = $item.find('input[name*="[price_impact_value]"]').val() || '';
-            
-            // Get choices for select/radio types (in their current order)
-            if (option.type === 'select' || option.type === 'radio') {
+
+            if (optionType === 'sqm') {
+                const ranges = [];
+                $item.find('.mb-sqm-range-item').each(function() {
+                    const $row = $(this);
+                    const fromStr = $row.find('input[name="sqm_range_from[]"]').val();
+                    const toStr = $row.find('input[name="sqm_range_to[]"]').val();
+                    const priceStr = $row.find('input[name="sqm_range_price[]"]').val();
+
+                    // Convert to appropriate types, handle '∞' for 'to_sqm'
+                    ranges.push({
+                        from_sqm: parseFloat(fromStr),
+                        to_sqm: (toStr === '∞' || toStr === '') ? 'infinity' : parseFloat(toStr), // Server will handle 'infinity' string
+                        price_per_sqm: parseFloat(priceStr)
+                    });
+                });
+                currentOption.option_values = JSON.stringify(ranges);
+                // For SQM, price_impact_type and price_impact_value are typically null
+                currentOption.price_impact_type = null;
+                currentOption.price_impact_value = null;
+            } else if (optionType === 'select' || optionType === 'radio') {
                 const choices = [];
                 $item.find('.mb-choice-item').each(function(choiceIndex) {
                     const $choiceItem = $(this);
-                    const label = $choiceItem.find('input[name="choice_label[]"]').val();
-                    const value = $choiceItem.find('input[name="choice_value[]"]').val();
-                    const price = $choiceItem.find('input[name="choice_price[]"]').val();
-                    
-                    if (label && value) {
-                        choices.push({
-                            label: label,
-                            value: value,
-                            price: price || 0,
-                            sort_order: choiceIndex + 1
-                        });
-                    }
+                    choices.push({
+                        label: $choiceItem.find('input[name="choice_label[]"]').val(),
+                        value: $choiceItem.find('input[name="choice_value[]"]').val(),
+                        price: $choiceItem.find('input[name="choice_price[]"]').val() || 0,
+                        sort_order: choiceIndex + 1
+                    });
                 });
-                
-                option.option_values = JSON.stringify(choices);
+                currentOption.option_values = JSON.stringify(choices);
+                currentOption.price_impact_type = $item.find('input[name*="[price_impact_type]"]:checked').val() || '';
+                currentOption.price_impact_value = $item.find('input[name*="[price_impact_value]"]').val() || '';
+            } else {
+                // For other types like text, number, checkbox, quantity, textarea
+                currentOption.option_values = null; // Or specific value if needed, e.g. for Quantity default value
+                currentOption.price_impact_type = $item.find('input[name*="[price_impact_type]"]:checked').val() || '';
+                currentOption.price_impact_value = $item.find('input[name*="[price_impact_value]"]').val() || '';
             }
-            
-            options.push(option);
+            options.push(currentOption);
         });
         
-        data.service_options = JSON.stringify(options);
+        serviceData.service_options = JSON.stringify(options);
         
-        // Add service ID for edit mode
         if (isEditMode && serviceId) {
-            data.service_id = serviceId;
+            serviceData.service_id = serviceId;
         }
         
-        console.log('Collected form data:', data);
-        
-        return data;
+        // console.log('Collected form data for submission:', serviceData);
+        return serviceData;
     }
 
     function showAlert(message, type = 'info') {
-        const alertClass = type === 'error' ? 'mb-alert-error' : 
-                         type === 'success' ? 'mb-alert-success' : 
-                         type === 'warning' ? 'mb-alert-warning' : 'mb-alert-info';
+        const alertClass = `mb-alert-${type}`; // success, error, warning, info
+        const $alertContainer = $('#mb-alert-container');
         
-        $('#mb-alert-container').html(
-            '<div class="mb-alert ' + alertClass + '">' + message + '</div>'
+        $alertContainer.html(
+            `<div class="mb-alert ${alertClass}">${$('<div>').text(message).html()}</div>`
         );
         
-        // Auto-hide success messages
-        if (type === 'success') {
-            setTimeout(hideAlert, 3000);
+        if (type === 'success' || type === 'warning') {
+            setTimeout(hideAlert, 5000); // Longer for warnings too
         }
-
-        // Scroll to top to show alert
-        $('html, body').animate({ scrollTop: 0 }, 300);
+        // Scroll to top only if not already visible or if it's an error
+        if (type === 'error' || $alertContainer.offset().top < $(window).scrollTop()) {
+             $('html, body').animate({ scrollTop: $alertContainer.offset().top - 20 }, 300); // Adjust offset as needed
+        }
     }
 
     function hideAlert() {
