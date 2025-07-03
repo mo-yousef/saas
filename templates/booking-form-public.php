@@ -198,15 +198,15 @@ if (get_query_var('mobooking_page_type') !== 'embed') { // Check for 'embed'
                 <label for="mobooking-bf-service-address" class="mobooking-bf__label"><?php esc_html_e('Service Address:', 'mobooking'); ?> <span class="mobooking-bf__required-indicator">*</span></label>
                 <textarea id="mobooking-bf-service-address" name="service_address" rows="3" required class="mobooking-bf__textarea"></textarea>
             </div>
-            <div class="mobooking-bf__form-group">
+            <div class="mobooking-bf__form-group" id="mobooking-bf-booking-date-group">
                 <label for="mobooking-bf-booking-date" class="mobooking-bf__label"><?php esc_html_e('Preferred Date:', 'mobooking'); ?> <span class="mobooking-bf__required-indicator">*</span></label>
                 <input type="text" id="mobooking-bf-booking-date" name="booking_date" required autocomplete="off" class="mobooking-bf__input">
             </div>
-            <div class="mobooking-bf__form-group">
+            <div class="mobooking-bf__form-group" id="mobooking-bf-booking-time-group">
                 <label for="mobooking-bf-booking-time" class="mobooking-bf__label"><?php esc_html_e('Preferred Time (e.g., 10:00 AM):', 'mobooking'); ?> <span class="mobooking-bf__required-indicator">*</span></label>
                 <input type="text" id="mobooking-bf-booking-time" name="booking_time" required placeholder="<?php esc_attr_e('e.g., 10:00 AM or 14:30', 'mobooking'); ?>" class="mobooking-bf__input">
             </div>
-            <div class="mobooking-bf__form-group">
+            <div class="mobooking-bf__form-group" id="mobooking-bf-special-instructions-group">
                 <label for="mobooking-bf-special-instructions" class="mobooking-bf__label"><?php esc_html_e('Special Instructions (optional):', 'mobooking'); ?></label>
                 <textarea id="mobooking-bf-special-instructions" name="special_instructions" rows="3" class="mobooking-bf__textarea"></textarea>
             </div>
@@ -244,6 +244,18 @@ if (get_query_var('mobooking_page_type') !== 'embed') { // Check for 'embed'
             <p><strong><?php esc_html_e('Final Total:', 'mobooking'); ?> <span id="mobooking-bf-final-total"></span></strong></p>
         </div>
         <!-- End Pricing Summary Section -->
+
+        <!-- Terms and Conditions Section -->
+        <div id="mobooking-bf-terms-conditions-section" class="mobooking-bf__terms-section mobooking-bf__hidden" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee;">
+            <div class="mobooking-bf__form-group">
+                <label class="mobooking-bf__label mobooking-bf__label--checkbox">
+                    <input type="checkbox" id="mobooking-bf-terms-agree" name="terms_agree" value="1" class="mobooking-bf__checkbox">
+                    <span id="mobooking-bf-terms-text"><?php esc_html_e('I agree to the', 'mobooking'); ?> <a href="#" id="mobooking-bf-terms-link" target="_blank" rel="noopener noreferrer"><?php esc_html_e('Terms & Conditions', 'mobooking'); ?></a></span>
+                     <span class="mobooking-bf__required-indicator">*</span>
+                </label>
+            </div>
+        </div>
+        <!-- End Terms and Conditions Section -->
 
         <div id="mobooking-bf-step-5-feedback" class="mobooking-bf__feedback mobooking-bf__hidden"></div>
         <div class="mobooking-bf__button-group">
