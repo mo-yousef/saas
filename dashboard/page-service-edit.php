@@ -1445,7 +1445,13 @@ jQuery(document).ready(function($) {
     }
 
     function addOption(optionData = null, index = 0) {
+        console.log('[MoBooking Debug] addOption called. Index:', index, 'OptionData:', optionData);
         const template = $('#option-template').html();
+        if (!template) {
+            console.error('[MoBooking Debug] Option template not found!');
+            return;
+        }
+        console.log('[MoBooking Debug] Raw template HTML:', template);
         const $optionsContainer = $('#options-container');
         
         // Remove no-options message if it exists
@@ -1453,7 +1459,9 @@ jQuery(document).ready(function($) {
 
         // Clone template and update placeholders
         let optionHtml = template.replace(/{INDEX}/g, index);
+        console.log('[MoBooking Debug] Processed optionHtml (with index replaced):', optionHtml);
         const $optionElement = $(optionHtml);
+        console.log('[MoBooking Debug] $optionElement created. outerHTML:', $optionElement[0].outerHTML.substring(0, 500) + '...'); // Log part of it
         
         // Set unique attributes
         $optionElement.attr('data-option-index', index);
@@ -1467,16 +1475,62 @@ jQuery(document).ready(function($) {
                 $input.attr('name', name);
             }
         });
+        console.log('[MoBooking Debug] Input names updated. Example name (type):', $optionElement.find('input[value="checkbox"]').attr('name'));
+
 
         // Set sort order
         $optionElement.find('input[name*="[sort_order]"]').val(index + 1);
 
         // Populate with existing data if provided
         if (optionData) {
+            console.log('[MoBooking Debug] Populating option data for existing option.');
             populateOptionData($optionElement, optionData);
         }
 
+        console.log('[MoBooking Debug] Appending $optionElement to $optionsContainer.');
         $optionsContainer.append($optionElement);
+        console.log('[MoBooking Debug] $optionElement appended.');
+
+        // Log visibility status after appending
+        const $optionTypeGroup = $optionElement.find('input[name*="[type]"]').first().closest('.mb-form-group');
+        const $priceImpactTypeGroup = $optionElement.find('input[name*="[price_impact_type]"]').first().closest('.mb-form-group');
+
+        console.log('[MoBooking Debug] Option Type Group found:', $optionTypeGroup.length > 0, 'Visible:', $optionTypeGroup.is(':visible'), 'offsetParent:', $optionTypeGroup.offsetParent !== null);
+        console.log('[MoBooking Debug] Price Impact Type Group found:', $priceImpactTypeGroup.length > 0, 'Visible:', $priceImpactTypeGroup.is(':visible'), 'offsetParent:', $priceImpactTypeGroup.offsetParent !== null);
+
+        // Ensure 'Option Type' is set and initialized
+        let $checkedOptionType = $optionElement.find('input[name*="[type]"]:checked');
+        if (!$checkedOptionType.length) {
+            console.log('[MoBooking Debug] No Option Type checked by default, forcing "checkbox".');
+            $checkedOptionType = $optionElement.find('input[name*="[type]"][value="checkbox"]');
+            if ($checkedOptionType.length) {
+                $checkedOptionType.prop('checked', true);
+            }
+        }
+        if ($checkedOptionType.length) {
+            console.log('[MoBooking Debug] Triggering change for Option Type:', $checkedOptionType.val());
+            $checkedOptionType.closest('.mb-form-group').show(); // Ensure parent form group is visible
+            $checkedOptionType.trigger('change'); // This calls handleOptionTypeChange
+        } else {
+            console.error('[MoBooking Debug] Could not find or set default Option Type.');
+        }
+
+        // Ensure 'Price Impact Type' is set and initialized
+        let $checkedPriceImpactType = $optionElement.find('input[name*="[price_impact_type]"]:checked');
+        if (!$checkedPriceImpactType.length) {
+            console.log('[MoBooking Debug] No Price Impact Type checked by default, forcing "" (None).');
+            $checkedPriceImpactType = $optionElement.find('input[name*="[price_impact_type]"][value=""]');
+            if ($checkedPriceImpactType.length) {
+                $checkedPriceImpactType.prop('checked', true);
+            }
+        }
+        if ($checkedPriceImpactType.length) {
+            console.log('[MoBooking Debug] Triggering change for Price Impact Type:', $checkedPriceImpactType.val());
+            $checkedPriceImpactType.closest('.mb-form-group').show(); // Ensure parent form group is visible
+             // $checkedPriceImpactType.trigger('change'); // Trigger change if there's a handler for it (currently none apparent)
+        } else {
+            console.error('[MoBooking Debug] Could not find or set default Price Impact Type.');
+        }
         
         // Initialize sortable for new option's choices if they exist
         const $choicesList = $optionElement.find('.mb-choices-sortable');
@@ -1494,23 +1548,6 @@ jQuery(document).ready(function($) {
             });
         }
         
-        // Handle option type visibility for new options
-        const $checkedType = $optionElement.find('input[name*="[type]"]:checked');
-        if ($checkedType.length) {
-            // Ensure the group itself is visible (it should be by default from template)
-            $checkedType.closest('.mb-radio-group').show();
-            $checkedType.closest('.mb-form-group').show(); // Show the parent form group as well
-
-            // Explicitly trigger change to ensure handleOptionTypeChange runs and sets up UI
-            $checkedType.trigger('change');
-        } else {
-            // If nothing is checked by default (template error?), check 'checkbox' and trigger
-            const $defaultTypeRadio = $optionElement.find('input[name*="[type]"][value="checkbox"]');
-            if ($defaultTypeRadio.length) {
-                $defaultTypeRadio.prop('checked', true).trigger('change');
-            }
-        }
-
         // Focus on name input for new options
         if (!optionData) {
             $optionElement.find('input[name*="[name]"]').focus();
