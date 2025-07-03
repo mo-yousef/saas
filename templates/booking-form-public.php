@@ -120,7 +120,7 @@ if (get_query_var('mobooking_page_type') !== 'embed') { // Check for 'embed'
                 <% if (parsed_option_values && parsed_option_values.length) { %>
                     <% parsed_option_values.forEach(function(val_opt) { %>
                         <option value="<%= val_opt.value %>" data-price-adjust="<%= val_opt.price_adjust || 0 %>">
-                            <%= val_opt.label %> <% if (val_opt.price_adjust) { %>(<%= parseFloat(val_opt.price_adjust) > 0 ? '+' : '' %><%= parseFloat(val_opt.price_adjust).toFixed(2) %>)<% } %>
+                            <%= val_opt.label %> <% if (val_opt.price_adjust_display) { %><%= val_opt.price_adjust_display %><% } %>
                         </option>
                     <% }); %>
                 <% } %>
@@ -136,7 +136,7 @@ if (get_query_var('mobooking_page_type') !== 'embed') { // Check for 'embed'
                 <% parsed_option_values.forEach(function(val_opt, index) { %>
                     <label class="mobooking-bf__label mobooking-bf__label--radio">
                         <input type="radio" class="mobooking-bf__radio" name="service_option[<%= service_id %>][<%= option_id %>]" value="<%= val_opt.value %>" data-price-adjust="<%= val_opt.price_adjust || 0 %>" <% if (is_required == 1 && index === 0) { %>checked<% } %>>
-                        <span class="mobooking-bf__option-name"><%= val_opt.label %></span> <% if (val_opt.price_adjust) { %><span class="mobooking-bf__option-price-impact">(<%= parseFloat(val_opt.price_adjust) > 0 ? '+' : '' %><%= parseFloat(val_opt.price_adjust).toFixed(2) %>)</span><% } %>
+                        <span class="mobooking-bf__option-name"><%= val_opt.label %></span> <% if (val_opt.price_adjust_display) { %><span class="mobooking-bf__option-price-impact"><%= val_opt.price_adjust_display %></span><% } %>
                     </label>
                 <% }); %>
             <% } %>
@@ -279,10 +279,10 @@ if (get_query_var('mobooking_page_type') !== 'embed') { // Check for 'embed'
 
 <script type="text/template" id="mobooking-bf-service-item-template">
     <div class="mobooking-bf__service-item">
-        <label class="mobooking-bf__label mobooking-bf__label--checkbox">
-            <input type="checkbox" class="mobooking-bf__checkbox" name="selected_services[]" value="<%= service_id %>" data-service-id="<%= service_id %>">
+        <label class="mobooking-bf__label mobooking-bf__label--radio">
+            <input type="radio" class="mobooking-bf__radio" name="selected_service" value="<%= service_id %>" data-service-id="<%= service_id %>">
             <span class="mobooking-bf__service-name"><%= name %></span>
-            <% if (typeof mobookingShouldShowPricing !== 'undefined' && mobookingShouldShowPricing()) { %>
+            <% if (showPricing) { %>
                 <span class="mobooking-bf__service-price">- <%= price_formatted %></span>
             <% } %>
             <span class="mobooking-bf__service-duration">(<%= duration %> <?php esc_html_e('min', 'mobooking'); ?>)</span>
