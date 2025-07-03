@@ -787,9 +787,24 @@ input:checked + .mb-toggle-slider:before {
                 <div class="mb-form-group">
                     <label class="mb-form-label"><?php esc_html_e('Icon', 'mobooking'); ?></label>
                     <div id="icon-preview" class="mb-image-preview">
-                        <?php if (!empty($service_icon)): ?>
-                            <span class="dashicons <?php echo esc_attr($service_icon); ?>" style="font-size: 48px;"></span>
-                        <?php else: ?>
+                        <?php
+                        if (!empty($service_icon)):
+                            $icon_html = '';
+                            if (strpos($service_icon, 'preset:') === 0) {
+                                $key = substr($service_icon, strlen('preset:'));
+                                // We need access to Services class to get SVG content
+                                if (class_exists('\MoBooking\Classes\Services')) {
+                                    $icon_html = \MoBooking\Classes\Services::get_preset_icon_svg($key);
+                                }
+                            } elseif (filter_var($service_icon, FILTER_VALIDATE_URL)) {
+                                $icon_html = '<img src="' . esc_url($service_icon) . '" alt="' . esc_attr__('Service Icon', 'mobooking') . '" style="width: 48px; height: 48px; object-fit: contain;">';
+                            }
+                            // Fallback for old dashicons or if SVG content is empty
+                            if (empty($icon_html) && !filter_var($service_icon, FILTER_VALIDATE_URL) && strpos($service_icon, 'dashicons-') === 0) {
+                                $icon_html = '<span class="' . esc_attr($service_icon) . '" style="font-size: 48px;"></span>';
+                            }
+                            echo $icon_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- HTML is constructed with esc_url/esc_attr or from trusted SVG source.
+                        else: ?>
                             <div class="mb-image-placeholder">
                                 <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
                                     <circle cx="12" cy="12" r="10"/>
@@ -1810,8 +1825,47 @@ jQuery(document).ready(function($) {
         };
         reader.readAsDataURL(file);
         
-        // TODO: Upload to server via AJAX
-        // uploadImageToServer(file);
+        // uploadImageToServer(file); // This was the TODO
+
+        const formData = new FormData();
+        formData.append('service_image', file);
+        formData.append('action', 'mobooking_upload_service_image');
+        formData.append('nonce', nonce); // Ensure 'nonce' is available in this scope (it is globally)
+        // Optionally add service_id if needed by backend for naming, though backend handles uniqueness.
+        // if (isEditMode && serviceId) { formData.append('service_id', serviceId); }
+
+        const $preview = $('#image-preview');
+        const originalPreview = $preview.html(); // Save original for potential restore on error
+        $preview.html('<div class="mb-spinner" style="margin: auto; width: 32px; height: 32px;"></div>'); // Show spinner
+
+        $.ajax({
+            url: ajaxUrl, // Ensure 'ajaxUrl' is available (it is globally)
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(response) {
+                if (response.success && response.data.image_url) {
+                    setImagePreview(response.data.image_url); // This updates the preview and hidden input
+                    showAlert(response.data.message || strings.imageUploadedSuccess || 'Image uploaded successfully.', 'success');
+                } else {
+                    showAlert(response.data?.message || strings.imageUploadFailed || 'Failed to upload image.', 'error');
+                    $preview.html(originalPreview); // Restore original preview
+                }
+            },
+            error: function(xhr) {
+                let errorMsg = strings.networkError || 'Network error during image upload.';
+                if (xhr.responseJSON && xhr.responseJSON.data && xhr.responseJSON.data.message) {
+                    errorMsg = xhr.responseJSON.data.message;
+                }
+                showAlert(errorMsg, 'error');
+                $preview.html(originalPreview); // Restore original preview
+            },
+            complete: function() {
+                // Clear the file input so the same file can be selected again if needed
+                $('#image-upload').val('');
+            }
+        });
     }
 
     function setImagePreview(imageUrl) {
@@ -1819,9 +1873,25 @@ jQuery(document).ready(function($) {
         const $imageUrlInput = $('#image-url');
         const $removeBtn = $('#remove-image-btn');
         
-        $preview.html('<img src="' + imageUrl + '" alt="Service Image">');
-        $imageUrlInput.val(imageUrl);
-        $removeBtn.removeClass('mb-hidden');
+        if (imageUrl && imageUrl.trim() !== '') {
+            $preview.html('<img src="' + encodeURI(imageUrl) + '" alt="<?php esc_attr_e('Service Image', 'mobooking'); ?>">');
+            $imageUrlInput.val(imageUrl);
+            $removeBtn.removeClass('mb-hidden');
+        } else {
+            // Show placeholder if imageUrl is empty
+            $preview.html(
+                '<div class="mb-image-placeholder">' +
+                    '<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">' +
+                        '<rect width="18" height="18" x="3" y="3" rx="2" ry="2"/>' +
+                        '<circle cx="9" cy="9" r="2"/>' +
+                        '<path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>' +
+                    '</svg>' +
+                    '<div class="mb-mt-2"><?php esc_html_e('Click to upload', 'mobooking'); ?></div>' +
+                '</div>'
+            );
+            $imageUrlInput.val('');
+            $removeBtn.addClass('mb-hidden');
+        }
     }
 
     function removeImage() {
@@ -1932,23 +2002,12 @@ jQuery(document).ready(function($) {
                     // For now, let's assume the backend sanitized it and we can display it if it's small
                     // Fetching and displaying remote SVG can be complex due to security (scripts etc)
                     // The backend returns a URL. We should store this URL.
-                    // For preview, we can try to fetch it.
-                    $.get(response.data.icon_url, function(svgData) {
-                        const $svgElement = $(svgData).find('svg');
-                        if ($svgElement.length) {
-                            setIconPreview($svgElement[0].outerHTML, response.data.icon_url);
-                        } else {
-                             // Fallback if SVG content cannot be directly embedded or is not found
-                            setIconPreview('<span class="dashicons dashicons-format-image" style="font-size: 48px;"></span>', response.data.icon_url, true);
-                        }
-                    }).fail(function() {
-                        // Fallback if fetching SVG for preview fails
-                        setIconPreview('<span class="dashicons dashicons-format-image" style="font-size: 48px;"></span>', response.data.icon_url, true);
-                        showAlert('Custom icon uploaded, but preview could not be loaded.', 'warning');
-                    });
+                    // The setIconPreview function will now handle URL display correctly.
+                    // Pass the URL as the iconInputValue. The first arg (iconHtmlOrSvg) is not strictly needed when type is URL.
+                    setIconPreview(null, response.data.icon_url);
                     showAlert(response.data.message || 'Icon uploaded successfully.', 'success');
                 } else {
-                    showAlert(response.data?.message || 'Failed to upload icon.', 'error');
+                    showAlert(response.data?.message || strings.errorGeneric || 'Failed to upload icon.', 'error');
                     $preview.html(originalPreview); // Restore original preview on error
                 }
             },
@@ -1964,24 +2023,37 @@ jQuery(document).ready(function($) {
     }
 
 
-    function setIconPreview(iconHtmlOrSvg, iconInputValue, isUrl = false) {
+    function setIconPreview(iconHtmlOrSvg, iconInputValue) { // Removed isUrl parameter
         const $preview = $('#icon-preview');
         const $iconInput = $('#icon-value');
         const $removeBtn = $('#remove-icon-btn');
-        
-        if (isUrl) {
-            // If it's a URL to an SVG, wrap it in an img tag for preview
-            // Or better, if we have the SVG content directly (like for presets)
-            if (iconHtmlOrSvg.startsWith('<svg')) {
-                 $preview.html(iconHtmlOrSvg);
-            } else { // Assumed to be a URL
-                 $preview.html('<img src="' + iconHtmlOrSvg + '" alt="Service Icon" style="width: 48px; height: 48px; object-fit: contain;">');
-            }
+
+        if (iconInputValue && iconInputValue.startsWith('preset:')) {
+            // It's a preset icon, iconHtmlOrSvg is the actual SVG content
+            $preview.html(iconHtmlOrSvg);
+        } else if (iconInputValue) {
+            // It's a URL for a custom uploaded SVG
+            $preview.html('<img src="' + encodeURI(iconInputValue) + '" alt="Service Icon" style="width: 48px; height: 48px; object-fit: contain;">');
         } else {
-             $preview.html(iconHtmlOrSvg); // Assumed to be direct SVG content or a dashicon span
+            // No icon selected or value cleared
+            $preview.html(
+                '<div class="mb-image-placeholder">' +
+                    '<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">' +
+                        '<circle cx="12" cy="12" r="10"/>' +
+                        '<path d="m9 12 2 2 4-4"/>' +
+                    '</svg>' +
+                    '<div class="mb-mt-2"><?php esc_html_e('Select or Upload Icon', 'mobooking'); ?></div>' +
+                '</div>'
+            );
         }
-        $iconInput.val(iconInputValue); // Store preset:key or URL
-        $removeBtn.removeClass('mb-hidden');
+        
+        $iconInput.val(iconInputValue);
+
+        if (iconInputValue) {
+            $removeBtn.removeClass('mb-hidden');
+        } else {
+            $removeBtn.addClass('mb-hidden');
+        }
     }
 
     function removeIcon() {
