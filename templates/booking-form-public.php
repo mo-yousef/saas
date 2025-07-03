@@ -69,111 +69,90 @@ if (get_query_var('mobooking_page_type') !== 'embed') { // Check for 'embed'
     <script type="text/template" id="mobooking-bf-option-checkbox-template">
         <div class="mobooking-bf__option-item" data-service-id="<%= service_id %>" data-option-id="<%= option_id %>" data-option-type="checkbox">
             <label class="mobooking-bf__label mobooking-bf__label--checkbox">
-                <input type="checkbox" class="mobooking-bf__checkbox" name="service_option[<%= service_id %>][<%= option_id %>]" value="1" <% if (is_required == 1) { %>required<% } %>>
-                <span class="mobooking-bf__option-name"><%= name %></span> <% if (price_impact_value_formatted) { %><span class="mobooking-bf__option-price-impact">(<%= price_impact_value_formatted %>)</span><% } %>
+                <input type="checkbox" class="mobooking-bf__checkbox" name="service_option[<%= service_id %>][<%= option_id %>]" value="1" <%= required_attr %>>
+                <span class="mobooking-bf__option-name"><%= name %></span> <!-- price_impact_placeholder -->
             </label>
-            <% if (description) { %><p class="mobooking-bf__option-description"><%= description %></p><% } %>
+            <!-- description_placeholder -->
         </div>
     </script>
 
     <script type="text/template" id="mobooking-bf-option-text-template">
         <div class="mobooking-bf__option-item" data-service-id="<%= service_id %>" data-option-id="<%= option_id %>" data-option-type="text">
             <label for="option_<%= service_id %>_<%= option_id %>" class="mobooking-bf__label">
-                <%= name %> <% if (price_impact_value_formatted) { %><span class="mobooking-bf__option-price-impact">(<%= price_impact_value_formatted %>)</span><% } %>
-                <% if (is_required == 1) { %> <span class="mobooking-bf__required-indicator">*</span><% } %>
+                <%= name %> <!-- price_impact_placeholder --> <!-- required_indicator_placeholder -->
             </label>
-            <input type="text" id="option_<%= service_id %>_<%= option_id %>" name="service_option[<%= service_id %>][<%= option_id %>]" class="mobooking-bf__input" <% if (is_required == 1) { %>required<% } %>>
-            <% if (description) { %><p class="mobooking-bf__option-description"><%= description %></p><% } %>
+            <input type="text" id="option_<%= service_id %>_<%= option_id %>" name="service_option[<%= service_id %>][<%= option_id %>]" class="mobooking-bf__input" <%= required_attr %>>
+            <!-- description_placeholder -->
         </div>
     </script>
 
     <script type="text/template" id="mobooking-bf-option-number-template">
         <div class="mobooking-bf__option-item" data-service-id="<%= service_id %>" data-option-id="<%= option_id %>" data-option-type="number">
             <label for="option_<%= service_id %>_<%= option_id %>" class="mobooking-bf__label">
-                <%= name %> <% if (price_impact_value_formatted && option.price_impact_type !== 'multiply_value') { %><span class="mobooking-bf__option-price-impact">(<%= price_impact_value_formatted %>)</span><% } %>
-                <% if (is_required == 1) { %> <span class="mobooking-bf__required-indicator">*</span><% } %>
+                <%= name %> <!-- price_impact_placeholder --> <!-- required_indicator_placeholder -->
             </label>
-            <input type="number" id="option_<%= service_id %>_<%= option_id %>" name="service_option[<%= service_id %>][<%= option_id %>]" class="mobooking-bf__input" <% if (is_required == 1) { %>required<% } %> min="0">
-            <% if (description) { %><p class="mobooking-bf__option-description"><%= description %></p><% } %>
+            <input type="number" id="option_<%= service_id %>_<%= option_id %>" name="service_option[<%= service_id %>][<%= option_id %>]" class="mobooking-bf__input" <%= required_attr %> min="0">
+            <!-- description_placeholder -->
         </div>
     </script>
 
     <script type="text/template" id="mobooking-bf-option-quantity-template">
         <div class="mobooking-bf__option-item" data-service-id="<%= service_id %>" data-option-id="<%= option_id %>" data-option-type="quantity">
             <label for="option_<%= service_id %>_<%= option_id %>_qty" class="mobooking-bf__label">
-                <%= name %> <% if (price_impact_value_formatted && option.price_impact_type === 'fixed') { %><span class="mobooking-bf__option-price-impact">(Per item: <%= price_impact_value_formatted %>)</span><% } %>
-                <% if (is_required == 1) { %> <span class="mobooking-bf__required-indicator">*</span><% } %>
+                <%= name %> <!-- price_impact_placeholder --> <!-- required_indicator_placeholder -->
             </label>
-            <input type="number" id="option_<%= service_id %>_<%= option_id %>_qty" name="service_option[<%= service_id %>][<%= option_id %>][quantity]" value="<% if (is_required == 1) { %>1<% } else { %>0<% } %>" min="0" class="mobooking-bf__input mobooking-bf-option-quantity-input">
-            <% if (description) { %><p class="mobooking-bf__option-description"><%= description %></p><% } %>
+            <input type="number" id="option_<%= service_id %>_<%= option_id %>_qty" name="service_option[<%= service_id %>][<%= option_id %>][quantity]" value="<%= quantity_default_value %>" min="0" class="mobooking-bf__input mobooking-bf-option-quantity-input" <%= required_attr %>>
+            <!-- description_placeholder -->
         </div>
     </script>
 
     <script type="text/template" id="mobooking-bf-option-select-template">
         <div class="mobooking-bf__option-item" data-service-id="<%= service_id %>" data-option-id="<%= option_id %>" data-option-type="select">
             <label for="option_<%= service_id %>_<%= option_id %>" class="mobooking-bf__label">
-                <%= name %> <% if (price_impact_value_formatted && option.price_impact_type !== 'multiply_value' && option.price_impact_type !== 'fixed' /* fixed per choice below */) { %><span class="mobooking-bf__option-price-impact">(Base Impact: <%= price_impact_value_formatted %>)</span><% } %>
-                <% if (is_required == 1) { %> <span class="mobooking-bf__required-indicator">*</span><% } %>
+                <%= name %> <!-- price_impact_placeholder --> <!-- required_indicator_placeholder -->
             </label>
-            <select id="option_<%= service_id %>_<%= option_id %>" name="service_option[<%= service_id %>][<%= option_id %>]" class="mobooking-bf__select" <% if (is_required == 1) { %>required<% } %>>
-                <% if (is_required != 1) { %><option value=""><?php esc_html_e('-- Select (optional) --', 'mobooking'); ?></option><% } %>
-                <% if (parsed_option_values && parsed_option_values.length) { %>
-                    <% parsed_option_values.forEach(function(val_opt) { %>
-                        <option value="<%= val_opt.value %>" data-price-adjust="<%= val_opt.price_adjust || 0 %>">
-                            <%= val_opt.label %> <% if (val_opt.price_adjust_display) { %><%= val_opt.price_adjust_display %><% } %>
-                        </option>
-                    <% }); %>
-                <% } %>
+            <select id="option_<%= service_id %>_<%= option_id %>" name="service_option[<%= service_id %>][<%= option_id %>]" class="mobooking-bf__select" <%= required_attr %>>
+                <!-- options_loop_placeholder -->
             </select>
-            <% if (description) { %><p class="mobooking-bf__option-description"><%= description %></p><% } %>
+            <!-- description_placeholder -->
         </div>
     </script>
 
     <script type="text/template" id="mobooking-bf-option-radio-template">
          <div class="mobooking-bf__option-item mobooking-bf__label--radio-group" data-service-id="<%= service_id %>" data-option-id="<%= option_id %>" data-option-type="radio">
-            <p class="mobooking-bf__label"><%= name %> <% if (price_impact_value_formatted && option.price_impact_type !== 'multiply_value' && option.price_impact_type !== 'fixed') { %><span class="mobooking-bf__option-price-impact">(Base Impact: <%= price_impact_value_formatted %>)</span><% } %> <% if (is_required == 1) { %><span class="mobooking-bf__required-indicator">*</span><% } %></p>
-            <% if (parsed_option_values && parsed_option_values.length) { %>
-                <% parsed_option_values.forEach(function(val_opt, index) { %>
-                    <label class="mobooking-bf__label mobooking-bf__label--radio">
-                        <input type="radio" class="mobooking-bf__radio" name="service_option[<%= service_id %>][<%= option_id %>]" value="<%= val_opt.value %>" data-price-adjust="<%= val_opt.price_adjust || 0 %>" <% if (is_required == 1 && index === 0) { %>checked<% } %>>
-                        <span class="mobooking-bf__option-name"><%= val_opt.label %></span> <% if (val_opt.price_adjust_display) { %><span class="mobooking-bf__option-price-impact"><%= val_opt.price_adjust_display %></span><% } %>
-                    </label>
-                <% }); %>
-            <% } %>
-            <% if (description) { %><p class="mobooking-bf__option-description"><%= description %></p><% } %>
+            <p class="mobooking-bf__label"><%= name %> <!-- price_impact_placeholder --> <!-- required_indicator_placeholder --></p>
+            <!-- options_loop_placeholder -->
+            <!-- description_placeholder -->
         </div>
     </script>
 
     <script type="text/template" id="mobooking-bf-option-textarea-template">
         <div class="mobooking-bf__option-item" data-service-id="<%= service_id %>" data-option-id="<%= option_id %>" data-option-type="textarea">
             <label for="option_<%= service_id %>_<%= option_id %>" class="mobooking-bf__label">
-                <%= name %> <% if (price_impact_value_formatted) { %><span class="mobooking-bf__option-price-impact">(<%= price_impact_value_formatted %>)</span><% } %>
-                <% if (is_required == 1) { %> <span class="mobooking-bf__required-indicator">*</span><% } %>
+                <%= name %> <!-- price_impact_placeholder --> <!-- required_indicator_placeholder -->
             </label>
-            <textarea id="option_<%= service_id %>_<%= option_id %>" name="service_option[<%= service_id %>][<%= option_id %>]" class="mobooking-bf__textarea" rows="3" <% if (is_required == 1) { %>required<% } %>></textarea>
-            <% if (description) { %><p class="mobooking-bf__option-description"><%= description %></p><% } %>
+            <textarea id="option_<%= service_id %>_<%= option_id %>" name="service_option[<%= service_id %>][<%= option_id %>]" class="mobooking-bf__textarea" rows="3" <%= required_attr %>></textarea>
+            <!-- description_placeholder -->
         </div>
     </script>
 
     <script type="text/template" id="mobooking-bf-option-sqm-template">
         <div class="mobooking-bf__option-item" data-service-id="<%= service_id %>" data-option-id="<%= option_id %>" data-option-type="sqm">
             <label for="option_<%= service_id %>_<%= option_id %>_sqm_total" class="mobooking-bf__label">
-                <%= name %>
-                <% if (is_required == 1) { %> <span class="mobooking-bf__required-indicator">*</span><% } %>
+                <%= name %> <!-- required_indicator_placeholder -->
             </label>
             <input type="number" id="option_<%= service_id %>_<%= option_id %>_sqm_total"
                    name="service_option[<%= service_id %>][<%= option_id %>][total_sqm]"
                    class="mobooking-bf__input mobooking-bf-sqm-total-input"
                    placeholder="<?php esc_attr_e('Enter Total SQM', 'mobooking'); ?>"
-                   min="0" step="any"
-                   <% if (is_required == 1) { %>required<% } %>>
+                   min="0" step="any" <%= required_attr %>>
             <div class="mobooking-bf__sqm-price-display" id="sqm_price_display_<%= service_id %>_<%= option_id %>">
                 <!-- Price will be shown here by JS -->
             </div>
-            <% if (description) { %><p class="mobooking-bf__option-description"><%= description %></p><% } %>
+            <!-- description_placeholder -->
             <!-- Store ranges in a hidden way for JS to access -->
             <script type="application/json" class="mobooking-bf-sqm-ranges-data">
-                <%= option_values %>
+                <%= option_values_json_string %>
             </script>
         </div>
     </script>
@@ -282,12 +261,10 @@ if (get_query_var('mobooking_page_type') !== 'embed') { // Check for 'embed'
         <label class="mobooking-bf__label mobooking-bf__label--radio">
             <input type="radio" class="mobooking-bf__radio" name="selected_service" value="<%= service_id %>" data-service-id="<%= service_id %>">
             <span class="mobooking-bf__service-name"><%= name %></span>
-            <% if (showPricing) { %>
-                <span class="mobooking-bf__service-price">- <%= price_formatted %></span>
-            <% } %>
+            <!-- price_placeholder -->
             <span class="mobooking-bf__service-duration">(<%= duration %> <?php esc_html_e('min', 'mobooking'); ?>)</span>
         </label>
-        <% if (description) { %><p class="mobooking-bf__service-description"><%= description %></p><% } %>
+        <!-- description_placeholder -->
     </div>
 </script>
 
