@@ -30,6 +30,9 @@ jQuery(document).ready(function ($) {
 
   // --- Logic for Service Add/Edit Page (page-service-edit.php) ---
   // Check if the new inline script from page-service-edit.php is NOT present
+  /*
+  // Temporarily commenting out this entire block to avoid conflicts with page-service-edit.php inline script.
+  // The inline script (which defines window.moBookingServiceEdit) should be the sole handler for this page.
   if (
     $("#mobooking-service-form").length &&
     typeof window.moBookingServiceEdit === "undefined"
@@ -401,6 +404,7 @@ jQuery(document).ready(function ($) {
       window.location.href = servicesListPageUrl;
     });
   }
+  */ // End of temporary commenting out
 
   // --- Logic for Service List Page (page-services.php) ---
   if ($("#mobooking-services-list-container").length) {
