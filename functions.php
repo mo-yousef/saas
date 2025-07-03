@@ -102,88 +102,143 @@ function mobooking_scripts() {
     }
 
     // For Public Booking Form page (standard page template OR slug-based route)
-    $page_type_for_scripts = get_query_var('mobooking_page_type');
-    if ( is_page_template('templates/booking-form-public.php') || $page_type_for_scripts === 'public_booking' || $page_type_for_scripts === 'embed_booking' ) {
-        // Enqueue the new modern booking form CSS
-        wp_enqueue_style( 'mobooking-booking-form-modern', MOBOOKING_THEME_URI . 'assets/css/booking-form-modern.css', array('mobooking-style'), MOBOOKING_VERSION );
+$page_type_for_scripts = get_query_var('mobooking_page_type');
+if ( is_page_template('templates/booking-form-public.php') || $page_type_for_scripts === 'public_booking' || $page_type_for_scripts === 'embed_booking' ) {
+    // Enqueue the new modern booking form CSS
+    wp_enqueue_style( 'mobooking-booking-form-modern', MOBOOKING_THEME_URI . 'assets/css/booking-form-modern.css', array('mobooking-style'), MOBOOKING_VERSION );
 
-        wp_enqueue_script('jquery-ui-datepicker');
-        wp_enqueue_script('mobooking-booking-form', MOBOOKING_THEME_URI . 'assets/js/booking-form.js', array('jquery', 'jquery-ui-datepicker'), MOBOOKING_VERSION, true);
+    wp_enqueue_script('jquery-ui-datepicker');
+    wp_enqueue_script('mobooking-booking-form', MOBOOKING_THEME_URI . 'assets/js/booking-form.js', array('jquery', 'jquery-ui-datepicker'), MOBOOKING_VERSION, true);
 
-        $effective_tenant_id_for_public_form = 0;
-        // Prioritize tenant_id set by the slug-based routing via query_var
-        if ($page_type_for_scripts === 'public_booking' || $page_type_for_scripts === 'embed_booking') {
-            $effective_tenant_id_for_public_form = get_query_var('mobooking_tenant_id_on_page', 0);
-            error_log('[MoBooking Scripts] Booking form (' . esc_html($page_type_for_scripts) . ' route). Tenant ID from query_var mobooking_tenant_id_on_page: ' . $effective_tenant_id_for_public_form);
-        }
-        // Fallback to ?tid if not a slug route or if tenant_id_on_page wasn't set by slug logic (e.g. direct page template usage)
-        if (empty($effective_tenant_id_for_public_form) && !empty($_GET['tid'])) {
-            $effective_tenant_id_for_public_form = intval($_GET['tid']);
-            error_log('[MoBooking Scripts] Public booking form (tid route). Tenant ID from $_GET[tid]: ' . $effective_tenant_id_for_public_form);
-        }
-        // If it's a direct page template assignment without slug/tid, $effective_tenant_id_for_public_form will be 0.
-        // The JS should handle this (e.g. show an error or expect tenant_id to be entered manually if that was a feature).
-        // Currently, the JS expects tenant_id to be available for most operations.
-
-        if ($effective_tenant_id_for_public_form && isset($GLOBALS['mobooking_settings_manager'])) {
-            $public_form_currency_code = $GLOBALS['mobooking_settings_manager']->get_setting($effective_tenant_id_for_public_form, 'biz_currency_code', 'USD');
-        }
-        error_log('[MoBooking Scripts] Effective Tenant ID for public form localization: ' . $effective_tenant_id_for_public_form);
-
-        $i18n_strings = [
-            // Step 1
-            'zip_required' => __('Please enter your ZIP code.', 'mobooking'),
-            'country_code_required' => __('Please enter your Country Code.', 'mobooking'),
-            'tenant_id_missing' => __('Business identifier is missing. Cannot check availability.', 'mobooking'),
-            'tenant_id_missing_refresh' => __('Business ID is missing. Please refresh and try again or contact support.', 'mobooking'),
-            'checking' => __('Checking...', 'mobooking'),
-            'error_generic' => __('An unexpected error occurred. Please try again.', 'mobooking'),
-            // Step 2
-            'loading_services' => __('Loading services...', 'mobooking'),
-            'no_services_available' => __('No services are currently available for this area. Please try another location or check back later.', 'mobooking'),
-            'error_loading_services' => __('Could not load services. Please try again.', 'mobooking'),
-            'select_one_service' => __('Please select at least one service to continue.', 'mobooking'),
-            // Step 3
-            'configure_options' => __('Configure Options for', 'mobooking'),
-            'no_options_for_services' => __('No configurable options for the selected service(s).', 'mobooking'),
-            'fill_required_options' => __('Please fill in all required options.', 'mobooking'),
-            // Step 4
-            'name_required' => __('Full name is required.', 'mobooking'),
-            'email_required' => __('Email address is required.', 'mobooking'),
-            'email_invalid' => __('Please enter a valid email address.', 'mobooking'),
-            'phone_required' => __('Phone number is required.', 'mobooking'),
-            'address_required' => __('Service address is required.', 'mobooking'),
-            'date_required' => __('Preferred date is required.', 'mobooking'),
-            'time_required' => __('Preferred time is required.', 'mobooking'),
-            // Step 5
-            'apply_discount' => __('Apply Discount', 'mobooking'),
-            'discount_applied' => __('Discount applied successfully!', 'mobooking'),
-            'discount_invalid' => __('Invalid or expired discount code.', 'mobooking'),
-            'discount_error' => __('Error applying discount. Please try again.', 'mobooking'),
-            // Step 6
-            'submitting' => __('Submitting your booking...', 'mobooking'),
-            'booking_submitted' => __('Your booking has been submitted successfully!', 'mobooking'),
-            'booking_error' => __('There was an error submitting your booking. Please try again.', 'mobooking'),
-            // General
-            'error_ajax' => __('A network error occurred. Please check your connection and try again.', 'mobooking'),
-            'continue' => __('Continue', 'mobooking'),
-            'back' => __('Back', 'mobooking'),
-            'submit_booking' => __('Submit Booking', 'mobooking'),
-        ];
-
-        wp_localize_script('mobooking-booking-form', 'mobooking_booking_form_params', [
-            'ajax_url' => admin_url('admin-ajax.php'),
-            'nonce' => wp_create_nonce('mobooking_booking_form_nonce'),
-            'tenant_id' => $effective_tenant_id_for_public_form,
-            'currency_code' => $public_form_currency_code,
-            'site_url' => site_url(),
-            'i18n' => $i18n_strings,
-            // ADDED: Pass booking form settings to JavaScript
-            'settings' => isset($GLOBALS['mobooking_settings_manager']) && $effective_tenant_id_for_public_form
-                          ? $GLOBALS['mobooking_settings_manager']->get_booking_form_settings($effective_tenant_id_for_public_form)
-                          : \MoBooking\Classes\Settings::get_all_default_settings(), // Fallback to plugin defaults if manager/tenant ID invalid
-        ]);
+    $effective_tenant_id_for_public_form = 0;
+    
+    // Method 1: Prioritize tenant_id set by the slug-based routing via query_var
+    if ($page_type_for_scripts === 'public_booking' || $page_type_for_scripts === 'embed_booking') {
+        $effective_tenant_id_for_public_form = get_query_var('mobooking_tenant_id_on_page', 0);
+        error_log('[MoBooking Scripts] Booking form (' . esc_html($page_type_for_scripts) . ' route). Tenant ID from query_var mobooking_tenant_id_on_page: ' . $effective_tenant_id_for_public_form);
     }
+    
+    // Method 2: Fallback to ?tid if not a slug route or if tenant_id_on_page wasn't set by slug logic
+    if (empty($effective_tenant_id_for_public_form) && !empty($_GET['tid'])) {
+        $effective_tenant_id_for_public_form = intval($_GET['tid']);
+        error_log('[MoBooking Scripts] Public booking form (tid route). Tenant ID from $_GET[tid]: ' . $effective_tenant_id_for_public_form);
+    }
+    
+    // Method 3: NEW - If still no tenant ID and user is logged in, use current user
+    if (empty($effective_tenant_id_for_public_form) && is_user_logged_in()) {
+        $current_user = wp_get_current_user();
+        if (in_array('mobooking_business_owner', $current_user->roles)) {
+            $effective_tenant_id_for_public_form = $current_user->ID;
+            error_log('[MoBooking Scripts] Using current logged-in business owner as tenant ID: ' . $effective_tenant_id_for_public_form);
+        }
+    }
+    
+    // Method 4: NEW - If still no tenant ID, check if there's a default business owner in the system
+    if (empty($effective_tenant_id_for_public_form)) {
+        $business_owners = get_users([
+            'role' => 'mobooking_business_owner',
+            'number' => 1,
+            'fields' => 'ID'
+        ]);
+        
+        if (!empty($business_owners)) {
+            $effective_tenant_id_for_public_form = $business_owners[0];
+            error_log('[MoBooking Scripts] Using first available business owner as tenant ID: ' . $effective_tenant_id_for_public_form);
+        }
+    }
+    
+    // Method 5: NEW - Check if location check is disabled for any business owner
+    if (empty($effective_tenant_id_for_public_form) && isset($GLOBALS['mobooking_settings_manager'])) {
+        $all_business_owners = get_users([
+            'role' => 'mobooking_business_owner',
+            'fields' => 'ID'
+        ]);
+        
+        foreach ($all_business_owners as $owner_id) {
+            $settings = $GLOBALS['mobooking_settings_manager']->get_booking_form_settings($owner_id);
+            if (isset($settings['bf_enable_location_check']) && $settings['bf_enable_location_check'] === '0') {
+                $effective_tenant_id_for_public_form = $owner_id;
+                error_log('[MoBooking Scripts] Found business owner with location check disabled, using as tenant ID: ' . $effective_tenant_id_for_public_form);
+                break;
+            }
+        }
+    }
+
+    // Get settings for the determined tenant ID
+    $tenant_settings = [];
+    if ($effective_tenant_id_for_public_form && isset($GLOBALS['mobooking_settings_manager'])) {
+        $tenant_settings = $GLOBALS['mobooking_settings_manager']->get_booking_form_settings($effective_tenant_id_for_public_form);
+        $public_form_currency_code = $GLOBALS['mobooking_settings_manager']->get_setting($effective_tenant_id_for_public_form, 'biz_currency_code', 'USD');
+    } else {
+        // Use default settings
+        $tenant_settings = \MoBooking\Classes\Settings::get_all_default_settings();
+        $public_form_currency_code = 'USD';
+    }
+
+    error_log('[MoBooking Scripts] Final Effective Tenant ID for public form localization: ' . $effective_tenant_id_for_public_form);
+    error_log('[MoBooking Scripts] Location check setting: ' . ($tenant_settings['bf_enable_location_check'] ?? 'not set'));
+
+    $i18n_strings = [
+        // Step 1
+        'zip_required' => __('Please enter your ZIP code.', 'mobooking'),
+        'country_code_required' => __('Please enter your Country Code.', 'mobooking'),
+        'tenant_id_missing' => __('Business identifier is missing. Cannot check availability.', 'mobooking'),
+        'tenant_id_missing_refresh' => __('Business ID is missing. Please refresh and try again or contact support.', 'mobooking'),
+        'checking' => __('Checking...', 'mobooking'),
+        'error_generic' => __('An unexpected error occurred. Please try again.', 'mobooking'),
+        // Step 2
+        'loading_services' => __('Loading services...', 'mobooking'),
+        'no_services_available' => __('No services are currently available for this area. Please try another location or check back later.', 'mobooking'),
+        'error_loading_services' => __('Could not load services. Please try again.', 'mobooking'),
+        'select_one_service' => __('Please select at least one service.', 'mobooking'),
+        // Step 3
+        'loading_options' => __('Loading service options...', 'mobooking'),
+        'no_options_available' => __('No additional options are available for the selected services.', 'mobooking'),
+        'error_loading_options' => __('Could not load service options. Please try again.', 'mobooking'),
+        // Step 4
+        'name_required' => __('Please enter your name.', 'mobooking'),
+        'email_required' => __('Please enter your email address.', 'mobooking'),
+        'phone_required' => __('Please enter your phone number.', 'mobooking'),
+        'address_required' => __('Please enter your service address.', 'mobooking'),
+        'date_required' => __('Please select a preferred date.', 'mobooking'),
+        'time_required' => __('Please select a preferred time.', 'mobooking'),
+        // Step 5
+        'discount_code_required' => __('Please enter a discount code.', 'mobooking'),
+        'enter_discount_code' => __('Please enter a discount code.', 'mobooking'),
+        'invalid_discount_code' => __('Invalid discount code.', 'mobooking'),
+        'discount_applied' => __('Discount applied successfully!', 'mobooking'),
+        'error_applying_discount' => __('Error applying discount. Please try again.', 'mobooking'),
+        'discount_error' => __('Error applying discount. Please try again.', 'mobooking'),
+        // Step 6
+        'submitting' => __('Submitting your booking...', 'mobooking'),
+        'booking_submitted' => __('Your booking has been submitted successfully!', 'mobooking'),
+        'booking_error' => __('There was an error submitting your booking. Please try again.', 'mobooking'),
+        // General
+        'error_ajax' => __('A network error occurred. Please check your connection and try again.', 'mobooking'),
+        'continue' => __('Continue', 'mobooking'),
+        'back' => __('Back', 'mobooking'),
+        'submit_booking' => __('Submit Booking', 'mobooking'),
+    ];
+
+    wp_localize_script('mobooking-booking-form', 'mobooking_booking_form_params', [
+        'ajax_url' => admin_url('admin-ajax.php'),
+        'nonce' => wp_create_nonce('mobooking_booking_form_nonce'),
+        'tenant_id' => $effective_tenant_id_for_public_form,
+        'currency_code' => $public_form_currency_code,
+        'site_url' => site_url(),
+        'i18n' => $i18n_strings,
+        'settings' => $tenant_settings,
+        // Add debug info
+        'debug_info' => [
+            'page_type' => $page_type_for_scripts,
+            'query_var_tenant_id' => get_query_var('mobooking_tenant_id_on_page', 0),
+            'get_tid' => $_GET['tid'] ?? 0,
+            'is_user_logged_in' => is_user_logged_in(),
+            'current_user_id' => get_current_user_id(),
+        ]
+    ]);
+}
+
 
     // FIXED: Get current dashboard page slug if we're on a dashboard page
     // This prevents the undefined variable error
@@ -1762,4 +1817,126 @@ function handle_registration_ajax() {
         'message' => 'Registration successful!',
         'redirect_url' => home_url('/dashboard/')
     ]);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/**
+ * Database Check Script
+ * Add this to your functions.php temporarily to check the database state
+ * Remove after debugging
+ */
+
+// Add this function to your functions.php and call it by visiting: your-site.com/?mobooking_debug=1
+add_action('init', function() {
+    if (isset($_GET['mobooking_debug']) && $_GET['mobooking_debug'] === '1' && current_user_can('manage_options')) {
+        mobooking_debug_database();
+        exit;
+    }
+});
+
+function mobooking_debug_database() {
+    global $wpdb;
+    
+    echo "<h1>MoBooking Database Debug</h1>";
+    
+    // Check if tables exist
+    $services_table = $wpdb->prefix . 'mobooking_services';
+    $options_table = $wpdb->prefix . 'mobooking_service_options';
+    
+    echo "<h2>Table Existence Check</h2>";
+    $table_exists = $wpdb->get_var("SHOW TABLES LIKE '$services_table'");
+    echo "<p>Services table ($services_table): " . ($table_exists ? "EXISTS" : "MISSING") . "</p>";
+    
+    $table_exists = $wpdb->get_var("SHOW TABLES LIKE '$options_table'");
+    echo "<p>Service options table ($options_table): " . ($table_exists ? "EXISTS" : "MISSING") . "</p>";
+    
+    // Check business owners
+    echo "<h2>Business Owners</h2>";
+    $business_owners = get_users(['role' => 'mobooking_business_owner']);
+    echo "<p>Found " . count($business_owners) . " business owners:</p>";
+    foreach ($business_owners as $owner) {
+        echo "<p>- ID: {$owner->ID}, Login: {$owner->user_login}, Email: {$owner->user_email}</p>";
+    }
+    
+    // Check services for each business owner
+    echo "<h2>Services by Business Owner</h2>";
+    foreach ($business_owners as $owner) {
+        echo "<h3>Services for {$owner->user_login} (ID: {$owner->ID})</h3>";
+        
+        $services = $wpdb->get_results($wpdb->prepare(
+            "SELECT * FROM $services_table WHERE user_id = %d",
+            $owner->ID
+        ));
+        
+        if ($services) {
+            echo "<table border='1' style='border-collapse: collapse; width: 100%; margin-bottom: 20px;'>";
+            echo "<tr><th>ID</th><th>Name</th><th>Price</th><th>Status</th><th>Created</th></tr>";
+            foreach ($services as $service) {
+                echo "<tr>";
+                echo "<td>{$service->service_id}</td>";
+                echo "<td>{$service->name}</td>";
+                echo "<td>{$service->price}</td>";
+                echo "<td><strong>{$service->status}</strong></td>";
+                echo "<td>{$service->created_at}</td>";
+                echo "</tr>";
+            }
+            echo "</table>";
+        } else {
+            echo "<p>No services found for this user.</p>";
+        }
+    }
+    
+    // Test the Services class directly
+    echo "<h2>Services Class Test</h2>";
+    if (class_exists('\\MoBooking\\Classes\\Services')) {
+        $services_manager = new \MoBooking\Classes\Services();
+        
+        foreach ($business_owners as $owner) {
+            echo "<h3>Testing Services Class for {$owner->user_login} (ID: {$owner->ID})</h3>";
+            
+            // Test with different parameters
+            $test_cases = [
+                'No filter' => ['number' => -1],
+                'Active only' => ['status' => 'active', 'number' => -1],
+                'All statuses' => ['status' => null, 'number' => -1],
+                'Status empty string' => ['status' => '', 'number' => -1],
+            ];
+            
+            foreach ($test_cases as $case_name => $args) {
+                echo "<h4>Test case: $case_name</h4>";
+                $result = $services_manager->get_services_by_user($owner->ID, $args);
+                echo "<pre>" . print_r($result, true) . "</pre>";
+            }
+        }
+    } else {
+        echo "<p>Services class not found!</p>";
+    }
+    
+    // Check settings
+    echo "<h2>Booking Form Settings</h2>";
+    if (class_exists('\\MoBooking\\Classes\\Settings')) {
+        $settings_manager = new \MoBooking\Classes\Settings();
+        
+        foreach ($business_owners as $owner) {
+            echo "<h3>Settings for {$owner->user_login} (ID: {$owner->ID})</h3>";
+            $settings = $settings_manager->get_booking_form_settings($owner->ID);
+            echo "<pre>" . print_r($settings, true) . "</pre>";
+        }
+    } else {
+        echo "<p>Settings class not found!</p>";
+    }
 }
