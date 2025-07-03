@@ -1497,7 +1497,18 @@ jQuery(document).ready(function($) {
         // Handle option type visibility for new options
         const $checkedType = $optionElement.find('input[name*="[type]"]:checked');
         if ($checkedType.length) {
-            handleOptionTypeChange($checkedType);
+            // Ensure the group itself is visible (it should be by default from template)
+            $checkedType.closest('.mb-radio-group').show();
+            $checkedType.closest('.mb-form-group').show(); // Show the parent form group as well
+
+            // Explicitly trigger change to ensure handleOptionTypeChange runs and sets up UI
+            $checkedType.trigger('change');
+        } else {
+            // If nothing is checked by default (template error?), check 'checkbox' and trigger
+            const $defaultTypeRadio = $optionElement.find('input[name*="[type]"][value="checkbox"]');
+            if ($defaultTypeRadio.length) {
+                $defaultTypeRadio.prop('checked', true).trigger('change');
+            }
         }
 
         // Focus on name input for new options
