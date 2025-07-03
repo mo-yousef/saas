@@ -1720,10 +1720,23 @@ jQuery(document).ready(function($) {
                     
                     // Redirect after success
                     setTimeout(function() {
-                        window.location.href = '<?php echo esc_url($breadcrumb_services); ?>';
+                        if (!isEditMode && response.data.service_id) {
+                            // New service was created, redirect to its edit page
+                            let currentUrl = new URL(window.location.href);
+                            currentUrl.searchParams.set('service_id', response.data.service_id);
+                            // If there are other params specific to 'add new' mode that should be removed, clear them.
+                            // For now, just setting service_id should switch to edit mode for this page.
+                            console.log('[MoBooking Debug] Redirecting to new service edit page:', currentUrl.toString());
+                            window.location.href = currentUrl.toString();
+                        } else {
+                            // Existing service updated, or new service creation didn't return ID (fallback)
+                            // Redirect to the services list page
+                            console.log('[MoBooking Debug] Redirecting to services list page:', '<?php echo esc_url($breadcrumb_services); ?>');
+                            window.location.href = '<?php echo esc_url($breadcrumb_services); ?>';
+                        }
                     }, 1500);
                 } else {
-                    showAlert(response.data?.message || 'Failed to save service', 'error');
+                    showAlert(response.data?.message || strings.errorGeneric || 'Failed to save service', 'error');
                 }
             },
             error: function(xhr, status, error) {
