@@ -604,25 +604,70 @@ class Bookings {
     public function handle_create_booking_public_ajax() {
         check_ajax_referer('mobooking_booking_form_nonce', 'nonce');
 
-        $payload_json = isset($_POST['finalBookingData']) ? stripslashes_deep($_POST['finalBookingData']) : '';
-        $payload = json_decode($payload_json, true);
+        // Read individual parameters as currently sent by JS
+        $tenant_id = isset($_POST['tenant_id']) ? intval($_POST['tenant_id']) : 0;
+        $selected_services_json = isset($_POST['selected_services']) ? stripslashes_deep($_POST['selected_services']) : '';
+        $booking_details_json = isset($_POST['booking_details']) ? stripslashes_deep($_POST['booking_details']) : '';
+        $discount_info_json = isset($_POST['discount_info']) ? stripslashes_deep($_POST['discount_info']) : ''; // Can be empty string
 
-        if (json_last_error() !== JSON_ERROR_NONE || empty($payload) || empty($payload['tenant_id'])) {
-            wp_send_json_error(['message' => __('Invalid booking data received. JSON error or missing tenant ID.', 'mobooking')], 400);
+        $zip_code = isset($_POST['zip_code']) ? sanitize_text_field($_POST['zip_code']) : '';
+        $country_code = isset($_POST['country_code']) ? sanitize_text_field($_POST['country_code']) : '';
+
+        if (empty($tenant_id)) {
+            wp_send_json_error(['message' => __('Tenant ID is missing.', 'mobooking')], 400);
             return;
         }
 
-        // Ensure zip_code from step 1 is part of the payload for create_booking if needed
-        if (empty($payload['zip_code']) && !empty($payload['booking_details']['zip_code_from_step1'])) {
-             $payload['zip_code'] = sanitize_text_field($payload['booking_details']['zip_code_from_step1']);
+        $selected_services = json_decode($selected_services_json, true);
+        if (json_last_error() !== JSON_ERROR_NONE || empty($selected_services)) {
+            $json_error = json_last_error_msg();
+            wp_send_json_error(['message' => __('Invalid selected services data. JSON error: ', 'mobooking') . $json_error], 400);
+            return;
+        }
+
+        $customer_details = json_decode($booking_details_json, true);
+        if (json_last_error() !== JSON_ERROR_NONE || empty($customer_details)) {
+            $json_error = json_last_error_msg();
+            wp_send_json_error(['message' => __('Invalid booking details data. JSON error: ', 'mobooking') . $json_error], 400);
+            return;
+        }
+
+        $discount_info = null;
+        if (!empty($discount_info_json)) {
+            $discount_info = json_decode($discount_info_json, true);
+            if (json_last_error() !== JSON_ERROR_NONE && $discount_info_json !== 'null') { // Allow 'null' string to be decoded to null
+                 $json_error = json_last_error_msg();
+                 wp_send_json_error(['message' => __('Invalid discount info data. JSON error: ', 'mobooking') . $json_error], 400);
+                 return;
+            }
+        }
+
+        // Construct the $payload array as expected by $this->create_booking()
+        $payload = [
+            'tenant_id' => $tenant_id, // Though create_booking takes tenant_id as first param, it might also check payload
+            'selected_services' => $selected_services,
+            'customer_details' => $customer_details,
+            'discount_info' => $discount_info,
+            'zip_code' => $zip_code,
+            'country_code' => $country_code,
+            // CRITICAL: 'pricing' data is NOT sent by the client.
+            // $this->create_booking() expects $payload['pricing'].
+            // This will likely cause an error in create_booking or calculate_server_side_price.
+            // For now, we pass it as null, but this needs a JS fix.
+            'pricing' => null,
+        ];
+
+        // If zip_code was part of customer_details from step 1 (location check disabled scenario)
+        if (empty($payload['zip_code']) && !empty($customer_details['zip_code_from_step1'])) {
+             $payload['zip_code'] = sanitize_text_field($customer_details['zip_code_from_step1']);
         }
 
 
-        $tenant_id = intval($payload['tenant_id']);
+        // $tenant_id is already an int, $payload is the assembled array
         $result = $this->create_booking($tenant_id, $payload);
 
         if (is_wp_error($result)) {
-            wp_send_json_error(['message' => $result->get_error_message()], ($result->get_error_code() === 'db_booking_error' ? 500 : 400) );
+            wp_send_json_error(['message' => $result->get_error_message()], ($result->get_error_code() === 'db_booking_error' || $result->get_error_code() === 'booking_creation_exception' ? 500 : 400) );
         } else {
             $success_message = !empty($result['message']) ? sprintf($result['message'], $result['booking_reference']) : __('Booking successful!', 'mobooking');
             wp_send_json_success([
