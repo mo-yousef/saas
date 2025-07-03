@@ -29,7 +29,8 @@ jQuery(document).ready(function ($) {
   }
 
   // --- Logic for Service Add/Edit Page (page-service-edit.php) ---
-  if ($("#mobooking-service-form").length) {
+  // Check if the new inline script from page-service-edit.php is NOT present
+  if ($("#mobooking-service-form").length && typeof window.moBookingServiceEdit === 'undefined') {
     const serviceForm = $("#mobooking-service-form");
     const feedbackDiv = $("#mobooking-service-form-feedback").hide();
 
