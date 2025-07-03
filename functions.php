@@ -178,6 +178,10 @@ function mobooking_scripts() {
             'currency_code' => $public_form_currency_code,
             'site_url' => site_url(),
             'i18n' => $i18n_strings,
+            // ADDED: Pass booking form settings to JavaScript
+            'settings' => isset($GLOBALS['mobooking_settings_manager']) && $effective_tenant_id_for_public_form
+                          ? $GLOBALS['mobooking_settings_manager']->get_booking_form_settings($effective_tenant_id_for_public_form)
+                          : \MoBooking\Classes\Settings::get_all_default_settings(), // Fallback to plugin defaults if manager/tenant ID invalid
         ]);
     }
 
