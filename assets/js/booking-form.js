@@ -416,10 +416,16 @@ jQuery(document).ready(function ($) {
           let templateData = {
             ...option,
             service_id: service.service_id,
-            price_impact_value_formatted: formatOptionPriceImpact(option),
+            price_impact_value_formatted: formatOptionPriceImpact(option), // Calculated first
             is_required:
               option.is_required == 1 || option.is_required === true ? 1 : 0,
           };
+
+          // Conditionally clear formatted price impact for options if pricing is hidden globally
+          if (typeof window.mobookingShouldShowPricing !== 'undefined' && !window.mobookingShouldShowPricing()) {
+            templateData.price_impact_value_formatted = "";
+          }
+
           if (
             (option.type === "select" || option.type === "radio") &&
             typeof option.option_values === "string"
@@ -538,15 +544,93 @@ jQuery(document).ready(function ($) {
 
   function displayStep4_CustomerDetails() {
     step4FeedbackDiv.empty().hide();
-    if (typeof $.fn.datepicker === "function") {
-      $("#mobooking-bf-booking-date").datepicker({
-        dateFormat: "yy-mm-dd",
-        minDate: 0,
-      });
+
+    const bookingDateGroup = $("#mobooking-bf-booking-date-group");
+    const bookingTimeGroup = $("#mobooking-bf-booking-time-group");
+    const bookingDateInput = $("#mobooking-bf-booking-date");
+    const bookingTimeInput = $("#mobooking-bf-booking-time");
+    const phoneInput = $("#mobooking-bf-customer-phone");
+    const specialInstructionsGroup = $("#mobooking-bf-special-instructions-group");
+
+    // Handle bf_allow_date_time_selection
+    if (formSettings.bf_allow_date_time_selection === '1') {
+      bookingDateGroup.show();
+      bookingTimeGroup.show();
+      bookingDateInput.prop('required', true);
+      bookingTimeInput.prop('required', true);
+
+      // Initialize datepicker only if fields are shown
+      let minDateOption = 0; // Default to today
+      if (formSettings.bf_booking_lead_time_hours) {
+        const leadHours = parseInt(formSettings.bf_booking_lead_time_hours, 10);
+        if (leadHours > 0) {
+          // For jQuery UI datepicker, minDate is in days.
+          // If leadHours is 24, minDate is 1 (tomorrow). If less than 24 but > 0, it's effectively 1 day for datepicker.
+          minDateOption = Math.ceil(leadHours / 24);
+        }
+      }
+
+      let maxDateOption = null; // Default to no max date
+      if (formSettings.bf_max_booking_days_ahead) {
+        const maxDays = parseInt(formSettings.bf_max_booking_days_ahead, 10);
+        if (maxDays > 0) {
+          maxDateOption = maxDays;
+        }
+      }
+
+      if (typeof $.fn.datepicker === "function") {
+        bookingDateInput.datepicker("destroy"); // Destroy if already initialized, to reapply options
+        bookingDateInput.datepicker({
+          dateFormat: "yy-mm-dd",
+          minDate: minDateOption,
+          maxDate: maxDateOption,
+        });
+      } else {
+        // For native HTML5 date input
+        if (bookingDateInput.attr("type") !== "date") {
+          bookingDateInput.prop("type", "date");
+        }
+        const today = new Date();
+        const minDateObj = new Date(today);
+        minDateObj.setDate(today.getDate() + minDateOption);
+        bookingDateInput.attr('min', minDateObj.toISOString().split('T')[0]);
+
+        if (maxDateOption !== null) {
+          const maxDateObj = new Date(today);
+          // If minDateOption is also set, maxDate should be relative to that, or simply from today.
+          // Standard interpretation: maxDateOption days from *today*.
+          maxDateObj.setDate(today.getDate() + maxDateOption);
+          bookingDateInput.attr('max', maxDateObj.toISOString().split('T')[0]);
+        } else {
+          bookingDateInput.removeAttr('max');
+        }
+      }
     } else {
-      if ($("#mobooking-bf-booking-date").attr("type") !== "date")
-        $("#mobooking-bf-booking-date").prop("type", "date");
+      bookingDateGroup.hide();
+      bookingTimeGroup.hide();
+      bookingDateInput.prop('required', false).val(''); // Clear value if hidden
+      bookingTimeInput.prop('required', false).val(''); // Clear value if hidden
     }
+
+    // Handle bf_require_phone
+    if (formSettings.bf_require_phone === '1') {
+      phoneInput.prop('required', true);
+      // Ensure asterisk is visible if not already handled by CSS based on attribute
+      phoneInput.closest('.mobooking-bf__form-group').find('.mobooking-bf__required-indicator').show();
+    } else {
+      phoneInput.prop('required', false);
+      phoneInput.closest('.mobooking-bf__form-group').find('.mobooking-bf__required-indicator').hide();
+    }
+
+    // Handle bf_allow_special_instructions
+    if (formSettings.bf_allow_special_instructions === '1') {
+      specialInstructionsGroup.show();
+    } else {
+      specialInstructionsGroup.hide();
+      $("#mobooking-bf-special-instructions").val(''); // Clear value if hidden
+    }
+
+    // Prefill address (existing logic)
     const zip = sessionStorage.getItem("mobooking_cart_zip"),
       country = sessionStorage.getItem("mobooking_cart_country"),
       serviceAddressField = $("#mobooking-bf-service-address");
@@ -570,16 +654,18 @@ jQuery(document).ready(function ($) {
       customer_email: $("#mobooking-bf-customer-email").val().trim(),
       customer_phone: $("#mobooking-bf-customer-phone").val().trim(),
       service_address: $("#mobooking-bf-service-address").val().trim(),
-      booking_date: $("#mobooking-bf-booking-date").val().trim(),
-      booking_time: $("#mobooking-bf-booking-time").val().trim(),
-      special_instructions: $("#mobooking-bf-special-instructions")
-        .val()
-        .trim(),
+      booking_date: formSettings.bf_allow_date_time_selection === '1' ? $("#mobooking-bf-booking-date").val().trim() : "",
+      booking_time: formSettings.bf_allow_date_time_selection === '1' ? $("#mobooking-bf-booking-time").val().trim() : "",
+      special_instructions: formSettings.bf_allow_special_instructions === '1' ? $("#mobooking-bf-special-instructions").val().trim() : "",
     };
+
+    // Name validation
     if (!customerDetails.customer_name) {
       isValid = false;
       errors.push(mobooking_booking_form_params.i18n.name_required);
     }
+
+    // Email validation
     if (!customerDetails.customer_email) {
       isValid = false;
       errors.push(mobooking_booking_form_params.i18n.email_required);
@@ -589,22 +675,31 @@ jQuery(document).ready(function ($) {
       isValid = false;
       errors.push(mobooking_booking_form_params.i18n.email_invalid);
     }
-    if (!customerDetails.customer_phone) {
+
+    // Phone validation (conditional)
+    if (formSettings.bf_require_phone === '1' && !customerDetails.customer_phone) {
       isValid = false;
       errors.push(mobooking_booking_form_params.i18n.phone_required);
     }
+
+    // Service address validation
     if (!customerDetails.service_address) {
       isValid = false;
       errors.push(mobooking_booking_form_params.i18n.address_required);
     }
-    if (!customerDetails.booking_date) {
-      isValid = false;
-      errors.push(mobooking_booking_form_params.i18n.date_required);
+
+    // Date and Time validation (conditional)
+    if (formSettings.bf_allow_date_time_selection === '1') {
+      if (!customerDetails.booking_date) {
+        isValid = false;
+        errors.push(mobooking_booking_form_params.i18n.date_required);
+      }
+      if (!customerDetails.booking_time) {
+        isValid = false;
+        errors.push(mobooking_booking_form_params.i18n.time_required);
+      }
     }
-    if (!customerDetails.booking_time) {
-      isValid = false;
-      errors.push(mobooking_booking_form_params.i18n.time_required);
-    }
+
     if (!isValid) {
       step4FeedbackDiv.html(errors.join("<br>")).addClass("error").show();
       return;
@@ -760,6 +855,21 @@ jQuery(document).ready(function ($) {
       bookingDetails = JSON.parse(bookingDetailsString);
     const pricing = calculateTotalPrice(selectedServices, discountInfo); // pricing object now contains raw numbers
     sessionStorage.setItem("mobooking_cart_pricing", JSON.stringify(pricing)); // Store pricing with raw numbers
+
+    // Handle Terms & Conditions display
+    const termsSection = $("#mobooking-bf-terms-conditions-section");
+    const termsLink = $("#mobooking-bf-terms-link");
+    const termsCheckbox = $("#mobooking-bf-terms-agree");
+
+    if (formSettings.bf_terms_conditions_url && termsSection.length && termsLink.length) {
+      termsLink.attr('href', formSettings.bf_terms_conditions_url);
+      termsSection.removeClass('mobooking-bf__hidden').show();
+      termsCheckbox.prop('required', true); // Make checkbox required if section is shown
+    } else {
+      termsSection.addClass('mobooking-bf__hidden').hide();
+      termsCheckbox.prop('required', false);
+    }
+
 
     let summaryHtml = `<h4>${
       mobooking_booking_form_params.i18n.customer_details || "Customer Details"
@@ -938,6 +1048,17 @@ jQuery(document).ready(function ($) {
         .show();
       return;
     }
+
+    // Validate Terms & Conditions if visible and required
+    const termsCheckbox = $("#mobooking-bf-terms-agree");
+    if (termsCheckbox.length && termsCheckbox.is(':visible') && termsCheckbox.prop('required') && !termsCheckbox.is(':checked')) {
+      step5FeedbackDiv
+        .text(mobooking_booking_form_params.i18n.terms_required || "You must agree to the terms and conditions.")
+        .addClass("error")
+        .show();
+      return;
+    }
+
     step5FeedbackDiv.empty().removeClass("error").hide();
     // Removed storing 'mobooking_final_booking_data' as we pass it directly.
     displayStep6_Confirmation(finalBookingData);
@@ -1044,6 +1165,11 @@ jQuery(document).ready(function ($) {
     return; // Exit ready function
   }
 
+  // Handle bf_show_progress_bar (Placeholder log)
+  if (formSettings.bf_show_progress_bar === '1') {
+    console.log("MoBooking: Progress bar setting is enabled, but UI is not implemented in this version.");
+    // Future: Implement or call progress bar rendering function here.
+  }
 
   if (formSettings.bf_header_text) {
     $('#mobooking-public-booking-form-wrapper > h1').text(formSettings.bf_header_text);
