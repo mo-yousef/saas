@@ -410,123 +410,18 @@ jQuery(document).ready(function ($) {
       return "";
     }
 
-    // Process simple if conditions: <% if (conditionKey) { %> content <% } %>
-    template = template.replace(
-      /<%\s*if\s*\(([\w.]+)\)\s*\{%>(.*?)<%\s*}\s*%>/gs,
-      function (match, conditionKey, content) {
-        // Evaluate conditionKey, allows for simple dot notation like 'data.length'
-        let conditionValue = false;
-        try {
-          conditionValue = new Function('data', 'return data.' + conditionKey)(data);
-        } catch (e) {
-          conditionValue = !!data[conditionKey.trim()];
-        }
-        return conditionValue ? content : "";
+    // Only handle <%= value %> replacements
+    for (const key in data) {
+      if (Object.prototype.hasOwnProperty.call(data, key)) {
+        const value = data[key] !== null && data[key] !== undefined ? data[key] : "";
+        // Basic HTML escaping for safety, as values are injected into HTML structure.
+        const sanitizedValue = $("<div>").text(value).html();
+        template = template.replace(new RegExp("<%=\\s*" + key + "\\s*%>", "g"), sanitizedValue);
       }
-    );
-
-    // Process forEach loops: <% arrayKey.forEach(function(itemKey) { %> loopContent <% }); %>
-    // This is a specific implementation for the pattern found in select/radio templates.
-    template = template.replace(
-      /<%\s*([\w.]+)\.forEach\(function\(([\w_]+)(,\s*index)?\)\s*\{%>(.*?)<%\s*}\);\s*%>/gs,
-      function (match, arrayKey, itemKey, indexArg, loopContent) {
-        let items = [];
-        try {
-          items = new Function('data', 'return data.' + arrayKey)(data);
-        } catch (e) {
-          items = data[arrayKey.trim()] || [];
-        }
-
-        if (!Array.isArray(items)) return "";
-
-        let result = "";
-        items.forEach(function (item, index) {
-          let iterationData = { ...data }; // Inherit parent data
-          iterationData[itemKey] = item;   // Set current item
-          if (indexArg) { // Check if 'index' argument was captured
-             iterationData.index = index; // Make index available if template uses it
-          }
-
-          // Recursively render the loopContent for the current item.
-          // This is a simplified recursion; it won't handle deeply nested loops well
-          // without further refinement to bfRenderTemplate.
-          // For current templates, this level of processing should be okay.
-          result += bfRenderTemplateContent(loopContent, iterationData);
-        });
-        return result;
-      }
-    );
-
-    // Process variable interpolations: <%= dataKey %> (can use dot notation)
-    template = template.replace(/<%=\s*([\w.]+)\s*%>/g, function (match, dataKey) {
-      let value;
-      try {
-        value = new Function('data', 'return data.' + dataKey)(data);
-      } catch (e) {
-        // Fallback for simple keys if dot notation fails (e.g. keys with special chars not handled by \w)
-        value = data[dataKey.trim()];
-      }
-      const valToRender = (value !== null && value !== undefined) ? value : "";
-      return $("<div>").text(valToRender).html(); // Sanitize
-    });
-
+    }
+    // Any other <% ... %> tags will be left as is, and should be removed from templates.
     return template;
   }
-
-  // Helper function to avoid issues with template selector in recursive calls
-  function bfRenderTemplateContent(templateContent, data) {
-    let template = templateContent; // Use passed content directly
-
-    // Process simple if conditions: <% if (conditionKey) { %> content <% } %>
-     template = template.replace(
-      /<%\s*if\s*\(([\w.]+)\)\s*\{%>(.*?)<%\s*}\s*%>/gs,
-      function (match, conditionKey, content) {
-        let conditionValue = false;
-        try {
-          conditionValue = new Function('data', 'return data.' + conditionKey)(data);
-        } catch (e) {
-          conditionValue = !!data[conditionKey.trim()];
-        }
-        return conditionValue ? content : "";
-      }
-    );
-
-    // Process forEach loops (as above, simplified recursion)
-     template = template.replace(
-      /<%\s*([\w.]+)\.forEach\(function\(([\w_]+)(,\s*index)?\)\s*\{%>(.*?)<%\s*}\);\s*%>/gs,
-      function (match, arrayKey, itemKey, indexArg, loopContent) {
-        let items = [];
-        try {
-          items = new Function('data', 'return data.' + arrayKey)(data);
-        } catch (e) {
-          items = data[arrayKey.trim()] || [];
-        }
-        if (!Array.isArray(items)) return "";
-        let result = "";
-        items.forEach(function (item, index) {
-          let iterationData = { ...data };
-          iterationData[itemKey] = item;
-          if (indexArg) { iterationData.index = index; }
-          result += bfRenderTemplateContent(loopContent, iterationData); // Recursive call
-        });
-        return result;
-      }
-    );
-
-    // Process variable interpolations: <%= dataKey %>
-    template = template.replace(/<%=\s*([\w.]+)\s*%>/g, function (match, dataKey) {
-      let value;
-      try {
-        value = new Function('data', 'return data.' + dataKey)(data);
-      } catch (e) {
-        value = data[dataKey.trim()];
-      }
-      const valToRender = (value !== null && value !== undefined) ? value : "";
-      return $("<div>").text(valToRender).html();
-    });
-    return template;
-  }
-
 
   function displayStep2_LoadServices() {
     console.log("displayStep2_LoadServices called");
@@ -589,14 +484,35 @@ jQuery(document).ready(function ($) {
           publicServicesCache = response.data;
 
           publicServicesCache.forEach(function (service) {
-            // Prepare data for the template, including the showPricing flag
+            // Basic data for the simplified template
             const templateData = {
-              ...service,
-              showPricing: formSettings.bf_show_pricing === "1"
+              service_id: service.service_id,
+              name: service.name,
+              duration: service.duration,
+              // price_formatted and description will be handled manually
             };
-            servicesListDiv.append(
-              bfRenderTemplate("#mobooking-bf-service-item-template", templateData)
-            );
+
+            let itemHtml = bfRenderTemplate("#mobooking-bf-service-item-template", templateData);
+
+            // Conditionally insert price
+            if (formSettings.bf_show_pricing === "1" && service.price_formatted) {
+              const priceHtml = `<span class="mobooking-bf__service-price">- ${service.price_formatted}</span>`;
+              itemHtml = itemHtml.replace("<!-- price_placeholder -->", priceHtml);
+            } else {
+              itemHtml = itemHtml.replace("<!-- price_placeholder -->", ""); // Remove placeholder if no price
+            }
+
+            // Conditionally insert description
+            if (service.description) {
+              // Sanitize description before inserting. Assuming service.description is plain text.
+              const sanitizedDescription = $("<div>").text(service.description).html();
+              const descriptionHtml = `<p class="mobooking-bf__service-description">${sanitizedDescription}</p>`;
+              itemHtml = itemHtml.replace("<!-- description_placeholder -->", descriptionHtml);
+            } else {
+              itemHtml = itemHtml.replace("<!-- description_placeholder -->", ""); // Remove placeholder if no description
+            }
+
+            servicesListDiv.append(itemHtml);
           });
         } else if (
           response.success &&
@@ -718,7 +634,7 @@ jQuery(document).ready(function ($) {
     const selectedServicesJSON = sessionStorage.getItem("mobooking_cart_selected_services");
     if (!selectedServicesJSON) {
       step3FeedbackDiv.text(mobooking_booking_form_params.i18n.no_service_selected_options || "No service selected to show options.").addClass("error").show();
-      displayStep(2); // Go back to service selection
+      displayStep(2);
       return;
     }
 
@@ -729,123 +645,95 @@ jQuery(document).ready(function ($) {
       return;
     }
 
-    const service = selectedServices[0]; // Since we now select only one service
-
-    // Update Step 3 title to include the service name
+    const service = selectedServices[0];
     const step3Title = $("#mobooking-bf-step-3-title");
     if (step3Title.length && service.name) {
         const baseTitle = mobooking_booking_form_params.i18n.step3_title || "Step 3: Configure Service Options";
         step3Title.text(baseTitle + " for " + service.name);
     }
 
-
     serviceOptionsDisplayDiv.empty();
     step3FeedbackDiv.empty().removeClass("error success").hide();
 
     if (!service.options || service.options.length === 0) {
-      // If no options, display a message or directly skip to the next step
       serviceOptionsDisplayDiv.html(`<p>${mobooking_booking_form_params.i18n.no_options_for_service || "This service has no additional options."}</p>`);
-      // Consider if we should automatically click next or wait for user. For now, wait.
-      // To auto-skip: displayStep(4); return;
-      // Show the "Next" button, hide the "Back" if preferred, or allow both.
-      // $("#mobooking-bf-options-back-btn").show(); // Ensure back is visible
-      // $("#mobooking-bf-options-next-btn").text(mobooking_booking_form_params.i18n.next_to_details || 'Next to Your Details');
-      return; // Keep user on this step to see the message.
+      return;
     }
 
-    let hasRenderedOptions = false;
     service.options.forEach((option) => {
-      let templateId = "";
-      const optionData = { ...option }; // Clone option data
-      optionData.service_id = service.service_id; // Ensure service_id is in the option data context
+      const templateData = {
+        service_id: service.service_id,
+        option_id: option.option_id,
+        name: option.name,
+        required_attr: option.is_required == 1 ? "required" : "",
+        quantity_default_value: option.is_required == 1 ? "1" : "0", // For quantity type
+        option_values_json_string: option.option_values || "[]" // For SQM
+      };
 
-      // Format price impact if pricing is shown
-      if (formSettings.bf_show_pricing === "1" && optionData.price_impact_value) {
-        optionData.price_impact_value_formatted = formatCurrency(parseFloat(optionData.price_impact_value), currencyCode);
-      } else {
-        optionData.price_impact_value_formatted = "";
+      let templateId = `#mobooking-bf-option-${option.type}-template`;
+      let optionHtml = bfRenderTemplate(templateId, templateData);
+
+      // Placeholder replacements
+      let descriptionHtml = "";
+      if (option.description) {
+        descriptionHtml = `<p class="mobooking-bf__option-description">${$("<div>").text(option.description).html()}</p>`;
       }
+      optionHtml = optionHtml.replace("<!-- description_placeholder -->", descriptionHtml);
 
-      // Add the full option object to the data for templates that need it (e.g. option.price_impact_type)
-      optionData.option = option;
+      let requiredIndicatorHtml = "";
+      if (option.is_required == 1 && option.type !== 'checkbox') { // Checkbox has required_attr on input
+         requiredIndicatorHtml = ` <span class="mobooking-bf__required-indicator">*</span>`;
+      }
+      optionHtml = optionHtml.replace("<!-- required_indicator_placeholder -->", requiredIndicatorHtml);
 
+      let priceImpactHtml = "";
+      if (formSettings.bf_show_pricing === "1" && option.price_impact_value) {
+        const formattedPrice = formatCurrency(parseFloat(option.price_impact_value), currencyCode);
+        const baseImpactText = mobooking_booking_form_params.i18n.base_impact || "Base Impact";
+        const perItemText = mobooking_booking_form_params.i18n.per_item || "Per item";
 
-      switch (option.type) {
-        case "checkbox":
-          templateId = "#mobooking-bf-option-checkbox-template";
-          break;
-        case "text":
-          templateId = "#mobooking-bf-option-text-template";
-          break;
-        case "number":
-          templateId = "#mobooking-bf-option-number-template";
-          break;
-        case "quantity":
-          templateId = "#mobooking-bf-option-quantity-template";
-          break;
-        case "select":
-          templateId = "#mobooking-bf-option-select-template";
-          try {
-            let values = JSON.parse(option.option_values || "[]");
-            if (Array.isArray(values)) {
-              optionData.parsed_option_values = values.map(val_opt => ({
-                ...val_opt,
-                price_adjust_display: val_opt.price_adjust ?
-                  `(${parseFloat(val_opt.price_adjust) > 0 ? '+' : ''}${formatCurrency(parseFloat(val_opt.price_adjust), currencyCode, false)})` : // formatCurrency without symbol for compact display
-                  ""
-              }));
-            } else {
-              optionData.parsed_option_values = [];
-            }
-          } catch (e) {
-            console.error("Failed to parse option_values for select option:", option.option_values, e);
-            optionData.parsed_option_values = [];
+        if (option.type === 'quantity' && option.price_impact_type === 'fixed') {
+          priceImpactHtml = ` <span class="mobooking-bf__option-price-impact">(${perItemText}: ${formattedPrice})</span>`;
+        } else if (['select', 'radio'].includes(option.type) && option.price_impact_type !== 'multiply_value' && option.price_impact_type !== 'fixed') {
+          // This covers 'fixed' or 'percentage' base impact for select/radio before individual choice adjustments
+          priceImpactHtml = ` <span class="mobooking-bf__option-price-impact">(${baseImpactText}: ${formattedPrice})</span>`;
+        } else if (['text', 'number', 'checkbox', 'textarea'].includes(option.type)) {
+          // For direct, non-choice based options, show the price impact directly
+          priceImpactHtml = ` <span class="mobooking-bf__option-price-impact">(${formattedPrice})</span>`;
+        }
+        // SQM option price is handled by its own specific JS, not via this placeholder.
+      }
+      optionHtml = optionHtml.replace("<!-- price_impact_placeholder -->", priceImpactHtml);
+
+      // Handle loops for select/radio
+      if (option.type === "select" || option.type === "radio") {
+        let choicesHtml = "";
+        const parsedChoices = JSON.parse(option.option_values || "[]");
+
+        if (option.type === "select" && option.is_required != 1) {
+          choicesHtml += `<option value="">${mobooking_booking_form_params.i18n.select_optional || '-- Select (optional) --'}</option>`;
+        }
+
+        parsedChoices.forEach((choice, index) => {
+          const choicePriceAdjustDisplay = choice.price_adjust ?
+            `(${parseFloat(choice.price_adjust) > 0 ? '+' : ''}${formatCurrency(parseFloat(choice.price_adjust), currencyCode, false)})` : "";
+
+          if (option.type === "select") {
+            choicesHtml += `<option value="${$("<div>").text(choice.value).html()}" data-price-adjust="${parseFloat(choice.price_adjust) || 0}">` +
+                           `${$("<div>").text(choice.label).html()} ${choicePriceAdjustDisplay}</option>`;
+          } else { // radio
+            const radioName = `service_option[${service.service_id}][${option.option_id}]`;
+            const radioId = `option_${service.service_id}_${option.option_id}_${index}`;
+            const checkedAttr = (option.is_required == 1 && index === 0) ? "checked" : "";
+            choicesHtml += `<label class="mobooking-bf__label mobooking-bf__label--radio">` +
+                           `<input type="radio" id="${radioId}" class="mobooking-bf__radio" name="${radioName}" value="${$("<div>").text(choice.value).html()}" data-price-adjust="${parseFloat(choice.price_adjust) || 0}" ${checkedAttr}>` +
+                           `<span class="mobooking-bf__option-name">${$("<div>").text(choice.label).html()}</span> ${choicePriceAdjustDisplay}</label>`;
           }
-          break;
-        case "radio":
-          templateId = "#mobooking-bf-option-radio-template";
-           try {
-            let values = JSON.parse(option.option_values || "[]");
-            if (Array.isArray(values)) {
-              optionData.parsed_option_values = values.map(val_opt => ({
-                ...val_opt,
-                price_adjust_display: val_opt.price_adjust ?
-                  `(${parseFloat(val_opt.price_adjust) > 0 ? '+' : ''}${formatCurrency(parseFloat(val_opt.price_adjust), currencyCode, false)})` : // formatCurrency without symbol
-                  ""
-              }));
-            } else {
-              optionData.parsed_option_values = [];
-            }
-          } catch (e) {
-            console.error("Failed to parse option_values for radio option:", option.option_values, e);
-            optionData.parsed_option_values = [];
-          }
-          break;
-        case "textarea":
-          templateId = "#mobooking-bf-option-textarea-template";
-          break;
-        case "sqm":
-          templateId = "#mobooking-bf-option-sqm-template";
-          // option_values for SQM is already a JSON string of ranges, pass as is.
-          // The template itself has a <script type="application/json"> tag to handle it.
-          optionData.option_values = option.option_values || "[]";
-          break;
-        default:
-          console.warn("Unknown option type:", option.type);
-          return; // Skip this option
+        });
+        optionHtml = optionHtml.replace("<!-- options_loop_placeholder -->", choicesHtml);
       }
-
-      if (templateId) {
-        serviceOptionsDisplayDiv.append(bfRenderTemplate(templateId, optionData));
-        hasRenderedOptions = true;
-      }
+      serviceOptionsDisplayDiv.append(optionHtml);
     });
-
-    if (!hasRenderedOptions && (!service.options || service.options.length > 0)) {
-        // This case means there were options, but none were renderable (e.g. all unknown types)
-        serviceOptionsDisplayDiv.html(`<p>${mobooking_booking_form_params.i18n.error_rendering_options || "Could not display options for this service."}</p>`);
-    }
-    // If !hasRenderedOptions and no options to begin with, it's handled by the first check.
   }
 
   $("#mobooking-bf-options-next-btn").on("click", function () {
