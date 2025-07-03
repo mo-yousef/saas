@@ -316,6 +316,7 @@ class Services {
         add_action('wp_ajax_mobooking_get_public_services', [$this, 'handle_get_public_services_ajax']);
 
         // Icon AJAX Handlers
+        add_action('wp_ajax_mobooking_get_preset_icons', [$this, 'handle_get_preset_icons_ajax']); // New handler
         add_action('wp_ajax_mobooking_upload_service_icon', [$this, 'handle_upload_service_icon_ajax']);
         add_action('wp_ajax_mobooking_delete_service_icon', [$this, 'handle_delete_service_icon_ajax']);
 
@@ -1018,5 +1019,20 @@ class Services {
         }
 
         wp_send_json_success(['service' => $service_details]); // Ensure data is keyed under 'service' if JS expects response.data.service
+    }
+
+    public function handle_get_preset_icons_ajax() {
+        if (!check_ajax_referer('mobooking_services_nonce', 'nonce', false)) {
+            wp_send_json_error(['message' => __('Error: Nonce verification failed.', 'mobooking')], 403);
+            return;
+        }
+        $user_id = get_current_user_id();
+        if (!$user_id) {
+            wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403);
+            return;
+        }
+
+        $preset_icons = self::get_all_preset_icons();
+        wp_send_json_success(['icons' => $preset_icons]);
     }
 }
