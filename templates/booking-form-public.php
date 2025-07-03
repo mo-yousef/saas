@@ -67,7 +67,7 @@ if (get_query_var('mobooking_page_type') !== 'embed') { // Check for 'embed'
     </div>
 
     <script type="text/template" id="mobooking-bf-option-checkbox-template">
-        <div class="mobooking-bf__option-item" data-service-id="<%= service_id %>" data-option-id="<%= option_id %>">
+        <div class="mobooking-bf__option-item" data-service-id="<%= service_id %>" data-option-id="<%= option_id %>" data-option-type="checkbox">
             <label class="mobooking-bf__label mobooking-bf__label--checkbox">
                 <input type="checkbox" class="mobooking-bf__checkbox" name="service_option[<%= service_id %>][<%= option_id %>]" value="1" <% if (is_required == 1) { %>required<% } %>>
                 <span class="mobooking-bf__option-name"><%= name %></span> <% if (price_impact_value_formatted) { %><span class="mobooking-bf__option-price-impact">(<%= price_impact_value_formatted %>)</span><% } %>
@@ -77,7 +77,7 @@ if (get_query_var('mobooking_page_type') !== 'embed') { // Check for 'embed'
     </script>
 
     <script type="text/template" id="mobooking-bf-option-text-template">
-        <div class="mobooking-bf__option-item" data-service-id="<%= service_id %>" data-option-id="<%= option_id %>">
+        <div class="mobooking-bf__option-item" data-service-id="<%= service_id %>" data-option-id="<%= option_id %>" data-option-type="text">
             <label for="option_<%= service_id %>_<%= option_id %>" class="mobooking-bf__label">
                 <%= name %> <% if (price_impact_value_formatted) { %><span class="mobooking-bf__option-price-impact">(<%= price_impact_value_formatted %>)</span><% } %>
                 <% if (is_required == 1) { %> <span class="mobooking-bf__required-indicator">*</span><% } %>
@@ -88,7 +88,7 @@ if (get_query_var('mobooking_page_type') !== 'embed') { // Check for 'embed'
     </script>
 
     <script type="text/template" id="mobooking-bf-option-number-template">
-        <div class="mobooking-bf__option-item" data-service-id="<%= service_id %>" data-option-id="<%= option_id %>">
+        <div class="mobooking-bf__option-item" data-service-id="<%= service_id %>" data-option-id="<%= option_id %>" data-option-type="number">
             <label for="option_<%= service_id %>_<%= option_id %>" class="mobooking-bf__label">
                 <%= name %> <% if (price_impact_value_formatted && option.price_impact_type !== 'multiply_value') { %><span class="mobooking-bf__option-price-impact">(<%= price_impact_value_formatted %>)</span><% } %>
                 <% if (is_required == 1) { %> <span class="mobooking-bf__required-indicator">*</span><% } %>
@@ -99,7 +99,7 @@ if (get_query_var('mobooking_page_type') !== 'embed') { // Check for 'embed'
     </script>
 
     <script type="text/template" id="mobooking-bf-option-quantity-template">
-        <div class="mobooking-bf__option-item" data-service-id="<%= service_id %>" data-option-id="<%= option_id %>">
+        <div class="mobooking-bf__option-item" data-service-id="<%= service_id %>" data-option-id="<%= option_id %>" data-option-type="quantity">
             <label for="option_<%= service_id %>_<%= option_id %>_qty" class="mobooking-bf__label">
                 <%= name %> <% if (price_impact_value_formatted && option.price_impact_type === 'fixed') { %><span class="mobooking-bf__option-price-impact">(Per item: <%= price_impact_value_formatted %>)</span><% } %>
                 <% if (is_required == 1) { %> <span class="mobooking-bf__required-indicator">*</span><% } %>
@@ -110,7 +110,7 @@ if (get_query_var('mobooking_page_type') !== 'embed') { // Check for 'embed'
     </script>
 
     <script type="text/template" id="mobooking-bf-option-select-template">
-        <div class="mobooking-bf__option-item" data-service-id="<%= service_id %>" data-option-id="<%= option_id %>">
+        <div class="mobooking-bf__option-item" data-service-id="<%= service_id %>" data-option-id="<%= option_id %>" data-option-type="select">
             <label for="option_<%= service_id %>_<%= option_id %>" class="mobooking-bf__label">
                 <%= name %> <% if (price_impact_value_formatted && option.price_impact_type !== 'multiply_value' && option.price_impact_type !== 'fixed' /* fixed per choice below */) { %><span class="mobooking-bf__option-price-impact">(Base Impact: <%= price_impact_value_formatted %>)</span><% } %>
                 <% if (is_required == 1) { %> <span class="mobooking-bf__required-indicator">*</span><% } %>
@@ -130,7 +130,7 @@ if (get_query_var('mobooking_page_type') !== 'embed') { // Check for 'embed'
     </script>
 
     <script type="text/template" id="mobooking-bf-option-radio-template">
-         <div class="mobooking-bf__option-item mobooking-bf__label--radio-group" data-service-id="<%= service_id %>" data-option-id="<%= option_id %>">
+         <div class="mobooking-bf__option-item mobooking-bf__label--radio-group" data-service-id="<%= service_id %>" data-option-id="<%= option_id %>" data-option-type="radio">
             <p class="mobooking-bf__label"><%= name %> <% if (price_impact_value_formatted && option.price_impact_type !== 'multiply_value' && option.price_impact_type !== 'fixed') { %><span class="mobooking-bf__option-price-impact">(Base Impact: <%= price_impact_value_formatted %>)</span><% } %> <% if (is_required == 1) { %><span class="mobooking-bf__required-indicator">*</span><% } %></p>
             <% if (parsed_option_values && parsed_option_values.length) { %>
                 <% parsed_option_values.forEach(function(val_opt, index) { %>
@@ -145,13 +145,36 @@ if (get_query_var('mobooking_page_type') !== 'embed') { // Check for 'embed'
     </script>
 
     <script type="text/template" id="mobooking-bf-option-textarea-template">
-        <div class="mobooking-bf__option-item" data-service-id="<%= service_id %>" data-option-id="<%= option_id %>">
+        <div class="mobooking-bf__option-item" data-service-id="<%= service_id %>" data-option-id="<%= option_id %>" data-option-type="textarea">
             <label for="option_<%= service_id %>_<%= option_id %>" class="mobooking-bf__label">
                 <%= name %> <% if (price_impact_value_formatted) { %><span class="mobooking-bf__option-price-impact">(<%= price_impact_value_formatted %>)</span><% } %>
                 <% if (is_required == 1) { %> <span class="mobooking-bf__required-indicator">*</span><% } %>
             </label>
             <textarea id="option_<%= service_id %>_<%= option_id %>" name="service_option[<%= service_id %>][<%= option_id %>]" class="mobooking-bf__textarea" rows="3" <% if (is_required == 1) { %>required<% } %>></textarea>
             <% if (description) { %><p class="mobooking-bf__option-description"><%= description %></p><% } %>
+        </div>
+    </script>
+
+    <script type="text/template" id="mobooking-bf-option-sqm-template">
+        <div class="mobooking-bf__option-item" data-service-id="<%= service_id %>" data-option-id="<%= option_id %>" data-option-type="sqm">
+            <label for="option_<%= service_id %>_<%= option_id %>_sqm_total" class="mobooking-bf__label">
+                <%= name %>
+                <% if (is_required == 1) { %> <span class="mobooking-bf__required-indicator">*</span><% } %>
+            </label>
+            <input type="number" id="option_<%= service_id %>_<%= option_id %>_sqm_total"
+                   name="service_option[<%= service_id %>][<%= option_id %>][total_sqm]"
+                   class="mobooking-bf__input mobooking-bf-sqm-total-input"
+                   placeholder="<?php esc_attr_e('Enter Total SQM', 'mobooking'); ?>"
+                   min="0" step="any"
+                   <% if (is_required == 1) { %>required<% } %>>
+            <div class="mobooking-bf__sqm-price-display" id="sqm_price_display_<%= service_id %>_<%= option_id %>">
+                <!-- Price will be shown here by JS -->
+            </div>
+            <% if (description) { %><p class="mobooking-bf__option-description"><%= description %></p><% } %>
+            <!-- Store ranges in a hidden way for JS to access -->
+            <script type="application/json" class="mobooking-bf-sqm-ranges-data">
+                <%= option_values %>
+            </script>
         </div>
     </script>
 
