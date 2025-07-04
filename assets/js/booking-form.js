@@ -1177,8 +1177,8 @@ jQuery(document).ready(function ($) {
     // The main review summary on the page might still be populated as before,
     // or could also leverage currentSelectionForSummary.
     // For now, let's assume it continues to use session storage primarily for its detailed display.
-    const selectedServicesJSON = sessionStorage.getItem("mobooking_cart_selected_services");
-     if (!selectedServicesJSON || !bookingDetailsJSON) {
+    // const selectedServicesJSON = sessionStorage.getItem("mobooking_cart_selected_services"); // Already declared by function parameter or outer scope if needed
+     if (!selectedServicesJSON || !bookingDetailsJSON) { // selectedServicesJSON is passed or available
       step5FeedbackDiv.text("Missing booking information for review.").addClass("error").show();
       // Potentially redirect to an earlier step if critical info is missing
       // displayStep(1);
