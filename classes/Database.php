@@ -76,30 +76,13 @@ class Database {
         error_log('[MoBooking DB Debug] SQL for service_options table: ' . preg_replace('/\s+/', ' ', $sql_service_options));
         $dbDelta_results['service_options'] = dbDelta( $sql_service_options );
 
-        // Customers Table
-        $table_name = self::get_table_name('customers');
-        error_log('[MoBooking DB Debug] Preparing SQL for customers table: ' . $table_name);
-        $sql_customers = "CREATE TABLE $table_name (
-            customer_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-            user_id BIGINT UNSIGNED NOT NULL,
-            first_name VARCHAR(100),
-            last_name VARCHAR(100),
-            email VARCHAR(255) NOT NULL,
-            phone VARCHAR(50),
-            address_line_1 VARCHAR(255),
-            address_line_2 VARCHAR(255),
-            city VARCHAR(100),
-            state VARCHAR(100),
-            zip_code VARCHAR(20),
-            country VARCHAR(100),
-            notes TEXT,
-            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            PRIMARY KEY (customer_id),
-            INDEX user_id_idx (user_id),
-            INDEX email_idx (email)
-        ) $charset_collate;";
-        error_log('[MoBooking DB Debug] SQL for customers table: ' . preg_replace('/\s+/', ' ', $sql_customers));
-        $dbDelta_results['customers'] = dbDelta( $sql_customers );
+        // NOTE: The 'customers' table definition below is being removed as it was redundant.
+        // The correct table is 'mob_customers', defined later in this method.
+        // $table_name = self::get_table_name('customers');
+        // error_log('[MoBooking DB Debug] Preparing SQL for customers table: ' . $table_name);
+        // $sql_customers = "CREATE TABLE $table_name ( ... ) $charset_collate;";
+        // error_log('[MoBooking DB Debug] SQL for customers table: ' . preg_replace('/\s+/', ' ', $sql_customers));
+        // $dbDelta_results['customers'] = dbDelta( $sql_customers );
 
         // Discount Codes Table
         $table_name = self::get_table_name('discount_codes');
