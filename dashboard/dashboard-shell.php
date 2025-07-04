@@ -101,6 +101,8 @@ $page_capabilities = [
     'workers' => \MoBooking\Classes\Auth::CAP_MANAGE_WORKERS,
     'booking-form' => \MoBooking\Classes\Auth::CAP_MANAGE_BOOKING_FORM,
     'settings' => \MoBooking\Classes\Auth::CAP_MANAGE_BUSINESS_SETTINGS,
+    'availability' => \MoBooking\Classes\Auth::CAP_MANAGE_AVAILABILITY,
+    'customers' => \MoBooking\Classes\Auth::CAP_VIEW_CUSTOMERS, // Use view capability for page access
     // Add other specific pages like 'discount-edit', 'area-edit' if they exist and need specific manage caps
 ];
 
