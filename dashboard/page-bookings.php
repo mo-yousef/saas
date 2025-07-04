@@ -192,8 +192,8 @@ $booking_statuses = [
     </div>
 
     <?php // KPI Section - Adopting modern KPI card structure from page-overview.php ?>
-    <div class="mobooking-kpi-grid mobooking-overview-kpis"> <?php // Add a specific class if needed to target these KPIs if they differ slightly from overview page, or use .mobooking-overview .kpi-grid styles directly ?>
-        <div class="kpi-card"> <?php // Use .kpi-card structure from page-overview.php ?>
+    <div class="dashboard-kpi-grid mobooking-overview-kpis"> <?php // Add a specific class if needed to target these KPIs if they differ slightly from overview page, or use .mobooking-overview .dashboard-kpi-grid styles directly ?>
+        <div class="dashboard-kpi-card"> <?php // Use .kpi-card structure from page-overview.php ?>
             <div class="kpi-header">
                 <span class="kpi-title"><?php esc_html_e('Bookings This Month', 'mobooking'); ?></span>
                 <div class="kpi-icon bookings">📅</div> <?php // Example icon, adjust as needed ?>
@@ -207,7 +207,7 @@ $booking_statuses = [
         </div>
 
         <?php if ($kpi_data['revenue_month'] !== null) : ?>
-        <div class="kpi-card">
+        <div class="dashboard-kpi-card">
             <div class="kpi-header">
                 <span class="kpi-title"><?php esc_html_e('Revenue This Month', 'mobooking'); ?></span>
                 <div class="kpi-icon revenue">💰</div> <?php // Example icon ?>
@@ -221,7 +221,7 @@ $booking_statuses = [
         </div>
         <?php endif; ?>
 
-        <div class="kpi-card">
+        <div class="dashboard-kpi-card">
             <div class="kpi-header">
                 <span class="kpi-title"><?php esc_html_e('Upcoming Confirmed Bookings', 'mobooking'); ?></span>
                  <div class="kpi-icon upcoming">⏰</div> <?php // Example icon ?>
