@@ -191,39 +191,56 @@ $booking_statuses = [
         <?php endif; ?>
     </div>
 
-    <?php // KPI Section - Using WordPress dashboard widget structure for styling consistency ?>
-    <div id="dashboard-widgets-wrap">
-        <div id="dashboard_primary" class="metabox-holder">
-            <div class="postbox-container mobooking-kpi-grid"> <?php // Added .postbox-container to group KPI cards ?>
-                <div class="mobooking-kpi-card postbox">
-                    <h2 class="hndle"><span><?php esc_html_e('Bookings This Month', 'mobooking'); ?></span></h2>
-                    <div class="inside">
-                        <p class="mobooking-kpi-value"><?php echo esc_html($kpi_data['bookings_month']); ?></p>
-                    </div>
-                </div>
-
-                <?php if ($kpi_data['revenue_month'] !== null) : ?>
-                <div class="mobooking-kpi-card postbox">
-                    <h2 class="hndle"><span><?php esc_html_e('Revenue This Month', 'mobooking'); ?></span></h2>
-                    <div class="inside">
-                        <p class="mobooking-kpi-value"><?php echo esc_html($currency_symbol . number_format_i18n(floatval($kpi_data['revenue_month']), 2)); ?></p>
-                    </div>
-                </div>
-                <?php endif; ?>
-
-                <div class="mobooking-kpi-card postbox">
-                    <h2 class="hndle"><span><?php esc_html_e('Upcoming Confirmed Bookings', 'mobooking'); ?></span></h2>
-                    <div class="inside">
-                        <p class="mobooking-kpi-value"><?php echo esc_html($kpi_data['upcoming_count']); ?></p>
-                    </div>
-                </div>
+    <?php // KPI Section - Adopting modern KPI card structure from page-overview.php ?>
+    <div class="mobooking-kpi-grid mobooking-overview-kpis"> <?php // Add a specific class if needed to target these KPIs if they differ slightly from overview page, or use .mobooking-overview .kpi-grid styles directly ?>
+        <div class="kpi-card"> <?php // Use .kpi-card structure from page-overview.php ?>
+            <div class="kpi-header">
+                <span class="kpi-title"><?php esc_html_e('Bookings This Month', 'mobooking'); ?></span>
+                <div class="kpi-icon bookings">📅</div> <?php // Example icon, adjust as needed ?>
             </div>
+            <div class="kpi-value"><?php echo esc_html($kpi_data['bookings_month']); ?></div>
+            <?php /* Placeholder for trend, actual trend data not available here yet
+            <div class="kpi-trend positive">
+                <span>↗</span> +X%
+            </div>
+            */ ?>
+        </div>
+
+        <?php if ($kpi_data['revenue_month'] !== null) : ?>
+        <div class="kpi-card">
+            <div class="kpi-header">
+                <span class="kpi-title"><?php esc_html_e('Revenue This Month', 'mobooking'); ?></span>
+                <div class="kpi-icon revenue">💰</div> <?php // Example icon ?>
+            </div>
+            <div class="kpi-value"><?php echo esc_html($currency_symbol . number_format_i18n(floatval($kpi_data['revenue_month']), 2)); ?></div>
+             <?php /* Placeholder for trend
+            <div class="kpi-trend positive">
+                <span>↗</span> +Y%
+            </div>
+            */ ?>
+        </div>
+        <?php endif; ?>
+
+        <div class="kpi-card">
+            <div class="kpi-header">
+                <span class="kpi-title"><?php esc_html_e('Upcoming Confirmed Bookings', 'mobooking'); ?></span>
+                 <div class="kpi-icon upcoming">⏰</div> <?php // Example icon ?>
+            </div>
+            <div class="kpi-value"><?php echo esc_html($kpi_data['upcoming_count']); ?></div>
+            <?php /* Placeholder for trend
+            <div class="kpi-trend neutral">
+                <span>→</span> Next 7 days
+            </div>
+             */ ?>
         </div>
     </div>
 
-    <?php // Filters Bar - Using .postbox for card-like appearance ?>
-    <div class="postbox mobooking-filters-wrapper" style="margin-top: 20px;">
-        <h2 class="hndle mobooking-filters-handle"><span><?php esc_html_e('Filter Bookings', 'mobooking'); ?></span></h2>
+    <?php // Filters Bar - Using .mobooking-card for consistent card appearance ?>
+    <div class="mobooking-card mobooking-filters-wrapper">
+        <div class="mobooking-card-header"> <?php // Optional: Add a card header for the filter section ?>
+            <h3><?php esc_html_e('Filter Bookings', 'mobooking'); ?></h3>
+        </div>
+        <div class="mobooking-card-content"> <?php // Wrap content in mobooking-card-content ?>
         <div class="inside">
             <form id="mobooking-bookings-filter-form" class="mobooking-filters-form">
                 <div class="mobooking-filter-row">
@@ -290,311 +307,7 @@ $booking_statuses = [
     </tr>
 </script>
 
-<style type="text/css">
-/* Basic Page Structure & Header */
-.mobooking-dashboard-wrap.mobooking-bookings-page-wrapper {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
-    font-size: 14px;
-    line-height: 1.6;
-    color: #2c3338; /* WP default text color */
-}
-
-.mobooking-page-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid #ccd0d4; /* WP default border */
-}
-
-.mobooking-page-header .wp-heading-inline {
-    margin-bottom: 0; /* Override WP default if any */
-}
-
-/* Standardize button styles if needed beyond WP defaults - mostly rely on WP admin styles */
-.mobooking-bookings-page-wrapper .page-title-action {
-    /* Ensure it aligns well with h1 if WP defaults aren't perfect */
-    /* line-height: normal; */ /* Usually not needed as WP handles this */
-    vertical-align: middle; /* Good for consistency */
-}
-.mobooking-bookings-page-wrapper .button {
-    vertical-align: middle; /* Ensure all buttons align similarly */
-}
-
-/* KPI Cards */
-.mobooking-kpi-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 20px;
-    margin-bottom: 25px;
-}
-
-.mobooking-kpi-card.postbox {
-    background-color: #fff;
-    /* .postbox already has border and some shadow from WP, can override if needed */
-    /* border: 1px solid #e2e8f0; */ /* Shadcn-like border */
-    /* box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); */ /* Subtle shadow */
-    margin-bottom: 0; /* Remove default postbox margin if it's in a grid */
-}
-
-.mobooking-kpi-card .hndle { /* WP uses .hndle for postbox title bar */
-    font-size: 1em; /* WP default is 14px for h2.hndle */
-    padding: 10px 15px; /* Adjust padding */
-    margin: 0;
-    border-bottom: 1px solid #ccd0d4; /* WP default */
-    /* background-color: #f9f9f9; */ /* Lighter header background */
-}
-
-.mobooking-kpi-card .inside {
-    padding: 15px;
-}
-
-.mobooking-kpi-card .mobooking-kpi-value {
-    font-size: 2em; /* Larger font for the value */
-    font-weight: 600;
-    color: #1d2327; /* Darker for emphasis */
-    margin: 0;
-    line-height: 1.2;
-}
-
-/* Filter Bar */
-.mobooking-filters-wrapper.postbox {
-    background-color: #fff;
-    margin-bottom: 25px; /* Space below filters */
-}
-
-.mobooking-filters-wrapper .hndle {
-    font-size: 1em;
-    padding: 10px 15px;
-    margin: 0;
-    border-bottom: 1px solid #ccd0d4;
-}
-
-.mobooking-filters-wrapper .inside {
-    padding: 15px;
-}
-
-.mobooking-filters-form .mobooking-filter-row {
-    display: flex;
-    flex-wrap: wrap; /* Allow items to wrap on smaller screens */
-    gap: 15px; /* Spacing between items in a row */
-    margin-bottom: 15px;
-}
-.mobooking-filters-form .mobooking-filter-row:last-child {
-    margin-bottom: 0;
-}
-
-.mobooking-filter-item {
-    display: flex;
-    flex-direction: column; /* Stack label on top of input */
-    flex-grow: 1; /* Allow items to grow */
-    min-width: 180px; /* Minimum width for filter items */
-}
-.mobooking-filter-item.mobooking-filter-item-search {
-    flex-basis: 100%; /* Allow search to take full width if on its own row */
-}
-
-
-.mobooking-filter-item label {
-    margin-bottom: 5px;
-    font-weight: 500;
-    font-size: 0.9em;
-    color: #3c434a;
-}
-
-.mobooking-filter-item .regular-text,
-.mobooking-filter-item .mobooking-datepicker,
-.mobooking-filter-item .mobooking-filter-select {
-    padding: 6px 8px; /* Consistent padding */
-    border: 1px solid #8c8f94; /* WP default input border */
-    border-radius: 3px;
-    box-shadow: inset 0 1px 2px rgba(0,0,0,0.07);
-    width: 100%; /* Make inputs take full width of their flex item */
-    box-sizing: border-box;
-}
-.mobooking-filter-item .mobooking-filter-select {
-    height: auto; /* Ensure select height matches inputs */
-    line-height: normal;
-}
-
-
-.mobooking-filter-actions {
-    margin-top: 15px;
-    display: flex;
-    gap: 10px;
-    align-items: center;
-    flex-wrap: wrap;
-}
-
-/* Bookings Table and Responsive Wrapper */
-.mobooking-list-table-wrapper {
-    margin-bottom: 20px;
-}
-
-.mobooking-table-responsive-wrapper {
-    overflow-x: auto; /* Enable horizontal scroll for the table on small screens */
-    background: #fff; /* White background for the table area */
-    border: 1px solid #ccd0d4; /* WP default border */
-    border-radius: 3px;
-    margin-bottom: 10px; /* Space before pagination or other elements */
-}
-
-.mobooking-table.wp-list-table {
-    /* Ensure it takes full width of its scrollable container, not viewport */
-    width: 100%;
-    min-width: 768px; /* Minimum width before scrollbar appears, adjust as needed */
-    border: none; /* Remove individual table border if wrapper has one */
-}
-
-.mobooking-table.wp-list-table th,
-.mobooking-table.wp-list-table td {
-    padding: 10px 12px; /* Consistent padding */
-    vertical-align: middle;
-}
-
-.mobooking-table.wp-list-table th {
-    background-color: #f5f5f5; /* Lighter header for table */
-    font-weight: 500;
-}
-
-.mobooking-table.wp-list-table tbody tr:nth-child(odd) {
-    /* background-color: #f9f9f9; */ /* Already handled by .striped in WP */
-}
-.mobooking-table.wp-list-table tbody tr:hover {
-    background-color: #f0f0f1; /* WP default hover color */
-}
-
-.mobooking-table-actions .button {
-    margin-right: 5px;
-    margin-bottom: 5px; /* For small screens where buttons might wrap */
-}
-.mobooking-table-actions .button:last-child {
-    margin-right: 0;
-}
-
-/* If using data-colname for mobile view (more complex, not implemented in this pass) */
-@media screen and (max-width: 768px) {
-    /*
-    .mobooking-table.wp-list-table thead { display: none; }
-    .mobooking-table.wp-list-table tr { display: block; margin-bottom: 10px; border: 1px solid #e5e5e5; }
-    .mobooking-table.wp-list-table td { display: block; text-align: right; padding-left: 50%; position: relative; }
-    .mobooking-table.wp-list-table td:before {
-        content: attr(data-colname);
-        position: absolute;
-        left: 10px;
-        font-weight: bold;
-        text-align: left;
-    }
-    */
-}
-
-/* Status Badges */
-.mobooking-status-badge {
-    display: inline-block;
-    padding: 4px 10px;
-    font-size: 0.85em;
-    font-weight: 600;
-    line-height: 1.2;
-    text-align: center;
-    white-space: nowrap;
-    vertical-align: baseline;
-    border-radius: 0.25rem; /* Bootstrap-like rounded corners */
-    color: #fff; /* Default text color, overridden by specific statuses */
-}
-
-.mobooking-status-badge.mobooking-status-pending,
-.mobooking-status-badge.mobooking-status-on-hold {
-    background-color: #ffc107; /* Amber/Yellow */
-    color: #212529; /* Dark text for yellow background */
-}
-
-.mobooking-status-badge.mobooking-status-confirmed,
-.mobooking-status-badge.mobooking-status-processing {
-    background-color: #17a2b8; /* Info/Blue */
-}
-
-.mobooking-status-badge.mobooking-status-completed {
-    background-color: #28a745; /* Green/Success */
-}
-
-.mobooking-status-badge.mobooking-status-cancelled {
-    background-color: #6c757d; /* Gray/Secondary */
-}
-
-/* Fallback for any other status not explicitly defined */
-.mobooking-status-badge:not([class*="mobooking-status-pending"]):not([class*="mobooking-status-confirmed"]):not([class*="mobooking-status-completed"]):not([class*="mobooking-status-cancelled"]):not([class*="mobooking-status-on-hold"]):not([class*="mobooking-status-processing"]) {
-    background-color: #6c757d; /* Default to gray */
-    color: #fff;
-}
-
-/* Pagination */
-.tablenav.bottom .tablenav-pages {
-    /* WP default styling is usually okay, but we can ensure alignment and spacing */
-    padding: 10px 0; /* Add some vertical padding if needed */
-}
-
-.tablenav-pages .pagination-links {
-    display: flex; /* Use flex for alignment */
-    align-items: center;
-    gap: 5px; /* Spacing between page numbers/links */
-}
-
-.tablenav-pages .pagination-links .page-numbers {
-    padding: 6px 12px;
-    text-decoration: none;
-    border: 1px solid #ccd0d4; /* WP default border */
-    border-radius: 3px;
-    background-color: #f5f5f5;
-    color: #0073aa; /* WP default link color */
-    transition: background-color 0.15s ease-in-out, border-color 0.15s ease-in-out;
-}
-
-.tablenav-pages .pagination-links .page-numbers:hover {
-    background-color: #f0f0f0;
-    border-color: #0073aa;
-}
-
-.tablenav-pages .pagination-links .page-numbers.current {
-    background-color: #0073aa; /* WP primary blue */
-    border-color: #0073aa;
-    color: #fff;
-    font-weight: 600;
-    cursor: default;
-}
-
-/* For JS-driven pagination, if the structure is ul > li > a */
-.mobooking-pagination ul.mobooking-pagination { /* Target the ul generated by JS */
-    list-style: none;
-    padding: 0;
-    margin: 10px 0 0 0; /* Add some top margin if not using .tablenav */
-    display: flex;
-    justify-content: flex-start; /* Or center/flex-end */
-    gap: 5px;
-}
-.mobooking-pagination ul.mobooking-pagination li a {
-    padding: 6px 12px;
-    text-decoration: none;
-    border: 1px solid #ccd0d4;
-    border-radius: 3px;
-    background-color: #f5f5f5;
-    color: #0073aa;
-    transition: background-color 0.15s ease-in-out, border-color 0.15s ease-in-out;
-}
-.mobooking-pagination ul.mobooking-pagination li a:hover {
-    background-color: #f0f0f0;
-    border-color: #0073aa;
-}
-.mobooking-pagination ul.mobooking-pagination li.active a {
-    background-color: #0073aa;
-    border-color: #0073aa;
-    color: #fff;
-    font-weight: 600;
-    cursor: default;
-}
-
-
-</style>
+<?php // Inline styles removed. They will be merged into assets/css/dashboard-bookings-responsive.css ?>
 
 <?php // Modal HTML structure and old style blocks were confirmed removed previously. ?>
 </div> <?php // This closes .mobooking-bookings-page-wrapper ?>
