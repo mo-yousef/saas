@@ -15,15 +15,21 @@ if (get_query_var('mobooking_page_type') !== 'embed') { // Check for 'embed'
 }
 ?>
 <div id="mobooking-public-booking-form-wrapper" class="mobooking-bf-wrapper <?php if (get_query_var('mobooking_page_type') === 'embed') { echo 'mobooking-bf-wrapper--embed'; } ?>">
-    <?php if (get_query_var('mobooking_page_type') !== 'embed'): ?>
-    <h1 class="mobooking-bf-main-title"><?php esc_html_e('Book Our Services', 'mobooking'); ?></h1>
-    <?php endif; ?>
 
-    <!-- Step 1: Location -->
-    <div id="mobooking-bf-step-1-location" class="mobooking-bf__step">
-        <h2 class="mobooking-bf__step-title"><?php esc_html_e('Step 1: Check Service Availability', 'mobooking'); ?></h2>
-        <form id="mobooking-bf-location-form">
-            <div class="mobooking-bf__form-group">
+    <!-- This div will contain the main content and the sidebar -->
+    <div class="mobooking-bf__layout-container">
+
+        <!-- Main content area for steps -->
+        <div class="mobooking-bf__main-content">
+            <?php if (get_query_var('mobooking_page_type') !== 'embed'): ?>
+            <h1 class="mobooking-bf-main-title"><?php esc_html_e('Book Our Services', 'mobooking'); ?></h1>
+            <?php endif; ?>
+
+            <!-- Step 1: Location -->
+            <div id="mobooking-bf-step-1-location" class="mobooking-bf__step">
+                <h2 class="mobooking-bf__step-title"><?php esc_html_e('Step 1: Check Service Availability', 'mobooking'); ?></h2>
+                <form id="mobooking-bf-location-form">
+                    <div class="mobooking-bf__form-group">
                 <label for="mobooking-bf-country-code" class="mobooking-bf__label"><?php esc_html_e('Country Code:', 'mobooking'); ?></label>
                 <input type="text" id="mobooking-bf-country-code" name="country_code" value="US" required class="mobooking-bf__input">
                 <small class="mobooking-bf__small-text"><?php esc_html_e('E.g., US, CA, GB', 'mobooking'); ?></small>
@@ -91,7 +97,11 @@ if (get_query_var('mobooking_page_type') !== 'embed') { // Check for 'embed'
             <label for="option_<%= service_id %>_<%= option_id %>" class="mobooking-bf__label">
                 <%= name %> <!-- price_impact_placeholder --> <!-- required_indicator_placeholder -->
             </label>
-            <input type="number" id="option_<%= service_id %>_<%= option_id %>" name="service_option[<%= service_id %>][<%= option_id %>]" class="mobooking-bf__input" <%= required_attr %> min="0">
+            <div class="mobooking-bf__number-input-wrapper">
+                <button type="button" class="mobooking-bf__number-btn mobooking-bf__number-btn--minus" aria-label="<?php esc_attr_e('Decrease quantity', 'mobooking'); ?>">&ndash;</button>
+                <input type="number" id="option_<%= service_id %>_<%= option_id %>" name="service_option[<%= service_id %>][<%= option_id %>]" class="mobooking-bf__input mobooking-bf__input--number" <%= required_attr %> min="0" value="0">
+                <button type="button" class="mobooking-bf__number-btn mobooking-bf__number-btn--plus" aria-label="<?php esc_attr_e('Increase quantity', 'mobooking'); ?>">+</button>
+            </div>
             <!-- description_placeholder -->
         </div>
     </script>
@@ -101,7 +111,11 @@ if (get_query_var('mobooking_page_type') !== 'embed') { // Check for 'embed'
             <label for="option_<%= service_id %>_<%= option_id %>_qty" class="mobooking-bf__label">
                 <%= name %> <!-- price_impact_placeholder --> <!-- required_indicator_placeholder -->
             </label>
-            <input type="number" id="option_<%= service_id %>_<%= option_id %>_qty" name="service_option[<%= service_id %>][<%= option_id %>][quantity]" value="<%= quantity_default_value %>" min="0" class="mobooking-bf__input mobooking-bf-option-quantity-input" <%= required_attr %>>
+            <div class="mobooking-bf__number-input-wrapper">
+                <button type="button" class="mobooking-bf__number-btn mobooking-bf__number-btn--minus" aria-label="<?php esc_attr_e('Decrease quantity', 'mobooking'); ?>">&ndash;</button>
+                <input type="number" id="option_<%= service_id %>_<%= option_id %>_qty" name="service_option[<%= service_id %>][<%= option_id %>][quantity]" value="<%= quantity_default_value %>" min="0" class="mobooking-bf__input mobooking-bf__input--number mobooking-bf-option-quantity-input" <%= required_attr %>>
+                <button type="button" class="mobooking-bf__number-btn mobooking-bf__number-btn--plus" aria-label="<?php esc_attr_e('Increase quantity', 'mobooking'); ?>">+</button>
+            </div>
             <!-- description_placeholder -->
         </div>
     </script>
@@ -141,11 +155,16 @@ if (get_query_var('mobooking_page_type') !== 'embed') { // Check for 'embed'
             <label for="option_<%= service_id %>_<%= option_id %>_sqm_total" class="mobooking-bf__label">
                 <%= name %> <!-- required_indicator_placeholder -->
             </label>
-            <input type="number" id="option_<%= service_id %>_<%= option_id %>_sqm_total"
-                   name="service_option[<%= service_id %>][<%= option_id %>][total_sqm]"
-                   class="mobooking-bf__input mobooking-bf-sqm-total-input"
-                   placeholder="<?php esc_attr_e('Enter Total SQM', 'mobooking'); ?>"
-                   min="0" step="any" <%= required_attr %>>
+            <div class="mobooking-bf__sqm-input-group">
+                <input type="range" id="option_<%= service_id %>_<%= option_id %>_sqm_slider"
+                       class="mobooking-bf__slider mobooking-bf-sqm-slider"
+                       min="0" max="500" step="1" value="0"> {/* Adjust max/step as needed */}
+                <input type="number" id="option_<%= service_id %>_<%= option_id %>_sqm_total"
+                       name="service_option[<%= service_id %>][<%= option_id %>][total_sqm]"
+                       class="mobooking-bf__input mobooking-bf__input--number mobooking-bf-sqm-total-input"
+                       placeholder="<?php esc_attr_e('SQM', 'mobooking'); ?>"
+                       min="0" step="any" <%= required_attr %> value="0">
+            </div>
             <div class="mobooking-bf__sqm-price-display" id="sqm_price_display_<%= service_id %>_<%= option_id %>">
                 <!-- Price will be shown here by JS -->
             </div>
@@ -254,17 +273,47 @@ if (get_query_var('mobooking_page_type') !== 'embed') { // Check for 'embed'
             <a href="<?php echo esc_url(home_url('/')); ?>" class="mobooking-bf__button mobooking-bf__button--secondary"><?php esc_html_e('Back to Homepage', 'mobooking'); ?></a>
         </div> -->
     </div>
-</div>
+        </div> <!-- End .mobooking-bf__main-content -->
+
+        <!-- Sidebar for Summary -->
+        <div id="mobooking-bf-sidebar-summary" class="mobooking-bf__sidebar mobooking-bf__hidden">
+            <h3 class="mobooking-bf__sidebar-title"><?php esc_html_e('Your Booking Summary', 'mobooking'); ?></h3>
+            <div id="mobooking-bf-sidebar-content" class="mobooking-bf__sidebar-content">
+                <!-- Summary content will be injected by JS -->
+                <p><?php esc_html_e('Select options to see summary.', 'mobooking'); ?></p>
+            </div>
+            <div id="mobooking-bf-sidebar-pricing" class="mobooking-bf__sidebar-pricing">
+                <div class="mobooking-bf__sidebar-price-item">
+                    <span><?php esc_html_e('Subtotal:', 'mobooking'); ?></span>
+                    <span id="mobooking-bf-sidebar-subtotal">--</span>
+                </div>
+                <div class="mobooking-bf__sidebar-price-item" id="mobooking-bf-sidebar-discount-item" style="display: none;">
+                    <span><?php esc_html_e('Discount:', 'mobooking'); ?></span>
+                    <span id="mobooking-bf-sidebar-discount-applied">--</span>
+                </div>
+                <div class="mobooking-bf__sidebar-price-item mobooking-bf__sidebar-price-item--total">
+                    <strong><?php esc_html_e('Total:', 'mobooking'); ?></strong>
+                    <strong id="mobooking-bf-sidebar-final-total">--</strong>
+                </div>
+            </div>
+        </div> <!-- End .mobooking-bf__sidebar -->
+
+    </div> <!-- End .mobooking-bf__layout-container -->
+</div> <!-- End .mobooking-bf-wrapper -->
 
 <script type="text/template" id="mobooking-bf-service-item-template">
-    <div class="mobooking-bf__service-item">
-        <label class="mobooking-bf__label mobooking-bf__label--radio">
-            <input type="radio" class="mobooking-bf__radio" name="selected_service" value="<%= service_id %>" data-service-id="<%= service_id %>">
-            <span class="mobooking-bf__service-name"><%= name %></span>
-            <!-- price_placeholder -->
+    <div class="mobooking-bf__service-item" data-service-id="<%= service_id %>">
+        <!-- image_placeholder -->
+        <div class="mobooking-bf__service-item-content">
+            <label class="mobooking-bf__label mobooking-bf__label--radio">
+                <input type="radio" class="mobooking-bf__radio" name="selected_service" value="<%= service_id %>" data-service-id="<%= service_id %>">
+                <span class="mobooking-bf__service-name"><%= name %></span>
+                <!-- price_placeholder -->
+            </label>
             <span class="mobooking-bf__service-duration">(<%= duration %> <?php esc_html_e('min', 'mobooking'); ?>)</span>
-        </label>
-        <!-- description_placeholder -->
+            <!-- description_placeholder -->
+            <!-- icon_placeholder -->
+        </div>
     </div>
 </script>
 
