@@ -3,20 +3,24 @@
 /* Variables will be injected by JS or defined here if static */
 :root {
     --mobk-font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-    --mobk-border-radius: 0.5rem; /* Default, can be overridden by user settings */
+    --mobk-border-radius: 0.5rem;
+    /* Default, can be overridden by user settings */
     --mobk-border-radius-sm: 0.375rem;
     --mobk-border-radius-lg: 0.75rem;
 
-    --mobk-color-background: hsl(0 0% 100%); /* Default, user can override */
+    --mobk-color-background: hsl(0 0% 100%);
+    /* Default, user can override */
     --mobk-color-foreground: hsl(222.2 84% 4.9%);
 
     --mobk-color-card: hsl(0 0% 100%);
     --mobk-color-card-foreground: hsl(222.2 84% 4.9%);
 
-    --mobk-color-primary: hsl(221.2 83.2% 53.3%); /* Default, user can override */
+    --mobk-color-primary: hsl(221.2 83.2% 53.3%);
+    /* Default, user can override */
     --mobk-color-primary-foreground: hsl(210 40% 98%);
 
-    --mobk-color-secondary: hsl(210 40% 96.1%); /* Default, user can override */
+    --mobk-color-secondary: hsl(210 40% 96.1%);
+    /* Default, user can override */
     --mobk-color-secondary-foreground: hsl(222.2 84% 4.9%);
 
     --mobk-color-muted: hsl(210 40% 96.1%);
@@ -31,46 +35,57 @@
     --mobk-color-border: hsl(214.3 31.8% 91.4%);
     --mobk-color-input: hsl(214.3 31.8% 91.4%);
     --mobk-color-ring: hsl(221.2 83.2% 53.3%);
-    --mobk-input-height: 2.5rem; /* h-10 */
+    --mobk-input-height: 2.5rem;
+    /* h-10 */
     --mobk-animation-duration: 0.3s;
 }
 
-body.mobooking-form-active { /* Applied to body when form is active */
+body.mobooking-form-active {
+    /* Applied to body when form is active */
     font-family: var(--mobk-font-family);
-    background-color: var(--mobk-color-background); /* This will be the page background */
+    background-color: var(--mobk-color-background);
+    /* This will be the page background */
     color: var(--mobk-color-foreground);
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
 }
 
 .mobooking-bf-wrapper {
-    max-width: 700px;
     margin: 2rem auto;
-    padding: 0; /* Wrapper itself has no padding, cards will */
+    padding: 0;
+    /* Wrapper itself has no padding, cards will */
     font-family: var(--mobk-font-family);
 }
 
 .mobooking-bf__layout-container {
     display: flex;
-    gap: 1.5rem; /* Space between main content and sidebar */
+    gap: 1.5rem;
+    /* Space between main content and sidebar */
 }
 
 .mobooking-bf__main-content {
-    flex: 1; /* Takes up available space */
-    min-width: 0; /* Prevents overflow issues with flex items */
+    flex: 1;
+    /* Takes up available space */
+    min-width: 0;
+    /* Prevents overflow issues with flex items */
 }
 
 .mobooking-bf__sidebar {
-    width: 320px; /* Fixed width for the sidebar */
+    width: 320px;
+    /* Fixed width for the sidebar */
     background-color: var(--mobk-color-card);
     border: 1px solid var(--mobk-color-border);
     border-radius: var(--mobk-border-radius-lg);
     padding: 1.5rem;
-    box-shadow: 0 2px 4px -1px rgba(0,0,0,0.06), 0 1px 2px -1px rgba(0,0,0,0.06); /* Softer shadow */
-    align-self: flex-start; /* Aligns to the top of the container */
+    box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.06), 0 1px 2px -1px rgba(0, 0, 0, 0.06);
+    /* Softer shadow */
+    align-self: flex-start;
+    /* Aligns to the top of the container */
     position: sticky;
-    top: 2rem; /* Adjust as needed for sticky positioning */
-    max-height: calc(100vh - 4rem); /* Prevent sidebar from being too tall */
+    top: 2rem;
+    /* Adjust as needed for sticky positioning */
+    max-height: calc(100vh - 4rem);
+    /* Prevent sidebar from being too tall */
     overflow-y: auto;
     transition: opacity var(--mobk-animation-duration) ease-in-out, transform var(--mobk-animation-duration) ease-in-out;
 }
@@ -82,7 +97,8 @@ body.mobooking-form-active { /* Applied to body when form is active */
 }
 
 .mobooking-bf__sidebar-title {
-    font-size: 1.25rem; /* text-xl */
+    font-size: 1.25rem;
+    /* text-xl */
     font-weight: 600;
     margin-bottom: 1rem;
     padding-bottom: 0.75rem;
@@ -95,17 +111,21 @@ body.mobooking-form-active { /* Applied to body when form is active */
     font-size: 0.875rem;
     color: var(--mobk-color-muted-foreground);
 }
+
 .mobooking-bf__sidebar-content p {
     margin-bottom: 0.5rem;
 }
+
 .mobooking-bf__sidebar-content ul {
     list-style: none;
     padding-left: 0;
 }
+
 .mobooking-bf__sidebar-content li {
     padding: 0.25rem 0;
     border-bottom: 1px dashed var(--mobk-color-border);
 }
+
 .mobooking-bf__sidebar-content li:last-child {
     border-bottom: none;
 }
@@ -122,16 +142,19 @@ body.mobooking-form-active { /* Applied to body when form is active */
     margin-bottom: 0.5rem;
     color: var(--mobk-color-muted-foreground);
 }
+
 .mobooking-bf__sidebar-price-item span:last-child {
     font-weight: 500;
     color: var(--mobk-color-card-foreground);
 }
+
 .mobooking-bf__sidebar-price-item--total {
     font-size: 1rem;
     font-weight: 600;
     color: var(--mobk-color-card-foreground);
     margin-top: 0.75rem;
 }
+
 .mobooking-bf__sidebar-price-item--total span:last-child {
     font-size: 1.125rem;
 }
@@ -141,16 +164,19 @@ body.mobooking-form-active { /* Applied to body when form is active */
     margin: 0;
     max-width: none;
 }
+
 .mobooking-bf-wrapper--embed .mobooking-bf__layout-container {
     /* Potentially remove gap or adjust for embed */
 }
+
 .mobooking-bf-wrapper--embed .mobooking-bf__sidebar {
     /* Adjust sidebar for embed if needed, e.g., make it less wide or change position */
 }
 
 
 .mobooking-bf-main-title {
-    font-size: 1.875rem; /* text-3xl */
+    font-size: 1.875rem;
+    /* text-3xl */
     font-weight: 700;
     letter-spacing: -0.025em;
     text-align: center;
@@ -162,15 +188,20 @@ body.mobooking-form-active { /* Applied to body when form is active */
     background-color: var(--mobk-color-card);
     color: var(--mobk-color-card-foreground);
     border: 1px solid var(--mobk-color-border);
-    border-radius: var(--mobk-border-radius-lg); /* Larger radius for cards */
-    padding: 1.5rem; /* p-6 */
-    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1); /* shadow-md */
+    border-radius: var(--mobk-border-radius-lg);
+    /* Larger radius for cards */
+    padding: 1.5rem;
+    /* p-6 */
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+    /* shadow-md */
     margin-bottom: 1.5rem;
-    display: none; /* Hidden by default, JS will show */
+    display: none;
+    /* Hidden by default, JS will show */
 }
 
 .mobooking-bf__step-title {
-    font-size: 1.5rem; /* text-2xl */
+    font-size: 1.5rem;
+    /* text-2xl */
     font-weight: 600;
     margin-bottom: 1.5rem;
     padding-bottom: 0.75rem;
@@ -184,7 +215,8 @@ body.mobooking-form-active { /* Applied to body when form is active */
 
 .mobooking-bf__label {
     display: block;
-    font-size: 0.875rem; /* text-sm */
+    font-size: 0.875rem;
+    /* text-sm */
     font-weight: 500;
     margin-bottom: 0.5rem;
     color: var(--mobk-color-card-foreground);
@@ -200,17 +232,21 @@ body.mobooking-form-active { /* Applied to body when form is active */
 .mobooking-bf__input,
 .mobooking-bf__textarea,
 .mobooking-bf__select {
-    display: block; /* Changed from flex to block for inputs */
+    display: block;
+    /* Changed from flex to block for inputs */
     width: 100%;
     height: var(--mobk-input-height);
     border-radius: var(--mobk-border-radius);
     border: 1px solid var(--mobk-color-input);
-    background-color: var(--mobk-color-background); /* Should be card or input specific bg */
-    padding: 0.5rem 0.75rem; /* py-2 px-3 */
+    background-color: var(--mobk-color-background);
+    /* Should be card or input specific bg */
+    padding: 0.5rem 0.75rem;
+    /* py-2 px-3 */
     font-size: 0.875rem;
     color: var(--mobk-color-foreground);
     transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
-    box-sizing: border-box; /* Ensure padding and border are inside width/height */
+    box-sizing: border-box;
+    /* Ensure padding and border are inside width/height */
 }
 
 .mobooking-bf__input::placeholder,
@@ -224,22 +260,27 @@ body.mobooking-form-active { /* Applied to body when form is active */
     outline: 2px solid transparent;
     outline-offset: 2px;
     border-color: var(--mobk-color-ring);
-    box-shadow: 0 0 0 2px var(--mobk-color-ring); /* Ring effect */
+    box-shadow: 0 0 0 2px var(--mobk-color-ring);
+    /* Ring effect */
 }
 
 .mobooking-bf__textarea {
-    min-height: 80px; /* Can be adjusted */
+    min-height: 80px;
+    /* Can be adjusted */
     height: auto;
-    line-height: 1.4; /* Improved readability for textarea */
+    line-height: 1.4;
+    /* Improved readability for textarea */
 }
 
 .mobooking-bf__select {
-    appearance: none; /* Remove default system appearance */
+    appearance: none;
+    /* Remove default system appearance */
     background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
     background-position: right 0.5rem center;
     background-repeat: no-repeat;
     background-size: 1.5em;
-    padding-right: 2.5rem; /* Make space for the arrow */
+    padding-right: 2.5rem;
+    /* Make space for the arrow */
 }
 
 /* Number input with plus/minus buttons */
@@ -250,8 +291,10 @@ body.mobooking-form-active { /* Applied to body when form is active */
 
 .mobooking-bf__input--number {
     text-align: center;
-    -moz-appearance: textfield; /* Firefox */
+    -moz-appearance: textfield;
+    /* Firefox */
 }
+
 .mobooking-bf__input--number::-webkit-outer-spin-button,
 .mobooking-bf__input--number::-webkit-inner-spin-button {
     -webkit-appearance: none;
@@ -260,7 +303,8 @@ body.mobooking-form-active { /* Applied to body when form is active */
 
 .mobooking-bf__number-btn {
     height: var(--mobk-input-height);
-    width: var(--mobk-input-height); /* Square buttons */
+    width: var(--mobk-input-height);
+    /* Square buttons */
     background-color: var(--mobk-color-secondary);
     color: var(--mobk-color-secondary-foreground);
     border: 1px solid var(--mobk-color-input);
@@ -272,20 +316,26 @@ body.mobooking-form-active { /* Applied to body when form is active */
     justify-content: center;
     transition: background-color 0.15s ease;
 }
+
 .mobooking-bf__number-btn:hover {
     background-color: color-mix(in srgb, var(--mobk-color-secondary) 90%, black);
 }
+
 .mobooking-bf__number-btn--minus {
     border-radius: var(--mobk-border-radius) 0 0 var(--mobk-border-radius);
     border-right: none;
 }
+
 .mobooking-bf__number-btn--plus {
     border-radius: 0 var(--mobk-border-radius) var(--mobk-border-radius) 0;
     border-left: none;
 }
+
 .mobooking-bf__number-input-wrapper .mobooking-bf__input--number {
-    border-radius: 0; /* Remove radius from input when part of this group */
-    flex-grow: 1; /* Input takes remaining space */
+    border-radius: 0;
+    /* Remove radius from input when part of this group */
+    flex-grow: 1;
+    /* Input takes remaining space */
 }
 
 
@@ -293,29 +343,41 @@ body.mobooking-form-active { /* Applied to body when form is active */
 .mobooking-bf__sqm-input-group {
     display: flex;
     align-items: center;
-    gap: 0.75rem; /* Space between slider and number input */
+    gap: 0.75rem;
+    /* Space between slider and number input */
 }
+
 .mobooking-bf__slider {
     flex-grow: 1;
-    height: 0.5rem; /* Thickness of the slider track */
-    -webkit-appearance: none; /* Override default appearance */
+    height: 0.5rem;
+    /* Thickness of the slider track */
+    -webkit-appearance: none;
+    /* Override default appearance */
     appearance: none;
-    background: var(--mobk-color-muted); /* Track color */
+    background: var(--mobk-color-muted);
+    /* Track color */
     border-radius: var(--mobk-border-radius-sm);
     outline: none;
     cursor: pointer;
 }
+
 .mobooking-bf__slider::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
-    width: 1.25rem; /* Thumb width */
-    height: 1.25rem; /* Thumb height */
-    background: var(--mobk-color-primary); /* Thumb color */
-    border-radius: 50%; /* Circular thumb */
-    border: 2px solid var(--mobk-color-primary-foreground); /* Optional: border for thumb */
+    width: 1.25rem;
+    /* Thumb width */
+    height: 1.25rem;
+    /* Thumb height */
+    background: var(--mobk-color-primary);
+    /* Thumb color */
+    border-radius: 50%;
+    /* Circular thumb */
+    border: 2px solid var(--mobk-color-primary-foreground);
+    /* Optional: border for thumb */
     cursor: pointer;
     transition: background-color 0.15s ease;
 }
+
 .mobooking-bf__slider::-moz-range-thumb {
     width: 1.25rem;
     height: 1.25rem;
@@ -325,17 +387,22 @@ body.mobooking-form-active { /* Applied to body when form is active */
     cursor: pointer;
     transition: background-color 0.15s ease;
 }
+
 .mobooking-bf__slider:hover::-webkit-slider-thumb {
     background-color: color-mix(in srgb, var(--mobk-color-primary) 85%, black);
 }
+
 .mobooking-bf__slider:hover::-moz-range-thumb {
     background-color: color-mix(in srgb, var(--mobk-color-primary) 85%, black);
 }
 
 .mobooking-bf__sqm-input-group .mobooking-bf__input--number {
-    width: 80px; /* Fixed width for the SQM number input */
-    flex-shrink: 0; /* Prevent shrinking */
+    width: 80px;
+    /* Fixed width for the SQM number input */
+    flex-shrink: 0;
+    /* Prevent shrinking */
 }
+
 .mobooking-bf__sqm-price-display {
     font-size: 0.875rem;
     color: var(--mobk-color-muted-foreground);
@@ -345,14 +412,19 @@ body.mobooking-form-active { /* Applied to body when form is active */
 
 
 .mobooking-bf__checkbox {
-    height: 1rem; /* h-4 */
-    width: 1rem; /* w-4 */
+    height: 1rem;
+    /* h-4 */
+    width: 1rem;
+    /* w-4 */
     border-radius: var(--mobk-border-radius-sm);
     border: 1px solid var(--mobk-color-input);
     margin-right: 0.5rem;
-    accent-color: var(--mobk-color-primary); /* For the checkmark color */
-    vertical-align: middle; /* Align checkbox with label text */
+    accent-color: var(--mobk-color-primary);
+    /* For the checkmark color */
+    vertical-align: middle;
+    /* Align checkbox with label text */
 }
+
 .mobooking-bf__checkbox:focus {
     outline: 2px solid transparent;
     outline-offset: 2px;
@@ -364,12 +436,15 @@ body.mobooking-form-active { /* Applied to body when form is active */
 .mobooking-bf__radio {
     height: 1rem;
     width: 1rem;
-    border-radius: 9999px; /* rounded-full */
-    border: 1px solid var(--mobk-color-input); /* Consistent with checkbox */
+    border-radius: 9999px;
+    /* rounded-full */
+    border: 1px solid var(--mobk-color-input);
+    /* Consistent with checkbox */
     margin-right: 0.5rem;
     accent-color: var(--mobk-color-primary);
     vertical-align: middle;
 }
+
 .mobooking-bf__radio:focus {
     outline: 2px solid transparent;
     outline-offset: 2px;
@@ -380,8 +455,10 @@ body.mobooking-form-active { /* Applied to body when form is active */
 .mobooking-bf__button-group {
     margin-top: 1.5rem;
     display: flex;
-    justify-content: space-between; /* For back/next buttons */
-    gap: 0.75rem; /* Space between buttons */
+    justify-content: space-between;
+    /* For back/next buttons */
+    gap: 0.75rem;
+    /* Space between buttons */
 }
 
 .mobooking-bf__button {
@@ -390,24 +467,34 @@ body.mobooking-form-active { /* Applied to body when form is active */
     justify-content: center;
     white-space: nowrap;
     border-radius: var(--mobk-border-radius);
-    font-size: 0.875rem; /* text-sm */
-    font-weight: 500; /* medium */
-    padding: 0.5rem 1rem; /* py-2 px-4 - standard button padding */
-    height: var(--mobk-input-height); /* Consistent height with inputs */
+    font-size: 0.875rem;
+    /* text-sm */
+    font-weight: 500;
+    /* medium */
+    padding: 0.5rem 1rem;
+    /* py-2 px-4 - standard button padding */
+    height: var(--mobk-input-height);
+    /* Consistent height with inputs */
     cursor: pointer;
     transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;
     transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
     transition-duration: 150ms;
-    border: 1px solid transparent; /* Base for all buttons */
-    user-select: none; /* Prevent text selection on click */
+    border: 1px solid transparent;
+    /* Base for all buttons */
+    user-select: none;
+    /* Prevent text selection on click */
 }
-.mobooking-bf__button:focus-visible { /* Shadcn uses :focus-visible */
+
+.mobooking-bf__button:focus-visible {
+    /* Shadcn uses :focus-visible */
     outline: 2px solid transparent;
     outline-offset: 2px;
     box-shadow: 0 0 0 2px var(--mobk-color-background), 0 0 0 4px var(--mobk-color-ring);
 }
+
 .mobooking-bf__button:disabled {
-    opacity: 0.5; /* Shadcn uses 0.5 for disabled */
+    opacity: 0.5;
+    /* Shadcn uses 0.5 for disabled */
     cursor: not-allowed;
     /* pointer-events: none; Often used but can make it hard to see tooltips on disabled buttons if any */
 }
@@ -417,26 +504,34 @@ body.mobooking-form-active { /* Applied to body when form is active */
     color: var(--mobk-color-primary-foreground);
     /* border-color: var(--mobk-color-primary); Implicit or explicit if needed */
 }
+
 .mobooking-bf__button--primary:hover:not(:disabled) {
-    background-color: color-mix(in srgb, var(--mobk-color-primary) 90%, black); /* primary/90 */
+    background-color: color-mix(in srgb, var(--mobk-color-primary) 90%, black);
+    /* primary/90 */
 }
 
 .mobooking-bf__button--secondary {
     background-color: var(--mobk-color-secondary);
     color: var(--mobk-color-secondary-foreground);
-    border-color: var(--mobk-color-border); /* Standard border for secondary */
+    border-color: var(--mobk-color-border);
+    /* Standard border for secondary */
 }
+
 .mobooking-bf__button--secondary:hover:not(:disabled) {
-    background-color: color-mix(in srgb, var(--mobk-color-secondary) 90%, black); /* secondary/80 or 90 */
+    background-color: color-mix(in srgb, var(--mobk-color-secondary) 90%, black);
+    /* secondary/80 or 90 */
 }
 
 .mobooking-bf__button--ghost {
     background-color: transparent;
-    color: var(--mobk-color-primary); /* Typically primary text color */
+    color: var(--mobk-color-primary);
+    /* Typically primary text color */
     border-color: transparent;
 }
+
 .mobooking-bf__button--ghost:hover:not(:disabled) {
-    background-color: var(--mobk-color-accent); /* Accent for hover */
+    background-color: var(--mobk-color-accent);
+    /* Accent for hover */
     color: var(--mobk-color-accent-foreground);
 }
 
@@ -445,13 +540,15 @@ body.mobooking-form-active { /* Applied to body when form is active */
     background-color: var(--mobk-color-destructive);
     color: var(--mobk-color-destructive-foreground);
 }
+
 .mobooking-bf__button--destructive:hover:not(:disabled) {
     background-color: color-mix(in srgb, var(--mobk-color-destructive) 90%, black);
 }
 
 
 .mobooking-bf__feedback {
-    padding: 0.75rem 1rem; /* py-3 px-4 */
+    padding: 0.75rem 1rem;
+    /* py-3 px-4 */
     margin-top: 1rem;
     border-radius: var(--mobk-border-radius);
     font-size: 0.875rem;
@@ -465,13 +562,15 @@ body.mobooking-form-active { /* Applied to body when form is active */
 }
 
 .mobooking-bf__feedback--success {
-    background-color: hsl(142.1 70.6% 95.3%); /* Green accent */
+    background-color: hsl(142.1 70.6% 95.3%);
+    /* Green accent */
     border-color: hsl(142.1 70.6% 85.3%);
     color: hsl(142.1 76.2% 36.3%);
 }
 
 .mobooking-bf__small-text {
-    font-size: 0.8125rem; /* text-xs */
+    font-size: 0.8125rem;
+    /* text-xs */
     color: var(--mobk-color-muted-foreground);
     margin-top: 0.25rem;
 }
@@ -488,32 +587,45 @@ body.mobooking-form-active { /* Applied to body when form is active */
     border-radius: var(--mobk-border-radius);
     margin-bottom: 0.75rem;
     transition: border-color 0.15s ease, box-shadow 0.15s ease;
-    display: flex; /* For image and content alignment */
-    gap: 1rem; /* Space between image and content */
-    align-items: center; /* Vertically align items if image/icon is taller */
+    display: flex;
+    /* For image and content alignment */
+    gap: 1rem;
+    /* Space between image and content */
+    align-items: center;
+    /* Vertically align items if image/icon is taller */
 }
+
 .mobooking-bf__service-item:hover {
-    border-color: var(--mobk-color-primary); /* Highlight with primary color on hover */
+    border-color: var(--mobk-color-primary);
+    /* Highlight with primary color on hover */
     box-shadow: 0 0 0 1px var(--mobk-color-primary);
 }
 
 .mobooking-bf__service-image,
 .mobooking-bf__service-icon {
-    width: 64px; /* Example size, adjust as needed */
+    width: 64px;
+    /* Example size, adjust as needed */
     height: 64px;
-    object-fit: cover; /* For images */
+    object-fit: cover;
+    /* For images */
     border-radius: var(--mobk-border-radius-sm);
-    flex-shrink: 0; /* Prevent shrinking */
+    flex-shrink: 0;
+    /* Prevent shrinking */
 }
+
 .mobooking-bf__service-icon {
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: var(--mobk-color-muted); /* Example background for icons */
-    font-size: 2rem; /* Example icon size */
+    background-color: var(--mobk-color-muted);
+    /* Example background for icons */
+    font-size: 2rem;
+    /* Example icon size */
     color: var(--mobk-color-primary);
 }
-.mobooking-bf__service-icon img { /* If icon is an img tag */
+
+.mobooking-bf__service-icon img {
+    /* If icon is an img tag */
     max-width: 100%;
     max-height: 100%;
 }
@@ -528,28 +640,38 @@ body.mobooking-form-active { /* Applied to body when form is active */
     align-items: center;
     font-weight: 500;
     cursor: pointer;
-    margin-bottom: 0.25rem; /* Space before duration/description */
+    margin-bottom: 0.25rem;
+    /* Space before duration/description */
 }
 
 .mobooking-bf__service-name {
-    flex-grow: 1; /* Takes available space in the label */
-    font-weight: 600; /* Make service name more prominent */
+    flex-grow: 1;
+    /* Takes available space in the label */
+    font-weight: 600;
+    /* Make service name more prominent */
     color: var(--mobk-color-card-foreground);
 }
+
 .mobooking-bf__service-price {
     font-size: 0.875rem;
-    color: var(--mobk-color-primary); /* Highlight price */
+    color: var(--mobk-color-primary);
+    /* Highlight price */
     font-weight: 500;
     margin-left: 0.5rem;
 }
+
 .mobooking-bf__service-duration {
-    font-size: 0.8125rem; /* text-xs */
+    font-size: 0.8125rem;
+    /* text-xs */
     color: var(--mobk-color-muted-foreground);
-    display: block; /* Put duration on a new line or alongside description */
+    display: block;
+    /* Put duration on a new line or alongside description */
     margin-top: 0.125rem;
 }
+
 .mobooking-bf__service-description {
-    font-size: 0.8125rem; /* text-xs */
+    font-size: 0.8125rem;
+    /* text-xs */
     color: var(--mobk-color-muted-foreground);
     margin-top: 0.25rem;
     /* No specific margin-left needed if it's under service-item-content */
@@ -562,34 +684,47 @@ body.mobooking-form-active { /* Applied to body when form is active */
     border-bottom: 1px dashed var(--mobk-color-border);
     margin-bottom: 0.75rem;
 }
+
 .mobooking-bf__option-item:last-child {
     border-bottom: none;
     margin-bottom: 0;
 }
-.mobooking-bf__option-item .mobooking-bf__label { /* Label within an option */
+
+.mobooking-bf__option-item .mobooking-bf__label {
+    /* Label within an option */
     margin-bottom: 0.5rem;
 }
-.mobooking-bf__option-item .mobooking-bf__label--checkbox { /* Checkbox label within an option */
-    margin-bottom: 0.25rem; /* Less bottom margin for checkbox options */
+
+.mobooking-bf__option-item .mobooking-bf__label--checkbox {
+    /* Checkbox label within an option */
+    margin-bottom: 0.25rem;
+    /* Less bottom margin for checkbox options */
 }
+
 .mobooking-bf__option-description {
     font-size: 0.875rem;
     color: var(--mobk-color-muted-foreground);
     margin-top: 0.25rem;
-    margin-left: 0; /* Reset if needed, or indent if part of checkbox label */
+    margin-left: 0;
+    /* Reset if needed, or indent if part of checkbox label */
 }
-.mobooking-bf__option-item .mobooking-bf__label--radio-group p:first-child { /* The question/title for radio group */
+
+.mobooking-bf__option-item .mobooking-bf__label--radio-group p:first-child {
+    /* The question/title for radio group */
     font-weight: 500;
     margin-bottom: 0.5rem;
 }
+
 .mobooking-bf__option-item .mobooking-bf__label--radio {
     display: flex;
     align-items: center;
     font-weight: normal;
     margin-bottom: 0.375rem;
-    margin-left: 0.5rem; /* Indent radio options */
+    margin-left: 0.5rem;
+    /* Indent radio options */
     cursor: pointer;
 }
+
 .mobooking-bf__option-item .mobooking-bf__label--radio input[type="radio"] {
     margin-right: 0.5rem;
 }
@@ -597,29 +732,35 @@ body.mobooking-form-active { /* Applied to body when form is active */
 
 /* Review Screen Specifics */
 .mobooking-bf__review-summary h4 {
-    font-size: 1.125rem; /* text-lg */
+    font-size: 1.125rem;
+    /* text-lg */
     font-weight: 600;
     margin-top: 1.5rem;
     margin-bottom: 0.75rem;
     color: var(--mobk-color-card-foreground);
 }
+
 .mobooking-bf__review-summary p,
 .mobooking-bf__review-summary div {
     margin-bottom: 0.5rem;
     font-size: 0.875rem;
     color: var(--mobk-color-muted-foreground);
 }
+
 .mobooking-bf__review-summary strong {
     color: var(--mobk-color-card-foreground);
     font-weight: 500;
 }
+
 .mobooking-bf__review-summary ul {
     list-style: disc;
-    padding-left: 1.25rem; /* Indent list items */
+    padding-left: 1.25rem;
+    /* Indent list items */
     font-size: 0.875rem;
     color: var(--mobk-color-muted-foreground);
     margin-top: 0.25rem;
 }
+
 .mobooking-bf__review-summary hr {
     border: 0;
     height: 1px;
@@ -632,22 +773,26 @@ body.mobooking-form-active { /* Applied to body when form is active */
     padding-top: 1.5rem;
     border-top: 1px solid var(--mobk-color-border);
 }
+
 .mobooking-bf__pricing-summary-section h4 {
     font-size: 1.125rem;
     font-weight: 600;
     margin-bottom: 0.75rem;
     color: var(--mobk-color-card-foreground);
 }
+
 .mobooking-bf__pricing-summary-section p {
     display: flex;
     justify-content: space-between;
     margin-bottom: 0.5rem;
     font-size: 0.875rem;
 }
+
 .mobooking-bf__pricing-summary-section p strong {
     font-size: 1.125rem;
     font-weight: 600;
 }
+
 .mobooking-bf__pricing-summary-section #mobooking-bf-final-total {
     font-size: 1.2em;
     font-weight: bold;
@@ -659,18 +804,26 @@ body.mobooking-form-active { /* Applied to body when form is active */
     padding-bottom: 1rem;
     border-bottom: 1px dashed var(--mobk-color-border);
 }
+
 .mobooking-bf__discount-section .mobooking-bf__form-group {
     display: flex;
-    gap: 0.5rem; /* Space between input and button */
-    align-items: center; /* Vertically align items */
+    gap: 0.5rem;
+    /* Space between input and button */
+    align-items: center;
+    /* Vertically align items */
 }
+
 .mobooking-bf__discount-section .mobooking-bf__input {
     flex-grow: 1;
-    margin-bottom: 0; /* Reset margin as it's in a flex group */
+    margin-bottom: 0;
+    /* Reset margin as it's in a flex group */
 }
+
 .mobooking-bf__discount-section .mobooking-bf__button {
-    flex-shrink: 0; /* Prevent button from shrinking */
-    height: var(--mobk-input-height); /* Match input height */
+    flex-shrink: 0;
+    /* Prevent button from shrinking */
+    height: var(--mobk-input-height);
+    /* Match input height */
 }
 
 /* Utility Classes */
@@ -679,62 +832,91 @@ body.mobooking-form-active { /* Applied to body when form is active */
 }
 
 /* Responsive Adjustments */
-@media (max-width: 900px) { /* Adjust breakpoint for sidebar */
+@media (max-width: 900px) {
+
+    /* Adjust breakpoint for sidebar */
     .mobooking-bf__layout-container {
         flex-direction: column;
     }
+
     .mobooking-bf__sidebar {
-        width: 100%; /* Full width on smaller screens */
+        width: 100%;
+        /* Full width on smaller screens */
         margin-top: 1.5rem;
-        position: static; /* Disable sticky positioning */
-        max-height: none; /* Allow full height */
-        order: 1; /* Display sidebar after main content on mobile if steps are long */
+        position: static;
+        /* Disable sticky positioning */
+        max-height: none;
+        /* Allow full height */
+        order: 1;
+        /* Display sidebar after main content on mobile if steps are long */
     }
+
     .mobooking-bf__sidebar.mobooking-bf__hidden {
         /* Adjust hidden state for non-transform animation if needed, or keep as is */
         opacity: 0;
-        transform: translateY(20px); /* Slide up effect for mobile */
+        transform: translateY(20px);
+        /* Slide up effect for mobile */
     }
-     /* If sidebar should appear above content on mobile for certain steps, adjust order in JS */
+
+    /* If sidebar should appear above content on mobile for certain steps, adjust order in JS */
 }
 
 @media (max-width: 600px) {
     .mobooking-bf-wrapper {
         margin: 1rem auto;
-        padding: 0 0.5rem; /* Add some horizontal padding to wrapper on small screens */
+        padding: 0 0.5rem;
+        /* Add some horizontal padding to wrapper on small screens */
     }
+
     .mobooking-bf__step {
         padding: 1rem;
     }
+
     .mobooking-bf-main-title {
-        font-size: 1.5rem; /* text-2xl */
+        font-size: 1.5rem;
+        /* text-2xl */
         margin-bottom: 1.5rem;
     }
+
     .mobooking-bf__step-title {
-        font-size: 1.25rem; /* text-xl */
+        font-size: 1.25rem;
+        /* text-xl */
     }
+
     .mobooking-bf__button-group {
-        flex-direction: column-reverse; /* Stack buttons, primary on bottom */
+        flex-direction: column-reverse;
+        /* Stack buttons, primary on bottom */
     }
+
     .mobooking-bf__button {
         width: 100%;
     }
 
     .mobooking-bf__sqm-input-group {
-        flex-direction: column; /* Stack slider and input on small screens */
-        align-items: stretch; /* Stretch items to full width */
+        flex-direction: column;
+        /* Stack slider and input on small screens */
+        align-items: stretch;
+        /* Stretch items to full width */
     }
+
     .mobooking-bf__sqm-input-group .mobooking-bf__input--number {
-        width: 100%; /* Full width for SQM number input */
-        margin-top: 0.5rem; /* Space between slider and input */
+        width: 100%;
+        /* Full width for SQM number input */
+        margin-top: 0.5rem;
+        /* Space between slider and input */
     }
+
     .mobooking-bf__service-item {
-        flex-direction: column; /* Stack image/icon and content */
-        align-items: flex-start; /* Align to start */
+        flex-direction: column;
+        /* Stack image/icon and content */
+        align-items: flex-start;
+        /* Align to start */
     }
+
     .mobooking-bf__service-image,
     .mobooking-bf__service-icon {
-        margin-bottom: 0.5rem; /* Space below image/icon */
+        margin-bottom: 0.5rem;
+        /* Space below image/icon */
     }
 }
 
@@ -744,19 +926,23 @@ body.mobooking-form-active { /* Applied to body when form is active */
     margin-left: 0.5rem;
     margin-right: 0;
 }
+
 [dir="rtl"] .mobooking-bf__select {
     background-position: left 0.5rem center;
     padding-left: 2.5rem;
     padding-right: 0.75rem;
 }
+
 [dir="rtl"] .mobooking-bf__service-description {
     margin-right: 2rem;
     margin-left: 0;
 }
+
 [dir="rtl"] .mobooking-bf__review-summary ul {
     padding-left: 0;
     padding-right: 1.25rem;
 }
+
 [dir="rtl"] .mobooking-bf__required-indicator {
     margin-left: 0;
     margin-right: 0.25rem;
@@ -766,22 +952,29 @@ body.mobooking-form-active { /* Applied to body when form is active */
 .mobooking-bf__step {
     /* Default state for steps that are not active/animating */
     transition: opacity var(--mobk-animation-duration) ease-in-out,
-                transform var(--mobk-animation-duration) ease-in-out;
+        transform var(--mobk-animation-duration) ease-in-out;
 }
 
-.mobooking-bf__step.mobooking-bf__hidden { /* Ensure hidden steps are truly gone */
+.mobooking-bf__step.mobooking-bf__hidden {
+    /* Ensure hidden steps are truly gone */
     opacity: 0;
-    transform: translateY(20px); /* Start slightly below */
-    pointer-events: none; /* Prevent interaction when hidden */
-    position: absolute; /* Take out of flow to prevent scroll jumps */
-    width: 100%; /* Maintain width if needed */
+    transform: translateY(20px);
+    /* Start slightly below */
+    pointer-events: none;
+    /* Prevent interaction when hidden */
+    position: absolute;
+    /* Take out of flow to prevent scroll jumps */
+    width: 100%;
+    /* Maintain width if needed */
 }
 
 .mobooking-bf__step.fade-in {
-    display: block !important; /* Override initial hide if JS adds this class */
+    display: block !important;
+    /* Override initial hide if JS adds this class */
     opacity: 1;
     transform: translateY(0);
-    position: relative; /* Bring back into flow */
+    position: relative;
+    /* Bring back into flow */
 }
 
 /* Styles for the confirmation message in Step 6 */
@@ -790,7 +983,8 @@ body.mobooking-form-active { /* Applied to body when form is active */
     padding: 2rem 1rem;
     border: 1px solid var(--mobk-color-border);
     border-radius: var(--mobk-border-radius);
-    background-color: color-mix(in srgb, var(--mobk-color-primary) 5%, transparent); /* Light primary accent */
+    background-color: color-mix(in srgb, var(--mobk-color-primary) 5%, transparent);
+    /* Light primary accent */
 }
 
 #mobooking-bf-confirmation-message h2 {
@@ -817,7 +1011,8 @@ body.mobooking-form-active {
 }
 
 /* Minimal styling for elements if JS fails to load settings or templates */
-.mobooking-bf-items-list p { /* For "Loading services..." type messages */
+.mobooking-bf-items-list p {
+    /* For "Loading services..." type messages */
     color: var(--mobk-color-muted-foreground);
     text-align: center;
     padding: 1rem;
