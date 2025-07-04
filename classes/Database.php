@@ -127,8 +127,9 @@ class Database {
         error_log('[MoBooking DB Debug] Preparing SQL for bookings table: ' . $table_name);
         $sql_bookings = "CREATE TABLE $table_name (
             booking_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-            user_id BIGINT UNSIGNED NOT NULL,
-            customer_id BIGINT UNSIGNED,
+            user_id BIGINT UNSIGNED NOT NULL, -- Tenant ID (Business Owner)
+            customer_id BIGINT UNSIGNED, -- Original field, maybe WordPress user ID of customer if they are registered users.
+            mob_customer_id BIGINT UNSIGNED NULL, -- FK to mobooking_mob_customers table
             customer_name VARCHAR(255) NOT NULL,
             customer_email VARCHAR(255) NOT NULL,
             customer_phone VARCHAR(50),
@@ -147,7 +148,8 @@ class Database {
             updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             PRIMARY KEY (booking_id),
             INDEX user_id_idx (user_id),
-            INDEX customer_id_idx (customer_id),
+            INDEX customer_id_idx (customer_id), -- Original customer_id index
+            INDEX mob_customer_id_idx (mob_customer_id), -- Index for the new customer ID
             INDEX customer_email_idx (customer_email),
             INDEX zip_code_idx (zip_code),
             INDEX status_idx (status),
@@ -274,6 +276,37 @@ class Database {
         ) $charset_collate;";
         error_log('[MoBooking DB Debug] SQL for availability_overrides table: ' . preg_replace('/\s+/', ' ', $sql_availability_overrides));
         $dbDelta_results['availability_overrides'] = dbDelta( $sql_availability_overrides );
+
+        // MoBooking Customers Table (new)
+        $table_name_mob_customers = self::get_table_name('mob_customers');
+        error_log('[MoBooking DB Debug] Preparing SQL for MoBooking customers table: ' . $table_name_mob_customers);
+        $sql_mob_customers = "CREATE TABLE $table_name_mob_customers (
+            id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+            wp_user_id BIGINT UNSIGNED NULL, -- Link to WordPress user table if the customer is a registered WP user
+            tenant_id BIGINT UNSIGNED NOT NULL, -- The business owner (user_id from wp_users) this customer belongs to
+            full_name VARCHAR(255) NOT NULL,
+            email VARCHAR(255) NOT NULL,
+            phone_number VARCHAR(50),
+            address_line_1 VARCHAR(255),
+            address_line_2 VARCHAR(255),
+            city VARCHAR(100),
+            state VARCHAR(100),
+            zip_code VARCHAR(20),
+            country VARCHAR(100),
+            status VARCHAR(20) NOT NULL DEFAULT 'active' COMMENT 'e.g., active, inactive, blacklisted',
+            total_bookings INT UNSIGNED NOT NULL DEFAULT 0,
+            last_booking_date DATETIME NULL,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            last_activity_at DATETIME NULL,
+            PRIMARY KEY (id),
+            INDEX tenant_id_email_idx (tenant_id, email), -- Unique customer per tenant by email
+            INDEX tenant_id_status_idx (tenant_id, status),
+            INDEX wp_user_id_idx (wp_user_id),
+            INDEX tenant_id_idx (tenant_id)
+        ) $charset_collate;";
+        error_log('[MoBooking DB Debug] SQL for MoBooking customers table: ' . preg_replace('/\s+/', ' ', $sql_mob_customers));
+        $dbDelta_results['mob_customers'] = dbDelta( $sql_mob_customers );
 
 
         error_log('[MoBooking DB Debug] dbDelta execution results: ' . print_r($dbDelta_results, true));
