@@ -522,8 +522,41 @@ class Bookings {
             $bookings_table = Database::get_table_name('bookings');
             $booking_items_table = Database::get_table_name('booking_items');
 
+            // --- Customer Integration Start ---
+            $mob_customer_id = null;
+            if (class_exists('MoBooking\Classes\Customers')) {
+                // Ensure Customers manager is available (might need to be passed in constructor or fetched from globals)
+                $customers_manager = isset($GLOBALS['mobooking_customers_manager']) ? $GLOBALS['mobooking_customers_manager'] : new Customers();
+
+                $customer_data_for_crm = [
+                    'full_name' => sanitize_text_field($customer['customer_name']),
+                    'email' => sanitize_email($customer['customer_email']),
+                    'phone_number' => isset($customer['customer_phone']) ? sanitize_text_field($customer['customer_phone']) : null,
+                    'address_line_1' => isset($customer['service_address']) ? sanitize_text_field($customer['service_address']) : null, // Assuming service_address is the primary address line
+                    // 'address_line_2' => ... // If available
+                    'city' => isset($customer['city']) ? sanitize_text_field($customer['city']) : null, // If available
+                    'state' => isset($customer['state']) ? sanitize_text_field($customer['state']) : null, // If available
+                    'zip_code' => sanitize_text_field($zip_code_from_payload),
+                    // 'country' => ... // If available
+                    // 'wp_user_id' => ... // If customer is also a WP user and ID is known
+                ];
+
+                $mob_customer_id_result = $customers_manager->create_or_update_customer_for_booking($tenant_user_id, $customer_data_for_crm);
+                if (is_wp_error($mob_customer_id_result)) {
+                    error_log("MoBooking: Error creating/updating customer in CRM: " . $mob_customer_id_result->get_error_message());
+                    // Decide if this is a critical error that should stop booking creation
+                    // For now, we'll log it and proceed without mob_customer_id
+                } else {
+                    $mob_customer_id = $mob_customer_id_result;
+                }
+            } else {
+                error_log("MoBooking: Customers class not found for CRM integration.");
+            }
+            // --- Customer Integration End ---
+
             $booking_data_for_db = [
                 'user_id' => $tenant_user_id,
+                'mob_customer_id' => $mob_customer_id, // Add the new customer ID
                 'customer_name' => sanitize_text_field($customer['customer_name']),
                 'customer_email' => sanitize_email($customer['customer_email']),
                 'customer_phone' => sanitize_text_field($customer['customer_phone']),
@@ -558,6 +591,23 @@ class Bookings {
                     'quantity' => $item['quantity'], 'selected_options' => wp_json_encode($item['selected_options_summary']),
                     'item_total_price' => $item['item_total_price']
                 ]);
+            }
+
+            // Update customer stats if mob_customer_id was successfully obtained
+            if ($mob_customer_id && class_exists('MoBooking\Classes\Customers')) {
+                $customers_manager = isset($GLOBALS['mobooking_customers_manager']) ? $GLOBALS['mobooking_customers_manager'] : new Customers();
+                $booking_datetime_for_stats = $customer['booking_date'] . ' ' . $customer['booking_time'];
+                // Ensure datetime is in Y-m-d H:i:s format for MySQL
+                try {
+                    $dt = new \DateTime($booking_datetime_for_stats);
+                    $mysql_booking_datetime = $dt->format('Y-m-d H:i:s');
+                    $stats_updated = $customers_manager->update_customer_booking_stats($mob_customer_id, $mysql_booking_datetime);
+                    if (!$stats_updated) {
+                        error_log("MoBooking: Failed to update customer booking stats for mob_customer_id: " . $mob_customer_id);
+                    }
+                } catch (\Exception $e) {
+                    error_log("MoBooking: Error formatting booking date for customer stats: " . $e->getMessage());
+                }
             }
 
             if ($validated_discount_info && isset($validated_discount_info['discount_id'])) {

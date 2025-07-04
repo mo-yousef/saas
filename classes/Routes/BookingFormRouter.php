@@ -191,13 +191,37 @@ class BookingFormRouter {
 
         error_log('[MoBooking Router] Dashboard route - Page: ' . $dashboard_page_slug . ', Action: ' . $dashboard_action);
 
-        if (!is_user_logged_in() || !current_user_can('read')) {
-            error_log('[MoBooking Router] User not authenticated for dashboard');
+        if (!is_user_logged_in() || !current_user_can('read')) { // Basic 'read' capability check
+            error_log('[MoBooking Router] User not authenticated or lacks basic read capability for dashboard path: ' . $request_path);
             $current_url = home_url($request_path);
-            wp_redirect(wp_login_url($current_url));
+            wp_redirect(wp_login_url($current_url)); // Redirect to login
             exit;
         }
 
+        // Define valid dashboard pages to prevent arbitrary file inclusion through slugs
+        $valid_dashboard_pages = [
+            'overview', 'bookings', 'services', 'service-edit',
+            'discounts', 'areas', 'workers', 'booking-form', 'settings',
+            'availability', 'customers' // Added 'customers'
+        ];
+
+        if (!in_array($dashboard_page_slug, $valid_dashboard_pages)) {
+            error_log('[MoBooking Router] Invalid dashboard page requested: ' . $dashboard_page_slug . '. Redirecting to overview.');
+            // Optionally redirect to dashboard overview or show a 404 specific to the dashboard context
+            // For now, let dashboard-shell.php handle it if it defaults to overview or shows an error for missing page-X.php
+            // Or, more explicitly:
+            // wp_redirect(home_url('/dashboard/'));
+            // exit;
+            // For now, we'll let dashboard-shell try to load page-overview if page-{$dashboard_page_slug} doesn't exist.
+            // Or, we can be stricter:
+            status_header(404);
+            // And then perhaps include a 404 template or let WP handle it.
+            // For simplicity, if an invalid slug is passed, dashboard-shell.php will attempt to load page-overview.php if page-{$invalid_slug}.php isn't found.
+            // This is acceptable for now. A future enhancement could be a more explicit 404 within the dashboard.
+        }
+
+
+        // Enqueue scripts specific to the dashboard page being loaded
         if (function_exists('mobooking_enqueue_dashboard_scripts')) {
             mobooking_enqueue_dashboard_scripts($dashboard_page_slug);
         }
