@@ -54,8 +54,8 @@ $dashboard_base_url = home_url('/dashboard/');
     </div>
 
     <!-- KPI Cards -->
-    <div class="kpi-grid">
-        <div class="kpi-card">
+    <div class="dashboard-kpi-grid">
+        <div class="dashboard-kpi-card">
             <div class="kpi-header">
                 <span class="kpi-title"><?php esc_html_e('Bookings This Month', 'mobooking'); ?></span>
                 <div class="kpi-icon bookings">📅</div>
@@ -69,7 +69,7 @@ $dashboard_base_url = home_url('/dashboard/');
         </div>
 
         <?php if (!$is_worker): ?>
-        <div class="kpi-card">
+        <div class="dashboard-kpi-card">
             <div class="kpi-header">
                 <span class="kpi-title"><?php esc_html_e('Revenue This Month', 'mobooking'); ?></span>
                 <div class="kpi-icon revenue">💰</div>
@@ -83,7 +83,7 @@ $dashboard_base_url = home_url('/dashboard/');
         </div>
         <?php endif; ?>
 
-        <div class="kpi-card">
+        <div class="dashboard-kpi-card">
             <div class="kpi-header">
                 <span class="kpi-title"><?php esc_html_e('Upcoming Bookings', 'mobooking'); ?></span>
                 <div class="kpi-icon upcoming">⏰</div>
@@ -96,7 +96,7 @@ $dashboard_base_url = home_url('/dashboard/');
             </div>
         </div>
 
-        <div class="kpi-card">
+        <div class="dashboard-kpi-card">
             <div class="kpi-header">
                 <span class="kpi-title"><?php esc_html_e('Active Services', 'mobooking'); ?></span>
                 <div class="kpi-icon services">🧹</div>
