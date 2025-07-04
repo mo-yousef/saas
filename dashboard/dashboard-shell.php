@@ -1,4 +1,73 @@
 <?php
+if ( ! function_exists( 'mobooking_dashboard_enqueue_styles_fix' ) ) {
+    function mobooking_dashboard_enqueue_styles_fix() {
+        // Conditional logic to only load on our dashboard pages
+        $is_mobooking_dashboard_page = false;
+        if (function_exists('get_query_var')) {
+            $mobooking_page = get_query_var('mobooking_dashboard_page');
+            if (!empty($mobooking_page)) {
+                $is_mobooking_dashboard_page = true;
+            }
+        }
+        // Fallback or additional check if query var isn't reliable here
+        if (!$is_mobooking_dashboard_page && isset($_SERVER['REQUEST_URI']) && strpos($_SERVER['REQUEST_URI'], '/dashboard/') !== false) {
+            $is_mobooking_dashboard_page = true;
+        }
+
+        if ( $is_mobooking_dashboard_page ) {
+            // Assuming dashboard-shell.php is in 'plugin_root/dashboard/'
+            // and assets is in 'plugin_root/assets/'
+            $plugin_dir_path_from_shell = dirname(__DIR__); // Goes up from 'dashboard' to 'plugin_root'
+            $css_file_rel_path = '/assets/css/dashboard-bookings-responsive.css';
+
+            $css_file_abs_path = $plugin_dir_path_from_shell . $css_file_rel_path;
+
+            // For plugins_url, the second parameter should ideally be the main plugin file's path.
+            // We are making an assumption that a file named 'mobooking.php' (or similar) exists in the plugin root.
+            // This path needs to be relative from the file where plugins_url() is called, to the main plugin file.
+            // Or, it can be an absolute path to the main plugin file.
+            // If MOBOOKING_PLUGIN_FILE is defined (pointing to main plugin file path), that would be best.
+            // $main_plugin_file_for_url = defined('MOBOOKING_PLUGIN_FILE') ? MOBOOKING_PLUGIN_FILE : $plugin_dir_path_from_shell . '/mobooking.php';
+
+            // More robust way if this code is inside a plugin:
+            // Let's assume the main plugin file is in the parent directory of 'dashboard' (e.g. my-plugin/my-plugin.php)
+            // This is still an assumption. The most reliable way is a defined constant for plugin file path.
+            $assumed_main_plugin_file = $plugin_dir_path_from_shell . '/' . basename($plugin_dir_path_from_shell) . '.php';
+            if (!file_exists($assumed_main_plugin_file)) { // Fallback if naming convention isn't met
+                 $assumed_main_plugin_file = $plugin_dir_path_from_shell . '/mobooking.php'; // Original assumption
+            }
+
+
+            if (file_exists($css_file_abs_path) && file_exists($assumed_main_plugin_file)) {
+                $css_file_url = plugins_url('assets/css/dashboard-bookings-responsive.css', $assumed_main_plugin_file);
+
+                wp_enqueue_style(
+                    'mobooking-dashboard-styles', // Handle
+                    $css_file_url,               // Source URL
+                    array(),                     // Dependencies
+                    filemtime($css_file_abs_path), // Version
+                    'all'                        // Media
+                );
+            } elseif (file_exists($css_file_abs_path)) {
+                // Fallback if main plugin file assumption is wrong, try relative to this file's plugin
+                // This might work if dashboard-shell.php is not too deeply nested from the main plugin file.
+                 $css_file_url = plugins_url( '../../assets/css/dashboard-bookings-responsive.css', __FILE__ ); // ../.. to go from dashboard/shell.php to plugin_root/
+                 wp_enqueue_style(
+                    'mobooking-dashboard-styles',
+                    $css_file_url,
+                    array(),
+                    filemtime($css_file_abs_path),
+                    'all'
+                );
+            } else {
+                // Log error if CSS file itself is not found
+                error_log('[MoBooking Styles Fix] CSS file not found at: ' . $css_file_abs_path);
+            }
+        }
+    }
+    add_action( 'wp_enqueue_scripts', 'mobooking_dashboard_enqueue_styles_fix', 20 );
+}
+
 /**
  * Main shell for the MoBooking Dashboard.
  * @package MoBooking
