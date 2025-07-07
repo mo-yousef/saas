@@ -423,9 +423,6 @@ body.mobooking-form-active {
 
 /* Radio Button Styling */
 .mobooking-bf__radio-wrapper {
-    position: absolute;
-    top: 1rem;
-    right: 1rem;
 }
 
 .mobooking-bf__radio-input {
@@ -988,36 +985,42 @@ body.mobooking-form-active {
     </div>
 </div>
 
-<!-- Service Card Template - Compatible with existing MoBooking JS -->
+<!-- Service Card Template - Enhanced and Fixed -->
 <script type="text/template" id="mobooking-bf-service-item-template">
     <div class="mobooking-bf__service-card" data-service-id="<%= service_id %>">
         <div class="mobooking-bf__radio-wrapper">
             <input type="radio" name="selected_service" value="<%= service_id %>" id="service-<%= service_id %>" class="mobooking-bf__radio-input">
-        </div>
-        <div class="mobooking-bf__service-header">
-            <div class="mobooking-bf__service-icon">
-                <!-- icon_placeholder -->
-            </div>
-            <div class="mobooking-bf__service-info">
-                <h4 class="mobooking-bf__service-name"><%= name %></h4>
-                <p class="mobooking-bf__service-price">$<%= price %></p>
-            </div>
-        </div>
-        <!-- image_placeholder -->
-        <% if (typeof description !== 'undefined' && description) { %>
-            <p class="mobooking-bf__service-description"><%= description %></p>
-        <% } %>
-        <div class="mobooking-bf__service-meta">
-            <span class="mobooking-bf__service-duration">
-                <i class="fas fa-clock"></i>
-                <%= duration %> min
-            </span>
-            <% if (typeof category !== 'undefined' && category) { %>
-                <span class="mobooking-bf__service-category">
-                    <i class="fas fa-tag"></i>
-                    <%= category %>
-                </span>
-            <% } %>
+            <label for="service-<%= service_id %>" class="mobooking-bf__radio-label">
+                <div class="mobooking-bf__service-content">
+                    <div class="mobooking-bf__service-header">
+                        <div class="mobooking-bf__service-icon">
+                            <!-- icon_placeholder -->
+                        </div>
+                        <div class="mobooking-bf__service-info">
+                            <h4 class="mobooking-bf__service-name"><%= name %></h4>
+                            <% if (typeof price !== 'undefined' && price > 0) { %>
+                                <p class="mobooking-bf__service-price">$<%= price %></p>
+                            <% } %>
+                        </div>
+                    </div>
+                    <!-- image_placeholder -->
+                    <% if (typeof description !== 'undefined' && description) { %>
+                        <p class="mobooking-bf__service-description"><%= description %></p>
+                    <% } %>
+                    <div class="mobooking-bf__service-meta">
+                        <span class="mobooking-bf__service-duration">
+                            <i class="fas fa-clock"></i>
+                            <%= duration %> min
+                        </span>
+                        <% if (typeof category !== 'undefined' && category) { %>
+                            <span class="mobooking-bf__service-category">
+                                <i class="fas fa-tag"></i>
+                                <%= category %>
+                            </span>
+                        <% } %>
+                    </div>
+                </div>
+            </label>
         </div>
     </div>
 </script>
@@ -1026,35 +1029,40 @@ body.mobooking-form-active {
 <script type="text/template" id="mobooking-bf-service-card-template">
     <div class="mobooking-bf__service-card" data-service-id="<%= service_id %>">
         <div class="mobooking-bf__radio-wrapper">
-            <input type="radio" name="selected_service" value="<%= service_id %>" id="service-<%= service_id %>" class="mobooking-bf__radio-input">
-        </div>
-        <div class="mobooking-bf__service-header">
-            <div class="mobooking-bf__service-icon">
-                <!-- icon_placeholder -->
-            </div>
-            <div class="mobooking-bf__service-info">
-                <h4 class="mobooking-bf__service-name"><%= name %></h4>
-                <p class="mobooking-bf__service-price">$<%= price %></p>
-            </div>
-        </div>
-        <!-- image_placeholder -->
-        <% if (typeof description !== 'undefined' && description) { %>
-            <p class="mobooking-bf__service-description"><%= description %></p>
-        <% } %>
-        <div class="mobooking-bf__service-meta">
-            <span class="mobooking-bf__service-duration">
-                <i class="fas fa-clock"></i>
-                <%= duration %> min
-            </span>
-            <% if (typeof category !== 'undefined' && category) { %>
-                <span class="mobooking-bf__service-category">
-                    <i class="fas fa-tag"></i>
-                    <%= category %>
-                </span>
-            <% } %>
+            <input type="radio" name="selected_service" value="<%= service_id %>" id="service-alt-<%= service_id %>" class="mobooking-bf__radio-input">
+            <label for="service-alt-<%= service_id %>" class="mobooking-bf__radio-label">
+                <div class="mobooking-bf__service-header">
+                    <div class="mobooking-bf__service-icon">
+                        <!-- icon_placeholder -->
+                    </div>
+                    <div class="mobooking-bf__service-info">
+                        <h4 class="mobooking-bf__service-name"><%= name %></h4>
+                        <p class="mobooking-bf__service-price">$<%= price %></p>
+                    </div>
+                </div>
+                <!-- image_placeholder -->
+                <div class="mobooking-bf__service-details">
+                    <% if (typeof description !== 'undefined' && description) { %>
+                        <p class="mobooking-bf__service-description"><%= description %></p>
+                    <% } %>
+                    <div class="mobooking-bf__service-meta">
+                        <span class="mobooking-bf__service-duration">
+                            <i class="fas fa-clock"></i>
+                            <%= duration %> min
+                        </span>
+                        <% if (typeof category !== 'undefined' && category) { %>
+                            <span class="mobooking-bf__service-category">
+                                <i class="fas fa-tag"></i>
+                                <%= category %>
+                            </span>
+                        <% } %>
+                    </div>
+                </div>
+            </label>
         </div>
     </div>
 </script>
+
 
 <!-- Service Option Templates - Compatible with existing MoBooking JS -->
 <script type="text/template" id="mobooking-bf-option-checkbox-template">

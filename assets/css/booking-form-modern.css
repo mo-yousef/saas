@@ -613,6 +613,11 @@ body.mobooking-form-active {
     /* Prevent shrinking */
 }
 
+.mobooking-bf__service-image img {
+    width: 200px;
+    max-width: 100%;
+}
+
 .mobooking-bf__service-icon {
     display: flex;
     align-items: center;
