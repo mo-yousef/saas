@@ -1434,11 +1434,11 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <i class="fas fa-home"></i>
                             </div>
                             <div class="mobooking-bf__service-info">
-                                <h4 class="mobooking-bf__service-name">House Cleaning</h4>
+                                <h4 class="mobooking-bf__service-name">House Cleaning (Simulated)</h4>
                                 <p class="mobooking-bf__service-price">$120.00</p>
                             </div>
                         </div>
-                        <p class="mobooking-bf__service-description">Complete house cleaning service including all rooms, kitchen, and bathrooms.</p>
+                        <p class="mobooking-bf__service-description">Simulated description.</p>
                         <div class="mobooking-bf__service-meta">
                             <span class="mobooking-bf__service-duration">
                                 <i class="fas fa-clock"></i>
