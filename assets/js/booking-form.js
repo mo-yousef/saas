@@ -529,67 +529,64 @@ jQuery(document).ready(function ($) {
               return;
             }
 
-            // FIXED: Proper template replacement handling conditional logic
             let serviceHtml = template;
 
-            // Replace basic template variables first
+            // 1. Replace basic <%= placeholder %> variables first
             Object.keys(templateData).forEach(function (key) {
               const regex = new RegExp("<%= " + key + " %>", "g");
-              serviceHtml = serviceHtml.replace(regex, templateData[key]);
+              // Ensure templateData[key] is a string to avoid 'undefined' or 'null' literal strings in the HTML
+              const value = templateData[key] !== null && typeof templateData[key] !== 'undefined' ? String(templateData[key]) : '';
+              serviceHtml = serviceHtml.replace(regex, value);
             });
 
-            // Handle conditional blocks for price
-            if (templateData.price && templateData.price > 0) {
-              // Replace the conditional price block
+            // 2. Handle conditional blocks for price, description, category
+            // Price: <% if (typeof price !== 'undefined' && price > 0) { %> <p class="mobooking-bf__service-price">$<%= price %></p> <% } %>
+            if (templateData.price && parseFloat(templateData.price) > 0) {
+              // Condition is true: reveal the content of the if-block.
+              // The inner <%= price %> should have already been replaced by the loop above.
               serviceHtml = serviceHtml.replace(
                 /<% if \(typeof price !== 'undefined' && price > 0\) \{ %>([\s\S]*?)<% \} %>/g,
                 "$1"
               );
-              // Replace the price placeholder
-              serviceHtml = serviceHtml.replace(
-                /\$<%= price %>/g,
-                "$" + templateData.price
-              );
             } else {
-              // Remove the entire conditional price block
+              // Condition is false: remove the entire if-block.
               serviceHtml = serviceHtml.replace(
-                /<% if \(typeof price !== 'undefined' && price > 0\) \{ %>[\s\S]*?<% \} %>/g,
+                /<% if \(typeof price !== 'undefined' && price > 0\) \{ %>([\s\S]*?)<% \} %>/g,
                 ""
               );
             }
 
-            // Handle conditional blocks for description
-            if (
-              templateData.description &&
-              templateData.description.trim() !== ""
-            ) {
+            // Description: <% if (typeof description !== 'undefined' && description) { %> <p class="mobooking-bf__service-description"><%= description %></p> <% } %>
+            if (templateData.description && String(templateData.description).trim() !== "") {
               serviceHtml = serviceHtml.replace(
                 /<% if \(typeof description !== 'undefined' && description\) \{ %>([\s\S]*?)<% \} %>/g,
                 "$1"
               );
             } else {
               serviceHtml = serviceHtml.replace(
-                /<% if \(typeof description !== 'undefined' && description\) \{ %>[\s\S]*?<% \} %>/g,
+                /<% if \(typeof description !== 'undefined' && description\) \{ %>([\s\S]*?)<% \} %>/g,
                 ""
               );
             }
 
-            // Handle conditional blocks for category
-            if (templateData.category && templateData.category.trim() !== "") {
+            // Category: <% if (typeof category !== 'undefined' && category) { %> <span class="mobooking-bf__service-category"> ... <%= category %> ... </span> <% } %>
+            if (templateData.category && String(templateData.category).trim() !== "") {
               serviceHtml = serviceHtml.replace(
                 /<% if \(typeof category !== 'undefined' && category\) \{ %>([\s\S]*?)<% \} %>/g,
                 "$1"
               );
             } else {
               serviceHtml = serviceHtml.replace(
-                /<% if \(typeof category !== 'undefined' && category\) \{ %>[\s\S]*?<% \} %>/g,
+                /<% if \(typeof category !== 'undefined' && category\) \{ %>([\s\S]*?)<% \} %>/g,
                 ""
               );
             }
 
-            // Clean up any remaining template syntax
-            serviceHtml = serviceHtml.replace(/<%= \w+ %>/g, "");
-            serviceHtml = serviceHtml.replace(/<% [^%]*? %>/g, "");
+            // 3. Clean up any remaining template syntax that might have been missed or was malformed.
+            // This removes any <%= unhandled_placeholder %> tags.
+            serviceHtml = serviceHtml.replace(/<%= [\w\s.-]+? %>/g, ""); // More specific to typical placeholder names
+            // This removes any <% unhandled_logic %> tags. Be cautious if complex logic exists.
+            serviceHtml = serviceHtml.replace(/<% [\s\S]*? %>/g, ""); // More robust for multiline unhandled logic
 
             // Handle icon placeholder
             let iconHtml = "";
