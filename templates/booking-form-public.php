@@ -1582,6 +1582,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
+    /*
     // Make functions available globally for existing MoBooking JS
     window.MoBookingUI = {
         navigateToStep,
@@ -1595,6 +1596,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initialize integration
     initializeMoBookingIntegration();
+    */
 });
 </script>
 
