@@ -102,6 +102,7 @@ function mobooking_scripts() {
     }
 
     // For Public Booking Form page (standard page template OR slug-based route)
+// For Public Booking Form page (standard page template OR slug-based route)
 $page_type_for_scripts = get_query_var('mobooking_page_type');
 if ( is_page_template('templates/booking-form-public.php') || $page_type_for_scripts === 'public_booking' || $page_type_for_scripts === 'embed_booking' ) {
     // Enqueue the new modern booking form CSS
@@ -146,38 +147,21 @@ if ( is_page_template('templates/booking-form-public.php') || $page_type_for_scr
             error_log('[MoBooking Scripts] Using first available business owner as tenant ID: ' . $effective_tenant_id_for_public_form);
         }
     }
-    
-    // Method 5: NEW - Check if location check is disabled for any business owner
-    if (empty($effective_tenant_id_for_public_form) && isset($GLOBALS['mobooking_settings_manager'])) {
-        $all_business_owners = get_users([
-            'role' => 'mobooking_business_owner',
-            'fields' => 'ID'
-        ]);
+
+    // Load tenant settings for this specific tenant
+    $tenant_settings = [];
+    if ($effective_tenant_id_for_public_form) {
+        $settings_manager = new \MoBooking\Classes\Settings();
+        $tenant_settings = $settings_manager->get_booking_form_settings($effective_tenant_id_for_public_form);
         
-        foreach ($all_business_owners as $owner_id) {
-            $settings = $GLOBALS['mobooking_settings_manager']->get_booking_form_settings($owner_id);
-            if (isset($settings['bf_enable_location_check']) && $settings['bf_enable_location_check'] === '0') {
-                $effective_tenant_id_for_public_form = $owner_id;
-                error_log('[MoBooking Scripts] Found business owner with location check disabled, using as tenant ID: ' . $effective_tenant_id_for_public_form);
-                break;
-            }
+        // Get currency from business settings
+        $biz_settings = $settings_manager->get_business_settings($effective_tenant_id_for_public_form);
+        if (!empty($biz_settings['biz_currency'])) {
+            $public_form_currency_code = $biz_settings['biz_currency'];
         }
     }
 
-    // Get settings for the determined tenant ID
-    $tenant_settings = [];
-    if ($effective_tenant_id_for_public_form && isset($GLOBALS['mobooking_settings_manager'])) {
-        $tenant_settings = $GLOBALS['mobooking_settings_manager']->get_booking_form_settings($effective_tenant_id_for_public_form);
-        $public_form_currency_code = $GLOBALS['mobooking_settings_manager']->get_setting($effective_tenant_id_for_public_form, 'biz_currency_code', 'USD');
-    } else {
-        // Use default settings
-        $tenant_settings = \MoBooking\Classes\Settings::get_all_default_settings();
-        $public_form_currency_code = 'USD';
-    }
-
-    error_log('[MoBooking Scripts] Final Effective Tenant ID for public form localization: ' . $effective_tenant_id_for_public_form);
-    error_log('[MoBooking Scripts] Location check setting: ' . ($tenant_settings['bf_enable_location_check'] ?? 'not set'));
-
+    // Localization strings for booking form
     $i18n_strings = [
         // Step 1
         'zip_required' => __('Please enter your ZIP code.', 'mobooking'),
@@ -248,11 +232,17 @@ if ( is_page_template('templates/booking-form-public.php') || $page_type_for_scr
         'debug_info' => [
             'page_type' => $page_type_for_scripts,
             'query_var_tenant_id' => get_query_var('mobooking_tenant_id_on_page', 0),
-            'get_tid' => $_GET['tid'] ?? 0,
-            'is_user_logged_in' => is_user_logged_in(),
+            'get_tid' => $_GET['tid'] ?? null,
+            'user_logged_in' => is_user_logged_in(),
             'current_user_id' => get_current_user_id(),
+            'request_uri' => $_SERVER['REQUEST_URI'] ?? '',
         ]
     ]);
+
+    // Add custom CSS from settings if present and form is enabled
+    if (!empty($tenant_settings['bf_custom_css']) && ($tenant_settings['bf_form_enabled'] ?? '1') === '1') {
+        wp_add_inline_style('mobooking-booking-form-modern', $tenant_settings['bf_custom_css']);
+    }
 }
 
 

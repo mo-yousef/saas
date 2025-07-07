@@ -559,6 +559,7 @@ class Services {
     }
 
 public function handle_get_public_services_ajax() {
+    // Check nonce
     if (!check_ajax_referer('mobooking_booking_form_nonce', 'nonce', false)) {
         wp_send_json_error(['message' => __('Error: Nonce verification failed.', 'mobooking')], 403);
         return;
@@ -571,73 +572,93 @@ public function handle_get_public_services_ajax() {
     }
 
     // DEBUG: Log the request
-    error_log('[MoBooking Debug] Getting services for tenant_id: ' . $tenant_id);
+    error_log('[MoBooking Services Debug] Getting public services for tenant_id: ' . $tenant_id);
 
     // Validate that the tenant user exists and has the right role
     $tenant_user = get_user_by('ID', $tenant_id);
-    if (!$tenant_user || !in_array('mobooking_business_owner', $tenant_user->roles)) {
+    if (!$tenant_user) {
+        error_log('[MoBooking Services Debug] Tenant user not found for ID: ' . $tenant_id);
         wp_send_json_error(['message' => __('Invalid business identifier.', 'mobooking')], 404);
         return;
     }
 
-    // QUICK FIX: Get ALL services first, then filter by status in PHP
-    $table_name = Database::get_table_name('services');
-    
-    // Get all services for this user directly from database
-    $all_services = $this->wpdb->get_results($this->wpdb->prepare(
-        "SELECT * FROM $table_name WHERE user_id = %d ORDER BY name ASC",
-        $tenant_id
-    ), ARRAY_A);
-    
-    error_log('[MoBooking Debug] Raw database query returned ' . count($all_services) . ' services');
-    
-    $services_for_public = [];
-    
-    if ($all_services) {
-        foreach ($all_services as $service_item) {
-            error_log('[MoBooking Debug] Processing service: ' . $service_item['name'] . ' (status: ' . $service_item['status'] . ')');
-            
-            // Only include active services
-            if ($service_item['status'] !== 'active') {
-                error_log('[MoBooking Debug] Skipping service with status: ' . $service_item['status']);
-                continue;
-            }
-            
-            $item = (array) $service_item;
-            
-            // Enhanced price formatting
-            if (isset($item['price']) && is_numeric($item['price'])) {
-                $item['price_formatted'] = number_format_i18n(floatval($item['price']), 2);
-            } else {
-                $item['price_formatted'] = __('Contact for pricing', 'mobooking');
-            }
-            
-            // Get service options
-            $options_raw = $this->service_options_manager->get_service_options($item['service_id'], $tenant_id);
-            $options = [];
-            if (is_array($options_raw)) {
-                foreach ($options_raw as $opt) {
-                    $options[] = (array) $opt;
-                }
-            }
-            $item['options'] = $options;
-            
-            // Add some additional fields that might be useful for the frontend
-            $item['service_id'] = intval($item['service_id']);
-            $item['name'] = sanitize_text_field($item['name']);
-            $item['description'] = wp_kses_post($item['description']);
-            
-            $services_for_public[] = $item;
-            error_log('[MoBooking Debug] Added service: ' . $item['name']);
-        }
+    if (!in_array('mobooking_business_owner', $tenant_user->roles)) {
+        error_log('[MoBooking Services Debug] User ID ' . $tenant_id . ' is not a business owner. Roles: ' . print_r($tenant_user->roles, true));
+        wp_send_json_error(['message' => __('Invalid business identifier.', 'mobooking')], 404);
+        return;
     }
 
-    error_log('[MoBooking Debug] Final services count: ' . count($services_for_public));
+    // Get services using the existing method but with specific filters for public use
+    try {
+        $table_name = Database::get_table_name('services');
+        
+        // Get all active services for this user
+        $all_services = $this->wpdb->get_results($this->wpdb->prepare(
+            "SELECT * FROM $table_name WHERE user_id = %d AND status = 'active' ORDER BY name ASC",
+            $tenant_id
+        ), ARRAY_A);
+        
+        error_log('[MoBooking Services Debug] Raw database query returned ' . count($all_services) . ' active services');
+        
+        $services_for_public = [];
+        
+        if ($all_services) {
+            foreach ($all_services as $service_item) {
+                error_log('[MoBooking Services Debug] Processing service: ' . $service_item['name']);
+                
+                $item = (array) $service_item;
+                
+                // Enhanced price formatting
+                if (isset($item['price']) && is_numeric($item['price'])) {
+                    $item['price_formatted'] = number_format_i18n(floatval($item['price']), 2);
+                    $item['price'] = floatval($item['price']); // Ensure it's a float for JS
+                } else {
+                    $item['price_formatted'] = __('Contact for pricing', 'mobooking');
+                    $item['price'] = 0;
+                }
+                
+                // Ensure duration is an integer
+                $item['duration'] = isset($item['duration']) ? intval($item['duration']) : 60;
+                
+                // Sanitize output fields
+                $item['service_id'] = intval($item['service_id']);
+                $item['name'] = sanitize_text_field($item['name']);
+                $item['description'] = wp_kses_post($item['description']);
+                $item['category'] = sanitize_text_field($item['category'] ?? '');
+                
+                // Get service options if they exist
+                $options_raw = $this->service_options_manager->get_service_options($item['service_id'], $tenant_id);
+                $options = [];
+                if (is_array($options_raw)) {
+                    foreach ($options_raw as $opt) {
+                        $option_array = (array) $opt;
+                        // Sanitize option data
+                        $option_array['option_id'] = intval($option_array['option_id']);
+                        $option_array['name'] = sanitize_text_field($option_array['name']);
+                        $option_array['description'] = wp_kses_post($option_array['description'] ?? '');
+                        $option_array['type'] = sanitize_text_field($option_array['type']);
+                        $option_array['required'] = (bool) ($option_array['required'] ?? false);
+                        $option_array['price_impact'] = floatval($option_array['price_impact'] ?? 0);
+                        $options[] = $option_array;
+                    }
+                }
+                $item['options'] = $options;
+                
+                $services_for_public[] = $item;
+                error_log('[MoBooking Services Debug] Added service: ' . $item['name'] . ' with ' . count($options) . ' options');
+            }
+        }
 
-    // Always return success with the services array (even if empty)
-    wp_send_json_success($services_for_public);
+        error_log('[MoBooking Services Debug] Final services count for public: ' . count($services_for_public));
+
+        // Always return success with the services array (even if empty)
+        wp_send_json_success($services_for_public);
+        
+    } catch (Exception $e) {
+        error_log('[MoBooking Services Debug] Exception in handle_get_public_services_ajax: ' . $e->getMessage());
+        wp_send_json_error(['message' => __('An error occurred while loading services.', 'mobooking')], 500);
+    }
 }
-
 
 
     public function handle_get_services_ajax() {

@@ -65,21 +65,20 @@ jQuery(document).ready(function ($) {
   const sidebarDiscountApplied = $("#mobooking-bf-sidebar-discount-applied");
   const sidebarFinalTotal = $("#mobooking-bf-sidebar-final-total");
 
-
   let mobooking_current_step = 1; // Keep track of the current visible step
   let publicServicesCache = []; // Cache for service data from Step 2
-  let currentSelectionForSummary = { // To hold data for sidebar summary
+  let currentSelectionForSummary = {
+    // To hold data for sidebar summary
     service: null,
     options: {}, // Store as { optionId: { name: 'Opt Name', value: 'Val', price: X } }
     customerDetails: {},
     discountInfo: null,
     totals: {
-        subtotal: 0,
-        discountAmount: 0,
-        finalTotal: 0
-    }
+      subtotal: 0,
+      discountAmount: 0,
+      finalTotal: 0,
+    },
   };
-
 
   // Enhanced tenant ID detection and initialization
   let initialTenantId = "";
@@ -129,83 +128,54 @@ jQuery(document).ready(function ($) {
     // Future: Implement or call progress bar rendering function here.
   }
 
-  if (formSettings.bf_header_text) {
-    $("#mobooking-public-booking-form-wrapper > h1").text(
-      formSettings.bf_header_text
-    );
-  }
-
-  if (formSettings.bf_custom_css) {
-    $('<style type="text/css"></style>')
-      .html(formSettings.bf_custom_css)
-      .appendTo("head");
-  }
-
-  if (formSettings.bf_theme_color) {
-    const themeColorStyle = `
-      .mobooking-bf-step button.button-primary,
-      #mobooking-bf-review-confirm-btn,
-      #mobooking-bf-apply-discount-btn {
-        background-color: ${formSettings.bf_theme_color} !important;
-        border-color: ${formSettings.bf_theme_color} !important;
-        color: #fff !important;
-      }
-      /* Example for progress bar (if implemented) or active step headers */
-      /* .mobooking-progress-bar .step.active { background-color: ${formSettings.bf_theme_color}; } */
-    `;
-    $('<style type="text/css"></style>').html(themeColorStyle).appendTo("head");
-  }
-
-  if (formSettings.bf_allow_discount_codes === "1") {
-    $("#mobooking-bf-discount-section").show();
-  } else {
-    $("#mobooking-bf-discount-section").hide();
-    sessionStorage.removeItem("mobooking_cart_discount_info"); // Clear any stored discount
-  }
-
-  // Enhanced location check logic
+  // Check if location checking is disabled and handle tenant ID setup
   if (formSettings.bf_enable_location_check === "0") {
     console.log("Location check is disabled");
-    step1Div.hide();
 
-    // Try multiple methods to get tenant ID
-    let tenantIdForServices = null;
+    // Try multiple methods to get tenant ID when location check is disabled
+    let tenantIdForServices = "";
 
-    // Method 1: From localized params
+    // Method 1: From localized params (highest priority)
     if (
       typeof mobooking_booking_form_params !== "undefined" &&
-      mobooking_booking_form_params.tenant_id
+      mobooking_booking_form_params.tenant_id &&
+      mobooking_booking_form_params.tenant_id !== "0"
     ) {
       tenantIdForServices = String(mobooking_booking_form_params.tenant_id);
       console.log("Method 1: Got tenant ID from params:", tenantIdForServices);
     }
 
-    // Method 2: From session storage (if previously set)
-    if (!tenantIdForServices || tenantIdForServices === "0") {
-      tenantIdForServices = sessionStorage.getItem("mobooking_cart_tenant_id");
-      console.log(
-        "Method 2: Got tenant ID from session storage:",
-        tenantIdForServices
+    // Method 2: From session storage
+    if (!tenantIdForServices) {
+      const sessionTenantId = sessionStorage.getItem(
+        "mobooking_cart_tenant_id"
       );
+      if (sessionTenantId && sessionTenantId !== "0") {
+        tenantIdForServices = sessionTenantId;
+        console.log(
+          "Method 2: Got tenant ID from session:",
+          tenantIdForServices
+        );
+      }
     }
 
-    // Method 3: From hidden field in form
-    if (!tenantIdForServices || tenantIdForServices === "0") {
-      tenantIdForServices = tenantIdField.val();
-      console.log(
-        "Method 3: Got tenant ID from form field:",
-        tenantIdForServices
-      );
+    // Method 3: From hidden field
+    if (!tenantIdForServices) {
+      const fieldTenantId = tenantIdField.val();
+      if (fieldTenantId && fieldTenantId !== "0") {
+        tenantIdForServices = fieldTenantId;
+        console.log("Method 3: Got tenant ID from field:", tenantIdForServices);
+      }
     }
 
-    // Method 4: From URL parameters (fallback)
-    if (!tenantIdForServices || tenantIdForServices === "0") {
+    // Method 4: From URL parameter
+    if (!tenantIdForServices) {
       const urlParams = new URLSearchParams(window.location.search);
-      tenantIdForServices = urlParams.get("tid");
-      console.log(
-        "Method 4: Got tenant ID from URL params:",
-        tenantIdForServices
-      );
+      const urlTenantId = urlParams.get("tid");
+      if (urlTenantId && urlTenantId !== "0") {
+        tenantIdForServices = urlTenantId;
+        console.log("Method 4: Got tenant ID from URL:", tenantIdForServices);
+      }
     }
 
     if (tenantIdForServices && tenantIdForServices !== "0") {
@@ -270,86 +240,40 @@ jQuery(document).ready(function ($) {
           </p>
         </div>`
       );
+      return; // Exit if no tenant ID found and location check is disabled
     }
   } else {
+    // Location check is enabled, show step 1 normally
     console.log("Location check is enabled, showing Step 1");
     displayStep(1);
   }
 
-  // --- Apply Dynamic Styles from Settings ---
-  const formWrapper = $("#mobooking-public-booking-form-wrapper");
-  if (formWrapper.length) {
-    if (formSettings.bf_theme_color) {
-      formWrapper.css("--mobk-color-primary", formSettings.bf_theme_color);
-      // Potentially derive a ring color if not set separately
-      formWrapper.css("--mobk-color-ring", formSettings.bf_theme_color);
-    }
-    if (formSettings.bf_secondary_color) {
-      // Assuming this is for secondary button BG or similar accents
-      formWrapper.css(
-        "--mobk-color-secondary",
-        formSettings.bf_secondary_color
-      );
-    }
-    if (formSettings.bf_background_color) {
-      formWrapper.css(
-        "--mobk-color-background",
-        formSettings.bf_background_color
-      );
-      // If card background is same as page background, this might need adjustment or card specific var
-      formWrapper.css("--mobk-color-card", formSettings.bf_background_color); // Example: card matches page bg
-      // Or, keep card default white and let this be page bg only
-    }
-    if (formSettings.bf_font_family) {
-      formWrapper.css("--mobk-font-family", formSettings.bf_font_family);
-      // Also apply to body if the form is the main content and not embedded
-      if (!$("body").hasClass("mobooking-form-embed-active")) {
-        $("body").css("font-family", formSettings.bf_font_family);
-      }
-    }
-    if (formSettings.bf_border_radius) {
-      // Assuming bf_border_radius is a number, append 'px' or use as is if it's a full CSS value.
-      // Shadcn uses rem, e.g., 0.5rem. If bf_border_radius stores "8", it could be "8px".
-      const radiusValue = /^\d+$/.test(formSettings.bf_border_radius)
-        ? formSettings.bf_border_radius + "px"
-        : formSettings.bf_border_radius;
-      formWrapper.css("--mobk-border-radius", radiusValue);
-    }
-  }
-
+  // --- Location Form (Step 1) ---
   locationForm.on("submit", function (e) {
     e.preventDefault();
-    feedbackDiv.empty().removeClass("success error").hide();
-    const zipCode = $("#mobooking-bf-zip-code").val().trim();
-    const countryCode = $("#mobooking-bf-country-code").val().trim();
+    const zipCode = $("#mobooking-bf-zip").val().trim();
+    const countryCode = $("#mobooking-bf-country").val().trim();
     const tenantId = tenantIdField.val();
+
+    feedbackDiv.empty().hide();
 
     if (!zipCode) {
       feedbackDiv
-        .text(
-          mobooking_booking_form_params.i18n.zip_required ||
-            "ZIP Code is required."
-        )
-        .addClass("error")
-        .show();
-      return;
-    }
-    if (!tenantId) {
-      feedbackDiv
-        .text(
-          mobooking_booking_form_params.i18n.tenant_id_missing ||
-            "Business identifier is missing."
-        )
+        .text(mobooking_booking_form_params.i18n.zip_required)
         .addClass("error")
         .show();
       return;
     }
     if (!countryCode) {
       feedbackDiv
-        .text(
-          mobooking_booking_form_params.i18n.country_code_required ||
-            "Country Code is required."
-        )
+        .text(mobooking_booking_form_params.i18n.country_code_required)
+        .addClass("error")
+        .show();
+      return;
+    }
+    if (!tenantId) {
+      feedbackDiv
+        .text(mobooking_booking_form_params.i18n.tenant_id_missing)
         .addClass("error")
         .show();
       return;
@@ -365,7 +289,7 @@ jQuery(document).ready(function ($) {
       url: mobooking_booking_form_params.ajax_url,
       type: "POST",
       data: {
-        action: "mobooking_check_zip_availability",
+        action: "mobooking_check_service_area",
         nonce: mobooking_booking_form_params.nonce,
         zip_code: zipCode,
         country_code: countryCode,
@@ -374,7 +298,7 @@ jQuery(document).ready(function ($) {
       success: function (response) {
         if (response.success) {
           feedbackDiv
-            .text(response.data.message)
+            .text(response.data.message || "Area is serviced.")
             .addClass(response.data.serviced ? "success" : "error")
             .show();
           if (response.data.serviced) {
@@ -418,9 +342,14 @@ jQuery(document).ready(function ($) {
     else if (stepToShow === 6) targetStepDiv = step6ConfirmDiv;
 
     // Animate out current step if it's different from target
-    const currentActiveStep = $(".mobooking-bf__step:not(.mobooking-bf__hidden):not(.fade-in)");
-    if (currentActiveStep.length && currentActiveStep.attr("id") !== targetStepDiv?.attr("id")) {
-        currentActiveStep.removeClass("fade-in").addClass("mobooking-bf__hidden");
+    const currentActiveStep = $(
+      ".mobooking-bf__step:not(.mobooking-bf__hidden):not(.fade-in)"
+    );
+    if (
+      currentActiveStep.length &&
+      currentActiveStep.attr("id") !== targetStepDiv?.attr("id")
+    ) {
+      currentActiveStep.removeClass("fade-in").addClass("mobooking-bf__hidden");
     }
 
     // Hide all steps initially then show the target one with animation
@@ -429,18 +358,21 @@ jQuery(document).ready(function ($) {
     if (targetStepDiv) {
       // Use a short timeout to allow the 'display: none' from mobooking-bf__hidden to apply first,
       // then remove it and trigger the animation by adding 'fade-in'.
-      setTimeout(function() {
-        targetStepDiv.removeClass("mobooking-bf__hidden").show().addClass("fade-in");
+      setTimeout(function () {
+        targetStepDiv
+          .removeClass("mobooking-bf__hidden")
+          .show()
+          .addClass("fade-in");
       }, 50); // Small delay, adjust if needed
       mobooking_current_step = stepToShow;
     }
 
     // Manage sidebar visibility
     if (stepToShow === 3 || stepToShow === 5) {
-        sidebarSummaryDiv.removeClass("mobooking-bf__hidden");
-        renderOrUpdateSidebarSummary(); // Update content when shown
+      sidebarSummaryDiv.removeClass("mobooking-bf__hidden");
+      renderOrUpdateSidebarSummary(); // Update content when shown
     } else {
-        sidebarSummaryDiv.addClass("mobooking-bf__hidden");
+      sidebarSummaryDiv.addClass("mobooking-bf__hidden");
     }
   }
 
@@ -500,18 +432,30 @@ jQuery(document).ready(function ($) {
   function displayStep2_LoadServices() {
     console.log("displayStep2_LoadServices called");
 
-    const tenantId = sessionStorage.getItem("mobooking_cart_tenant_id");
-    console.log("Tenant ID from session storage:", tenantId);
+    let tenantId =
+      sessionStorage.getItem("mobooking_cart_tenant_id") || tenantIdField.val();
 
-    if (!tenantId) {
+    // Enhanced tenant ID validation with detailed logging
+    if (!tenantId || tenantId === "0" || tenantId === "") {
+      console.error(
+        "No tenant ID available for loading services. Current values:"
+      );
+      console.error(
+        "- sessionStorage tenant_id:",
+        sessionStorage.getItem("mobooking_cart_tenant_id")
+      );
+      console.error("- tenantIdField value:", tenantIdField.val());
+      console.error(
+        "- mobooking_booking_form_params.tenant_id:",
+        mobooking_booking_form_params?.tenant_id
+      );
+
       const errorMessage =
-        formSettings.bf_enable_location_check === "0"
+        formSettings.bf_enable_location_check !== "0"
           ? mobooking_booking_form_params.i18n.tenant_id_missing ||
             "Business identifier is missing. Cannot load services."
           : mobooking_booking_form_params.i18n.tenant_id_missing_refresh ||
             "Tenant ID missing. Please refresh and try again.";
-
-      console.error("No tenant ID available for loading services");
 
       step2FeedbackDiv.text(errorMessage).addClass("error").show();
 
@@ -562,148 +506,230 @@ jQuery(document).ready(function ($) {
             const templateData = {
               service_id: service.service_id,
               name: service.name,
-              duration: service.duration,
-              // image_url, icon_html will be handled manually below
+              duration: service.duration || 60,
+              price: service.price || 0,
+              description: service.description || "",
+              category: service.category || "",
             };
 
-            let itemHtml = bfRenderTemplate("#mobooking-bf-service-item-template", templateData);
+            // Get template - try multiple possible template IDs for compatibility
+            let template =
+              $("#mobooking-bf-service-item-template").html() ||
+              $("#mobooking-bf-service-card-template").html();
 
-            // Conditionally insert image
+            if (!template) {
+              console.error(
+                "No service template found. Available templates:",
+                $("#mobooking-bf-service-item-template").length,
+                $("#mobooking-bf-service-card-template").length
+              );
+              servicesListDiv.html(
+                "<p>Error: Service template missing. Please contact support.</p>"
+              );
+              return;
+            }
+
+            // FIXED: Proper template replacement handling conditional logic
+            let serviceHtml = template;
+
+            // Replace basic template variables first
+            Object.keys(templateData).forEach(function (key) {
+              const regex = new RegExp("<%= " + key + " %>", "g");
+              serviceHtml = serviceHtml.replace(regex, templateData[key]);
+            });
+
+            // Handle conditional blocks for price
+            if (templateData.price && templateData.price > 0) {
+              // Replace the conditional price block
+              serviceHtml = serviceHtml.replace(
+                /<% if \(typeof price !== 'undefined' && price > 0\) \{ %>([\s\S]*?)<% \} %>/g,
+                "$1"
+              );
+              // Replace the price placeholder
+              serviceHtml = serviceHtml.replace(
+                /\$<%= price %>/g,
+                "$" + templateData.price
+              );
+            } else {
+              // Remove the entire conditional price block
+              serviceHtml = serviceHtml.replace(
+                /<% if \(typeof price !== 'undefined' && price > 0\) \{ %>[\s\S]*?<% \} %>/g,
+                ""
+              );
+            }
+
+            // Handle conditional blocks for description
+            if (
+              templateData.description &&
+              templateData.description.trim() !== ""
+            ) {
+              serviceHtml = serviceHtml.replace(
+                /<% if \(typeof description !== 'undefined' && description\) \{ %>([\s\S]*?)<% \} %>/g,
+                "$1"
+              );
+            } else {
+              serviceHtml = serviceHtml.replace(
+                /<% if \(typeof description !== 'undefined' && description\) \{ %>[\s\S]*?<% \} %>/g,
+                ""
+              );
+            }
+
+            // Handle conditional blocks for category
+            if (templateData.category && templateData.category.trim() !== "") {
+              serviceHtml = serviceHtml.replace(
+                /<% if \(typeof category !== 'undefined' && category\) \{ %>([\s\S]*?)<% \} %>/g,
+                "$1"
+              );
+            } else {
+              serviceHtml = serviceHtml.replace(
+                /<% if \(typeof category !== 'undefined' && category\) \{ %>[\s\S]*?<% \} %>/g,
+                ""
+              );
+            }
+
+            // Clean up any remaining template syntax
+            serviceHtml = serviceHtml.replace(/<%= \w+ %>/g, "");
+            serviceHtml = serviceHtml.replace(/<% [^%]*? %>/g, "");
+
+            // Handle icon placeholder
+            let iconHtml = "";
+            if (service.icon && service.icon.startsWith("dashicons-")) {
+              iconHtml = `<span class="dashicons ${service.icon}"></span>`;
+            } else if (service.icon && service.icon.startsWith("fa-")) {
+              iconHtml = `<i class="fas ${service.icon}"></i>`;
+            } else {
+              iconHtml = `<i class="fas fa-broom"></i>`; // Default cleaning icon
+            }
+            serviceHtml = serviceHtml.replace(
+              /<!-- icon_placeholder -->/g,
+              iconHtml
+            );
+
+            // Handle image placeholder
+            let imageHtml = "";
             if (service.image_url) {
-                const imageHtml = `<img src="${$("<div>").text(service.image_url).html()}" alt="${$("<div>").text(service.name).html()}" class="mobooking-bf__service-image">`;
-                itemHtml = itemHtml.replace("<!-- image_placeholder -->", imageHtml);
-            } else {
-                itemHtml = itemHtml.replace("<!-- image_placeholder -->", "");
+              imageHtml = `<div class="mobooking-bf__service-image">
+                            <img src="${service.image_url}" alt="${service.name}" loading="lazy">
+                          </div>`;
             }
+            serviceHtml = serviceHtml.replace(
+              /<!-- image_placeholder -->/g,
+              imageHtml
+            );
 
-            // Conditionally insert icon (e.g., if service.icon_class or service.icon_svg is provided)
-            // This is an example assuming you might have icon data like an SVG string or a class name
-            if (service.icon_html) { // Example: service.icon_html = '<i class="fas fa-concierge-bell"></i>'
-                const iconHtml = `<div class="mobooking-bf__service-icon">${service.icon_html}</div>`;
-                itemHtml = itemHtml.replace("<!-- icon_placeholder -->", iconHtml);
-            } else if (service.image_url) { // If there's an image, no icon placeholder needed
-                 itemHtml = itemHtml.replace("<!-- icon_placeholder -->", "");
-            }
-            else { // Default placeholder if no image and no specific icon
-                const defaultIconHtml = `<div class="mobooking-bf__service-icon mobooking-bf__service-icon--default"><span>${service.name.substring(0,1)}</span></div>`; // Default to first letter
-                itemHtml = itemHtml.replace("<!-- icon_placeholder -->", defaultIconHtml);
-            }
+            // Create jQuery object and ensure proper data attributes
+            const $serviceElement = $(serviceHtml);
+            $serviceElement.attr("data-service-id", service.service_id);
 
+            // Ensure the radio input has the correct value
+            $serviceElement
+              .find('input[name="selected_service"]')
+              .val(service.service_id);
 
-            // Conditionally insert price
-            if (formSettings.bf_show_pricing === "1" && service.price_formatted) {
-              const priceHtml = `<span class="mobooking-bf__service-price">- ${service.price_formatted}</span>`;
-              itemHtml = itemHtml.replace("<!-- price_placeholder -->", priceHtml);
-            } else {
-              itemHtml = itemHtml.replace("<!-- price_placeholder -->", "");
-            }
-
-            // Conditionally insert description
-            if (service.description) {
-              const sanitizedDescription = $("<div>").text(service.description).html();
-              const descriptionHtml = `<p class="mobooking-bf__service-description">${sanitizedDescription}</p>`;
-              itemHtml = itemHtml.replace("<!-- description_placeholder -->", descriptionHtml);
-            } else {
-              itemHtml = itemHtml.replace("<!-- description_placeholder -->", "");
-            }
-
-            servicesListDiv.append(itemHtml);
+            // Add to services list
+            servicesListDiv.append($serviceElement);
           });
-        } else if (
-          response.success &&
-          Array.isArray(response.data) &&
-          response.data.length === 0
-        ) {
+
+          // Update step 2 next button state
+          updateStep2NextButtonState();
+        } else {
           console.log("No services found in response");
 
-          const noServicesMessage =
-            formSettings.bf_enable_location_check === "0"
-              ? "No services are currently available. Please contact us directly or try again later."
-              : mobooking_booking_form_params.i18n.no_services_available ||
-                "No services are currently available for this area. Please try another location or check back later.";
-
           servicesListDiv.html(
-            `<div style="text-align: center; padding: 30px; background: #f8f9fa; border-radius: 8px; border: 1px solid #dee2e6;">
-              <div style="margin-bottom: 20px;">
-                <svg style="width: 48px; height: 48px; color: #6c757d;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                </svg>
+            `<div class="mobooking-bf__no-services">
+              <div class="mobooking-bf__no-services-icon">
+                <i class="fas fa-search"></i>
               </div>
-              <h3 style="color: #495057; margin: 0 0 10px 0;">No Services Available</h3>
-              <p style="color: #6c757d; margin: 0; font-size: 16px; line-height: 1.5;">${noServicesMessage}</p>
-              ${
-                formSettings.bf_enable_location_check === "0"
-                  ? `
-                <div style="margin-top: 20px; padding: 15px; background: #e3f2fd; border-radius: 4px; border-left: 4px solid #2196f3;">
-                  <p style="margin: 0; color: #1976d2; font-size: 14px;">
-                    <strong>Note:</strong> This business may not have set up their services yet, or all services may be temporarily unavailable.
-                  </p>
-                </div>
-              `
-                  : ""
-              }
-            </div>`
-          );
-        } else {
-          console.error("Error in services response:", response);
-
-          const errorMessage =
-            response.data?.message ||
-            mobooking_booking_form_params.i18n.error_loading_services ||
-            "Error loading services. Please try again.";
-
-          servicesListDiv.html(
-            `<div style="text-align: center; padding: 30px; background: #fff5f5; border-radius: 8px; border: 1px solid #fed7d7;">
-              <div style="margin-bottom: 20px;">
-                <svg style="width: 48px; height: 48px; color: #e53e3e;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-              </div>
-              <h3 style="color: #e53e3e; margin: 0 0 10px 0;">Error Loading Services</h3>
-              <p style="color: #c53030; margin: 0; font-size: 16px;">${errorMessage}</p>
+              <h3>${
+                mobooking_booking_form_params.i18n.no_services_available ||
+                "No services available"
+              }</h3>
+              <p>Please try again later or contact us directly.</p>
             </div>`
           );
         }
       },
       error: function (xhr, status, error) {
-        console.error("AJAX error loading services:", error, xhr);
+        console.error("Services AJAX error:", status, error);
+        console.error("Response:", xhr.responseText);
+
+        step2FeedbackDiv
+          .text(
+            mobooking_booking_form_params.i18n.error_loading_services ||
+              "Could not load services. Please try again."
+          )
+          .addClass("error")
+          .show();
 
         servicesListDiv.html(
-          `<div style="text-align: center; padding: 30px; background: #fff5f5; border-radius: 8px; border: 1px solid #fed7d7;">
-            <div style="margin-bottom: 20px;">
-              <svg style="width: 48px; height: 48px; color: #e53e3e;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-              </svg>
+          `<div class="mobooking-bf__error-state">
+            <div class="mobooking-bf__error-icon">
+              <i class="fas fa-exclamation-triangle"></i>
             </div>
-            <h3 style="color: #e53e3e; margin: 0 0 10px 0;">Network Error</h3>
-            <p style="color: #c53030; margin: 0 0 15px 0; font-size: 16px;">
-              ${
-                mobooking_booking_form_params.i18n.error_loading_services ||
-                "Error loading services. Please try again."
-              }
-            </p>
-            <p style="color: #a0a0a0; font-size: 12px; margin: 0;">
-              Error details: ${error} (Status: ${status})
-            </p>
+            <h3>Unable to Load Services</h3>
+            <p>There was a problem connecting to our servers. Please try refreshing the page.</p>
+            <button type="button" onclick="location.reload()" class="mobooking-bf__button mobooking-bf__button--outline">
+              <i class="fas fa-refresh"></i> Refresh Page
+            </button>
           </div>`
         );
       },
     });
   }
 
+  // Function to update Step 2 next button state
+  function updateStep2NextButtonState() {
+    const servicesNextBtn = $("#mobooking-bf-services-next-btn");
+    const checkedService = servicesListDiv.find(
+      'input[name="selected_service"]:checked'
+    );
+
+    if (checkedService.length > 0) {
+      servicesNextBtn.prop("disabled", false).css("opacity", "1");
+    } else {
+      servicesNextBtn.prop("disabled", true).css("opacity", "0.5");
+    }
+  }
+
+  // Add event handler for service selection to update button state
+  $(document).on("change", 'input[name="selected_service"]', function () {
+    updateStep2NextButtonState();
+
+    // Store selected service data
+    const serviceId = parseInt($(this).val(), 10);
+    const serviceData = publicServicesCache.find(
+      (s) => parseInt(s.service_id, 10) === serviceId
+    );
+
+    if (serviceData) {
+      currentSelectionForSummary.service = serviceData;
+      currentSelectionForSummary.options = {}; // Reset options when service changes
+
+      // Store in sessionStorage for consistency
+      sessionStorage.setItem(
+        "mobooking_selected_service",
+        JSON.stringify(serviceData)
+      );
+
+      console.log("Service selected:", serviceData.name);
+    }
+  });
+
   $("#mobooking-bf-services-next-btn").on("click", function () {
-    const checkedRadio = servicesListDiv.find('input[name="selected_service"]:checked');
-    let selectedServiceForCart = []; // Will hold the single selected service object
+    const checkedRadio = servicesListDiv.find(
+      'input[name="selected_service"]:checked'
+    );
+    let selectedServiceForCart = [];
 
     if (checkedRadio.length > 0) {
-      const serviceId = parseInt(checkedRadio.data("service-id"), 10);
+      const serviceId = parseInt(checkedRadio.val(), 10);
       const serviceData = publicServicesCache.find(
         (s) => parseInt(s.service_id, 10) === serviceId
       );
       if (serviceData) {
-        selectedServiceForCart.push(serviceData); // Store as an array with one item for consistency with previous logic
-        currentSelectionForSummary.service = serviceData; // Store for sidebar
-        currentSelectionForSummary.options = {}; // Reset options for new service
+        selectedServiceForCart.push(serviceData);
+        currentSelectionForSummary.service = serviceData;
+        currentSelectionForSummary.options = {};
       }
     }
 
@@ -717,52 +743,72 @@ jQuery(document).ready(function ($) {
         .show();
       return;
     }
+
     step2FeedbackDiv.empty().hide();
 
     sessionStorage.setItem(
       "mobooking_cart_selected_services",
-      JSON.stringify(selectedServiceForCart) // This remains an array for backend compatibility
+      JSON.stringify(selectedServiceForCart)
     );
+
     displayStep(3);
     displayStep3_LoadOptions();
-    // renderOrUpdateSidebarSummary(); // Called by displayStep
   });
-
 
   function displayStep3_LoadOptions() {
     // Retrieve the single selected service from our currentSelectionForSummary or session storage
     const service = currentSelectionForSummary.service;
 
     if (!service) {
-        const selectedServicesJSON = sessionStorage.getItem("mobooking_cart_selected_services");
-        if (!selectedServicesJSON) {
-            step3FeedbackDiv.text(mobooking_booking_form_params.i18n.no_service_selected_options || "No service selected to show options.").addClass("error").show();
-            displayStep(2);
-            return;
-        }
-        const tempSelectedServices = JSON.parse(selectedServicesJSON);
-        if (!tempSelectedServices || tempSelectedServices.length === 0) {
-            step3FeedbackDiv.text(mobooking_booking_form_params.i18n.no_service_selected_options || "No service selected.").addClass("error").show();
-            displayStep(2);
-            return;
-        }
-        currentSelectionForSummary.service = tempSelectedServices[0]; // Populate if navigating directly to step 3
+      const selectedServicesJSON = sessionStorage.getItem(
+        "mobooking_cart_selected_services"
+      );
+      if (!selectedServicesJSON) {
+        step3FeedbackDiv
+          .text(
+            mobooking_booking_form_params.i18n.no_service_selected_options ||
+              "No service selected to show options."
+          )
+          .addClass("error")
+          .show();
+        displayStep(2);
+        return;
+      }
+      const tempSelectedServices = JSON.parse(selectedServicesJSON);
+      if (!tempSelectedServices || tempSelectedServices.length === 0) {
+        step3FeedbackDiv
+          .text(
+            mobooking_booking_form_params.i18n.no_service_selected_options ||
+              "No service selected."
+          )
+          .addClass("error")
+          .show();
+        displayStep(2);
+        return;
+      }
+      currentSelectionForSummary.service = tempSelectedServices[0]; // Populate if navigating directly to step 3
     }
     // Re-assign service in case it was populated from session storage
     const currentService = currentSelectionForSummary.service;
 
-
     const step3Title = $("#mobooking-bf-step-3-title");
     if (step3Title.length && currentService.name) {
-        const baseTitle = mobooking_booking_form_params.i18n.step3_title || "Step 3: Configure Service Options";
-        step3Title.text(baseTitle + " for " + currentService.name);
+      const baseTitle =
+        mobooking_booking_form_params.i18n.step3_title ||
+        "Step 3: Configure Service Options";
+      step3Title.text(baseTitle + " for " + currentService.name);
     }
 
     serviceOptionsDisplayDiv.empty();
     step3FeedbackDiv.empty().removeClass("error success").hide();
 
     if (!currentService.options || currentService.options.length === 0) {
-      serviceOptionsDisplayDiv.html(`<p>${mobooking_booking_form_params.i18n.no_options_for_service || "This service has no additional options."}</p>`);
+      serviceOptionsDisplayDiv.html(
+        `<p>${
+          mobooking_booking_form_params.i18n.no_options_for_service ||
+          "This service has no additional options."
+        }</p>`
+      );
       // Update summary even if no options
       currentSelectionForSummary.options = {};
       renderOrUpdateSidebarSummary();
@@ -775,556 +821,579 @@ jQuery(document).ready(function ($) {
         option_id: option.option_id,
         name: option.name,
         required_attr: option.is_required == 1 ? "required" : "",
-        quantity_default_value: option.is_required == 1 && (option.type === 'quantity' || option.type === 'number') ? "1" : "0",
-        option_values_json_string: option.option_values || "[]"
+        quantity_default_value:
+          option.is_required == 1 &&
+          (option.type === "quantity" || option.type === "number")
+            ? 1
+            : 0,
+        description: option.description || "",
+        type: option.type,
+        price_impact: option.price_impact || 0,
       };
 
-      let templateId = `#mobooking-bf-option-${option.type}-template`;
-      let optionHtml = bfRenderTemplate(templateId, templateData);
-
-      let descriptionHtml = "";
-      if (option.description) {
-        descriptionHtml = `<p class="mobooking-bf__option-description">${$("<div>").text(option.description).html()}</p>`;
-      }
-      optionHtml = optionHtml.replace("<!-- description_placeholder -->", descriptionHtml);
-
-      let requiredIndicatorHtml = "";
-      if (option.is_required == 1 && option.type !== 'checkbox') {
-         requiredIndicatorHtml = ` <span class="mobooking-bf__required-indicator">*</span>`;
-      }
-      optionHtml = optionHtml.replace("<!-- required_indicator_placeholder -->", requiredIndicatorHtml);
-
-      let priceImpactHtml = "";
-      // Price impact display logic can be enhanced here or in sidebar summary
-      optionHtml = optionHtml.replace("<!-- price_impact_placeholder -->", priceImpactHtml);
-
-
-      if (option.type === "select" || option.type === "radio") {
-        // ... (existing select/radio rendering logic remains largely the same)
-        let choicesHtml = "";
-        const parsedChoices = JSON.parse(option.option_values || "[]");
-
-        if (option.type === "select" && option.is_required != 1) {
-          choicesHtml += `<option value="">${mobooking_booking_form_params.i18n.select_optional || '-- Select (optional) --'}</option>`;
+      let optionHtml = "";
+      if (option.type === "checkbox") {
+        optionHtml = `
+          <div class="mobooking-bf__option-group" data-option-id="${
+            option.option_id
+          }">
+            <label class="mobooking-bf__option-label">
+              <input type="checkbox" name="option_${
+                option.option_id
+              }" value="1" ${templateData.required_attr}>
+              <span class="mobooking-bf__option-name">${
+                templateData.name
+              }</span>
+              ${
+                templateData.price_impact > 0
+                  ? `<span class="mobooking-bf__option-price">+${templateData.price_impact}</span>`
+                  : ""
+              }
+            </label>
+            ${
+              templateData.description
+                ? `<p class="mobooking-bf__option-description">${templateData.description}</p>`
+                : ""
+            }
+          </div>
+        `;
+      } else if (option.type === "text") {
+        optionHtml = `
+          <div class="mobooking-bf__option-group" data-option-id="${
+            option.option_id
+          }">
+            <label class="mobooking-bf__option-label">${
+              templateData.name
+            }</label>
+            <input type="text" name="option_${
+              option.option_id
+            }" class="mobooking-bf__option-input" ${templateData.required_attr}>
+            ${
+              templateData.description
+                ? `<p class="mobooking-bf__option-description">${templateData.description}</p>`
+                : ""
+            }
+          </div>
+        `;
+      } else if (option.type === "number" || option.type === "quantity") {
+        optionHtml = `
+          <div class="mobooking-bf__option-group" data-option-id="${
+            option.option_id
+          }">
+            <label class="mobooking-bf__option-label">
+              ${templateData.name}
+              ${
+                templateData.price_impact > 0
+                  ? `<span class="mobooking-bf__option-price">${templateData.price_impact} each</span>`
+                  : ""
+              }
+            </label>
+            <div class="mobooking-bf__quantity-control">
+              <button type="button" class="mobooking-bf__quantity-btn" data-action="decrease">-</button>
+              <input type="number" name="option_${option.option_id}" value="${
+          templateData.quantity_default_value
+        }" min="0" class="mobooking-bf__quantity-input" ${
+          templateData.required_attr
+        }>
+              <button type="button" class="mobooking-bf__quantity-btn" data-action="increase">+</button>
+            </div>
+            ${
+              templateData.description
+                ? `<p class="mobooking-bf__option-description">${templateData.description}</p>`
+                : ""
+            }
+          </div>
+        `;
+      } else if (option.type === "select") {
+        let selectOptions = "";
+        if (option.choices && Array.isArray(option.choices)) {
+          option.choices.forEach((choice) => {
+            selectOptions += `<option value="${choice.value}" data-price="${
+              choice.price || 0
+            }">${choice.label}</option>`;
+          });
         }
-
-        parsedChoices.forEach((choice, index) => {
-          const choicePriceAdjustDisplay = choice.price_adjust ?
-            `(${parseFloat(choice.price_adjust) > 0 ? '+' : ''}${formatCurrency(parseFloat(choice.price_adjust), currencyCode, false)})` : "";
-
-          if (option.type === "select") {
-            choicesHtml += `<option value="${$("<div>").text(choice.value).html()}" data-price-adjust="${parseFloat(choice.price_adjust) || 0}">` +
-                           `${$("<div>").text(choice.label).html()} ${choicePriceAdjustDisplay}</option>`;
-          } else { // radio
-            const radioName = `service_option[${currentService.service_id}][${option.option_id}]`;
-            const radioId = `option_${currentService.service_id}_${option.option_id}_${index}`;
-            const checkedAttr = (option.is_required == 1 && index === 0) ? "checked" : ""; // Auto-select first if required
-            choicesHtml += `<label class="mobooking-bf__label mobooking-bf__label--radio">` +
-                           `<input type="radio" id="${radioId}" class="mobooking-bf__radio" name="${radioName}" value="${$("<div>").text(choice.value).html()}" data-price-adjust="${parseFloat(choice.price_adjust) || 0}" ${checkedAttr}>` +
-                           `<span class="mobooking-bf__option-name">${$("<div>").text(choice.label).html()}</span> ${choicePriceAdjustDisplay}</label>`;
-          }
-        });
-        optionHtml = optionHtml.replace("<!-- options_loop_placeholder -->", choicesHtml);
+        optionHtml = `
+          <div class="mobooking-bf__option-group" data-option-id="${
+            option.option_id
+          }">
+            <label class="mobooking-bf__option-label">${
+              templateData.name
+            }</label>
+            <select name="option_${
+              option.option_id
+            }" class="mobooking-bf__option-select" ${
+          templateData.required_attr
+        }>
+              <option value="">Choose an option...</option>
+              ${selectOptions}
+            </select>
+            ${
+              templateData.description
+                ? `<p class="mobooking-bf__option-description">${templateData.description}</p>`
+                : ""
+            }
+          </div>
+        `;
+      } else if (option.type === "textarea") {
+        optionHtml = `
+          <div class="mobooking-bf__option-group" data-option-id="${
+            option.option_id
+          }">
+            <label class="mobooking-bf__option-label">${
+              templateData.name
+            }</label>
+            <textarea name="option_${
+              option.option_id
+            }" class="mobooking-bf__option-textarea" rows="3" ${
+          templateData.required_attr
+        }></textarea>
+            ${
+              templateData.description
+                ? `<p class="mobooking-bf__option-description">${templateData.description}</p>`
+                : ""
+            }
+          </div>
+        `;
       }
-      const $optionElement = $(optionHtml);
-      serviceOptionsDisplayDiv.append($optionElement);
 
-      // Attach event listeners for new input types
-      if (option.type === "number" || option.type === "quantity") {
-        attachNumberInputHandlers($optionElement.find(".mobooking-bf__number-input-wrapper"));
-      }
-      if (option.type === "sqm") {
-        attachSqmInputHandlers($optionElement.find(".mobooking-bf__sqm-input-group"));
-      }
-      // Attach change listener to all relevant inputs for summary update
-      $optionElement.find('input, select, textarea').on('change input', function() {
-          updateConfiguredOptionFromForm(currentService.service_id, option.option_id, option.type, $(this));
-          renderOrUpdateSidebarSummary();
-      });
-       // Trigger initial change for radios if one is pre-checked
-      if (option.type === "radio" && $optionElement.find('input[type="radio"]:checked').length > 0) {
-        updateConfiguredOptionFromForm(currentService.service_id, option.option_id, option.type, $optionElement.find('input[type="radio"]:checked'));
-      }
-
-
+      serviceOptionsDisplayDiv.append(optionHtml);
     });
-    // Initial summary render after options are displayed
+
+    // Update summary after options are loaded
     renderOrUpdateSidebarSummary();
   }
 
-  /**
-   * Attaches event handlers to the plus and minus buttons for a number input.
-   * Updates the input value and triggers a 'change' event for summary updates.
-   * @param {jQuery} $wrapper - The jQuery object for the .mobooking-bf__number-input-wrapper div.
-   */
-  function attachNumberInputHandlers($wrapper) {
-    const $input = $wrapper.find("input[type='number']");
-    const $minusBtn = $wrapper.find(".mobooking-bf__number-btn--minus");
-    const $plusBtn = $wrapper.find(".mobooking-bf__number-btn--plus");
-    const min = parseFloat($input.attr("min")) || 0;
-    const step = parseFloat($input.attr("step")) || 1;
+  // Handle option changes for pricing updates
+  $(document).on(
+    "change input",
+    ".mobooking-bf__option-group input, .mobooking-bf__option-group select, .mobooking-bf__option-group textarea",
+    function () {
+      updateOptionsInSummary();
+      renderOrUpdateSidebarSummary();
+    }
+  );
 
-    $minusBtn.on("click", function () {
-      let currentValue = parseFloat($input.val()) || 0;
-      currentValue = Math.max(min, currentValue - step);
-      $input.val(currentValue).trigger("change");
-    });
+  // Handle quantity buttons
+  $(document).on("click", ".mobooking-bf__quantity-btn", function () {
+    const button = $(this);
+    const group = button.closest(".mobooking-bf__option-group");
+    const input = group.find(".mobooking-bf__quantity-input");
+    const action = button.data("action");
+    let currentValue = parseInt(input.val()) || 0;
 
-    $plusBtn.on("click", function () {
-      let currentValue = parseFloat($input.val()) || 0;
-      // No max check here unless specified by option data
-      currentValue += step;
-      $input.val(currentValue).trigger("change");
-    });
-  }
+    if (action === "increase") {
+      currentValue += 1;
+    } else if (action === "decrease" && currentValue > 0) {
+      currentValue -= 1;
+    }
 
-  /**
-   * Attaches event handlers for an SQM input group (slider and number input).
-   * Synchronizes the slider and number input, and triggers 'change' for summary updates.
-   * Updates a local display for the SQM value.
-   * @param {jQuery} $wrapper - The jQuery object for the .mobooking-bf__sqm-input-group div.
-   */
-  function attachSqmInputHandlers($wrapper) {
-    const $slider = $wrapper.find(".mobooking-bf__slider");
-    const $numberInput = $wrapper.find(".mobooking-bf-sqm-total-input");
-    const min = parseFloat($slider.attr("min")) || 0;
-    const max = parseFloat($slider.attr("max")) || 500; // Ensure max is read from attr if set
-    const step = parseFloat($slider.attr("step")) || 1;
+    input.val(currentValue).trigger("change");
+  });
 
-    // Update number input when slider changes
-    $slider.on("input", function () {
-      $numberInput.val($(this).val()).trigger("change"); // Trigger change for summary
-    });
+  function updateOptionsInSummary() {
+    currentSelectionForSummary.options = {};
 
-    // Update slider when number input changes
-    $numberInput.on("input", function () {
-      let value = parseFloat($(this).val());
-      if (isNaN(value)) value = min;
-      value = Math.max(min, Math.min(max, value));
-      $slider.val(value);
-      // $(this).val(value); // Correct the input if it was out of bounds
-      // Update the specific SQM price display div if it exists
-      const $priceDisplay = $wrapper.closest('.mobooking-bf__option-item').find('.mobooking-bf__sqm-price-display');
-      if ($priceDisplay.length) {
-        // Example: Display current SQM. More complex logic if direct price per SQM is available.
-        $priceDisplay.text(`${$(this).val()} SQM selected`);
+    $(".mobooking-bf__option-group").each(function () {
+      const group = $(this);
+      const optionId = group.data("option-id");
+      const input = group.find("input, select, textarea");
+
+      if (input.length) {
+        let value = "";
+        let price = 0;
+        const optionName = group
+          .find(".mobooking-bf__option-label")
+          .text()
+          .trim();
+
+        if (input.is(":checkbox")) {
+          if (input.is(":checked")) {
+            value = "Yes";
+            price =
+              parseFloat(
+                group
+                  .find(".mobooking-bf__option-price")
+                  .text()
+                  .replace(/[^0-9.]/g, "")
+              ) || 0;
+          }
+        } else if (input.is("select")) {
+          const selectedOption = input.find("option:selected");
+          value = selectedOption.text();
+          price = parseFloat(selectedOption.data("price")) || 0;
+        } else {
+          value = input.val();
+          if (input.is('[type="number"]')) {
+            const quantity = parseInt(value) || 0;
+            if (quantity > 0) {
+              const unitPrice =
+                parseFloat(
+                  group
+                    .find(".mobooking-bf__option-price")
+                    .text()
+                    .replace(/[^0-9.]/g, "")
+                ) || 0;
+              price = unitPrice * quantity;
+              value = quantity.toString();
+            }
+          }
+        }
+
+        if (value && value !== "" && value !== "0") {
+          currentSelectionForSummary.options[optionId] = {
+            name: optionName,
+            value: value,
+            price: price,
+          };
+        }
       }
     });
-
-    // Initial sync and display update
-    $slider.trigger('input');
   }
-
-  /**
-   * Helper to update currentSelectionForSummary.options from form inputs.
-   * This function is called when an option's input field changes.
-   * @param {string|number} serviceId - The ID of the currently selected service.
-   * @param {string|number} optionId - The ID of the option being updated.
-   * @param {string} optionType - The type of the option input (e.g., 'checkbox', 'number', 'sqm').
-   * @param {jQuery} $field - The jQuery object representing the changed input field.
-   */
-  function updateConfiguredOptionFromForm(serviceId, optionId, optionType, $field) {
-      if (!currentSelectionForSummary.service || currentSelectionForSummary.service.service_id != serviceId) return;
-
-      const originalOption = currentSelectionForSummary.service.options.find(opt => opt.option_id == optionId);
-      if (!originalOption) return;
-
-      let selectedValue;
-      switch (optionType) {
-          case "checkbox":
-              selectedValue = $field.is(":checked") ? "1" : "0";
-              break;
-          case "radio":
-              selectedValue = $(`input[name="service_option[${serviceId}][${optionId}]"]:checked`).val() || "";
-              break;
-          default: // Covers text, number, quantity, sqm, select, textarea
-              selectedValue = $field.val() || "";
-      }
-
-      // Calculate price for this option (simplified, needs full logic from calculateTotalPrice)
-      // This is a placeholder for detailed option price calculation to be displayed in sidebar per option
-      let optionPrice = 0; // Placeholder
-      // TODO: Implement detailed option price calculation here if needed for individual option display in sidebar.
-      // For now, calculateTotalPrice will handle the aggregate.
-
-      currentSelectionForSummary.options[optionId] = {
-          option_id: optionId,
-          name: originalOption.name,
-          type: optionType,
-          value: selectedValue,
-          price_display: formatCurrency(optionPrice, currencyCode) // Placeholder
-      };
-  }
-
 
   $("#mobooking-bf-options-next-btn").on("click", function () {
-    // Data for session storage is already being updated by updateConfiguredOptionFromForm
-    // and renderOrUpdateSidebarSummary. We just need to ensure it's saved before moving.
+    // Validate required options
+    let allValid = true;
+    $(".mobooking-bf__option-group").each(function () {
+      const group = $(this);
+      const input = group.find(
+        "input[required], select[required], textarea[required]"
+      );
 
-    // Perform validation if needed for required options before proceeding
-    let allRequiredOptionsMet = true;
-    if (currentSelectionForSummary.service && currentSelectionForSummary.service.options) {
-        currentSelectionForSummary.service.options.forEach(opt => {
-            if (opt.is_required == 1) {
-                const configuredOpt = currentSelectionForSummary.options[opt.option_id];
-                let isMissing = false;
+      if (input.length) {
+        if (input.is(":checkbox") && !input.is(":checked")) {
+          allValid = false;
+          group.addClass("error");
+        } else if (input.is("select") && !input.val()) {
+          allValid = false;
+          group.addClass("error");
+        } else if (!input.is(":checkbox") && !input.val()) {
+          allValid = false;
+          group.addClass("error");
+        } else {
+          group.removeClass("error");
+        }
+      }
+    });
 
-                if (!configuredOpt || !configuredOpt.value || configuredOpt.value.trim() === "") {
-                    // General check for empty value if required
-                    isMissing = true;
-                } else if (opt.type === 'checkbox' && configuredOpt.value === '0') {
-                    // Checkbox specifically needs to be "1" if required
-                    isMissing = true;
-                } else if ((opt.type === 'quantity' || opt.type === 'number' || opt.type === 'sqm')) {
-                    // For numeric types, if required, value must be greater than 0.
-                    // Exception: if it's not required, 0 is acceptable.
-                    // If it is required, a value of 0 or less is missing.
-                    // The quantity_default_value from templateData was for initial render,
-                    // here we check the actual original option's properties if needed, e.g. opt.min_value_if_required
-                    const numericValue = parseFloat(configuredOpt.value);
-                    if (isNaN(numericValue) || numericValue <= 0) {
-                        isMissing = true;
-                    }
-                }
-                // Add other type-specific checks if necessary
-
-                if (isMissing) {
-                    allRequiredOptionsMet = false;
-                    step3FeedbackDiv.html((mobooking_booking_form_params.i18n.required_option_missing || `Please fill the required option: <strong>${opt.name}</strong>`)).addClass("error").show();
-                    return false; // exit forEach
-                }
-            }
-        });
+    if (!allValid) {
+      step3FeedbackDiv
+        .text("Please complete all required options.")
+        .addClass("error")
+        .show();
+      return;
     }
 
-    if (!allRequiredOptionsMet) {
-        return; // Stop if validation fails
-    }
     step3FeedbackDiv.empty().hide();
 
-
-    // Save the fully configured service (with options) to session storage
-    // The structure in session storage expects an array of services.
-    let serviceToStore = JSON.parse(JSON.stringify(currentSelectionForSummary.service)); // Deep clone
-    serviceToStore.configured_options = Object.values(currentSelectionForSummary.options).map(opt => ({
-        option_id: opt.option_id,
-        name: opt.name,
-        type: opt.type,
-        selected_value: opt.value
-    }));
-
-    sessionStorage.setItem(
-      "mobooking_cart_selected_services",
-      JSON.stringify([serviceToStore]) // Store as an array
-    );
+    // Update options in summary
+    updateOptionsInSummary();
 
     displayStep(4);
   });
 
   $("#mobooking-bf-details-next-btn").on("click", function () {
-    let isValid = true;
-    let errors = [];
-    const customerDetails = {
-      customer_name: $("#mobooking-bf-customer-name").val().trim(),
-      customer_email: $("#mobooking-bf-customer-email").val().trim(),
-      customer_phone:
-        formSettings.bf_require_phone === "1"
-          ? $("#mobooking-bf-customer-phone").val().trim()
-          : $("#mobooking-bf-customer-phone").val().trim(),
-      service_address: $("#mobooking-bf-service-address").val().trim(),
-      booking_date:
-        formSettings.bf_allow_date_time_selection === "1"
-          ? $("#mobooking-bf-booking-date").val().trim()
-          : "",
-      booking_time:
-        formSettings.bf_allow_date_time_selection === "1"
-          ? $("#mobooking-bf-booking-time").val().trim()
-          : "",
-      special_instructions:
-        formSettings.bf_allow_special_instructions === "1"
-          ? $("#mobooking-bf-special-instructions").val().trim()
-          : "",
-    };
+    // Validate customer details
+    const customerName = $("#mobooking-bf-customer-name").val().trim();
+    const customerEmail = $("#mobooking-bf-customer-email").val().trim();
+    const customerPhone = $("#mobooking-bf-customer-phone").val().trim();
+    const serviceAddress = $("#mobooking-bf-service-address").val().trim();
+    const bookingDate = $("#mobooking-bf-booking-date").val();
+    const bookingTime = $("#mobooking-bf-booking-time").val();
 
-    // Name validation
-    if (!customerDetails.customer_name) {
-      isValid = false;
-      errors.push(mobooking_booking_form_params.i18n.name_required);
-    }
+    step4FeedbackDiv.empty().hide();
 
-    // Email validation
-    if (!customerDetails.customer_email) {
-      isValid = false;
-      errors.push(mobooking_booking_form_params.i18n.email_required);
-    } else if (
-      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customerDetails.customer_email)
-    ) {
-      isValid = false;
-      errors.push(mobooking_booking_form_params.i18n.email_invalid);
-    }
-
-    // Phone validation (conditional)
-    if (
-      formSettings.bf_require_phone === "1" &&
-      !customerDetails.customer_phone
-    ) {
-      isValid = false;
-      errors.push(mobooking_booking_form_params.i18n.phone_required);
-    }
-
-    // Service address validation
-    if (!customerDetails.service_address) {
-      isValid = false;
-      errors.push(mobooking_booking_form_params.i18n.address_required);
-    }
-
-    // Date and Time validation (conditional)
-    if (formSettings.bf_allow_date_time_selection === "1") {
-      if (!customerDetails.booking_date) {
-        isValid = false;
-        errors.push(mobooking_booking_form_params.i18n.date_required);
-      }
-      if (!customerDetails.booking_time) {
-        isValid = false;
-        errors.push(mobooking_booking_form_params.i18n.time_required);
-      }
-    }
-
-    if (!isValid) {
-      step4FeedbackDiv.html(errors.join("<br>")).addClass("error").show();
-      return;
-    }
-    sessionStorage.setItem(
-      "mobooking_cart_booking_details",
-      JSON.stringify(customerDetails)
-    );
-    displayStep(5);
-    displayStep5_ReviewBooking();
-  });
-
-  function calculateTotalPrice(selectedServices, discountInfo = null) {
-    let subtotal = 0;
-    let serviceDetailsForSummary = [];
-    selectedServices.forEach((service) => {
-      let currentServicePrice = parseFloat(service.price) || 0;
-      let serviceOptionsSummary = [];
-      if (service.configured_options && service.configured_options.length > 0) {
-        service.configured_options.forEach((confOpt) => {
-          const originalOption = service.options.find(
-            (opt) => opt.option_id == confOpt.option_id
-          );
-          if (!originalOption) return;
-          let meaningfulSelection = false;
-          if (
-            originalOption.type === "checkbox" &&
-            confOpt.selected_value === "1"
-          )
-            meaningfulSelection = true;
-          else if (
-            originalOption.type === "quantity" &&
-            parseInt(confOpt.selected_value, 10) > 0
-          )
-            meaningfulSelection = true;
-          else if (
-            ["text", "textarea", "radio", "select"].includes(
-              originalOption.type
-            ) &&
-            confOpt.selected_value &&
-            confOpt.selected_value.trim() !== ""
-          )
-            meaningfulSelection = true;
-          if (!meaningfulSelection) return;
-          const optionPrice = parseFloat(originalOption.price_impact) || 0;
-          let finalOptionPrice = 0;
-          if (originalOption.price_impact_type === "fixed") {
-            finalOptionPrice = optionPrice;
-          } else if (originalOption.price_impact_type === "percentage") {
-            finalOptionPrice = (currentServicePrice * optionPrice) / 100;
-          } else if (originalOption.price_impact_type === "multiply") {
-            const quantity = parseInt(confOpt.selected_value, 10) || 1;
-            finalOptionPrice = optionPrice * quantity;
-          }
-          currentServicePrice += finalOptionPrice;
-          serviceOptionsSummary.push({
-            name: originalOption.option_name,
-            value: confOpt.selected_value,
-            price: finalOptionPrice,
-          });
-        });
-      }
-      serviceDetailsForSummary.push({
-        name: service.name,
-        base_price: parseFloat(service.price) || 0,
-        options: serviceOptionsSummary,
-        final_service_price_raw: currentServicePrice,
-        options_summary: serviceOptionsSummary,
-      });
-      subtotal += currentServicePrice;
-    });
-    let discountAmount = 0;
-    let finalTotal = subtotal;
-    if (discountInfo && discountInfo.valid) {
-      if (discountInfo.discount_type === "percentage") {
-        discountAmount =
-          (subtotal * parseFloat(discountInfo.discount_value)) / 100;
-      } else if (discountInfo.discount_type === "fixed") {
-        discountAmount = parseFloat(discountInfo.discount_value);
-      }
-      finalTotal = Math.max(0, subtotal - discountAmount);
-    }
-    return {
-      subtotal,
-      discountAmount,
-      finalTotal,
-      serviceDetailsForSummary,
-    };
-  }
-
-  function formatCurrency(amount, currency = "USD", includeSymbol = true) {
-    const options = {
-      minimumFractionDigits: 2, // Ensure two decimal places
-      maximumFractionDigits: 2
-    };
-    if (includeSymbol) {
-      options.style = "currency";
-      options.currency = currency;
-    } else {
-      options.style = "decimal";
-      // For decimal style, currency option is not used, but we maintain consistency in formatting.
-    }
-    return new Intl.NumberFormat("en-US", options).format(amount);
-  }
-
-  function displayStep5_ReviewBooking() {
-    const selectedServicesJSON = sessionStorage.getItem(
-      "mobooking_cart_selected_services"
-    );
-    const bookingDetailsJSON = sessionStorage.getItem("mobooking_cart_booking_details");
-
-    // Update currentSelectionForSummary with booking details for the sidebar
-    if (bookingDetailsJSON) {
-        currentSelectionForSummary.customerDetails = JSON.parse(bookingDetailsJSON);
-    }
-    // Selected services and options should already be in currentSelectionForSummary
-
-    // The main review summary on the page might still be populated as before,
-    // or could also leverage currentSelectionForSummary.
-    // For now, let's assume it continues to use session storage primarily for its detailed display.
-    // const selectedServicesJSON = sessionStorage.getItem("mobooking_cart_selected_services"); // Already declared by function parameter or outer scope if needed
-     if (!selectedServicesJSON || !bookingDetailsJSON) { // selectedServicesJSON is passed or available
-      step5FeedbackDiv.text("Missing booking information for review.").addClass("error").show();
-      // Potentially redirect to an earlier step if critical info is missing
-      // displayStep(1);
-      return;
-    }
-
-    const selectedServices = JSON.parse(selectedServicesJSON); // This is an array with one service
-    const bookingDetails = JSON.parse(bookingDetailsJSON);
-    const discountInfo = currentSelectionForSummary.discountInfo; // Already up-to-date
-
-    // Calculate pricing using the structure from sessionStorage for the main review panel
-    // Note: calculateTotalPrice might need adjustment if the structure of selectedServices in session is different now
-    const pricingForReviewPanel = calculateTotalPrice(selectedServices, discountInfo);
-
-
-    let summaryHtml = `<h3>${ mobooking_booking_form_params.i18n.booking_summary || "Booking Summary"}</h3>`;
-    summaryHtml += `<h4>${ mobooking_booking_form_params.i18n.customer_details || "Customer Details"}</h4>`;
-    summaryHtml += `<p><strong>${ mobooking_booking_form_params.i18n.name_label || "Name"}:</strong> ${$("<div>").text(bookingDetails.customer_name).html()}</p>`;
-    summaryHtml += `<p><strong>${ mobooking_booking_form_params.i18n.email_label || "Email"}:</strong> ${$("<div>").text(bookingDetails.customer_email).html()}</p>`;
-    summaryHtml += `<p><strong>${ mobooking_booking_form_params.i18n.phone_label || "Phone"}:</strong> ${$("<div>").text(bookingDetails.customer_phone).html()}</p>`;
-    summaryHtml += `<p><strong>${ mobooking_booking_form_params.i18n.address_label || "Address"}:</strong><br>${$("<div>").text(bookingDetails.service_address).html().replace(/\n/g, "<br>")}</p>`;
-    if (bookingDetails.booking_date && bookingDetails.booking_time) {
-        summaryHtml += `<p><strong>${ mobooking_booking_form_params.i18n.datetime_label || "Date & Time"}:</strong> ${$("<div>").text(bookingDetails.booking_date).html()} at ${$("<div>").text(bookingDetails.booking_time).html()}</p>`;
-    }
-    if (bookingDetails.special_instructions) {
-      summaryHtml += `<p><strong>${ mobooking_booking_form_params.i18n.instructions_label || "Instructions"}:</strong><br>${$("<div>").text(bookingDetails.special_instructions).html().replace(/\n/g, "<br>")}</p>`;
-    }
-
-    summaryHtml += `<hr><h4>${ mobooking_booking_form_params.i18n.services_summary || "Services Summary"}</h4>`;
-    // Use pricingForReviewPanel which is based on the session storage structure for services
-    pricingForReviewPanel.serviceDetailsForSummary.forEach((item) => {
-      summaryHtml += `<div style="margin-bottom:10px;"><strong>${$("<div>").text(item.name).html()}</strong> - ${formatCurrency(item.final_service_price_raw,currencyCode)}`;
-      if (item.options_summary && item.options_summary.length > 0) {
-        summaryHtml += `<ul style="margin:5px 0 0 20px;">`;
-        item.options_summary.forEach((opt) => {
-          summaryHtml += `<li>${$("<div>").text(opt.name).html()}: ${$("<div>").text(opt.value).html()} (+${formatCurrency(opt.price, currencyCode)})</li>`;
-        });
-        summaryHtml += `</ul>`;
-      }
-      summaryHtml += `</div>`;
-    });
-
-    if (formSettings.bf_show_pricing === "1") {
-      // These IDs are for the main review panel, not the sidebar
-      $("#mobooking-bf-subtotal").text(formatCurrency(pricingForReviewPanel.subtotal, currencyCode));
-      if (pricingForReviewPanel.discountAmount > 0) {
-        $("#mobooking-bf-discount-applied").text(`-${formatCurrency(pricingForReviewPanel.discountAmount, currencyCode)}`).parent().show();
-      } else {
-        $("#mobooking-bf-discount-applied").parent().hide();
-      }
-      $("#mobooking-bf-final-total").text(formatCurrency(pricingForReviewPanel.finalTotal, currencyCode));
-    }
-
-    reviewSummaryDiv.html(summaryHtml); // Populate the main review summary
-    step5FeedbackDiv.empty().hide();
-
-    // Sidebar summary will be updated via renderOrUpdateSidebarSummary called by displayStep
-  }
-
-
-  applyDiscountBtn.on("click", function () {
-    const code = discountCodeInput.val().trim(),
-      tenantId = sessionStorage.getItem("mobooking_cart_tenant_id");
-    if (!code) {
-      discountFeedbackDiv
-        .text(mobooking_booking_form_params.i18n.enter_discount_code)
+    if (!customerName) {
+      step4FeedbackDiv
+        .text(mobooking_booking_form_params.i18n.name_required)
         .addClass("error")
         .show();
       return;
     }
-    if (!tenantId) return;
-    const $button = $(this);
-    const originalButtonText = $button.text();
-    $button.prop("disabled", true).text(mobooking_booking_form_params.i18n.applying || "Applying...");
-    discountFeedbackDiv.empty().removeClass("success error").hide();
+    if (!customerEmail) {
+      step4FeedbackDiv
+        .text(mobooking_booking_form_params.i18n.email_required)
+        .addClass("error")
+        .show();
+      return;
+    }
+    if (!customerPhone) {
+      step4FeedbackDiv
+        .text(mobooking_booking_form_params.i18n.phone_required)
+        .addClass("error")
+        .show();
+      return;
+    }
+    if (!serviceAddress) {
+      step4FeedbackDiv
+        .text(mobooking_booking_form_params.i18n.address_required)
+        .addClass("error")
+        .show();
+      return;
+    }
+    if (!bookingDate) {
+      step4FeedbackDiv
+        .text(mobooking_booking_form_params.i18n.date_required)
+        .addClass("error")
+        .show();
+      return;
+    }
+    if (!bookingTime) {
+      step4FeedbackDiv
+        .text(mobooking_booking_form_params.i18n.time_required)
+        .addClass("error")
+        .show();
+      return;
+    }
+
+    // Store customer details
+    const customerDetails = {
+      customer_name: customerName,
+      customer_email: customerEmail,
+      customer_phone: customerPhone,
+      service_address: serviceAddress,
+      booking_date: bookingDate,
+      booking_time: bookingTime,
+      special_instructions: $("#mobooking-bf-special-instructions")
+        .val()
+        .trim(),
+    };
+
+    currentSelectionForSummary.customerDetails = customerDetails;
+    sessionStorage.setItem(
+      "mobooking_cart_booking_details",
+      JSON.stringify(customerDetails)
+    );
+
+    displayStep(5);
+    displayStep5_PrepareReview();
+  });
+
+  function displayStep5_PrepareReview() {
+    const selectedServicesJSON = sessionStorage.getItem(
+      "mobooking_cart_selected_services"
+    );
+    const bookingDetailsJSON = sessionStorage.getItem(
+      "mobooking_cart_booking_details"
+    );
+
+    if (!selectedServicesJSON || !bookingDetailsJSON) {
+      step5FeedbackDiv
+        .text("Missing booking information for review.")
+        .addClass("error")
+        .show();
+      return;
+    }
+
+    const selectedServices = JSON.parse(selectedServicesJSON);
+    const bookingDetails = JSON.parse(bookingDetailsJSON);
+    const discountInfo = currentSelectionForSummary.discountInfo;
+
+    // Calculate pricing
+    const pricingForReviewPanel = calculateTotalPrice(
+      selectedServices,
+      discountInfo
+    );
+
+    let summaryHtml = `<h3>${
+      mobooking_booking_form_params.i18n.booking_summary || "Booking Summary"
+    }</h3>`;
+    summaryHtml += `<h4>${
+      mobooking_booking_form_params.i18n.customer_details || "Customer Details"
+    }</h4>`;
+    summaryHtml += `<p><strong>${
+      mobooking_booking_form_params.i18n.name_label || "Name"
+    }:</strong> ${$("<div>").text(bookingDetails.customer_name).html()}</p>`;
+    summaryHtml += `<p><strong>${
+      mobooking_booking_form_params.i18n.email_label || "Email"
+    }:</strong> ${$("<div>").text(bookingDetails.customer_email).html()}</p>`;
+    summaryHtml += `<p><strong>${
+      mobooking_booking_form_params.i18n.phone_label || "Phone"
+    }:</strong> ${$("<div>").text(bookingDetails.customer_phone).html()}</p>`;
+    summaryHtml += `<p><strong>${
+      mobooking_booking_form_params.i18n.address_label || "Address"
+    }:</strong><br>${$("<div>")
+      .text(bookingDetails.service_address)
+      .html()
+      .replace(/\n/g, "<br>")}</p>`;
+
+    if (bookingDetails.booking_date && bookingDetails.booking_time) {
+      summaryHtml += `<p><strong>${
+        mobooking_booking_form_params.i18n.date_time_label || "Date & Time"
+      }:</strong> ${bookingDetails.booking_date} at ${
+        bookingDetails.booking_time
+      }</p>`;
+    }
+
+    if (bookingDetails.special_instructions) {
+      summaryHtml += `<p><strong>${
+        mobooking_booking_form_params.i18n.instructions_label ||
+        "Special Instructions"
+      }:</strong><br>${$("<div>")
+        .text(bookingDetails.special_instructions)
+        .html()
+        .replace(/\n/g, "<br>")}</p>`;
+    }
+
+    summaryHtml += `<h4>${
+      mobooking_booking_form_params.i18n.service_details || "Service Details"
+    }</h4>`;
+
+    selectedServices.forEach((service) => {
+      summaryHtml += `<div class="mobooking-bf__review-service">`;
+      summaryHtml += `<h5>${$("<div>").text(service.name).html()}</h5>`;
+      summaryHtml += `<p>${
+        mobooking_booking_form_params.i18n.duration_label || "Duration"
+      }: ${service.duration} minutes</p>`;
+      summaryHtml += `<p>${
+        mobooking_booking_form_params.i18n.price_label || "Price"
+      }: ${service.price}</p>`;
+
+      // Show selected options
+      Object.values(currentSelectionForSummary.options).forEach((option) => {
+        summaryHtml += `<p><strong>${option.name}:</strong> ${option.value}`;
+        if (option.price > 0) {
+          summaryHtml += ` (+${option.price})`;
+        }
+        summaryHtml += `</p>`;
+      });
+
+      summaryHtml += `</div>`;
+    });
+
+    // Pricing summary
+    summaryHtml += `<div class="mobooking-bf__pricing-summary">`;
+    summaryHtml += `<p><strong>${
+      mobooking_booking_form_params.i18n.subtotal_label || "Subtotal"
+    }:</strong> ${pricingForReviewPanel.subtotal.toFixed(2)}</p>`;
+
+    if (pricingForReviewPanel.discountAmount > 0) {
+      summaryHtml += `<p><strong>${
+        mobooking_booking_form_params.i18n.discount_label || "Discount"
+      }:</strong> -${pricingForReviewPanel.discountAmount.toFixed(2)}</p>`;
+    }
+
+    summaryHtml += `<p class="mobooking-bf__total"><strong>${
+      mobooking_booking_form_params.i18n.total_label || "Total"
+    }:</strong> ${pricingForReviewPanel.finalTotal.toFixed(2)}</p>`;
+    summaryHtml += `</div>`;
+
+    reviewSummaryDiv.html(summaryHtml);
+
+    // Update pricing displays
+    subtotalDisplay.text(`${pricingForReviewPanel.subtotal.toFixed(2)}`);
+    finalTotalDisplay.text(`${pricingForReviewPanel.finalTotal.toFixed(2)}`);
+
+    if (pricingForReviewPanel.discountAmount > 0) {
+      discountAppliedDisplay
+        .text(`-${pricingForReviewPanel.discountAmount.toFixed(2)}`)
+        .parent()
+        .show();
+    } else {
+      discountAppliedDisplay.parent().hide();
+    }
+  }
+
+  function calculateTotalPrice(selectedServices, discountInfo = null) {
+    let subtotal = 0;
+
+    // Calculate service base price
+    selectedServices.forEach((service) => {
+      subtotal += parseFloat(service.price) || 0;
+    });
+
+    // Add option prices
+    Object.values(currentSelectionForSummary.options).forEach((option) => {
+      subtotal += parseFloat(option.price) || 0;
+    });
+
+    let discountAmount = 0;
+    if (discountInfo && discountInfo.is_valid) {
+      if (discountInfo.type === "percentage") {
+        discountAmount = subtotal * (parseFloat(discountInfo.value) / 100);
+      } else if (discountInfo.type === "fixed") {
+        discountAmount = parseFloat(discountInfo.value);
+      }
+      discountAmount = Math.min(discountAmount, subtotal); // Don't discount more than subtotal
+    }
+
+    const finalTotal = Math.max(0, subtotal - discountAmount);
+
+    return {
+      subtotal: subtotal,
+      discountAmount: discountAmount,
+      finalTotal: finalTotal,
+    };
+  }
+
+  // Discount code handling
+  applyDiscountBtn.on("click", function () {
+    const discountCode = discountCodeInput.val().trim();
+    const tenantId = sessionStorage.getItem("mobooking_cart_tenant_id");
+
+    if (!discountCode) {
+      discountFeedbackDiv
+        .text(mobooking_booking_form_params.i18n.discount_code_required)
+        .addClass("error")
+        .show();
+      return;
+    }
+
+    const originalButtonText = $(this).text();
+    $(this).prop("disabled", true).text("Checking...");
 
     $.ajax({
       url: mobooking_booking_form_params.ajax_url,
       type: "POST",
       data: {
-        action: "mobooking_validate_discount_public",
+        action: "mobooking_validate_discount_code",
         nonce: mobooking_booking_form_params.nonce,
-        discount_code: code,
+        discount_code: discountCode,
         tenant_id: tenantId,
       },
       success: function (response) {
-        if (response.success && response.data.valid) {
+        if (response.success && response.data.is_valid) {
           currentSelectionForSummary.discountInfo = response.data;
-          sessionStorage.setItem("mobooking_cart_discount_info", JSON.stringify(response.data)); // Keep session storage for reload resilience
-          discountFeedbackDiv.text(mobooking_booking_form_params.i18n.discount_applied || "Discount applied!").addClass("success").show();
+          sessionStorage.setItem(
+            "mobooking_cart_discount_info",
+            JSON.stringify(response.data)
+          );
+
+          discountFeedbackDiv
+            .text(mobooking_booking_form_params.i18n.discount_applied)
+            .removeClass("error")
+            .addClass("success")
+            .show();
+
+          // Refresh pricing displays
+          displayStep5_PrepareReview();
+          renderOrUpdateSidebarSummary();
         } else {
-          currentSelectionForSummary.discountInfo = null;
-          sessionStorage.removeItem("mobooking_cart_discount_info");
-          discountFeedbackDiv.text(response.data.message || mobooking_booking_form_params.i18n.invalid_discount_code).addClass("error").show();
+          discountFeedbackDiv
+            .text(
+              response.data?.message ||
+                mobooking_booking_form_params.i18n.invalid_discount_code
+            )
+            .addClass("error")
+            .show();
         }
       },
       error: function () {
-        currentSelectionForSummary.discountInfo = null;
-        sessionStorage.removeItem("mobooking_cart_discount_info");
-        discountFeedbackDiv.text(mobooking_booking_form_params.i18n.error_applying_discount).addClass("error").show();
+        discountFeedbackDiv
+          .text(mobooking_booking_form_params.i18n.discount_error)
+          .addClass("error")
+          .show();
       },
       complete: function () {
-        renderOrUpdateSidebarSummary(); // Update sidebar with new totals
-        displayStep5_ReviewBooking(); // Refresh review panel totals as well
-        $button.prop("disabled", false).text(originalButtonText);
-        setTimeout(function () {
-          discountFeedbackDiv.fadeOut().empty().removeClass("success error");
-        }, 3000);
+        applyDiscountBtn.prop("disabled", false).text(originalButtonText);
       },
     });
   });
 
-  $("#mobooking-bf-review-confirm-btn").on("click", function () {
+  // Final booking submission
+  $("#mobooking-bf-submit-booking-btn").on("click", function (e) {
+    e.preventDefault();
+
     const selectedServicesJSON = sessionStorage.getItem(
       "mobooking_cart_selected_services"
     );
@@ -1337,22 +1406,24 @@ jQuery(document).ready(function ($) {
     const tenantId = sessionStorage.getItem("mobooking_cart_tenant_id");
     const zipCode = sessionStorage.getItem("mobooking_cart_zip");
     const countryCode = sessionStorage.getItem("mobooking_cart_country");
+
     if (!selectedServicesJSON || !bookingDetailsJSON || !tenantId) {
       step5FeedbackDiv
         .text(
-          mobooking_booking_form_params.i18n.booking_error ||
-            "Missing required booking information."
+          "Missing required booking information. Please go back and complete all steps."
         )
         .addClass("error")
         .show();
       return;
     }
+
     const $button = $(this);
     const originalButtonText = $button.text();
     $button
       .prop("disabled", true)
       .text(mobooking_booking_form_params.i18n.submitting || "Submitting...");
     step5FeedbackDiv.empty().hide();
+
     $.ajax({
       url: mobooking_booking_form_params.ajax_url,
       type: "POST",
@@ -1368,12 +1439,14 @@ jQuery(document).ready(function ($) {
       },
       success: function (response) {
         if (response.success) {
+          // Clear session storage
           sessionStorage.removeItem("mobooking_cart_selected_services");
           sessionStorage.removeItem("mobooking_cart_booking_details");
           sessionStorage.removeItem("mobooking_cart_discount_info");
           sessionStorage.removeItem("mobooking_cart_zip");
           sessionStorage.removeItem("mobooking_cart_country");
           sessionStorage.removeItem("mobooking_cart_tenant_id");
+
           confirmationMessageDiv.html(
             response.data.message ||
               mobooking_booking_form_params.i18n.booking_submitted ||
@@ -1423,6 +1496,29 @@ jQuery(document).ready(function ($) {
     displayStep(4);
   });
 
+  // New booking button on confirmation step
+  $("#mobooking-bf-new-booking-btn").on("click", function () {
+    // Reset form state
+    currentSelectionForSummary = {
+      service: null,
+      options: {},
+      customerDetails: {},
+      discountInfo: null,
+      totals: { subtotal: 0, discountAmount: 0, finalTotal: 0 },
+    };
+
+    // Clear form inputs
+    $("#mobooking-public-booking-form")[0]?.reset();
+
+    // Go back to appropriate first step
+    if (formSettings.bf_enable_location_check === "0") {
+      displayStep(2);
+      displayStep2_LoadServices();
+    } else {
+      displayStep(1);
+    }
+  });
+
   // Initialize date picker if available
   if (typeof $.fn.datepicker === "function") {
     $("#mobooking-bf-booking-date").datepicker({
@@ -1434,165 +1530,87 @@ jQuery(document).ready(function ($) {
   }
 
   // --- Sidebar Summary Logic ---
-
-  /**
-   * Renders or updates the booking summary sidebar.
-   * Uses `currentSelectionForSummary` global state object.
-   * Calculates prices and displays selected service, options, and customer details (on review step).
-   */
   function renderOrUpdateSidebarSummary() {
-    if (!sidebarSummaryDiv.length || sidebarSummaryDiv.hasClass("mobooking-bf__hidden")) {
-      // Don't render if sidebar is not present or hidden (or not yet part of the DOM)
+    if (!currentSelectionForSummary.service) {
+      sidebarContentDiv.html("<p>No service selected</p>");
       return;
     }
 
     const service = currentSelectionForSummary.service;
-    if (!service) {
-      sidebarContentDiv.html(`<p>${mobooking_booking_form_params.i18n.select_service_first || "Please select a service first."}</p>`);
-      sidebarSubtotal.text("--");
-      sidebarDiscountItem.hide();
-      sidebarFinalTotal.text("--");
-      return;
+    const options = currentSelectionForSummary.options;
+    const discountInfo = currentSelectionForSummary.discountInfo;
+
+    // Calculate totals
+    let subtotal = parseFloat(service.price) || 0;
+    Object.values(options).forEach((option) => {
+      subtotal += parseFloat(option.price) || 0;
+    });
+
+    let discountAmount = 0;
+    if (discountInfo && discountInfo.is_valid) {
+      if (discountInfo.type === "percentage") {
+        discountAmount = subtotal * (parseFloat(discountInfo.value) / 100);
+      } else if (discountInfo.type === "fixed") {
+        discountAmount = parseFloat(discountInfo.value);
+      }
+      discountAmount = Math.min(discountAmount, subtotal);
     }
 
-    let summaryContentHtml = `<h4>${$("<div>").text(service.name).html()}</h4>`;
-    summaryContentHtml += `<ul class="mobooking-bf__sidebar-options-list">`;
+    const finalTotal = Math.max(0, subtotal - discountAmount);
 
-    let hasOptions = false;
-    if (currentSelectionForSummary.options && Object.keys(currentSelectionForSummary.options).length > 0) {
-        for (const optId in currentSelectionForSummary.options) {
-            const opt = currentSelectionForSummary.options[optId];
-            if (opt.value && opt.value !== "0" && opt.value !== "") { // Only display if there's a meaningful value
-                 // Try to find the original option definition for more details like price_impact_type
-                const originalOptDef = service.options.find(o => o.option_id == optId);
-                let valueDisplay = opt.value;
-                if (opt.type === 'checkbox') valueDisplay = (opt.value === "1" ? (mobooking_booking_form_params.i18n.yes || "Yes") : (mobooking_booking_form_params.i18n.no || "No"));
+    // Update summary object
+    currentSelectionForSummary.totals = {
+      subtotal: subtotal,
+      discountAmount: discountAmount,
+      finalTotal: finalTotal,
+    };
 
-                // Add specific display for quantity or SQM if needed
-                if (opt.type === 'quantity' || opt.type === 'sqm') {
-                     valueDisplay = `${opt.value} ${originalOptDef.unit_name || ''}`.trim();
-                }
-                // TODO: Add price impact per option if available and bf_show_pricing is on
+    let summaryHtml = `
+      <h4>${service.name}</h4>
+      <p class="mobooking-bf__sidebar-price">${service.price}</p>
+      <p class="mobooking-bf__sidebar-duration">${service.duration} minutes</p>
+    `;
 
-                summaryContentHtml += `<li><span>${$("<div>").text(opt.name).html()}:</span> <span>${$("<div>").text(valueDisplay).html()}</span></li>`;
-                hasOptions = true;
-            }
+    if (Object.keys(options).length > 0) {
+      summaryHtml += `<div class="mobooking-bf__sidebar-options">`;
+      summaryHtml += `<h5>Options:</h5>`;
+      Object.values(options).forEach((option) => {
+        summaryHtml += `<p>${option.name}: ${option.value}`;
+        if (option.price > 0) {
+          summaryHtml += ` (+${option.price})`;
         }
+        summaryHtml += `</p>`;
+      });
+      summaryHtml += `</div>`;
     }
 
-    if (!hasOptions) {
-      summaryContentHtml += `<li><p>${mobooking_booking_form_params.i18n.no_options_selected || "No additional options selected."}</p></li>`;
-    }
-    summaryContentHtml += `</ul>`;
+    summaryHtml += `
+      <div class="mobooking-bf__sidebar-totals">
+        <p><strong>Subtotal: ${subtotal.toFixed(2)}</strong></p>
+    `;
 
-    // Customer details if on review step (Step 5)
-    if (mobooking_current_step === 5 && currentSelectionForSummary.customerDetails.customer_name) {
-        summaryContentHtml += `<hr><h5>${mobooking_booking_form_params.i18n.your_details || "Your Details:"}</h5>`;
-        summaryContentHtml += `<p><small>${$("<div>").text(currentSelectionForSummary.customerDetails.customer_name).html()}</small></p>`;
-        summaryContentHtml += `<p><small>${$("<div>").text(currentSelectionForSummary.customerDetails.customer_email).html()}</small></p>`;
-         if (currentSelectionForSummary.customerDetails.booking_date && currentSelectionForSummary.customerDetails.booking_time) {
-            summaryContentHtml += `<p><small>${$("<div>").text(currentSelectionForSummary.customerDetails.booking_date).html()} at ${$("<div>").text(currentSelectionForSummary.customerDetails.booking_time).html()}</small></p>`;
-        }
+    if (discountAmount > 0) {
+      summaryHtml += `<p class="mobooking-bf__discount">Discount: -${discountAmount.toFixed(
+        2
+      )}</p>`;
     }
 
+    summaryHtml += `<p class="mobooking-bf__total"><strong>Total: ${finalTotal.toFixed(
+      2
+    )}</strong></p>`;
+    summaryHtml += `</div>`;
 
-    sidebarContentDiv.html(summaryContentHtml);
+    sidebarContentDiv.html(summaryHtml);
 
-    // Pricing - uses the service and options from currentSelectionForSummary
-    // Create a temporary structure for calculateTotalPrice if its input differs
-    let serviceForPriceCalc = JSON.parse(JSON.stringify(service)); // Deep clone
-    serviceForPriceCalc.configured_options = Object.values(currentSelectionForSummary.options).map(opt => ({
-        option_id: opt.option_id,
-        name: opt.name, // Not strictly needed by calculateTotalPrice but good for consistency
-        type: opt.type,   // Might be needed if calculateTotalPrice has type-specific logic
-        selected_value: opt.value
-    }));
+    // Update individual pricing elements if they exist
+    sidebarSubtotal.text(`${subtotal.toFixed(2)}`);
+    sidebarFinalTotal.text(`${finalTotal.toFixed(2)}`);
 
-    const pricing = calculateTotalPrice([serviceForPriceCalc], currentSelectionForSummary.discountInfo);
-    currentSelectionForSummary.totals = pricing; // Store calculated totals
-
-    if (formSettings.bf_show_pricing === "1") {
-        sidebarSubtotal.text(formatCurrency(pricing.subtotal, currencyCode));
-        if (pricing.discountAmount > 0) {
-            sidebarDiscountApplied.text(`-${formatCurrency(pricing.discountAmount, currencyCode)}`);
-            sidebarDiscountItem.show();
-        } else {
-            sidebarDiscountItem.hide();
-        }
-        sidebarFinalTotal.text(formatCurrency(pricing.finalTotal, currencyCode));
-        $("#mobooking-bf-pricing-summary-section").show(); // Ensure main pricing section is visible if sidebar is
+    if (discountAmount > 0) {
+      sidebarDiscountApplied.text(`-${discountAmount.toFixed(2)}`);
+      sidebarDiscountItem.show();
     } else {
-        // Hide pricing in sidebar if globally disabled
-        sidebarSubtotal.text("--");
-        sidebarDiscountItem.hide();
-        sidebarFinalTotal.text("--");
-        $("#mobooking-bf-pricing-summary-section").hide(); // Hide main pricing section too
+      sidebarDiscountItem.hide();
     }
   }
-
-  /**
-   * Initializes the `currentSelectionForSummary` global state from session storage on page load.
-   * This helps maintain form state (selected service, options, discount) if the user
-   * reloads the page on an intermediate step.
-   */
-  function initializeSummaryFromSession() {
-    const servicesJSON = sessionStorage.getItem("mobooking_cart_selected_services");
-    if (servicesJSON) {
-        const services = JSON.parse(servicesJSON);
-        if (services && services.length > 0) {
-            currentSelectionForSummary.service = services[0];
-            // Populate options from service.configured_options if available
-            if (services[0].configured_options) {
-                services[0].configured_options.forEach(opt => {
-                    currentSelectionForSummary.options[opt.option_id] = {
-                        option_id: opt.option_id,
-                        name: opt.name, // Assuming name is stored
-                        type: opt.type, // Assuming type is stored
-                        value: opt.selected_value,
-                        // Price display would need recalculation or to be stored
-                    };
-                });
-            }
-        }
-    }
-    const discountJSON = sessionStorage.getItem("mobooking_cart_discount_info");
-    if (discountJSON) {
-        currentSelectionForSummary.discountInfo = JSON.parse(discountJSON);
-    }
-    // Customer details can also be pre-filled if session has them and on correct step
-  }
-
-  // Call initialization
-  initializeSummaryFromSession();
-  // Initial display based on current step (e.g. if page loads on step 1, sidebar is hidden)
-  displayStep(mobooking_current_step);
-
-  /**
-   * Attaches event handlers to the plus and minus buttons for a number input.
-   * @param {jQuery} $wrapper - The jQuery object for the .mobooking-bf__number-input-wrapper div.
-   */
-  // attachNumberInputHandlers was defined earlier, comments will be added there.
-
-  /**
-   * Attaches event handlers for an SQM input group (slider and number input).
-   * Synchronizes the slider and number input.
-   * @param {jQuery} $wrapper - The jQuery object for the .mobooking-bf__sqm-input-group div.
-   */
-  // attachSqmInputHandlers was defined earlier, comments will be added there.
-
-  /**
-   * Updates the `currentSelectionForSummary.options` object based on a form field's current value.
-   * @param {string} serviceId - The ID of the service.
-   * @param {string} optionId - The ID of the option.
-   * @param {string} optionType - The type of the option (e.g., 'checkbox', 'number').
-   * @param {jQuery} $field - The jQuery object for the form field that changed.
-   */
-  // updateConfiguredOptionFromForm was defined earlier, comments will be added there.
-
-  /**
-   * Initializes the `currentSelectionForSummary` global state from session storage on page load.
-   * This helps maintain form state if the user reloads the page on an intermediate step.
-   */
-  // initializeSummaryFromSession was defined earlier, comments will be added there.
-
 });
