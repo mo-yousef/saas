@@ -227,7 +227,23 @@ if ( is_page_template('templates/booking-form-public.php') || $page_type_for_scr
         'currency_code' => $public_form_currency_code,
         'site_url' => site_url(),
         'i18n' => $i18n_strings,
-        'settings' => $tenant_settings,
+        'settings' => [
+            // Ensure specific string settings are JS-escaped
+            'bf_header_text' => isset($tenant_settings['bf_header_text']) ? esc_js($tenant_settings['bf_header_text']) : '',
+            'bf_show_pricing' => $tenant_settings['bf_show_pricing'] ?? '1',
+            'bf_allow_discount_codes' => $tenant_settings['bf_allow_discount_codes'] ?? '1',
+            'bf_theme_color' => $tenant_settings['bf_theme_color'] ?? '#1abc9c',
+            // For bf_custom_css, esc_js might be too aggressive if it contains valid CSS quotes.
+            // However, if it's breaking JS, it needs care. wp_json_encode (used by wp_localize_script) should handle it.
+            // If bf_custom_css is truly the issue, it implies very unusual characters.
+            'bf_custom_css' => $tenant_settings['bf_custom_css'] ?? '',
+            'bf_form_enabled' => $tenant_settings['bf_form_enabled'] ?? '1',
+            'bf_maintenance_message' => isset($tenant_settings['bf_maintenance_message']) ? esc_js($tenant_settings['bf_maintenance_message']) : '',
+            'bf_enable_location_check' => $tenant_settings['bf_enable_location_check'] ?? '1',
+            // Add any other settings, ensuring strings that might contain problematic characters are escaped
+            // For example, if there were other free-text fields:
+            // 'another_free_text_setting' => isset($tenant_settings['another_free_text_setting']) ? esc_js($tenant_settings['another_free_text_setting']) : '',
+        ],
         // Add debug info
         'debug_info' => [
             'page_type' => $page_type_for_scripts,
