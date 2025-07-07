@@ -451,17 +451,50 @@ jQuery(document).ready(function ($) {
       return "";
     }
 
-    // Only handle <%= value %> replacements
-    for (const key in data) {
-      if (Object.prototype.hasOwnProperty.call(data, key)) {
-        const value = data[key] !== null && data[key] !== undefined ? data[key] : "";
-        // Basic HTML escaping for safety, as values are injected into HTML structure.
-        const sanitizedValue = $("<div>").text(value).html();
-        template = template.replace(new RegExp("<%=\\s*" + key + "\\s*%>", "g"), sanitizedValue);
-      }
+    // Robust template settings, similar to Underscore.js
+    const settings = {
+      evaluate: /<%([\s\S]+?)%>/g,
+      interpolate: /<%=([\s\S]+?)%>/g,
+      escape: /<%-([\s\S]+?)%>/g,
+    };
+
+    // Create a function string, using 'obj' as the data object name.
+    let js = "let p=[],print=function(){p.push.apply(p,arguments);};";
+    js += "with(obj||{}){p.push('";
+
+    template = template
+      .replace(/[\r\t\n]/g, " ")
+      .split("<%")
+      .join("\t")
+      .replace(
+        settings.escape,
+        "');p.push(typeof $1==='undefined'?'':$('<div>').text($1).html());p.push('"
+      )
+      .replace(
+        settings.interpolate,
+        // Properly quote and escape strings for direct JavaScript injection
+        "');p.push(typeof $1==='undefined'?'':(typeof $1 === 'string' ? JSON.stringify($1) : $1));p.push('"
+      )
+      .replace(
+        settings.evaluate,
+        "');try{$1}catch(e){console.error('Error in template execution:',e,' offending code:', String.raw`$1`);}p.push('" // Use String.raw for logging
+      )
+      .replace(/\t=(.+?)%>/g, "');p.push($1);p.push('")
+      .split("\t")
+      .join("');")
+      .split("%>")
+      .join("p.push('")
+      .replace(/(\s|&nbsp;)+/g, " "); // Minimize multiple spaces
+
+    js += "');}return p.join('');";
+
+    try {
+      const compiled = new Function("obj", js);
+      return compiled(data);
+    } catch (e) {
+      console.error("Error compiling template:", e, "Generated JS:", js);
+      return `<p style="color:red;">Error rendering template: ${templateSelector}. Check console.</p>`;
     }
-    // Any other <% ... %> tags will be left as is, and should be removed from templates.
-    return template;
   }
 
   function displayStep2_LoadServices() {
