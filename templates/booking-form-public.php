@@ -421,6 +421,7 @@ if ($tenant_id) {
         .mobooking-services-grid {
             display: grid;
             gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
         }
 
         .mobooking-service-card {
