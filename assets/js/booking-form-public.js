@@ -392,8 +392,9 @@ jQuery(document).ready(function($) {
                          // Display ranges if helpful
                     if (sqmRanges.length > 0) {
                         optionFieldHtml += '<div class="mobooking-sqm-ranges-display">';
-                        sqmRanges.forEach(range => {
-                            optionFieldHtml += `<span>${range.from}-${range.to === '∞' ? '&infin;' : range.to} sqm: ${MOB_PARAMS.currency.symbol}${range.price}/sqm</span><br>`;
+                        sqmRanges.forEach((range, rIndex) => {
+                            console.log(`[MoBooking JS Debug] SQM Range ${rIndex}:`, range); // Log each range object
+                            optionFieldHtml += `<span>${escapeHtml(String(range.from))}-${range.to === '∞' ? '&infin;' : escapeHtml(String(range.to))} sqm: ${MOB_PARAMS.currency.symbol}${escapeHtml(String(range.price))}/sqm</span><br>`;
                         });
                         optionFieldHtml += '</div>';
                     }
