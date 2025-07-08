@@ -508,7 +508,11 @@ jQuery(document).ready(function($) {
             value = $inputElement.val().trim();
             const sqmValue = parseFloat(value) || 0;
             if (sqmValue > 0) {
-                const ranges = JSON.parse($inputElement.closest('.mobooking-sqm-input-wrapper').data('sqm-ranges') || '[]');
+                let rangesData = $inputElement.closest('.mobooking-sqm-input-wrapper').data('sqm-ranges');
+                if (typeof rangesData === 'string') {
+                    rangesData = JSON.parse(rangesData || '[]');
+                }
+                const ranges = rangesData || [];
                 for (const range of ranges) {
                     const from = parseFloat(range.from);
                     const to = range.to === '∞' || typeof range.to === 'undefined' ? Infinity : parseFloat(range.to);

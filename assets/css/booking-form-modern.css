@@ -1142,3 +1142,130 @@ body.mobooking-form-active {
         align-items: flex-start;
     }
 }
+
+/* Styles for Quantity Input */
+.mobooking-quantity-input-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0; /* No gap for a tight component look */
+}
+
+.mobooking-btn-quantity {
+    height: var(--mobk-input-height);
+    width: var(--mobk-input-height); /* Square buttons */
+    background-color: var(--mobk-color-secondary);
+    color: var(--mobk-color-secondary-foreground);
+    border: 1px solid var(--mobk-color-input);
+    font-size: 1.25rem;
+    line-height: 1; /* Center text vertically */
+    cursor: pointer;
+    display: inline-flex; /* Use inline-flex for button content alignment */
+    align-items: center;
+    justify-content: center;
+    padding: 0; /* Remove padding if fixed size */
+    transition: background-color 0.15s ease;
+    user-select: none;
+}
+
+.mobooking-btn-quantity.minus {
+    border-right: none;
+    border-radius: var(--mobk-border-radius) 0 0 var(--mobk-border-radius);
+}
+
+.mobooking-btn-quantity.plus {
+    border-left: none;
+    border-radius: 0 var(--mobk-border-radius) var(--mobk-border-radius) 0;
+}
+
+.mobooking-btn-quantity:hover {
+    background-color: color-mix(in srgb, var(--mobk-color-secondary) 90%, black);
+}
+
+.mobooking-input-quantity {
+    text-align: center;
+    border-left: none;
+    border-right: none;
+    border-radius: 0; /* Remove radius from input when part of this group */
+    flex-grow: 1;
+    max-width: 70px; /* Limit width of quantity input */
+    -moz-appearance: textfield; /* Firefox */
+}
+
+.mobooking-input-quantity::-webkit-outer-spin-button,
+.mobooking-input-quantity::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Styles for SQM Input */
+.mobooking-sqm-input-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem; /* Space between slider and number input */
+}
+
+.mobooking-slider {
+    flex-grow: 1;
+    height: 0.5rem; /* Thickness of the slider track */
+    -webkit-appearance: none;
+    appearance: none;
+    background: var(--mobk-color-muted); /* Track color */
+    border-radius: var(--mobk-border-radius-sm);
+    outline: none;
+    cursor: pointer;
+}
+
+.mobooking-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 1.25rem; /* Thumb width */
+    height: 1.25rem; /* Thumb height */
+    background: var(--mobk-color-primary); /* Thumb color */
+    border-radius: 50%; /* Circular thumb */
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+
+.mobooking-slider::-moz-range-thumb {
+    width: 1.25rem;
+    height: 1.25rem;
+    background: var(--mobk-color-primary);
+    border-radius: 50%;
+    border: none; /* Remove default border for FF */
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+
+.mobooking-input-sqm {
+    width: 100px; /* Fixed width for the SQM number input */
+    text-align: center;
+    -moz-appearance: textfield; /* Firefox */
+}
+.mobooking-input-sqm::-webkit-outer-spin-button,
+.mobooking-input-sqm::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.mobooking-sqm-unit {
+    color: var(--mobk-color-muted-foreground);
+}
+
+.mobooking-sqm-ranges-display {
+    font-size: 0.8rem;
+    color: var(--mobk-color-muted-foreground);
+    margin-top: 0.5rem;
+    line-height: 1.4;
+}
+
+.mobooking-form-group-radio { /* For radio button groups */
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+.mobooking-form-group-radio input[type="radio"] {
+    margin-right: 0.5rem;
+}
+.mobooking-form-group-radio label {
+    font-weight: normal; /* Standard weight for radio labels */
+}
