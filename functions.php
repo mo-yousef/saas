@@ -205,7 +205,7 @@ if ( is_page_template('templates/booking-form-public.php') || $page_type_for_scr
         'submit_booking' => __('Submit Booking', 'mobooking'),
     ];
 
-    wp_localize_script('mobooking-booking-form', 'mobooking_booking_form_params', [
+    wp_localize_script('mobooking-public-booking-form', 'mobooking_booking_form_params', [
         'ajax_url' => admin_url('admin-ajax.php'),
         'nonce' => wp_create_nonce('mobooking_booking_form_nonce'),
         'tenant_id' => $effective_tenant_id_for_public_form,
