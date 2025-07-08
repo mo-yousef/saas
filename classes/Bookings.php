@@ -34,6 +34,214 @@ class Bookings {
         add_action('wp_ajax_mobooking_delete_dashboard_booking', [$this, 'handle_delete_dashboard_booking_ajax']);
     }
 
+    /**
+     * Safely decode JSON with enhanced error handling
+     * 
+     * @param string $json_string The JSON string to decode
+     * @param string $data_type Description of what data is being decoded (for error messages)
+     * @return array|WP_Error Decoded array on success, WP_Error on failure
+     */
+    private function safe_json_decode($json_string, $data_type = 'data') {
+        if (empty($json_string)) {
+            return new \WP_Error('empty_json', __('Empty JSON string provided for ' . $data_type, 'mobooking'));
+        }
+
+        // Log the original JSON for debugging
+        error_log("MoBooking - Decoding {$data_type}: " . substr($json_string, 0, 200) . (strlen($json_string) > 200 ? '...' : ''));
+
+        // Step 1: Try direct decoding
+        $decoded = json_decode($json_string, true);
+        if (json_last_error() === JSON_ERROR_NONE && !empty($decoded)) {
+            error_log("MoBooking - {$data_type} decoded successfully (direct)");
+            return $decoded;
+        }
+
+        $first_error = json_last_error_msg();
+
+        // Step 2: Try with stripslashes_deep
+        $cleaned_json = stripslashes_deep($json_string);
+        $decoded = json_decode($cleaned_json, true);
+        if (json_last_error() === JSON_ERROR_NONE && !empty($decoded)) {
+            error_log("MoBooking - {$data_type} decoded successfully (stripslashes_deep)");
+            return $decoded;
+        }
+
+        $second_error = json_last_error_msg();
+
+        // Step 3: Try with wp_unslash
+        $cleaned_json = wp_unslash($json_string);
+        $decoded = json_decode($cleaned_json, true);
+        if (json_last_error() === JSON_ERROR_NONE && !empty($decoded)) {
+            error_log("MoBooking - {$data_type} decoded successfully (wp_unslash)");
+            return $decoded;
+        }
+
+        $third_error = json_last_error_msg();
+
+        // Step 4: Try manual cleaning
+        $cleaned_json = $this->clean_json_string($json_string);
+        $decoded = json_decode($cleaned_json, true);
+        if (json_last_error() === JSON_ERROR_NONE && !empty($decoded)) {
+            error_log("MoBooking - {$data_type} decoded successfully (manual cleaning)");
+            return $decoded;
+        }
+
+        $fourth_error = json_last_error_msg();
+
+        // All methods failed - return detailed error
+        error_log("MoBooking - All JSON decode attempts failed for {$data_type}");
+        error_log("MoBooking - Errors: {$first_error} | {$second_error} | {$third_error} | {$fourth_error}");
+        error_log("MoBooking - Original JSON: {$json_string}");
+
+        return new \WP_Error(
+            'json_decode_failed',
+            sprintf(
+                __('Invalid %s data. JSON decode failed. Errors: %s', 'mobooking'),
+                $data_type,
+                $first_error
+            )
+        );
+    }
+
+    /**
+     * Manually clean JSON string to fix common issues
+     * 
+     * @param string $json_string
+     * @return string
+     */
+    private function clean_json_string($json_string) {
+        // Remove BOM if present
+        $json_string = preg_replace('/^\xEF\xBB\xBF/', '', $json_string);
+        
+        // Fix common escaping issues
+        $json_string = str_replace(['\\"', "\\'"], ['"', "'"], $json_string);
+        
+        // Remove control characters
+        $json_string = preg_replace('/[\x00-\x1F\x7F]/', '', $json_string);
+        
+        // Fix double encoding
+        if (strpos($json_string, '\\u') !== false) {
+            $decoded = json_decode('"' . $json_string . '"');
+            if ($decoded !== null) {
+                $json_string = $decoded;
+            }
+        }
+        
+        return trim($json_string);
+    }
+
+    public function handle_create_booking_public_ajax() {
+        check_ajax_referer('mobooking_booking_form_nonce', 'nonce');
+
+        // Read individual parameters as currently sent by JS
+        $tenant_id = isset($_POST['tenant_id']) ? intval($_POST['tenant_id']) : 0;
+        $selected_services_json = isset($_POST['selected_services']) ? $_POST['selected_services'] : '';
+        $customer_details_json = isset($_POST['customer_details']) ? $_POST['customer_details'] : '';
+        $discount_info_json = isset($_POST['discount_info']) ? $_POST['discount_info'] : '';
+
+        $zip_code = isset($_POST['zip_code']) ? sanitize_text_field($_POST['zip_code']) : '';
+        $country_code = isset($_POST['country_code']) ? sanitize_text_field($_POST['country_code']) : '';
+
+        // Enhanced logging for debugging
+        error_log('=== MoBooking Submission Data ===');
+        error_log('Tenant ID: ' . $tenant_id);
+        error_log('Services JSON Length: ' . strlen($selected_services_json));
+        error_log('Customer JSON Length: ' . strlen($customer_details_json));
+        error_log('Raw Customer JSON: ' . $customer_details_json);
+        error_log('================================');
+
+        if (empty($tenant_id)) {
+            wp_send_json_error(['message' => __('Tenant ID is missing.', 'mobooking')], 400);
+            return;
+        }
+
+        // Enhanced JSON decoding for selected services
+        $selected_services = $this->safe_json_decode($selected_services_json, 'selected_services');
+        if (is_wp_error($selected_services)) {
+            wp_send_json_error(['message' => $selected_services->get_error_message()], 400);
+            return;
+        }
+
+        if (empty($selected_services)) {
+            wp_send_json_error(['message' => __('No services selected.', 'mobooking')], 400);
+            return;
+        }
+
+        // Enhanced JSON decoding for customer details
+        $customer_details = $this->safe_json_decode($customer_details_json, 'customer_details');
+        if (is_wp_error($customer_details)) {
+            wp_send_json_error(['message' => $customer_details->get_error_message()], 400);
+            return;
+        }
+
+        if (empty($customer_details)) {
+            wp_send_json_error(['message' => __('Customer details are missing.', 'mobooking')], 400);
+            return;
+        }
+
+        // Enhanced JSON decoding for discount info (optional)
+        $discount_info = null;
+        if (!empty($discount_info_json) && $discount_info_json !== 'null') {
+            $discount_info = $this->safe_json_decode($discount_info_json, 'discount_info');
+            if (is_wp_error($discount_info)) {
+                // Log warning but don't fail the request for discount issues
+                error_log('MoBooking Warning: ' . $discount_info->get_error_message());
+                $discount_info = null;
+            }
+        }
+
+        // Validate customer details structure
+        $required_customer_fields = ['name', 'email', 'phone', 'address', 'date', 'time'];
+        $missing_fields = [];
+        
+        foreach ($required_customer_fields as $field) {
+            if (empty($customer_details[$field])) {
+                $missing_fields[] = $field;
+            }
+        }
+        
+        if (!empty($missing_fields)) {
+            wp_send_json_error([
+                'message' => __('Missing required customer fields: ', 'mobooking') . implode(', ', $missing_fields)
+            ], 400);
+            return;
+        }
+
+        // Validate email format
+        if (!is_email($customer_details['email'])) {
+            wp_send_json_error(['message' => __('Invalid email address format.', 'mobooking')], 400);
+            return;
+        }
+
+        // Prepare the payload for create_booking method
+        $payload = [
+            'selected_services' => $selected_services,
+            'customer' => $customer_details,
+            'discount_info' => $discount_info,
+            'zip_code' => $zip_code,
+            'country_code' => $country_code
+        ];
+
+        error_log('MoBooking - Processed payload: ' . print_r($payload, true));
+
+        // Call the main create_booking method
+        $result = $this->create_booking($tenant_id, $payload);
+
+        if (is_wp_error($result)) {
+            error_log('MoBooking - Booking creation failed: ' . $result->get_error_message());
+            wp_send_json_error(['message' => $result->get_error_message()], 400);
+        } else {
+            error_log('MoBooking - Booking created successfully: ' . print_r($result, true));
+            $success_message = !empty($result['message']) ? sprintf($result['message'], $result['booking_reference']) : __('Booking created successfully!', 'mobooking');
+            wp_send_json_success([
+                'message' => $success_message,
+                'booking_reference' => $result['booking_reference'],
+                'booking_id' => $result['booking_id'],
+                'final_total' => $result['final_total']
+            ]);
+        }
+    }
+
     public function get_kpi_data(int $tenant_user_id) {
         if (empty($tenant_user_id)) {
             return ['bookings_month' => 0, 'revenue_month' => 0, 'upcoming_count' => 0];
@@ -51,569 +259,173 @@ class Bookings {
             $tenant_user_id, $current_month_start, $current_month_end
         ));
 
-        // Revenue this month (from completed bookings)
+        // Revenue this month
         $revenue_month = $this->wpdb->get_var($this->wpdb->prepare(
             "SELECT SUM(total_price) FROM $bookings_table
-             WHERE user_id = %d AND status = 'completed'
+             WHERE user_id = %d AND status IN ('confirmed', 'completed')
              AND booking_date BETWEEN %s AND %s",
             $tenant_user_id, $current_month_start, $current_month_end
         ));
 
-        // Upcoming confirmed bookings
+        // Upcoming bookings (from today onwards, pending or confirmed)
         $upcoming_count = $this->wpdb->get_var($this->wpdb->prepare(
             "SELECT COUNT(booking_id) FROM $bookings_table
-             WHERE user_id = %d AND status = 'confirmed' AND booking_date >= %s",
+             WHERE user_id = %d AND status IN ('pending', 'confirmed')
+             AND booking_date >= %s",
             $tenant_user_id, $today
         ));
 
         return [
             'bookings_month' => intval($bookings_month),
-            'revenue_month' => floatval($revenue_month), // Ensure it's a float
+            'revenue_month' => floatval($revenue_month),
             'upcoming_count' => intval($upcoming_count)
-        ];
-    }
-
-    public function handle_get_dashboard_overview_data_ajax() {
-        check_ajax_referer('mobooking_dashboard_nonce', 'nonce');
-        $current_user_id = get_current_user_id();
-        if (!$current_user_id) {
-            wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403);
-            return;
-        }
-
-        $data_user_id = $current_user_id; // User ID to fetch data for (owner or current user)
-        $is_worker = false;
-
-        if (class_exists('MoBooking\Classes\Auth') && \MoBooking\Classes\Auth::is_user_worker($current_user_id)) {
-            $is_worker = true;
-            $owner_id = \MoBooking\Classes\Auth::get_business_owner_id_for_worker($current_user_id);
-            if ($owner_id) {
-                $data_user_id = $owner_id;
-            } else {
-                // Worker not associated with an owner, send minimal/empty data
-                wp_send_json_success([
-                    'kpis' => ['bookings_month' => 0, 'revenue_month' => null, 'upcoming_count' => 0],
-                    'recent_bookings' => []
-                ]);
-                return;
-            }
-        }
-
-        $kpis = $this->get_kpi_data($data_user_id);
-
-        // If the user is a worker, remove revenue KPI
-        if ($is_worker) {
-            $kpis['revenue_month'] = null; // Or unset($kpis['revenue_month']);
-        }
-
-        $recent_bookings_args = [
-            'limit' => 5,
-            'orderby' => 'booking_date',
-            'order' => 'ASC', // Show nearest upcoming first
-            'status' => ['pending', 'confirmed', 'on-hold', 'processing'],
-            'date_from' => current_time('Y-m-d') // From today onwards
-        ];
-        // Recent bookings should also be fetched based on the $data_user_id (owner's ID for workers)
-        $recent_bookings_data = $this->get_bookings_by_tenant($data_user_id, $recent_bookings_args);
-
-        wp_send_json_success([
-            'kpis' => $kpis,
-            'recent_bookings' => $recent_bookings_data['bookings'] // get_bookings_by_tenant returns an array with 'bookings' key
-        ]);
-    }
-
-
-    public function get_booking(int $booking_id, int $tenant_user_id) {
-        if (empty($booking_id) || empty($current_logged_in_user_id)) {
-            error_log("[MoBooking Bookings->get_booking] Error: Booking ID or Current Logged In User ID is empty.");
-            return null;
-        }
-
-        $user_id_to_query_for = $current_logged_in_user_id; // Default to the logged-in user
-
-        if (class_exists('MoBooking\Classes\Auth') && \MoBooking\Classes\Auth::is_user_worker($current_logged_in_user_id)) {
-            $owner_id = \MoBooking\Classes\Auth::get_business_owner_id_for_worker($current_logged_in_user_id);
-            if ($owner_id) {
-                $user_id_to_query_for = $owner_id;
-                error_log("[MoBooking Bookings->get_booking] Worker {$current_logged_in_user_id} is viewing. Querying for owner_id: {$owner_id}");
-            } else {
-                // Worker not associated with an owner, cannot fetch any specific booking by this logic.
-                error_log("[MoBooking Bookings->get_booking] Worker {$current_logged_in_user_id} has no associated owner. Cannot fetch booking {$booking_id}.");
-                return null;
-            }
-        } else {
-             error_log("[MoBooking Bookings->get_booking] User {$current_logged_in_user_id} is not a worker (or Auth class missing). Querying for self.");
-        }
-
-        $bookings_table = Database::get_table_name('bookings');
-        $booking = $this->wpdb->get_row($this->wpdb->prepare(
-            "SELECT * FROM $bookings_table WHERE booking_id = %d AND user_id = %d",
-            $booking_id, $user_id_to_query_for
-        ), ARRAY_A);
-
-        if ($booking) {
-            error_log("[MoBooking Bookings->get_booking] Booking {$booking_id} found for user_id_to_query_for: {$user_id_to_query_for}.");
-            $items_table = Database::get_table_name('booking_items');
-            $booking_items_raw = $this->wpdb->get_results($this->wpdb->prepare(
-                "SELECT * FROM $items_table WHERE booking_id = %d ORDER BY item_id ASC", $booking_id
-            ), ARRAY_A);
-
-            $booking['items'] = [];
-            foreach ($booking_items_raw as $item) {
-                $item['selected_options'] = json_decode($item['selected_options'], true);
-                // Ensure selected_options is always an array
-                if (!is_array($item['selected_options'])) {
-                    $item['selected_options'] = [];
-                }
-                $booking['items'][] = $item;
-            }
-        }
-        return $booking;
-    }
-
-    public function get_bookings_by_tenant(int $current_logged_in_user_id, array $args = []) {
-        if (empty($current_logged_in_user_id)) {
-            return ['bookings' => [], 'total_count' => 0, 'per_page' => 20, 'current_page' => 1];
-        }
-
-        $user_to_fetch_for_id = $current_logged_in_user_id; // Default to the logged-in user
-
-        if (class_exists('MoBooking\Classes\Auth') && \MoBooking\Classes\Auth::is_user_worker($current_logged_in_user_id)) {
-            $owner_id = \MoBooking\Classes\Auth::get_business_owner_id_for_worker($current_logged_in_user_id);
-            if ($owner_id) {
-                $user_to_fetch_for_id = $owner_id;
-            } else {
-                // Worker not associated with an owner, return empty results
-                return ['bookings' => [], 'total_count' => 0, 'per_page' => 20, 'current_page' => 1];
-            }
-        }
-
-        $defaults = [
-            'status' => null, 'date_from' => null, 'date_to' => null,
-            'orderby' => 'booking_date', 'order' => 'DESC',
-            'limit' => 20, 'paged' => 1, 'search_query' => null
-        ];
-        $args = wp_parse_args($args, $defaults);
-
-        $bookings_table = Database::get_table_name('bookings');
-
-        $sql_select = "SELECT *";
-        $sql_count_select = "SELECT COUNT(booking_id)";
-        $sql_from = " FROM $bookings_table";
-        $sql_where = " WHERE user_id = %d";
-        $params = [$user_to_fetch_for_id];
-
-        if (!empty($args['status'])) {
-            if (is_array($args['status'])) {
-                $status_placeholders = implode(', ', array_fill(0, count($args['status']), '%s'));
-                $sql_where .= " AND status IN ($status_placeholders)";
-                $params = array_merge($params, $args['status']);
-            } else {
-                $sql_where .= " AND status = %s";
-                $params[] = sanitize_text_field($args['status']);
-            }
-        }
-        if (!empty($args['date_from'])) {
-            $sql_where .= " AND booking_date >= %s";
-            $params[] = sanitize_text_field($args['date_from']);
-        }
-        if (!empty($args['date_to'])) {
-            $sql_where .= " AND booking_date <= %s";
-            $params[] = sanitize_text_field($args['date_to']);
-        }
-        if (!empty($args['search_query'])) {
-            $search_term = '%' . $this->wpdb->esc_like(sanitize_text_field($args['search_query'])) . '%';
-            $sql_where .= " AND (booking_reference LIKE %s OR customer_name LIKE %s OR customer_email LIKE %s)";
-            $params[] = $search_term;
-            $params[] = $search_term;
-            $params[] = $search_term;
-        }
-
-        $total_count_sql = $sql_count_select . $sql_from . $sql_where;
-        $total_count = $this->wpdb->get_var($this->wpdb->prepare($total_count_sql, ...$params));
-
-        $valid_orderby_columns = ['booking_id', 'customer_name', 'booking_date', 'total_price', 'status', 'booking_reference'];
-        $orderby = in_array($args['orderby'], $valid_orderby_columns) ? $args['orderby'] : 'booking_date';
-        $order = strtoupper($args['order']) === 'ASC' ? 'ASC' : 'DESC';
-        $sql_orderby = " ORDER BY " . $orderby . " " . $order;
-
-        $limit = intval($args['limit']);
-        $paged = intval($args['paged']);
-        $offset = ($paged > 0) ? ($paged - 1) * $limit : 0;
-        $sql_limit = $this->wpdb->prepare(" LIMIT %d OFFSET %d", $limit, $offset);
-
-        $bookings_sql = $sql_select . $sql_from . $sql_where . $sql_orderby . $sql_limit;
-        $bookings = $this->wpdb->get_results($this->wpdb->prepare($bookings_sql, ...$params), ARRAY_A);
-
-        return [
-            'bookings' => $bookings,
-            'total_count' => intval($total_count),
-            'per_page' => $limit,
-            'current_page' => $paged
-        ];
-    }
-
-    public function update_booking_status(int $booking_id, int $tenant_user_id, string $new_status) {
-        $new_status = sanitize_text_field($new_status);
-        // Define allowed statuses, these could also come from a helper or config
-        $allowed_statuses = ['pending', 'confirmed', 'completed', 'cancelled', 'on-hold', 'processing'];
-        if (!in_array($new_status, $allowed_statuses)) {
-            return new \WP_Error('invalid_status', __('Invalid booking status provided.', 'mobooking'));
-        }
-
-        $bookings_table = Database::get_table_name('bookings');
-        // Fetch the booking to get its owner_id (user_id column in bookings table)
-        $current_booking = $this->wpdb->get_row($this->wpdb->prepare(
-            "SELECT * FROM $bookings_table WHERE booking_id = %d",
-            $booking_id
-        ));
-
-        if (!$current_booking) {
-            return new \WP_Error('not_found', __('Booking not found.', 'mobooking'));
-        }
-
-        $booking_owner_id = (int)$current_booking->user_id;
-
-        // Permission check
-        $can_update = false;
-        if (class_exists('MoBooking\Classes\Auth') && \MoBooking\Classes\Auth::is_user_worker($tenant_user_id)) {
-            $business_owner_id_of_worker = \MoBooking\Classes\Auth::get_business_owner_id_for_worker($tenant_user_id);
-            if ($business_owner_id_of_worker && $booking_owner_id === (int)$business_owner_id_of_worker) {
-                $can_update = true;
-            }
-        } elseif (class_exists('MoBooking\Classes\Auth') && \MoBooking\Classes\Auth::is_user_business_owner($tenant_user_id)) {
-            if ($booking_owner_id === $tenant_user_id) {
-                $can_update = true;
-            }
-        } else { // Fallback for other user types or if Auth class is not available, check direct ownership
-             if ($booking_owner_id === $tenant_user_id) {
-                $can_update = true;
-            }
-        }
-
-        if (!$can_update) {
-            return new \WP_Error('permission_denied', __('You do not have permission to update this booking status.', 'mobooking'));
-        }
-
-        if ($current_booking->status === $new_status) {
-            return true; // No change needed
-        }
-
-        // Proceed with update, ensuring WHERE clause uses the actual owner_id of the booking
-        $updated = $this->wpdb->update(
-            $bookings_table,
-            ['status' => $new_status, 'updated_at' => current_time('mysql', 1)],
-            // Important: The user_id in the WHERE clause here is the booking_owner_id
-            ['booking_id' => $booking_id, 'user_id' => $booking_owner_id],
-            ['%s', '%s'], // format for data
-            ['%d', '%d']  // format for where
-        );
-
-        if (false === $updated) {
-            return new \WP_Error('db_update_error', __('Could not update booking status in the database.', 'mobooking'));
-        }
-
-        // TODO: Trigger notification to customer about status change (e.g., if confirmed or cancelled by admin)
-        // $email_booking_details = (array) $current_booking; // Cast to array
-        // $email_booking_details['new_status'] = $new_status;
-        // $this->notifications_manager->send_booking_status_update_customer($email_booking_details, $current_booking->customer_email, $tenant_user_id);
-
-        return true;
-    }
-
-    // AJAX Handlers for Tenant Dashboard
-    public function handle_get_tenant_bookings_ajax() {
-        check_ajax_referer('mobooking_dashboard_nonce', 'nonce'); // A general dashboard nonce
-        $user_id = get_current_user_id();
-        if (!$user_id) { wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403); return; }
-
-        $args = [
-            'status' => isset($_POST['status_filter']) ? sanitize_text_field($_POST['status_filter']) : null,
-            'date_from' => isset($_POST['date_from_filter']) ? sanitize_text_field($_POST['date_from_filter']) : null,
-            'date_to' => isset($_POST['date_to_filter']) ? sanitize_text_field($_POST['date_to_filter']) : null,
-            'search_query' => isset($_POST['search_query']) ? sanitize_text_field($_POST['search_query']) : null,
-            'paged' => isset($_POST['paged']) ? intval($_POST['paged']) : 1,
-            'limit' => isset($_POST['limit']) ? intval($_POST['limit']) : 20, // Default items per page
-            'orderby' => isset($_POST['orderby']) ? sanitize_key($_POST['orderby']) : 'booking_date',
-            'order' => isset($_POST['order']) ? sanitize_key($_POST['order']) : 'DESC',
-        ];
-
-        $result = $this->get_bookings_by_tenant($user_id, $args);
-        wp_send_json_success($result);
-    }
-
-    public function handle_get_tenant_booking_details_ajax() {
-        check_ajax_referer('mobooking_dashboard_nonce', 'nonce');
-        $user_id = get_current_user_id();
-        if (!$user_id) { wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403); return; }
-
-        $booking_id = isset($_POST['booking_id']) ? intval($_POST['booking_id']) : 0;
-        if (empty($booking_id)) { wp_send_json_error(['message' => __('Booking ID is required.', 'mobooking')], 400); return; }
-
-        $booking_details = $this->get_booking($booking_id, $user_id);
-        if ($booking_details) {
-            wp_send_json_success($booking_details);
-        } else {
-            wp_send_json_error(['message' => __('Booking not found or access denied.', 'mobooking')], 404);
-        }
-    }
-
-    public function handle_update_booking_status_ajax() {
-        check_ajax_referer('mobooking_dashboard_nonce', 'nonce');
-        $user_id = get_current_user_id();
-        if (!$user_id) { wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403); return; }
-
-        $booking_id = isset($_POST['booking_id']) ? intval($_POST['booking_id']) : 0;
-        $new_status = isset($_POST['new_status']) ? sanitize_text_field($_POST['new_status']) : '';
-
-        if (empty($booking_id) || empty($new_status)) {
-            wp_send_json_error(['message' => __('Booking ID and new status are required.', 'mobooking')], 400);
-            return;
-        }
-
-        $result = $this->update_booking_status($booking_id, $user_id, $new_status);
-
-        if (is_wp_error($result)) {
-            wp_send_json_error(['message' => $result->get_error_message()], 400); // Or 500 for DB errors
-        } else {
-            wp_send_json_success(['message' => __('Booking status updated successfully.', 'mobooking')]);
-        }
-    }
-
-    private function generate_unique_booking_reference(): string {
-        return 'MB-' . current_time('Ymd') . '-' . strtoupper(wp_generate_password(8, false, false));
-    }
-
-    /**
-     * Calculates prices and validates services/options server-side.
-     * Throws Exceptions on validation failures.
-     */
-    private function calculate_server_side_price(int $tenant_user_id, array $selected_services_data, ?array $client_discount_info): array {
-        $subtotal = 0;
-        $calculated_service_items = [];
-
-        foreach ($selected_services_data as $client_service) {
-            if (empty($client_service['service_id'])) continue;
-
-            $db_service = $this->services_manager->get_service(intval($client_service['service_id']), $tenant_user_id);
-            if (!$db_service || $db_service['status'] !== 'active') {
-                throw new \Exception(sprintf(__('Service "%s" is no longer available or invalid.', 'mobooking'), esc_html($client_service['name'] ?? 'Unknown')));
-            }
-
-            $current_item_base_price = floatval($db_service['price']);
-            $current_item_total_price = $current_item_base_price;
-            $item_options_summary_for_db = [];
-
-            if (!empty($client_service['configured_options']) && is_array($client_service['configured_options'])) {
-                foreach ($client_service['configured_options'] as $conf_opt) {
-                    if (empty($conf_opt['option_id'])) continue;
-
-                    $db_option = $this->services_manager->get_service_option(intval($conf_opt['option_id']), $tenant_user_id);
-                    // Ensure option belongs to the correct service and tenant
-                    if (!$db_option || (int)$db_option['service_id'] !== (int)$client_service['service_id']) {
-                         throw new \Exception(sprintf(__('Option "%s" for service "%s" is invalid.', 'mobooking'), esc_html($conf_opt['option_name'] ?? 'Unknown'), esc_html($client_service['name'] ?? 'Unknown')));
-                    }
-
-                    $option_price_impact = 0;
-                    $impact_val = floatval($db_option['price_impact_value']); // Price impact defined in DB
-                    $selected_val = $conf_opt['selected_value']; // Value selected by user
-                    $is_option_selected_or_has_value = false;
-
-                    // Determine if the option was actually selected or has a meaningful value
-                    switch ($db_option['type']) {
-                        case 'checkbox': if ($selected_val === '1') $is_option_selected_or_has_value = true; break;
-                        case 'quantity': if (intval($selected_val) > 0) $is_option_selected_or_has_value = true; break;
-                        default: if ($selected_val !== '' && !is_null($selected_val)) $is_option_selected_or_has_value = true; break;
-                    }
-
-                    if ($is_option_selected_or_has_value) {
-                        if ($db_option['price_impact_type'] === 'fixed') {
-                            $option_price_impact = $impact_val;
-                        } elseif ($db_option['price_impact_type'] === 'percentage') {
-                            $option_price_impact = $current_item_base_price * ($impact_val / 100);
-                        } elseif ($db_option['price_impact_type'] === 'multiply_value' && $db_option['type'] === 'quantity') {
-                            $option_price_impact = $impact_val * (intval($selected_val) ?: 0);
-                        } elseif (($db_option['type'] === 'select' || $db_option['type'] === 'radio') && !empty($db_option['option_values'])) {
-                             // Price adjustments from specific choices within select/radio
-                            $parsed_choices = json_decode($db_option['option_values'], true);
-                            if (is_array($parsed_choices)) {
-                                $chosen = array_values(array_filter($parsed_choices, function($c) use ($selected_val) { return isset($c['value']) && $c['value'] === $selected_val; }));
-                                if (!empty($chosen) && isset($chosen[0]['price_adjust'])) {
-                                    $option_price_impact += floatval($chosen[0]['price_adjust']);
-                                }
-                            }
-                        }
-                        $current_item_total_price += $option_price_impact;
-                        $item_options_summary_for_db[] = [
-                            'option_id' => $db_option['option_id'], 'name' => $db_option['name'],
-                            'value' => $selected_val, 'price_impact' => round($option_price_impact, 2)
-                        ];
-                    }
-                }
-            }
-            $subtotal += $current_item_total_price;
-            $calculated_service_items[] = [
-                'service_id' => $db_service['service_id'], 'service_name' => $db_service['name'],
-                'service_price' => $current_item_base_price, 'quantity' => 1,
-                'selected_options_summary' => $item_options_summary_for_db,
-                'item_total_price' => $current_item_total_price
-            ];
-        }
-
-        $discount_applied_amount = 0;
-        $final_valid_discount_info = null;
-
-        if ($client_discount_info && !empty($client_discount_info['code']) && !empty($client_discount_info['discount_id'])) {
-            $db_discount = $this->discounts_manager->validate_discount_code($client_discount_info['code'], $tenant_user_id);
-            if ($db_discount && !is_wp_error($db_discount) && (int)$db_discount['discount_id'] === (int)$client_discount_info['discount_id']) {
-                if ($db_discount['type'] === 'percentage') {
-                    $discount_applied_amount = $subtotal * (floatval($db_discount['value']) / 100);
-                } elseif ($db_discount['type'] === 'fixed_amount') {
-                    $discount_applied_amount = floatval($db_discount['value']);
-                }
-                $discount_applied_amount = min($discount_applied_amount, $subtotal);
-                $final_valid_discount_info = $db_discount;
-            } else {
-                 throw new \Exception(__('The applied discount code is no longer valid.', 'mobooking'));
-            }
-        }
-
-        $final_total = $subtotal - $discount_applied_amount;
-        if ($final_total < 0) $final_total = 0;
-
-        return [
-            'subtotal' => round($subtotal, 2),
-            'discount_applied' => round($discount_applied_amount, 2),
-            'final_total' => round($final_total, 2),
-            'calculated_service_items' => $calculated_service_items,
-            'validated_discount_info' => $final_valid_discount_info
         ];
     }
 
     public function create_booking(int $tenant_user_id, array $payload) {
         try {
-            if (empty($tenant_user_id) || empty($payload['selected_services']) || empty($payload['customer_details']) || empty($payload['pricing'])) {
-                return new \WP_Error('invalid_payload', __('Incomplete booking data provided.', 'mobooking'));
+            error_log('MoBooking - create_booking called with tenant_id: ' . $tenant_user_id);
+            
+            if (empty($tenant_user_id)) {
+                return new \WP_Error('invalid_tenant', __('Tenant user ID is required.', 'mobooking'));
             }
 
-            $customer = $payload['customer_details'];
-            $services_data = $payload['selected_services'];
-            $discount_info_from_client = $payload['discount_info'] ?? null;
-            $zip_code_from_payload = $payload['zip_code'] ?? ($customer['zip_code'] ?? '');
+            // Extract data from payload
+            $selected_service_items = $payload['selected_services'] ?? [];
+            $customer = $payload['customer'] ?? [];
+            $discount_info = $payload['discount_info'] ?? null;
 
-
-            $tenant_user = get_userdata($tenant_user_id);
-            if (!$tenant_user || !in_array(Auth::ROLE_BUSINESS_OWNER, (array)$tenant_user->roles)) {
-                return new \WP_Error('invalid_tenant', __('Invalid business specified.', 'mobooking'));
+            if (empty($selected_service_items) || empty($customer)) {
+                return new \WP_Error('missing_data', __('Selected services and customer data are required.', 'mobooking'));
             }
 
-            if (empty($customer['customer_name']) || !is_email($customer['customer_email']) || empty($customer['booking_date']) || empty($customer['booking_time']) || empty($customer['service_address'])) {
-                return new \WP_Error('invalid_customer_data', __('Customer name, email, address, booking date, and time are required.', 'mobooking'));
-            }
-            // TODO: Add robust date/time validation, check against business hours, lead times etc.
+            // Validate and process services
+            $calculated_service_items = [];
+            $subtotal_server = 0;
 
-            $server_price_details = $this->calculate_server_side_price($tenant_user_id, $services_data, $discount_info_from_client);
+            foreach ($selected_service_items as $item) {
+                $service_id = intval($item['service_id'] ?? 0);
+                if (!$service_id) continue;
 
-            $final_total_server = $server_price_details['final_total'];
-            $validated_discount_info = $server_price_details['validated_discount_info'];
-            $calculated_service_items = $server_price_details['calculated_service_items'];
-
-            $booking_reference = $this->generate_unique_booking_reference();
-            $bookings_table = Database::get_table_name('bookings');
-            $booking_items_table = Database::get_table_name('booking_items');
-
-            // --- Customer Integration Start ---
-            $mob_customer_id = null;
-            if (class_exists('MoBooking\Classes\Customers')) {
-                // Ensure Customers manager is available (might need to be passed in constructor or fetched from globals)
-                $customers_manager = isset($GLOBALS['mobooking_customers_manager']) ? $GLOBALS['mobooking_customers_manager'] : new Customers();
-
-                $customer_data_for_crm = [
-                    'full_name' => sanitize_text_field($customer['customer_name']),
-                    'email' => sanitize_email($customer['customer_email']),
-                    'phone_number' => isset($customer['customer_phone']) ? sanitize_text_field($customer['customer_phone']) : null,
-                    'address_line_1' => isset($customer['service_address']) ? sanitize_text_field($customer['service_address']) : null, // Assuming service_address is the primary address line
-                    // 'address_line_2' => ... // If available
-                    'city' => isset($customer['city']) ? sanitize_text_field($customer['city']) : null, // If available
-                    'state' => isset($customer['state']) ? sanitize_text_field($customer['state']) : null, // If available
-                    'zip_code' => sanitize_text_field($zip_code_from_payload),
-                    // 'country' => ... // If available
-                    // 'wp_user_id' => ... // If customer is also a WP user and ID is known
-                ];
-
-                $mob_customer_id_result = $customers_manager->create_or_update_customer_for_booking($tenant_user_id, $customer_data_for_crm);
-                if (is_wp_error($mob_customer_id_result)) {
-                    error_log("MoBooking: Error creating/updating customer in CRM: " . $mob_customer_id_result->get_error_message());
-                    // Decide if this is a critical error that should stop booking creation
-                    // For now, we'll log it and proceed without mob_customer_id
-                } else {
-                    $mob_customer_id = $mob_customer_id_result;
+                // Get service details from database
+                $service_details = $this->services_manager->get_service_by_id($service_id, $tenant_user_id);
+                if (!$service_details) {
+                    return new \WP_Error('invalid_service', __('Invalid service selected.', 'mobooking'));
                 }
-            } else {
-                error_log("MoBooking: Customers class not found for CRM integration.");
-            }
-            // --- Customer Integration End ---
 
-            $booking_data_for_db = [
+                $service_price = floatval($service_details['price']);
+                $configured_options = $item['configured_options'] ?? [];
+
+                // Calculate options price
+                $options_total = 0;
+                $selected_options_summary = [];
+
+                if (!empty($configured_options)) {
+                    // Process service options if they exist
+                    // This would integrate with your ServiceOptions class
+                    foreach ($configured_options as $option_id => $option_value) {
+                        // Add option processing logic here
+                        $selected_options_summary[] = [
+                            'name' => 'Option ' . $option_id,
+                            'value' => $option_value
+                        ];
+                    }
+                }
+
+                $item_total = $service_price + $options_total;
+                $subtotal_server += $item_total;
+
+                $calculated_service_items[] = [
+                    'service_id' => $service_id,
+                    'service_name' => $service_details['name'],
+                    'service_price' => $service_price,
+                    'selected_options_summary' => $selected_options_summary,
+                    'options_total_price' => $options_total,
+                    'item_total_price' => $item_total
+                ];
+            }
+
+            // Validate discount if provided
+            $discount_amount = 0;
+            $validated_discount_info = null;
+
+            if ($discount_info && !empty($discount_info['code'])) {
+                $validation_result = $this->discounts_manager->validate_discount_code(
+                    $discount_info['code'], 
+                    $tenant_user_id, 
+                    $subtotal_server
+                );
+                
+                if (!is_wp_error($validation_result)) {
+                    $discount_amount = $validation_result['discount_amount'];
+                    $validated_discount_info = $validation_result;
+                } else {
+                    error_log('MoBooking - Discount validation failed: ' . $validation_result->get_error_message());
+                }
+            }
+
+            $final_total_server = max(0, $subtotal_server - $discount_amount);
+
+            // Generate booking reference
+            $booking_reference = 'MB-' . strtoupper(wp_generate_password(8, false));
+
+            // Prepare booking data for database
+            $booking_data = [
                 'user_id' => $tenant_user_id,
-                'mob_customer_id' => $mob_customer_id, // Add the new customer ID
-                'customer_name' => sanitize_text_field($customer['customer_name']),
-                'customer_email' => sanitize_email($customer['customer_email']),
-                'customer_phone' => sanitize_text_field($customer['customer_phone']),
-                'service_address' => sanitize_textarea_field($customer['service_address']),
-                'zip_code' => sanitize_text_field($zip_code_from_payload),
-                'booking_date' => sanitize_text_field($customer['booking_date']),
-                'booking_time' => sanitize_text_field($customer['booking_time']),
-                'special_instructions' => sanitize_textarea_field($customer['special_instructions']),
-                'total_price' => $final_total_server,
-                'discount_id' => ($validated_discount_info && isset($validated_discount_info['discount_id'])) ? intval($validated_discount_info['discount_id']) : null,
-                'discount_amount' => $server_price_details['discount_applied'],
-                'status' => 'confirmed',
                 'booking_reference' => $booking_reference,
-                'payment_status' => 'pending',
-                'created_at' => current_time('mysql', 1),
-                'updated_at' => current_time('mysql', 1),
+                'customer_name' => sanitize_text_field($customer['name']),
+                'customer_email' => sanitize_email($customer['email']),
+                'customer_phone' => sanitize_text_field($customer['phone']),
+                'service_address' => sanitize_textarea_field($customer['address']),
+                'booking_date' => sanitize_text_field($customer['date']),
+                'booking_time' => sanitize_text_field($customer['time']),
+                'special_instructions' => sanitize_textarea_field($customer['instructions'] ?? ''),
+                'selected_services' => wp_json_encode($calculated_service_items),
+                'subtotal_price' => $subtotal_server,
+                'discount_amount' => $discount_amount,
+                'total_price' => $final_total_server,
+                'status' => 'pending',
+                'created_at' => current_time('mysql'),
+                'updated_at' => current_time('mysql')
             ];
 
-            $this->wpdb->show_errors(); // Temporarily for debugging if issues
-            $inserted_booking = $this->wpdb->insert($bookings_table, $booking_data_for_db);
+            // Insert booking into database
+            $bookings_table = Database::get_table_name('bookings');
+            $inserted = $this->wpdb->insert($bookings_table, $booking_data);
 
-            if (!$inserted_booking) {
-                 error_log("MoBooking DB Error inserting booking: " . $this->wpdb->last_error);
-                return new \WP_Error('db_booking_error', __('Could not save your booking. Please try again.', 'mobooking'));
+            if (false === $inserted) {
+                error_log('MoBooking - Database insert failed: ' . $this->wpdb->last_error);
+                return new \WP_Error('db_booking_error', __('Could not save booking to database.', 'mobooking'));
             }
+
             $new_booking_id = $this->wpdb->insert_id;
+            error_log('MoBooking - Booking saved with ID: ' . $new_booking_id);
 
-            foreach ($calculated_service_items as $item) {
-                $this->wpdb->insert($booking_items_table, [
-                    'booking_id' => $new_booking_id, 'service_id' => $item['service_id'],
-                    'service_name' => $item['service_name'], 'service_price' => $item['service_price'],
-                    'quantity' => $item['quantity'], 'selected_options' => wp_json_encode($item['selected_options_summary']),
-                    'item_total_price' => $item['item_total_price']
-                ]);
-            }
-
-            // Update customer stats if mob_customer_id was successfully obtained
-            if ($mob_customer_id && class_exists('MoBooking\Classes\Customers')) {
-                $customers_manager = isset($GLOBALS['mobooking_customers_manager']) ? $GLOBALS['mobooking_customers_manager'] : new Customers();
-                $booking_datetime_for_stats = $customer['booking_date'] . ' ' . $customer['booking_time'];
-                // Ensure datetime is in Y-m-d H:i:s format for MySQL
+            // Update customer records (if Customers class exists)
+            if (class_exists('MoBooking\Classes\Customers')) {
                 try {
-                    $dt = new \DateTime($booking_datetime_for_stats);
-                    $mysql_booking_datetime = $dt->format('Y-m-d H:i:s');
-                    $stats_updated = $customers_manager->update_customer_booking_stats($mob_customer_id, $mysql_booking_datetime);
-                    if (!$stats_updated) {
-                        error_log("MoBooking: Failed to update customer booking stats for mob_customer_id: " . $mob_customer_id);
+                    $customers_manager = new \MoBooking\Classes\Customers();
+                    $mob_customer_id = $customers_manager->create_or_update_customer(
+                        $tenant_user_id,
+                        $customer['name'],
+                        $customer['email'],
+                        $customer['phone']
+                    );
+                    
+                    if (!is_wp_error($mob_customer_id)) {
+                        $customers_manager->update_customer_booking_stats($mob_customer_id, $booking_data['created_at']);
                     }
                 } catch (\Exception $e) {
-                    error_log("MoBooking: Error formatting booking date for customer stats: " . $e->getMessage());
+                    error_log("MoBooking: Error updating customer stats: " . $e->getMessage());
                 }
             }
 
+            // Update discount usage
             if ($validated_discount_info && isset($validated_discount_info['discount_id'])) {
                 $this->discounts_manager->increment_discount_usage(intval($validated_discount_info['discount_id']));
             }
 
+            // Send email notifications
             $email_services_summary_array = array_map(function($item) {
                 $opt_str = "";
                 if (!empty($item['selected_options_summary'])) {
@@ -626,21 +438,22 @@ class Bookings {
             $email_booking_details = [
                 'booking_reference' => $booking_reference,
                 'service_names' => implode('; ', $email_services_summary_array),
-                'booking_date_time' => $customer['booking_date'] . ' at ' . $customer['booking_time'],
+                'booking_date_time' => $customer['date'] . ' at ' . $customer['time'],
                 'total_price' => $final_total_server,
-                'customer_name' => $customer['customer_name'],
-                'customer_email' => $customer['customer_email'],
-                'customer_phone' => $customer['customer_phone'],
-                'service_address' => $customer['service_address'],
-                'special_instructions' => $customer['special_instructions'],
-                'admin_booking_link' => admin_url('admin.php?page=mobooking-bookings&booking_id=' . $new_booking_id) // Example
+                'customer_name' => $customer['name'],
+                'customer_email' => $customer['email'],
+                'customer_phone' => $customer['phone'],
+                'service_address' => $customer['address'],
+                'special_instructions' => $customer['instructions'] ?? '',
+                'admin_booking_link' => admin_url('admin.php?page=mobooking-bookings&booking_id=' . $new_booking_id)
             ];
 
-            $this->notifications_manager->send_booking_confirmation_customer($email_booking_details, $customer['customer_email'], $tenant_user_id);
+            $this->notifications_manager->send_booking_confirmation_customer($email_booking_details, $customer['email'], $tenant_user_id);
             $this->notifications_manager->send_booking_confirmation_admin($email_booking_details, $tenant_user_id);
 
             return [
-                'booking_id' => $new_booking_id, 'booking_reference' => $booking_reference,
+                'booking_id' => $new_booking_id, 
+                'booking_reference' => $booking_reference,
                 'final_total' => $final_total_server,
                 'message' => __('Booking confirmed! Your reference is %s.', 'mobooking')
             ];
@@ -651,126 +464,471 @@ class Bookings {
         }
     }
 
-    public function handle_create_booking_public_ajax() {
-        check_ajax_referer('mobooking_booking_form_nonce', 'nonce');
-
-        // Read individual parameters as currently sent by JS
-        $tenant_id = isset($_POST['tenant_id']) ? intval($_POST['tenant_id']) : 0;
-        $selected_services_json = isset($_POST['selected_services']) ? stripslashes_deep($_POST['selected_services']) : '';
-        $booking_details_json = isset($_POST['booking_details']) ? stripslashes_deep($_POST['booking_details']) : '';
-        $discount_info_json = isset($_POST['discount_info']) ? stripslashes_deep($_POST['discount_info']) : ''; // Can be empty string
-
-        $zip_code = isset($_POST['zip_code']) ? sanitize_text_field($_POST['zip_code']) : '';
-        $country_code = isset($_POST['country_code']) ? sanitize_text_field($_POST['country_code']) : '';
-
-        if (empty($tenant_id)) {
-            wp_send_json_error(['message' => __('Tenant ID is missing.', 'mobooking')], 400);
+    // Dashboard AJAX handlers (keeping existing methods)
+    public function handle_get_tenant_bookings_ajax() {
+        check_ajax_referer('mobooking_dashboard_nonce', 'nonce');
+        $user_id = get_current_user_id();
+        if (!$user_id) {
+            wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403);
             return;
         }
 
-        $selected_services = json_decode($selected_services_json, true);
-        if (json_last_error() !== JSON_ERROR_NONE || empty($selected_services)) {
-            $json_error = json_last_error_msg();
-            wp_send_json_error(['message' => __('Invalid selected services data. JSON error: ', 'mobooking') . $json_error], 400);
-            return;
+        $page = isset($_POST['page']) ? max(1, intval($_POST['page'])) : 1;
+        $per_page = isset($_POST['per_page']) ? max(5, min(100, intval($_POST['per_page']))) : 10;
+        $search = isset($_POST['search']) ? sanitize_text_field($_POST['search']) : '';
+        $status_filter = isset($_POST['status']) ? sanitize_text_field($_POST['status']) : '';
+
+        $result = $this->get_tenant_bookings($user_id, $page, $per_page, $search, $status_filter);
+
+        if (is_wp_error($result)) {
+            wp_send_json_error(['message' => $result->get_error_message()]);
+        } else {
+            wp_send_json_success($result);
+        }
+    }
+
+    public function get_tenant_bookings(int $tenant_user_id, int $page = 1, int $per_page = 10, string $search = '', string $status_filter = '') {
+        $bookings_table = Database::get_table_name('bookings');
+        $offset = ($page - 1) * $per_page;
+
+        $where_conditions = ['user_id = %d'];
+        $where_values = [$tenant_user_id];
+
+        if (!empty($search)) {
+            $where_conditions[] = "(customer_name LIKE %s OR customer_email LIKE %s OR booking_reference LIKE %s)";
+            $search_term = '%' . $this->wpdb->esc_like($search) . '%';
+            $where_values[] = $search_term;
+            $where_values[] = $search_term;
+            $where_values[] = $search_term;
         }
 
-        $customer_details = json_decode($booking_details_json, true);
-        if (json_last_error() !== JSON_ERROR_NONE || empty($customer_details)) {
-            $json_error = json_last_error_msg();
-            wp_send_json_error(['message' => __('Invalid booking details data. JSON error: ', 'mobooking') . $json_error], 400);
-            return;
+        if (!empty($status_filter)) {
+            $where_conditions[] = "status = %s";
+            $where_values[] = $status_filter;
         }
 
-        $discount_info = null;
-        if (!empty($discount_info_json)) {
-            $discount_info = json_decode($discount_info_json, true);
-            if (json_last_error() !== JSON_ERROR_NONE && $discount_info_json !== 'null') { // Allow 'null' string to be decoded to null
-                 $json_error = json_last_error_msg();
-                 wp_send_json_error(['message' => __('Invalid discount info data. JSON error: ', 'mobooking') . $json_error], 400);
-                 return;
+        $where_clause = 'WHERE ' . implode(' AND ', $where_conditions);
+
+        $total = $this->wpdb->get_var($this->wpdb->prepare(
+            "SELECT COUNT(*) FROM $bookings_table $where_clause",
+            $where_values
+        ));
+
+        $bookings = $this->wpdb->get_results($this->wpdb->prepare(
+            "SELECT * FROM $bookings_table $where_clause ORDER BY created_at DESC LIMIT %d OFFSET %d",
+            array_merge($where_values, [$per_page, $offset])
+        ), ARRAY_A);
+
+        return [
+            'bookings' => $bookings ?: [],
+            'total' => intval($total),
+            'page' => $page,
+            'per_page' => $per_page,
+            'total_pages' => ceil($total / $per_page)
+        ];
+    }
+
+    /**
+     * Get bookings for a tenant with the expected dashboard interface
+     * This method matches the signature expected by dashboard/page-bookings.php
+     */
+    public function get_bookings_by_tenant(int $current_logged_in_user_id, array $args = []) {
+        if (empty($current_logged_in_user_id)) {
+            return ['bookings' => [], 'total_count' => 0, 'per_page' => 20, 'current_page' => 1];
+        }
+
+        // Handle worker/owner relationship
+        $user_to_fetch_for_id = $current_logged_in_user_id;
+        if (class_exists('MoBooking\Classes\Auth') && \MoBooking\Classes\Auth::is_user_worker($current_logged_in_user_id)) {
+            $owner_id = \MoBooking\Classes\Auth::get_business_owner_id_for_worker($current_logged_in_user_id);
+            if ($owner_id) {
+                $user_to_fetch_for_id = $owner_id;
+                error_log("[MoBooking Bookings->get_bookings_by_tenant] Worker {$current_logged_in_user_id} associated with owner {$owner_id}. Querying for owner_id: {$owner_id}");
+            } else {
+                error_log("[MoBooking Bookings->get_bookings_by_tenant] Worker {$current_logged_in_user_id} has no associated owner. Cannot fetch bookings.");
+                return ['bookings' => [], 'total_count' => 0, 'per_page' => 20, 'current_page' => 1];
             }
         }
 
-        // Construct the $payload array as expected by $this->create_booking()
-        $payload = [
-            'tenant_id' => $tenant_id, // Though create_booking takes tenant_id as first param, it might also check payload
-            'selected_services' => $selected_services,
-            'customer_details' => $customer_details,
-            'discount_info' => $discount_info,
-            'zip_code' => $zip_code,
-            'country_code' => $country_code,
-            // CRITICAL: 'pricing' data is NOT sent by the client.
-            // $this->create_booking() expects $payload['pricing'].
-            // This will likely cause an error in create_booking or calculate_server_side_price.
-            // For now, we pass it as null, but this needs a JS fix.
-            'pricing' => null,
-        ];
+        // Extract arguments with defaults
+        $limit = isset($args['limit']) ? max(1, intval($args['limit'])) : 20;
+        $paged = isset($args['paged']) ? max(1, intval($args['paged'])) : 1;
+        $orderby = isset($args['orderby']) ? sanitize_key($args['orderby']) : 'booking_date';
+        $order = isset($args['order']) ? strtoupper(sanitize_key($args['order'])) : 'DESC';
+        $status_filter = isset($args['status']) ? sanitize_text_field($args['status']) : '';
+        $search_query = isset($args['search_query']) ? sanitize_text_field($args['search_query']) : '';
+        $date_from = isset($args['date_from']) ? sanitize_text_field($args['date_from']) : '';
+        $date_to = isset($args['date_to']) ? sanitize_text_field($args['date_to']) : '';
 
-        // If zip_code was part of customer_details from step 1 (location check disabled scenario)
-        if (empty($payload['zip_code']) && !empty($customer_details['zip_code_from_step1'])) {
-             $payload['zip_code'] = sanitize_text_field($customer_details['zip_code_from_step1']);
+        // Validate order direction
+        if (!in_array($order, ['ASC', 'DESC'])) {
+            $order = 'DESC';
         }
 
+        // Validate orderby field
+        $allowed_orderby = ['booking_date', 'created_at', 'customer_name', 'total_price', 'status'];
+        if (!in_array($orderby, $allowed_orderby)) {
+            $orderby = 'booking_date';
+        }
 
-        // $tenant_id is already an int, $payload is the assembled array
-        $result = $this->create_booking($tenant_id, $payload);
+        $bookings_table = Database::get_table_name('bookings');
+        $offset = ($paged - 1) * $limit;
+
+        // Build WHERE conditions
+        $where_conditions = ['user_id = %d'];
+        $where_values = [$user_to_fetch_for_id];
+
+        // Status filter
+        if (!empty($status_filter)) {
+            $where_conditions[] = "status = %s";
+            $where_values[] = $status_filter;
+        }
+
+        // Search query (customer name, email, or booking reference)
+        if (!empty($search_query)) {
+            $where_conditions[] = "(customer_name LIKE %s OR customer_email LIKE %s OR booking_reference LIKE %s)";
+            $search_term = '%' . $this->wpdb->esc_like($search_query) . '%';
+            $where_values[] = $search_term;
+            $where_values[] = $search_term;
+            $where_values[] = $search_term;
+        }
+
+        // Date range filters
+        if (!empty($date_from)) {
+            $where_conditions[] = "booking_date >= %s";
+            $where_values[] = $date_from;
+        }
+
+        if (!empty($date_to)) {
+            $where_conditions[] = "booking_date <= %s";
+            $where_values[] = $date_to;
+        }
+
+        $where_clause = 'WHERE ' . implode(' AND ', $where_conditions);
+
+        // Get total count for pagination
+        $total_count = $this->wpdb->get_var($this->wpdb->prepare(
+            "SELECT COUNT(*) FROM $bookings_table $where_clause",
+            $where_values
+        ));
+
+        // Get bookings with pagination
+        $bookings = $this->wpdb->get_results($this->wpdb->prepare(
+            "SELECT * FROM $bookings_table $where_clause ORDER BY $orderby $order LIMIT %d OFFSET %d",
+            array_merge($where_values, [$limit, $offset])
+        ), ARRAY_A);
+
+        // Process booking items if they exist
+        if (!empty($bookings)) {
+            $items_table = Database::get_table_name('booking_items');
+            
+            foreach ($bookings as &$booking) {
+                // Try to get booking items from separate table first
+                $booking_items = $this->wpdb->get_results($this->wpdb->prepare(
+                    "SELECT * FROM $items_table WHERE booking_id = %d ORDER BY item_id ASC", 
+                    $booking['booking_id']
+                ), ARRAY_A);
+
+                if ($booking_items) {
+                    // Process items from separate table
+                    $booking['items'] = [];
+                    foreach ($booking_items as $item) {
+                        $item['selected_options'] = json_decode($item['selected_options'], true);
+                        if (!is_array($item['selected_options'])) {
+                            $item['selected_options'] = [];
+                        }
+                        $booking['items'][] = $item;
+                    }
+                } else {
+                    // Fallback to selected_services field if booking_items table is empty
+                    if (!empty($booking['selected_services'])) {
+                        $selected_services = json_decode($booking['selected_services'], true);
+                        $booking['items'] = is_array($selected_services) ? $selected_services : [];
+                    } else {
+                        $booking['items'] = [];
+                    }
+                }
+            }
+        }
+
+        return [
+            'bookings' => $bookings ?: [],
+            'total_count' => intval($total_count),
+            'per_page' => $limit,
+            'current_page' => $paged,
+            'total_pages' => ceil($total_count / $limit)
+        ];
+    }
+
+    /**
+     * Get a single booking by ID with proper authorization
+     * This method matches the signature expected by dashboard templates
+     */
+    public function get_booking(int $booking_id, int $current_logged_in_user_id) {
+        if (empty($booking_id) || empty($current_logged_in_user_id)) {
+            return null;
+        }
+
+        // Handle worker/owner relationship
+        $user_id_to_query_for = $current_logged_in_user_id;
+        if (class_exists('MoBooking\Classes\Auth') && \MoBooking\Classes\Auth::is_user_worker($current_logged_in_user_id)) {
+            $owner_id = \MoBooking\Classes\Auth::get_business_owner_id_for_worker($current_logged_in_user_id);
+            if ($owner_id) {
+                $user_id_to_query_for = $owner_id;
+                error_log("[MoBooking Bookings->get_booking] Worker {$current_logged_in_user_id} associated with owner {$owner_id}. Querying for owner_id: {$owner_id}");
+            } else {
+                error_log("[MoBooking Bookings->get_booking] Worker {$current_logged_in_user_id} has no associated owner. Cannot fetch booking {$booking_id}.");
+                return null;
+            }
+        }
+
+        $bookings_table = Database::get_table_name('bookings');
+        $booking = $this->wpdb->get_row($this->wpdb->prepare(
+            "SELECT * FROM $bookings_table WHERE booking_id = %d AND user_id = %d",
+            $booking_id, $user_id_to_query_for
+        ), ARRAY_A);
+
+        if ($booking) {
+            error_log("[MoBooking Bookings->get_booking] Booking {$booking_id} found for user_id_to_query_for: {$user_id_to_query_for}.");
+            
+            // Try to get booking items from separate table first
+            $items_table = Database::get_table_name('booking_items');
+            $booking_items_raw = $this->wpdb->get_results($this->wpdb->prepare(
+                "SELECT * FROM $items_table WHERE booking_id = %d ORDER BY item_id ASC", 
+                $booking_id
+            ), ARRAY_A);
+
+            if ($booking_items_raw) {
+                $booking['items'] = [];
+                foreach ($booking_items_raw as $item) {
+                    $item['selected_options'] = json_decode($item['selected_options'], true);
+                    if (!is_array($item['selected_options'])) {
+                        $item['selected_options'] = [];
+                    }
+                    $booking['items'][] = $item;
+                }
+            } else {
+                // Fallback to selected_services field
+                if (!empty($booking['selected_services'])) {
+                    $selected_services = json_decode($booking['selected_services'], true);
+                    $booking['items'] = is_array($selected_services) ? $selected_services : [];
+                } else {
+                    $booking['items'] = [];
+                }
+            }
+        }
+
+        return $booking;
+    }
+
+    public function handle_get_tenant_booking_details_ajax() {
+        check_ajax_referer('mobooking_dashboard_nonce', 'nonce');
+        $user_id = get_current_user_id();
+        $booking_id = isset($_POST['booking_id']) ? intval($_POST['booking_id']) : 0;
+
+        if (!$user_id || !$booking_id) {
+            wp_send_json_error(['message' => __('Invalid request.', 'mobooking')]);
+            return;
+        }
+
+        $booking = $this->get_booking_by_id($booking_id, $user_id);
+        if (!$booking) {
+            wp_send_json_error(['message' => __('Booking not found.', 'mobooking')]);
+            return;
+        }
+
+        wp_send_json_success(['booking' => $booking]);
+    }
+
+    public function get_booking_by_id(int $booking_id, int $tenant_user_id = 0) {
+        $bookings_table = Database::get_table_name('bookings');
+        $where_clause = 'booking_id = %d';
+        $params = [$booking_id];
+
+        if ($tenant_user_id > 0) {
+            $where_clause .= ' AND user_id = %d';
+            $params[] = $tenant_user_id;
+        }
+
+        return $this->wpdb->get_row($this->wpdb->prepare(
+            "SELECT * FROM $bookings_table WHERE $where_clause",
+            $params
+        ), ARRAY_A);
+    }
+
+    public function handle_update_booking_status_ajax() {
+        check_ajax_referer('mobooking_dashboard_nonce', 'nonce');
+        $user_id = get_current_user_id();
+        $booking_id = isset($_POST['booking_id']) ? intval($_POST['booking_id']) : 0;
+        $new_status = isset($_POST['new_status']) ? sanitize_text_field($_POST['new_status']) : '';
+
+        if (!$user_id || !$booking_id || !$new_status) {
+            wp_send_json_error(['message' => __('Invalid request parameters.', 'mobooking')]);
+            return;
+        }
+
+        $valid_statuses = ['pending', 'confirmed', 'in-progress', 'completed', 'cancelled'];
+        if (!in_array($new_status, $valid_statuses)) {
+            wp_send_json_error(['message' => __('Invalid status.', 'mobooking')]);
+            return;
+        }
+
+        $result = $this->update_booking_status($booking_id, $new_status, $user_id);
+        if (is_wp_error($result)) {
+            wp_send_json_error(['message' => $result->get_error_message()]);
+        } else {
+            wp_send_json_success(['message' => __('Booking status updated successfully.', 'mobooking')]);
+        }
+    }
+
+    public function update_booking_status(int $booking_id, string $new_status, int $tenant_user_id) {
+        $bookings_table = Database::get_table_name('bookings');
+        
+        $updated = $this->wpdb->update(
+            $bookings_table,
+            ['status' => $new_status, 'updated_at' => current_time('mysql')],
+            ['booking_id' => $booking_id, 'user_id' => $tenant_user_id],
+            ['%s', '%s'],
+            ['%d', '%d']
+        );
+
+        if (false === $updated) {
+            return new \WP_Error('db_update_error', __('Could not update booking status.', 'mobooking'));
+        }
+
+        return true;
+    }
+
+    public function handle_get_dashboard_overview_data_ajax() {
+        check_ajax_referer('mobooking_dashboard_nonce', 'nonce');
+        $user_id = get_current_user_id();
+        if (!$user_id) {
+            wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403);
+            return;
+        }
+
+        $kpi_data = $this->get_kpi_data($user_id);
+        $recent_bookings = $this->get_recent_bookings($user_id, 5);
+
+        wp_send_json_success([
+            'kpi' => $kpi_data,
+            'recent_bookings' => $recent_bookings
+        ]);
+    }
+
+    public function get_recent_bookings(int $tenant_user_id, int $limit = 5) {
+        $bookings_table = Database::get_table_name('bookings');
+        
+        return $this->wpdb->get_results($this->wpdb->prepare(
+            "SELECT booking_id, booking_reference, customer_name, booking_date, booking_time, status, total_price 
+             FROM $bookings_table 
+             WHERE user_id = %d 
+             ORDER BY created_at DESC 
+             LIMIT %d",
+            $tenant_user_id, $limit
+        ), ARRAY_A) ?: [];
+    }
+
+    // Dashboard CRUD methods
+    public function handle_create_dashboard_booking_ajax() {
+        check_ajax_referer('mobooking_dashboard_nonce', 'nonce');
+        $user_id = get_current_user_id();
+        if (!$user_id) {
+            wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403);
+            return;
+        }
+
+        $payload_json = isset($_POST['booking_data']) ? stripslashes_deep($_POST['booking_data']) : '';
+        $payload = json_decode($payload_json, true);
+
+        if (json_last_error() !== JSON_ERROR_NONE || empty($payload)) {
+            wp_send_json_error(['message' => __('Invalid booking data received.', 'mobooking')], 400);
+            return;
+        }
+
+        $result = $this->create_booking($user_id, $payload);
 
         if (is_wp_error($result)) {
-            wp_send_json_error(['message' => $result->get_error_message()], ($result->get_error_code() === 'db_booking_error' || $result->get_error_code() === 'booking_creation_exception' ? 500 : 400) );
+            wp_send_json_error(['message' => $result->get_error_message()], 500);
         } else {
-            $success_message = !empty($result['message']) ? sprintf($result['message'], $result['booking_reference']) : __('Booking successful!', 'mobooking');
+            $success_message = !empty($result['message']) ? sprintf($result['message'], $result['booking_reference']) : __('Booking created successfully!', 'mobooking');
             wp_send_json_success([
                 'message' => $success_message,
-                'booking_reference' => $result['booking_reference'],
                 'booking_id' => $result['booking_id']
             ]);
         }
     }
 
-    // Method to delete a booking
-    public function delete_booking(int $booking_id, int $tenant_user_id) {
-        if (empty($booking_id) || empty($tenant_user_id)) {
-            return new \WP_Error('invalid_input', __('Booking ID and Tenant User ID are required.', 'mobooking'));
+    public function handle_update_dashboard_booking_fields_ajax() {
+        check_ajax_referer('mobooking_dashboard_nonce', 'nonce');
+        $user_id = get_current_user_id();
+        if (!$user_id) {
+            wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403);
+            return;
         }
 
-        // Verify ownership by attempting to fetch the booking first
+        $booking_id = isset($_POST['booking_id']) ? intval($_POST['booking_id']) : 0;
+        $update_data_json = isset($_POST['update_data']) ? stripslashes_deep($_POST['update_data']) : '';
+
+        if (empty($booking_id)) {
+            wp_send_json_error(['message' => __('Booking ID is required.', 'mobooking')], 400);
+            return;
+        }
+
+        $update_data = json_decode($update_data_json, true);
+        if (json_last_error() !== JSON_ERROR_NONE || empty($update_data)) {
+            wp_send_json_error(['message' => __('Invalid update data received.', 'mobooking')], 400);
+            return;
+        }
+
+        $result = $this->update_booking_fields($booking_id, $update_data, $user_id);
+
+        if (is_wp_error($result)) {
+            wp_send_json_error(['message' => $result->get_error_message()], 500);
+        } else {
+            wp_send_json_success(['message' => __('Booking updated successfully.', 'mobooking')]);
+        }
+    }
+
+    public function update_booking_fields(int $booking_id, array $update_data, int $tenant_user_id) {
         $bookings_table = Database::get_table_name('bookings');
-        $booking = $this->wpdb->get_row($this->wpdb->prepare(
-            "SELECT user_id FROM $bookings_table WHERE booking_id = %d",
-            $booking_id
-        ));
-
-        if (!$booking) {
-            return new \WP_Error('not_found', __('Booking not found.', 'mobooking'));
+        
+        // Whitelist of allowed fields to update
+        $allowed_fields = [
+            'customer_name', 'customer_email', 'customer_phone', 'service_address',
+            'booking_date', 'booking_time', 'special_instructions', 'status'
+        ];
+        
+        $filtered_data = [];
+        foreach ($update_data as $field => $value) {
+            if (in_array($field, $allowed_fields)) {
+                $filtered_data[$field] = sanitize_text_field($value);
+            }
         }
-        if ((int)$booking->user_id !== $tenant_user_id) {
-            return new \WP_Error('permission_denied', __('You do not have permission to delete this booking.', 'mobooking'));
+        
+        if (empty($filtered_data)) {
+            return new \WP_Error('no_valid_fields', __('No valid fields to update.', 'mobooking'));
+        }
+        
+        $filtered_data['updated_at'] = current_time('mysql');
+        
+        $updated = $this->wpdb->update(
+            $bookings_table,
+            $filtered_data,
+            ['booking_id' => $booking_id, 'user_id' => $tenant_user_id],
+            array_fill(0, count($filtered_data), '%s'),
+            ['%d', '%d']
+        );
+
+        if (false === $updated) {
+            return new \WP_Error('db_update_error', __('Could not update booking.', 'mobooking'));
         }
 
-        $booking_items_table = Database::get_table_name('booking_items');
-
-        // Start transaction
-        $this->wpdb->query('START TRANSACTION');
-
-        // Delete booking items
-        $deleted_items = $this->wpdb->delete($booking_items_table, ['booking_id' => $booking_id], ['%d']);
-        // $deleted_items can be false on error, or number of rows affected.
-
-        // Delete main booking
-        $deleted_booking = $this->wpdb->delete($bookings_table, ['booking_id' => $booking_id, 'user_id' => $tenant_user_id], ['%d', '%d']);
-
-        if ($deleted_booking === false || $deleted_items === false) {
-            $this->wpdb->query('ROLLBACK');
-            return new \WP_Error('db_delete_error', __('Could not delete booking from the database.', 'mobooking'));
-        }
-
-        $this->wpdb->query('COMMIT');
         return true;
     }
 
     public function handle_delete_dashboard_booking_ajax() {
-        check_ajax_referer('mobooking_dashboard_nonce', 'nonce'); // Use a general dashboard nonce or create a specific one
+        check_ajax_referer('mobooking_dashboard_nonce', 'nonce');
         $user_id = get_current_user_id();
         if (!$user_id) {
             wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403);
@@ -786,142 +944,235 @@ class Bookings {
         $result = $this->delete_booking($booking_id, $user_id);
 
         if (is_wp_error($result)) {
-            wp_send_json_error(['message' => $result->get_error_message()], ($result->get_error_code() === 'db_delete_error' ? 500 : 400) );
+            wp_send_json_error(['message' => $result->get_error_message()], 500);
         } else {
             wp_send_json_success(['message' => __('Booking deleted successfully.', 'mobooking')]);
         }
     }
 
-    // Placeholder for creating a booking from dashboard - might reuse create_booking directly
-    public function handle_create_dashboard_booking_ajax() {
-        // This will be similar to handle_create_booking_public_ajax
-        // but might use a different nonce and potentially different payload structure
-        // For now, let's assume it can reuse the existing create_booking method.
-        check_ajax_referer('mobooking_dashboard_nonce', 'nonce'); // Or a specific "create booking" nonce
-        $user_id = get_current_user_id(); // This is the tenant creating the booking
-        if (!$user_id) {
-            wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403);
-            return;
-        }
-
-        $payload_json = isset($_POST['booking_data']) ? stripslashes_deep($_POST['booking_data']) : '';
-        $payload = json_decode($payload_json, true);
-
-        if (json_last_error() !== JSON_ERROR_NONE || empty($payload)) {
-            wp_send_json_error(['message' => __('Invalid booking data received.', 'mobooking')], 400);
-            return;
-        }
-
-        // The create_booking method expects tenant_user_id as its first argument.
-        // Here, $user_id is the tenant_user_id.
-        $result = $this->create_booking($user_id, $payload);
-
-        if (is_wp_error($result)) {
-            wp_send_json_error(['message' => $result->get_error_message()], ($result->get_error_code() === 'db_booking_error' ? 500 : 400) );
-        } else {
-            $success_message = !empty($result['message']) ? sprintf($result['message'], $result['booking_reference']) : __('Booking created successfully!', 'mobooking');
-            wp_send_json_success([
-                'message' => $success_message,
-                'booking_id' => $result['booking_id'],
-                'booking_reference' => $result['booking_reference']
-                // Consider returning the full booking object or enough data to prepend it to the list
-            ]);
-        }
-    }
-
-    // Placeholder for updating booking fields from dashboard
-    // This would be for more general field updates beyond just status
-    public function update_booking_fields(int $booking_id, int $tenant_user_id, array $fields_to_update) {
-        if (empty($booking_id) || empty($tenant_user_id) || empty($fields_to_update)) {
-            return new \WP_Error('invalid_input', __('Booking ID, User ID, and fields to update are required.', 'mobooking'));
-        }
-
-        // Verify ownership
+    public function delete_booking(int $booking_id, int $tenant_user_id) {
         $bookings_table = Database::get_table_name('bookings');
-        $booking = $this->wpdb->get_row($this->wpdb->prepare(
-            "SELECT user_id FROM $bookings_table WHERE booking_id = %d", $booking_id
-        ));
-
+        
+        // First verify the booking exists and belongs to the tenant
+        $booking = $this->get_booking_by_id($booking_id, $tenant_user_id);
         if (!$booking) {
-            return new \WP_Error('not_found', __('Booking not found.', 'mobooking'));
+            return new \WP_Error('booking_not_found', __('Booking not found or access denied.', 'mobooking'));
         }
-        if ((int)$booking->user_id !== $tenant_user_id) {
-            return new \WP_Error('permission_denied', __('You do not have permission to update this booking.', 'mobooking'));
-        }
-
-        $allowed_fields = [
-            'customer_name' => 'sanitize_text_field',
-            'customer_email' => 'sanitize_email',
-            'customer_phone' => 'sanitize_text_field',
-            'service_address' => 'sanitize_textarea_field',
-            'booking_date' => 'sanitize_text_field', // Needs validation YYYY-MM-DD
-            'booking_time' => 'sanitize_text_field', // Needs validation HH:MM
-            'special_instructions' => 'sanitize_textarea_field',
-            // 'status' is handled by update_booking_status, but could be included here if logic is merged
-        ];
-
-        $data_to_update = [];
-        $data_format = [];
-
-        foreach ($fields_to_update as $key => $value) {
-            if (array_key_exists($key, $allowed_fields)) {
-                $sanitization_function = $allowed_fields[$key];
-                $data_to_update[$key] = call_user_func($sanitization_function, $value);
-                // Determine format for wpdb::update
-                if (in_array($key, ['total_price', 'discount_amount'])) { // Example if we allow price edits
-                    $data_format[] = '%f';
-                } else {
-                    $data_format[] = '%s';
-                }
-            }
-        }
-
-        if (empty($data_to_update)) {
-            return new \WP_Error('no_valid_fields', __('No valid fields provided for update.', 'mobooking'));
-        }
-
-        // Add updated_at timestamp
-        $data_to_update['updated_at'] = current_time('mysql', 1);
-        $data_format[] = '%s';
-
-        $updated = $this->wpdb->update(
+        
+        $deleted = $this->wpdb->delete(
             $bookings_table,
-            $data_to_update,
             ['booking_id' => $booking_id, 'user_id' => $tenant_user_id],
-            $data_format, // Format for data
-            ['%d', '%d']  // Format for where
+            ['%d', '%d']
         );
 
-        if (false === $updated) {
-            return new \WP_Error('db_update_error', __('Could not update booking in the database.', 'mobooking'));
+        if (false === $deleted) {
+            return new \WP_Error('db_delete_error', __('Could not delete booking from database.', 'mobooking'));
         }
 
-        return $this->get_booking($booking_id, $tenant_user_id); // Return updated booking details
+        return true;
     }
 
-    public function handle_update_dashboard_booking_fields_ajax() {
-        check_ajax_referer('mobooking_dashboard_nonce', 'nonce');
-        $user_id = get_current_user_id();
-        if (!$user_id) { wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403); return; }
+    /**
+     * Get all bookings for a specific status
+     */
+    public function get_bookings_by_status(int $tenant_user_id, string $status) {
+        $bookings_table = Database::get_table_name('bookings');
+        
+        return $this->wpdb->get_results($this->wpdb->prepare(
+            "SELECT * FROM $bookings_table WHERE user_id = %d AND status = %s ORDER BY booking_date ASC",
+            $tenant_user_id, $status
+        ), ARRAY_A) ?: [];
+    }
 
-        $booking_id = isset($_POST['booking_id']) ? intval($_POST['booking_id']) : 0;
-        $fields_json = isset($_POST['fields_to_update']) ? stripslashes_deep($_POST['fields_to_update']) : '';
-        $fields_to_update = json_decode($fields_json, true);
-
-        if (empty($booking_id) || json_last_error() !== JSON_ERROR_NONE || empty($fields_to_update)) {
-            wp_send_json_error(['message' => __('Booking ID and valid fields to update are required.', 'mobooking')], 400);
-            return;
+    /**
+     * Get booking statistics for dashboard
+     */
+    public function get_booking_statistics(int $tenant_user_id) {
+        $bookings_table = Database::get_table_name('bookings');
+        
+        $stats = [];
+        
+        // Total bookings
+        $stats['total'] = $this->wpdb->get_var($this->wpdb->prepare(
+            "SELECT COUNT(*) FROM $bookings_table WHERE user_id = %d",
+            $tenant_user_id
+        ));
+        
+        // Bookings by status
+        $status_counts = $this->wpdb->get_results($this->wpdb->prepare(
+            "SELECT status, COUNT(*) as count FROM $bookings_table WHERE user_id = %d GROUP BY status",
+            $tenant_user_id
+        ), ARRAY_A);
+        
+        foreach ($status_counts as $row) {
+            $stats['by_status'][$row['status']] = intval($row['count']);
         }
+        
+        // Revenue statistics
+        $stats['total_revenue'] = $this->wpdb->get_var($this->wpdb->prepare(
+            "SELECT SUM(total_price) FROM $bookings_table WHERE user_id = %d AND status IN ('completed', 'confirmed')",
+            $tenant_user_id
+        ));
+        
+        // Average booking value
+        $stats['average_booking_value'] = $this->wpdb->get_var($this->wpdb->prepare(
+            "SELECT AVG(total_price) FROM $bookings_table WHERE user_id = %d AND status IN ('completed', 'confirmed')",
+            $tenant_user_id
+        ));
+        
+        return $stats;
+    }
 
-        $result = $this->update_booking_fields($booking_id, $user_id, $fields_to_update);
-
-        if (is_wp_error($result)) {
-            wp_send_json_error(['message' => $result->get_error_message()], ($result->get_error_code() === 'db_update_error' ? 500 : 400) );
-        } else {
-            wp_send_json_success([
-                'message' => __('Booking updated successfully.', 'mobooking'),
-                'booking_data' => $result // Send back the updated booking data
-            ]);
+    /**
+     * Search bookings with advanced filters
+     */
+    public function search_bookings(int $tenant_user_id, array $filters = []) {
+        $bookings_table = Database::get_table_name('bookings');
+        
+        $where_conditions = ['user_id = %d'];
+        $where_values = [$tenant_user_id];
+        
+        // Date range filter
+        if (!empty($filters['date_from'])) {
+            $where_conditions[] = "booking_date >= %s";
+            $where_values[] = sanitize_text_field($filters['date_from']);
         }
+        
+        if (!empty($filters['date_to'])) {
+            $where_conditions[] = "booking_date <= %s";
+            $where_values[] = sanitize_text_field($filters['date_to']);
+        }
+        
+        // Status filter
+        if (!empty($filters['status'])) {
+            $where_conditions[] = "status = %s";
+            $where_values[] = sanitize_text_field($filters['status']);
+        }
+        
+        // Customer search
+        if (!empty($filters['customer_search'])) {
+            $where_conditions[] = "(customer_name LIKE %s OR customer_email LIKE %s)";
+            $search_term = '%' . $this->wpdb->esc_like($filters['customer_search']) . '%';
+            $where_values[] = $search_term;
+            $where_values[] = $search_term;
+        }
+        
+        // Price range
+        if (!empty($filters['min_price'])) {
+            $where_conditions[] = "total_price >= %f";
+            $where_values[] = floatval($filters['min_price']);
+        }
+        
+        if (!empty($filters['max_price'])) {
+            $where_conditions[] = "total_price <= %f";
+            $where_values[] = floatval($filters['max_price']);
+        }
+        
+        $where_clause = 'WHERE ' . implode(' AND ', $where_conditions);
+        $order_by = isset($filters['order_by']) ? sanitize_sql_orderby($filters['order_by']) : 'created_at DESC';
+        
+        return $this->wpdb->get_results($this->wpdb->prepare(
+            "SELECT * FROM $bookings_table $where_clause ORDER BY $order_by",
+            $where_values
+        ), ARRAY_A) ?: [];
+    }
+
+    /**
+     * Export bookings to CSV format
+     */
+    public function export_bookings_csv(int $tenant_user_id, array $filters = []) {
+        $bookings = $this->search_bookings($tenant_user_id, $filters);
+        
+        if (empty($bookings)) {
+            return new \WP_Error('no_bookings', __('No bookings found to export.', 'mobooking'));
+        }
+        
+        $csv_data = [];
+        $csv_data[] = [
+            'Booking Reference',
+            'Customer Name',
+            'Customer Email',
+            'Customer Phone',
+            'Service Address',
+            'Booking Date',
+            'Booking Time',
+            'Status',
+            'Total Price',
+            'Created At'
+        ];
+        
+        foreach ($bookings as $booking) {
+            $csv_data[] = [
+                $booking['booking_reference'],
+                $booking['customer_name'],
+                $booking['customer_email'],
+                $booking['customer_phone'],
+                $booking['service_address'],
+                $booking['booking_date'],
+                $booking['booking_time'],
+                $booking['status'],
+                $booking['total_price'],
+                $booking['created_at']
+            ];
+        }
+        
+        return $csv_data;
+    }
+
+    /**
+     * Get upcoming bookings for reminders
+     */
+    public function get_upcoming_bookings(int $tenant_user_id, int $days_ahead = 7) {
+        $bookings_table = Database::get_table_name('bookings');
+        $start_date = current_time('Y-m-d');
+        $end_date = date('Y-m-d', strtotime("+{$days_ahead} days"));
+        
+        return $this->wpdb->get_results($this->wpdb->prepare(
+            "SELECT * FROM $bookings_table 
+             WHERE user_id = %d 
+             AND status IN ('confirmed', 'pending') 
+             AND booking_date BETWEEN %s AND %s 
+             ORDER BY booking_date ASC, booking_time ASC",
+            $tenant_user_id, $start_date, $end_date
+        ), ARRAY_A) ?: [];
+    }
+
+    /**
+     * Validate booking data before saving
+     */
+    private function validate_booking_data(array $booking_data) {
+        $errors = [];
+        
+        // Required fields validation
+        $required_fields = ['customer_name', 'customer_email', 'booking_date', 'booking_time'];
+        foreach ($required_fields as $field) {
+            if (empty($booking_data[$field])) {
+                $errors[] = sprintf(__('Field %s is required.', 'mobooking'), $field);
+            }
+        }
+        
+        // Email validation
+        if (!empty($booking_data['customer_email']) && !is_email($booking_data['customer_email'])) {
+            $errors[] = __('Invalid email address.', 'mobooking');
+        }
+        
+        // Date validation
+        if (!empty($booking_data['booking_date'])) {
+            $date = \DateTime::createFromFormat('Y-m-d', $booking_data['booking_date']);
+            if (!$date || $date->format('Y-m-d') !== $booking_data['booking_date']) {
+                $errors[] = __('Invalid booking date format.', 'mobooking');
+            }
+        }
+        
+        // Time validation
+        if (!empty($booking_data['booking_time'])) {
+            $time = \DateTime::createFromFormat('H:i', $booking_data['booking_time']);
+            if (!$time || $time->format('H:i') !== $booking_data['booking_time']) {
+                $errors[] = __('Invalid booking time format.', 'mobooking');
+            }
+        }
+        
+        return empty($errors) ? true : $errors;
     }
 }
+?>
