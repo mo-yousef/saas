@@ -74,7 +74,10 @@ add_action( 'after_setup_theme', 'mobooking_setup' );
 
 function mobooking_scripts() {
     // Initialize variables to prevent undefined warnings if used before assignment in conditional blocks
-    $public_form_currency_code = 'USD'; // Default value
+    $public_form_currency = [ // Default currency settings
+        'code' => 'USD',
+        'symbol' => '$'
+    ];
 
     // Enqueue CSS Reset first
     wp_enqueue_style( 'mobooking-reset', MOBOOKING_THEME_URI . 'assets/css/reset.css', array(), MOBOOKING_VERSION );
@@ -157,8 +160,12 @@ if ( is_page_template('templates/booking-form-public.php') || $page_type_for_scr
         
         // Get currency from business settings
         $biz_settings = $settings_manager->get_business_settings($effective_tenant_id_for_public_form);
-        if (!empty($biz_settings['biz_currency'])) {
-            $public_form_currency_code = $biz_settings['biz_currency'];
+        // Update the $public_form_currency array
+        if (!empty($biz_settings['biz_currency_code'])) {
+            $public_form_currency['code'] = $biz_settings['biz_currency_code'];
+        }
+        if (!empty($biz_settings['biz_currency_symbol'])) {
+            $public_form_currency['symbol'] = $biz_settings['biz_currency_symbol'];
         }
     }
 
@@ -209,7 +216,7 @@ if ( is_page_template('templates/booking-form-public.php') || $page_type_for_scr
         'ajax_url' => admin_url('admin-ajax.php'),
         'nonce' => wp_create_nonce('mobooking_booking_form_nonce'),
         'tenant_id' => $effective_tenant_id_for_public_form,
-        'currency_code' => $public_form_currency_code,
+        'currency' => $public_form_currency, // Pass the currency object
         'site_url' => site_url(),
         'i18n' => $i18n_strings,
         'settings' => [
