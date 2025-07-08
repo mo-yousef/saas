@@ -17,6 +17,54 @@ jQuery(document).ready(function ($) {
   );
 
   // --- UTILITY FUNCTIONS ---
+
+  // Enhanced JSON encoding with proper escaping
+  function safeJsonEncode(data) {
+    try {
+      // Clean the data first
+      const cleanData = cleanDataForJson(data);
+      const jsonString = JSON.stringify(cleanData);
+
+      console.log('🔍 JSON Encoding Debug (safeJsonEncode):', {
+          original: data,
+          cleaned: cleanData,
+          encoded: jsonString
+      });
+
+      return jsonString;
+    } catch (error) {
+      console.error('❌ JSON encoding failed (safeJsonEncode):', error, data);
+      // Fallback to basic stringify if custom cleaning fails, though this is unlikely
+      // if cleanDataForJson itself doesn't throw.
+      try {
+        return JSON.stringify(data);
+      } catch (fallbackError) {
+        console.error('❌ Fallback JSON.stringify also failed:', fallbackError, data);
+        return null; // Indicate failure
+      }
+    }
+  }
+
+  // Clean data to prevent JSON encoding issues
+  function cleanDataForJson(data) {
+    if (typeof data === 'string') {
+      // Remove problematic characters and normalize
+      // Basic control characters removal. Consider more specific needs if issues persist.
+      return data.replace(/[\u0000-\u001F\u007F-\u009F]/g, "").trim();
+    } else if (Array.isArray(data)) {
+      return data.map(cleanDataForJson);
+    } else if (data && typeof data === 'object') {
+      const cleaned = {};
+      for (const key in data) {
+        if (Object.prototype.hasOwnProperty.call(data, key)) { // More robust check
+          cleaned[key] = cleanDataForJson(data[key]);
+        }
+      }
+      return cleaned;
+    }
+    return data; // Return numbers, booleans, null as is
+  }
+
   function getStepName(stepNumber) {
     // Added missing function
     const names = [
@@ -1136,30 +1184,63 @@ jQuery(document).ready(function ($) {
     showFeedback($feedback, "info", MOB_PARAMS.i18n.submitting, false);
 
     // Consolidate data for submission
+    // Ensure customerDetails and selectedOptions are up-to-date
+    storeCustomerDetails(); // Make sure customerDetails object is current
+
+    const selectedServicesPayload = [
+      {
+        service_id: selectedService.service_id,
+        name: selectedService.name,
+        price: selectedService.price,
+        configured_options: selectedOptions, // selectedOptions is already maintained globally
+      },
+    ];
+
+    const customerDetailsJson = safeJsonEncode(customerDetails);
+    const selectedServicesJson = safeJsonEncode(selectedServicesPayload);
+    const discountInfoJson = discountInfo ? safeJsonEncode(discountInfo) : null;
+    const pricingJson = safeJsonEncode({
+      subtotal: calculateSubtotal(),
+      discount: discountInfo ? calculateSubtotal() - totalPrice : 0,
+      total: totalPrice,
+    });
+
+    if (!customerDetailsJson || !selectedServicesJson || !pricingJson) {
+      showFeedback($feedback, "error", "Error encoding form data. Please try again.", false);
+      $button.prop("disabled", false).html(originalBtnHtml);
+      return;
+    }
+
+    const tenantId = $("#tenant-id").val();
+    const nonce = $("#form-nonce").val() || MOB_PARAMS.nonce; // Fallback to MOB_PARAMS if hidden field not found
+
+    if (!tenantId) {
+        showFeedback($feedback, "error", "Configuration error: Tenant ID is missing. Please refresh and try again.", false);
+        $button.prop("disabled", false).html(originalBtnHtml);
+        console.error("MoBooking Error: Tenant ID is missing from #tenant-id hidden field.");
+        return;
+    }
+    if (!nonce) {
+        showFeedback($feedback, "error", "Configuration error: Security token is missing. Please refresh and try again.", false);
+        $button.prop("disabled", false).html(originalBtnHtml);
+        console.error("MoBooking Error: Nonce is missing from #form-nonce hidden field or MOB_PARAMS.");
+        return;
+    }
+
     const submissionData = {
       action: "mobooking_create_booking",
-      nonce: MOB_PARAMS.nonce,
-      tenant_id: MOB_PARAMS.tenantId,
-      selected_services: JSON.stringify([
-        {
-          // Current structure assumes one service
-          service_id: selectedService.service_id,
-          name: selectedService.name,
-          price: selectedService.price,
-          configured_options: selectedOptions,
-        },
-      ]),
-      customer_details: JSON.stringify(customerDetails),
-      discount_info: discountInfo ? JSON.stringify(discountInfo) : null,
+      nonce: nonce,
+      tenant_id: tenantId,
+      selected_services: selectedServicesJson,
+      customer_details: customerDetailsJson,
+      discount_info: discountInfoJson,
       zip_code: $("#mobooking-zip").val() || customerDetails.zip_code || "", // From step 1 or details
       country_code:
         $("#mobooking-country").val() || customerDetails.country_code || "",
-      pricing: JSON.stringify({
-        subtotal: calculateSubtotal(),
-        discount: discountInfo ? calculateSubtotal() - totalPrice : 0, // Recalculate discount amount based on final total
-        total: totalPrice,
-      }),
+      pricing: pricingJson,
     };
+
+    console.log("Submitting with safe JSON encoding:", submissionData);
 
     $.ajax({
       url: MOB_PARAMS.ajaxUrl,
@@ -1212,199 +1293,7 @@ jQuery(document).ready(function ($) {
   initializeForm();
 });
 
-jQuery(document).ready(function ($) {
-  "use strict";
-
-  // Function to get a fresh nonce
-  function getFreshNonce() {
-    return $.ajax({
-      url: "/wp-admin/admin-ajax.php",
-      type: "POST",
-      data: {
-        action: "mobooking_get_fresh_nonce",
-      },
-    });
-  }
-
-  // Enhanced booking submission with nonce retry
-  function submitBookingWithRetry(formData, retryCount = 0) {
-    return $.ajax({
-      url: "/wp-admin/admin-ajax.php",
-      type: "POST",
-      data: formData,
-      timeout: 30000,
-    }).fail(function (xhr, status, error) {
-      // If nonce error and we haven't retried yet, get fresh nonce and retry
-      if (
-        retryCount === 0 &&
-        xhr.responseJSON &&
-        xhr.responseJSON.data &&
-        xhr.responseJSON.data.message &&
-        xhr.responseJSON.data.message.includes("nonce")
-      ) {
-        console.log("Nonce failed, getting fresh nonce and retrying...");
-
-        return getFreshNonce().then(function (response) {
-          if (response.success && response.data.nonce) {
-            formData.nonce = response.data.nonce;
-            return submitBookingWithRetry(formData, 1);
-          }
-          throw new Error("Could not get fresh nonce");
-        });
-      }
-      throw error;
-    });
-  }
-
-  // Override the existing booking submission if it exists
-  if (
-    window.MoBookingForm &&
-    typeof window.MoBookingForm.submitFinalBooking === "function"
-  ) {
-    const originalSubmit = window.MoBookingForm.submitFinalBooking;
-
-    window.MoBookingForm.submitFinalBooking = function () {
-      const tenantId = $("#tenant-id").val();
-      const nonce = $("#form-nonce").val() || window.MOBOOKING_FORM_NONCE;
-
-      if (!tenantId) {
-        this.showError("Tenant ID is missing");
-        return;
-      }
-
-      if (!nonce) {
-        this.showError("Security nonce is missing");
-        return;
-      }
-
-      // Collect all form data
-      const selectedServices = this.getSelectedServices();
-      const customerDetails = this.getCustomerDetails();
-      const discountInfo = this.getDiscountInfo();
-      const zipCode = this.currentZipCode || "";
-      const countryCode = this.currentCountryCode || "";
-      const pricing = this.calculateTotalPricing();
-
-      // Validate required data
-      if (!selectedServices || selectedServices.length === 0) {
-        this.showError("Please select at least one service");
-        return;
-      }
-
-      if (!customerDetails || !customerDetails.name || !customerDetails.email) {
-        this.showError("Please fill in all required customer details");
-        return;
-      }
-
-      // Prepare submission data
-      const submissionData = {
-        action: "mobooking_create_booking",
-        nonce: nonce,
-        tenant_id: tenantId,
-        selected_services: JSON.stringify(selectedServices),
-        customer_details: JSON.stringify(customerDetails),
-        discount_info: discountInfo ? JSON.stringify(discountInfo) : "",
-        zip_code: zipCode,
-        country_code: countryCode,
-        pricing: JSON.stringify(pricing),
-      };
-
-      console.log("Submitting booking with data:", submissionData);
-
-      // Show loading state
-      this.showLoading(true);
-
-      // Submit with retry mechanism
-      submitBookingWithRetry(submissionData)
-        .then((response) => {
-          console.log("Booking submission successful:", response);
-          if (response.success) {
-            this.showSuccessStep(response.data);
-          } else {
-            this.showError(response.data?.message || "Booking failed");
-          }
-        })
-        .catch((error) => {
-          console.error("Booking submission failed:", error);
-          this.showError("Booking submission failed. Please try again.");
-        })
-        .finally(() => {
-          this.showLoading(false);
-        });
-    };
-  }
-
-  // Add a manual booking submission button for testing
-  if ($("#mobooking-bf-step-6-success").length) {
-    $("#mobooking-bf-step-6-success").before(`
-            <div id="manual-booking-test" style="margin: 20px 0; padding: 15px; background: #f9f9f9; border: 1px solid #ddd;">
-                <h4>Manual Booking Test (Remove in production)</h4>
-                <button type="button" id="manual-submit-btn" class="mobooking-btn mobooking-btn-primary">
-                    Test Manual Submission
-                </button>
-                <div id="manual-test-result" style="margin-top: 10px;"></div>
-            </div>
-        `);
-
-    $("#manual-submit-btn").on("click", function () {
-      const testData = {
-        action: "mobooking_create_booking",
-        nonce: $("#form-nonce").val() || window.MOBOOKING_FORM_NONCE,
-        tenant_id: $("#tenant-id").val() || 1,
-        selected_services: JSON.stringify([
-          {
-            service_id: 12,
-            name: "Test Service",
-            price: 100,
-            configured_options: {},
-          },
-        ]),
-        customer_details: JSON.stringify({
-          name: "Test Customer",
-          email: "test@example.com",
-          phone: "1234567890",
-          address: "Test Address",
-          date: "2025-07-22",
-          time: "10:00",
-          instructions: "Test booking",
-        }),
-        discount_info: "",
-        zip_code: "",
-        country_code: "",
-        pricing: JSON.stringify({
-          subtotal: 100,
-          discount: 0,
-          total: 100,
-        }),
-      };
-
-      console.log("Manual test submission:", testData);
-
-      $.ajax({
-        url: "/wp-admin/admin-ajax.php",
-        type: "POST",
-        data: testData,
-        success: function (response) {
-          console.log("Manual test response:", response);
-          $("#manual-test-result").html(`
-                        <div style="color: green;">
-                            <strong>Success:</strong> ${
-                              response.data?.message || "Booking created"
-                            }
-                        </div>
-                    `);
-        },
-        error: function (xhr, status, error) {
-          console.error("Manual test error:", xhr.responseText);
-          $("#manual-test-result").html(`
-                        <div style="color: red;">
-                            <strong>Error:</strong> ${
-                              xhr.responseJSON?.data?.message || error
-                            }
-                        </div>
-                    `);
-        },
-      });
-    });
-  }
-});
+// The secondary jQuery(document).ready block containing test buttons,
+// submitBookingWithJsonFix, and the override for MoBookingForm.submitFinalBooking
+// has been removed as its core logic (safeJsonEncode, cleanDataForJson)
+// is now integrated into the main form handler.
