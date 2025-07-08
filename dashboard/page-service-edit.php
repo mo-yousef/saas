@@ -834,7 +834,7 @@ input:checked + .mb-toggle-slider:before {
                         <?php endif; ?>
                     </div>
                     <input type="hidden" id="icon-value" name="icon" value="<?php echo esc_attr($service_icon); ?>">
-                    <input type="file" id="custom-icon-upload" accept=".svg" class="mb-hidden"> {/* New file input for custom SVG */}
+                    <input type="file" id="custom-icon-upload" accept=".svg" class="mb-hidden">
                     <div class="mb-flex mb-gap-2">
                         <button type="button" id="select-icon-btn" class="mb-btn mb-btn-secondary mb-btn-sm">
                             <?php esc_html_e('Select Preset Icon', 'mobooking'); ?>
