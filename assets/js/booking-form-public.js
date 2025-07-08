@@ -354,28 +354,112 @@ jQuery(document).ready(function($) {
                         <label for="${optionName}" class="mobooking-label">
                             ${escapeHtml(option.name)} ${priceDisplay} ${requiredIndicator}
                         </label>
-                        <input type="number" id="${optionName}" name="${optionName}" value="${escapeHtml(currentValue || '0')}" min="0"
-                               class="mobooking-input" data-price="${priceImpact}" data-price-type="${priceImpactType}" ${requiredAttr}>`;
+                        <div class="mobooking-quantity-input-wrapper">
+                            <button type="button" class="mobooking-btn-quantity minus" data-target="${optionName}">-</button>
+                            <input type="number" id="${optionName}" name="${optionName}" value="${escapeHtml(currentValue || '0')}" min="0"
+                                   class="mobooking-input mobooking-input-quantity" data-price="${priceImpact}" data-price-type="${priceImpactType}" ${requiredAttr}>
+                            <button type="button" class="mobooking-btn-quantity plus" data-target="${optionName}">+</button>
+                        </div>`;
+                    break;
+                case 'number': // Similar to quantity but maybe without buttons initially, or we can make them consistent
+                    optionFieldHtml = `
+                        <label for="${optionName}" class="mobooking-label">
+                            ${escapeHtml(option.name)} ${priceDisplay} ${requiredIndicator}
+                        </label>
+                        <div class="mobooking-quantity-input-wrapper">
+                             <button type="button" class="mobooking-btn-quantity minus" data-target="${optionName}">-</button>
+                             <input type="number" id="${optionName}" name="${optionName}" value="${escapeHtml(currentValue || '0')}" min="0"
+                                   class="mobooking-input mobooking-input-quantity" data-price="${priceImpact}" data-price-type="${priceImpactType}" ${requiredAttr}>
+                             <button type="button" class="mobooking-btn-quantity plus" data-target="${optionName}">+</button>
+                        </div>`;
+                    break;
+                case 'sqm': // Square Meters with slider and input
+                    const sqmRanges = option.option_values && Array.isArray(option.option_values) ? option.option_values : [];
+                    const minSqm = sqmRanges.length > 0 && typeof sqmRanges[0].from !== 'undefined' ? parseFloat(sqmRanges[0].from) : 1;
+                    const maxSqm = sqmRanges.length > 0 && typeof sqmRanges[sqmRanges.length -1].to !== 'undefined' && sqmRanges[sqmRanges.length -1].to !== '∞' ? parseFloat(sqmRanges[sqmRanges.length -1].to) : 1000; // Default max if not specified or infinite
+
+                    optionFieldHtml = `
+                        <label for="${optionName}" class="mobooking-label">
+                            ${escapeHtml(option.name)} ${requiredIndicator} <!-- Price display for SQM is complex, usually shown in summary -->
+                        </label>
+                        <div class="mobooking-sqm-input-wrapper" data-sqm-ranges='${JSON.stringify(sqmRanges)}'>
+                            <input type="range" id="${optionName}_slider" name="${optionName}_slider"
+                                   min="${minSqm}" max="${maxSqm}" value="${escapeHtml(currentValue || minSqm.toString())}" class="mobooking-slider">
+                            <input type="number" id="${optionName}" name="${optionName}" value="${escapeHtml(currentValue || minSqm.toString())}"
+                                   min="${minSqm}" max="${maxSqm}" class="mobooking-input mobooking-input-sqm" ${requiredAttr}>
+                            <span class="mobooking-sqm-unit">sqm</span>
+                        </div>`;
+                         // Display ranges if helpful
+                    if (sqmRanges.length > 0) {
+                        optionFieldHtml += '<div class="mobooking-sqm-ranges-display">';
+                        sqmRanges.forEach(range => {
+                            optionFieldHtml += `<span>${range.from}-${range.to === '∞' ? '&infin;' : range.to} sqm: ${MOB_PARAMS.currency.symbol}${range.price}/sqm</span><br>`;
+                        });
+                        optionFieldHtml += '</div>';
+                    }
                     break;
                 default:
-                    optionFieldHtml = `<p>Unsupported option type: ${escapeHtml(option.type)}</p>`;
+                    optionFieldHtml = `<p class="mobooking-feedback error">Unsupported option type: ${escapeHtml(option.type)}</p>`;
             }
 
-            html += `<div class="mobooking-form-group" data-option-id="${option.option_id}">${optionFieldHtml}`;
+            html += `<div class="mobooking-form-group" data-option-id="${option.option_id}" data-option-type="${option.type}">${optionFieldHtml}`;
             if (option.description) {
                 html += `<div class="option-description">${escapeHtml(option.description)}</div>`;
             }
             html += `</div>`;
         });
         $container.html(html);
-        $container.find('input, textarea, select').on('change input', handleOptionChange); // Rebind events
+        // Rebind events for newly created elements
+        $container.find('input, textarea, select').on('change input', handleOptionChange);
+        $container.find('.mobooking-btn-quantity').on('click', handleQuantityButtonClick);
+        $container.find('.mobooking-slider').on('input', handleSqmSliderChange);
+        $container.find('.mobooking-input-sqm').on('input change', handleSqmInputChange);
+
         updateLiveSummary();
     }
 
-    function handleOptionChange() {
+    function handleQuantityButtonClick() {
+        const $button = $(this);
+        const targetInputId = $button.data('target');
+        const $input = $('#' + targetInputId);
+        let currentValue = parseInt($input.val()) || 0;
+        if ($button.hasClass('plus')) {
+            currentValue++;
+        } else if ($button.hasClass('minus') && currentValue > 0) {
+            currentValue--;
+        }
+        $input.val(currentValue).trigger('change'); // Trigger change to update summary
+    }
+
+    function handleSqmSliderChange() {
+        const $slider = $(this);
+        const $wrapper = $slider.closest('.mobooking-sqm-input-wrapper');
+        const $input = $wrapper.find('.mobooking-input-sqm');
+        $input.val($slider.val()).trigger('change');
+    }
+
+    function handleSqmInputChange() {
         const $input = $(this);
-        const optionId = $input.closest('.mobooking-form-group').data('option-id');
-        // Find the option data from the preloaded selectedService.options
+        const $wrapper = $input.closest('.mobooking-sqm-input-wrapper');
+        const $slider = $wrapper.find('.mobooking-slider');
+        let val = parseFloat($input.val());
+        const min = parseFloat($slider.attr('min'));
+        const max = parseFloat($slider.attr('max'));
+        if (isNaN(val)) val = min;
+        if (val < min) val = min;
+        if (val > max) val = max;
+        $input.val(val); // Corrected value
+        $slider.val(val);
+        // `handleOptionChange` will be triggered by the 'change' event on $input
+    }
+
+
+    function handleOptionChange() {
+        const $inputElement = $(this); // Could be slider, number input, select, etc.
+        const $formGroup = $inputElement.closest('.mobooking-form-group');
+        const optionId = $formGroup.data('option-id');
+        const optionType = $formGroup.data('option-type');
+
         const serviceOption = selectedService.options.find(opt => opt.option_id === parseInt(optionId));
 
         if (!serviceOption) {
@@ -384,38 +468,72 @@ jQuery(document).ready(function($) {
         }
 
         let value;
-        let price = parseFloat(serviceOption.price_impact || 0); // Base price impact from the option itself
+        let price = 0; // Default to 0, will be calculated
         let priceType = serviceOption.price_impact_type || 'fixed';
         const optionName = serviceOption.name;
 
-        if ($input.is(':checkbox')) {
-            value = $input.is(':checked') ? '1' : '0';
-        } else if ($input.is('select')) {
-            value = $input.val();
-            // If select options have individual price adjustments, find the selected one
+        if (optionType === 'checkbox') {
+            value = $inputElement.is(':checked') ? '1' : '0';
+            if (value === '1') price = parseFloat(serviceOption.price_impact || 0);
+        } else if (optionType === 'select') {
+            value = $inputElement.val();
             const selectedChoice = serviceOption.option_values.find(ov => ov.value === value);
             if (selectedChoice && typeof selectedChoice.price_adjust !== 'undefined') {
-                price = parseFloat(selectedChoice.price_adjust); // Override with choice-specific price
-                priceType = 'fixed'; // Assume choice price_adjust is always fixed for now
+                price = parseFloat(selectedChoice.price_adjust);
+            } else { // Fallback to main option price if no specific adjustment
+                price = parseFloat(serviceOption.price_impact || 0);
             }
-        } else if ($input.is(':radio')) {
-             value = $('input[name="' + $input.attr('name') + '"]:checked').val();
+        } else if (optionType === 'radio') {
+             value = $('input[name="option_' + optionId + '"]:checked').val();
              const selectedChoice = serviceOption.option_values.find(ov => ov.value === value);
              if (selectedChoice && typeof selectedChoice.price_adjust !== 'undefined') {
                 price = parseFloat(selectedChoice.price_adjust);
-                priceType = 'fixed';
+            } else {
+                price = parseFloat(serviceOption.price_impact || 0);
             }
+        } else if (optionType === 'quantity' || optionType === 'number') {
+            value = $inputElement.val().trim();
+            const quantityVal = parseInt(value) || 0;
+            if (quantityVal > 0) {
+                if (serviceOption.price_impact_type === 'per_unit') { // Assuming a type for per_unit pricing
+                     price = parseFloat(serviceOption.price_impact || 0) * quantityVal;
+                } else { // Fixed price impact regardless of quantity (e.g. "add this feature") or no impact
+                     price = parseFloat(serviceOption.price_impact || 0);
+                }
+            } else { // Quantity is 0
+                value = '0'; // Ensure value is '0' not empty string if that matters
+                price = 0;
+            }
+        } else if (optionType === 'sqm') {
+            value = $inputElement.val().trim();
+            const sqmValue = parseFloat(value) || 0;
+            if (sqmValue > 0) {
+                const ranges = JSON.parse($inputElement.closest('.mobooking-sqm-input-wrapper').data('sqm-ranges') || '[]');
+                for (const range of ranges) {
+                    const from = parseFloat(range.from);
+                    const to = range.to === '∞' || typeof range.to === 'undefined' ? Infinity : parseFloat(range.to);
+                    if (sqmValue >= from && sqmValue <= to) {
+                        price = parseFloat(range.price) * sqmValue;
+                        break;
+                    }
+                }
+            } else {
+                 price = 0;
+            }
+            priceType = 'calculated'; // SQM price is always calculated directly
         }
-        else {
-            value = $input.val().trim();
+        else { // text, textarea
+            value = $inputElement.val().trim();
+            if (value) price = parseFloat(serviceOption.price_impact || 0);
         }
 
-        if (value && value !== '0') { // For checkbox, '0' means unchecked. For quantity, could be 0.
+
+        if (value && (optionType === 'checkbox' ? value === '1' : true) && (optionType !== 'quantity' && optionType !== 'number' || parseInt(value) > 0) ) {
             selectedOptions[optionId] = {
                 name: optionName,
                 value: value,
-                price: price,
-                priceType: priceType
+                price: price, // This is the calculated impact for this option
+                priceType: priceType // This might need adjustment if base option has % and choice has fixed
             };
         } else {
             delete selectedOptions[optionId];
