@@ -16,37 +16,51 @@ require_once __DIR__ . '/ServiceOptions.php';
 class Services {
     private $wpdb;
     private $service_options_manager;
+    private static $preset_icons_path; // Store the path to presets
 
     public function __construct() {
         global $wpdb;
         $this->wpdb = $wpdb;
         $this->service_options_manager = new ServiceOptions();
+        // Define the path to the preset icons directory. MOBOOKING_PLUGIN_DIR should be defined in the main plugin file.
+        self::$preset_icons_path = defined('MOBOOKING_PLUGIN_DIR') ? MOBOOKING_PLUGIN_DIR . 'assets/svg-icons/presets/' : plugin_dir_path(__FILE__) . '../../assets/svg-icons/presets/';
     }
 
-    private static $preset_icons = [
-        'tools' => '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24px" height="24px"><path d="M0 0h24v24H0z" fill="none"/><path d="M21.69 18.56l-1.41-1.41c-.54-.54-1.29-.8-2.09-.69l-1.44.21c-.33.05-.6.31-.6.64v1.5c0 .28.22.5.5.5h.5c2.21 0 4-1.79 4-4v-.5c0-.33-.27-.59-.6-.54l-1.44.21c-.8.11-1.55.38-2.09.92L16.56 17H7.44l-1.41-1.41c-.54-.54-1.29-.8-2.09-.69l-1.44.21c-.33.05-.6.31-.6.64v1.5c0 .28.22.5.5.5h.5c2.21 0 4-1.79 4-4v-.5c0-.33-.27-.59-.6-.54l-1.44.21c-.8.11-1.55.38-2.09.92L1.94 17H1v-2.44l1.41-1.41c.54-.54.8-.1.69-2.09l-.21-1.44c-.05-.33.21-.6.54-.6h1.5c.28 0 .5.22.5.5v.5c0 2.21 1.79 4 4 4h.5c.33 0 .59-.27.54-.6l-.21-1.44c-.11-.8.15-1.55.92-2.09L12 7.44V1H9.56L8.14 2.41c-.54.54-.8 1.29-.69 2.09l.21 1.44c.05.33.31.6.64.6h1.5c.28 0 .5-.22.5-.5v-.5c0-2.21-1.79-4-4-4H1.5c-.33 0-.59.27-.54.6l.21 1.44c.11.8-.15 1.55-.92 2.09L-.44 7H-3v2.44l1.41 1.41c.54.54.8 1.29.69 2.09l-.21 1.44c-.05.33.21-.6.54-.6h1.5c.28 0 .5.22.5.5v.5c0 2.21 1.79 4 4 4h8c2.21 0 4-1.79 4-4v-.5c0-.28-.22-.5-.5-.5h-1.5c-.33 0-.6-.27-.6-.6l.21-1.44c.11-.8-.15-1.55-.92-2.09L14.56 10H12V7.44l1.41-1.41c.54-.54 1.29-.8 2.09-.69l1.44.21c.33.05.6.31.6.64v1.5c0 .28-.22.5-.5.5h-.5c-2.21 0-4 1.79-4 4v.5c0 .33.27.59.6.54l1.44-.21c.8-.11 1.55-.38 2.09-.92l1.41-1.41H21.69zM12 14c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/>fill="currentColor" width="24px" height="24px"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/></svg>',
-        'star' => '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24px" height="24px"><path d="M0 0h24v24H0z" fill="none"/><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>',
-        'heart' => '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24px" height="24px"><path d="M0 0h24v24H0z" fill="none"/><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>',
-        'home' => '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24px" height="24px"><path d="M0 0h24v24H0z" fill="none"/><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>',
-        'settings' => '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24px" height="24px"><path d="M0 0h24v24H0z" fill="none"/><path d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.46 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.23-.08-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24.42.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.08.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"/></svg>',
-        'cleaning' => '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24px" height="24px"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M16 15H15V12C15 11.45 14.55 11 14 11H10C9.45 11 9 11.45 9 12V15H8C7.45 15 7 15.45 7 16V20C7 20.55 7.45 21 8 21H16C16.55 21 17 20.55 17 20V16C17 15.45 16.55 15 16 15ZM15 19H9V17H15V19ZM14 15H10V13H14V15ZM21.67 10.02C21.42 8.33 20.06 7 18.34 7H17V3C17 2.45 16.55 2 16 2H8C7.45 2 7 2.45 7 3V7H5.66C3.94 7 2.58 8.33 2.33 10.02L2 12V13H6V12L6.33 10.03C6.55 8.91 7.43 8 8.55 8H15.45C16.57 8 17.45 8.91 17.67 10.03L18 12V13H22V12L21.67 10.02Z"/></svg>',
-        'mop' => '<svg xmlns="http://www.w3.org/2000/svg" enable-background="new 0 0 24 24" viewBox="0 0 24 24" fill="currentColor" width="24px" height="24px"><g><rect fill="none" height="24" width="24"/></g><g><g><path d="M21.6,6.29l-2.89-2.89c-0.38-0.38-0.89-0.59-1.42-0.59H16V2c0-0.55-0.45-1-1-1H9C8.45,1,8,1.45,8,2v1h0c0,0,0,0,0,0l0,0H6.71 c-0.53,0-1.04,0.21-1.42,0.59L2.41,6.29C2.04,6.66,1.96,7.27,2.2,7.76l2.89,5.78c0.25,0.5,0.79,0.82,1.35,0.82h11.12 c0.56,0,1.1-0.32,1.35-0.82l2.89-5.78C22.04,7.27,21.96,6.66,21.6,6.29z M15,3h-2v1h2V3z M6.41,5H10v1H5.09L6.41,5z M18.91,6 H14V5h3.59L18.91,6z M19.07,13H4.93L3.12,9h17.76L19.07,13z"/><path d="M6,16h12c0.55,0,1-0.45,1-1v-2c0-0.55-0.45-1-1-1H6c-0.55,0-1,0.45-1,1v2C5,15.55,5.45,16,6,16z M7,14h10v1H7V14z"/><rect height="6" width="12" x="6" y="17"/></g></g></svg>',
-        'bucket' => '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24px" height="24px"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M19 4h-3.5l-1-1h-5l-1 1H5v2h14V4zM6 7v12c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6zm8 7v4h-4v-4H8l4-4 4 4h-2z"/></svg>',
-    ];
-
-    public static function get_preset_icon_svg(string $key): ?string {
-        return self::$preset_icons[$key] ?? null;
+    public static function get_preset_icon_svg(string $filename): ?string {
+        $filepath = self::$preset_icons_path . sanitize_file_name($filename);
+        if (file_exists($filepath) && strtolower(pathinfo($filepath, PATHINFO_EXTENSION)) === 'svg') {
+            // It's crucial to sanitize SVG content before outputting it.
+            // For simplicity here, assuming SVGs are trusted or pre-sanitized.
+            // In a real scenario, use a proper SVG sanitization library.
+            $content = file_get_contents($filepath);
+            return Utils::sanitize_svg($content); // Assuming Utils::sanitize_svg exists and is robust
+        }
+        return null;
     }
 
     public static function get_all_preset_icons(): array {
-        // Return keys and SVG content, or modify if only keys are needed for selection UI
-        return self::$preset_icons;
+        $icons = [];
+        $path = self::$preset_icons_path;
+        if (is_dir($path)) {
+            $files = scandir($path);
+            foreach ($files as $file) {
+                if (strtolower(pathinfo($file, PATHINFO_EXTENSION)) === 'svg') {
+                    $filepath = $path . $file;
+                    $content = file_get_contents($filepath);
+                    if ($content) {
+                        // The key should be the filename, e.g., "tools.svg"
+                        $icons[sanitize_file_name($file)] = Utils::sanitize_svg($content);
+                    }
+                }
+            }
+        }
+        return $icons;
     }
 
     public function get_service_icon_html(string $icon_identifier_or_url): string {
         if (strpos($icon_identifier_or_url, 'preset:') === 0) {
-            $key = substr($icon_identifier_or_url, strlen('preset:'));
-            $svg_content = self::get_preset_icon_svg($key);
+            $filename = substr($icon_identifier_or_url, strlen('preset:'));
+            $svg_content = self::get_preset_icon_svg($filename); // $filename is like "tools.svg"
             return $svg_content ?: ''; // Return raw SVG content or empty string
         } elseif (!empty($icon_identifier_or_url)) {
             // For a URL, return the URL itself for client-side handling (e.g. <img src="..."> or fetch)

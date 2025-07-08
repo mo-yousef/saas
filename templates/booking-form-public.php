@@ -79,7 +79,20 @@ if ($tenant_id) {
             $item['name'] = sanitize_text_field($item['name']);
             $item['description'] = wp_kses_post($item['description']);
             $item['category'] = sanitize_text_field($item['category'] ?? '');
-            $item['icon'] = sanitize_text_field($item['icon'] ?? 'fas fa-concierge-bell'); // Default icon
+
+            $raw_icon_value = sanitize_text_field($item['icon'] ?? 'fas fa-concierge-bell');
+            $item['icon'] = $raw_icon_value; // Store the raw value (URL, preset:key, or class)
+            $item['icon_svg_content'] = null; // Initialize
+
+            if (strpos($raw_icon_value, 'preset:') === 0) {
+                $preset_key = substr($raw_icon_value, strlen('preset:'));
+                if (class_exists('\MoBooking\Classes\Services')) {
+                    // get_preset_icon_svg now expects a filename like "tools.svg"
+                    $item['icon_svg_content'] = \MoBooking\Classes\Services::get_preset_icon_svg($preset_key);
+                }
+            }
+            // If it's not a preset, item['icon'] already holds the URL or class name.
+            // item['icon_svg_content'] will remain null for non-preset icons.
 
             $options_raw = $service_options_manager->get_service_options($item['service_id'], $tenant_id);
             $options = [];
@@ -437,15 +450,35 @@ if ($tenant_id) {
         }
 
         .mobooking-service-icon {
-            width: 48px;
-            height: 48px;
-            background: var(--primary-color);
-            color: white;
-            border-radius: var(--radius);
+            width: 48px; /* Standardize width */
+            height: 48px; /* Standardize height */
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.25rem;
+            border-radius: var(--radius); /* Use a theme variable */
+            background-color: transparent; /* Remove default background, let icon fill */
+            color: var(--primary-color); /* Default color for font icons, SVGs can override or inherit */
+            font-size: 1.5rem; /* Adjusted for better fit if using font icons */
+            overflow: hidden; /* Ensure content fits */
+        }
+
+        .mobooking-service-icon img,
+        .mobooking-service-icon svg {
+            width: 100%;
+            height: 100%;
+            object-fit: contain; /* Ensures the whole icon is visible */
+            display: block; /* Good practice for img/svg */
+        }
+
+        /* Ensures SVGs use the text color by default for their path fill */
+        .mobooking-service-icon svg path {
+            fill: currentColor;
+        }
+
+        /* If specific styling for <i> tags is still needed (fallback) */
+        .mobooking-service-icon i {
+            font-size: inherit; /* Inherit from parent's font-size */
+            color: inherit; /* Inherit from parent's color */
         }
 
         .mobooking-service-info {
