@@ -229,8 +229,16 @@ window.MoBookingForm = {
     displayServices: function(services) {
         const container = jQuery('#mobooking-services-container');
         let html = '';
+        console.log('[MoBooking JS Debug] Displaying services. Received data:', services);
 
-        services.forEach(service => {
+        services.forEach((service, index) => {
+            console.log(`[MoBooking JS Debug] Processing service ${index}:`, service);
+            if (!service) {
+                console.error(`[MoBooking JS Debug] Service object at index ${index} is null or undefined.`);
+                html += `<div>Error: Service data is invalid for one item.</div>`;
+                return; // Skip this iteration
+            }
+
             const priceDisplay = this.params.settings.show_pricing ?
                 `<div class="mobooking-service-price">${this.params.currency.symbol}${this.formatPrice(service.price || 0)}</div>` : '';
 
