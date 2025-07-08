@@ -262,83 +262,160 @@ jQuery(document).ready(function($) {
 
         let html = '';
         selectedService.options.forEach((option, index) => {
-            console.log(`[MoBooking JS Debug] Processing option ${index}:`, option);
+            console.log(`[MoBooking JS Debug] Generating HTML for option ${index}:`, option);
             if (!option || typeof option.option_id === 'undefined') {
                 console.error(`[MoBooking JS Debug] Invalid option object at index ${index}:`, option);
-                html += `<div>Error: Invalid option data.</div>`;
+                html += `<div class="mobooking-form-group"><p class="mobooking-feedback error">Error: Invalid option data.</p></div>`;
                 return; // skip this option
             }
 
             const isChecked = selectedOptions[option.option_id] && selectedOptions[option.option_id].value === '1';
-            const currentValue = selectedOptions[option.option_id] ? selectedOptions[option.option_id].value : '';
+            let currentValue = selectedOptions[option.option_id] ? selectedOptions[option.option_id].value : '';
+            if (option.type === 'quantity' && currentValue === '') currentValue = '0'; // Default quantity to 0 if not set
+
             const requiredAttr = option.is_required ? 'required' : '';
             const requiredIndicator = option.is_required ? '<span class="mobooking-required">*</span>' : '';
+            let priceImpact = parseFloat(option.price_impact || 0);
+            let priceImpactType = option.price_impact_type || 'fixed';
             let priceDisplay = '';
-            if (option.price_impact && parseFloat(option.price_impact) != 0) {
-                 priceDisplay = option.price_impact_type === 'percentage'
-                    ? `(+${option.price_impact}%)`
-                    : `(+${MOB_PARAMS.currency.symbol}${formatPrice(option.price_impact)})`;
+
+            if (priceImpact !== 0) {
+                 priceDisplay = priceImpactType === 'percentage'
+                    ? `(+${priceImpact}%)`
+                    : `(+${MOB_PARAMS.currency.symbol}${formatPrice(priceImpact)})`;
                  priceDisplay = `<span class="option-price">${priceDisplay}</span>`;
             }
 
-            html += `<div class="mobooking-form-group" data-option-id="${option.option_id}">`;
+            let optionFieldHtml = '';
+            const optionName = `option_${option.option_id}`;
+
             switch (option.type) {
                 case 'checkbox':
-                    html += `
+                    optionFieldHtml = `
                         <label>
-                            <input type="checkbox" name="option_${option.option_id}" value="1"
-                                   data-price="${option.price_impact || 0}" data-price-type="${option.price_impact_type || 'fixed'}"
+                            <input type="checkbox" name="${optionName}" value="1"
+                                   data-price="${priceImpact}" data-price-type="${priceImpactType}"
                                    ${requiredAttr} ${isChecked ? 'checked' : ''}>
                             ${escapeHtml(option.name)} ${priceDisplay} ${requiredIndicator}
                         </label>`;
                     break;
                 case 'text':
-                    html += `
-                        <label for="option_${option.option_id}" class="mobooking-label">
+                    optionFieldHtml = `
+                        <label for="${optionName}" class="mobooking-label">
                             ${escapeHtml(option.name)} ${priceDisplay} ${requiredIndicator}
                         </label>
-                        <input type="text" id="option_${option.option_id}" name="option_${option.option_id}" value="${escapeHtml(currentValue)}"
-                               class="mobooking-input" data-price="${option.price_impact || 0}" data-price-type="${option.price_impact_type || 'fixed'}" ${requiredAttr}>`;
+                        <input type="text" id="${optionName}" name="${optionName}" value="${escapeHtml(currentValue)}"
+                               class="mobooking-input" data-price="${priceImpact}" data-price-type="${priceImpactType}" ${requiredAttr}>`;
                     break;
                 case 'textarea':
-                    html += `
-                        <label for="option_${option.option_id}" class="mobooking-label">
+                    optionFieldHtml = `
+                        <label for="${optionName}" class="mobooking-label">
                             ${escapeHtml(option.name)} ${priceDisplay} ${requiredIndicator}
                         </label>
-                        <textarea id="option_${option.option_id}" name="option_${option.option_id}"
-                                  class="mobooking-textarea" data-price="${option.price_impact || 0}" data-price-type="${option.price_impact_type || 'fixed'}" ${requiredAttr}>${escapeHtml(currentValue)}</textarea>`;
+                        <textarea id="${optionName}" name="${optionName}"
+                                  class="mobooking-textarea" data-price="${priceImpact}" data-price-type="${priceImpactType}" ${requiredAttr}>${escapeHtml(currentValue)}</textarea>`;
                     break;
-                // Add other option types (select, radio, quantity) here if needed, parsing option.option_values
+                case 'select':
+                    optionFieldHtml = `
+                        <label for="${optionName}" class="mobooking-label">
+                            ${escapeHtml(option.name)} ${priceDisplay} ${requiredIndicator}
+                        </label>
+                        <select id="${optionName}" name="${optionName}" class="mobooking-select" data-price="${priceImpact}" data-price-type="${priceImpactType}" ${requiredAttr}>`;
+                    if (option.option_values && Array.isArray(option.option_values)) {
+                        option.option_values.forEach(val => {
+                            // For select, price impact is often per option value, not on the select itself.
+                            // The current structure has price_impact on the main option, and option_values might have their own price_adjust.
+                            // For simplicity here, assuming main price_impact applies if value selected, or individual values handle their own.
+                            // The PHP preloading logic for options needs to ensure option_values are structured correctly.
+                            // Current JS `handleOptionChange` and `updateLiveSummary` use the main option's price_impact.
+                            // If `val.price_adjust` exists, that should be used by `handleOptionChange`.
+                            // For now, data-attributes on <option> are not used for price by handleOptionChange.
+                            optionFieldHtml += `<option value="${escapeHtml(val.value)}" ${val.value === currentValue ? 'selected' : ''}>${escapeHtml(val.label)}</option>`;
+                        });
+                    }
+                    optionFieldHtml += `</select>`;
+                    break;
+                case 'radio':
+                    optionFieldHtml = `<label class="mobooking-label">${escapeHtml(option.name)} ${priceDisplay} ${requiredIndicator}</label>`;
+                    if (option.option_values && Array.isArray(option.option_values)) {
+                        option.option_values.forEach((val, valIdx) => {
+                            const radioId = `${optionName}_${valIdx}`;
+                            optionFieldHtml += `
+                                <div class="mobooking-form-group-radio">
+                                    <input type="radio" id="${radioId}" name="${optionName}" value="${escapeHtml(val.value)}"
+                                           ${val.value === currentValue ? 'checked' : ''} ${requiredAttr}>
+                                    <label for="${radioId}">${escapeHtml(val.label)}</label>
+                                </div>`;
+                        });
+                    }
+                    break;
+                case 'quantity':
+                     optionFieldHtml = `
+                        <label for="${optionName}" class="mobooking-label">
+                            ${escapeHtml(option.name)} ${priceDisplay} ${requiredIndicator}
+                        </label>
+                        <input type="number" id="${optionName}" name="${optionName}" value="${escapeHtml(currentValue || '0')}" min="0"
+                               class="mobooking-input" data-price="${priceImpact}" data-price-type="${priceImpactType}" ${requiredAttr}>`;
+                    break;
+                default:
+                    optionFieldHtml = `<p>Unsupported option type: ${escapeHtml(option.type)}</p>`;
             }
+
+            html += `<div class="mobooking-form-group" data-option-id="${option.option_id}">${optionFieldHtml}`;
             if (option.description) {
                 html += `<div class="option-description">${escapeHtml(option.description)}</div>`;
             }
             html += `</div>`;
         });
         $container.html(html);
-        $container.find('input, textarea, select').on('change input', handleOptionChange);
+        $container.find('input, textarea, select').on('change input', handleOptionChange); // Rebind events
         updateLiveSummary();
     }
 
     function handleOptionChange() {
         const $input = $(this);
         const optionId = $input.closest('.mobooking-form-group').data('option-id');
-        const serviceOption = selectedService.options.find(opt => opt.option_id === optionId);
-        if (!serviceOption) return;
+        // Find the option data from the preloaded selectedService.options
+        const serviceOption = selectedService.options.find(opt => opt.option_id === parseInt(optionId));
+
+        if (!serviceOption) {
+            console.error("Could not find service option data for ID:", optionId);
+            return;
+        }
 
         let value;
+        let price = parseFloat(serviceOption.price_impact || 0); // Base price impact from the option itself
+        let priceType = serviceOption.price_impact_type || 'fixed';
+        const optionName = serviceOption.name;
+
         if ($input.is(':checkbox')) {
             value = $input.is(':checked') ? '1' : '0';
-        } else {
+        } else if ($input.is('select')) {
+            value = $input.val();
+            // If select options have individual price adjustments, find the selected one
+            const selectedChoice = serviceOption.option_values.find(ov => ov.value === value);
+            if (selectedChoice && typeof selectedChoice.price_adjust !== 'undefined') {
+                price = parseFloat(selectedChoice.price_adjust); // Override with choice-specific price
+                priceType = 'fixed'; // Assume choice price_adjust is always fixed for now
+            }
+        } else if ($input.is(':radio')) {
+             value = $('input[name="' + $input.attr('name') + '"]:checked').val();
+             const selectedChoice = serviceOption.option_values.find(ov => ov.value === value);
+             if (selectedChoice && typeof selectedChoice.price_adjust !== 'undefined') {
+                price = parseFloat(selectedChoice.price_adjust);
+                priceType = 'fixed';
+            }
+        }
+        else {
             value = $input.val().trim();
         }
 
-        if (value && value !== '0') {
+        if (value && value !== '0') { // For checkbox, '0' means unchecked. For quantity, could be 0.
             selectedOptions[optionId] = {
-                name: serviceOption.name,
+                name: optionName,
                 value: value,
-                price: parseFloat(serviceOption.price_impact || 0),
-                priceType: serviceOption.price_impact_type || 'fixed'
+                price: price,
+                priceType: priceType
             };
         } else {
             delete selectedOptions[optionId];
