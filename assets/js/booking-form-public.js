@@ -461,12 +461,15 @@ jQuery(document).ready(function($) {
         const optionId = $formGroup.data('option-id');
         const optionType = $formGroup.data('option-type');
 
+        console.log('[MoBooking JS Debug] handleOptionChange triggered for optionId:', optionId, 'type:', optionType);
+
         const serviceOption = selectedService.options.find(opt => opt.option_id === parseInt(optionId));
 
         if (!serviceOption) {
-            console.error("Could not find service option data for ID:", optionId);
+            console.error("[MoBooking JS Debug] Could not find serviceOption in PRELOADED_SERVICES for ID:", optionId, "selectedService.options was:", selectedService.options);
             return;
         }
+        console.log('[MoBooking JS Debug] ServiceOption data from preloaded:', serviceOption);
 
         let value;
         let price = 0; // Default to 0, will be calculated
@@ -543,6 +546,7 @@ jQuery(document).ready(function($) {
         } else {
             delete selectedOptions[optionId];
         }
+        console.log('[MoBooking JS Debug] Updated selectedOptions:', selectedOptions);
         updateLiveSummary();
     }
 
@@ -679,38 +683,53 @@ jQuery(document).ready(function($) {
         }
         if (!selectedService) { // truly no service selected, e.g. on step 2 initial load
             $('#mobooking-summary-content, #mobooking-summary-content-step4, #mobooking-final-summary').html('<p>Select a service to see summary.</p>');
+            console.log('[MoBooking JS Debug] updateLiveSummary: No selected service.');
             return;
         }
+        console.log('[MoBooking JS Debug] updateLiveSummary: Selected Service:', selectedService, 'Selected Options:', selectedOptions);
+
 
         const subtotal = calculateSubtotal();
         let finalTotal = subtotal;
         let summaryHtml = '';
 
         summaryHtml += `<div class="mobooking-summary-item"><span>${escapeHtml(selectedService.name)}</span><span>${MOB_PARAMS.currency.symbol}${formatPrice(selectedService.price)}</span></div>`;
+
+        console.log(`[MoBooking JS Debug] updateLiveSummary: Base service price for ${selectedService.name}: ${selectedService.price}`);
+
         $.each(selectedOptions, function(id, opt) {
-            let optPrice = 0;
-            if (opt.priceType === 'percentage') {
-                optPrice = (parseFloat(selectedService.price || 0) * opt.price) / 100;
-            } else {
-                optPrice = opt.price;
-            }
-            summaryHtml += `<div class="mobooking-summary-item"><span>+ ${escapeHtml(opt.name)}</span><span>${MOB_PARAMS.currency.symbol}${formatPrice(optPrice)}</span></div>`;
+            let optDisplayPrice = 0;
+            // The 'price' in selectedOptions[id].price IS the calculated impact for that option.
+            // If it was a percentage, handleOptionChange should have calculated it against base service price.
+            // If it was fixed, it's that fixed amount.
+            // If it was per_unit (for quantity), it's base_option_price * quantity.
+            // If it was SQM, it's price_per_sqm * sqm_value based on range.
+            optDisplayPrice = opt.price; // This 'price' is the total impact of this specific option selection.
+
+            summaryHtml += `<div class="mobooking-summary-item"><span>+ ${escapeHtml(opt.name)} (${escapeHtml(String(opt.value))})</span><span>${MOB_PARAMS.currency.symbol}${formatPrice(optDisplayPrice)}</span></div>`;
+            console.log(`[MoBooking JS Debug] updateLiveSummary: Option ${opt.name} value ${opt.value} adds ${optDisplayPrice}`);
         });
 
         $('#pricing-subtotal').text(MOB_PARAMS.currency.symbol + formatPrice(subtotal));
+        console.log(`[MoBooking JS Debug] updateLiveSummary: Subtotal: ${subtotal}`);
 
         if (discountInfo) {
             let discountAmount = 0;
-            if (discountInfo.type === 'percentage' || discountInfo.discount_type === 'percentage') {
-                discountAmount = (subtotal * parseFloat(discountInfo.value || discountInfo.discount_value || 0)) / 100;
-            } else {
-                discountAmount = parseFloat(discountInfo.value || discountInfo.discount_value || 0);
+            // Ensure discountInfo has the correct properties (e.g. .type or .discount_type, .value or .discount_value)
+            const discType = discountInfo.type || discountInfo.discount_type;
+            const discValue = parseFloat(discountInfo.value || discountInfo.discount_value || 0);
+
+            if (discType === 'percentage') {
+                discountAmount = (subtotal * discValue) / 100;
+            } else { // fixed_amount
+                discountAmount = discValue;
             }
             discountAmount = Math.min(discountAmount, subtotal); // Cannot be more than subtotal
             finalTotal -= discountAmount;
-            summaryHtml += `<div class="mobooking-summary-item"><span>Discount (${escapeHtml(discountInfo.code)})</span><span>-${MOB_PARAMS.currency.symbol}${formatPrice(discountAmount)}</span></div>`;
+            summaryHtml += `<div class="mobooking-summary-item"><span>Discount (${escapeHtml(discountInfo.code || discountInfo.discount_code || '')})</span><span>-${MOB_PARAMS.currency.symbol}${formatPrice(discountAmount)}</span></div>`;
             $('#pricing-discount').text('-' + MOB_PARAMS.currency.symbol + formatPrice(discountAmount));
             $('.discount-applied').removeClass('hidden');
+            console.log(`[MoBooking JS Debug] updateLiveSummary: Discount Applied: ${discountAmount}`);
         } else {
             $('#pricing-discount').text('-' + MOB_PARAMS.currency.symbol + '0.00');
             $('.discount-applied').addClass('hidden');
@@ -723,6 +742,7 @@ jQuery(document).ready(function($) {
 
         $('#mobooking-summary-content, #mobooking-summary-content-step4, #mobooking-final-summary').html(summaryHtml);
         $('#pricing-total').text(MOB_PARAMS.currency.symbol + formatPrice(finalTotal));
+        console.log(`[MoBooking JS Debug] updateLiveSummary: Final Total: ${finalTotal}`);
     }
 
     // --- NAVIGATION HANDLERS ---
