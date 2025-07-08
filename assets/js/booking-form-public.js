@@ -15,6 +15,11 @@ jQuery(document).ready(function($) {
     let locationVerified = !(MOB_PARAMS.settings && MOB_PARAMS.settings.bf_enable_location_check === '1');
 
     // --- UTILITY FUNCTIONS ---
+    function getStepName(stepNumber) { // Added missing function
+        const names = ["", "location", "services", "options", "details", "review", "success"];
+        return names[stepNumber] || "unknown";
+    }
+
     function escapeHtml(text) {
         if (typeof text !== 'string') return '';
         const div = document.createElement('div');
