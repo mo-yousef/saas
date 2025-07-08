@@ -41,19 +41,30 @@ class Services {
     public static function get_all_preset_icons(): array {
         $icons = [];
         $path = self::$preset_icons_path;
+        error_log('[MoBooking Debug] get_all_preset_icons: Preset icons path: ' . $path);
+
         if (is_dir($path)) {
+            error_log('[MoBooking Debug] get_all_preset_icons: Path is a directory.');
             $files = scandir($path);
+            error_log('[MoBooking Debug] get_all_preset_icons: Files found by scandir: ' . print_r($files, true));
+
             foreach ($files as $file) {
                 if (strtolower(pathinfo($file, PATHINFO_EXTENSION)) === 'svg') {
                     $filepath = $path . $file;
+                    error_log('[MoBooking Debug] get_all_preset_icons: Processing SVG file: ' . $filepath);
                     $content = file_get_contents($filepath);
                     if ($content) {
-                        // The key should be the filename, e.g., "tools.svg"
+                        error_log('[MoBooking Debug] get_all_preset_icons: Successfully read content for: ' . $file);
                         $icons[sanitize_file_name($file)] = Utils::sanitize_svg($content);
+                    } else {
+                        error_log('[MoBooking Debug] get_all_preset_icons: Failed to read content for: ' . $file);
                     }
                 }
             }
+        } else {
+            error_log('[MoBooking Debug] get_all_preset_icons: Path is NOT a directory or not readable: ' . $path);
         }
+        error_log('[MoBooking Debug] get_all_preset_icons: Returning ' . count($icons) . ' icons.');
         return $icons;
     }
 
