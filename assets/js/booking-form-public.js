@@ -198,10 +198,26 @@ jQuery(document).ready(function($) {
             const priceDisplay = (MOB_PARAMS.settings && MOB_PARAMS.settings.bf_show_pricing === '1' && service.price)
                 ? `<div class="mobooking-service-price">${MOB_PARAMS.currency.symbol}${formatPrice(service.price)}</div>`
                 : '';
+
+            let iconHtml = '';
+            if (service.icon_svg_content) {
+                // Render inline SVG for presets
+                iconHtml = service.icon_svg_content;
+            } else if (service.icon && (service.icon.startsWith('http') || service.icon.includes('/wp-content/uploads/'))) {
+                // Render <img> for uploaded SVGs (URLs)
+                iconHtml = `<img src="${escapeHtml(service.icon)}" alt="${escapeHtml(service.name)} Icon" style="width: 100%; height: 100%; object-fit: contain;">`;
+            } else if (service.icon) {
+                // Fallback for Font Awesome or other class-based icons
+                iconHtml = `<i class="${escapeHtml(service.icon)}"></i>`;
+            } else {
+                // Default fallback icon if nothing is specified
+                iconHtml = `<i class="fas fa-broom"></i>`;
+            }
+
             html += `
                 <div class="mobooking-service-card" data-service-id="${service.service_id}">
                     <div class="mobooking-service-header">
-                        <div class="mobooking-service-icon"><i class="${escapeHtml(service.icon || 'fas fa-broom')}"></i></div>
+                        <div class="mobooking-service-icon">${iconHtml}</div>
                         <div class="mobooking-service-info">
                             <div class="mobooking-service-name">${escapeHtml(service.name)}</div>
                             ${priceDisplay}
