@@ -109,7 +109,8 @@ if ( is_page_template('templates/booking-form-public.php') || $page_type_for_scr
     wp_enqueue_style( 'mobooking-booking-form-modern', MOBOOKING_THEME_URI . 'assets/css/booking-form-modern.css', array('mobooking-style'), MOBOOKING_VERSION );
 
     wp_enqueue_script('jquery-ui-datepicker');
-    wp_enqueue_script('mobooking-booking-form', MOBOOKING_THEME_URI . 'assets/js/booking-form.js', array('jquery', 'jquery-ui-datepicker'), MOBOOKING_VERSION, true);
+    // wp_enqueue_script('mobooking-booking-form', MOBOOKING_THEME_URI . 'assets/js/booking-form.js', array('jquery', 'jquery-ui-datepicker'), MOBOOKING_VERSION, true); // Commented out old script
+    wp_enqueue_script('mobooking-public-booking-form', MOBOOKING_THEME_URI . 'assets/js/booking-form-public.js', array('jquery', 'jquery-ui-datepicker'), MOBOOKING_VERSION, true); // Enqueue new script
 
     $effective_tenant_id_for_public_form = 0;
     
@@ -237,7 +238,7 @@ if ( is_page_template('templates/booking-form-public.php') || $page_type_for_scr
             'current_user_id' => get_current_user_id(),
             'request_uri' => $_SERVER['REQUEST_URI'] ?? '',
         ]
-    ]);
+    ], 'mobooking-public-booking-form'); // Localize to the new script handle
 
     // Add custom CSS from settings if present and form is enabled
     if (!empty($tenant_settings['bf_custom_css']) && ($tenant_settings['bf_form_enabled'] ?? '1') === '1') {
