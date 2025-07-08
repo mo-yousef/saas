@@ -1246,8 +1246,9 @@ jQuery(document).ready(function ($) {
       url: MOB_PARAMS.ajaxUrl,
       type: "POST",
       data: submissionData,
+      dataType: "json", // Explicitly expect JSON response
       success: function (response) {
-        if (response.success && response.data) {
+        if (response && response.success && response.data) {
           showStep(6); // Success step
           $("#success-details").html(`
                         <div class="success-detail"><strong>Booking Reference:</strong> <span>${escapeHtml(
@@ -1273,15 +1274,44 @@ jQuery(document).ready(function ($) {
                             )}.
                         </p>`);
         } else {
-          showFeedback(
-            $feedback,
-            "error",
-            response.data?.message || "Booking submission failed."
-          );
+          // Handle cases where response.success is false or response.data is missing
+          let errorMessage = "Booking submission failed.";
+          if (response && response.data && response.data.message) {
+            errorMessage = response.data.message;
+          } else if (typeof response === 'string') {
+            // If the response is a string, it might be an unexpected error output from PHP
+             errorMessage = "Received an unexpected response from the server. Please check console for details.";
+             console.error("Unexpected server response (string):", response);
+          }
+          showFeedback($feedback, "error", errorMessage);
+          console.error("Booking submission failed (server response):", response);
         }
       },
-      error: function () {
-        showFeedback($feedback, "error", MOB_PARAMS.i18n.connectionError);
+      error: function (jqXHR, textStatus, errorThrown) {
+        let errorMessage = MOB_PARAMS.i18n.connectionError || "A connection error occurred.";
+        if (jqXHR.responseJSON && jqXHR.responseJSON.data && jqXHR.responseJSON.data.message) {
+          errorMessage = jqXHR.responseJSON.data.message;
+        } else if (jqXHR.responseText) {
+            // Try to parse if it's a stringified JSON error that dataType: 'json' didn't catch
+            try {
+                const serverError = JSON.parse(jqXHR.responseText);
+                if (serverError && serverError.data && serverError.data.message) {
+                    errorMessage = serverError.data.message;
+                } else {
+                   errorMessage = "An unexpected error occurred. Server response: " + jqXHR.responseText.substring(0, 100);
+                }
+            } catch (e) {
+                 errorMessage = "An unexpected error occurred. Raw server response logged to console.";
+            }
+        }
+        showFeedback($feedback, "error", errorMessage);
+        console.error("AJAX Error Details:", {
+            status: jqXHR.status,
+            statusText: jqXHR.statusText,
+            responseText: jqXHR.responseText, // Log the full response text
+            textStatus: textStatus,
+            errorThrown: errorThrown
+        });
       },
       complete: function () {
         $button.prop("disabled", false).html(originalBtnHtml);
