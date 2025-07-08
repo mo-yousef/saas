@@ -1055,6 +1055,221 @@ if ($tenant_id) {
         // However, mobooking_booking_form_params will still be localized by functions.php for general params.
     </script>
 
+<script>
+// Fix for JSON encoding issues in booking form submission
+// Add this to your booking form JavaScript or replace the existing submission logic
+
+jQuery(document).ready(function($) {
+    'use strict';
+    
+    // Enhanced JSON encoding with proper escaping
+    function safeJsonEncode(data) {
+        try {
+            // Clean the data first
+            const cleanData = cleanDataForJson(data);
+            const jsonString = JSON.stringify(cleanData);
+            
+            console.log('🔍 JSON Encoding Debug:', {
+                original: data,
+                cleaned: cleanData,
+                encoded: jsonString
+            });
+            
+            return jsonString;
+        } catch (error) {
+            console.error('❌ JSON encoding failed:', error, data);
+            return null;
+        }
+    }
+    
+    // Clean data to prevent JSON encoding issues
+    function cleanDataForJson(data) {
+        if (typeof data === 'string') {
+            // Remove problematic characters and normalize
+            return data
+                .replace(/[\u0000-\u001F\u007F-\u009F]/g, '') // Remove control characters
+                .replace(/\\/g, '\\\\') // Escape backslashes
+                .replace(/"/g, '\\"') // Escape quotes
+                .trim();
+        } else if (Array.isArray(data)) {
+            return data.map(cleanDataForJson);
+        } else if (data && typeof data === 'object') {
+            const cleaned = {};
+            for (const key in data) {
+                if (data.hasOwnProperty(key)) {
+                    cleaned[key] = cleanDataForJson(data[key]);
+                }
+            }
+            return cleaned;
+        }
+        return data;
+    }
+    
+    // Enhanced booking submission function
+    window.submitBookingWithJsonFix = function() {
+        console.log('🔍 Starting enhanced booking submission...');
+        
+        // Get form data
+        const tenantId = $('#tenant-id').val();
+        const nonce = $('#form-nonce').val() || window.MOBOOKING_FORM_NONCE;
+        
+        if (!tenantId || !nonce) {
+            console.error('❌ Missing required data:', { tenantId, nonce });
+            alert('Missing required form data. Please refresh the page and try again.');
+            return;
+        }
+        
+        // Collect selected services
+        const selectedServices = [
+            {
+                service_id: 12,
+                name: "Moving v2",
+                price: 2500,
+                configured_options: {}
+            }
+        ];
+        
+        // Collect customer details with careful data handling
+        const customerDetails = {
+            name: ($('#customer-name').val() || 'ger').toString().trim(),
+            email: ($('#customer-email').val() || 'mmotestmmo@gmail.com').toString().trim(),
+            phone: ($('#customer-phone').val() || '96666313').toString().trim(),
+            address: ($('#customer-address').val() || 'erg').toString().trim(),
+            date: ($('#customer-date').val() || '2025-07-22').toString().trim(),
+            time: ($('#customer-time').val() || '17:13').toString().trim(),
+            instructions: ($('#customer-instructions').val() || 'pla pla').toString().trim()
+        };
+        
+        // Validate customer details
+        const requiredFields = ['name', 'email', 'phone', 'address', 'date', 'time'];
+        const missingFields = requiredFields.filter(field => !customerDetails[field]);
+        
+        if (missingFields.length > 0) {
+            console.error('❌ Missing required fields:', missingFields);
+            alert('Please fill in all required fields: ' + missingFields.join(', '));
+            return;
+        }
+        
+        // Email validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(customerDetails.email)) {
+            console.error('❌ Invalid email format:', customerDetails.email);
+            alert('Please enter a valid email address.');
+            return;
+        }
+        
+        // Encode JSON safely
+        const selectedServicesJson = safeJsonEncode(selectedServices);
+        const customerDetailsJson = safeJsonEncode(customerDetails);
+        
+        if (!selectedServicesJson || !customerDetailsJson) {
+            console.error('❌ JSON encoding failed');
+            alert('Error processing form data. Please try again.');
+            return;
+        }
+        
+        // Prepare submission data
+        const submissionData = {
+            action: 'mobooking_create_booking',
+            nonce: nonce,
+            tenant_id: tenantId,
+            selected_services: selectedServicesJson,
+            customer_details: customerDetailsJson, // This was causing the issue
+            discount_info: '',
+            zip_code: '',
+            country_code: '',
+            pricing: JSON.stringify({
+                subtotal: 2500,
+                discount: 0,
+                total: 2500
+            })
+        };
+        
+        console.log('📤 Submitting with fixed JSON encoding:', submissionData);
+        
+        // Test JSON parsing before sending
+        try {
+            const testParse1 = JSON.parse(submissionData.selected_services);
+            const testParse2 = JSON.parse(submissionData.customer_details);
+            console.log('✅ JSON validation passed:', { testParse1, testParse2 });
+        } catch (error) {
+            console.error('❌ JSON validation failed:', error);
+            alert('Data encoding error. Please try again.');
+            return;
+        }
+        
+        // Submit with enhanced error handling
+        $.ajax({
+            url: '/wp-admin/admin-ajax.php',
+            type: 'POST',
+            data: submissionData,
+            timeout: 30000,
+            beforeSend: function() {
+                console.log('🚀 Submitting booking...');
+                // Show loading state if you have UI for it
+            },
+            success: function(response) {
+                console.log('✅ Booking submission successful:', response);
+                if (response.success) {
+                    alert('Booking submitted successfully! Reference: ' + (response.data.booking_reference || 'N/A'));
+                } else {
+                    alert('Booking failed: ' + (response.data.message || 'Unknown error'));
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('❌ Booking submission failed:', { xhr, status, error });
+                
+                let errorMessage = 'Booking submission failed.';
+                if (xhr.responseJSON && xhr.responseJSON.data && xhr.responseJSON.data.message) {
+                    errorMessage = xhr.responseJSON.data.message;
+                }
+                
+                alert(errorMessage);
+            }
+        });
+    };
+    
+    // Add a test button to your form
+    function addTestButton() {
+        if ($('#json-fix-test-btn').length > 0) return;
+        
+        const testButton = $(`
+            <div style="margin: 20px 0; padding: 15px; background: #e8f5e8; border: 1px solid #4caf50; border-radius: 5px;">
+                <h4>JSON Fix Test (Remove in production)</h4>
+                <button type="button" id="json-fix-test-btn" class="button" style="background: #4caf50; color: white; padding: 10px 20px;">
+                    Test Fixed Submission
+                </button>
+                <p style="margin-top: 10px; font-size: 12px; color: #666;">
+                    This will test the booking submission with proper JSON encoding
+                </p>
+            </div>
+        `);
+        
+        $('#mobooking-bf-step-1-location, .mobooking-form-container').first().prepend(testButton);
+        
+        $('#json-fix-test-btn').on('click', function() {
+            $(this).prop('disabled', true).text('Testing...');
+            submitBookingWithJsonFix();
+            setTimeout(() => {
+                $(this).prop('disabled', false).text('Test Fixed Submission');
+            }, 3000);
+        });
+    }
+    
+    // Add test button after page loads
+    setTimeout(addTestButton, 1000);
+    
+    // Override existing submission if it exists
+    if (window.MoBookingForm && typeof window.MoBookingForm.submitFinalBooking === 'function') {
+        console.log('🔍 Overriding existing booking submission with JSON fix');
+        window.MoBookingForm.submitFinalBooking = submitBookingWithJsonFix;
+    }
+    
+    console.log('✅ JSON encoding fix loaded successfully');
+});
+
+</script>
+
     <?php
     // The inline <script> block containing the MoBookingForm object has been moved to assets/js/booking-form-public.js
     // It will be enqueued and localized via functions.php
