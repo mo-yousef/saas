@@ -245,14 +245,30 @@ jQuery(document).ready(function($) {
     function displayServiceOptions() {
         const $container = $('#mobooking-service-options');
         $container.empty();
-        if (!selectedService || !selectedService.options || selectedService.options.length === 0) {
-            $container.html('<p>No additional options for this service.</p>');
+
+        console.log('[MoBooking JS Debug] displayServiceOptions called. Selected Service:', selectedService);
+
+        if (!selectedService || !selectedService.options || !Array.isArray(selectedService.options) || selectedService.options.length === 0) {
+            let message = '<p>No additional options for this service.</p>';
+            if (!selectedService) message = '<p>No service selected for options.</p>';
+            else if (!selectedService.options) message = '<p>Service options data is missing.</p>';
+            else if (!Array.isArray(selectedService.options)) message = '<p>Service options data is not an array.</p>';
+
+            $container.html(message);
+            console.log('[MoBooking JS Debug] No options to display or selectedService.options is not a valid array. Message:', message, 'Options data:', selectedService ? selectedService.options : 'N/A');
             updateLiveSummary();
             return;
         }
 
         let html = '';
-        selectedService.options.forEach(option => {
+        selectedService.options.forEach((option, index) => {
+            console.log(`[MoBooking JS Debug] Processing option ${index}:`, option);
+            if (!option || typeof option.option_id === 'undefined') {
+                console.error(`[MoBooking JS Debug] Invalid option object at index ${index}:`, option);
+                html += `<div>Error: Invalid option data.</div>`;
+                return; // skip this option
+            }
+
             const isChecked = selectedOptions[option.option_id] && selectedOptions[option.option_id].value === '1';
             const currentValue = selectedOptions[option.option_id] ? selectedOptions[option.option_id].value : '';
             const requiredAttr = option.is_required ? 'required' : '';
