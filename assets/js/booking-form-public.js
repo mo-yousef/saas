@@ -394,7 +394,7 @@ jQuery(document).ready(function($) {
                         optionFieldHtml += '<div class="mobooking-sqm-ranges-display">';
                         sqmRanges.forEach((range, rIndex) => {
                             console.log(`[MoBooking JS Debug] SQM Range ${rIndex}:`, range); // Log each range object
-                            optionFieldHtml += `<span>${escapeHtml(String(range.from))}-${range.to === '∞' ? '&infin;' : escapeHtml(String(range.to))} sqm: ${MOB_PARAMS.currency.symbol}${escapeHtml(String(range.price))}/sqm</span><br>`;
+                            optionFieldHtml += `<span>${escapeHtml(String(range.from_sqm))}-${range.to_sqm === 'infinity' || range.to_sqm === '∞' ? '&infin;' : escapeHtml(String(range.to_sqm))} sqm: ${MOB_PARAMS.currency.symbol}${escapeHtml(String(range.price_per_sqm))}/sqm</span><br>`;
                         });
                         optionFieldHtml += '</div>';
                     }
@@ -515,10 +515,10 @@ jQuery(document).ready(function($) {
                 }
                 const ranges = rangesData || [];
                 for (const range of ranges) {
-                    const from = parseFloat(range.from);
-                    const to = range.to === '∞' || typeof range.to === 'undefined' ? Infinity : parseFloat(range.to);
+                    const from = parseFloat(range.from_sqm);
+                    const to = range.to_sqm === 'infinity' || range.to_sqm === '∞' || typeof range.to_sqm === 'undefined' ? Infinity : parseFloat(range.to_sqm);
                     if (sqmValue >= from && sqmValue <= to) {
-                        price = parseFloat(range.price) * sqmValue;
+                        price = parseFloat(range.price_per_sqm) * sqmValue;
                         break;
                     }
                 }
