@@ -52,6 +52,66 @@ wp_enqueue_script('jquery-ui-datepicker');
 
 // Create nonce for security
 $form_nonce = wp_create_nonce('mobooking_booking_form_nonce');
+
+// Pre-load services and options data
+$preloaded_services_data = [];
+if ($tenant_id) {
+    $services_manager = new \MoBooking\Classes\Services();
+    // Use a direct method call that mirrors the logic of handle_get_public_services_ajax
+    // For simplicity, I'll replicate the core DB query and processing logic here,
+    // or assume a new method in Services class like get_active_services_with_details_for_tenant($tenant_id)
+    // For now, let's adapt the logic from handle_get_public_services_ajax directly
+
+    global $wpdb;
+    $service_options_manager = new \MoBooking\Classes\ServiceOptions();
+    $services_table = \MoBooking\Classes\Database::get_table_name('services');
+    $db_services = $wpdb->get_results($wpdb->prepare(
+        "SELECT * FROM {$services_table} WHERE user_id = %d AND status = 'active' ORDER BY name ASC",
+        $tenant_id
+    ), ARRAY_A);
+
+    if ($db_services) {
+        foreach ($db_services as $service_item) {
+            $item = (array) $service_item;
+            $item['price'] = floatval($item['price']);
+            $item['duration'] = intval($item['duration']);
+            $item['service_id'] = intval($item['service_id']);
+            $item['name'] = sanitize_text_field($item['name']);
+            $item['description'] = wp_kses_post($item['description']);
+            $item['category'] = sanitize_text_field($item['category'] ?? '');
+            $item['icon'] = sanitize_text_field($item['icon'] ?? 'fas fa-concierge-bell'); // Default icon
+
+            $options_raw = $service_options_manager->get_service_options($item['service_id'], $tenant_id);
+            $options = [];
+            if (is_array($options_raw)) {
+                foreach ($options_raw as $opt) {
+                    $option_array = (array) $opt;
+                    $option_array['option_id'] = intval($option_array['option_id']);
+                    $option_array['name'] = sanitize_text_field($option_array['name']);
+                    $option_array['description'] = wp_kses_post($option_array['description'] ?? '');
+                    $option_array['type'] = sanitize_text_field($option_array['type']);
+                    $option_array['is_required'] = ($option_array['is_required'] ?? '0') === '1'; // Ensure boolean
+                    $option_array['price_impact'] = floatval($option_array['price_impact'] ?? 0);
+                    $option_array['price_impact_type'] = sanitize_text_field($option_array['price_impact_type'] ?? 'fixed');
+                    // Option values might need specific handling if they are JSON strings
+                    if (!empty($option_array['option_values'])) {
+                        $decoded_values = json_decode($option_array['option_values'], true);
+                        if (json_last_error() === JSON_ERROR_NONE) {
+                            $option_array['option_values'] = $decoded_values;
+                        } else {
+                            $option_array['option_values'] = []; // Default to empty array on decode error
+                        }
+                    } else {
+                        $option_array['option_values'] = [];
+                    }
+                    $options[] = $option_array;
+                }
+            }
+            $item['options'] = $options;
+            $preloaded_services_data[] = $item;
+        }
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -951,6 +1011,15 @@ $form_nonce = wp_create_nonce('mobooking_booking_form_nonce');
     <!-- Hidden Form Data -->
     <input type="hidden" id="tenant-id" value="<?php echo esc_attr($tenant_id); ?>">
     <input type="hidden" id="form-nonce" value="<?php echo esc_attr($form_nonce); ?>">
+
+    <script type="text/javascript">
+        window.MOB_PRELOADED_SERVICES = <?php echo wp_json_encode($preloaded_services_data); ?>;
+        // Other essential global JS variables that might have been in mobooking_booking_form_params
+        // and are still needed globally by the new jQuery approach can be set here too,
+        // or continue to be passed via wp_localize_script if they are small and specific.
+        // For instance, AJAX URL, nonces, basic i18n messages for direct jQuery use.
+        // However, mobooking_booking_form_params will still be localized by functions.php for general params.
+    </script>
 
     <?php
     // The inline <script> block containing the MoBookingForm object has been moved to assets/js/booking-form-public.js
