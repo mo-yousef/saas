@@ -1022,3 +1022,123 @@ body.mobooking-form-active {
     text-align: center;
     padding: 1rem;
 }
+
+/* Styles moved from templates/booking-form-public.php */
+.mobooking-discount-section {
+    background: var(--mobk-color-muted); /* Using theme variable */
+    border-radius: var(--mobk-border-radius); /* Using theme variable */
+    padding: 1.5rem;
+    margin: 2rem 0;
+}
+
+.mobooking-discount-section h4 {
+    margin-bottom: 1rem;
+    font-weight: 600;
+    color: var(--mobk-color-card-foreground); /* Using theme variable */
+}
+
+.mobooking-pricing-summary {
+    background: var(--mobk-color-card); /* Using theme variable */
+    border: 1px solid var(--mobk-color-border); /* Using theme variable */
+    border-radius: var(--mobk-border-radius); /* Using theme variable */
+    padding: 1.5rem;
+    margin: 2rem 0;
+}
+
+.mobooking-review-section {
+    background: var(--mobk-color-muted); /* Using theme variable */
+    border-radius: var(--mobk-border-radius); /* Using theme variable */
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.mobooking-review-section h4 {
+    margin-bottom: 1rem;
+    font-weight: 600;
+    color: var(--mobk-color-primary); /* Using theme variable */
+}
+
+.review-item {
+    margin-bottom: 0.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--mobk-color-border); /* Using theme variable */
+}
+
+.review-item:last-child {
+    border-bottom: none;
+}
+
+.review-item strong {
+    font-weight: 600;
+    min-width: 120px; /* Consider if this is always needed or can be more flexible */
+    color: var(--mobk-color-card-foreground); /* Using theme variable */
+}
+
+.review-item ul {
+    margin: 0;
+    padding-left: 1rem;
+    flex: 1;
+    text-align: right;
+    list-style: none; /* Explicitly remove list style if not desired */
+}
+
+.review-item ul li {
+    margin-bottom: 0.25rem; /* Add some spacing between list items */
+}
+
+
+.success-detail {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--mobk-color-border); /* Using theme variable */
+    color: var(--mobk-color-card-foreground); /* Using theme variable */
+}
+
+.success-detail:last-child {
+    border-bottom: none;
+}
+
+.success-detail strong {
+    font-weight: 600;
+    color: var(--mobk-color-card-foreground); /* Ensure strong tags also use appropriate color */
+}
+
+.option-description { /* This class was defined in the inline style, ensure it's styled appropriately */
+    font-size: 0.875rem;
+    color: var(--mobk-color-muted-foreground); /* Using theme variable */
+    margin-top: 0.25rem;
+}
+
+.option-price { /* This class was defined in the inline style */
+    color: var(--mobk-color-primary); /* Using theme variable */
+    font-weight: 500;
+    margin-left: 0.5rem;
+}
+
+/* Mobile optimizations from inline style */
+@media (max-width: 768px) {
+    .review-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .review-item strong {
+        min-width: auto; /* Override fixed width for mobile */
+        margin-bottom: 0.25rem;
+    }
+
+    .review-item ul {
+        text-align: left; /* Align list items to left on mobile */
+        padding-left: 0; /* Remove padding for closer alignment */
+        width: 100%; /* Ensure full width */
+    }
+
+    .success-detail {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
