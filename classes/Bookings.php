@@ -305,7 +305,8 @@ public function handle_create_booking_public_ajax() {
                 if (!$service_id) continue;
 
                 // Get service details from database
-                $service_details = $this->services_manager->get_service_by_id($service_id, $tenant_user_id);
+                //$service_details = $this->services_manager->get_service_by_id($service_id, $tenant_user_id);
+                $service_details = $this->services_manager->get_service($service_id, $tenant_user_id);
                 if (!$service_details) {
                     return new \WP_Error('invalid_service', __('Invalid service selected.', 'mobooking'));
                 }
@@ -377,14 +378,15 @@ public function handle_create_booking_public_ajax() {
                 'booking_date' => sanitize_text_field($customer['date']),
                 'booking_time' => sanitize_text_field($customer['time']),
                 'special_instructions' => sanitize_textarea_field($customer['instructions'] ?? ''),
-                'selected_services' => wp_json_encode($calculated_service_items),
-                'subtotal_price' => $subtotal_server,
+                // REMOVED: 'selected_services' - this column doesn't exist in the schema
+                // REMOVED: 'subtotal_price' - this column doesn't exist in the schema
                 'discount_amount' => $discount_amount,
                 'total_price' => $final_total_server,
                 'status' => 'pending',
                 'created_at' => current_time('mysql'),
                 'updated_at' => current_time('mysql')
             ];
+
 
             // Insert booking into database
             $bookings_table = Database::get_table_name('bookings');
@@ -397,6 +399,29 @@ public function handle_create_booking_public_ajax() {
 
             $new_booking_id = $this->wpdb->insert_id;
             error_log('MoBooking - Booking saved with ID: ' . $new_booking_id);
+
+// Now insert booking items into the booking_items table
+$booking_items_table = Database::get_table_name('booking_items');
+foreach ($calculated_service_items as $service_item) {
+    $item_data = [
+        'booking_id' => $new_booking_id,
+        'service_id' => $service_item['service_id'],
+        'service_name' => $service_item['service_name'],
+        'service_price' => $service_item['service_price'],
+        'quantity' => 1, // Default quantity
+        'selected_options' => wp_json_encode($service_item['selected_options_summary']),
+        'item_total_price' => $service_item['item_total_price']
+    ];
+    
+    $item_inserted = $this->wpdb->insert($booking_items_table, $item_data);
+    
+    if (false === $item_inserted) {
+        error_log('MoBooking - Failed to insert booking item: ' . $this->wpdb->last_error);
+        // You might want to handle this error more gracefully
+    }
+}
+
+
 
             // Update customer records (if Customers class exists)
             if (class_exists('MoBooking\Classes\Customers')) {

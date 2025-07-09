@@ -2184,3 +2184,20 @@ function mobooking_ensure_managers_initialized() {
     }
 }
 add_action('init', 'mobooking_ensure_managers_initialized', 5);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
