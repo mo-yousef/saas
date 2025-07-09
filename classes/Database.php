@@ -84,10 +84,10 @@ class Database {
         // error_log('[MoBooking DB Debug] SQL for customers table: ' . preg_replace('/\s+/', ' ', $sql_customers));
         // $dbDelta_results['customers'] = dbDelta( $sql_customers );
 
-        // Discount Codes Table
-        $table_name = self::get_table_name('discount_codes');
-        error_log('[MoBooking DB Debug] Preparing SQL for discount_codes table: ' . $table_name);
-        $sql_discount_codes = "CREATE TABLE $table_name (
+        // Discounts Table (formerly discount_codes)
+        $table_name = self::get_table_name('discounts');
+        error_log('[MoBooking DB Debug] Preparing SQL for discounts table: ' . $table_name);
+        $sql_discounts = "CREATE TABLE $table_name (
             discount_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
             user_id BIGINT UNSIGNED NOT NULL,
             code VARCHAR(100) NOT NULL,
@@ -102,8 +102,8 @@ class Database {
             INDEX user_id_idx (user_id),
             UNIQUE KEY user_code_unique (user_id, code)
         ) $charset_collate;";
-        error_log('[MoBooking DB Debug] SQL for discount_codes table: ' . preg_replace('/\s+/', ' ', $sql_discount_codes));
-        $dbDelta_results['discount_codes'] = dbDelta( $sql_discount_codes );
+        error_log('[MoBooking DB Debug] SQL for discounts table: ' . preg_replace('/\s+/', ' ', $sql_discounts));
+        $dbDelta_results['discounts'] = dbDelta( $sql_discounts );
 
         // Bookings Table
         $table_name = self::get_table_name('bookings');
@@ -174,10 +174,10 @@ class Database {
         error_log('[MoBooking DB Debug] SQL for tenant_settings table: ' . preg_replace('/\s+/', ' ', $sql_tenant_settings));
         $dbDelta_results['tenant_settings'] = dbDelta( $sql_tenant_settings );
 
-        // Service Areas Table
-        $table_name = self::get_table_name('service_areas');
-        error_log('[MoBooking DB Debug] Preparing SQL for service_areas table: ' . $table_name);
-        $sql_service_areas = "CREATE TABLE $table_name (
+        // Areas Table (formerly service_areas)
+        $table_name = self::get_table_name('areas');
+        error_log('[MoBooking DB Debug] Preparing SQL for areas table: ' . $table_name);
+        $sql_areas = "CREATE TABLE $table_name (
             area_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
             user_id BIGINT UNSIGNED NOT NULL,
             area_type VARCHAR(50) NOT NULL,
@@ -187,13 +187,13 @@ class Database {
             PRIMARY KEY (area_id),
             INDEX user_id_idx (user_id)
         ) $charset_collate;";
-        error_log('[MoBooking DB Debug] SQL for service_areas table: ' . preg_replace('/\s+/', ' ', $sql_service_areas));
-        $dbDelta_results['service_areas'] = dbDelta( $sql_service_areas );
+        error_log('[MoBooking DB Debug] SQL for areas table: ' . preg_replace('/\s+/', ' ', $sql_areas));
+        $dbDelta_results['areas'] = dbDelta( $sql_areas );
 
-        // Availability Slots Table (Recurring)
-        $table_name_slots = self::get_table_name('availability_slots');
-        error_log('[MoBooking DB Debug] Preparing SQL for availability_slots table: ' . $table_name_slots);
-        $sql_availability_slots = "CREATE TABLE $table_name_slots (
+        // Availability Rules Table (Recurring, formerly availability_slots)
+        $table_name_rules = self::get_table_name('availability_rules');
+        error_log('[MoBooking DB Debug] Preparing SQL for availability_rules table: ' . $table_name_rules);
+        $sql_availability_rules = "CREATE TABLE $table_name_rules (
             slot_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
             user_id BIGINT UNSIGNED NOT NULL,
             day_of_week TINYINT UNSIGNED NOT NULL COMMENT '0 for Sunday, 1 for Monday, ..., 6 for Saturday',
@@ -207,13 +207,13 @@ class Database {
             INDEX user_id_day_idx (user_id, day_of_week),
             CONSTRAINT check_day_of_week CHECK (day_of_week BETWEEN 0 AND 6)
         ) $charset_collate;";
-        error_log('[MoBooking DB Debug] SQL for availability_slots table: ' . preg_replace('/\s+/', ' ', $sql_availability_slots));
-        $dbDelta_results['availability_slots'] = dbDelta( $sql_availability_slots );
+        error_log('[MoBooking DB Debug] SQL for availability_rules table: ' . preg_replace('/\s+/', ' ', $sql_availability_rules));
+        $dbDelta_results['availability_rules'] = dbDelta( $sql_availability_rules );
 
-        // Availability Overrides Table (Specific Dates)
-        $table_name_overrides = self::get_table_name('availability_overrides');
-        error_log('[MoBooking DB Debug] Preparing SQL for availability_overrides table: ' . $table_name_overrides);
-        $sql_availability_overrides = "CREATE TABLE $table_name_overrides (
+        // Availability Exceptions Table (Specific Dates, formerly availability_overrides)
+        $table_name_exceptions = self::get_table_name('availability_exceptions');
+        error_log('[MoBooking DB Debug] Preparing SQL for availability_exceptions table: ' . $table_name_exceptions);
+        $sql_availability_exceptions = "CREATE TABLE $table_name_exceptions (
             override_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
             user_id BIGINT UNSIGNED NOT NULL,
             override_date DATE NOT NULL,
@@ -243,10 +243,10 @@ class Database {
         // So a unique key on (user_id, override_date) is appropriate. If start_time/end_time are NULL and is_unavailable=1, it's a day off.
         // If start_time/end_time are NOT NULL and is_unavailable=0, it's a custom slot.
         // It doesn't make sense to have is_unavailable=1 AND specific times. This will be handled by application logic.
-        $sql_availability_overrides = "CREATE TABLE $table_name_overrides (
-            override_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+        $sql_availability_exceptions = "CREATE TABLE $table_name_exceptions (
+            exception_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT, -- Renamed from override_id
             user_id BIGINT UNSIGNED NOT NULL,
-            override_date DATE NOT NULL,
+            exception_date DATE NOT NULL, -- Renamed from override_date
             start_time TIME NULL, -- Null if is_unavailable is true for the whole day
             end_time TIME NULL,   -- Null if is_unavailable is true for the whole day
             capacity INT UNSIGNED DEFAULT 1, -- Relevant if not is_unavailable
@@ -254,13 +254,16 @@ class Database {
             notes TEXT,
             created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
             updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-            PRIMARY KEY (override_id),
-            UNIQUE KEY user_override_date_unique (user_id, override_date) -- One override rule per day per user
+            PRIMARY KEY (exception_id), -- Renamed from override_id
+            UNIQUE KEY user_exception_date_unique (user_id, exception_date) -- Renamed from user_override_date_unique
         ) $charset_collate;";
-        error_log('[MoBooking DB Debug] SQL for availability_overrides table: ' . preg_replace('/\s+/', ' ', $sql_availability_overrides));
-        $dbDelta_results['availability_overrides'] = dbDelta( $sql_availability_overrides );
+        error_log('[MoBooking DB Debug] SQL for availability_exceptions table: ' . preg_replace('/\s+/', ' ', $sql_availability_exceptions));
+        $dbDelta_results['availability_exceptions'] = dbDelta( $sql_availability_exceptions );
 
         // MoBooking Customers Table (new)
+        // This table is named 'mob_customers'. The error message refers to 'customers'.
+        // We are proceeding with 'mob_customers' as it's more specific and seems to be the intended new table.
+        // The 'bookings' table links to 'mob_customer_id'.
         $table_name_mob_customers = self::get_table_name('mob_customers');
         error_log('[MoBooking DB Debug] Preparing SQL for MoBooking customers table: ' . $table_name_mob_customers);
         $sql_mob_customers = "CREATE TABLE $table_name_mob_customers (
@@ -291,6 +294,20 @@ class Database {
         error_log('[MoBooking DB Debug] SQL for MoBooking customers table: ' . preg_replace('/\s+/', ' ', $sql_mob_customers));
         $dbDelta_results['mob_customers'] = dbDelta( $sql_mob_customers );
 
+        // Booking Meta Table (newly added)
+        $table_name_booking_meta = self::get_table_name('booking_meta');
+        error_log('[MoBooking DB Debug] Preparing SQL for booking_meta table: ' . $table_name_booking_meta);
+        $sql_booking_meta = "CREATE TABLE $table_name_booking_meta (
+            meta_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+            booking_id BIGINT UNSIGNED NOT NULL,
+            meta_key VARCHAR(255) DEFAULT NULL,
+            meta_value LONGTEXT DEFAULT NULL,
+            PRIMARY KEY (meta_id),
+            INDEX booking_id_idx (booking_id),
+            INDEX meta_key_idx (meta_key(191))
+        ) $charset_collate;";
+        error_log('[MoBooking DB Debug] SQL for booking_meta table: ' . preg_replace('/\s+/', ' ', $sql_booking_meta));
+        $dbDelta_results['booking_meta'] = dbDelta( $sql_booking_meta );
 
         error_log('[MoBooking DB Debug] dbDelta execution results: ' . print_r($dbDelta_results, true));
         error_log('[MoBooking DB Debug] Custom tables creation/update attempt finished.');
