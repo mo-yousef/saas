@@ -25,21 +25,25 @@ jQuery(document).ready(function ($) {
       const cleanData = cleanDataForJson(data);
       const jsonString = JSON.stringify(cleanData);
 
-      console.log('🔍 JSON Encoding Debug (safeJsonEncode):', {
-          original: data,
-          cleaned: cleanData,
-          encoded: jsonString
+      console.log("🔍 JSON Encoding Debug (safeJsonEncode):", {
+        original: data,
+        cleaned: cleanData,
+        encoded: jsonString,
       });
 
       return jsonString;
     } catch (error) {
-      console.error('❌ JSON encoding failed (safeJsonEncode):', error, data);
+      console.error("❌ JSON encoding failed (safeJsonEncode):", error, data);
       // Fallback to basic stringify if custom cleaning fails, though this is unlikely
       // if cleanDataForJson itself doesn't throw.
       try {
         return JSON.stringify(data);
       } catch (fallbackError) {
-        console.error('❌ Fallback JSON.stringify also failed:', fallbackError, data);
+        console.error(
+          "❌ Fallback JSON.stringify also failed:",
+          fallbackError,
+          data
+        );
         return null; // Indicate failure
       }
     }
@@ -47,16 +51,17 @@ jQuery(document).ready(function ($) {
 
   // Clean data to prevent JSON encoding issues
   function cleanDataForJson(data) {
-    if (typeof data === 'string') {
+    if (typeof data === "string") {
       // Remove problematic characters and normalize
       // Basic control characters removal. Consider more specific needs if issues persist.
       return data.replace(/[\u0000-\u001F\u007F-\u009F]/g, "").trim();
     } else if (Array.isArray(data)) {
       return data.map(cleanDataForJson);
-    } else if (data && typeof data === 'object') {
+    } else if (data && typeof data === "object") {
       const cleaned = {};
       for (const key in data) {
-        if (Object.prototype.hasOwnProperty.call(data, key)) { // More robust check
+        if (Object.prototype.hasOwnProperty.call(data, key)) {
+          // More robust check
           cleaned[key] = cleanDataForJson(data[key]);
         }
       }
@@ -1206,7 +1211,12 @@ jQuery(document).ready(function ($) {
     });
 
     if (!customerDetailsJson || !selectedServicesJson || !pricingJson) {
-      showFeedback($feedback, "error", "Error encoding form data. Please try again.", false);
+      showFeedback(
+        $feedback,
+        "error",
+        "Error encoding form data. Please try again.",
+        false
+      );
       $button.prop("disabled", false).html(originalBtnHtml);
       return;
     }
@@ -1215,16 +1225,30 @@ jQuery(document).ready(function ($) {
     const nonce = $("#form-nonce").val() || MOB_PARAMS.nonce; // Fallback to MOB_PARAMS if hidden field not found
 
     if (!tenantId) {
-        showFeedback($feedback, "error", "Configuration error: Tenant ID is missing. Please refresh and try again.", false);
-        $button.prop("disabled", false).html(originalBtnHtml);
-        console.error("MoBooking Error: Tenant ID is missing from #tenant-id hidden field.");
-        return;
+      showFeedback(
+        $feedback,
+        "error",
+        "Configuration error: Tenant ID is missing. Please refresh and try again.",
+        false
+      );
+      $button.prop("disabled", false).html(originalBtnHtml);
+      console.error(
+        "MoBooking Error: Tenant ID is missing from #tenant-id hidden field."
+      );
+      return;
     }
     if (!nonce) {
-        showFeedback($feedback, "error", "Configuration error: Security token is missing. Please refresh and try again.", false);
-        $button.prop("disabled", false).html(originalBtnHtml);
-        console.error("MoBooking Error: Nonce is missing from #form-nonce hidden field or MOB_PARAMS.");
-        return;
+      showFeedback(
+        $feedback,
+        "error",
+        "Configuration error: Security token is missing. Please refresh and try again.",
+        false
+      );
+      $button.prop("disabled", false).html(originalBtnHtml);
+      console.error(
+        "MoBooking Error: Nonce is missing from #form-nonce hidden field or MOB_PARAMS."
+      );
+      return;
     }
 
     const submissionData = {
@@ -1275,60 +1299,93 @@ jQuery(document).ready(function ($) {
                         </p>`);
         } else {
           // Handle cases where response.success is false or response.data is missing
-          let errorMessage = MOB_PARAMS.i18n.booking_error || "Booking submission failed.";
+          let errorMessage =
+            MOB_PARAMS.i18n.booking_error || "Booking submission failed.";
           if (response && response.data && response.data.message) {
             errorMessage = response.data.message;
-          } else if (typeof response === 'string') {
+          } else if (typeof response === "string") {
             // If the response is a string, it might be an unexpected error output from PHP
-             errorMessage = MOB_PARAMS.i18n.error_ajax || "Received an unexpected response from the server.";
-             console.error("Booking Submission Error: Unexpected server response (string):", response);
-          } else if (response && response.data && Array.isArray(response.data) && response.data.length > 0 && response.data[0].message) {
+            errorMessage =
+              MOB_PARAMS.i18n.error_ajax ||
+              "Received an unexpected response from the server.";
+            console.error(
+              "Booking Submission Error: Unexpected server response (string):",
+              response
+            );
+          } else if (
+            response &&
+            response.data &&
+            Array.isArray(response.data) &&
+            response.data.length > 0 &&
+            response.data[0].message
+          ) {
             // Handle cases where response.data is an array of error objects (e.g. from some WP REST API structures)
             errorMessage = response.data[0].message;
           }
           showFeedback($feedback, "error", errorMessage, false); // Ensure error message persists
-          console.error("Booking Submission Failed (Server Response):", response);
+          console.error(
+            "Booking Submission Failed (Server Response):",
+            response
+          );
         }
       },
       error: function (jqXHR, textStatus, errorThrown) {
-        let errorMessage = MOB_PARAMS.i18n.connectionError || "A connection error occurred. Please try again.";
+        let errorMessage =
+          MOB_PARAMS.i18n.connectionError ||
+          "A connection error occurred. Please try again.";
 
         console.error("AJAX Error Details for Booking Submission:", {
-            status: jqXHR.status,
-            statusText: jqXHR.statusText,
-            responseText: jqXHR.responseText,
-            textStatus: textStatus,
-            errorThrown: errorThrown,
-            params: MOB_PARAMS // Log params for context
+          status: jqXHR.status,
+          statusText: jqXHR.statusText,
+          responseText: jqXHR.responseText,
+          textStatus: textStatus,
+          errorThrown: errorThrown,
+          params: MOB_PARAMS, // Log params for context
         });
 
-        if (jqXHR.responseJSON && jqXHR.responseJSON.data && jqXHR.responseJSON.data.message) {
+        if (
+          jqXHR.responseJSON &&
+          jqXHR.responseJSON.data &&
+          jqXHR.responseJSON.data.message
+        ) {
           errorMessage = jqXHR.responseJSON.data.message;
         } else if (jqXHR.responseText) {
-            try {
-                const serverError = JSON.parse(jqXHR.responseText);
-                if (serverError && serverError.data && serverError.data.message) {
-                    errorMessage = serverError.data.message;
-                } else if (serverError && serverError.message) {
-                    errorMessage = serverError.message;
-                } else {
-                   errorMessage = (MOB_PARAMS.i18n.error_ajax || "An unexpected error occurred.") + ` (Status: ${jqXHR.status})`;
-                   // Avoid showing too much raw responseText to the user for security/verbosity.
-                }
-            } catch (e) {
-                 // responseText was not JSON
-                 errorMessage = (MOB_PARAMS.i18n.error_ajax || "An unexpected server error occurred.") + ` (Details in console.)`;
-                 if (jqXHR.status === 0) {
-                    errorMessage = MOB_PARAMS.i18n.connectionError || "Network error. Please check your internet connection.";
-                 } else if (jqXHR.status === 403) {
-                    errorMessage = "Access denied. Please ensure you are logged in if required, or contact support.";
-                 } else if (jqXHR.status === 500) {
-                    errorMessage = "Server error. Please try again later or contact support.";
-                 }
-                 // For other specific HTTP errors, you can add more cases.
+          try {
+            const serverError = JSON.parse(jqXHR.responseText);
+            if (serverError && serverError.data && serverError.data.message) {
+              errorMessage = serverError.data.message;
+            } else if (serverError && serverError.message) {
+              errorMessage = serverError.message;
+            } else {
+              errorMessage =
+                (MOB_PARAMS.i18n.error_ajax ||
+                  "An unexpected error occurred.") +
+                ` (Status: ${jqXHR.status})`;
+              // Avoid showing too much raw responseText to the user for security/verbosity.
             }
-        } else if (textStatus === 'timeout') {
-            errorMessage = MOB_PARAMS.i18n.error_ajax_timeout || "The request timed out. Please try again.";
+          } catch (e) {
+            // responseText was not JSON
+            errorMessage =
+              (MOB_PARAMS.i18n.error_ajax ||
+                "An unexpected server error occurred.") +
+              ` (Details in console.)`;
+            if (jqXHR.status === 0) {
+              errorMessage =
+                MOB_PARAMS.i18n.connectionError ||
+                "Network error. Please check your internet connection.";
+            } else if (jqXHR.status === 403) {
+              errorMessage =
+                "Access denied. Please ensure you are logged in if required, or contact support.";
+            } else if (jqXHR.status === 500) {
+              errorMessage =
+                "Server error. Please try again later or contact support.";
+            }
+            // For other specific HTTP errors, you can add more cases.
+          }
+        } else if (textStatus === "timeout") {
+          errorMessage =
+            MOB_PARAMS.i18n.error_ajax_timeout ||
+            "The request timed out. Please try again.";
         }
 
         showFeedback($feedback, "error", errorMessage, false); // Ensure error message persists
@@ -1343,26 +1400,6 @@ jQuery(document).ready(function ($) {
   // Start the form
   initializeForm();
 });
-
-// The secondary jQuery(document).ready block containing test buttons,
-// submitBookingWithJsonFix, and the override for MoBookingForm.submitFinalBooking
-// has been removed as its core logic (safeJsonEncode, cleanDataForJson)
-// is now integrated into the main form handler.
-            responseText: jqXHR.responseText, // Log the full response text
-            textStatus: textStatus,
-            errorThrown: errorThrown
-        });
-      },
-      complete: function () {
-        $button.prop("disabled", false).html(originalBtnHtml);
-      },
-    });
-  }
-
-  // Start the form
-  initializeForm();
-});
-
 // The secondary jQuery(document).ready block containing test buttons,
 // submitBookingWithJsonFix, and the override for MoBookingForm.submitFinalBooking
 // has been removed as its core logic (safeJsonEncode, cleanDataForJson)
