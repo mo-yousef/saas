@@ -112,7 +112,7 @@ class Database {
             booking_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
             user_id BIGINT UNSIGNED NOT NULL, -- Tenant ID (Business Owner)
             customer_id BIGINT UNSIGNED, -- Original field, maybe WordPress user ID of customer if they are registered users.
-            mob_customer_id BIGINT UNSIGNED NULL, -- FK to mobooking_mob_customers table
+            mob_customer_id BIGINT UNSIGNED NULL, -- FK to mobooking_customers table (formerly mob_customers)
             customer_name VARCHAR(255) NOT NULL,
             customer_email VARCHAR(255) NOT NULL,
             customer_phone VARCHAR(50),
@@ -204,8 +204,8 @@ class Database {
             created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
             updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             PRIMARY KEY (slot_id),
-            INDEX user_id_day_idx (user_id, day_of_week),
-            CONSTRAINT check_day_of_week CHECK (day_of_week BETWEEN 0 AND 6)
+            INDEX user_id_day_idx (user_id, day_of_week)
+            -- CONSTRAINT check_day_of_week CHECK (day_of_week BETWEEN 0 AND 6) -- Removed for dbDelta compatibility
         ) $charset_collate;";
         error_log('[MoBooking DB Debug] SQL for availability_rules table: ' . preg_replace('/\s+/', ' ', $sql_availability_rules));
         $dbDelta_results['availability_rules'] = dbDelta( $sql_availability_rules );
@@ -260,13 +260,11 @@ class Database {
         error_log('[MoBooking DB Debug] SQL for availability_exceptions table: ' . preg_replace('/\s+/', ' ', $sql_availability_exceptions));
         $dbDelta_results['availability_exceptions'] = dbDelta( $sql_availability_exceptions );
 
-        // MoBooking Customers Table (new)
-        // This table is named 'mob_customers'. The error message refers to 'customers'.
-        // We are proceeding with 'mob_customers' as it's more specific and seems to be the intended new table.
-        // The 'bookings' table links to 'mob_customer_id'.
-        $table_name_mob_customers = self::get_table_name('mob_customers');
-        error_log('[MoBooking DB Debug] Preparing SQL for MoBooking customers table: ' . $table_name_mob_customers);
-        $sql_mob_customers = "CREATE TABLE $table_name_mob_customers (
+        // Customers Table (formerly MoBooking Customers / mob_customers)
+        // Renamed to 'customers' to match the expected table name from the debug message.
+        $table_name_customers = self::get_table_name('customers');
+        error_log('[MoBooking DB Debug] Preparing SQL for customers table: ' . $table_name_customers);
+        $sql_customers = "CREATE TABLE $table_name_customers (
             id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
             wp_user_id BIGINT UNSIGNED NULL, -- Link to WordPress user table if the customer is a registered WP user
             tenant_id BIGINT UNSIGNED NOT NULL, -- The business owner (user_id from wp_users) this customer belongs to
@@ -291,8 +289,8 @@ class Database {
             INDEX wp_user_id_idx (wp_user_id),
             INDEX tenant_id_idx (tenant_id)
         ) $charset_collate;";
-        error_log('[MoBooking DB Debug] SQL for MoBooking customers table: ' . preg_replace('/\s+/', ' ', $sql_mob_customers));
-        $dbDelta_results['mob_customers'] = dbDelta( $sql_mob_customers );
+        error_log('[MoBooking DB Debug] SQL for customers table: ' . preg_replace('/\s+/', ' ', $sql_customers));
+        $dbDelta_results['customers'] = dbDelta( $sql_customers );
 
         // Booking Meta Table (newly added)
         $table_name_booking_meta = self::get_table_name('booking_meta');
