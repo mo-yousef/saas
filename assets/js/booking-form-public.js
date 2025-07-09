@@ -1397,6 +1397,383 @@ jQuery(document).ready(function ($) {
     });
   }
 
+  // --- Debug Sidebar Logic ---
+  const isDebugSidebarActive = !!document.getElementById('mobooking-debug-sidebar');
+
+  function logToDebug(message, type = 'info', areaId = 'debug-js-logs') {
+    if (!isDebugSidebarActive) return;
+
+    const area = document.getElementById(areaId);
+    if (!area) return;
+
+    const timestamp = new Date().toLocaleTimeString();
+    let formattedMessage = `[${timestamp}] [${type.toUpperCase()}]: `;
+
+    if (typeof message === 'object') {
+        formattedMessage += JSON.stringify(message, null, 2);
+    } else {
+        formattedMessage += message;
+    }
+
+    if (areaId === 'debug-submission-status') {
+        // Replace content for status-like areas
+        area.textContent = formattedMessage;
+    } else {
+        // Append for log-like areas
+        area.textContent += formattedMessage + '\n';
+        area.scrollTop = area.scrollHeight; // Auto-scroll to bottom
+    }
+  }
+
+  // --- MODIFIED UTILITY FUNCTIONS to use logToDebug ---
+  function safeJsonEncode(data) {
+    try {
+      const cleanData = cleanDataForJson(data);
+      const jsonString = JSON.stringify(cleanData);
+      logToDebug({ action: 'safeJsonEncode', original: data, cleaned: cleanData, encoded: jsonString }, 'debug');
+      return jsonString;
+    } catch (error) {
+      logToDebug({ action: 'safeJsonEncode Error', error: error.message, data: data }, 'error');
+      try {
+        return JSON.stringify(data);
+      } catch (fallbackError) {
+        logToDebug({ action: 'safeJsonEncode Fallback Error', error: fallbackError.message, data: data }, 'error');
+        return null;
+      }
+    }
+  }
+  // Note: cleanDataForJson is a helper for safeJsonEncode, its internal logs are less critical for the sidebar.
+
+  // --- Initialize Form (Original) ---
+  function initializeForm() {
+    logToDebug("MoBooking jQuery Form Initializing. Params: " + JSON.stringify(MOB_PARAMS), 'info');
+    logToDebug("Preloaded Services: " + JSON.stringify(PRELOADED_SERVICES), 'info');
+
+    if (
+      MOB_PARAMS.settings &&
+      MOB_PARAMS.settings.bf_enable_location_check === "1"
+    ) {
+      showStep(1);
+    } else {
+      locationVerified = true; // Skip location check
+      showStep(2);
+    }
+    bindEvents();
+  }
+
+
+  // --- MODIFIED AJAX HANDLERS to use logToDebug for submission status ---
+
+  function handleLocationCheckSubmit(e) {
+    e.preventDefault();
+    logToDebug('Attempting location check.', 'info', 'debug-submission-status');
+    const zipCode = $("#mobooking-zip").val().trim();
+    const countryCode = $("#mobooking-country").val();
+    const $feedback = $("#mobooking-location-feedback");
+    const $submitBtn = $(this).find('button[type="submit"]');
+    const originalBtnHtml = $submitBtn.html();
+
+    if (!zipCode) {
+      showFeedback($feedback, "error", MOB_PARAMS.i18n.zipRequired);
+      logToDebug('Location check failed: ZIP required.', 'error', 'debug-submission-status');
+      return;
+    }
+    if (!countryCode) {
+      showFeedback($feedback, "error", MOB_PARAMS.i18n.countryRequired);
+      logToDebug('Location check failed: Country required.', 'error', 'debug-submission-status');
+      return;
+    }
+    showFeedback($feedback, "", "", true); // Clear
+
+    $submitBtn
+      .prop("disabled", true)
+      .html(
+        '<div class="mobooking-spinner"></div> ' + MOB_PARAMS.i18n.checking
+      );
+    showFeedback($feedback, "info", MOB_PARAMS.i18n.checking, false);
+    logToDebug(`Checking location: ZIP=${zipCode}, Country=${countryCode}`, 'info', 'debug-submission-status');
+
+    $.ajax({
+      url: MOB_PARAMS.ajaxUrl,
+      type: "POST",
+      data: {
+        action: "mobooking_check_service_area",
+        nonce: MOB_PARAMS.nonce,
+        zip_code: zipCode,
+        country_code: countryCode,
+        tenant_id: MOB_PARAMS.tenantId,
+      },
+      success: function (response) {
+        logToDebug({ action: 'Location Check Success', response: response }, 'info', 'debug-submission-status');
+        if (response.success && response.data.serviced) {
+          showFeedback($feedback, "success", response.data.message);
+          locationVerified = true;
+          setTimeout(() => showStep(2), 1500);
+        } else {
+          showFeedback(
+            $feedback,
+            "error",
+            response.data.message || "Service not available in this area."
+          );
+        }
+      },
+      error: function (xhr, status, error) {
+        logToDebug({ action: 'Location Check Error', status: status, error: error, xhr: xhr.responseText }, 'error', 'debug-submission-status');
+        showFeedback($feedback, "error", MOB_PARAMS.i18n.connectionError);
+      },
+      complete: function () {
+        $submitBtn.prop("disabled", false).html(originalBtnHtml);
+      },
+    });
+  }
+
+  function handleDiscountApply() {
+    const code = $("#discount-code").val().trim();
+    const $feedback = $("#discount-feedback");
+    const $button = $(this);
+    const originalBtnText = $button.text();
+    logToDebug(`Applying discount code: ${code}`, 'info', 'debug-submission-status');
+
+    if (!code) {
+      showFeedback($feedback, "error", MOB_PARAMS.i18n.enterDiscountCode);
+      logToDebug('Discount apply failed: Code required.', 'error', 'debug-submission-status');
+      return;
+    }
+    $button.prop("disabled", true).text("Applying...");
+    showFeedback($feedback, "info", "Applying discount...", false);
+
+    $.ajax({
+      url: MOB_PARAMS.ajaxUrl,
+      type: "POST",
+      data: {
+        action: "mobooking_validate_discount",
+        nonce: MOB_PARAMS.nonce,
+        discount_code: code,
+        tenant_id: MOB_PARAMS.tenantId,
+        subtotal: calculateSubtotal(),
+      },
+      success: function (response) {
+        logToDebug({ action: 'Discount Apply Success', response: response }, 'info', 'debug-submission-status');
+        if (response.success && response.data) {
+          discountInfo = response.data;
+          showFeedback($feedback, "success", MOB_PARAMS.i18n.discountApplied);
+        } else {
+          discountInfo = null;
+          showFeedback(
+            $feedback,
+            "error",
+            response.data?.message || MOB_PARAMS.i18n.invalidDiscount
+          );
+        }
+        updateLiveSummary();
+      },
+      error: function (xhr, status, error) {
+        logToDebug({ action: 'Discount Apply Error', status: status, error: error, xhr: xhr.responseText }, 'error', 'debug-submission-status');
+        discountInfo = null;
+        showFeedback($feedback, "error", MOB_PARAMS.i18n.connectionError);
+        updateLiveSummary();
+      },
+      complete: function () {
+        $button.prop("disabled", false).text(originalBtnText);
+      },
+    });
+  }
+
+  function handleFinalBookingSubmit() {
+    const $button = $(this);
+    const originalBtnHtml = $button.html();
+    const $feedback = $("#mobooking-review-feedback");
+    logToDebug('Final booking submission started.', 'info', 'debug-submission-status');
+
+    $button
+      .prop("disabled", true)
+      .html(
+        '<div class="mobooking-spinner"></div> ' + MOB_PARAMS.i18n.submitting
+      );
+    showFeedback($feedback, "info", MOB_PARAMS.i18n.submitting, false);
+    storeCustomerDetails();
+
+    const selectedServicesPayload = [
+      {
+        service_id: selectedService.service_id,
+        name: selectedService.name,
+        price: selectedService.price,
+        configured_options: selectedOptions,
+      },
+    ];
+
+    const customerDetailsJson = safeJsonEncode(customerDetails);
+    const selectedServicesJson = safeJsonEncode(selectedServicesPayload);
+    const discountInfoJson = discountInfo ? safeJsonEncode(discountInfo) : null;
+    const pricingJson = safeJsonEncode({
+      subtotal: calculateSubtotal(),
+      discount: discountInfo ? calculateSubtotal() - totalPrice : 0,
+      total: totalPrice,
+    });
+
+    if (!customerDetailsJson || !selectedServicesJson || !pricingJson) {
+      const errorMsg = "Error encoding form data. Please try again.";
+      showFeedback($feedback, "error", errorMsg, false);
+      logToDebug(errorMsg + ` Details: cust=${!!customerDetailsJson}, serv=${!!selectedServicesJson}, pricing=${!!pricingJson}`, 'error', 'debug-submission-status');
+      $button.prop("disabled", false).html(originalBtnHtml);
+      return;
+    }
+
+    const tenantId = $("#tenant-id").val();
+    const nonce = $("#form-nonce").val() || MOB_PARAMS.nonce;
+
+    if (!tenantId) {
+      const errorMsg = "Configuration error: Tenant ID is missing. Please refresh and try again.";
+      showFeedback($feedback, "error", errorMsg, false);
+      logToDebug(errorMsg, 'error', 'debug-submission-status');
+      console.error("MoBooking Error: Tenant ID is missing from #tenant-id hidden field.");
+      $button.prop("disabled", false).html(originalBtnHtml);
+      return;
+    }
+    if (!nonce) {
+      const errorMsg = "Configuration error: Security token is missing. Please refresh and try again.";
+      showFeedback($feedback, "error", errorMsg, false);
+      logToDebug(errorMsg, 'error', 'debug-submission-status');
+      console.error("MoBooking Error: Nonce is missing from #form-nonce hidden field or MOB_PARAMS.");
+      $button.prop("disabled", false).html(originalBtnHtml);
+      return;
+    }
+
+    const submissionData = {
+      action: "mobooking_create_booking",
+      nonce: nonce,
+      tenant_id: tenantId,
+      selected_services: selectedServicesJson,
+      customer_details: customerDetailsJson,
+      discount_info: discountInfoJson,
+      zip_code: $("#mobooking-zip").val() || customerDetails.zip_code || "",
+      country_code:
+        $("#mobooking-country").val() || customerDetails.country_code || "",
+      pricing: pricingJson,
+    };
+
+    logToDebug({ action: 'Submitting Booking Data', data: submissionData }, 'debug', 'debug-submission-status');
+    console.log("MoBooking: Submitting with safe JSON encoding:", submissionData); // Keep console for devs
+
+    $.ajax({
+      url: MOB_PARAMS.ajaxUrl,
+      type: "POST",
+      data: submissionData,
+      dataType: "json",
+      success: function (response) {
+        logToDebug({ action: 'Booking Submission Success', response: response }, 'info', 'debug-submission-status');
+        if (response && response.success && response.data) {
+          showStep(6);
+          $("#success-details").html(`
+                        <div class="success-detail"><strong>Booking Reference:</strong> <span>${escapeHtml(
+                          response.data.booking_reference || "N/A"
+                        )}</span></div>
+                        <div class="success-detail"><strong>Service:</strong> <span>${escapeHtml(
+                          selectedService.name
+                        )}</span></div>
+                        <div class="success-detail"><strong>Customer:</strong> <span>${escapeHtml(
+                          customerDetails.name
+                        )}</span></div>
+                        <div class="success-detail"><strong>Email:</strong> <span>${escapeHtml(
+                          customerDetails.email
+                        )}</span></div>
+                        <div class="success-detail"><strong>Total:</strong> <span>${
+                          MOB_PARAMS.currency.symbol
+                        }${formatPrice(
+            response.data.final_total || totalPrice
+          )}</span></div>
+                        <p style="margin-top: 1rem; color: var(--muted-foreground);">
+                            You will receive a confirmation email shortly at ${escapeHtml(
+                              customerDetails.email
+                            )}.
+                        </p>`);
+        } else {
+          let errorMessage =
+            MOB_PARAMS.i18n.booking_error || "Booking submission failed.";
+          if (response && response.data && response.data.message) {
+            errorMessage = response.data.message;
+          } else if (typeof response === "string") {
+            errorMessage =
+              MOB_PARAMS.i18n.error_ajax ||
+              "Received an unexpected response from the server.";
+            logToDebug("Booking Submission Error: Unexpected server response (string):" + response, 'error', 'debug-submission-status');
+          } else if (
+            response &&
+            response.data &&
+            Array.isArray(response.data) &&
+            response.data.length > 0 &&
+            response.data[0].message
+          ) {
+            errorMessage = response.data[0].message;
+          }
+          showFeedback($feedback, "error", errorMessage, false);
+          logToDebug("Booking Submission Failed (Server Response): " + JSON.stringify(response), 'error', 'debug-submission-status');
+        }
+      },
+      error: function (jqXHR, textStatus, errorThrown) {
+        let errorMessage =
+          MOB_PARAMS.i18n.connectionError ||
+          "A connection error occurred. Please try again.";
+
+        const errorDetails = {
+          status: jqXHR.status,
+          statusText: jqXHR.statusText,
+          responseText: jqXHR.responseText,
+          textStatus: textStatus,
+          errorThrown: errorThrown,
+        };
+        logToDebug({ action: 'Booking Submission AJAX Error', details: errorDetails }, 'error', 'debug-submission-status');
+        console.error("AJAX Error Details for Booking Submission:", errorDetails); // Keep console for devs
+
+        if (
+          jqXHR.responseJSON &&
+          jqXHR.responseJSON.data &&
+          jqXHR.responseJSON.data.message
+        ) {
+          errorMessage = jqXHR.responseJSON.data.message;
+        } else if (jqXHR.responseText) {
+          try {
+            const serverError = JSON.parse(jqXHR.responseText);
+            if (serverError && serverError.data && serverError.data.message) {
+              errorMessage = serverError.data.message;
+            } else if (serverError && serverError.message) {
+              errorMessage = serverError.message;
+            } else {
+              errorMessage =
+                (MOB_PARAMS.i18n.error_ajax ||
+                  "An unexpected error occurred.") +
+                ` (Status: ${jqXHR.status})`;
+            }
+          } catch (e) {
+            errorMessage =
+              (MOB_PARAMS.i18n.error_ajax ||
+                "An unexpected server error occurred.") +
+              ` (Details in console.)`;
+            if (jqXHR.status === 0) {
+              errorMessage =
+                MOB_PARAMS.i18n.connectionError ||
+                "Network error. Please check your internet connection.";
+            } else if (jqXHR.status === 403) {
+              errorMessage =
+                "Access denied. Please ensure you are logged in if required, or contact support.";
+            } else if (jqXHR.status === 500) {
+              errorMessage =
+                "Server error. Please try again later or contact support.";
+            }
+          }
+        } else if (textStatus === "timeout") {
+          errorMessage =
+            MOB_PARAMS.i18n.error_ajax_timeout ||
+            "The request timed out. Please try again.";
+        }
+        showFeedback($feedback, "error", errorMessage, false);
+      },
+      complete: function () {
+        $button.prop("disabled", false).html(originalBtnHtml);
+      },
+    });
+  }
+
   // Start the form
   initializeForm();
 });
