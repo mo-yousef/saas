@@ -10,6 +10,27 @@ if (!defined('ABSPATH')) exit;
 $tenant_id = get_query_var('mobooking_tenant_id_on_page');
 $business_slug = get_query_var('mobooking_slug');
 
+// --- Debug Mode Logic ---
+$mobooking_is_debug_mode_active = false;
+if (class_exists('\MoBooking\Classes\Settings')) {
+    $settings_manager_for_debug = new \MoBooking\Classes\Settings();
+    // Assuming tenant_id is the business owner's ID for whom settings are stored.
+    // If in debug mode, we might want to use the current logged-in admin's perspective,
+    // or the specific tenant_id if available. For now, let's use tenant_id if set,
+    // otherwise, if an admin is logged in, they might be debugging their own form.
+    $debug_check_tenant_id = $tenant_id ?: get_current_user_id();
+
+    if ($debug_check_tenant_id) {
+        $bf_settings_for_debug = $settings_manager_for_debug->get_booking_form_settings($debug_check_tenant_id);
+        $debug_mode_setting_enabled = isset($bf_settings_for_debug['bf_debug_mode']) && $bf_settings_for_debug['bf_debug_mode'] === '1';
+
+        if ($debug_mode_setting_enabled && current_user_can('manage_options')) {
+            $mobooking_is_debug_mode_active = true;
+        }
+    }
+}
+// --- End Debug Mode Logic ---
+
 if (!$tenant_id) {
     echo '<div class="mobooking-error">Configuration error: Tenant not found</div>';
     return;
@@ -675,6 +696,68 @@ if ($tenant_id) {
             white-space: nowrap;
             border: 0;
         }
+
+        /* Debug Sidebar Styles */
+        #mobooking-debug-sidebar {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 350px; /* Increased width a bit */
+            height: 100vh;
+            background-color: #23282d; /* WordPress admin dark background */
+            color: #f0f0f0; /* Light text color */
+            padding: 20px;
+            z-index: 999999; /* Ensure it's on top of everything */
+            overflow-y: auto;
+            font-family: monospace; /* Good for logs */
+            font-size: 13px; /* Slightly larger for readability */
+            line-height: 1.5;
+            box-shadow: -2px 0 5px rgba(0,0,0,0.5);
+            display: none; /* Initially hidden, PHP will make it visible if debug mode is active */
+        }
+
+        #mobooking-debug-sidebar h4 {
+            color: #6495ED; /* Cornflower blue for main title */
+            margin-top: 0;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #444;
+            padding-bottom: 10px;
+            font-size: 16px;
+        }
+
+        #mobooking-debug-sidebar .debug-section {
+            margin-bottom: 20px;
+        }
+
+        #mobooking-debug-sidebar .debug-section h5 {
+            color: #90EE90; /* LightGreen for section titles */
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        #mobooking-debug-sidebar .debug-content {
+            background-color: #1e1e1e; /* Darker background for content areas */
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid #333;
+            white-space: pre-wrap; /* Allow wrapping for long lines */
+            word-break: break-all; /* Break long words/strings */
+        }
+
+        #mobooking-debug-sidebar #debug-js-logs {
+            max-height: 300px; /* Limit height and make scrollable if too many logs */
+            overflow-y: auto;
+        }
+
+        #mobooking-debug-sidebar .debug-content .status-ok {
+            color: #7CFC00; /* LawnGreen */
+        }
+        #mobooking-debug-sidebar .debug-content .status-error {
+            color: #FF6347; /* Tomato */
+        }
+        #mobooking-debug-sidebar .debug-content .status-warn {
+            color: #FFA500; /* Orange */
+        }
     </style>
 </head>
 
@@ -1291,6 +1374,77 @@ if ($tenant_id) {
     
     wp_footer();
     ?>
+
+    <?php if ($mobooking_is_debug_mode_active): ?>
+    <div id="mobooking-debug-sidebar" style="<?php echo $mobooking_is_debug_mode_active ? 'display: block !important;' : ''; ?>">
+        <h4>Debug Information</h4>
+
+        <div class="debug-section">
+            <h5>Form Submission Status</h5>
+            <div id="debug-submission-status" class="debug-content">N/A</div>
+        </div>
+
+        <div class="debug-section">
+            <h5>Database Status</h5>
+            <div id="debug-db-status" class="debug-content">
+                <?php
+                if ($mobooking_is_debug_mode_active) {
+                    global $wpdb;
+                    if ($wpdb->ready) { // Check if $wpdb is initialized and connected.
+                        // Try a simple query
+                        $db_check = $wpdb->get_var("SELECT 1");
+                        if ($db_check == 1) {
+                            echo '<span class="status-ok">Connected</span> (WPDB ready)';
+                        } else {
+                            echo '<span class="status-error">Connection Issue</span> (Query failed or wpdb not fully ready)';
+                            if ($wpdb->last_error) {
+                                echo '<br>Error: ' . esc_html($wpdb->last_error);
+                            }
+                        }
+                    } else {
+                        echo '<span class="status-error">WPDB Not Ready</span>';
+                    }
+                } else {
+                    echo 'N/A';
+                }
+                ?>
+            </div>
+        </div>
+
+        <div class="debug-section">
+            <h5>Table Checks</h5>
+            <div id="debug-table-checks" class="debug-content">
+                <?php
+                if ($mobooking_is_debug_mode_active && class_exists('\MoBooking\Classes\Database')) {
+                    global $wpdb;
+                    $table_keys = ['services', 'service_options', 'bookings', 'customers', 'discounts', 'areas', 'availability_rules', 'availability_exceptions', 'tenant_settings', 'booking_meta'];
+                    $output = '<ul>';
+                    foreach ($table_keys as $key) {
+                        $table_name = \MoBooking\Classes\Database::get_table_name($key);
+                        if ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $table_name)) == $table_name) {
+                            $output .= '<li>' . esc_html($key) . ' (<small>' . esc_html($table_name) . '</small>): <span class="status-ok">Exists</span></li>';
+                        } else {
+                            $output .= '<li>' . esc_html($key) . ' (<small>' . esc_html($table_name) . '</small>): <span class="status-error">MISSING</span></li>';
+                        }
+                    }
+                    $output .= '</ul>';
+                    echo $output;
+                } elseif ($mobooking_is_debug_mode_active) {
+                    echo '<span class="status-error">Database class not found.</span>';
+                } else {
+                    echo 'N/A';
+                }
+                ?>
+            </div>
+        </div>
+
+        <div class="debug-section">
+            <h5>Client-Side Logs</h5>
+            <pre id="debug-js-logs" class="debug-content"></pre>
+        </div>
+    </div>
+    <?php endif; ?>
+
 </body>
 </html>
 
