@@ -1,87 +1,72 @@
+/**
+ * Enhanced Booking Form JavaScript - Aligned with New PHP Template
+ * File: assets/js/booking-form-enhanced.js
+ */
 jQuery(document).ready(function ($) {
   "use strict";
 
-  // Global parameters localized from PHP
+  // Global parameters from PHP localization
   const MOB_PARAMS = window.mobooking_booking_form_params || {};
   const PRELOADED_SERVICES = window.MOB_PRELOADED_SERVICES || [];
+  const FORM_CONFIG = window.MOB_FORM_CONFIG || {};
+  const CURRENCY = window.MOB_CURRENCY || { symbol: "$", code: "USD" };
+  const TENANT_ID = window.MOB_TENANT_ID || null;
+  const FORM_NONCE = window.MOB_FORM_NONCE || null;
+  const AJAX_URL = window.MOB_AJAX_URL || "/wp-admin/admin-ajax.php";
+  const I18N = window.MOB_I18N || {};
+  const IS_DEBUG = window.MOB_DEBUG_MODE || false;
 
   // Current Booking State
   let currentStep = 1;
   let selectedService = null;
-  let selectedOptions = {}; // Store as { optionId: { name, value, price, priceType }, ... }
+  let selectedOptions = {};
   let customerDetails = {};
   let discountInfo = null;
   let totalPrice = 0;
-  let locationVerified = !(
-    MOB_PARAMS.settings && MOB_PARAMS.settings.bf_enable_location_check === "1"
-  );
+  let locationVerified = !FORM_CONFIG.enable_location_check;
 
   // --- UTILITY FUNCTIONS ---
 
-  // Enhanced JSON encoding with proper escaping
-  function safeJsonEncode(data) {
-    try {
-      // Clean the data first
-      const cleanData = cleanDataForJson(data);
-      const jsonString = JSON.stringify(cleanData);
-
-      console.log("🔍 JSON Encoding Debug (safeJsonEncode):", {
-        original: data,
-        cleaned: cleanData,
-        encoded: jsonString,
-      });
-
-      return jsonString;
-    } catch (error) {
-      console.error("❌ JSON encoding failed (safeJsonEncode):", error, data);
-      // Fallback to basic stringify if custom cleaning fails, though this is unlikely
-      // if cleanDataForJson itself doesn't throw.
-      try {
-        return JSON.stringify(data);
-      } catch (fallbackError) {
-        console.error(
-          "❌ Fallback JSON.stringify also failed:",
-          fallbackError,
-          data
-        );
-        return null; // Indicate failure
+  function debugLog(message, data = null) {
+    if (IS_DEBUG) {
+      if (window.debugLog) {
+        window.debugLog(message);
       }
+      console.log("MoBooking Debug:", message, data);
     }
   }
 
-  // Clean data to prevent JSON encoding issues
+  function safeJsonEncode(data) {
+    try {
+      const cleanData = cleanDataForJson(data);
+      const jsonString = JSON.stringify(cleanData);
+      debugLog("JSON Encoding successful", {
+        original: data,
+        cleaned: cleanData,
+      });
+      return jsonString;
+    } catch (error) {
+      debugLog("JSON encoding failed: " + error.message, data);
+      console.error("JSON encoding failed:", error, data);
+      return null;
+    }
+  }
+
   function cleanDataForJson(data) {
     if (typeof data === "string") {
-      // Remove problematic characters and normalize
-      // Basic control characters removal. Consider more specific needs if issues persist.
       return data.replace(/[\u0000-\u001F\u007F-\u009F]/g, "").trim();
     } else if (Array.isArray(data)) {
       return data.map(cleanDataForJson);
     } else if (data && typeof data === "object") {
       const cleaned = {};
       for (const key in data) {
-        if (Object.prototype.hasOwnProperty.call(data, key)) {
-          // More robust check
+        if (data.hasOwnProperty(key)) {
           cleaned[key] = cleanDataForJson(data[key]);
         }
       }
       return cleaned;
     }
-    return data; // Return numbers, booleans, null as is
-  }
-
-  function getStepName(stepNumber) {
-    // Added missing function
-    const names = [
-      "",
-      "location",
-      "services",
-      "options",
-      "details",
-      "review",
-      "success",
-    ];
-    return names[stepNumber] || "unknown";
+    return data;
   }
 
   function escapeHtml(text) {
@@ -97,38 +82,52 @@ jQuery(document).ready(function ($) {
 
   function showFeedback(elementSelector, type, message, autoHide = true) {
     const $element = $(elementSelector);
-    $element.removeClass("success error info").hide();
+    $element.removeClass("success error info warning").hide();
     if (message) {
-      $element.addClass(type).html(message).show(); // Use html to allow spinner
+      $element.addClass(type).html(message).show();
     }
     if (autoHide && (type === "success" || type === "error")) {
       setTimeout(() => {
         if ($element.html() === message) {
           $element.fadeOut();
         }
-      }, 3000);
+      }, 5000);
     }
   }
 
   // --- STEP MANAGEMENT ---
+
   function showStep(stepNumber) {
+    debugLog(`Showing step ${stepNumber}`);
+
     $(".mobooking-step").removeClass("active").hide();
     const $targetStep = $(`.mobooking-step[data-step="${stepNumber}"]`);
-    $targetStep.show().addClass("active"); // Show first, then add class for transition
 
+    if ($targetStep.length === 0) {
+      debugLog(`Step ${stepNumber} not found`);
+      return;
+    }
+
+    $targetStep.show().addClass("active");
     currentStep = stepNumber;
     updateProgressBar(currentStep);
     loadStepData(currentStep);
+
     // Scroll to top of form
     $("html, body").animate(
-      { scrollTop: $(".mobooking-form-wrapper").offset().top - 50 },
+      {
+        scrollTop: $(".mobooking-form-wrapper").offset().top - 50,
+      },
       300
     );
   }
 
   function updateProgressBar(step) {
-    const totalDisplaySteps = 5; // Location, Services, Options, Details, Review
-    const progressPercentage = ((step - 1) / (totalDisplaySteps - 1)) * 100;
+    if (!FORM_CONFIG.show_progress_bar) return;
+
+    const totalSteps = 5;
+    const progressPercentage = ((step - 1) / (totalSteps - 1)) * 100;
+
     $(".mobooking-progress-line-fill").css(
       "width",
       Math.min(100, Math.max(0, progressPercentage)) + "%"
@@ -137,11 +136,11 @@ jQuery(document).ready(function ($) {
     $(".mobooking-progress-step").each(function () {
       const stepNum = parseInt($(this).data("step"));
       $(this).removeClass("active completed");
-      $(this).find(".step-number").text(stepNum); // Reset text first
+      $(this).find(".step-number").text(stepNum);
 
       if (stepNum < step) {
         $(this).addClass("completed");
-        $(this).find(".step-number").text(""); // Clear number for checkmark
+        $(this).find(".step-number").text("");
       } else if (stepNum === step) {
         $(this).addClass("active");
       }
@@ -150,124 +149,105 @@ jQuery(document).ready(function ($) {
 
   function loadStepData(stepNumber) {
     switch (stepNumber) {
-      case 2: // Services
+      case 2:
         displayServices();
         break;
-      case 3: // Options
+      case 3:
         displayServiceOptions();
         break;
-      case 5: // Review
+      case 4:
+        populateCustomerForm();
+        break;
+      case 5:
         populateReviewData();
         break;
     }
-    updateLiveSummary(); // Always update summary when step changes
-  }
-
-  // --- INITIALIZATION ---
-  function initializeForm() {
-    console.log("MoBooking jQuery Form Initializing. Params:", MOB_PARAMS);
-    console.log("Preloaded Services:", PRELOADED_SERVICES);
-
-    if (
-      MOB_PARAMS.settings &&
-      MOB_PARAMS.settings.bf_enable_location_check === "1"
-    ) {
-      showStep(1);
-    } else {
-      locationVerified = true; // Skip location check
-      showStep(2);
-    }
-    bindEvents();
-  }
-
-  // --- EVENT BINDING ---
-  function bindEvents() {
-    // Step Navigation
-    $(document).on("click", "[data-step-next]", handleNextStep);
-    $(document).on("click", "[data-step-back]", handlePrevStep);
-
-    // Location Check
-    $("#mobooking-location-form").on("submit", handleLocationCheckSubmit);
-
-    // Service Selection
-    $("#mobooking-services-container").on(
-      "click",
-      ".mobooking-service-card",
-      handleServiceSelect
-    );
-
-    // Option Selection (dynamically bound when options are rendered)
-    // See displayServiceOptions function
-
-    // Customer Details Input
-    $("#mobooking-details-form input, #mobooking-details-form textarea").on(
-      "change input",
-      storeCustomerDetails
-    );
-
-    // Discount
-    if (
-      MOB_PARAMS.settings &&
-      MOB_PARAMS.settings.bf_allow_discount_codes === "1"
-    ) {
-      $("#apply-discount-btn").on("click", handleDiscountApply);
-    }
-
-    // Final Submit
-    $("#final-submit-btn").on("click", handleFinalBookingSubmit);
+    updateLiveSummary();
   }
 
   // --- STEP 1: LOCATION CHECK ---
-  function handleLocationCheckSubmit(e) {
+
+  function handleLocationCheck(e) {
     e.preventDefault();
+    debugLog("Location check initiated");
+
     const zipCode = $("#mobooking-zip").val().trim();
     const countryCode = $("#mobooking-country").val();
     const $feedback = $("#mobooking-location-feedback");
-    const $submitBtn = $(this).find('button[type="submit"]');
+    const $submitBtn = $(e.target).find('button[type="submit"]');
     const originalBtnHtml = $submitBtn.html();
 
     if (!zipCode) {
-      showFeedback($feedback, "error", MOB_PARAMS.i18n.zipRequired);
+      showFeedback(
+        $feedback,
+        "error",
+        I18N.zip_required || "Please enter your ZIP code."
+      );
       return;
     }
+
     if (!countryCode) {
-      showFeedback($feedback, "error", MOB_PARAMS.i18n.countryRequired);
+      showFeedback(
+        $feedback,
+        "error",
+        I18N.country_required || "Please select your country."
+      );
       return;
     }
-    showFeedback($feedback, "", "", true); // Clear
 
     $submitBtn
       .prop("disabled", true)
       .html(
-        '<div class="mobooking-spinner"></div> ' + MOB_PARAMS.i18n.checking
+        '<div class="mobooking-spinner"></div> ' +
+          (I18N.checking_availability || "Checking availability...")
       );
-    showFeedback($feedback, "info", MOB_PARAMS.i18n.checking, false);
+    showFeedback(
+      $feedback,
+      "info",
+      I18N.checking_availability || "Checking availability...",
+      false
+    );
 
     $.ajax({
-      url: MOB_PARAMS.ajaxUrl,
+      url: AJAX_URL,
       type: "POST",
       data: {
         action: "mobooking_check_service_area",
-        nonce: MOB_PARAMS.nonce,
+        nonce: FORM_NONCE,
         zip_code: zipCode,
         country_code: countryCode,
-        tenant_id: MOB_PARAMS.tenantId,
+        tenant_id: TENANT_ID,
       },
       success: function (response) {
-        if (response.success && response.data.serviced) {
-          showFeedback($feedback, "success", response.data.message);
+        debugLog("Location check response", response);
+
+        if (response.success && response.data && response.data.serviced) {
+          showFeedback(
+            $feedback,
+            "success",
+            response.data.message ||
+              I18N.service_available ||
+              "Service is available in your area!"
+          );
           locationVerified = true;
           setTimeout(() => showStep(2), 1500);
         } else {
           showFeedback(
             $feedback,
             "error",
-            response.data.message || "Service not available in this area."
+            response.data?.message ||
+              I18N.service_not_available ||
+              "Service is not available in your area."
           );
         }
       },
-      error: function () {
-        showFeedback($feedback, "error", MOB_PARAMS.i18n.connectionError);
+      error: function (xhr, status, error) {
+        debugLog("Location check error", { xhr, status, error });
+        showFeedback(
+          $feedback,
+          "error",
+          I18N.network_error || "Network error occurred. Please try again."
+        );
       },
       complete: function () {
         $submitBtn.prop("disabled", false).html(originalBtnHtml);
@@ -276,45 +256,81 @@ jQuery(document).ready(function ($) {
   }
 
   // --- STEP 2: SERVICE SELECTION ---
+
   function displayServices() {
+    debugLog("Displaying services", PRELOADED_SERVICES);
+
     const $container = $("#mobooking-services-container");
-    const $feedback = $("#mobooking-services-feedback");
-    $container.empty(); // Clear previous services
+    $container.empty();
 
     if (!PRELOADED_SERVICES || PRELOADED_SERVICES.length === 0) {
-      $container.html(`<p>${MOB_PARAMS.i18n.noServicesAvailable}</p>`);
+      $container.html(
+        `<div class="mobooking-loading"><div class="mobooking-spinner"></div>${
+          I18N.loading_services || "Loading services..."
+        }</div>`
+      );
+      loadServicesFromServer();
       return;
     }
 
+    renderServiceCards(PRELOADED_SERVICES);
+  }
+
+  function loadServicesFromServer() {
+    $.ajax({
+      url: AJAX_URL,
+      type: "POST",
+      data: {
+        action: "mobooking_get_public_services",
+        nonce: FORM_NONCE,
+        tenant_id: TENANT_ID,
+      },
+      success: function (response) {
+        debugLog("Services loaded from server", response);
+
+        if (response.success && response.data) {
+          renderServiceCards(response.data);
+        } else {
+          $("#mobooking-services-container").html(
+            `<p>${I18N.no_services || "No services available."}</p>`
+          );
+        }
+      },
+      error: function (xhr, status, error) {
+        debugLog("Services loading error", { xhr, status, error });
+        $("#mobooking-services-container").html(
+          `<p>${I18N.error || "Error loading services."}</p>`
+        );
+      },
+    });
+  }
+
+  function renderServiceCards(services) {
+    const $container = $("#mobooking-services-container");
     let html = "";
-    PRELOADED_SERVICES.forEach((service) => {
+
+    services.forEach((service) => {
       const priceDisplay =
-        MOB_PARAMS.settings &&
-        MOB_PARAMS.settings.bf_show_pricing === "1" &&
-        service.price
+        FORM_CONFIG.show_pricing && service.price
           ? `<div class="mobooking-service-price">${
-              MOB_PARAMS.currency.symbol
+              CURRENCY.symbol
             }${formatPrice(service.price)}</div>`
           : "";
 
       let iconHtml = "";
       if (service.icon_svg_content) {
-        // Render inline SVG for presets
         iconHtml = service.icon_svg_content;
       } else if (
         service.icon &&
         (service.icon.startsWith("http") ||
           service.icon.includes("/wp-content/uploads/"))
       ) {
-        // Render <img> for uploaded SVGs (URLs)
         iconHtml = `<img src="${escapeHtml(service.icon)}" alt="${escapeHtml(
           service.name
-        )} Icon" style="width: 100%; height: 100%; object-fit: contain;">`;
+        )} Icon">`;
       } else if (service.icon) {
-        // Fallback for Font Awesome or other class-based icons
         iconHtml = `<i class="${escapeHtml(service.icon)}"></i>`;
       } else {
-        // Default fallback icon if nothing is specified
         iconHtml = `<i class="fas fa-broom"></i>`;
       }
 
@@ -325,14 +341,11 @@ jQuery(document).ready(function ($) {
                     <div class="mobooking-service-header">
                         <div class="mobooking-service-icon">${iconHtml}</div>
                         <div class="mobooking-service-info">
-                            <div class="mobooking-service-name">${escapeHtml(
+                            <h3 class="mobooking-service-name">${escapeHtml(
                               service.name
-                            )}</div>
+                            )}</h3>
                             ${priceDisplay}
                         </div>
-                        <input type="radio" name="selected_service_radio" value="${
-                          service.service_id
-                        }" class="sr-only">
                     </div>
                     ${
                       service.description
@@ -344,506 +357,241 @@ jQuery(document).ready(function ($) {
                     <div class="mobooking-service-meta">
                         ${
                           service.duration
-                            ? `<div><i class="fas fa-clock"></i> ${escapeHtml(
-                                service.duration.toString()
-                              )} min</div>`
+                            ? `<span class="duration"><i class="fas fa-clock"></i> ${
+                                service.duration
+                              } ${I18N.minutes || "min"}</span>`
                             : ""
                         }
                         ${
                           service.category
-                            ? `<div><i class="fas fa-tag"></i> ${escapeHtml(
+                            ? `<span class="category"><i class="fas fa-tag"></i> ${escapeHtml(
                                 service.category
-                              )}</div>`
+                              )}</span>`
                             : ""
                         }
                     </div>
                 </div>`;
     });
+
     $container.html(html);
+
     // Pre-select if already chosen
     if (selectedService) {
       $(
         `.mobooking-service-card[data-service-id="${selectedService.service_id}"]`
-      )
-        .addClass("selected")
-        .find('input[type="radio"]')
-        .prop("checked", true);
+      ).addClass("selected");
       $('[data-step-next="3"]').prop("disabled", false);
     } else {
       $('[data-step-next="3"]').prop("disabled", true);
     }
   }
 
-  function handleServiceSelect() {
-    const $card = $(this);
-    const serviceId = $card.data("service-id");
+  function handleServiceSelect(e) {
+    const $card = $(e.currentTarget);
+    const serviceId = parseInt($card.data("service-id"));
+
+    debugLog("Service selected", serviceId);
 
     $(".mobooking-service-card").removeClass("selected");
-    $card
-      .addClass("selected")
-      .find('input[type="radio"]')
-      .prop("checked", true);
+    $card.addClass("selected");
 
     selectedService = PRELOADED_SERVICES.find(
       (s) => s.service_id === serviceId
     );
-    selectedOptions = {}; // Reset options when service changes
-    discountInfo = null; // Reset discount
+    selectedOptions = {};
+    discountInfo = null;
 
     $('[data-step-next="3"]').prop("disabled", false);
-    showFeedback($("#mobooking-services-feedback"), "", "", true); // Clear feedback
+    showFeedback($("#mobooking-services-feedback"), "", "", true);
     updateLiveSummary();
   }
 
   // --- STEP 3: SERVICE OPTIONS ---
+
   function displayServiceOptions() {
+    debugLog("Displaying service options", selectedService);
+
     const $container = $("#mobooking-service-options");
     $container.empty();
-
-    console.log(
-      "[MoBooking JS Debug] displayServiceOptions called. Selected Service:",
-      selectedService
-    );
 
     if (
       !selectedService ||
       !selectedService.options ||
-      !Array.isArray(selectedService.options) ||
       selectedService.options.length === 0
     ) {
-      let message = "<p>No additional options for this service.</p>";
-      if (!selectedService) message = "<p>No service selected for options.</p>";
-      else if (!selectedService.options)
-        message = "<p>Service options data is missing.</p>";
-      else if (!Array.isArray(selectedService.options))
-        message = "<p>Service options data is not an array.</p>";
-
-      $container.html(message);
-      console.log(
-        "[MoBooking JS Debug] No options to display or selectedService.options is not a valid array. Message:",
-        message,
-        "Options data:",
-        selectedService ? selectedService.options : "N/A"
+      $container.html(
+        `<div class="no-options-message"><p>${
+          I18N.no_options || "No additional options available."
+        }</p></div>`
       );
-      updateLiveSummary();
       return;
     }
 
     let html = "";
-    selectedService.options.forEach((option, index) => {
-      console.log(
-        `[MoBooking JS Debug] Generating HTML for option ${index}:`,
-        option
-      );
+    selectedService.options.forEach((option) => {
       if (!option || typeof option.option_id === "undefined") {
-        console.error(
-          `[MoBooking JS Debug] Invalid option object at index ${index}:`,
-          option
-        );
-        html += `<div class="mobooking-form-group"><p class="mobooking-feedback error">Error: Invalid option data.</p></div>`;
-        return; // skip this option
+        debugLog("Invalid option data", option);
+        return;
       }
-
-      const isChecked =
-        selectedOptions[option.option_id] &&
-        selectedOptions[option.option_id].value === "1";
-      let currentValue = selectedOptions[option.option_id]
-        ? selectedOptions[option.option_id].value
-        : "";
-      if (option.type === "quantity" && currentValue === "") currentValue = "0"; // Default quantity to 0 if not set
 
       const requiredAttr = option.is_required ? "required" : "";
       const requiredIndicator = option.is_required
         ? '<span class="mobooking-required">*</span>'
         : "";
-      let priceImpact = parseFloat(option.price_impact || 0);
-      let priceImpactType = option.price_impact_type || "fixed";
-      let priceDisplay = "";
+      const priceImpact = parseFloat(option.price_impact || 0);
+      const priceDisplay =
+        priceImpact !== 0
+          ? `<span class="option-price">(+${CURRENCY.symbol}${formatPrice(
+              priceImpact
+            )})</span>`
+          : "";
 
-      if (priceImpact !== 0) {
-        priceDisplay =
-          priceImpactType === "percentage"
-            ? `(+${priceImpact}%)`
-            : `(+${MOB_PARAMS.currency.symbol}${formatPrice(priceImpact)})`;
-        priceDisplay = `<span class="option-price">${priceDisplay}</span>`;
-      }
-
-      let optionFieldHtml = "";
-      const optionName = `option_${option.option_id}`;
+      html += `<div class="mobooking-form-group" data-option-id="${option.option_id}">`;
+      html += `<label class="mobooking-label">${escapeHtml(
+        option.name
+      )} ${priceDisplay} ${requiredIndicator}</label>`;
 
       switch (option.type) {
         case "checkbox":
-          optionFieldHtml = `
-                        <label>
-                            <input type="checkbox" name="${optionName}" value="1"
-                                   data-price="${priceImpact}" data-price-type="${priceImpactType}"
-                                   ${requiredAttr} ${
-            isChecked ? "checked" : ""
-          }>
-                            ${escapeHtml(
-                              option.name
-                            )} ${priceDisplay} ${requiredIndicator}
-                        </label>`;
+          html += `<input type="checkbox" id="option_${option.option_id}" name="option_${option.option_id}" 
+                             value="1" data-price="${priceImpact}" ${requiredAttr}>`;
           break;
         case "text":
-          optionFieldHtml = `
-                        <label for="${optionName}" class="mobooking-label">
-                            ${escapeHtml(
-                              option.name
-                            )} ${priceDisplay} ${requiredIndicator}
-                        </label>
-                        <input type="text" id="${optionName}" name="${optionName}" value="${escapeHtml(
-            currentValue
-          )}"
-                               class="mobooking-input" data-price="${priceImpact}" data-price-type="${priceImpactType}" ${requiredAttr}>`;
+          html += `<input type="text" id="option_${option.option_id}" name="option_${option.option_id}" 
+                             class="mobooking-input" data-price="${priceImpact}" ${requiredAttr}>`;
           break;
         case "textarea":
-          optionFieldHtml = `
-                        <label for="${optionName}" class="mobooking-label">
-                            ${escapeHtml(
-                              option.name
-                            )} ${priceDisplay} ${requiredIndicator}
-                        </label>
-                        <textarea id="${optionName}" name="${optionName}"
-                                  class="mobooking-textarea" data-price="${priceImpact}" data-price-type="${priceImpactType}" ${requiredAttr}>${escapeHtml(
-            currentValue
-          )}</textarea>`;
+          html += `<textarea id="option_${option.option_id}" name="option_${option.option_id}" 
+                             class="mobooking-textarea" data-price="${priceImpact}" ${requiredAttr}></textarea>`;
           break;
         case "select":
-          optionFieldHtml = `
-                        <label for="${optionName}" class="mobooking-label">
-                            ${escapeHtml(
-                              option.name
-                            )} ${priceDisplay} ${requiredIndicator}
-                        </label>
-                        <select id="${optionName}" name="${optionName}" class="mobooking-select" data-price="${priceImpact}" data-price-type="${priceImpactType}" ${requiredAttr}>`;
+          html += `<select id="option_${option.option_id}" name="option_${option.option_id}" 
+                             class="mobooking-select" data-price="${priceImpact}" ${requiredAttr}>`;
           if (option.option_values && Array.isArray(option.option_values)) {
             option.option_values.forEach((val) => {
-              // For select, price impact is often per option value, not on the select itself.
-              // The current structure has price_impact on the main option, and option_values might have their own price_adjust.
-              // For simplicity here, assuming main price_impact applies if value selected, or individual values handle their own.
-              // The PHP preloading logic for options needs to ensure option_values are structured correctly.
-              // Current JS `handleOptionChange` and `updateLiveSummary` use the main option's price_impact.
-              // If `val.price_adjust` exists, that should be used by `handleOptionChange`.
-              // For now, data-attributes on <option> are not used for price by handleOptionChange.
-              optionFieldHtml += `<option value="${escapeHtml(val.value)}" ${
-                val.value === currentValue ? "selected" : ""
-              }>${escapeHtml(val.label)}</option>`;
-            });
-          }
-          optionFieldHtml += `</select>`;
-          break;
-        case "radio":
-          optionFieldHtml = `<label class="mobooking-label">${escapeHtml(
-            option.name
-          )} ${priceDisplay} ${requiredIndicator}</label>`;
-          if (option.option_values && Array.isArray(option.option_values)) {
-            option.option_values.forEach((val, valIdx) => {
-              const radioId = `${optionName}_${valIdx}`;
-              optionFieldHtml += `
-                                <div class="mobooking-form-group-radio">
-                                    <input type="radio" id="${radioId}" name="${optionName}" value="${escapeHtml(
-                val.value
-              )}"
-                                           ${
-                                             val.value === currentValue
-                                               ? "checked"
-                                               : ""
-                                           } ${requiredAttr}>
-                                    <label for="${radioId}">${escapeHtml(
+              html += `<option value="${escapeHtml(val.value)}">${escapeHtml(
                 val.label
-              )}</label>
-                                </div>`;
+              )}</option>`;
             });
           }
+          html += "</select>";
           break;
         case "quantity":
-          optionFieldHtml = `
-                        <label for="${optionName}" class="mobooking-label">
-                            ${escapeHtml(
-                              option.name
-                            )} ${priceDisplay} ${requiredIndicator}
-                        </label>
+          html += `
                         <div class="mobooking-quantity-input-wrapper">
-                            <button type="button" class="mobooking-btn-quantity minus" data-target="${optionName}">-</button>
-                            <input type="number" id="${optionName}" name="${optionName}" value="${escapeHtml(
-            currentValue || "0"
-          )}" min="0"
-                                   class="mobooking-input mobooking-input-quantity" data-price="${priceImpact}" data-price-type="${priceImpactType}" ${requiredAttr}>
-                            <button type="button" class="mobooking-btn-quantity plus" data-target="${optionName}">+</button>
+                            <button type="button" class="mobooking-btn-quantity minus" data-target="option_${option.option_id}">-</button>
+                            <input type="number" id="option_${option.option_id}" name="option_${option.option_id}" 
+                                   value="0" min="0" class="mobooking-input" data-price="${priceImpact}" ${requiredAttr}>
+                            <button type="button" class="mobooking-btn-quantity plus" data-target="option_${option.option_id}">+</button>
                         </div>`;
           break;
-        case "number": // Similar to quantity but maybe without buttons initially, or we can make them consistent
-          optionFieldHtml = `
-                        <label for="${optionName}" class="mobooking-label">
-                            ${escapeHtml(
-                              option.name
-                            )} ${priceDisplay} ${requiredIndicator}
-                        </label>
-                        <div class="mobooking-quantity-input-wrapper">
-                             <button type="button" class="mobooking-btn-quantity minus" data-target="${optionName}">-</button>
-                             <input type="number" id="${optionName}" name="${optionName}" value="${escapeHtml(
-            currentValue || "0"
-          )}" min="0"
-                                   class="mobooking-input mobooking-input-quantity" data-price="${priceImpact}" data-price-type="${priceImpactType}" ${requiredAttr}>
-                             <button type="button" class="mobooking-btn-quantity plus" data-target="${optionName}">+</button>
-                        </div>`;
-          break;
-        case "sqm": // Square Meters with slider and input
-          const sqmRanges =
-            option.option_values && Array.isArray(option.option_values)
-              ? option.option_values
-              : [];
-          const minSqm =
-            sqmRanges.length > 0 && typeof sqmRanges[0].from !== "undefined"
-              ? parseFloat(sqmRanges[0].from)
-              : 1;
-          const maxSqm =
-            sqmRanges.length > 0 &&
-            typeof sqmRanges[sqmRanges.length - 1].to !== "undefined" &&
-            sqmRanges[sqmRanges.length - 1].to !== "∞"
-              ? parseFloat(sqmRanges[sqmRanges.length - 1].to)
-              : 1000; // Default max if not specified or infinite
-
-          optionFieldHtml = `
-                        <label for="${optionName}" class="mobooking-label">
-                            ${escapeHtml(
-                              option.name
-                            )} ${requiredIndicator} <!-- Price display for SQM is complex, usually shown in summary -->
-                        </label>
-                        <div class="mobooking-sqm-input-wrapper" data-sqm-ranges='${JSON.stringify(
-                          sqmRanges
-                        )}'>
-                            <input type="range" id="${optionName}_slider" name="${optionName}_slider"
-                                   min="${minSqm}" max="${maxSqm}" value="${escapeHtml(
-            currentValue || minSqm.toString()
-          )}" class="mobooking-slider">
-                            <input type="number" id="${optionName}" name="${optionName}" value="${escapeHtml(
-            currentValue || minSqm.toString()
-          )}"
-                                   min="${minSqm}" max="${maxSqm}" class="mobooking-input mobooking-input-sqm" ${requiredAttr}>
-                            <span class="mobooking-sqm-unit">sqm</span>
-                        </div>`;
-          // Display ranges if helpful
-          if (sqmRanges.length > 0) {
-            optionFieldHtml += '<div class="mobooking-sqm-ranges-display">';
-            sqmRanges.forEach((range, rIndex) => {
-              console.log(`[MoBooking JS Debug] SQM Range ${rIndex}:`, range); // Log each range object
-              optionFieldHtml += `<span>${escapeHtml(String(range.from_sqm))}-${
-                range.to_sqm === "infinity" || range.to_sqm === "∞"
-                  ? "&infin;"
-                  : escapeHtml(String(range.to_sqm))
-              } sqm: ${MOB_PARAMS.currency.symbol}${escapeHtml(
-                String(range.price_per_sqm)
-              )}/sqm</span><br>`;
-            });
-            optionFieldHtml += "</div>";
-          }
-          break;
-        default:
-          optionFieldHtml = `<p class="mobooking-feedback error">Unsupported option type: ${escapeHtml(
-            option.type
-          )}</p>`;
       }
 
-      html += `<div class="mobooking-form-group" data-option-id="${option.option_id}" data-option-type="${option.type}">${optionFieldHtml}`;
       if (option.description) {
         html += `<div class="option-description">${escapeHtml(
           option.description
         )}</div>`;
       }
-      html += `</div>`;
+      html += "</div>";
     });
+
     $container.html(html);
-    // Rebind events for newly created elements
+
+    // Bind events for newly created elements
     $container
       .find("input, textarea, select")
       .on("change input", handleOptionChange);
     $container
       .find(".mobooking-btn-quantity")
       .on("click", handleQuantityButtonClick);
-    $container.find(".mobooking-slider").on("input", handleSqmSliderChange);
-    $container
-      .find(".mobooking-input-sqm")
-      .on("input change", handleSqmInputChange);
 
     updateLiveSummary();
   }
 
-  function handleQuantityButtonClick() {
-    const $button = $(this);
-    const targetInputId = $button.data("target");
-    const $input = $("#" + targetInputId);
-    let currentValue = parseInt($input.val()) || 0;
-    if ($button.hasClass("plus")) {
-      currentValue++;
-    } else if ($button.hasClass("minus") && currentValue > 0) {
-      currentValue--;
-    }
-    $input.val(currentValue).trigger("change"); // Trigger change to update summary
-  }
-
-  function handleSqmSliderChange() {
-    const $slider = $(this);
-    const $wrapper = $slider.closest(".mobooking-sqm-input-wrapper");
-    const $input = $wrapper.find(".mobooking-input-sqm");
-    $input.val($slider.val()).trigger("change");
-  }
-
-  function handleSqmInputChange() {
-    const $input = $(this);
-    const $wrapper = $input.closest(".mobooking-sqm-input-wrapper");
-    const $slider = $wrapper.find(".mobooking-slider");
-    let val = parseFloat($input.val());
-    const min = parseFloat($slider.attr("min"));
-    const max = parseFloat($slider.attr("max"));
-    if (isNaN(val)) val = min;
-    if (val < min) val = min;
-    if (val > max) val = max;
-    $input.val(val); // Corrected value
-    $slider.val(val);
-    // `handleOptionChange` will be triggered by the 'change' event on $input
-  }
-
-  function handleOptionChange() {
-    const $inputElement = $(this); // Could be slider, number input, select, etc.
-    const $formGroup = $inputElement.closest(".mobooking-form-group");
+  function handleOptionChange(e) {
+    const $input = $(e.target);
+    const $formGroup = $input.closest(".mobooking-form-group");
     const optionId = $formGroup.data("option-id");
-    const optionType = $formGroup.data("option-type");
-
-    console.log(
-      "[MoBooking JS Debug] handleOptionChange triggered for optionId:",
-      optionId,
-      "type:",
-      optionType
-    );
-
     const serviceOption = selectedService.options.find(
       (opt) => opt.option_id === parseInt(optionId)
     );
 
     if (!serviceOption) {
-      console.error(
-        "[MoBooking JS Debug] Could not find serviceOption in PRELOADED_SERVICES for ID:",
-        optionId,
-        "selectedService.options was:",
-        selectedService.options
-      );
+      debugLog("Service option not found", optionId);
       return;
     }
-    console.log(
-      "[MoBooking JS Debug] ServiceOption data from preloaded:",
-      serviceOption
-    );
 
-    let value;
-    let price = 0; // Default to 0, will be calculated
-    let priceType = serviceOption.price_impact_type || "fixed";
-    const optionName = serviceOption.name;
+    debugLog("Option changed", { optionId, serviceOption });
 
-    if (optionType === "checkbox") {
-      value = $inputElement.is(":checked") ? "1" : "0";
-      if (value === "1") price = parseFloat(serviceOption.price_impact || 0);
-    } else if (optionType === "select") {
-      value = $inputElement.val();
-      const selectedChoice = serviceOption.option_values.find(
-        (ov) => ov.value === value
-      );
-      if (
-        selectedChoice &&
-        typeof selectedChoice.price_adjust !== "undefined"
-      ) {
-        price = parseFloat(selectedChoice.price_adjust);
-      } else {
-        // Fallback to main option price if no specific adjustment
+    let value = $input.val();
+    let price = 0;
+
+    if (serviceOption.type === "checkbox") {
+      value = $input.is(":checked") ? "1" : "0";
+      if (value === "1") {
         price = parseFloat(serviceOption.price_impact || 0);
       }
-    } else if (optionType === "radio") {
-      value = $('input[name="option_' + optionId + '"]:checked').val();
-      const selectedChoice = serviceOption.option_values.find(
-        (ov) => ov.value === value
-      );
-      if (
-        selectedChoice &&
-        typeof selectedChoice.price_adjust !== "undefined"
-      ) {
-        price = parseFloat(selectedChoice.price_adjust);
-      } else {
-        price = parseFloat(serviceOption.price_impact || 0);
+    } else if (serviceOption.type === "quantity") {
+      const quantity = parseInt(value) || 0;
+      if (quantity > 0) {
+        price = parseFloat(serviceOption.price_impact || 0) * quantity;
       }
-    } else if (optionType === "quantity" || optionType === "number") {
-      value = $inputElement.val().trim();
-      const quantityVal = parseInt(value) || 0;
-      if (quantityVal > 0) {
-        if (serviceOption.price_impact_type === "per_unit") {
-          // Assuming a type for per_unit pricing
-          price = parseFloat(serviceOption.price_impact || 0) * quantityVal;
-        } else {
-          // Fixed price impact regardless of quantity (e.g. "add this feature") or no impact
-          price = parseFloat(serviceOption.price_impact || 0);
-        }
-      } else {
-        // Quantity is 0
-        value = "0"; // Ensure value is '0' not empty string if that matters
-        price = 0;
-      }
-    } else if (optionType === "sqm") {
-      value = $inputElement.val().trim();
-      const sqmValue = parseFloat(value) || 0;
-      if (sqmValue > 0) {
-        let rangesData = $inputElement
-          .closest(".mobooking-sqm-input-wrapper")
-          .data("sqm-ranges");
-        if (typeof rangesData === "string") {
-          rangesData = JSON.parse(rangesData || "[]");
-        }
-        const ranges = rangesData || [];
-        for (const range of ranges) {
-          const from = parseFloat(range.from_sqm);
-          const to =
-            range.to_sqm === "infinity" ||
-            range.to_sqm === "∞" ||
-            typeof range.to_sqm === "undefined"
-              ? Infinity
-              : parseFloat(range.to_sqm);
-          if (sqmValue >= from && sqmValue <= to) {
-            price = parseFloat(range.price_per_sqm) * sqmValue;
-            break;
-          }
-        }
-      } else {
-        price = 0;
-      }
-      priceType = "calculated"; // SQM price is always calculated directly
-    } else {
-      // text, textarea
-      value = $inputElement.val().trim();
-      if (value) price = parseFloat(serviceOption.price_impact || 0);
+      value = quantity.toString();
+    } else if (value) {
+      price = parseFloat(serviceOption.price_impact || 0);
     }
 
     if (
       value &&
-      (optionType === "checkbox" ? value === "1" : true) &&
-      ((optionType !== "quantity" && optionType !== "number") ||
-        parseInt(value) > 0)
+      (serviceOption.type === "checkbox" ? value === "1" : true) &&
+      (serviceOption.type !== "quantity" || parseInt(value) > 0)
     ) {
       selectedOptions[optionId] = {
-        name: optionName,
+        name: serviceOption.name,
         value: value,
-        price: price, // This is the calculated impact for this option
-        priceType: priceType, // This might need adjustment if base option has % and choice has fixed
+        price: price,
+        priceType: serviceOption.price_impact_type || "fixed",
       };
     } else {
       delete selectedOptions[optionId];
     }
-    console.log(
-      "[MoBooking JS Debug] Updated selectedOptions:",
-      selectedOptions
-    );
+
+    debugLog("Updated selected options", selectedOptions);
     updateLiveSummary();
   }
 
+  function handleQuantityButtonClick(e) {
+    const $button = $(e.target);
+    const targetInputId = $button.data("target");
+    const $input = $("#" + targetInputId);
+    let currentValue = parseInt($input.val()) || 0;
+
+    if ($button.hasClass("plus")) {
+      currentValue++;
+    } else if ($button.hasClass("minus") && currentValue > 0) {
+      currentValue--;
+    }
+
+    $input.val(currentValue).trigger("change");
+  }
+
   // --- STEP 4: CUSTOMER DETAILS ---
+
+  function populateCustomerForm() {
+    debugLog("Populating customer form");
+
+    // Pre-fill if data exists
+    if (customerDetails.name) $("#customer-name").val(customerDetails.name);
+    if (customerDetails.email) $("#customer-email").val(customerDetails.email);
+    if (customerDetails.phone) $("#customer-phone").val(customerDetails.phone);
+    if (customerDetails.address)
+      $("#service-address").val(customerDetails.address);
+    if (customerDetails.date) $("#preferred-date").val(customerDetails.date);
+    if (customerDetails.time) $("#preferred-time").val(customerDetails.time);
+    if (customerDetails.instructions)
+      $("#special-instructions").val(customerDetails.instructions);
+  }
+
   function storeCustomerDetails() {
     customerDetails = {
       name: $("#customer-name").val().trim(),
@@ -854,128 +602,190 @@ jQuery(document).ready(function ($) {
       time: $("#preferred-time").val(),
       instructions: $("#special-instructions").val().trim(),
     };
+
+    debugLog("Customer details stored", customerDetails);
   }
 
   function validateCustomerDetails() {
-    storeCustomerDetails(); // Ensure current details are in state
+    storeCustomerDetails();
+
     const $feedback = $("#mobooking-details-feedback");
-    if (
-      !customerDetails.name ||
-      !customerDetails.email ||
-      !customerDetails.phone ||
-      !customerDetails.address
-    ) {
-      showFeedback($feedback, "error", MOB_PARAMS.i18n.fillRequiredFields);
+    const requiredFields = [
+      "name",
+      "email",
+      "phone",
+      "address",
+      "date",
+      "time",
+    ];
+    const missingFields = requiredFields.filter(
+      (field) => !customerDetails[field]
+    );
+
+    if (missingFields.length > 0) {
+      showFeedback(
+        $feedback,
+        "error",
+        I18N.required_field || "Please fill in all required fields."
+      );
       return false;
     }
+
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(customerDetails.email)) {
-      showFeedback($feedback, "error", MOB_PARAMS.i18n.invalidEmail);
+      showFeedback(
+        $feedback,
+        "error",
+        I18N.invalid_email || "Please enter a valid email address."
+      );
       return false;
     }
-    showFeedback($feedback, "", "", true); // Clear
+
+    showFeedback($feedback, "", "", true);
     return true;
   }
 
   // --- STEP 5: REVIEW & CONFIRM ---
-  function populateReviewData() {
-    if (!selectedService) return;
-    let reviewHtml = `<div class="mobooking-review-section"><h4>Service Details</h4>`;
-    reviewHtml += `<div class="review-item"><strong>Service:</strong> <span>${escapeHtml(
-      selectedService.name
-    )}</span></div>`;
-    if (MOB_PARAMS.settings.bf_show_pricing === "1") {
-      reviewHtml += `<div class="review-item"><strong>Base Price:</strong> <span>${
-        MOB_PARAMS.currency.symbol
-      }${formatPrice(selectedService.price)}</span></div>`;
-    }
-    if (Object.keys(selectedOptions).length > 0) {
-      reviewHtml += "<h5>Options:</h5><ul>";
-      $.each(selectedOptions, function (id, opt) {
-        reviewHtml += `<li>${escapeHtml(opt.name)}: ${escapeHtml(opt.value)}`;
-        if (opt.price > 0 && MOB_PARAMS.settings.bf_show_pricing === "1") {
-          let optPriceDisplay =
-            opt.priceType === "percentage"
-              ? `(+${opt.price}%)`
-              : `(+${MOB_PARAMS.currency.symbol}${formatPrice(opt.price)})`;
-          reviewHtml += ` <span class="option-price">${optPriceDisplay}</span>`;
-        }
-        reviewHtml += `</li>`;
-      });
-      reviewHtml += "</ul>";
-    }
-    reviewHtml += `</div>`;
 
-    reviewHtml += `<div class="mobooking-review-section"><h4>Customer Information</h4>`;
-    reviewHtml += `<div class="review-item"><strong>Name:</strong> <span>${escapeHtml(
+  function populateReviewData() {
+    debugLog("Populating review data");
+
+    if (!selectedService) return;
+
+    // Customer information review
+    let customerInfoHtml = `
+            <p><strong>${I18N.name || "Name"}:</strong> ${escapeHtml(
       customerDetails.name
-    )}</span></div>`;
-    reviewHtml += `<div class="review-item"><strong>Email:</strong> <span>${escapeHtml(
+    )}</p>
+            <p><strong>${I18N.email || "Email"}:</strong> ${escapeHtml(
       customerDetails.email
-    )}</span></div>`;
-    reviewHtml += `<div class="review-item"><strong>Phone:</strong> <span>${escapeHtml(
+    )}</p>
+            <p><strong>${I18N.phone || "Phone"}:</strong> ${escapeHtml(
       customerDetails.phone
-    )}</span></div>`;
-    reviewHtml += `<div class="review-item"><strong>Address:</strong> <span>${escapeHtml(
+    )}</p>
+            <p><strong>${I18N.address || "Address"}:</strong> ${escapeHtml(
       customerDetails.address
-    )}</span></div>`;
-    if (customerDetails.date)
-      reviewHtml += `<div class="review-item"><strong>Preferred Date:</strong> <span>${escapeHtml(
-        customerDetails.date
-      )}</span></div>`;
-    if (customerDetails.time)
-      reviewHtml += `<div class="review-item"><strong>Preferred Time:</strong> <span>${escapeHtml(
-        customerDetails.time
-      )}</span></div>`;
-    if (customerDetails.instructions)
-      reviewHtml += `<div class="review-item"><strong>Instructions:</strong> <span>${escapeHtml(
-        customerDetails.instructions
-      )}</span></div>`;
-    reviewHtml += `</div>`;
-    $("#mobooking-review-details").html(reviewHtml);
-    updateLiveSummary(); // Ensure pricing summary is also updated
+    )}</p>
+        `;
+    $("#customer-info-review").html(customerInfoHtml);
+
+    // Service details review
+    let serviceDetailsHtml = `
+            <p><strong>${I18N.service || "Service"}:</strong> ${escapeHtml(
+      selectedService.name
+    )}</p>
+            ${
+              FORM_CONFIG.show_pricing
+                ? `<p><strong>${I18N.base_price || "Base Price"}:</strong> ${
+                    CURRENCY.symbol
+                  }${formatPrice(selectedService.price)}</p>`
+                : ""
+            }
+        `;
+
+    if (Object.keys(selectedOptions).length > 0) {
+      serviceDetailsHtml += `<p><strong>${
+        I18N.options || "Options"
+      }:</strong></p><ul>`;
+      $.each(selectedOptions, function (id, opt) {
+        serviceDetailsHtml += `<li>${escapeHtml(opt.name)}: ${escapeHtml(
+          opt.value
+        )}`;
+        if (opt.price > 0 && FORM_CONFIG.show_pricing) {
+          serviceDetailsHtml += ` (+${CURRENCY.symbol}${formatPrice(
+            opt.price
+          )})`;
+        }
+        serviceDetailsHtml += "</li>";
+      });
+      serviceDetailsHtml += "</ul>";
+    }
+    $("#service-details-review").html(serviceDetailsHtml);
+
+    // Booking information review
+    let bookingInfoHtml = `
+            <p><strong>${
+              I18N.preferred_date || "Preferred Date"
+            }:</strong> ${escapeHtml(customerDetails.date)}</p>
+            <p><strong>${
+              I18N.preferred_time || "Preferred Time"
+            }:</strong> ${escapeHtml(customerDetails.time)}</p>
+        `;
+    if (customerDetails.instructions) {
+      bookingInfoHtml += `<p><strong>${
+        I18N.special_instructions || "Special Instructions"
+      }:</strong> ${escapeHtml(customerDetails.instructions)}</p>`;
+    }
+    $("#booking-info-review").html(bookingInfoHtml);
+
+    updateLiveSummary();
   }
 
   function handleDiscountApply() {
+    debugLog("Discount apply initiated");
+
     const code = $("#discount-code").val().trim();
     const $feedback = $("#discount-feedback");
-    const $button = $(this);
+    const $button = $("#apply-discount-btn");
     const originalBtnText = $button.text();
 
     if (!code) {
-      showFeedback($feedback, "error", MOB_PARAMS.i18n.enterDiscountCode);
+      showFeedback(
+        $feedback,
+        "error",
+        I18N.discount_code_required || "Please enter a discount code."
+      );
       return;
     }
-    $button.prop("disabled", true).text("Applying...");
-    showFeedback($feedback, "info", "Applying discount...", false);
+
+    $button.prop("disabled", true).text(I18N.applying || "Applying...");
+    showFeedback(
+      $feedback,
+      "info",
+      I18N.applying || "Applying discount...",
+      false
+    );
 
     $.ajax({
-      url: MOB_PARAMS.ajaxUrl,
+      url: AJAX_URL,
       type: "POST",
       data: {
         action: "mobooking_validate_discount",
-        nonce: MOB_PARAMS.nonce,
+        nonce: FORM_NONCE,
         discount_code: code,
-        tenant_id: MOB_PARAMS.tenantId,
-        subtotal: calculateSubtotal(), // Pass current subtotal before discount
+        tenant_id: TENANT_ID,
+        subtotal: calculateSubtotal(),
       },
       success: function (response) {
+        debugLog("Discount validation response", response);
+
         if (response.success && response.data) {
           discountInfo = response.data;
-          showFeedback($feedback, "success", MOB_PARAMS.i18n.discountApplied);
+          showFeedback(
+            $feedback,
+            "success",
+            I18N.discount_applied || "Discount applied successfully!"
+          );
         } else {
           discountInfo = null;
           showFeedback(
             $feedback,
             "error",
-            response.data?.message || MOB_PARAMS.i18n.invalidDiscount
+            response.data?.message ||
+              I18N.invalid_discount ||
+              "Invalid discount code."
           );
         }
         updateLiveSummary();
       },
-      error: function () {
+      error: function (xhr, status, error) {
+        debugLog("Discount validation error", { xhr, status, error });
         discountInfo = null;
-        showFeedback($feedback, "error", MOB_PARAMS.i18n.connectionError);
+        showFeedback(
+          $feedback,
+          "error",
+          I18N.network_error || "Network error occurred."
+        );
         updateLiveSummary();
       },
       complete: function () {
@@ -984,10 +794,13 @@ jQuery(document).ready(function ($) {
     });
   }
 
-  // --- PRICE CALCULATION & SUMMARY UDPATE ---
+  // --- PRICE CALCULATION & SUMMARY UPDATE ---
+
   function calculateSubtotal() {
     if (!selectedService) return 0;
+
     let subtotal = parseFloat(selectedService.price || 0);
+
     $.each(selectedOptions, function (id, opt) {
       if (opt.priceType === "percentage") {
         subtotal += (parseFloat(selectedService.price || 0) * opt.price) / 100;
@@ -995,85 +808,56 @@ jQuery(document).ready(function ($) {
         subtotal += opt.price;
       }
     });
+
     return subtotal;
   }
 
   function updateLiveSummary() {
-    if (!selectedService && currentStep > 1) {
-      // Don't clear if on step 1 or before service selected
-      // If no service selected yet, but user is beyond service selection, show placeholder
-      if (currentStep >= 3) {
-        // Options, Details, Review steps
-        $(
-          "#mobooking-summary-content, #mobooking-summary-content-step4, #mobooking-final-summary"
-        ).html("<p>Please select a service first.</p>");
-        $("#pricing-subtotal").text(MOB_PARAMS.currency.symbol + "0.00");
-        $("#pricing-discount").text("-" + MOB_PARAMS.currency.symbol + "0.00");
-        $("#pricing-total").text(MOB_PARAMS.currency.symbol + "0.00");
-        $(".discount-applied").addClass("hidden");
-      }
-      return;
-    }
     if (!selectedService) {
-      // truly no service selected, e.g. on step 2 initial load
+      const emptyMessage =
+        "<p>" +
+        (I18N.select_service || "Select a service to see summary.") +
+        "</p>";
       $(
         "#mobooking-summary-content, #mobooking-summary-content-step4, #mobooking-final-summary"
-      ).html("<p>Select a service to see summary.</p>");
-      console.log(
-        "[MoBooking JS Debug] updateLiveSummary: No selected service."
-      );
+      ).html(emptyMessage);
       return;
     }
-    console.log(
-      "[MoBooking JS Debug] updateLiveSummary: Selected Service:",
-      selectedService,
-      "Selected Options:",
-      selectedOptions
-    );
+
+    debugLog("Updating live summary");
 
     const subtotal = calculateSubtotal();
     let finalTotal = subtotal;
     let summaryHtml = "";
 
-    summaryHtml += `<div class="mobooking-summary-item"><span>${escapeHtml(
-      selectedService.name
-    )}</span><span>${MOB_PARAMS.currency.symbol}${formatPrice(
+    // Base service
+    summaryHtml += `
+            <div class="mobooking-summary-item">
+                <span>${escapeHtml(selectedService.name)}</span>
+                <span>${CURRENCY.symbol}${formatPrice(
       selectedService.price
-    )}</span></div>`;
+    )}</span>
+            </div>
+        `;
 
-    console.log(
-      `[MoBooking JS Debug] updateLiveSummary: Base service price for ${selectedService.name}: ${selectedService.price}`
-    );
-
+    // Options
     $.each(selectedOptions, function (id, opt) {
-      let optDisplayPrice = 0;
-      // The 'price' in selectedOptions[id].price IS the calculated impact for that option.
-      // If it was a percentage, handleOptionChange should have calculated it against base service price.
-      // If it was fixed, it's that fixed amount.
-      // If it was per_unit (for quantity), it's base_option_price * quantity.
-      // If it was SQM, it's price_per_sqm * sqm_value based on range.
-      optDisplayPrice = opt.price; // This 'price' is the total impact of this specific option selection.
-
-      summaryHtml += `<div class="mobooking-summary-item"><span>+ ${escapeHtml(
-        opt.name
-      )} (${escapeHtml(String(opt.value))})</span><span>${
-        MOB_PARAMS.currency.symbol
-      }${formatPrice(optDisplayPrice)}</span></div>`;
-      console.log(
-        `[MoBooking JS Debug] updateLiveSummary: Option ${opt.name} value ${opt.value} adds ${optDisplayPrice}`
-      );
+      summaryHtml += `
+                <div class="mobooking-summary-item">
+                    <span>+ ${escapeHtml(opt.name)} (${escapeHtml(
+        opt.value
+      )})</span>
+                    <span>${CURRENCY.symbol}${formatPrice(opt.price)}</span>
+                </div>
+            `;
     });
 
-    $("#pricing-subtotal").text(
-      MOB_PARAMS.currency.symbol + formatPrice(subtotal)
-    );
-    console.log(
-      `[MoBooking JS Debug] updateLiveSummary: Subtotal: ${subtotal}`
-    );
+    // Update pricing elements
+    $("#pricing-subtotal").text(CURRENCY.symbol + formatPrice(subtotal));
 
+    // Handle discount
     if (discountInfo) {
       let discountAmount = 0;
-      // Ensure discountInfo has the correct properties (e.g. .type or .discount_type, .value or .discount_value)
       const discType = discountInfo.type || discountInfo.discount_type;
       const discValue = parseFloat(
         discountInfo.value || discountInfo.discount_value || 0
@@ -1082,65 +866,82 @@ jQuery(document).ready(function ($) {
       if (discType === "percentage") {
         discountAmount = (subtotal * discValue) / 100;
       } else {
-        // fixed_amount
         discountAmount = discValue;
       }
-      discountAmount = Math.min(discountAmount, subtotal); // Cannot be more than subtotal
+
+      discountAmount = Math.min(discountAmount, subtotal);
       finalTotal -= discountAmount;
-      summaryHtml += `<div class="mobooking-summary-item"><span>Discount (${escapeHtml(
+
+      summaryHtml += `
+                <div class="mobooking-summary-item">
+                    <span>${I18N.discount || "Discount"} (${escapeHtml(
         discountInfo.code || discountInfo.discount_code || ""
-      )})</span><span>-${MOB_PARAMS.currency.symbol}${formatPrice(
+      )})</span>
+                    <span>-${CURRENCY.symbol}${formatPrice(
         discountAmount
-      )}</span></div>`;
+      )}</span>
+                </div>
+            `;
+
       $("#pricing-discount").text(
-        "-" + MOB_PARAMS.currency.symbol + formatPrice(discountAmount)
+        "-" + CURRENCY.symbol + formatPrice(discountAmount)
       );
       $(".discount-applied").removeClass("hidden");
-      console.log(
-        `[MoBooking JS Debug] updateLiveSummary: Discount Applied: ${discountAmount}`
-      );
     } else {
-      $("#pricing-discount").text("-" + MOB_PARAMS.currency.symbol + "0.00");
+      $("#pricing-discount").text("-" + CURRENCY.symbol + "0.00");
       $(".discount-applied").addClass("hidden");
     }
 
-    finalTotal = Math.max(0, finalTotal); // Ensure total is not negative
-    totalPrice = finalTotal; // Store for submission
+    finalTotal = Math.max(0, finalTotal);
+    totalPrice = finalTotal;
 
-    summaryHtml += `<div class="mobooking-summary-total"><span>Total:</span><span>${
-      MOB_PARAMS.currency.symbol
-    }${formatPrice(finalTotal)}</span></div>`;
+    summaryHtml += `
+            <div class="mobooking-summary-total">
+                <span>${I18N.total || "Total"}:</span>
+                <span>${CURRENCY.symbol}${formatPrice(finalTotal)}</span>
+            </div>
+        `;
 
     $(
       "#mobooking-summary-content, #mobooking-summary-content-step4, #mobooking-final-summary"
     ).html(summaryHtml);
-    $("#pricing-total").text(
-      MOB_PARAMS.currency.symbol + formatPrice(finalTotal)
-    );
-    console.log(
-      `[MoBooking JS Debug] updateLiveSummary: Final Total: ${finalTotal}`
-    );
+    $("#pricing-total").text(CURRENCY.symbol + formatPrice(finalTotal));
   }
 
   // --- NAVIGATION HANDLERS ---
-  function handleNextStep() {
-    const $button = $(this);
-    const targetStep = parseInt($button.data("step-next"));
-    const $feedback = $(`#mobooking-${getStepName(currentStep)}-feedback`);
 
-    // Validate current step before proceeding
+  function handleNextStep(e) {
+    const $button = $(e.target);
+    const targetStep = parseInt($button.data("step-next"));
+
+    debugLog("Next step requested", {
+      current: currentStep,
+      target: targetStep,
+    });
+
+    // Validate current step
     if (
       currentStep === 1 &&
-      MOB_PARAMS.settings.bf_enable_location_check === "1" &&
+      FORM_CONFIG.enable_location_check &&
       !locationVerified
     ) {
-      showFeedback($feedback, "error", "Please verify location first.");
+      showFeedback(
+        $("#mobooking-location-feedback"),
+        "error",
+        I18N.verify_location || "Please verify your location first."
+      );
       return;
     }
+
     if (currentStep === 2 && !selectedService) {
-      showFeedback($feedback, "error", MOB_PARAMS.i18n.selectServiceRequired);
+      showFeedback(
+        $("#mobooking-services-feedback"),
+        "error",
+        I18N.select_service || "Please select a service."
+      );
       return;
     }
+
     if (currentStep === 3) {
       // Validate required options
       let allRequiredFilled = true;
@@ -1154,502 +955,78 @@ jQuery(document).ready(function ($) {
             (!$input.is(":checkbox") && !$input.val().trim())
           ) {
             allRequiredFilled = false;
-            return false; // break .each loop
+            return false;
           }
         }
       });
+
       if (!allRequiredFilled) {
-        showFeedback($feedback, "error", MOB_PARAMS.i18n.fillRequiredFields);
+        showFeedback(
+          $("#mobooking-options-feedback"),
+          "error",
+          I18N.required_field || "Please fill in all required fields."
+        );
         return;
       }
     }
+
     if (currentStep === 4 && !validateCustomerDetails()) {
-      return; // validateCustomerDetails shows its own feedback
+      return;
     }
-    showFeedback($feedback, "", "", true); // Clear current step feedback if validation passes
+
     showStep(targetStep);
   }
 
-  function handlePrevStep() {
-    const targetStep = parseInt($(this).data("step-back"));
+  function handlePrevStep(e) {
+    const $button = $(e.target);
+    const targetStep = parseInt($button.data("step-back"));
+
+    debugLog("Previous step requested", {
+      current: currentStep,
+      target: targetStep,
+    });
     showStep(targetStep);
   }
 
   // --- FINAL SUBMISSION ---
-  function handleFinalBookingSubmit() {
-    const $button = $(this);
+
+  function handleFinalSubmission() {
+    debugLog("Final booking submission initiated");
+
+    const $button = $("#final-submit-btn");
     const originalBtnHtml = $button.html();
     const $feedback = $("#mobooking-review-feedback");
 
-    $button
-      .prop("disabled", true)
-      .html(
-        '<div class="mobooking-spinner"></div> ' + MOB_PARAMS.i18n.submitting
-      );
-    showFeedback($feedback, "info", MOB_PARAMS.i18n.submitting, false);
-
-    // Consolidate data for submission
-    // Ensure customerDetails and selectedOptions are up-to-date
-    storeCustomerDetails(); // Make sure customerDetails object is current
-
-    const selectedServicesPayload = [
-      {
-        service_id: selectedService.service_id,
-        name: selectedService.name,
-        price: selectedService.price,
-        configured_options: selectedOptions, // selectedOptions is already maintained globally
-      },
-    ];
-
-    const customerDetailsJson = safeJsonEncode(customerDetails);
-    const selectedServicesJson = safeJsonEncode(selectedServicesPayload);
-    const discountInfoJson = discountInfo ? safeJsonEncode(discountInfo) : null;
-    const pricingJson = safeJsonEncode({
-      subtotal: calculateSubtotal(),
-      discount: discountInfo ? calculateSubtotal() - totalPrice : 0,
-      total: totalPrice,
-    });
-
-    if (!customerDetailsJson || !selectedServicesJson || !pricingJson) {
-      showFeedback(
-        $feedback,
-        "error",
-        "Error encoding form data. Please try again.",
-        false
-      );
-      $button.prop("disabled", false).html(originalBtnHtml);
-      return;
-    }
-
-    const tenantId = $("#tenant-id").val();
-    const nonce = $("#form-nonce").val() || MOB_PARAMS.nonce; // Fallback to MOB_PARAMS if hidden field not found
-
-    if (!tenantId) {
-      showFeedback(
-        $feedback,
-        "error",
-        "Configuration error: Tenant ID is missing. Please refresh and try again.",
-        false
-      );
-      $button.prop("disabled", false).html(originalBtnHtml);
-      console.error(
-        "MoBooking Error: Tenant ID is missing from #tenant-id hidden field."
-      );
-      return;
-    }
-    if (!nonce) {
-      showFeedback(
-        $feedback,
-        "error",
-        "Configuration error: Security token is missing. Please refresh and try again.",
-        false
-      );
-      $button.prop("disabled", false).html(originalBtnHtml);
-      console.error(
-        "MoBooking Error: Nonce is missing from #form-nonce hidden field or MOB_PARAMS."
-      );
-      return;
-    }
-
-    const submissionData = {
-      action: "mobooking_create_booking",
-      nonce: nonce,
-      tenant_id: tenantId,
-      selected_services: selectedServicesJson,
-      customer_details: customerDetailsJson,
-      discount_info: discountInfoJson,
-      zip_code: $("#mobooking-zip").val() || customerDetails.zip_code || "", // From step 1 or details
-      country_code:
-        $("#mobooking-country").val() || customerDetails.country_code || "",
-      pricing: pricingJson,
-    };
-
-    console.log("Submitting with safe JSON encoding:", submissionData);
-
-    $.ajax({
-      url: MOB_PARAMS.ajaxUrl,
-      type: "POST",
-      data: submissionData,
-      dataType: "json", // Explicitly expect JSON response
-      success: function (response) {
-        if (response && response.success && response.data) {
-          showStep(6); // Success step
-          $("#success-details").html(`
-                        <div class="success-detail"><strong>Booking Reference:</strong> <span>${escapeHtml(
-                          response.data.booking_reference || "N/A"
-                        )}</span></div>
-                        <div class="success-detail"><strong>Service:</strong> <span>${escapeHtml(
-                          selectedService.name
-                        )}</span></div>
-                        <div class="success-detail"><strong>Customer:</strong> <span>${escapeHtml(
-                          customerDetails.name
-                        )}</span></div>
-                        <div class="success-detail"><strong>Email:</strong> <span>${escapeHtml(
-                          customerDetails.email
-                        )}</span></div>
-                        <div class="success-detail"><strong>Total:</strong> <span>${
-                          MOB_PARAMS.currency.symbol
-                        }${formatPrice(
-            response.data.final_total || totalPrice
-          )}</span></div>
-                        <p style="margin-top: 1rem; color: var(--muted-foreground);">
-                            You will receive a confirmation email shortly at ${escapeHtml(
-                              customerDetails.email
-                            )}.
-                        </p>`);
-        } else {
-          // Handle cases where response.success is false or response.data is missing
-          let errorMessage =
-            MOB_PARAMS.i18n.booking_error || "Booking submission failed.";
-          if (response && response.data && response.data.message) {
-            errorMessage = response.data.message;
-          } else if (typeof response === "string") {
-            // If the response is a string, it might be an unexpected error output from PHP
-            errorMessage =
-              MOB_PARAMS.i18n.error_ajax ||
-              "Received an unexpected response from the server.";
-            console.error(
-              "Booking Submission Error: Unexpected server response (string):",
-              response
-            );
-          } else if (
-            response &&
-            response.data &&
-            Array.isArray(response.data) &&
-            response.data.length > 0 &&
-            response.data[0].message
-          ) {
-            // Handle cases where response.data is an array of error objects (e.g. from some WP REST API structures)
-            errorMessage = response.data[0].message;
-          }
-          showFeedback($feedback, "error", errorMessage, false); // Ensure error message persists
-          console.error(
-            "Booking Submission Failed (Server Response):",
-            response
-          );
-        }
-      },
-      error: function (jqXHR, textStatus, errorThrown) {
-        let errorMessage =
-          MOB_PARAMS.i18n.connectionError ||
-          "A connection error occurred. Please try again.";
-
-        console.error("AJAX Error Details for Booking Submission:", {
-          status: jqXHR.status,
-          statusText: jqXHR.statusText,
-          responseText: jqXHR.responseText,
-          textStatus: textStatus,
-          errorThrown: errorThrown,
-          params: MOB_PARAMS, // Log params for context
-        });
-
-        if (
-          jqXHR.responseJSON &&
-          jqXHR.responseJSON.data &&
-          jqXHR.responseJSON.data.message
-        ) {
-          errorMessage = jqXHR.responseJSON.data.message;
-        } else if (jqXHR.responseText) {
-          try {
-            const serverError = JSON.parse(jqXHR.responseText);
-            if (serverError && serverError.data && serverError.data.message) {
-              errorMessage = serverError.data.message;
-            } else if (serverError && serverError.message) {
-              errorMessage = serverError.message;
-            } else {
-              errorMessage =
-                (MOB_PARAMS.i18n.error_ajax ||
-                  "An unexpected error occurred.") +
-                ` (Status: ${jqXHR.status})`;
-              // Avoid showing too much raw responseText to the user for security/verbosity.
-            }
-          } catch (e) {
-            // responseText was not JSON
-            errorMessage =
-              (MOB_PARAMS.i18n.error_ajax ||
-                "An unexpected server error occurred.") +
-              ` (Details in console.)`;
-            if (jqXHR.status === 0) {
-              errorMessage =
-                MOB_PARAMS.i18n.connectionError ||
-                "Network error. Please check your internet connection.";
-            } else if (jqXHR.status === 403) {
-              errorMessage =
-                "Access denied. Please ensure you are logged in if required, or contact support.";
-            } else if (jqXHR.status === 500) {
-              errorMessage =
-                "Server error. Please try again later or contact support.";
-            }
-            // For other specific HTTP errors, you can add more cases.
-          }
-        } else if (textStatus === "timeout") {
-          errorMessage =
-            MOB_PARAMS.i18n.error_ajax_timeout ||
-            "The request timed out. Please try again.";
-        }
-
-        showFeedback($feedback, "error", errorMessage, false); // Ensure error message persists
-        // The console.error call is now at the beginning of the error handler to log raw details first.
-      },
-      complete: function () {
-        $button.prop("disabled", false).html(originalBtnHtml);
-      },
-    });
-  }
-
-  // --- Console Debug Logic ---
-  const MOB_CONSOLE_DEBUG_ACTIVE = MOB_PARAMS && MOB_PARAMS.is_debug_mode === true;
-  let mainDebugGroupOpened = false;
-
-  function ensureMainDebugGroup() {
-    if (MOB_CONSOLE_DEBUG_ACTIVE && !mainDebugGroupOpened) {
-      console.groupCollapsed("MoBooking Form Debug");
-      mainDebugGroupOpened = true;
-      // Log initial server-side debug info once
-      if (MOB_PARAMS.initial_debug_info && Object.keys(MOB_PARAMS.initial_debug_info).length > 0) {
-        consoleLogTree("Initial Server-Side Data", MOB_PARAMS.initial_debug_info, false);
-      }
-    }
-  }
-
-  function consoleLogTree(groupName, data, isCollapsed = true) {
-    if (!MOB_CONSOLE_DEBUG_ACTIVE) return;
-    ensureMainDebugGroup();
-
-    const timestamp = new Date().toLocaleTimeString();
-    const groupTitle = `[${timestamp}] ${groupName}`;
-
-    if (isCollapsed) {
-      console.groupCollapsed(groupTitle);
-    } else {
-      console.group(groupTitle);
-    }
-
-    if (typeof data === 'object' && data !== null) {
-      for (const key in data) {
-        if (Object.prototype.hasOwnProperty.call(data, key)) {
-          if (typeof data[key] === 'object' && data[key] !== null) {
-            console.groupCollapsed(key);
-            console.dir(data[key]); // Use console.dir for better object inspection
-            console.groupEnd();
-          } else {
-            console.log(`${key}:`, data[key]);
-          }
-        }
-      }
-    } else {
-      console.log(data);
-    }
-    console.groupEnd();
-  }
-
-  function consoleLogMessage(type, ...messages) {
-    if (!MOB_CONSOLE_DEBUG_ACTIVE) return;
-    ensureMainDebugGroup();
-
-    const timestamp = new Date().toLocaleTimeString();
-    const prefix = `[${timestamp}] [${type.toUpperCase()}]`;
-
-    switch (type.toLowerCase()) {
-      case 'error':
-        console.error(prefix, ...messages);
-        break;
-      case 'warn':
-        console.warn(prefix, ...messages);
-        break;
-      case 'info':
-        console.info(prefix, ...messages);
-        break;
-      case 'debug':
-        console.debug(prefix, ...messages); // console.debug might be filtered by browser console settings
-        break;
-      default:
-        console.log(prefix, ...messages);
-    }
-  }
-
-  // Close the main group when the page unloads (optional, good for cleanup)
-  // window.addEventListener('beforeunload', () => {
-  //   if (mainDebugGroupOpened) {
-  //     console.groupEnd(); // Close MoBooking Form Debug
-  //     mainDebugGroupOpened = false;
-  //   }
-  // });
-
-  // --- MODIFIED UTILITY FUNCTIONS to use new console logging ---
-  function safeJsonEncode(data) {
-    try {
-      const cleanData = cleanDataForJson(data);
-      const jsonString = JSON.stringify(cleanData);
-      consoleLogTree("safeJsonEncode", { original: data, cleaned: cleanData, encoded: jsonString });
-      return jsonString;
-    } catch (error) {
-      consoleLogMessage('error', "safeJsonEncode Error:", error.message, data);
-      try {
-        // Fallback, still attempt to stringify
-        return JSON.stringify(data);
-      } catch (fallbackError) {
-        consoleLogMessage('error', "safeJsonEncode Fallback Error:", fallbackError.message, data);
-        return null;
-      }
-    }
-  }
-  // Note: cleanDataForJson is a helper for safeJsonEncode, its internal logs are less critical.
-
-  // --- Initialize Form (Original) ---
-  function initializeForm() {
-    // ensureMainDebugGroup will be called by the first log message if active
-    consoleLogMessage('info', "MoBooking jQuery Form Initializing. Params:", MOB_PARAMS);
-    consoleLogMessage('info', "Preloaded Services:", PRELOADED_SERVICES);
-
+    // Check terms acceptance if required
     if (
-      MOB_PARAMS.settings &&
-      MOB_PARAMS.settings.bf_enable_location_check === "1"
+      $("#terms-acceptance").length &&
+      !$("#terms-acceptance").is(":checked")
     ) {
-      showStep(1);
-    } else {
-      locationVerified = true; // Skip location check
-      showStep(2);
-    }
-    bindEvents();
-  }
-
-  // --- AJAX Handlers with Integrated Console Logging ---
-
-  function handleLocationCheckSubmit(e) {
-    e.preventDefault();
-    consoleLogMessage('info', 'Location Check: Initiated.');
-    const zipCode = $("#mobooking-zip").val().trim();
-    const countryCode = $("#mobooking-country").val();
-    const $feedback = $("#mobooking-location-feedback");
-    const $submitBtn = $(this).find('button[type="submit"]');
-    const originalBtnHtml = $submitBtn.html();
-
-    if (!zipCode) {
-      showFeedback($feedback, "error", MOB_PARAMS.i18n.zipRequired);
-      consoleLogMessage('error', 'Location Check: Failed - ZIP required.');
-      return;
-    }
-    if (!countryCode) {
-      showFeedback($feedback, "error", MOB_PARAMS.i18n.countryRequired);
-      consoleLogMessage('error', 'Location Check: Failed - Country required.');
-      return;
-    }
-    showFeedback($feedback, "", "", true);
-
-    $submitBtn
-      .prop("disabled", true)
-      .html(
-        '<div class="mobooking-spinner"></div> ' + MOB_PARAMS.i18n.checking
+      showFeedback(
+        $feedback,
+        "error",
+        I18N.terms_required || "Please accept the terms and conditions."
       );
-    showFeedback($feedback, "info", MOB_PARAMS.i18n.checking, false);
-
-    const requestData = {
-      action: "mobooking_check_service_area",
-      nonce: MOB_PARAMS.nonce,
-      zip_code: zipCode,
-      country_code: countryCode,
-      tenant_id: MOB_PARAMS.tenantId,
-    };
-    consoleLogTree("Location Check: Request Data", requestData);
-
-    $.ajax({
-      url: MOB_PARAMS.ajaxUrl,
-      type: "POST",
-      data: requestData,
-      success: function (response) {
-        consoleLogTree("Location Check: Success Response", response);
-        if (response.success && response.data.serviced) {
-          showFeedback($feedback, "success", response.data.message);
-          locationVerified = true;
-          setTimeout(() => showStep(2), 1500);
-        } else {
-          showFeedback(
-            $feedback,
-            "error",
-            response.data.message || "Service not available in this area."
-          );
-        }
-      },
-      error: function (xhr, status, error) {
-        consoleLogTree("Location Check: AJAX Error", { status: status, error: error, responseText: xhr.responseText });
-        showFeedback($feedback, "error", MOB_PARAMS.i18n.connectionError);
-      },
-      complete: function () {
-        $submitBtn.prop("disabled", false).html(originalBtnHtml);
-      },
-    });
-  }
-
-  function handleDiscountApply() {
-    consoleLogMessage('info', 'Discount Apply: Initiated.');
-    const code = $("#discount-code").val().trim();
-    const $feedback = $("#discount-feedback");
-    const $button = $(this);
-    const originalBtnText = $button.text();
-
-    if (!code) {
-      showFeedback($feedback, "error", MOB_PARAMS.i18n.enterDiscountCode);
-      consoleLogMessage('error', 'Discount Apply: Failed - Code required.');
       return;
     }
-    $button.prop("disabled", true).text("Applying...");
-    showFeedback($feedback, "info", "Applying discount...", false);
-
-    const requestData = {
-      action: "mobooking_validate_discount",
-      nonce: MOB_PARAMS.nonce,
-      discount_code: code,
-      tenant_id: MOB_PARAMS.tenantId,
-      subtotal: calculateSubtotal(),
-    };
-    consoleLogTree("Discount Apply: Request Data", requestData);
-
-    $.ajax({
-      url: MOB_PARAMS.ajaxUrl,
-      type: "POST",
-      data: requestData,
-      success: function (response) {
-        consoleLogTree("Discount Apply: Success Response", response);
-        if (response.success && response.data) {
-          discountInfo = response.data;
-          showFeedback($feedback, "success", MOB_PARAMS.i18n.discountApplied);
-        } else {
-          discountInfo = null;
-          showFeedback(
-            $feedback,
-            "error",
-            response.data?.message || MOB_PARAMS.i18n.invalidDiscount
-          );
-        }
-        updateLiveSummary();
-      },
-      error: function (xhr, status, error) {
-        consoleLogTree("Discount Apply: AJAX Error", { status: status, error: error, responseText: xhr.responseText });
-        discountInfo = null;
-        showFeedback($feedback, "error", MOB_PARAMS.i18n.connectionError);
-        updateLiveSummary();
-      },
-      complete: function () {
-        $button.prop("disabled", false).text(originalBtnText);
-      },
-    });
-  }
-
-  function handleFinalBookingSubmit() {
-    consoleLogMessage('info', 'Final Booking Submit: Initiated.');
-    const $button = $(this);
-    const originalBtnHtml = $button.html();
-    const $feedback = $("#mobooking-review-feedback");
 
     $button
       .prop("disabled", true)
       .html(
-        '<div class="mobooking-spinner"></div> ' + MOB_PARAMS.i18n.submitting
+        '<div class="mobooking-spinner"></div> ' +
+          (I18N.submitting || "Submitting...")
       );
-    showFeedback($feedback, "info", MOB_PARAMS.i18n.submitting, false);
+    showFeedback(
+      $feedback,
+      "info",
+      I18N.submitting || "Submitting your booking...",
+      false
+    );
+
+    // Ensure customer details are current
     storeCustomerDetails();
 
+    // Prepare submission data
     const selectedServicesPayload = [
       {
         service_id: selectedService.service_id,
@@ -1669,160 +1046,122 @@ jQuery(document).ready(function ($) {
     });
 
     if (!customerDetailsJson || !selectedServicesJson || !pricingJson) {
-      const errorMsg = "Error encoding form data. Please try again.";
-      showFeedback($feedback, "error", errorMsg, false);
-      consoleLogMessage('error', `Final Booking Submit: JSON Encoding Failed. Details: customerDetailsJson=${!!customerDetailsJson}, selectedServicesJson=${!!selectedServicesJson}, pricingJson=${!!pricingJson}`);
-      $button.prop("disabled", false).html(originalBtnHtml);
-      return;
-    }
-
-    const tenantId = $("#tenant-id").val();
-    const nonce = $("#form-nonce").val() || MOB_PARAMS.nonce;
-
-    if (!tenantId) {
-      const errorMsg = "Configuration error: Tenant ID is missing. Please refresh and try again.";
-      showFeedback($feedback, "error", errorMsg, false);
-      consoleLogMessage('error', 'Final Booking Submit: Tenant ID missing.');
-      console.error("MoBooking Error: Tenant ID is missing from #tenant-id hidden field."); // Keep console.error for direct dev feedback
-      $button.prop("disabled", false).html(originalBtnHtml);
-      return;
-    }
-    if (!nonce) {
-      const errorMsg = "Configuration error: Security token is missing. Please refresh and try again.";
-      showFeedback($feedback, "error", errorMsg, false);
-      consoleLogMessage('error', 'Final Booking Submit: Nonce missing.');
-      console.error("MoBooking Error: Nonce is missing from #form-nonce hidden field or MOB_PARAMS."); // Keep console.error
+      showFeedback(
+        $feedback,
+        "error",
+        I18N.encoding_error || "Error processing form data. Please try again.",
+        false
+      );
       $button.prop("disabled", false).html(originalBtnHtml);
       return;
     }
 
     const submissionData = {
       action: "mobooking_create_booking",
-      nonce: nonce,
-      tenant_id: tenantId,
+      nonce: FORM_NONCE,
+      tenant_id: TENANT_ID,
       selected_services: selectedServicesJson,
       customer_details: customerDetailsJson,
       discount_info: discountInfoJson,
-      zip_code: $("#mobooking-zip").val() || customerDetails.zip_code || "",
-      country_code:
-        $("#mobooking-country").val() || customerDetails.country_code || "",
+      zip_code: $("#mobooking-zip").val() || "",
+      country_code: $("#mobooking-country").val() || "",
       pricing: pricingJson,
     };
 
-    consoleLogTree("Final Booking Submit: Request Data", submissionData);
-    // console.log("MoBooking: Submitting with safe JSON encoding:", submissionData); // Original console.log for devs, can be removed if consoleLogTree is sufficient
+    debugLog("Submitting booking data", submissionData);
 
     $.ajax({
-      url: MOB_PARAMS.ajaxUrl,
+      url: AJAX_URL,
       type: "POST",
       data: submissionData,
       dataType: "json",
+      timeout: 30000,
       success: function (response) {
-        consoleLogTree("Final Booking Submit: Success Response", response);
+        debugLog("Booking submission response", response);
+
         if (response && response.success && response.data) {
-          showStep(6);
+          showStep(6); // Success step
+
+          // Update success details
           $("#success-details").html(`
-                        <div class="success-detail"><strong>Booking Reference:</strong> <span>${escapeHtml(
-                          response.data.booking_reference || "N/A"
-                        )}</span></div>
-                        <div class="success-detail"><strong>Service:</strong> <span>${escapeHtml(
-                          selectedService.name
-                        )}</span></div>
-                        <div class="success-detail"><strong>Customer:</strong> <span>${escapeHtml(
-                          customerDetails.name
-                        )}</span></div>
-                        <div class="success-detail"><strong>Email:</strong> <span>${escapeHtml(
-                          customerDetails.email
-                        )}</span></div>
-                        <div class="success-detail"><strong>Total:</strong> <span>${
-                          MOB_PARAMS.currency.symbol
-                        }${formatPrice(
-            response.data.final_total || totalPrice
-          )}</span></div>
-                        <p style="margin-top: 1rem; color: var(--muted-foreground);">
-                            You will receive a confirmation email shortly at ${escapeHtml(
-                              customerDetails.email
-                            )}.
-                        </p>`);
+                        <div class="success-info">
+                            <p><strong>${
+                              I18N.booking_reference || "Booking Reference"
+                            }:</strong> ${escapeHtml(
+            response.data.booking_reference || "N/A"
+          )}</p>
+                            <p><strong>${
+                              I18N.service || "Service"
+                            }:</strong> ${escapeHtml(selectedService.name)}</p>
+                            <p><strong>${
+                              I18N.customer || "Customer"
+                            }:</strong> ${escapeHtml(customerDetails.name)}</p>
+                            <p><strong>${
+                              I18N.email || "Email"
+                            }:</strong> ${escapeHtml(customerDetails.email)}</p>
+                            <p><strong>${I18N.total || "Total"}:</strong> ${
+            CURRENCY.symbol
+          }${formatPrice(response.data.final_total || totalPrice)}</p>
+                            <p style="margin-top: 1rem; color: var(--muted-foreground);">
+                                ${
+                                  I18N.confirmation_email ||
+                                  "You will receive a confirmation email shortly at"
+                                } ${escapeHtml(customerDetails.email)}.
+                            </p>
+                        </div>
+                    `);
+
+          // Update progress to show completion
+          $(".mobooking-progress-step")
+            .removeClass("active")
+            .addClass("completed");
+          $(".mobooking-progress-line-fill").css("width", "100%");
         } else {
           let errorMessage =
-            MOB_PARAMS.i18n.booking_error || "Booking submission failed.";
+            I18N.booking_failed || "Booking failed. Please try again.";
           if (response && response.data && response.data.message) {
             errorMessage = response.data.message;
-          } else if (typeof response === "string") {
-            errorMessage =
-              MOB_PARAMS.i18n.error_ajax ||
-              "Received an unexpected response from the server.";
-            consoleLogMessage('error', "Final Booking Submit: Unexpected server response (string):", response);
-          } else if (
-            response &&
-            response.data &&
-            Array.isArray(response.data) &&
-            response.data.length > 0 &&
-            response.data[0].message
-          ) {
-            errorMessage = response.data[0].message;
           }
           showFeedback($feedback, "error", errorMessage, false);
-          consoleLogMessage('error', "Final Booking Submit: Server Error Response:", response);
         }
       },
-      error: function (jqXHR, textStatus, errorThrown) {
-        let errorMessage =
-          MOB_PARAMS.i18n.connectionError ||
-          "A connection error occurred. Please try again.";
+      error: function (xhr, status, error) {
+        debugLog("Booking submission error", { xhr, status, error });
 
-        const errorDetails = {
-          status: jqXHR.status,
-          statusText: jqXHR.statusText,
-          responseText: jqXHR.responseText,
-          textStatus: textStatus,
-          errorThrown: errorThrown,
-        };
-        consoleLogTree("Final Booking Submit: AJAX Error", errorDetails);
-        // console.error("AJAX Error Details for Booking Submission:", errorDetails); // Original console.error, can be removed
+        let errorMessage =
+          I18N.network_error || "Network error occurred. Please try again.";
 
         if (
-          jqXHR.responseJSON &&
-          jqXHR.responseJSON.data &&
-          jqXHR.responseJSON.data.message
+          xhr.responseJSON &&
+          xhr.responseJSON.data &&
+          xhr.responseJSON.data.message
         ) {
-          errorMessage = jqXHR.responseJSON.data.message;
-        } else if (jqXHR.responseText) {
+          errorMessage = xhr.responseJSON.data.message;
+        } else if (xhr.responseText) {
           try {
-            const serverError = JSON.parse(jqXHR.responseText);
+            const serverError = JSON.parse(xhr.responseText);
             if (serverError && serverError.data && serverError.data.message) {
               errorMessage = serverError.data.message;
-            } else if (serverError && serverError.message) {
-              errorMessage = serverError.message;
-            } else {
-              errorMessage =
-                (MOB_PARAMS.i18n.error_ajax ||
-                  "An unexpected error occurred.") +
-                ` (Status: ${jqXHR.status})`;
             }
           } catch (e) {
-            errorMessage =
-              (MOB_PARAMS.i18n.error_ajax ||
-                "An unexpected server error occurred.") +
-              ` (Details in console.)`;
-            if (jqXHR.status === 0) {
+            if (xhr.status === 0) {
               errorMessage =
-                MOB_PARAMS.i18n.connectionError ||
-                "Network error. Please check your internet connection.";
-            } else if (jqXHR.status === 403) {
+                I18N.network_error ||
+                "Network error. Please check your connection.";
+            } else if (xhr.status === 403) {
               errorMessage =
-                "Access denied. Please ensure you are logged in if required, or contact support.";
-            } else if (jqXHR.status === 500) {
+                I18N.access_denied ||
+                "Access denied. Please refresh and try again.";
+            } else if (xhr.status === 500) {
               errorMessage =
-                "Server error. Please try again later or contact support.";
+                I18N.server_error || "Server error. Please try again later.";
             }
           }
-        } else if (textStatus === "timeout") {
+        } else if (status === "timeout") {
           errorMessage =
-            MOB_PARAMS.i18n.error_ajax_timeout ||
-            "The request timed out. Please try again.";
+            I18N.timeout_error || "Request timed out. Please try again.";
         }
+
         showFeedback($feedback, "error", errorMessage, false);
       },
       complete: function () {
@@ -1831,10 +1170,227 @@ jQuery(document).ready(function ($) {
     });
   }
 
+  // --- EVENT BINDING ---
+
+  function bindEvents() {
+    debugLog("Binding events");
+
+    // Location check form
+    $("#mobooking-location-form").on("submit", handleLocationCheck);
+
+    // Step navigation
+    $(document).on("click", "[data-step-next]", handleNextStep);
+    $(document).on("click", "[data-step-back]", handlePrevStep);
+
+    // Service selection
+    $(document).on("click", ".mobooking-service-card", handleServiceSelect);
+
+    // Customer details form
+    $("#mobooking-details-form input, #mobooking-details-form textarea").on(
+      "change input",
+      storeCustomerDetails
+    );
+
+    // Discount application
+    if (FORM_CONFIG.allow_discount_codes) {
+      $("#apply-discount-btn").on("click", handleDiscountApply);
+    }
+
+    // Final submission
+    $("#final-submit-btn").on("click", handleFinalSubmission);
+
+    // Progress step clicks (optional navigation)
+    $(".mobooking-progress-step").on("click", function () {
+      const stepNumber = parseInt($(this).data("step"));
+      if (stepNumber < currentStep) {
+        showStep(stepNumber);
+      }
+    });
+  }
+
+  // --- INITIALIZATION ---
+
+  function initializeForm() {
+    debugLog("Initializing MoBooking form");
+    debugLog("Form config", FORM_CONFIG);
+    debugLog("Preloaded services", PRELOADED_SERVICES);
+
+    // Validate required data
+    if (!TENANT_ID || !FORM_NONCE) {
+      debugLog("Missing required data", { TENANT_ID, FORM_NONCE });
+      console.error("MoBooking: Missing required tenant ID or nonce");
+      return;
+    }
+
+    // Bind events
+    bindEvents();
+
+    // Initialize first step
+    if (FORM_CONFIG.enable_location_check) {
+      showStep(1);
+    } else {
+      locationVerified = true;
+      showStep(2);
+    }
+  }
+
+  // --- GLOBAL EXPOSURE ---
+
+  // Expose functions for debugging and external use
+  window.MoBookingForm = {
+    showStep: showStep,
+    updateLiveSummary: updateLiveSummary,
+    debugLog: debugLog,
+    getCurrentStep: () => currentStep,
+    getSelectedService: () => selectedService,
+    getSelectedOptions: () => selectedOptions,
+    getCustomerDetails: () => customerDetails,
+    getTotalPrice: () => totalPrice,
+    submitBooking: handleFinalSubmission,
+  };
+
   // Start the form
   initializeForm();
 });
-// The secondary jQuery(document).ready block containing test buttons,
-// submitBookingWithJsonFix, and the override for MoBookingForm.submitFinalBooking
-// has been removed as its core logic (safeJsonEncode, cleanDataForJson)
-// is now integrated into the main form handler.
+
+// --- STANDALONE ENHANCED BOOKING FORM (Alternative Implementation) ---
+// This section provides a simplified version that can work independently
+
+(function ($) {
+  "use strict";
+
+  // Only initialize if the main form handler above isn't working
+  if (typeof window.MoBookingForm === "undefined") {
+    console.log("MoBooking: Initializing fallback form handler");
+
+    $(document).ready(function () {
+      // Basic form functionality
+      let currentStep = 1;
+      let selectedServices = [];
+      let customerDetails = {};
+
+      // Simple step navigation
+      $(document).on("click", "[data-step-next]", function () {
+        const nextStep = parseInt($(this).data("step-next"));
+        showStep(nextStep);
+      });
+
+      $(document).on("click", "[data-step-back]", function () {
+        const prevStep = parseInt($(this).data("step-back"));
+        showStep(prevStep);
+      });
+
+      // Service selection
+      $(document).on("click", ".mobooking-service-card", function () {
+        $(".mobooking-service-card").removeClass("selected");
+        $(this).addClass("selected");
+        $('[data-step-next="3"]').prop("disabled", false);
+      });
+
+      // Final submission with enhanced JSON encoding
+      $(document).on("click", "#final-submit-btn", function () {
+        const tenantId = $("#tenant-id").val();
+        const nonce = $("#form-nonce").val();
+
+        if (!tenantId || !nonce) {
+          alert("Missing required form data. Please refresh and try again.");
+          return;
+        }
+
+        // Collect form data
+        const customerData = {
+          name: $("#customer-name").val(),
+          email: $("#customer-email").val(),
+          phone: $("#customer-phone").val(),
+          address: $("#service-address").val(),
+          date: $("#preferred-date").val(),
+          time: $("#preferred-time").val(),
+          instructions: $("#special-instructions").val(),
+        };
+
+        const serviceData = [];
+        $(".mobooking-service-card.selected").each(function () {
+          const serviceId = $(this).data("service-id");
+          const serviceName = $(this).find(".mobooking-service-name").text();
+          serviceData.push({
+            service_id: serviceId,
+            name: serviceName,
+            price: 0,
+            configured_options: {},
+          });
+        });
+
+        // Submit booking
+        $.ajax({
+          url: window.MOB_AJAX_URL || "/wp-admin/admin-ajax.php",
+          type: "POST",
+          data: {
+            action: "mobooking_create_booking",
+            nonce: nonce,
+            tenant_id: tenantId,
+            selected_services: JSON.stringify(serviceData),
+            customer_details: JSON.stringify(customerData),
+            discount_info: "",
+            zip_code: $("#mobooking-zip").val() || "",
+            country_code: $("#mobooking-country").val() || "",
+            pricing: JSON.stringify({ subtotal: 0, discount: 0, total: 0 }),
+          },
+          success: function (response) {
+            if (response.success) {
+              showStep(6);
+              $("#success-details").html(`
+                                <div class="success-info">
+                                    <p><strong>Booking Reference:</strong> ${
+                                      response.data.booking_reference || "N/A"
+                                    }</p>
+                                    <p><strong>Total Amount:</strong> ${(
+                                      response.data.final_total || 0
+                                    ).toFixed(2)}</p>
+                                    <p>A confirmation email has been sent to ${
+                                      customerData.email
+                                    }</p>
+                                </div>
+                            `);
+            } else {
+              alert(
+                "Booking failed: " + (response.data?.message || "Unknown error")
+              );
+            }
+          },
+          error: function () {
+            alert("Network error. Please try again.");
+          },
+        });
+      });
+
+      function showStep(stepNumber) {
+        $(".mobooking-step").removeClass("active").hide();
+        $(`.mobooking-step[data-step="${stepNumber}"]`)
+          .show()
+          .addClass("active");
+        currentStep = stepNumber;
+
+        // Update progress
+        const progressPercentage = ((stepNumber - 1) / 4) * 100;
+        $(".mobooking-progress-line-fill").css(
+          "width",
+          progressPercentage + "%"
+        );
+
+        $(".mobooking-progress-step").removeClass("active completed");
+        $(`.mobooking-progress-step[data-step="${stepNumber}"]`).addClass(
+          "active"
+        );
+        $(`.mobooking-progress-step[data-step]`).each(function () {
+          const step = parseInt($(this).data("step"));
+          if (step < stepNumber) {
+            $(this).addClass("completed");
+          }
+        });
+      }
+
+      // Initialize
+      showStep(FORM_CONFIG?.enable_location_check ? 1 : 2);
+    });
+  }
+})(jQuery);
