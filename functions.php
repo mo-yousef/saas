@@ -2032,3 +2032,155 @@ function mobooking_debug_database() {
 
 
 
+
+// Add this to your functions.php file to fix the booking form submission
+
+// 1. Ensure all AJAX handlers are properly registered
+function mobooking_register_ajax_handlers() {
+    // Register booking form AJAX handlers
+    add_action('wp_ajax_nopriv_mobooking_create_booking', 'mobooking_handle_create_booking_ajax');
+    add_action('wp_ajax_mobooking_create_booking', 'mobooking_handle_create_booking_ajax');
+    
+    // Register service-related AJAX handlers for public booking form
+    add_action('wp_ajax_nopriv_mobooking_get_public_services', 'mobooking_handle_get_public_services_ajax');
+    add_action('wp_ajax_mobooking_get_public_services', 'mobooking_handle_get_public_services_ajax');
+    
+    // Register discount validation AJAX handlers
+    add_action('wp_ajax_nopriv_mobooking_validate_discount', 'mobooking_handle_validate_discount_ajax');
+    add_action('wp_ajax_mobooking_validate_discount', 'mobooking_handle_validate_discount_ajax');
+}
+add_action('init', 'mobooking_register_ajax_handlers');
+
+// 2. Wrapper function to handle booking creation AJAX
+function mobooking_handle_create_booking_ajax() {
+    // Check if the bookings manager exists
+    if (!isset($GLOBALS['mobooking_bookings_manager'])) {
+        wp_send_json_error(['message' => __('Booking system not initialized.', 'mobooking')], 500);
+        return;
+    }
+    
+    // Call the actual handler
+    $GLOBALS['mobooking_bookings_manager']->handle_create_booking_public_ajax();
+}
+
+// 3. Wrapper function to handle public services AJAX
+function mobooking_handle_get_public_services_ajax() {
+    // Check if the services manager exists
+    if (!isset($GLOBALS['mobooking_services_manager'])) {
+        wp_send_json_error(['message' => __('Services system not initialized.', 'mobooking')], 500);
+        return;
+    }
+    
+    // Call the actual handler
+    $GLOBALS['mobooking_services_manager']->handle_get_public_services_ajax();
+}
+
+// 4. Wrapper function to handle discount validation AJAX
+function mobooking_handle_validate_discount_ajax() {
+    // Check if the discounts manager exists
+    if (!isset($GLOBALS['mobooking_discounts_manager'])) {
+        wp_send_json_error(['message' => __('Discount system not initialized.', 'mobooking')], 500);
+        return;
+    }
+    
+    // Call the actual handler if it exists
+    if (method_exists($GLOBALS['mobooking_discounts_manager'], 'handle_validate_discount_ajax')) {
+        $GLOBALS['mobooking_discounts_manager']->handle_validate_discount_ajax();
+    } else {
+        wp_send_json_error(['message' => __('Discount validation not available.', 'mobooking')], 500);
+    }
+}
+
+// 5. Enhanced script localization for booking form
+function mobooking_enhanced_booking_form_scripts() {
+    // Only enqueue on booking form pages
+    $page_type = get_query_var('mobooking_page_type');
+    if (!is_page_template('templates/booking-form-public.php') && 
+        $page_type !== 'public_booking' && 
+        $page_type !== 'embed_booking') {
+        return;
+    }
+    
+    // Get tenant ID
+    $tenant_id = null;
+    if (isset($_GET['tid'])) {
+        $tenant_id = intval($_GET['tid']);
+    } elseif ($page_type === 'public_booking' || $page_type === 'embed_booking') {
+        $tenant_id = get_query_var('mobooking_tenant_id');
+    }
+    
+    // Validate tenant
+    if (!$tenant_id || !get_userdata($tenant_id)) {
+        return;
+    }
+    
+    // Create enhanced parameters for the booking form
+    $enhanced_params = [
+        'ajax_url' => admin_url('admin-ajax.php'),
+        'nonce' => wp_create_nonce('mobooking_booking_form_nonce'),
+        'tenant_id' => $tenant_id,
+        'site_url' => site_url(),
+        'debug' => defined('WP_DEBUG') && WP_DEBUG,
+        'actions' => [
+            'create_booking' => 'mobooking_create_booking',
+            'get_services' => 'mobooking_get_public_services',
+            'validate_discount' => 'mobooking_validate_discount'
+        ],
+        'i18n' => [
+            'submitting' => __('Submitting your booking...', 'mobooking'),
+            'success' => __('Booking submitted successfully!', 'mobooking'),
+            'error' => __('There was an error submitting your booking.', 'mobooking'),
+            'network_error' => __('Network error occurred. Please try again.', 'mobooking'),
+            'invalid_data' => __('Invalid form data. Please check your entries.', 'mobooking'),
+            'required_fields' => __('Please fill in all required fields.', 'mobooking')
+        ]
+    ];
+    
+    // Enqueue and localize the script
+    wp_enqueue_script('mobooking-booking-form-enhanced', 
+        MOBOOKING_THEME_URI . 'assets/js/booking-form-enhanced.js', 
+        ['jquery'], 
+        MOBOOKING_VERSION, 
+        true
+    );
+    
+    wp_localize_script('mobooking-booking-form-enhanced', 'mobooking_booking_params', $enhanced_params);
+}
+add_action('wp_enqueue_scripts', 'mobooking_enhanced_booking_form_scripts', 20);
+
+// 6. Debug function for troubleshooting
+function mobooking_debug_ajax_handlers() {
+    if (!defined('WP_DEBUG') || !WP_DEBUG) {
+        return;
+    }
+    
+    global $wp_filter;
+    
+    error_log('MoBooking AJAX Handlers Debug:');
+    error_log('wp_ajax_nopriv_mobooking_create_booking: ' . (has_action('wp_ajax_nopriv_mobooking_create_booking') ? 'REGISTERED' : 'NOT REGISTERED'));
+    error_log('wp_ajax_mobooking_create_booking: ' . (has_action('wp_ajax_mobooking_create_booking') ? 'REGISTERED' : 'NOT REGISTERED'));
+    error_log('Bookings Manager: ' . (isset($GLOBALS['mobooking_bookings_manager']) ? 'INITIALIZED' : 'NOT INITIALIZED'));
+    error_log('Services Manager: ' . (isset($GLOBALS['mobooking_services_manager']) ? 'INITIALIZED' : 'NOT INITIALIZED'));
+}
+add_action('wp_loaded', 'mobooking_debug_ajax_handlers');
+
+// 7. Ensure proper initialization order
+function mobooking_ensure_managers_initialized() {
+    // This ensures all managers are initialized before AJAX handlers are registered
+    if (!isset($GLOBALS['mobooking_bookings_manager']) && 
+        class_exists('MoBooking\Classes\Bookings') &&
+        isset($GLOBALS['mobooking_discounts_manager']) &&
+        isset($GLOBALS['mobooking_notifications_manager']) &&
+        isset($GLOBALS['mobooking_services_manager'])) {
+        
+        $GLOBALS['mobooking_bookings_manager'] = new MoBooking\Classes\Bookings(
+            $GLOBALS['mobooking_discounts_manager'],
+            $GLOBALS['mobooking_notifications_manager'],
+            $GLOBALS['mobooking_services_manager']
+        );
+        
+        // Register the AJAX actions
+        $GLOBALS['mobooking_bookings_manager']->register_ajax_actions();
+    }
+}
+add_action('init', 'mobooking_ensure_managers_initialized', 5);
