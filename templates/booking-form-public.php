@@ -243,8 +243,8 @@ echo $css_variables;
 
 /* CSS Variables - These can be overridden by PHP */
 :root {
-    --primary-color: #1abc9c;
-    --primary-rgb: 26, 188, 156;
+    --primary-color: #1976D2;
+    --primary-rgb: 6, 98, 156;
     --secondary-color: #34495e;
     --background-color: #ffffff;
     --foreground: #1a1a1a;
@@ -252,7 +252,7 @@ echo $css_variables;
     --border: #e5e7eb;
     --muted: #f3f4f6;
     --muted-foreground: #6b7280;
-    --success: #10b981;
+    --success: #1976D2;
     --error: #ef4444;
     --warning: #f59e0b;
     --info: #3b82f6;
