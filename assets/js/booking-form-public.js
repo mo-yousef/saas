@@ -8,13 +8,14 @@ jQuery(document).ready(function ($) {
   // Global parameters from PHP localization
   const MOB_PARAMS = window.mobooking_booking_form_params || {};
   const PRELOADED_SERVICES = window.MOB_PRELOADED_SERVICES || [];
-  const FORM_CONFIG = window.MOB_FORM_CONFIG || {};
-  const CURRENCY = window.MOB_CURRENCY || { symbol: "$", code: "USD" };
-  const TENANT_ID = window.MOB_TENANT_ID || null;
-  const FORM_NONCE = window.MOB_FORM_NONCE || null;
-  const AJAX_URL = window.MOB_AJAX_URL || "/wp-admin/admin-ajax.php";
-  const I18N = window.MOB_I18N || {};
-  const IS_DEBUG = window.MOB_DEBUG_MODE || false;
+  // Correctly initialize FORM_CONFIG from the localized settings
+  const FORM_CONFIG = MOB_PARAMS.settings || {};
+  const CURRENCY = MOB_PARAMS.currency || { symbol: "$", code: "USD" };
+  const TENANT_ID = MOB_PARAMS.tenant_id || null;
+  const FORM_NONCE = MOB_PARAMS.nonce || null; // Use MOB_PARAMS
+  const AJAX_URL = MOB_PARAMS.ajax_url || "/wp-admin/admin-ajax.php"; // Use MOB_PARAMS
+  const I18N = MOB_PARAMS.i18n || {}; // Use MOB_PARAMS
+  const IS_DEBUG = MOB_PARAMS.is_debug_mode || false; // Use MOB_PARAMS
 
   // Current Booking State
   let currentStep = 1;
@@ -1390,7 +1391,10 @@ jQuery(document).ready(function ($) {
       }
 
       // Initialize
-      showStep(FORM_CONFIG?.enable_location_check ? 1 : 2);
+      // The fallback needs to access the config from window object directly
+      const fallbackMobParams = window.mobooking_booking_form_params || {};
+      const fallbackFormConfig = fallbackMobParams.settings || {};
+      showStep(fallbackFormConfig?.enable_location_check ? 1 : 2);
     });
   }
 })(jQuery);
