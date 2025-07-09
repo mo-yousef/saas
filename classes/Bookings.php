@@ -427,15 +427,26 @@ foreach ($calculated_service_items as $service_item) {
             if (class_exists('MoBooking\Classes\Customers')) {
                 try {
                     $customers_manager = new \MoBooking\Classes\Customers();
-                    $mob_customer_id = $customers_manager->create_or_update_customer(
+                    // Prepare customer data array with keys expected by Customers::create_or_update_customer_for_booking
+                    $customer_data_for_manager = [
+                        'full_name' => $customer['name'] ?? '',
+                        'email' => $customer['email'] ?? '',
+                        'phone_number' => $customer['phone'] ?? '',
+                        'address_line_1' => $customer['address'] ?? '',
+                        // Add other fields if they are available in $customer and expected by create_or_update_customer_for_booking
+                        // e.g., 'city', 'state', 'zip_code', 'country'
+                        // For now, mapping based on available $customer fields from logs.
+                    ];
+
+                    $mob_customer_id = $customers_manager->create_or_update_customer_for_booking(
                         $tenant_user_id,
-                        $customer['name'],
-                        $customer['email'],
-                        $customer['phone']
+                        $customer_data_for_manager
                     );
                     
-                    if (!is_wp_error($mob_customer_id)) {
+                    if (!is_wp_error($mob_customer_id) && $mob_customer_id > 0) {
                         $customers_manager->update_customer_booking_stats($mob_customer_id, $booking_data['created_at']);
+                    } else if (is_wp_error($mob_customer_id)) {
+                        error_log("MoBooking: Error creating/updating customer: " . $mob_customer_id->get_error_message());
                     }
                 } catch (\Exception $e) {
                     error_log("MoBooking: Error updating customer stats: " . $e->getMessage());
