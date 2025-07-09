@@ -244,7 +244,10 @@ if ( is_page_template('templates/booking-form-public.php') || $page_type_for_scr
             'user_logged_in' => is_user_logged_in(),
             'current_user_id' => get_current_user_id(),
             'request_uri' => $_SERVER['REQUEST_URI'] ?? '',
-        ]
+        ],
+        // Pass PHP debug data if available
+        'is_debug_mode' => $GLOBALS['mobooking_is_debug_mode_active_flag'] ?? false,
+        'initial_debug_info' => $GLOBALS['mobooking_initial_php_debug_data'] ?? []
     ], 'mobooking-public-booking-form'); // Localize to the new script handle
 
     // Add custom CSS from settings if present and form is enabled
