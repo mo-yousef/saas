@@ -1397,57 +1397,110 @@ jQuery(document).ready(function ($) {
     });
   }
 
-  // --- Debug Sidebar Logic ---
-  const isDebugSidebarActive = !!document.getElementById('mobooking-debug-sidebar');
+  // --- Console Debug Logic ---
+  const MOB_CONSOLE_DEBUG_ACTIVE = MOB_PARAMS && MOB_PARAMS.is_debug_mode === true;
+  let mainDebugGroupOpened = false;
 
-  function logToDebug(message, type = 'info', areaId = 'debug-js-logs') {
-    if (!isDebugSidebarActive) return;
-
-    const area = document.getElementById(areaId);
-    if (!area) return;
-
-    const timestamp = new Date().toLocaleTimeString();
-    let formattedMessage = `[${timestamp}] [${type.toUpperCase()}]: `;
-
-    if (typeof message === 'object') {
-        formattedMessage += JSON.stringify(message, null, 2);
-    } else {
-        formattedMessage += message;
-    }
-
-    if (areaId === 'debug-submission-status') {
-        // Replace content for status-like areas
-        area.textContent = formattedMessage;
-    } else {
-        // Append for log-like areas
-        area.textContent += formattedMessage + '\n';
-        area.scrollTop = area.scrollHeight; // Auto-scroll to bottom
+  function ensureMainDebugGroup() {
+    if (MOB_CONSOLE_DEBUG_ACTIVE && !mainDebugGroupOpened) {
+      console.groupCollapsed("MoBooking Form Debug");
+      mainDebugGroupOpened = true;
+      // Log initial server-side debug info once
+      if (MOB_PARAMS.initial_debug_info && Object.keys(MOB_PARAMS.initial_debug_info).length > 0) {
+        consoleLogTree("Initial Server-Side Data", MOB_PARAMS.initial_debug_info, false);
+      }
     }
   }
 
-  // --- MODIFIED UTILITY FUNCTIONS to use logToDebug ---
+  function consoleLogTree(groupName, data, isCollapsed = true) {
+    if (!MOB_CONSOLE_DEBUG_ACTIVE) return;
+    ensureMainDebugGroup();
+
+    const timestamp = new Date().toLocaleTimeString();
+    const groupTitle = `[${timestamp}] ${groupName}`;
+
+    if (isCollapsed) {
+      console.groupCollapsed(groupTitle);
+    } else {
+      console.group(groupTitle);
+    }
+
+    if (typeof data === 'object' && data !== null) {
+      for (const key in data) {
+        if (Object.prototype.hasOwnProperty.call(data, key)) {
+          if (typeof data[key] === 'object' && data[key] !== null) {
+            console.groupCollapsed(key);
+            console.dir(data[key]); // Use console.dir for better object inspection
+            console.groupEnd();
+          } else {
+            console.log(`${key}:`, data[key]);
+          }
+        }
+      }
+    } else {
+      console.log(data);
+    }
+    console.groupEnd();
+  }
+
+  function consoleLogMessage(type, ...messages) {
+    if (!MOB_CONSOLE_DEBUG_ACTIVE) return;
+    ensureMainDebugGroup();
+
+    const timestamp = new Date().toLocaleTimeString();
+    const prefix = `[${timestamp}] [${type.toUpperCase()}]`;
+
+    switch (type.toLowerCase()) {
+      case 'error':
+        console.error(prefix, ...messages);
+        break;
+      case 'warn':
+        console.warn(prefix, ...messages);
+        break;
+      case 'info':
+        console.info(prefix, ...messages);
+        break;
+      case 'debug':
+        console.debug(prefix, ...messages); // console.debug might be filtered by browser console settings
+        break;
+      default:
+        console.log(prefix, ...messages);
+    }
+  }
+
+  // Close the main group when the page unloads (optional, good for cleanup)
+  // window.addEventListener('beforeunload', () => {
+  //   if (mainDebugGroupOpened) {
+  //     console.groupEnd(); // Close MoBooking Form Debug
+  //     mainDebugGroupOpened = false;
+  //   }
+  // });
+
+  // --- MODIFIED UTILITY FUNCTIONS to use new console logging ---
   function safeJsonEncode(data) {
     try {
       const cleanData = cleanDataForJson(data);
       const jsonString = JSON.stringify(cleanData);
-      logToDebug({ action: 'safeJsonEncode', original: data, cleaned: cleanData, encoded: jsonString }, 'debug');
+      consoleLogTree("safeJsonEncode", { original: data, cleaned: cleanData, encoded: jsonString });
       return jsonString;
     } catch (error) {
-      logToDebug({ action: 'safeJsonEncode Error', error: error.message, data: data }, 'error');
+      consoleLogMessage('error', "safeJsonEncode Error:", error.message, data);
       try {
+        // Fallback, still attempt to stringify
         return JSON.stringify(data);
       } catch (fallbackError) {
-        logToDebug({ action: 'safeJsonEncode Fallback Error', error: fallbackError.message, data: data }, 'error');
+        consoleLogMessage('error', "safeJsonEncode Fallback Error:", fallbackError.message, data);
         return null;
       }
     }
   }
-  // Note: cleanDataForJson is a helper for safeJsonEncode, its internal logs are less critical for the sidebar.
+  // Note: cleanDataForJson is a helper for safeJsonEncode, its internal logs are less critical.
 
   // --- Initialize Form (Original) ---
   function initializeForm() {
-    logToDebug("MoBooking jQuery Form Initializing. Params: " + JSON.stringify(MOB_PARAMS), 'info');
-    logToDebug("Preloaded Services: " + JSON.stringify(PRELOADED_SERVICES), 'info');
+    // ensureMainDebugGroup will be called by the first log message if active
+    consoleLogMessage('info', "MoBooking jQuery Form Initializing. Params:", MOB_PARAMS);
+    consoleLogMessage('info', "Preloaded Services:", PRELOADED_SERVICES);
 
     if (
       MOB_PARAMS.settings &&
@@ -1461,12 +1514,11 @@ jQuery(document).ready(function ($) {
     bindEvents();
   }
 
-
-  // --- MODIFIED AJAX HANDLERS to use logToDebug for submission status ---
+  // --- AJAX Handlers with Integrated Console Logging ---
 
   function handleLocationCheckSubmit(e) {
     e.preventDefault();
-    logToDebug('Attempting location check.', 'info', 'debug-submission-status');
+    consoleLogMessage('info', 'Location Check: Initiated.');
     const zipCode = $("#mobooking-zip").val().trim();
     const countryCode = $("#mobooking-country").val();
     const $feedback = $("#mobooking-location-feedback");
@@ -1475,15 +1527,15 @@ jQuery(document).ready(function ($) {
 
     if (!zipCode) {
       showFeedback($feedback, "error", MOB_PARAMS.i18n.zipRequired);
-      logToDebug('Location check failed: ZIP required.', 'error', 'debug-submission-status');
+      consoleLogMessage('error', 'Location Check: Failed - ZIP required.');
       return;
     }
     if (!countryCode) {
       showFeedback($feedback, "error", MOB_PARAMS.i18n.countryRequired);
-      logToDebug('Location check failed: Country required.', 'error', 'debug-submission-status');
+      consoleLogMessage('error', 'Location Check: Failed - Country required.');
       return;
     }
-    showFeedback($feedback, "", "", true); // Clear
+    showFeedback($feedback, "", "", true);
 
     $submitBtn
       .prop("disabled", true)
@@ -1491,20 +1543,22 @@ jQuery(document).ready(function ($) {
         '<div class="mobooking-spinner"></div> ' + MOB_PARAMS.i18n.checking
       );
     showFeedback($feedback, "info", MOB_PARAMS.i18n.checking, false);
-    logToDebug(`Checking location: ZIP=${zipCode}, Country=${countryCode}`, 'info', 'debug-submission-status');
+
+    const requestData = {
+      action: "mobooking_check_service_area",
+      nonce: MOB_PARAMS.nonce,
+      zip_code: zipCode,
+      country_code: countryCode,
+      tenant_id: MOB_PARAMS.tenantId,
+    };
+    consoleLogTree("Location Check: Request Data", requestData);
 
     $.ajax({
       url: MOB_PARAMS.ajaxUrl,
       type: "POST",
-      data: {
-        action: "mobooking_check_service_area",
-        nonce: MOB_PARAMS.nonce,
-        zip_code: zipCode,
-        country_code: countryCode,
-        tenant_id: MOB_PARAMS.tenantId,
-      },
+      data: requestData,
       success: function (response) {
-        logToDebug({ action: 'Location Check Success', response: response }, 'info', 'debug-submission-status');
+        consoleLogTree("Location Check: Success Response", response);
         if (response.success && response.data.serviced) {
           showFeedback($feedback, "success", response.data.message);
           locationVerified = true;
@@ -1518,7 +1572,7 @@ jQuery(document).ready(function ($) {
         }
       },
       error: function (xhr, status, error) {
-        logToDebug({ action: 'Location Check Error', status: status, error: error, xhr: xhr.responseText }, 'error', 'debug-submission-status');
+        consoleLogTree("Location Check: AJAX Error", { status: status, error: error, responseText: xhr.responseText });
         showFeedback($feedback, "error", MOB_PARAMS.i18n.connectionError);
       },
       complete: function () {
@@ -1528,32 +1582,35 @@ jQuery(document).ready(function ($) {
   }
 
   function handleDiscountApply() {
+    consoleLogMessage('info', 'Discount Apply: Initiated.');
     const code = $("#discount-code").val().trim();
     const $feedback = $("#discount-feedback");
     const $button = $(this);
     const originalBtnText = $button.text();
-    logToDebug(`Applying discount code: ${code}`, 'info', 'debug-submission-status');
 
     if (!code) {
       showFeedback($feedback, "error", MOB_PARAMS.i18n.enterDiscountCode);
-      logToDebug('Discount apply failed: Code required.', 'error', 'debug-submission-status');
+      consoleLogMessage('error', 'Discount Apply: Failed - Code required.');
       return;
     }
     $button.prop("disabled", true).text("Applying...");
     showFeedback($feedback, "info", "Applying discount...", false);
 
+    const requestData = {
+      action: "mobooking_validate_discount",
+      nonce: MOB_PARAMS.nonce,
+      discount_code: code,
+      tenant_id: MOB_PARAMS.tenantId,
+      subtotal: calculateSubtotal(),
+    };
+    consoleLogTree("Discount Apply: Request Data", requestData);
+
     $.ajax({
       url: MOB_PARAMS.ajaxUrl,
       type: "POST",
-      data: {
-        action: "mobooking_validate_discount",
-        nonce: MOB_PARAMS.nonce,
-        discount_code: code,
-        tenant_id: MOB_PARAMS.tenantId,
-        subtotal: calculateSubtotal(),
-      },
+      data: requestData,
       success: function (response) {
-        logToDebug({ action: 'Discount Apply Success', response: response }, 'info', 'debug-submission-status');
+        consoleLogTree("Discount Apply: Success Response", response);
         if (response.success && response.data) {
           discountInfo = response.data;
           showFeedback($feedback, "success", MOB_PARAMS.i18n.discountApplied);
@@ -1568,7 +1625,7 @@ jQuery(document).ready(function ($) {
         updateLiveSummary();
       },
       error: function (xhr, status, error) {
-        logToDebug({ action: 'Discount Apply Error', status: status, error: error, xhr: xhr.responseText }, 'error', 'debug-submission-status');
+        consoleLogTree("Discount Apply: AJAX Error", { status: status, error: error, responseText: xhr.responseText });
         discountInfo = null;
         showFeedback($feedback, "error", MOB_PARAMS.i18n.connectionError);
         updateLiveSummary();
@@ -1580,10 +1637,10 @@ jQuery(document).ready(function ($) {
   }
 
   function handleFinalBookingSubmit() {
+    consoleLogMessage('info', 'Final Booking Submit: Initiated.');
     const $button = $(this);
     const originalBtnHtml = $button.html();
     const $feedback = $("#mobooking-review-feedback");
-    logToDebug('Final booking submission started.', 'info', 'debug-submission-status');
 
     $button
       .prop("disabled", true)
@@ -1614,7 +1671,7 @@ jQuery(document).ready(function ($) {
     if (!customerDetailsJson || !selectedServicesJson || !pricingJson) {
       const errorMsg = "Error encoding form data. Please try again.";
       showFeedback($feedback, "error", errorMsg, false);
-      logToDebug(errorMsg + ` Details: cust=${!!customerDetailsJson}, serv=${!!selectedServicesJson}, pricing=${!!pricingJson}`, 'error', 'debug-submission-status');
+      consoleLogMessage('error', `Final Booking Submit: JSON Encoding Failed. Details: customerDetailsJson=${!!customerDetailsJson}, selectedServicesJson=${!!selectedServicesJson}, pricingJson=${!!pricingJson}`);
       $button.prop("disabled", false).html(originalBtnHtml);
       return;
     }
@@ -1625,16 +1682,16 @@ jQuery(document).ready(function ($) {
     if (!tenantId) {
       const errorMsg = "Configuration error: Tenant ID is missing. Please refresh and try again.";
       showFeedback($feedback, "error", errorMsg, false);
-      logToDebug(errorMsg, 'error', 'debug-submission-status');
-      console.error("MoBooking Error: Tenant ID is missing from #tenant-id hidden field.");
+      consoleLogMessage('error', 'Final Booking Submit: Tenant ID missing.');
+      console.error("MoBooking Error: Tenant ID is missing from #tenant-id hidden field."); // Keep console.error for direct dev feedback
       $button.prop("disabled", false).html(originalBtnHtml);
       return;
     }
     if (!nonce) {
       const errorMsg = "Configuration error: Security token is missing. Please refresh and try again.";
       showFeedback($feedback, "error", errorMsg, false);
-      logToDebug(errorMsg, 'error', 'debug-submission-status');
-      console.error("MoBooking Error: Nonce is missing from #form-nonce hidden field or MOB_PARAMS.");
+      consoleLogMessage('error', 'Final Booking Submit: Nonce missing.');
+      console.error("MoBooking Error: Nonce is missing from #form-nonce hidden field or MOB_PARAMS."); // Keep console.error
       $button.prop("disabled", false).html(originalBtnHtml);
       return;
     }
@@ -1652,8 +1709,8 @@ jQuery(document).ready(function ($) {
       pricing: pricingJson,
     };
 
-    logToDebug({ action: 'Submitting Booking Data', data: submissionData }, 'debug', 'debug-submission-status');
-    console.log("MoBooking: Submitting with safe JSON encoding:", submissionData); // Keep console for devs
+    consoleLogTree("Final Booking Submit: Request Data", submissionData);
+    // console.log("MoBooking: Submitting with safe JSON encoding:", submissionData); // Original console.log for devs, can be removed if consoleLogTree is sufficient
 
     $.ajax({
       url: MOB_PARAMS.ajaxUrl,
@@ -1661,7 +1718,7 @@ jQuery(document).ready(function ($) {
       data: submissionData,
       dataType: "json",
       success: function (response) {
-        logToDebug({ action: 'Booking Submission Success', response: response }, 'info', 'debug-submission-status');
+        consoleLogTree("Final Booking Submit: Success Response", response);
         if (response && response.success && response.data) {
           showStep(6);
           $("#success-details").html(`
@@ -1696,7 +1753,7 @@ jQuery(document).ready(function ($) {
             errorMessage =
               MOB_PARAMS.i18n.error_ajax ||
               "Received an unexpected response from the server.";
-            logToDebug("Booking Submission Error: Unexpected server response (string):" + response, 'error', 'debug-submission-status');
+            consoleLogMessage('error', "Final Booking Submit: Unexpected server response (string):", response);
           } else if (
             response &&
             response.data &&
@@ -1707,7 +1764,7 @@ jQuery(document).ready(function ($) {
             errorMessage = response.data[0].message;
           }
           showFeedback($feedback, "error", errorMessage, false);
-          logToDebug("Booking Submission Failed (Server Response): " + JSON.stringify(response), 'error', 'debug-submission-status');
+          consoleLogMessage('error', "Final Booking Submit: Server Error Response:", response);
         }
       },
       error: function (jqXHR, textStatus, errorThrown) {
@@ -1722,8 +1779,8 @@ jQuery(document).ready(function ($) {
           textStatus: textStatus,
           errorThrown: errorThrown,
         };
-        logToDebug({ action: 'Booking Submission AJAX Error', details: errorDetails }, 'error', 'debug-submission-status');
-        console.error("AJAX Error Details for Booking Submission:", errorDetails); // Keep console for devs
+        consoleLogTree("Final Booking Submit: AJAX Error", errorDetails);
+        // console.error("AJAX Error Details for Booking Submission:", errorDetails); // Original console.error, can be removed
 
         if (
           jqXHR.responseJSON &&
