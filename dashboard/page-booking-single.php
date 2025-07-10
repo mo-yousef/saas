@@ -73,7 +73,7 @@ $booking_statuses_for_select = [ // To populate the select dropdown
 ];
 
 // Base URL for the main bookings page (for back button)
-$main_bookings_page_url = admin_url('admin.php?page=mobooking');
+$main_bookings_page_url = home_url('/dashboard/bookings/');
 
 ?>
 <div class="mobooking-single-booking-page-wrapper">
@@ -173,12 +173,52 @@ $main_bookings_page_url = admin_url('admin.php?page=mobooking');
                         (<?php echo esc_html($currency_symbol . number_format_i18n(floatval($item['service_price']), 2)); ?>)
                         <?php if (!empty($item['selected_options']) && is_array($item['selected_options'])): ?>
                             <ul class="mobooking-service-options-list">
-                                <?php foreach ($item['selected_options'] as $option): ?>
+                                <?php
+                                if (is_array($item['selected_options'])) {
+                                    foreach ($item['selected_options'] as $option_key => $option_data):
+                                        // Assuming $option_data can be the structured array like:
+                                        // ['name' => 'Doors', 'value' => '22', 'price' => 0, 'priceType' => 'fixed']
+                                        // OR it could be $option_data = ['name' => 'Option Internal Name', 'value' => actual_value_or_array]
+
+                                        $option_display_name = '';
+                                        $option_display_value = '';
+                                        $option_price_text = '';
+
+                                        if (is_array($option_data) && isset($option_data['name']) && isset($option_data['value'])) {
+                                            // This matches the structure: ['name' => 'Doors', 'value' => '22', 'price' => 0, ...]
+                                            $option_display_name = $option_data['name'];
+                                            if (is_array($option_data['value'])) {
+                                                // If 'value' itself is an array, we need a strategy to display it. For now, JSON encode.
+                                                $option_display_value = esc_html(wp_json_encode($option_data['value']));
+                                            } else {
+                                                $option_display_value = esc_html($option_data['value']);
+                                            }
+                                            $option_price = isset($option_data['price']) ? floatval($option_data['price']) : 0;
+                                            $option_price_text = ($option_price >= 0 ? '+' : '') . esc_html($currency_symbol . number_format_i18n($option_price, 2));
+
+                                        } elseif (is_string($option_key) && !is_array($option_data)) {
+                                            // Fallback for simpler key => value pairs if structure is different
+                                            $option_display_name = $option_key;
+                                            $option_display_value = esc_html($option_data);
+                                            // Price impact unknown in this simpler structure
+                                        } else {
+                                            // Fallback for unexpected structure
+                                            $option_display_name = 'Option';
+                                            $option_display_value = esc_html(wp_json_encode($option_data));
+                                        }
+                                ?>
                                     <li>
-                                        <?php echo esc_html($option['name']); ?>: <?php echo esc_html($option['value']); ?>
-                                        (<?php echo ($option['price_impact'] >= 0 ? '+' : '') . esc_html($currency_symbol . number_format_i18n(floatval($option['price_impact']), 2)); ?>)
+                                        <?php echo esc_html($option_display_name); ?>: <?php echo $option_display_value; ?>
+                                        <?php if (!empty($option_price_text)): ?>
+                                            (<?php echo $option_price_text; ?>)
+                                        <?php endif; ?>
                                     </li>
-                                <?php endforeach; ?>
+                                <?php
+                                    endforeach;
+                                } else {
+                                    echo '<li>' . esc_html__('Options data is not in expected array format.', 'mobooking') . '</li>';
+                                }
+                                ?>
                             </ul>
                         <?php endif; ?>
                         <p style="text-align: right;"><em><?php esc_html_e('Item Total:', 'mobooking'); ?> <?php echo esc_html($currency_symbol . number_format_i18n(floatval($item['item_total_price']), 2)); ?></em></p>
