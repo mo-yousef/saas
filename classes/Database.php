@@ -136,7 +136,9 @@ class Database {
             INDEX customer_email_idx (customer_email),
             INDEX zip_code_idx (zip_code),
             INDEX status_idx (status),
-            INDEX discount_id_idx (discount_id)
+            INDEX discount_id_idx (discount_id),
+            assigned_staff_id BIGINT UNSIGNED NULL, -- ID of the assigned staff member (WP User ID)
+            INDEX assigned_staff_id_idx (assigned_staff_id)
         ) $charset_collate;";
         error_log('[MoBooking DB Debug] SQL for bookings table: ' . preg_replace('/\s+/', ' ', $sql_bookings));
         $dbDelta_results['bookings'] = dbDelta( $sql_bookings );

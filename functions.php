@@ -413,6 +413,7 @@ function mobooking_enqueue_dashboard_scripts($current_page_slug = '') {
         'currency_thousand_sep' => $currency_thousand_sep,
         'site_url' => site_url(),
         'dashboard_slug' => 'dashboard', // Consistent dashboard slug
+        'currentUserCanDeleteBookings' => (current_user_can(\MoBooking\Classes\Auth::CAP_MANAGE_BOOKINGS) || !\MoBooking\Classes\Auth::is_user_worker(get_current_user_id())),
     ];
 
     // Specific to Services page

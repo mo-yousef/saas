@@ -35,6 +35,8 @@ class Auth {
     const CAP_MANAGE_AVAILABILITY = 'mobooking_manage_availability'; // New capability
     const CAP_MANAGE_CUSTOMERS = 'mobooking_manage_customers'; // New capability for managing customers
     const CAP_VIEW_CUSTOMERS = 'mobooking_view_customers';     // New capability for viewing customers
+    const CAP_ASSIGN_BOOKINGS = 'mobooking_assign_bookings'; // For assigning staff to bookings
+    const CAP_UPDATE_OWN_BOOKING_STATUS = 'mobooking_update_own_booking_status'; // For staff to update status of their assigned bookings
 
 
     const LOGIN_NONCE_ACTION = 'mobooking_login_action';
@@ -106,6 +108,7 @@ class Auth {
                 self::CAP_MANAGE_AVAILABILITY => true, // Assign to business owner
                 self::CAP_MANAGE_CUSTOMERS => true,    // Assign to business owner
                 self::CAP_VIEW_CUSTOMERS => true,      // Assign to business owner
+                self::CAP_ASSIGN_BOOKINGS => true,     // Assign to business owner
                 // 'edit_posts', 'upload_files' - examples, remove if not used by plugin features
             )
         );
@@ -124,8 +127,9 @@ class Auth {
             array(
                 'read' => true,
                 self::ACCESS_MOBOOKING_DASHBOARD => true,
-                self::CAP_MANAGE_BOOKINGS => true, // As per requirement
-                self::CAP_VIEW_BOOKINGS => true,   // If they manage, they can view
+                // self::CAP_MANAGE_BOOKINGS => true, // Removed, staff should not manage all bookings
+                self::CAP_VIEW_BOOKINGS => true,   // Staff can view bookings (will be filtered to their own if a staff dashboard is made)
+                self::CAP_UPDATE_OWN_BOOKING_STATUS => true, // Staff can update status of their own bookings
                 self::CAP_VIEW_SERVICES => true,
                 self::CAP_VIEW_DISCOUNTS => true,
                 self::CAP_VIEW_AREAS => true,
