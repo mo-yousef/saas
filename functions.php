@@ -6,7 +6,7 @@
  */
 
 if ( ! defined( 'MOBOOKING_VERSION' ) ) {
-    define( 'MOBOOKING_VERSION', '0.1.6' );
+    define( 'MOBOOKING_VERSION', '0.1.7' );
 }
 if ( ! defined( 'MOBOOKING_THEME_DIR' ) ) {
     define( 'MOBOOKING_THEME_DIR', trailingslashit( get_template_directory() ) );
