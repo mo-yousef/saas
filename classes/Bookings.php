@@ -800,9 +800,10 @@ foreach ($calculated_service_items as $service_item) {
             return;
         }
 
-        $valid_statuses = ['pending', 'confirmed', 'in-progress', 'completed', 'cancelled'];
+        // Ensure all statuses from the dropdown are considered valid
+        $valid_statuses = ['pending', 'confirmed', 'in-progress', 'completed', 'cancelled', 'on-hold', 'processing'];
         if (!in_array($new_status, $valid_statuses)) {
-            wp_send_json_error(['message' => __('Invalid status.', 'mobooking')]);
+            wp_send_json_error(['message' => __('Invalid status selected.', 'mobooking')]); // Slightly clearer message
             return;
         }
 
