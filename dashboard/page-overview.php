@@ -111,19 +111,10 @@ $dashboard_base_url = home_url('/dashboard/');
 
     <!-- Main Content Grid -->
     <div class="content-grid">
-        <!-- Chart Section -->
-        <div class="chart-container">
-            <div class="chart-header">
-                <h3 class="chart-title"><?php esc_html_e('Booking Analytics', 'mobooking'); ?></h3>
-                <div class="chart-tabs">
-                    <button class="chart-tab active" data-period="7days">7 Days</button>
-                    <button class="chart-tab" data-period="30days">30 Days</button>
-                    <button class="chart-tab" data-period="90days">90 Days</button>
-                </div>
-            </div>
-            <div class="chart-wrapper">
-                <canvas id="bookingsChart"></canvas>
-            </div>
+        <!-- Calendar Section (Placeholder for New Calendar) -->
+        <div class="calendar-container">
+            <!-- New calendar will be initialized here -->
+            <div id="mobooking-bookings-calendar"></div>
         </div>
 
         <!-- Recent Activity -->
