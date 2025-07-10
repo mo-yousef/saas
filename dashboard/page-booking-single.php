@@ -278,7 +278,7 @@ jQuery(document).ready(function($) {
         $button.prop('disabled', true);
 
         $.ajax({
-            url: ajaxurl, // WordPress AJAX URL
+            url: mobooking_dashboard_params.ajax_url, // Use localized ajax_url
             type: 'POST',
             data: {
                 action: 'mobooking_update_booking_status',
