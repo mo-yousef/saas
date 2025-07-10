@@ -23,7 +23,8 @@ jQuery(document).ready(function($) {
     let bookingsChart;
     const currencySymbol = mobooking_overview_params.currency_symbol || '$';
     const isWorker = mobooking_overview_params.is_worker || false;
-    const dashboardNonce = mobooking_overview_params.dashboard_nonce; // Assuming this will be localized
+    // Correctly access the nonce provided by PHP: mobooking_overview_params.nonce
+    const dashboardNonce = mobooking_overview_params.nonce;
 
     // Initialize the dashboard
     initializeDashboard();
