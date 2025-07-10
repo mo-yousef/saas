@@ -17,20 +17,13 @@ $booking_id_to_fetch = $single_booking_id;
 $user_id_for_permission_check = $current_user_id; // The logged-in user
 
 // Determine the actual owner ID of the booking for fetching and broad permission.
-// The get_booking method in Bookings.php needs the owner's ID.
-$booking_owner_id_for_fetch = null;
-$booking_to_check_ownership = $bookings_manager->wpdb->get_row( // Direct DB check to find owner first
-    $bookings_manager->wpdb->prepare(
-        "SELECT user_id FROM " . MoBooking\Classes\Database::get_table_name('bookings') . " WHERE booking_id = %d",
-        $booking_id_to_fetch
-    )
-);
+$actual_booking_owner_id = $bookings_manager->get_booking_owner_id($booking_id_to_fetch);
+$booking_owner_id_for_fetch = null; // Will be set if $can_view is true
 
-if (!$booking_to_check_ownership) {
-    echo '<div class="notice notice-error"><p>' . esc_html__( 'Booking not found.', 'mobooking' ) . '</p></div>';
+if ($actual_booking_owner_id === null) { // Check if null, meaning booking not found by the new method
+    echo '<div class="notice notice-error"><p>' . esc_html__( 'Booking not found or owner could not be determined.', 'mobooking' ) . '</p></div>';
     return;
 }
-$actual_booking_owner_id = (int) $booking_to_check_ownership->user_id;
 
 // Permission Check: Can the current user view this booking?
 $can_view = false;
