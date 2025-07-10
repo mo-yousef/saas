@@ -243,4 +243,149 @@ class Notifications {
     // Placeholder for other notifications
     // public function send_booking_update_email(...) {}
     // public function send_password_reset_email(...) {} // Usually handled by WP default
+
+    /**
+     * Sends a notification to a staff member when a booking is assigned to them.
+     * @param int $staff_user_id The ID of the staff member.
+     * @param int $booking_id The ID of the booking.
+     * @param array $booking_details Basic booking details (e.g., ref, customer name, date/time).
+     * @param int $tenant_user_id The ID of the business owner.
+     * @return bool
+     */
+    public function send_staff_assignment_notification(int $staff_user_id, int $booking_id, array $booking_details, int $tenant_user_id) {
+        $staff_user = get_userdata($staff_user_id);
+        if (!$staff_user || empty($staff_user->user_email)) {
+            error_log("MoBooking Notifications: Invalid staff user ID or email for assignment notification. Staff ID: {$staff_user_id}");
+            return false;
+        }
+
+        $settings_manager = new Settings();
+        $locale_switched = false;
+        $original_locale = get_locale();
+        // Prefer staff member's own language setting if available, otherwise tenant's, then site default.
+        $staff_language = $settings_manager->get_setting($staff_user_id, 'biz_user_language', ''); // Assuming staff can also have language settings
+        if (empty($staff_language) && $tenant_user_id) {
+            $staff_language = $settings_manager->get_setting($tenant_user_id, 'biz_user_language', '');
+        }
+
+        if (!empty($staff_language) && is_string($staff_language) && preg_match('/^[a-z]{2,3}(_[A-Z]{2})?$/', $staff_language)) {
+            if ($original_locale !== $staff_language) {
+                if (switch_to_locale($staff_language)) {
+                    $locale_switched = true;
+                    $theme_dir = defined('MOBOOKING_THEME_DIR') ? MOBOOKING_THEME_DIR : get_template_directory();
+                    load_theme_textdomain('mobooking', $theme_dir . '/languages');
+                }
+            }
+        }
+
+        $tenant_business_name = get_bloginfo('name');
+        if ($tenant_user_id) {
+            $tenant_business_name_setting = $settings_manager->get_setting($tenant_user_id, 'biz_name', get_bloginfo('name'));
+            if (!empty($tenant_business_name_setting)) {
+                $tenant_business_name = $tenant_business_name_setting;
+            }
+        }
+
+        $ref = isset($booking_details['booking_reference']) ? esc_html($booking_details['booking_reference']) : __('N/A', 'mobooking');
+        $customer_name = isset($booking_details['customer_name']) ? esc_html($booking_details['customer_name']) : __('N/A', 'mobooking');
+        $datetime = (isset($booking_details['booking_date']) && isset($booking_details['booking_time'])) ?
+                    esc_html(date_i18n(get_option('date_format') . ' ' . get_option('time_format'), strtotime($booking_details['booking_date'] . ' ' . $booking_details['booking_time']))) :
+                    __('N/A', 'mobooking');
+        $dashboard_link = home_url('/dashboard/my-assigned-bookings/'); // Or a direct link to the booking if preferred.
+
+        $subject = sprintf(__('New Booking Assignment - Ref: %s - %s', 'mobooking'), $ref, $tenant_business_name);
+
+        $message  = "<p>" . sprintf(__('Hi %s,', 'mobooking'), esc_html($staff_user->display_name)) . "</p>";
+        $message .= "<p>" . sprintf(__('You have been assigned a new booking (Ref: %s) for %s.', 'mobooking'), $ref, $tenant_business_name) . "</p>";
+        $message .= "<h3>" . __('Booking Details:', 'mobooking') . "</h3>";
+        $message .= "<ul>";
+        $message .= "<li><strong>" . __('Customer:', 'mobooking') . "</strong> " . $customer_name . "</li>";
+        $message .= "<li><strong>" . __('Date & Time:', 'mobooking') . "</strong> " . $datetime . "</li>";
+        $message .= "</ul>";
+        $message .= "<p>" . sprintf(__('You can view the details of this booking in your dashboard: %s', 'mobooking'), '<a href="' . esc_url($dashboard_link) . '">' . esc_url($dashboard_link) . '</a>') . "</p>";
+        $message .= "<p>" . __('Thank you,', 'mobooking') . "<br>" . $tenant_business_name . "</p>";
+
+        $headers = $this->get_email_headers($tenant_user_id); // From the perspective of the business
+        $email_sent = wp_mail($staff_user->user_email, $subject, $message, $headers);
+
+        if ($locale_switched) {
+            restore_current_locale();
+            $theme_dir = defined('MOBOOKING_THEME_DIR') ? MOBOOKING_THEME_DIR : get_template_directory();
+            load_theme_textdomain('mobooking', $theme_dir . '/languages');
+        }
+
+        if (!$email_sent) {
+            error_log("MoBooking Notifications: Failed to send assignment email to staff {$staff_user_id} for booking {$booking_id}.");
+        }
+        return $email_sent;
+    }
+
+    /**
+     * Sends a notification to the admin/business owner when a booking status changes.
+     * @param int $booking_id The ID of the booking.
+     * @param string $new_status The new status.
+     * @param string $old_status The old status.
+     * @param array $booking_details Basic booking details.
+     * @param int $tenant_user_id The ID of the business owner.
+     * @param int $updated_by_user_id The ID of the user who made the change.
+     * @return bool
+     */
+    public function send_admin_status_change_notification(int $booking_id, string $new_status, string $old_status, array $booking_details, int $tenant_user_id, int $updated_by_user_id) {
+        $admin_user = get_userdata($tenant_user_id);
+        if (!$admin_user || empty($admin_user->user_email)) {
+            error_log("MoBooking Notifications: Invalid admin user ID or email for status change notification. Admin ID: {$tenant_user_id}");
+            return false;
+        }
+
+        $settings_manager = new Settings();
+        $locale_switched = false;
+        $original_locale = get_locale();
+        $admin_language = $settings_manager->get_setting($tenant_user_id, 'biz_user_language', '');
+
+        if (!empty($admin_language) && is_string($admin_language) && preg_match('/^[a-z]{2,3}(_[A-Z]{2})?$/', $admin_language)) {
+            if ($original_locale !== $admin_language) {
+                if (switch_to_locale($admin_language)) {
+                    $locale_switched = true;
+                    $theme_dir = defined('MOBOOKING_THEME_DIR') ? MOBOOKING_THEME_DIR : get_template_directory();
+                    load_theme_textdomain('mobooking', $theme_dir . '/languages');
+                }
+            }
+        }
+
+        $tenant_business_name = $settings_manager->get_setting($tenant_user_id, 'biz_name', get_bloginfo('name'));
+         if (empty($tenant_business_name)) {
+            $tenant_business_name = get_bloginfo('name');
+        }
+
+        $updater_user = get_userdata($updated_by_user_id);
+        $updater_name = $updater_user ? $updater_user->display_name : __('Unknown User', 'mobooking');
+
+        $ref = isset($booking_details['booking_reference']) ? esc_html($booking_details['booking_reference']) : __('N/A', 'mobooking');
+        $dashboard_link = home_url('/dashboard/bookings/?action=view_booking&booking_id=' . $booking_id);
+
+        $subject = sprintf(__('Booking Status Updated - Ref: %s - %s', 'mobooking'), $ref, $tenant_business_name);
+
+        $message  = "<p>" . sprintf(__('The status for booking reference %s has been updated.', 'mobooking'), $ref) . "</p>";
+        $message .= "<ul>";
+        $message .= "<li><strong>" . __('Old Status:', 'mobooking') . "</strong> " . esc_html(ucfirst($old_status)) . "</li>";
+        $message .= "<li><strong>" . __('New Status:', 'mobooking') . "</strong> " . esc_html(ucfirst($new_status)) . "</li>";
+        $message .= "<li><strong>" . __('Updated By:', 'mobooking') . "</strong> " . esc_html($updater_name) . " (ID: {$updated_by_user_id})</li>";
+        $message .= "</ul>";
+        $message .= "<p>" . sprintf(__('You can view the booking details here: %s', 'mobooking'), '<a href="' . esc_url($dashboard_link) . '">' . esc_url($dashboard_link) . '</a>') . "</p>";
+        $message .= "<p>" . __('Regards,', 'mobooking') . "<br>" . __('MoBooking System', 'mobooking') . "</p>"; // Or $tenant_business_name
+
+        $headers = $this->get_email_headers($tenant_user_id);
+        $email_sent = wp_mail($admin_user->user_email, $subject, $message, $headers);
+
+        if ($locale_switched) {
+            restore_current_locale();
+            $theme_dir = defined('MOBOOKING_THEME_DIR') ? MOBOOKING_THEME_DIR : get_template_directory();
+            load_theme_textdomain('mobooking', $theme_dir . '/languages');
+        }
+
+        if (!$email_sent) {
+            error_log("MoBooking Notifications: Failed to send status change email to admin {$tenant_user_id} for booking {$booking_id}.");
+        }
+        return $email_sent;
+    }
 }

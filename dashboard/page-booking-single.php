@@ -95,6 +95,7 @@ if (!function_exists('mobooking_get_feather_icon')) {
             case 'pause-circle': $svg = '<svg xmlns="http://www.w3.org/2000/svg" '.$attrs.' viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="10" y1="15" x2="10" y2="9"></line><line x1="14" y1="15" x2="14" y2="9"></line></svg>'; break;
             case 'check-square': $svg = '<svg xmlns="http://www.w3.org/2000/svg" '.$attrs.' viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>'; break;
             case 'x-circle': $svg = '<svg xmlns="http://www.w3.org/2000/svg" '.$attrs.' viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>'; break;
+            case 'user-plus': $svg = '<svg xmlns="http://www.w3.org/2000/svg" '.$attrs.' viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="17" y1="11" x2="23" y2="11"></line></svg>'; break;
             default: $svg = '<!-- icon not found: '.esc_attr($icon_name).' -->'; break;
         }
         return $svg;
@@ -326,6 +327,43 @@ if (!function_exists('mobooking_get_status_badge_icon_svg')) {
                 </div>
                 <div id="mobooking-single-status-feedback" class="mobooking-status-feedback"></div>
             </div>
+
+            <!-- Staff Assignment Section -->
+            <?php
+            if (current_user_can(MoBooking\Classes\Auth::CAP_ASSIGN_BOOKINGS) || current_user_can(MoBooking\Classes\Auth::CAP_MANAGE_BOOKINGS)) :
+                $workers = get_users([
+                    'meta_key'   => \MoBooking\Classes\Auth::META_KEY_OWNER_ID,
+                    'meta_value' => $booking_owner_id_for_fetch, // Use the owner ID determined earlier
+                    'role__in'   => [\MoBooking\Classes\Auth::ROLE_WORKER_STAFF],
+                ]);
+            ?>
+            <div class="mobooking-staff-assignment-section" style="margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed var(--border, #e0e0e0);">
+                <p class="mobooking-sbs-item"><strong><?php esc_html_e('Assigned Staff:', 'mobooking'); ?></strong>
+                    <span id="mobooking-current-assigned-staff">
+                        <?php echo isset($booking['assigned_staff_name']) ? esc_html($booking['assigned_staff_name']) : esc_html__('Unassigned', 'mobooking'); ?>
+                    </span>
+                </p>
+                <div class="mobooking-staff-assignment-form" style="display: flex; align-items: center; gap: 0.75rem; margin-top: 0.5rem; flex-wrap: wrap;">
+                    <label for="mobooking-single-assign-staff-select"><?php echo mobooking_get_feather_icon('user-plus', 'width="16" height="16" style="vertical-align:middle; margin-right:0.25rem;"'); ?> <?php esc_html_e('Assign to Staff:', 'mobooking'); ?></label>
+                    <select id="mobooking-single-assign-staff-select" data-booking-id="<?php echo esc_attr($booking['booking_id']); ?>">
+                        <option value="0"><?php esc_html_e('-- Unassign --', 'mobooking'); ?></option>
+                        <?php if (!empty($workers)) : ?>
+                            <?php foreach ($workers as $worker) : ?>
+                                <option value="<?php echo esc_attr($worker->ID); ?>" <?php selected(isset($booking['assigned_staff_id']) ? $booking['assigned_staff_id'] : 0, $worker->ID); ?>>
+                                    <?php echo esc_html($worker->display_name); ?> (<?php echo esc_html($worker->user_email); ?>)
+                                </option>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <option value="" disabled><?php esc_html_e('No staff available for this business.', 'mobooking'); ?></option>
+                        <?php endif; ?>
+                    </select>
+                    <button id="mobooking-single-save-staff-assignment-btn" class="button button-primary button-small"><?php esc_html_e('Save Assignment', 'mobooking'); ?></button>
+                </div>
+                <div id="mobooking-single-staff-assignment-feedback" class="mobooking-status-feedback"></div>
+            </div>
+            <?php endif; ?>
+            <!-- End Staff Assignment Section -->
+
              <div class="mobooking-meta-info">
                 <p><?php esc_html_e('Created:', 'mobooking'); ?> <?php echo esc_html($created_at_formatted); ?> | <?php esc_html_e('Last Updated:', 'mobooking'); ?> <?php echo esc_html($updated_at_formatted); ?></p>
             </div>
@@ -535,5 +573,48 @@ jQuery(document).ready(function($) {
     //         return (cls.match(new RegExp('\\b' + re + '', 'g')) || []).join(' ');
     //     });
     // };
+
+    $('#mobooking-single-save-staff-assignment-btn').on('click', function() {
+        var $button = $(this);
+        var bookingId = $('#mobooking-single-assign-staff-select').data('booking-id');
+        var staffId = $('#mobooking-single-assign-staff-select').val();
+        var $feedback = $('#mobooking-single-staff-assignment-feedback');
+        var $currentStaffDisplay = $('#mobooking-current-assigned-staff');
+        var selectedStaffName = $('#mobooking-single-assign-staff-select option:selected').text();
+
+
+        $feedback.text('<?php echo esc_js( __( 'Updating assignment...', 'mobooking' ) ); ?>').removeClass('success error');
+        $button.prop('disabled', true);
+
+        $.ajax({
+            url: mobooking_dashboard_params.ajax_url,
+            type: 'POST',
+            data: {
+                action: 'mobooking_assign_staff_to_booking',
+                nonce: '<?php echo wp_create_nonce('mobooking_dashboard_nonce'); ?>', // Ensure this nonce is appropriate
+                booking_id: bookingId,
+                staff_id: staffId
+            },
+            success: function(response) {
+                if (response.success) {
+                    $feedback.text(response.data.message || '<?php echo esc_js( __( 'Assignment updated successfully!', 'mobooking' ) ); ?>').addClass('success').removeClass('error');
+                    if (staffId === "0" || staffId === 0) {
+                        $currentStaffDisplay.text('<?php echo esc_js(__('Unassigned', 'mobooking')); ?>');
+                    } else {
+                        $currentStaffDisplay.text(selectedStaffName.split(' (')[0]); // Get only the name part
+                    }
+                } else {
+                    $feedback.text(response.data.message || '<?php echo esc_js( __( 'Error updating assignment.', 'mobooking' ) ); ?>').addClass('error').removeClass('success');
+                }
+            },
+            error: function() {
+                $feedback.text('<?php echo esc_js( __( 'AJAX request failed.', 'mobooking' ) ); ?>').addClass('error').removeClass('success');
+            },
+            complete: function() {
+                $button.prop('disabled', false);
+                setTimeout(function() { $feedback.text(''); }, 5000);
+            }
+        });
+    });
 });
 </script>

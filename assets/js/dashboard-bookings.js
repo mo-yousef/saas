@@ -13,6 +13,7 @@ jQuery(document).ready(function($) {
         date_from_filter: '',
         date_to_filter: '',
         search_query: '',
+        assigned_staff_id_filter: '', // New filter
         paged: 1,
         limit: 20 // Default items per page, can be made configurable
     };
@@ -120,6 +121,7 @@ jQuery(document).ready(function($) {
         currentFilters.date_from_filter = $('#mobooking-date-from-filter').val();
         currentFilters.date_to_filter = $('#mobooking-date-to-filter').val();
         currentFilters.search_query = $('#mobooking-search-query').val();
+        currentFilters.assigned_staff_id_filter = $('#mobooking-staff-filter').val(); // Get staff filter value
         loadBookings(1); // Reset to page 1 on new filter
     });
 
@@ -130,6 +132,7 @@ jQuery(document).ready(function($) {
         currentFilters.date_from_filter = '';
         currentFilters.date_to_filter = '';
         currentFilters.search_query = '';
+        currentFilters.assigned_staff_id_filter = ''; // Clear staff filter
         loadBookings(1);
     });
 

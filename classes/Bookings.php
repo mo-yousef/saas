@@ -32,6 +32,7 @@ class Bookings {
         add_action('wp_ajax_mobooking_create_dashboard_booking', [$this, 'handle_create_dashboard_booking_ajax']);
         add_action('wp_ajax_mobooking_update_dashboard_booking_fields', [$this, 'handle_update_dashboard_booking_fields_ajax']);
         add_action('wp_ajax_mobooking_delete_dashboard_booking', [$this, 'handle_delete_dashboard_booking_ajax']);
+        add_action('wp_ajax_mobooking_assign_staff_to_booking', [$this, 'handle_assign_staff_to_booking_ajax']);
     }
 
     /**
@@ -384,7 +385,8 @@ public function handle_create_booking_public_ajax() {
                 'total_price' => $final_total_server,
                 'status' => 'pending',
                 'created_at' => current_time('mysql'),
-                'updated_at' => current_time('mysql')
+                'updated_at' => current_time('mysql'),
+                'assigned_staff_id' => isset($payload['assigned_staff_id']) && !empty($payload['assigned_staff_id']) ? intval($payload['assigned_staff_id']) : null
             ];
 
 
@@ -552,6 +554,17 @@ foreach ($calculated_service_items as $service_item) {
             array_merge($where_values, [$per_page, $offset])
         ), ARRAY_A);
 
+        if (!empty($bookings)) {
+            foreach ($bookings as &$booking_item) {
+                if (!empty($booking_item['assigned_staff_id'])) {
+                    $staff_user = get_userdata($booking_item['assigned_staff_id']);
+                    $booking_item['assigned_staff_name'] = $staff_user ? $staff_user->display_name : __('Unknown Staff', 'mobooking');
+                } else {
+                    $booking_item['assigned_staff_name'] = __('Unassigned', 'mobooking');
+                }
+            }
+        }
+
         return [
             'bookings' => $bookings ?: [],
             'total' => intval($total),
@@ -592,6 +605,9 @@ foreach ($calculated_service_items as $service_item) {
         $search_query = isset($args['search_query']) ? sanitize_text_field($args['search_query']) : '';
         $date_from = isset($args['date_from']) ? sanitize_text_field($args['date_from']) : '';
         $date_to = isset($args['date_to']) ? sanitize_text_field($args['date_to']) : '';
+        $assigned_staff_id_filter = isset($args['assigned_staff_id_filter']) ? $args['assigned_staff_id_filter'] : null; // Null for all, '0' for unassigned, or specific ID
+        $filter_by_exactly_assigned_staff_id = isset($args['filter_by_exactly_assigned_staff_id']) ? intval($args['filter_by_exactly_assigned_staff_id']) : null;
+
 
         // Validate order direction
         if (!in_array($order, ['ASC', 'DESC'])) {
@@ -637,6 +653,21 @@ foreach ($calculated_service_items as $service_item) {
             $where_values[] = $date_to;
         }
 
+        // Assigned staff filter
+        if ($filter_by_exactly_assigned_staff_id !== null && $filter_by_exactly_assigned_staff_id > 0) {
+            // This filter takes precedence for the "My Assigned Bookings" page
+            $where_conditions[] = "assigned_staff_id = %d";
+            $where_values[] = $filter_by_exactly_assigned_staff_id;
+        } elseif ($assigned_staff_id_filter !== null && $assigned_staff_id_filter !== '') {
+            // This is the general filter from the main bookings list
+            if ($assigned_staff_id_filter === '0') { // Specifically check for '0' for unassigned
+                $where_conditions[] = "assigned_staff_id IS NULL";
+            } else {
+                $where_conditions[] = "assigned_staff_id = %d";
+                $where_values[] = intval($assigned_staff_id_filter);
+            }
+        }
+
         $where_clause = 'WHERE ' . implode(' AND ', $where_conditions);
 
         // Get total count for pagination
@@ -656,6 +687,14 @@ foreach ($calculated_service_items as $service_item) {
             $items_table = Database::get_table_name('booking_items');
             
             foreach ($bookings as &$booking) {
+                // Fetch assigned staff member display name
+                if (!empty($booking['assigned_staff_id'])) {
+                    $staff_user = get_userdata($booking['assigned_staff_id']);
+                    $booking['assigned_staff_name'] = $staff_user ? $staff_user->display_name : __('Unknown Staff', 'mobooking');
+                } else {
+                    $booking['assigned_staff_name'] = __('Unassigned', 'mobooking');
+                }
+
                 // Try to get booking items from separate table first
                 $booking_items = $this->wpdb->get_results($this->wpdb->prepare(
                     "SELECT * FROM $items_table WHERE booking_id = %d ORDER BY item_id ASC", 
@@ -723,6 +762,14 @@ foreach ($calculated_service_items as $service_item) {
 
         if ($booking) {
             error_log("[MoBooking Bookings->get_booking] Booking {$booking_id} found for user_id_to_query_for: {$user_id_to_query_for}.");
+
+            // Fetch assigned staff member display name
+            if (!empty($booking['assigned_staff_id'])) {
+                $staff_user = get_userdata($booking['assigned_staff_id']);
+                $booking['assigned_staff_name'] = $staff_user ? $staff_user->display_name : __('Unknown Staff', 'mobooking');
+            } else {
+                $booking['assigned_staff_name'] = __('Unassigned', 'mobooking');
+            }
             
             // Try to get booking items from separate table first
             $items_table = Database::get_table_name('booking_items');
@@ -801,13 +848,37 @@ foreach ($calculated_service_items as $service_item) {
         }
 
         // Ensure all statuses from the dropdown are considered valid
-        $valid_statuses = ['pending', 'confirmed', 'in-progress', 'completed', 'cancelled', 'on-hold', 'processing'];
+        $valid_statuses = ['pending', 'confirmed', 'assigned', 'in-progress', 'completed', 'cancelled', 'on-hold', 'processing'];
         if (!in_array($new_status, $valid_statuses)) {
             wp_send_json_error(['message' => __('Invalid status selected.', 'mobooking')]); // Slightly clearer message
             return;
         }
 
-        $result = $this->update_booking_status($booking_id, $new_status, $user_id);
+        // Permission check:
+        // 1. Owner can always update.
+        // 2. Staff can update if they have CAP_UPDATE_OWN_BOOKING_STATUS and are assigned to this booking.
+        $booking_owner_id = $this->get_booking_owner_id($booking_id);
+        $can_update = false;
+
+        if ($booking_owner_id === $user_id) { // User is the owner of the business that owns the booking
+            $can_update = true;
+        } elseif (Auth::is_user_worker($user_id) && current_user_can(Auth::CAP_UPDATE_OWN_BOOKING_STATUS)) {
+            // Check if worker is assigned to this booking
+            $booking_details = $this->get_booking($booking_id, $booking_owner_id); // Fetch with owner ID to get details
+            if ($booking_details && isset($booking_details['assigned_staff_id']) && (int)$booking_details['assigned_staff_id'] === $user_id) {
+                $can_update = true;
+            } else {
+                 wp_send_json_error(['message' => __('You can only update status for bookings assigned to you.', 'mobooking')], 403);
+                 return;
+            }
+        }
+
+        if (!$can_update) {
+            wp_send_json_error(['message' => __('You do not have permission to update this booking status.', 'mobooking')], 403);
+            return;
+        }
+
+        $result = $this->update_booking_status($booking_id, $new_status, $booking_owner_id, $user_id); // Pass current user_id as updater_id
         if (is_wp_error($result)) {
             wp_send_json_error(['message' => $result->get_error_message()]);
         } else {
@@ -815,19 +886,44 @@ foreach ($calculated_service_items as $service_item) {
         }
     }
 
-    public function update_booking_status(int $booking_id, string $new_status, int $tenant_user_id) {
+    public function update_booking_status(int $booking_id, string $new_status, int $tenant_user_id, int $updated_by_user_id = 0) {
         $bookings_table = Database::get_table_name('bookings');
+
+        if ($updated_by_user_id === 0) {
+            $updated_by_user_id = get_current_user_id(); // Default to current user if not explicitly passed
+        }
+
+        // Get old status for notification
+        $old_booking_data = $this->get_booking_by_id($booking_id, $tenant_user_id);
+        if (!$old_booking_data) {
+            return new \WP_Error('booking_not_found', __('Booking not found to update status.', 'mobooking'));
+        }
+        $old_status = $old_booking_data['status'];
+
+        // Prevent update if status is the same
+        if ($old_status === $new_status) {
+            return true; // No change needed, not an error.
+        }
         
         $updated = $this->wpdb->update(
             $bookings_table,
             ['status' => $new_status, 'updated_at' => current_time('mysql')],
-            ['booking_id' => $booking_id, 'user_id' => $tenant_user_id],
+            ['booking_id' => $booking_id, 'user_id' => $tenant_user_id], // Ensure user_id is tenant's ID
             ['%s', '%s'],
             ['%d', '%d']
         );
 
         if (false === $updated) {
             return new \WP_Error('db_update_error', __('Could not update booking status.', 'mobooking'));
+        }
+
+        // Send notification to admin
+        if ($this->notifications_manager && method_exists($this->notifications_manager, 'send_admin_status_change_notification')) {
+            // Fetch fresh booking details for the email, including assigned staff etc.
+            $booking_details_for_email = $this->get_booking($booking_id, $tenant_user_id);
+            if ($booking_details_for_email) {
+                 $this->notifications_manager->send_admin_status_change_notification($booking_id, $new_status, $old_status, $booking_details_for_email, $tenant_user_id, $updated_by_user_id);
+            }
         }
 
         return true;
@@ -930,7 +1026,7 @@ foreach ($calculated_service_items as $service_item) {
         // Whitelist of allowed fields to update
         $allowed_fields = [
             'customer_name', 'customer_email', 'customer_phone', 'service_address',
-            'booking_date', 'booking_time', 'special_instructions', 'status'
+            'booking_date', 'booking_time', 'special_instructions', 'status', 'assigned_staff_id'
         ];
         
         $filtered_data = [];
@@ -1229,6 +1325,106 @@ foreach ($calculated_service_items as $service_item) {
             return null;
         }
         return (int) $owner_id;
+    }
+
+    public function handle_assign_staff_to_booking_ajax() {
+        check_ajax_referer('mobooking_dashboard_nonce', 'nonce'); // Assuming a general dashboard nonce
+        $current_user_id = get_current_user_id();
+
+        if ( !current_user_can(Auth::CAP_MANAGE_BOOKINGS) && !current_user_can(Auth::CAP_ASSIGN_BOOKINGS) ) { // CAP_ASSIGN_BOOKINGS would be a new capability
+            wp_send_json_error(['message' => __('You do not have permission to assign bookings.', 'mobooking')], 403);
+            return;
+        }
+
+        $booking_id = isset($_POST['booking_id']) ? intval($_POST['booking_id']) : 0;
+        $staff_id = isset($_POST['staff_id']) ? intval($_POST['staff_id']) : 0; // 0 means unassign
+
+        if (empty($booking_id)) {
+            wp_send_json_error(['message' => __('Booking ID is required.', 'mobooking')], 400);
+            return;
+        }
+
+        // Validate staff_id if not 0 (unassigning)
+        if ($staff_id !== 0) {
+            $staff_user = get_userdata($staff_id);
+            if (!$staff_user || !in_array(Auth::ROLE_WORKER_STAFF, $staff_user->roles)) {
+                wp_send_json_error(['message' => __('Invalid staff member selected.', 'mobooking')], 400);
+                return;
+            }
+            // Further check: ensure the staff member belongs to the same business owner if applicable
+            $booking_owner_id = $this->get_booking_owner_id($booking_id);
+            if ($booking_owner_id) {
+                $staff_owner_id = Auth::get_business_owner_id_for_worker($staff_id);
+                if ($booking_owner_id !== $staff_owner_id) {
+                    wp_send_json_error(['message' => __('Staff member does not belong to this business.', 'mobooking')], 403);
+                    return;
+                }
+            }
+        }
+
+        $result = $this->assign_staff_to_booking($booking_id, $staff_id, $current_user_id);
+
+        if (is_wp_error($result)) {
+            wp_send_json_error(['message' => $result->get_error_message()], 500);
+        } else {
+            // Optionally, send notification here if this step is confirmed
+            // if ($staff_id !== 0 && class_exists('MoBooking\Classes\Notifications')) {
+            //     $booking_details = $this->get_booking($booking_id, $current_user_id); // Or a simplified version
+            //     $this->notifications_manager->send_staff_assignment_notification($staff_id, $booking_id, $booking_details);
+            // }
+            wp_send_json_success(['message' => __('Booking assignment updated successfully.', 'mobooking')]);
+        }
+    }
+
+    public function assign_staff_to_booking(int $booking_id, int $staff_id, int $current_user_id) {
+        $bookings_table = Database::get_table_name('bookings');
+
+        // Verify booking belongs to the current user's business or user has rights
+        $booking_owner_id = $this->get_booking_owner_id($booking_id);
+        $user_to_check_against = $current_user_id;
+
+        if (Auth::is_user_worker($current_user_id)) {
+            $user_to_check_against = Auth::get_business_owner_id_for_worker($current_user_id);
+        }
+
+        if (!$booking_owner_id || $booking_owner_id !== $user_to_check_against) {
+            if (!current_user_can(Auth::CAP_MANAGE_BOOKINGS_OTHERS)) { // A more global capability if needed
+                 return new \WP_Error('auth_error', __('You do not have permission to modify this booking.', 'mobooking'));
+            }
+        }
+
+        $staff_id_to_save = ($staff_id === 0) ? null : $staff_id;
+
+        $updated = $this->wpdb->update(
+            $bookings_table,
+            ['assigned_staff_id' => $staff_id_to_save, 'updated_at' => current_time('mysql')],
+            ['booking_id' => $booking_id],
+            [$staff_id_to_save === null ? '%s' : '%d', '%s'], // Handle null correctly
+            ['%d']
+        );
+
+        if (false === $updated) {
+            return new \WP_Error('db_update_error', __('Could not assign staff to booking.', 'mobooking'));
+        }
+
+        // Potentially update booking status to 'Assigned' if it was 'pending' and a staff member is assigned
+        if ($staff_id_to_save !== null) {
+            $booking = $this->get_booking($booking_id, $current_user_id); // Fetch current booking data
+            if ($booking && $booking['status'] === 'pending') {
+                // Note: update_booking_status will trigger its own admin notification if implemented there.
+                $this->update_booking_status($booking_id, 'assigned', $booking_owner_id, $current_user_id); // Pass $current_user_id as updater
+            }
+            // Send notification to staff
+            if ($this->notifications_manager && method_exists($this->notifications_manager, 'send_staff_assignment_notification')) {
+                $booking_details_for_staff_email = $booking ?: $this->get_booking($booking_id, $current_user_id);
+                if ($booking_details_for_staff_email) {
+                    $this->notifications_manager->send_staff_assignment_notification($staff_id_to_save, $booking_id, $booking_details_for_staff_email, $booking_owner_id);
+                }
+            }
+        }
+
+
+        return true;
     }
 }
 ?>
