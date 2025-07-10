@@ -399,6 +399,116 @@ function mobooking_enqueue_dashboard_scripts($current_page_slug = '') {
     }
 
     // General dashboard params
+
+// AJAX handler for fetching all bookings for FullCalendar
+add_action('wp_ajax_mobooking_get_all_bookings_for_calendar', 'mobooking_ajax_get_all_bookings_for_calendar');
+if ( ! function_exists( 'mobooking_ajax_get_all_bookings_for_calendar' ) ) {
+    function mobooking_ajax_get_all_bookings_for_calendar() {
+        // Verify nonce
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'mobooking_dashboard_nonce')) {
+            wp_send_json_error(array('message' => 'Security check failed: Invalid nonce.'), 403);
+            return;
+        }
+
+        $current_user_id = get_current_user_id();
+        if (!$current_user_id) {
+            wp_send_json_error(array('message' => 'User not authenticated.'), 401);
+            return;
+        }
+
+        if (!isset($GLOBALS['mobooking_bookings_manager'])) {
+             wp_send_json_error(array('message' => 'Bookings component not available.'), 500);
+            return;
+        }
+        $bookings_manager = $GLOBALS['mobooking_bookings_manager'];
+        $dashboard_base_url = home_url('/dashboard/bookings/?booking_id='); // Base URL for booking details
+
+        // Determine user for data fetching (handle workers)
+        $data_user_id = $current_user_id;
+        if (class_exists('MoBooking\Classes\Auth') && \MoBooking\Classes\Auth::is_user_worker($current_user_id)) {
+            $owner_id = \MoBooking\Classes\Auth::get_business_owner_id_for_worker($current_user_id);
+            if ($owner_id) {
+                $data_user_id = $owner_id;
+            }
+        }
+
+        // Get start and end date parameters if provided by FullCalendar
+        $start_date_str = isset($_POST['start']) ? sanitize_text_field($_POST['start']) : null;
+        $end_date_str = isset($_POST['end']) ? sanitize_text_field($_POST['end']) : null;
+
+        try {
+            // TODO: Implement/use a method in Bookings class like:
+            // $bookings = $bookings_manager->get_bookings_for_calendar($data_user_id, $start_date_str, $end_date_str);
+            // For now, let's fetch all bookings as a placeholder and then filter/format.
+            // This is NOT efficient for large numbers of bookings and should be replaced.
+            $all_bookings_result = $bookings_manager->get_bookings_by_tenant($data_user_id, ['limit' => -1, 'status' => null]);
+
+            if (is_wp_error($all_bookings_result)) {
+                wp_send_json_error(array('message' => $all_bookings_result->get_error_message()), 400);
+                return;
+            }
+
+            $bookings = $all_bookings_result['bookings'] ?? array();
+            $calendar_events = array();
+
+            foreach ($bookings as $booking) {
+                // Combine date and time for a full start datetime.
+                // Ensure booking_date and booking_time are valid.
+                if (empty($booking['booking_date']) || empty($booking['booking_time'])) {
+                    continue;
+                }
+
+                $start_datetime_str = $booking['booking_date'] . ' ' . $booking['booking_time'];
+                $start_datetime = new DateTime($start_datetime_str);
+
+                // Placeholder: Assume a default duration if not available, e.g., 1 hour.
+                // Ideally, service duration should be fetched and added.
+                $end_datetime = clone $start_datetime;
+                // $service_duration_minutes = $booking['service_duration'] ?? 60; // Assuming service_duration is available
+                // $end_datetime->add(new DateInterval('PT' . $service_duration_minutes . 'M'));
+
+
+                // Basic status to color mapping
+                $event_color = '#3a87ad'; // Default blue
+                switch ($booking['status']) {
+                    case 'confirmed':
+                        $event_color = '#468847'; // Green
+                        break;
+                    case 'pending':
+                        $event_color = '#f89406'; // Orange
+                        break;
+                    case 'cancelled':
+                        $event_color = '#b94a48'; // Red
+                        break;
+                    case 'completed':
+                         $event_color = '#3a58ad'; // Darker Blue
+                        break;
+                }
+
+                $calendar_events[] = array(
+                    'id' => $booking['booking_id'],
+                    'title' => $booking['customer_name'] . ' - ' . ($booking['service_name'] ?? 'Booking'), // Assuming service_name is available
+                    'start' => $start_datetime->format(DateTime::ATOM), // ISO8601
+                    // 'end' => $end_datetime->format(DateTime::ATOM), // ISO8601 if duration is known
+                    'allDay' => false, // Or true if it's an all-day event without specific time
+                    'url' => esc_url($dashboard_base_url . $booking['booking_id']),
+                    'backgroundColor' => $event_color,
+                    'borderColor' => $event_color,
+                    // You can add more custom properties here
+                    // 'extendedProps' => array(
+                    //     'status' => $booking['status'],
+                    //     'serviceName' => $booking['service_name'] ?? ''
+                    // )
+                );
+            }
+
+            wp_send_json_success($calendar_events);
+
+        } catch (Exception $e) {
+            wp_send_json_error(array('message' => 'Failed to load bookings for calendar: ' . $e->getMessage()), 500);
+        }
+    }
+}
     $dashboard_params = [
         'ajax_url' => admin_url('admin-ajax.php'),
         'nonce' => wp_create_nonce('mobooking_dashboard_nonce'), // General dashboard nonce
@@ -572,14 +682,16 @@ function mobooking_enqueue_dashboard_scripts($current_page_slug = '') {
 
     // Specific to Overview page (Dashboard)
     if ($current_page_slug === 'overview') {
-        // Enqueue Chart.js
-        wp_enqueue_script('chart-js', 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js', array(), '3.9.1', true);
+        // Enqueue FullCalendar (using CDN links for v5)
+        wp_enqueue_style('fullcalendar-main-css', 'https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css', array(), '5.11.3');
+        wp_enqueue_script('fullcalendar-main-js', 'https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js', array('jquery'), '5.11.3', true);
+        // Note: Chart.js enqueue removed as it's no longer used on this page.
 
         // Enqueue specific dashboard CSS. Assuming dashboard-areas.css and dashboard-bookings-responsive.css are relevant.
         wp_enqueue_style('mobooking-dashboard-areas', MOBOOKING_THEME_URI . 'assets/css/dashboard-areas.css', array('mobooking-style'), MOBOOKING_VERSION);
         wp_enqueue_style('mobooking-dashboard-bookings-responsive', MOBOOKING_THEME_URI . 'assets/css/dashboard-bookings-responsive.css', array('mobooking-style'), MOBOOKING_VERSION);
 
-        wp_enqueue_script('mobooking-dashboard-overview', MOBOOKING_THEME_URI . 'assets/js/dashboard-overview.js', array('jquery', 'chart-js'), MOBOOKING_VERSION, true);
+        wp_enqueue_script('mobooking-dashboard-overview', MOBOOKING_THEME_URI . 'assets/js/dashboard-overview.js', array('jquery', 'fullcalendar-main-js'), MOBOOKING_VERSION, true);
 
         $current_user_id_for_scripts = get_current_user_id();
         $is_worker_status = false;
@@ -1572,23 +1684,24 @@ if ( ! function_exists( 'mobooking_ajax_get_dashboard_overview_data' ) ) {
             for ($i = $num_days_initial - 1; $i >= 0; $i--) { $labels_initial[] = date('M j', strtotime("-$i days")); }
             $data_points_initial = array_map(function() { return rand(5, 25); }, array_fill(0, $num_days_initial, 0));
 
-            $chart_data = array(
-                'labels' => $labels_initial,
-                'datasets' => array(
-                    array(
-                        'label' => __('Bookings', 'mobooking'),
-                        'data' => $data_points_initial,
-                        'borderColor' => 'hsl(221.2 83.2% 53.3%)',
-                        'backgroundColor' => 'hsl(221.2 83.2% 53.3% / 0.1)',
-                        'tension' => 0.4,
-                        'fill' => true
-                    )
-                )
-            );
+            // Chart data removed from this response
+            // $chart_data = array(
+            //     'labels' => $labels_initial,
+            //     'datasets' => array(
+            //         array(
+            //             'label' => __('Bookings', 'mobooking'),
+            //             'data' => $data_points_initial,
+            //             'borderColor' => 'hsl(221.2 83.2% 53.3%)',
+            //             'backgroundColor' => 'hsl(221.2 83.2% 53.3% / 0.1)',
+            //             'tension' => 0.4,
+            //             'fill' => true
+            //         )
+            //     )
+            // );
 
             wp_send_json_success(array(
-                'kpis' => $kpi_data,
-                'chart_data' => $chart_data
+                'kpis' => $kpi_data
+                // 'chart_data' => $chart_data // Removed chart data from this main overview data call
             ));
 
         } catch (Exception $e) {
@@ -1619,7 +1732,7 @@ if ( ! function_exists( 'mobooking_ajax_get_recent_bookings' ) ) {
         }
         $bookings_manager = $GLOBALS['mobooking_bookings_manager'];
 
-        $limit = isset($_POST['limit']) ? intval($_POST['limit']) : 5;
+        $limit = isset($_POST['limit']) ? intval($_POST['limit']) : 4; // Default limit now 4, though JS sends it
 
         try {
             $args = array(
@@ -1645,75 +1758,9 @@ if ( ! function_exists( 'mobooking_ajax_get_recent_bookings' ) ) {
     }
 }
 
-// AJAX handler for fetching chart data by period
-add_action('wp_ajax_mobooking_get_dashboard_chart_data', 'mobooking_ajax_get_dashboard_chart_data');
-if ( ! function_exists( 'mobooking_ajax_get_dashboard_chart_data' ) ) {
-    function mobooking_ajax_get_dashboard_chart_data() {
-        // Verify nonce
-        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'mobooking_dashboard_nonce')) {
-            wp_send_json_error(array('message' => 'Security check failed: Invalid nonce.'), 403);
-            return;
-        }
-
-        $current_user_id = get_current_user_id();
-        if (!$current_user_id) {
-            wp_send_json_error(array('message' => 'User not authenticated.'), 401);
-            return;
-        }
-
-        if (!isset($GLOBALS['mobooking_bookings_manager'])) {
-             wp_send_json_error(array('message' => 'Bookings component not available.'), 500);
-            return;
-        }
-        $bookings_manager = $GLOBALS['mobooking_bookings_manager'];
-
-        // Determine user for data fetching (handle workers)
-        $data_user_id = $current_user_id;
-        if (class_exists('MoBooking\Classes\Auth') && \MoBooking\Classes\Auth::is_user_worker($current_user_id)) {
-            $owner_id = \MoBooking\Classes\Auth::get_business_owner_id_for_worker($current_user_id);
-            if ($owner_id) {
-                $data_user_id = $owner_id;
-            }
-        }
-
-        $period = isset($_POST['period']) ? sanitize_text_field($_POST['period']) : '7days';
-
-        try {
-            // TODO: Implement actual data fetching logic in Bookings class
-            // $chart_data = $bookings_manager->get_booking_counts_for_period($data_user_id, $period);
-
-            $num_days = 7; // Default
-            if ($period === '30days') {
-                $num_days = 30;
-            } elseif ($period === '90days') {
-                $num_days = 90;
-            }
-
-            $labels = [];
-            for ($i = $num_days - 1; $i >= 0; $i--) { $labels[] = date('M j', strtotime("-$i days")); }
-            $data_points = array_map(function() { return rand(0, 20); }, array_fill(0, $num_days, 0));
-
-            $chart_data = array(
-                'labels' => $labels,
-                'datasets' => array(
-                    array(
-                        'label' => __('Bookings', 'mobooking'),
-                        'data' => $data_points,
-                        'borderColor' => 'hsl(221.2 83.2% 53.3%)',
-                        'backgroundColor' => 'hsl(221.2 83.2% 53.3% / 0.1)',
-                        'tension' => 0.4,
-                        'fill' => true
-                    )
-                )
-            );
-
-            wp_send_json_success($chart_data);
-
-        } catch (Exception $e) {
-            wp_send_json_error(array('message' => 'Failed to load chart data: ' . $e->getMessage()), 500);
-        }
-    }
-}
+// AJAX handler for fetching chart data by period - REMOVED
+// add_action('wp_ajax_mobooking_get_dashboard_chart_data', 'mobooking_ajax_get_dashboard_chart_data');
+// if ( ! function_exists( 'mobooking_ajax_get_dashboard_chart_data' ) ) { ... } // Entire function removed
 
 // End of Dashboard AJAX Handlers
 
