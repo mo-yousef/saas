@@ -1518,696 +1518,204 @@ function mobooking_auto_check_rewrite_rules() {
 }
 add_action('wp_loaded', 'mobooking_auto_check_rewrite_rules');
 
+// Dashboard AJAX Handlers
+// These were moved from dashboard/page-overview.php to be globally available for AJAX calls.
 
-
-
-
-
-
-
-
-/**
- * Add this to your functions.php to set up business slugs and debug the saving process
- * This will help you get your first business slug working
- */
-
-// Quick setup function - run this once to create a business slug for your user
-function mobooking_quick_setup_business_slug() {
-    // Only run when specifically requested
-    if (!isset($_GET['mobooking_setup_slug']) || !current_user_can('manage_options')) {
-        return;
-    }
-    
-    $user_id = get_current_user_id();
-    if (!$user_id) {
-        wp_die('No user logged in');
-    }
-    
-    // Get or create the slug from URL parameter
-    $slug = isset($_GET['slug']) ? sanitize_title($_GET['slug']) : 'bolio';
-    
-    if (empty($slug)) {
-        wp_die('No slug provided. Use ?mobooking_setup_slug=1&slug=your-slug');
-    }
-    
-    echo '<div style="background: #fff; padding: 20px; margin: 20px; border: 1px solid #ccc;">';
-    echo '<h2>MoBooking Business Slug Setup</h2>';
-    
-    // Check if Settings class exists
-    if (!class_exists('MoBooking\\Classes\\Settings')) {
-        echo '<p style="color: red;">ERROR: Settings class not found!</p>';
-        echo '</div>';
-        return;
-    }
-    
-    // Check if Database class exists and table is ready
-    if (!class_exists('MoBooking\\Classes\\Database')) {
-        echo '<p style="color: red;">ERROR: Database class not found!</p>';
-        echo '</div>';
-        return;
-    }
-    
-    $settings_table = \MoBooking\Classes\Database::get_table_name('tenant_settings');
-    echo '<p><strong>Settings Table:</strong> ' . esc_html($settings_table) . '</p>';
-    
-    // Check if table exists
-    global $wpdb;
-    $table_exists = $wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $settings_table));
-    
-    if (!$table_exists) {
-        echo '<p style="color: red;">ERROR: Settings table does not exist: ' . esc_html($settings_table) . '</p>';
-        echo '<p>You may need to run database creation scripts.</p>';
-        echo '</div>';
-        return;
-    }
-    
-    echo '<p style="color: green;">✓ Settings table exists</p>';
-    
-    // Try to save the business slug
-    $settings_manager = new \MoBooking\Classes\Settings();
-    
-    echo '<h3>Setting up business slug "' . esc_html($slug) . '" for user ID ' . $user_id . '</h3>';
-    
-    $result = $settings_manager->update_setting($user_id, 'bf_business_slug', $slug);
-    
-    if ($result) {
-        echo '<p style="color: green;">✓ Business slug saved successfully!</p>';
-        
-        // Verify it was saved
-        $saved_slug = $settings_manager->get_setting($user_id, 'bf_business_slug');
-        echo '<p><strong>Saved slug:</strong> ' . esc_html($saved_slug) . '</p>';
-        
-        if ($saved_slug === $slug) {
-            echo '<p style="color: green;">✓ Slug verification successful!</p>';
-            
-            // Test the URL
-            $test_url = home_url('/bookings/' . $slug . '/');
-            echo '<h3>Test Your Booking Form</h3>';
-            echo '<p><strong>Your booking form URL:</strong></p>';
-            echo '<p><a href="' . esc_url($test_url) . '" target="_blank" style="background: #0073aa; color: white; padding: 10px 20px; text-decoration: none; border-radius: 3px;">' . esc_html($test_url) . '</a></p>';
-            
-            // Flush rewrite rules
-            flush_rewrite_rules();
-            echo '<p style="color: green;">✓ Rewrite rules flushed</p>';
-            
-        } else {
-            echo '<p style="color: red;">ERROR: Slug was not saved correctly. Expected "' . esc_html($slug) . '", got "' . esc_html($saved_slug) . '"</p>';
+// AJAX handler for dashboard overview data (KPIs, initial chart)
+add_action('wp_ajax_mobooking_get_dashboard_overview_data', 'mobooking_ajax_get_dashboard_overview_data');
+if ( ! function_exists( 'mobooking_ajax_get_dashboard_overview_data' ) ) {
+    function mobooking_ajax_get_dashboard_overview_data() {
+        // Verify nonce
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'mobooking_dashboard_nonce')) {
+            wp_send_json_error(array('message' => 'Security check failed: Invalid nonce.'), 403);
+            return;
         }
-    } else {
-        echo '<p style="color: red;">ERROR: Failed to save business slug</p>';
-        
-        // Debug the insert
-        echo '<h3>Database Debug</h3>';
-        echo '<p>Last database error: ' . esc_html($wpdb->last_error) . '</p>';
-        echo '<p>Last query: ' . esc_html($wpdb->last_query) . '</p>';
-    }
-    
-    // Show all current slugs
-    echo '<h3>All Business Slugs in Database</h3>';
-    $all_slugs = $wpdb->get_results($wpdb->prepare(
-        "SELECT user_id, setting_value FROM {$settings_table} WHERE setting_name = %s",
-        'bf_business_slug'
-    ));
-    
-    if (!empty($all_slugs)) {
-        echo '<table border="1" style="border-collapse: collapse; width: 100%;">';
-        echo '<tr><th style="padding: 10px;">User ID</th><th style="padding: 10px;">Business Slug</th><th style="padding: 10px;">Test URL</th></tr>';
-        foreach ($all_slugs as $slug_data) {
-            $test_url = home_url('/bookings/' . $slug_data->setting_value . '/');
-            echo '<tr>';
-            echo '<td style="padding: 10px;">' . esc_html($slug_data->user_id) . '</td>';
-            echo '<td style="padding: 10px;">' . esc_html($slug_data->setting_value) . '</td>';
-            echo '<td style="padding: 10px;"><a href="' . esc_url($test_url) . '" target="_blank">Test</a></td>';
-            echo '</tr>';
+
+        $current_user_id = get_current_user_id();
+        if (!$current_user_id) {
+            wp_send_json_error(array('message' => 'User not authenticated.'), 401);
+            return;
         }
-        echo '</table>';
-    } else {
-        echo '<p>No business slugs found in database.</p>';
-    }
-    
-    echo '</div>';
-    exit; // Stop normal page rendering
-}
-add_action('init', 'mobooking_quick_setup_business_slug');
 
-/**
- * Enhanced AJAX handler for booking form settings to ensure saving works
- */
-function mobooking_debug_settings_save() {
-    // Only run when specifically requested
-    if (!isset($_GET['debug_settings_save']) || !current_user_can('manage_options')) {
-        return;
-    }
-    
-    echo '<div style="background: #fff; padding: 20px; margin: 20px; border: 1px solid #ccc;">';
-    echo '<h2>Settings Save Debug</h2>';
-    
-    // Test the settings saving process
-    $user_id = get_current_user_id();
-    $test_slug = 'test-business-' . time(); // Unique slug
-    
-    echo '<p>Testing settings save with user ID: ' . $user_id . '</p>';
-    echo '<p>Test slug: ' . esc_html($test_slug) . '</p>';
-    
-    if (class_exists('MoBooking\\Classes\\Settings')) {
-        $settings_manager = new \MoBooking\Classes\Settings();
-        
-        echo '<h3>Before Save</h3>';
-        $before = $settings_manager->get_setting($user_id, 'bf_business_slug');
-        echo '<p>Current slug: ' . esc_html($before) . '</p>';
-        
-        echo '<h3>Saving...</h3>';
-        $result = $settings_manager->update_setting($user_id, 'bf_business_slug', $test_slug);
-        echo '<p>Save result: ' . ($result ? 'SUCCESS' : 'FAILED') . '</p>';
-        
-        if (!$result) {
-            global $wpdb;
-            echo '<p>Database error: ' . esc_html($wpdb->last_error) . '</p>';
-            echo '<p>Last query: ' . esc_html($wpdb->last_query) . '</p>';
+        // Ensure managers are loaded (they should be available globally if init hooks ran)
+        if (!isset($GLOBALS['mobooking_services_manager']) || !isset($GLOBALS['mobooking_bookings_manager'])) {
+             wp_send_json_error(array('message' => 'Core components not available.'), 500);
+            return;
         }
-        
-        echo '<h3>After Save</h3>';
-        $after = $settings_manager->get_setting($user_id, 'bf_business_slug');
-        echo '<p>Retrieved slug: ' . esc_html($after) . '</p>';
-        
-        if ($after === $test_slug) {
-            echo '<p style="color: green;">✓ Settings save/retrieve working correctly!</p>';
-        } else {
-            echo '<p style="color: red;">✗ Settings save/retrieve not working correctly!</p>';
-        }
-    } else {
-        echo '<p style="color: red;">Settings class not found!</p>';
-    }
-    
-    echo '</div>';
-    exit;
-}
-add_action('init', 'mobooking_debug_settings_save');
-
-/**
- * Check and fix database table structure if needed
- */
-function mobooking_check_database_structure() {
-    if (!isset($_GET['check_db']) || !current_user_can('manage_options')) {
-        return;
-    }
-    
-    global $wpdb;
-    
-    echo '<div style="background: #fff; padding: 20px; margin: 20px; border: 1px solid #ccc;">';
-    echo '<h2>Database Structure Check</h2>';
-    
-    if (!class_exists('MoBooking\\Classes\\Database')) {
-        echo '<p style="color: red;">Database class not found!</p>';
-        echo '</div>';
-        return;
-    }
-    
-    $settings_table = \MoBooking\Classes\Database::get_table_name('tenant_settings');
-    echo '<p><strong>Expected table name:</strong> ' . esc_html($settings_table) . '</p>';
-    
-    // Check if table exists
-    $table_exists = $wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $settings_table));
-    
-    if ($table_exists) {
-        echo '<p style="color: green;">✓ Table exists</p>';
-        
-        // Check table structure
-        $columns = $wpdb->get_results("DESCRIBE {$settings_table}");
-        echo '<h3>Table Structure</h3>';
-        echo '<table border="1" style="border-collapse: collapse;">';
-        echo '<tr><th style="padding: 10px;">Column</th><th style="padding: 10px;">Type</th><th style="padding: 10px;">Null</th><th style="padding: 10px;">Key</th></tr>';
-        foreach ($columns as $column) {
-            echo '<tr>';
-            echo '<td style="padding: 10px;">' . esc_html($column->Field) . '</td>';
-            echo '<td style="padding: 10px;">' . esc_html($column->Type) . '</td>';
-            echo '<td style="padding: 10px;">' . esc_html($column->Null) . '</td>';
-            echo '<td style="padding: 10px;">' . esc_html($column->Key) . '</td>';
-            echo '</tr>';
-        }
-        echo '</table>';
-        
-        // Show some sample data
-        $sample_data = $wpdb->get_results("SELECT * FROM {$settings_table} LIMIT 5");
-        if (!empty($sample_data)) {
-            echo '<h3>Sample Data</h3>';
-            echo '<pre>' . print_r($sample_data, true) . '</pre>';
-        } else {
-            echo '<p>No data in table yet.</p>';
-        }
-        
-    } else {
-        echo '<p style="color: red;">✗ Table does not exist!</p>';
-        echo '<p>You may need to run the database creation scripts.</p>';
-        
-        // Try to create the table
-        echo '<h3>Attempting to create table...</h3>';
-        
-        $charset_collate = $wpdb->get_charset_collate();
-        $sql = "CREATE TABLE {$settings_table} (
-            id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-            user_id bigint(20) unsigned NOT NULL,
-            setting_name varchar(255) NOT NULL,
-            setting_value longtext,
-            PRIMARY KEY (id),
-            UNIQUE KEY user_setting (user_id, setting_name),
-            KEY user_id (user_id),
-            KEY setting_name (setting_name)
-        ) {$charset_collate};";
-        
-        require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
-        $result = dbDelta($sql);
-        
-        echo '<pre>' . print_r($result, true) . '</pre>';
-        
-        // Check if it was created
-        $table_exists_now = $wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $settings_table));
-        if ($table_exists_now) {
-            echo '<p style="color: green;">✓ Table created successfully!</p>';
-        } else {
-            echo '<p style="color: red;">✗ Failed to create table</p>';
-        }
-    }
-    
-    echo '</div>';
-    exit;
-}
-add_action('init', 'mobooking_check_database_structure');
+        $services_manager = $GLOBALS['mobooking_services_manager'];
+        $bookings_manager = $GLOBALS['mobooking_bookings_manager'];
+        // $discounts_manager = $GLOBALS['mobooking_discounts_manager']; // Already part of bookings manager
+        // $notifications_manager = $GLOBALS['mobooking_notifications_manager']; // Already part of bookings manager
 
 
-
-
-
-
-
-
-/**
- * Simple Fix for Booking Form Settings AJAX
- * Add this to your functions.php mobooking_enqueue_dashboard_scripts function
- */
-
-// Find this section in functions.php around line 334 and ADD the missing booking-form case:
-
-// // Specific to Booking Form Settings page (ADD THIS BLOCK)
-// if ($current_page_slug === 'booking-form') {
-//     wp_enqueue_script('wp-color-picker');
-//     wp_enqueue_style('wp-color-picker');
-//     wp_enqueue_script(
-//         'mobooking-dashboard-booking-form-settings',
-//         MOBOOKING_THEME_URI . 'assets/js/dashboard-booking-form-settings.js',
-//         array('jquery', 'wp-color-picker'),
-//         MOBOOKING_VERSION,
-//         true
-//     );
-    
-//     $bf_settings_params = array_merge($dashboard_params, [
-//         'site_url' => home_url('/'),
-//         'i18n' => [
-//             'saving' => __('Saving...', 'mobooking'),
-//             'save_success' => __('Settings saved successfully.', 'mobooking'),
-//             'error_saving' => __('Error saving settings.', 'mobooking'),
-//             'error_loading' => __('Error loading settings.', 'mobooking'),
-//             'error_ajax' => __('An AJAX error occurred.', 'mobooking'),
-//             'invalid_json' => __('Invalid JSON format in Business Hours.', 'mobooking'),
-//             'copied' => __('Copied!', 'mobooking'),
-//             'copy_failed' => __('Copy failed. Please try manually.', 'mobooking'),
-//             'booking_form_title' => __('Booking Form', 'mobooking'),
-//             'link_will_appear_here' => __('Link will appear here once slug is saved.', 'mobooking'),
-//             'embed_will_appear_here' => __('Embed code will appear here once slug is saved.', 'mobooking'),
-//         ]
-//     ]);
-//     wp_localize_script('mobooking-dashboard-booking-form-settings', 'mobooking_bf_settings_params', $bf_settings_params);
-// }
-
-
-
-
-
-
-
-
-
-
-// Add this to your functions.php - Simple fix for AJAX pending issue
-
-// 1. Fix the action name mismatch
-add_action('wp_ajax_nopriv_mobooking_register', 'handle_registration_ajax');
-
-function handle_registration_ajax() {
-    // Basic validation
-    if (!wp_verify_nonce($_POST['nonce'], 'mobooking_register_nonce')) {
-        wp_send_json_error(['message' => 'Security check failed']);
-    }
-    
-    $email = sanitize_email($_POST['email']);
-    $password = $_POST['password'];
-    $first_name = sanitize_text_field($_POST['first_name']);
-    $last_name = sanitize_text_field($_POST['last_name']);
-    
-    // Check if email exists
-    if (email_exists($email)) {
-        wp_send_json_error(['message' => 'Email already exists']);
-    }
-    
-    // Create user
-    $user_id = wp_create_user($email, $password, $email);
-    
-    if (is_wp_error($user_id)) {
-        wp_send_json_error(['message' => 'Registration failed']);
-    }
-    
-    // Update user info
-    wp_update_user([
-        'ID' => $user_id,
-        'first_name' => $first_name,
-        'last_name' => $last_name,
-        'display_name' => $first_name . ' ' . $last_name
-    ]);
-    
-    // Log user in
-    wp_set_current_user($user_id);
-    wp_set_auth_cookie($user_id, true);
-    
-    wp_send_json_success([
-        'message' => 'Registration successful!',
-        'redirect_url' => home_url('/dashboard/')
-    ]);
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/**
- * Database Check Script
- * Add this to your functions.php temporarily to check the database state
- * Remove after debugging
- */
-
-// Add this function to your functions.php and call it by visiting: your-site.com/?mobooking_debug=1
-add_action('init', function() {
-    if (isset($_GET['mobooking_debug']) && $_GET['mobooking_debug'] === '1' && current_user_can('manage_options')) {
-        mobooking_debug_database();
-        exit;
-    }
-});
-
-function mobooking_debug_database() {
-    global $wpdb;
-    
-    echo "<h1>MoBooking Database Debug</h1>";
-    
-    // Check if tables exist
-    $services_table = $wpdb->prefix . 'mobooking_services';
-    $options_table = $wpdb->prefix . 'mobooking_service_options';
-    
-    echo "<h2>Table Existence Check</h2>";
-    $table_exists = $wpdb->get_var("SHOW TABLES LIKE '$services_table'");
-    echo "<p>Services table ($services_table): " . ($table_exists ? "EXISTS" : "MISSING") . "</p>";
-    
-    $table_exists = $wpdb->get_var("SHOW TABLES LIKE '$options_table'");
-    echo "<p>Service options table ($options_table): " . ($table_exists ? "EXISTS" : "MISSING") . "</p>";
-    
-    // Check business owners
-    echo "<h2>Business Owners</h2>";
-    $business_owners = get_users(['role' => 'mobooking_business_owner']);
-    echo "<p>Found " . count($business_owners) . " business owners:</p>";
-    foreach ($business_owners as $owner) {
-        echo "<p>- ID: {$owner->ID}, Login: {$owner->user_login}, Email: {$owner->user_email}</p>";
-    }
-    
-    // Check services for each business owner
-    echo "<h2>Services by Business Owner</h2>";
-    foreach ($business_owners as $owner) {
-        echo "<h3>Services for {$owner->user_login} (ID: {$owner->ID})</h3>";
-        
-        $services = $wpdb->get_results($wpdb->prepare(
-            "SELECT * FROM $services_table WHERE user_id = %d",
-            $owner->ID
-        ));
-        
-        if ($services) {
-            echo "<table border='1' style='border-collapse: collapse; width: 100%; margin-bottom: 20px;'>";
-            echo "<tr><th>ID</th><th>Name</th><th>Price</th><th>Status</th><th>Created</th></tr>";
-            foreach ($services as $service) {
-                echo "<tr>";
-                echo "<td>{$service->service_id}</td>";
-                echo "<td>{$service->name}</td>";
-                echo "<td>{$service->price}</td>";
-                echo "<td><strong>{$service->status}</strong></td>";
-                echo "<td>{$service->created_at}</td>";
-                echo "</tr>";
-            }
-            echo "</table>";
-        } else {
-            echo "<p>No services found for this user.</p>";
-        }
-    }
-    
-    // Test the Services class directly
-    echo "<h2>Services Class Test</h2>";
-    if (class_exists('\\MoBooking\\Classes\\Services')) {
-        $services_manager = new \MoBooking\Classes\Services();
-        
-        foreach ($business_owners as $owner) {
-            echo "<h3>Testing Services Class for {$owner->user_login} (ID: {$owner->ID})</h3>";
-            
-            // Test with different parameters
-            $test_cases = [
-                'No filter' => ['number' => -1],
-                'Active only' => ['status' => 'active', 'number' => -1],
-                'All statuses' => ['status' => null, 'number' => -1],
-                'Status empty string' => ['status' => '', 'number' => -1],
-            ];
-            
-            foreach ($test_cases as $case_name => $args) {
-                echo "<h4>Test case: $case_name</h4>";
-                $result = $services_manager->get_services_by_user($owner->ID, $args);
-                echo "<pre>" . print_r($result, true) . "</pre>";
+        // Handle worker users
+        $data_user_id = $current_user_id;
+        if (class_exists('MoBooking\Classes\Auth') && \MoBooking\Classes\Auth::is_user_worker($current_user_id)) {
+            $owner_id = \MoBooking\Classes\Auth::get_business_owner_id_for_worker($current_user_id);
+            if ($owner_id) {
+                $data_user_id = $owner_id;
             }
         }
-    } else {
-        echo "<p>Services class not found!</p>";
-    }
-    
-    // Check settings
-    echo "<h2>Booking Form Settings</h2>";
-    if (class_exists('\\MoBooking\\Classes\\Settings')) {
-        $settings_manager = new \MoBooking\Classes\Settings();
-        
-        foreach ($business_owners as $owner) {
-            echo "<h3>Settings for {$owner->user_login} (ID: {$owner->ID})</h3>";
-            $settings = $settings_manager->get_booking_form_settings($owner->ID);
-            echo "<pre>" . print_r($settings, true) . "</pre>";
+
+        try {
+            // Get KPI data
+            $kpi_data = $bookings_manager->get_kpi_data($data_user_id);
+
+            $services_count = $services_manager->get_services_count($data_user_id);
+            $kpi_data['services_count'] = $services_count;
+
+            $initial_chart_period = '7days'; // Default period
+            // TODO: Replace placeholder with actual call to a method like:
+            // $chart_data = $bookings_manager->get_booking_counts_for_period($data_user_id, $initial_chart_period);
+            $num_days_initial = 7;
+            $labels_initial = [];
+            for ($i = $num_days_initial - 1; $i >= 0; $i--) { $labels_initial[] = date('M j', strtotime("-$i days")); }
+            $data_points_initial = array_map(function() { return rand(5, 25); }, array_fill(0, $num_days_initial, 0));
+
+            $chart_data = array(
+                'labels' => $labels_initial,
+                'datasets' => array(
+                    array(
+                        'label' => __('Bookings', 'mobooking'),
+                        'data' => $data_points_initial,
+                        'borderColor' => 'hsl(221.2 83.2% 53.3%)',
+                        'backgroundColor' => 'hsl(221.2 83.2% 53.3% / 0.1)',
+                        'tension' => 0.4,
+                        'fill' => true
+                    )
+                )
+            );
+
+            wp_send_json_success(array(
+                'kpis' => $kpi_data,
+                'chart_data' => $chart_data
+            ));
+
+        } catch (Exception $e) {
+            wp_send_json_error(array('message' => 'Failed to load dashboard data: ' . $e->getMessage()), 500);
         }
-    } else {
-        echo "<p>Settings class not found!</p>";
     }
 }
 
+// AJAX handler for recent bookings
+add_action('wp_ajax_mobooking_get_recent_bookings', 'mobooking_ajax_get_recent_bookings');
+if ( ! function_exists( 'mobooking_ajax_get_recent_bookings' ) ) {
+    function mobooking_ajax_get_recent_bookings() {
+        // Verify nonce
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'mobooking_dashboard_nonce')) {
+            wp_send_json_error(array('message' => 'Security check failed: Invalid nonce.'), 403);
+            return;
+        }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// Add this to your functions.php file to fix the booking form submission
-
-// 1. Ensure all AJAX handlers are properly registered
-function mobooking_register_ajax_handlers() {
-    // Register booking form AJAX handlers
-    add_action('wp_ajax_nopriv_mobooking_create_booking', 'mobooking_handle_create_booking_ajax');
-    add_action('wp_ajax_mobooking_create_booking', 'mobooking_handle_create_booking_ajax');
-    
-    // Register service-related AJAX handlers for public booking form
-    add_action('wp_ajax_nopriv_mobooking_get_public_services', 'mobooking_handle_get_public_services_ajax');
-    add_action('wp_ajax_mobooking_get_public_services', 'mobooking_handle_get_public_services_ajax');
-    
-    // Register discount validation AJAX handlers
-    add_action('wp_ajax_nopriv_mobooking_validate_discount', 'mobooking_handle_validate_discount_ajax');
-    add_action('wp_ajax_mobooking_validate_discount', 'mobooking_handle_validate_discount_ajax');
-}
-add_action('init', 'mobooking_register_ajax_handlers');
-
-// 2. Wrapper function to handle booking creation AJAX
-function mobooking_handle_create_booking_ajax() {
-    // Check if the bookings manager exists
-    if (!isset($GLOBALS['mobooking_bookings_manager'])) {
-        wp_send_json_error(['message' => __('Booking system not initialized.', 'mobooking')], 500);
-        return;
-    }
-    
-    // Call the actual handler
-    $GLOBALS['mobooking_bookings_manager']->handle_create_booking_public_ajax();
-}
-
-// 3. Wrapper function to handle public services AJAX
-function mobooking_handle_get_public_services_ajax() {
-    // Check if the services manager exists
-    if (!isset($GLOBALS['mobooking_services_manager'])) {
-        wp_send_json_error(['message' => __('Services system not initialized.', 'mobooking')], 500);
-        return;
-    }
-    
-    // Call the actual handler
-    $GLOBALS['mobooking_services_manager']->handle_get_public_services_ajax();
-}
-
-// 4. Wrapper function to handle discount validation AJAX
-function mobooking_handle_validate_discount_ajax() {
-    // Check if the discounts manager exists
-    if (!isset($GLOBALS['mobooking_discounts_manager'])) {
-        wp_send_json_error(['message' => __('Discount system not initialized.', 'mobooking')], 500);
-        return;
-    }
-    
-    // Call the actual handler if it exists
-    if (method_exists($GLOBALS['mobooking_discounts_manager'], 'handle_validate_discount_ajax')) {
-        $GLOBALS['mobooking_discounts_manager']->handle_validate_discount_ajax();
-    } else {
-        wp_send_json_error(['message' => __('Discount validation not available.', 'mobooking')], 500);
-    }
-}
-
-// 5. Enhanced script localization for booking form
-function mobooking_enhanced_booking_form_scripts() {
-    // Only enqueue on booking form pages
-    $page_type = get_query_var('mobooking_page_type');
-    if (!is_page_template('templates/booking-form-public.php') && 
-        $page_type !== 'public_booking' && 
-        $page_type !== 'embed_booking') {
-        return;
-    }
-    
-    // Get tenant ID
-    $tenant_id = null;
-    if (isset($_GET['tid'])) {
-        $tenant_id = intval($_GET['tid']);
-    } elseif ($page_type === 'public_booking' || $page_type === 'embed_booking') {
-        $tenant_id = get_query_var('mobooking_tenant_id');
-    }
-    
-    // Validate tenant
-    if (!$tenant_id || !get_userdata($tenant_id)) {
-        return;
-    }
-    
-    // Create enhanced parameters for the booking form
-    $enhanced_params = [
-        'ajax_url' => admin_url('admin-ajax.php'),
-        'nonce' => wp_create_nonce('mobooking_booking_form_nonce'),
-        'tenant_id' => $tenant_id,
-        'site_url' => site_url(),
-        'debug' => defined('WP_DEBUG') && WP_DEBUG,
-        'actions' => [
-            'create_booking' => 'mobooking_create_booking',
-            'get_services' => 'mobooking_get_public_services',
-            'validate_discount' => 'mobooking_validate_discount'
-        ],
-        'i18n' => [
-            'submitting' => __('Submitting your booking...', 'mobooking'),
-            'success' => __('Booking submitted successfully!', 'mobooking'),
-            'error' => __('There was an error submitting your booking.', 'mobooking'),
-            'network_error' => __('Network error occurred. Please try again.', 'mobooking'),
-            'invalid_data' => __('Invalid form data. Please check your entries.', 'mobooking'),
-            'required_fields' => __('Please fill in all required fields.', 'mobooking')
-        ]
-    ];
-    
-    // Enqueue and localize the script
-    wp_enqueue_script('mobooking-booking-form-enhanced', 
-        MOBOOKING_THEME_URI . 'assets/js/booking-form-enhanced.js', 
-        ['jquery'], 
-        MOBOOKING_VERSION, 
-        true
-    );
-    
-    wp_localize_script('mobooking-booking-form-enhanced', 'mobooking_booking_params', $enhanced_params);
-}
-add_action('wp_enqueue_scripts', 'mobooking_enhanced_booking_form_scripts', 20);
-
-// 6. Debug function for troubleshooting
-function mobooking_debug_ajax_handlers() {
-    if (!defined('WP_DEBUG') || !WP_DEBUG) {
-        return;
-    }
-    
-    global $wp_filter;
-    
-    error_log('MoBooking AJAX Handlers Debug:');
-    error_log('wp_ajax_nopriv_mobooking_create_booking: ' . (has_action('wp_ajax_nopriv_mobooking_create_booking') ? 'REGISTERED' : 'NOT REGISTERED'));
-    error_log('wp_ajax_mobooking_create_booking: ' . (has_action('wp_ajax_mobooking_create_booking') ? 'REGISTERED' : 'NOT REGISTERED'));
-    error_log('Bookings Manager: ' . (isset($GLOBALS['mobooking_bookings_manager']) ? 'INITIALIZED' : 'NOT INITIALIZED'));
-    error_log('Services Manager: ' . (isset($GLOBALS['mobooking_services_manager']) ? 'INITIALIZED' : 'NOT INITIALIZED'));
-}
-add_action('wp_loaded', 'mobooking_debug_ajax_handlers');
-
-// 7. Ensure proper initialization order
-function mobooking_ensure_managers_initialized() {
-    // This ensures all managers are initialized before AJAX handlers are registered
-    if (!isset($GLOBALS['mobooking_bookings_manager']) && 
-        class_exists('MoBooking\Classes\Bookings') &&
-        isset($GLOBALS['mobooking_discounts_manager']) &&
-        isset($GLOBALS['mobooking_notifications_manager']) &&
-        isset($GLOBALS['mobooking_services_manager'])) {
+        $current_user_id = get_current_user_id();
+        if (!$current_user_id) {
+            wp_send_json_error(array('message' => 'User not authenticated.'), 401);
+            return;
+        }
         
-        $GLOBALS['mobooking_bookings_manager'] = new MoBooking\Classes\Bookings(
-            $GLOBALS['mobooking_discounts_manager'],
-            $GLOBALS['mobooking_notifications_manager'],
-            $GLOBALS['mobooking_services_manager']
-        );
-        
-        // Register the AJAX actions
-        $GLOBALS['mobooking_bookings_manager']->register_ajax_actions();
+        if (!isset($GLOBALS['mobooking_bookings_manager'])) {
+             wp_send_json_error(array('message' => 'Bookings component not available.'), 500);
+            return;
+        }
+        $bookings_manager = $GLOBALS['mobooking_bookings_manager'];
+
+        $limit = isset($_POST['limit']) ? intval($_POST['limit']) : 5;
+
+        try {
+            $args = array(
+                'limit' => $limit,
+                'orderby' => 'created_at', // Make sure this column exists and is suitable for ordering
+                'order' => 'DESC'
+            );
+            // Note: The original code used $current_user_id for get_bookings_by_tenant.
+            // If workers should see owner's bookings, this should be $data_user_id similar to above.
+            // For now, sticking to $current_user_id as per original handler structure for recent bookings.
+            $bookings_result = $bookings_manager->get_bookings_by_tenant($current_user_id, $args);
+
+            if (is_wp_error($bookings_result)) {
+                wp_send_json_error(array('message' => $bookings_result->get_error_message()), 400);
+                return;
+            }
+
+            wp_send_json_success($bookings_result['bookings'] ?? array());
+
+        } catch (Exception $e) {
+            wp_send_json_error(array('message' => 'Failed to load recent bookings: ' . $e->getMessage()), 500);
+        }
     }
 }
-add_action('init', 'mobooking_ensure_managers_initialized', 5);
 
+// AJAX handler for fetching chart data by period
+add_action('wp_ajax_mobooking_get_dashboard_chart_data', 'mobooking_ajax_get_dashboard_chart_data');
+if ( ! function_exists( 'mobooking_ajax_get_dashboard_chart_data' ) ) {
+    function mobooking_ajax_get_dashboard_chart_data() {
+        // Verify nonce
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'mobooking_dashboard_nonce')) {
+            wp_send_json_error(array('message' => 'Security check failed: Invalid nonce.'), 403);
+            return;
+        }
+
+        $current_user_id = get_current_user_id();
+        if (!$current_user_id) {
+            wp_send_json_error(array('message' => 'User not authenticated.'), 401);
+            return;
+        }
+
+        if (!isset($GLOBALS['mobooking_bookings_manager'])) {
+             wp_send_json_error(array('message' => 'Bookings component not available.'), 500);
+            return;
+        }
+        $bookings_manager = $GLOBALS['mobooking_bookings_manager'];
+
+        // Determine user for data fetching (handle workers)
+        $data_user_id = $current_user_id;
+        if (class_exists('MoBooking\Classes\Auth') && \MoBooking\Classes\Auth::is_user_worker($current_user_id)) {
+            $owner_id = \MoBooking\Classes\Auth::get_business_owner_id_for_worker($current_user_id);
+            if ($owner_id) {
+                $data_user_id = $owner_id;
+            }
+        }
+
+        $period = isset($_POST['period']) ? sanitize_text_field($_POST['period']) : '7days';
+
+        try {
+            // TODO: Implement actual data fetching logic in Bookings class
+            // $chart_data = $bookings_manager->get_booking_counts_for_period($data_user_id, $period);
+
+            $num_days = 7; // Default
+            if ($period === '30days') {
+                $num_days = 30;
+            } elseif ($period === '90days') {
+                $num_days = 90;
+            }
+
+            $labels = [];
+            for ($i = $num_days - 1; $i >= 0; $i--) { $labels[] = date('M j', strtotime("-$i days")); }
+            $data_points = array_map(function() { return rand(0, 20); }, array_fill(0, $num_days, 0));
+
+            $chart_data = array(
+                'labels' => $labels,
+                'datasets' => array(
+                    array(
+                        'label' => __('Bookings', 'mobooking'),
+                        'data' => $data_points,
+                        'borderColor' => 'hsl(221.2 83.2% 53.3%)',
+                        'backgroundColor' => 'hsl(221.2 83.2% 53.3% / 0.1)',
+                        'tension' => 0.4,
+                        'fill' => true
+                    )
+                )
+            );
+
+            wp_send_json_success($chart_data);
+
+        } catch (Exception $e) {
+            wp_send_json_error(array('message' => 'Failed to load chart data: ' . $e->getMessage()), 500);
+        }
+    }
+}
+
+// End of Dashboard AJAX Handlers
 
 
 
