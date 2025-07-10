@@ -20,7 +20,7 @@ jQuery(document).ready(function($) {
     // const bookingItemTemplate = $('#mobooking-overview-booking-item-template').html(); // old template
 
     // Variables from inline script
-    let bookingsChart;
+    // let bookingsChart; // Removed chart variable
     const currencySymbol = mobooking_overview_params.currency_symbol || '$';
     const isWorker = mobooking_overview_params.is_worker || false;
     // Correctly access the nonce provided by PHP: mobooking_overview_params.nonce
@@ -32,10 +32,75 @@ jQuery(document).ready(function($) {
     function initializeDashboard() {
         console.log('Initializing MoBooking Dashboard...');
         loadKPIData();
-        loadRecentBookings(); // This was a separate call in the inline script
-        initializeChart();
+        loadRecentBookings();
+        initializeBookingsCalendar(); // Added calendar initialization
         bindEvents();
         setupDataRefresh(); // For the 5-minute interval refresh
+    }
+
+    function initializeBookingsCalendar() {
+        const calendarEl = document.getElementById('mobooking-bookings-calendar');
+        if (!calendarEl) {
+            console.warn('MoBooking Warning: Calendar container #mobooking-bookings-calendar not found.');
+            return;
+        }
+
+        if (typeof FullCalendar === 'undefined') {
+            console.error('MoBooking Error: FullCalendar is not loaded. Ensure it is enqueued correctly.');
+            $(calendarEl).html('<p style="color: red; text-align: center;">Error: Calendar library not loaded.</p>');
+            return;
+        }
+
+        const calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            },
+            events: function(fetchInfo, successCallback, failureCallback) {
+                $.ajax({
+                    url: mobooking_overview_params.ajax_url,
+                    type: 'POST',
+                    data: {
+                        action: 'mobooking_get_all_bookings_for_calendar',
+                        nonce: dashboardNonce,
+                        start: fetchInfo.startStr,
+                        end: fetchInfo.endStr
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            successCallback(response.data);
+                        } else {
+                            console.error('MoBooking AJAX Error (Calendar Events):', response.data.message || 'Unknown error');
+                            failureCallback(new Error(response.data.message || 'Error fetching calendar events'));
+                            $(calendarEl).append('<p style="color: red; text-align: center;">Could not load booking data.</p>');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('MoBooking AJAX HTTP Error (Calendar Events):', error, xhr.responseText);
+                        failureCallback(new Error('HTTP error fetching calendar events'));
+                         $(calendarEl).append('<p style="color: red; text-align: center;">Could not load booking data due to a network error.</p>');
+                    }
+                });
+            },
+            eventClick: function(info) {
+                info.jsEvent.preventDefault(); // don't let the browser navigate
+                if (info.event.url) {
+                    window.open(info.event.url, "_blank");
+                }
+            },
+            loading: function(isLoading) {
+                if (isLoading) {
+                    // Optionally add a loading indicator to the calendar container
+                    $(calendarEl).showLoading();
+                } else {
+                    $(calendarEl).hideLoading();
+                }
+            }
+        });
+        calendar.render();
+        console.log('MoBooking: Bookings calendar initialized.');
     }
 
     function loadKPIData() {
@@ -60,9 +125,10 @@ jQuery(document).ready(function($) {
                 console.log('KPI Response:', response);
                 if (response.success && response.data) {
                     updateKPIs(response.data.kpis || {});
-                    if (response.data.chart_data) { // Chart data comes with this response
-                        updateChart(response.data.chart_data);
-                    }
+                    // Removed chart update:
+                    // if (response.data.chart_data) {
+                    //     updateChart(response.data.chart_data);
+                    // }
                 } else {
                     console.warn('MoBooking Warning: KPI Response not successful or data missing, using fallback. Message:', response.data.message);
                     showFallbackKPIs();
@@ -122,7 +188,7 @@ jQuery(document).ready(function($) {
             data: {
                 action: 'mobooking_get_recent_bookings', // Corrected to match PHP action name
                 nonce: dashboardNonce, // Assuming same nonce can be used
-                limit: 5,
+                limit: 4, // Changed limit from 5 to 4
                 orderby: 'created_at',
                 order: 'DESC'
             },
@@ -182,137 +248,11 @@ jQuery(document).ready(function($) {
         container.html(html);
     }
 
-    function initializeChart() {
-        if (typeof Chart === 'undefined') {
-            console.warn('MoBooking Warning: Chart.js not loaded yet, retrying in 100ms...');
-            setTimeout(initializeChart, 100);
-            return;
-        }
-
-        const ctx = document.getElementById('bookingsChart');
-        if (!ctx) {
-            console.warn('MoBooking Warning: Chart canvas element #bookingsChart not found.');
-            return;
-        }
-
-        // Default chart data (will be updated by AJAX)
-        const initialChartData = {
-            labels: [], // Populate with actual data
-            datasets: [{
-                label: 'Bookings',
-                data: [], // Populate with actual data
-                borderColor: 'hsl(221.2 83.2% 53.3%)',
-                backgroundColor: 'hsl(221.2 83.2% 53.3% / 0.1)',
-                tension: 0.4,
-                fill: true
-            }]
-        };
-
-        try {
-            bookingsChart = new Chart(ctx, {
-                type: 'line',
-                data: initialChartData,
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    let label = context.dataset.label || '';
-                                    if (label) {
-                                        label += ': ';
-                                    }
-                                    if (context.parsed.y !== null) {
-                                        label += context.parsed.y;
-                                    }
-                                    return label;
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: { color: 'hsl(214.3 31.8% 91.4%)' },
-                            ticks: { color: 'hsl(215.4 16.3% 46.9%)' }
-                        },
-                        x: {
-                            grid: { display: false },
-                            ticks: { color: 'hsl(215.4 16.3% 46.9%)' }
-                        }
-                    }
-                }
-            });
-            console.log('MoBooking: Chart initialized successfully.');
-        } catch (error) {
-            console.error('MoBooking Error initializing chart:', error);
-        }
-    }
-
-    function updateChart(chartData) {
-        if (bookingsChart && chartData && chartData.labels && chartData.datasets) {
-            bookingsChart.data.labels = chartData.labels;
-            bookingsChart.data.datasets = chartData.datasets.map(dataset => ({
-                ...dataset, // Spread existing dataset properties
-                borderColor: dataset.borderColor || 'hsl(221.2 83.2% 53.3%)',
-                backgroundColor: dataset.backgroundColor || 'hsl(221.2 83.2% 53.3% / 0.1)',
-                tension: dataset.tension || 0.4,
-                fill: typeof dataset.fill !== 'undefined' ? dataset.fill : true,
-            }));
-            bookingsChart.update();
-            console.log('MoBooking: Chart updated.');
-        } else {
-            console.warn('MoBooking Warning: Attempted to update chart with invalid data or chart not initialized.');
-        }
-    }
-
-    function loadChartDataForPeriod(period) {
-        console.log('MoBooking: Loading chart data for period:', period);
-        // This function should make an AJAX call to fetch data for the selected period
-        // For now, it's a placeholder. The main `loadKPIData` fetches initial chart data.
-        // This implies `mobooking_get_dashboard_overview_data` should accept a period parameter.
-         $('#bookingsChart').parent().showLoading(); // Example of showing a loader
-
-        $.ajax({
-            url: mobooking_overview_params.ajax_url,
-            type: 'POST',
-            data: {
-                action: 'mobooking_get_dashboard_chart_data', // A new dedicated action or modify existing
-                nonce: dashboardNonce,
-                period: period
-            },
-            success: function(response) {
-                if (response.success && response.data) {
-                    updateChart(response.data); // Assuming response.data is the chart data object
-                } else {
-                    console.warn('MoBooking Warning: Failed to load chart data for period:', period, response.data.message);
-                    // Optionally, show an error on the chart or revert to default
-                }
-            },
-            error: function(xhr, status, error) {
-                console.error('MoBooking AJAX Error (Chart Data for Period):', error, xhr.responseText);
-            },
-            complete: function() {
-                 $('#bookingsChart').parent().hideLoading(); // Hide loader
-            }
-        });
-    }
-
+    // initializeChart(), updateChart(), loadChartDataForPeriod() removed.
 
     function bindEvents() {
-        // Chart period tabs
-        $('.chart-tabs').on('click', '.chart-tab', function() { // Delegated event
-            const $this = $(this);
-            if ($this.hasClass('active')) return;
-
-            $('.chart-tab').removeClass('active');
-            $this.addClass('active');
-
-            const period = $this.data('period');
-            loadChartDataForPeriod(period); // Call function to load data for the new period
-        });
+        // Chart period tabs event binding removed.
+        // $('.chart-tabs').on('click', '.chart-tab', function() { ... });
 
         // Add booking action
         $('#add-booking-action').on('click', function(e) {
