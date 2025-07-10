@@ -572,12 +572,34 @@ function mobooking_enqueue_dashboard_scripts($current_page_slug = '') {
 
     // Specific to Overview page (Dashboard)
     if ($current_page_slug === 'overview') {
-        wp_enqueue_script('mobooking-dashboard-overview', MOBOOKING_THEME_URI . 'assets/js/dashboard-overview.js', array('jquery'), MOBOOKING_VERSION, true);
+        // Enqueue Chart.js
+        wp_enqueue_script('chart-js', 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js', array(), '3.9.1', true);
+
+        // Enqueue specific dashboard CSS. Assuming dashboard-areas.css and dashboard-bookings-responsive.css are relevant.
+        wp_enqueue_style('mobooking-dashboard-areas', MOBOOKING_THEME_URI . 'assets/css/dashboard-areas.css', array('mobooking-style'), MOBOOKING_VERSION);
+        wp_enqueue_style('mobooking-dashboard-bookings-responsive', MOBOOKING_THEME_URI . 'assets/css/dashboard-bookings-responsive.css', array('mobooking-style'), MOBOOKING_VERSION);
+
+        wp_enqueue_script('mobooking-dashboard-overview', MOBOOKING_THEME_URI . 'assets/js/dashboard-overview.js', array('jquery', 'chart-js'), MOBOOKING_VERSION, true);
+
+        $current_user_id_for_scripts = get_current_user_id();
+        $is_worker_status = false;
+        if (class_exists('MoBooking\Classes\Auth') && \MoBooking\Classes\Auth::is_user_worker($current_user_id_for_scripts)) {
+            $is_worker_status = true;
+        }
+
         $overview_params = array_merge($dashboard_params, [
+            'is_worker' => $is_worker_status,
+            // dashboard_nonce is already in $dashboard_params and will be part of mobooking_overview_params
+            // currency_symbol is already in $dashboard_params
             'i18n' => [
                 'loading_data' => __('Loading dashboard data...', 'mobooking'),
                 'error_loading_data' => __('Error loading overview data.', 'mobooking'),
                 'error_ajax' => __('An AJAX error occurred.', 'mobooking'),
+                'time_ago_just_now' => __('Just now', 'mobooking'),
+                'time_ago_seconds_suffix' => __('s ago', 'mobooking'),
+                'time_ago_minutes_suffix' => __('m ago', 'mobooking'),
+                'time_ago_hours_suffix' => __('h ago', 'mobooking'),
+                'time_ago_days_suffix' => __('d ago', 'mobooking'),
             ]
         ]);
         wp_localize_script('mobooking-dashboard-overview', 'mobooking_overview_params', $overview_params);

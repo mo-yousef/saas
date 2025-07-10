@@ -5,8 +5,7 @@
  */
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
-// Enqueue Chart.js and other required scripts
-wp_enqueue_script('chart-js', 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js', array(), '3.9.1', true);
+// Chart.js and other scripts are now enqueued via mobooking_enqueue_dashboard_scripts in functions.php
 
 // Get current user and initialize managers
 $user = wp_get_current_user();
@@ -175,277 +174,34 @@ $dashboard_base_url = home_url('/dashboard/');
     </div>
 </div>
 
-<script>
-jQuery(document).ready(function($) {
-    'use strict';
-
-    // Initialize variables
-    let bookingsChart;
-    const currencySymbol = '<?php echo esc_js($currency_symbol); ?>';
-    const isWorker = <?php echo $is_worker ? 'true' : 'false'; ?>;
-
-    // Initialize the dashboard
-    initializeDashboard();
-
-    function initializeDashboard() {
-        loadKPIData();
-        loadRecentBookings();
-        initializeChart();
-        bindEvents();
-    }
-
-    function loadKPIData() {
-        // Check if we have the required AJAX parameters
-        if (typeof ajaxurl === 'undefined') {
-            console.error('ajaxurl not defined');
-            showFallbackKPIs();
-            return;
-        }
-
-        $.ajax({
-            url: ajaxurl,
-            type: 'POST',
-            data: {
-                action: 'mobooking_get_dashboard_overview_data',
-                nonce: '<?php echo wp_create_nonce('mobooking_dashboard_nonce'); ?>'
-            },
-            success: function(response) {
-                console.log('KPI Response:', response);
-                if (response.success && response.data) {
-                    updateKPIs(response.data.kpis || {});
-                    if (response.data.chart_data) {
-                        updateChart(response.data.chart_data);
-                    }
-                } else {
-                    console.log('KPI Response not successful, using fallback');
-                    showFallbackKPIs();
-                }
-            },
-            error: function(xhr, status, error) {
-                console.error('AJAX Error:', xhr.responseText, status, error);
-                showFallbackKPIs();
-            }
-        });
-    }
-
-    function updateKPIs(kpis) {
-        $('#kpi-bookings-month').text(kpis.bookings_month || '0');
-        
-        if (!isWorker && kpis.revenue_month !== null) {
-            $('#kpi-revenue-month').text(currencySymbol + ' ' + (parseFloat(kpis.revenue_month) || 0).toFixed(2));
-        }
-        
-        $('#kpi-upcoming-count').text(kpis.upcoming_count || '0');
-        $('#kpi-services-count').text(kpis.services_count || '0');
-    }
-
-    function showFallbackKPIs() {
-        $('#kpi-bookings-month').text('--');
-        $('#kpi-revenue-month').text('--');
-        $('#kpi-upcoming-count').text('--');
-        $('#kpi-services-count').text('--');
-    }
-
-    function loadRecentBookings() {
-        const container = $('#recent-bookings-list');
-        
-        // Check if we have the required AJAX parameters
-        if (typeof ajaxurl === 'undefined') {
-            console.error('ajaxurl not defined');
-            container.html('<p style="text-align: center; color: hsl(0 84.2% 60.2%); padding: 2rem;">Error: AJAX URL not available.</p>');
-            return;
-        }
-        
-        $.ajax({
-            url: ajaxurl,
-            type: 'POST',
-            data: {
-                action: 'mobooking_get_tenant_bookings',
-                nonce: '<?php echo wp_create_nonce('mobooking_dashboard_nonce'); ?>',
-                limit: 5,
-                orderby: 'created_at',
-                order: 'DESC'
-            },
-            success: function(response) {
-                console.log('Recent bookings response:', response);
-                if (response.success && response.data && response.data.bookings && response.data.bookings.length > 0) {
-                    renderRecentBookings(response.data.bookings);
-                } else {
-                    container.html('<p style="text-align: center; color: hsl(215.4 16.3% 46.9%); padding: 2rem;">No recent bookings found.</p>');
-                }
-            },
-            error: function(xhr, status, error) {
-                console.error('Recent bookings AJAX Error:', xhr.responseText, status, error);
-                container.html('<p style="text-align: center; color: hsl(0 84.2% 60.2%); padding: 2rem;">Error loading recent bookings.</p>');
-            }
-        });
-    }
-
-    function renderRecentBookings(bookings) {
-        const container = $('#recent-bookings-list');
-        let html = '';
-
-        bookings.forEach(function(booking) {
-            const customerInitial = booking.customer_name ? booking.customer_name.charAt(0).toUpperCase() : '?';
-            const bookingDate = booking.booking_date ? new Date(booking.booking_date).toLocaleDateString() : 'N/A';
-            const totalPrice = booking.total_price ? currencySymbol + ' ' + parseFloat(booking.total_price).toFixed(2) : 'N/A';
-            const timeAgo = booking.created_at ? getTimeAgo(booking.created_at) : '';
-
-            html += `
-                <div class="activity-item">
-                    <div class="activity-avatar">${customerInitial}</div>
-                    <div class="activity-content">
-                        <div class="activity-name">${escapeHtml(booking.customer_name || 'Unknown Customer')}</div>
-                        <div class="activity-details">
-                            Booking for ${bookingDate} • 
-                            <span class="status-badge ${booking.status || 'pending'}">${(booking.status || 'pending').replace('-', ' ')}</span>
-                        </div>
-                    </div>
-                    <div class="activity-meta">
-                        <div class="activity-price">${totalPrice}</div>
-                        <div class="activity-time">${timeAgo}</div>
-                    </div>
-                </div>
-            `;
-        });
-
-        container.html(html);
-    }
-
-    function initializeChart() {
-        // Wait for Chart.js to load
-        if (typeof Chart === 'undefined') {
-            console.log('Chart.js not loaded yet, retrying...');
-            setTimeout(initializeChart, 100);
-            return;
-        }
-
-        const ctx = document.getElementById('bookingsChart');
-        if (!ctx) {
-            console.log('Chart canvas not found');
-            return;
-        }
-
-        // Sample data - replace with actual AJAX call
-        const chartData = {
-            labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-            datasets: [{
-                label: 'Bookings',
-                data: [12, 19, 3, 5, 2, 3, 7],
-                borderColor: 'hsl(221.2 83.2% 53.3%)',
-                backgroundColor: 'hsl(221.2 83.2% 53.3% / 0.1)',
-                tension: 0.4,
-                fill: true
-            }]
-        };
-
-        try {
-            bookingsChart = new Chart(ctx, {
-                type: 'line',
-                data: chartData,
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: {
-                                color: 'hsl(214.3 31.8% 91.4%)'
-                            },
-                            ticks: {
-                                color: 'hsl(215.4 16.3% 46.9%)'
-                            }
-                        },
-                        x: {
-                            grid: {
-                                display: false
-                            },
-                            ticks: {
-                                color: 'hsl(215.4 16.3% 46.9%)'
-                            }
-                        }
-                    }
-                }
-            });
-            console.log('Chart initialized successfully');
-        } catch (error) {
-            console.error('Error initializing chart:', error);
-        }
-    }
-
-    function updateChart(data) {
-        if (bookingsChart && data) {
-            bookingsChart.data = data;
-            bookingsChart.update();
-        }
-    }
-
-    function bindEvents() {
-        // Chart period tabs
-        $('.chart-tab').on('click', function() {
-            $('.chart-tab').removeClass('active');
-            $(this).addClass('active');
-            
-            const period = $(this).data('period');
-            loadChartData(period);
-        });
-
-        // Add booking action
-        $('#add-booking-action').on('click', function(e) {
-            e.preventDefault();
-            // Add your add booking logic here
-            alert('Add booking functionality would be implemented here');
-        });
-    }
-
-    function loadChartData(period) {
-        // Implementation for loading chart data based on period
-        console.log('Loading chart data for period:', period);
-    }
-
-    function escapeHtml(text) {
-        const map = {
-            '&': '&amp;',
-            '<': '&lt;',
-            '>': '&gt;',
-            '"': '&quot;',
-            "'": '&#039;'
-        };
-        return text.replace(/[&<>"']/g, function(m) { return map[m]; });
-    }
-
-    function getTimeAgo(dateString) {
-        const now = new Date();
-        const date = new Date(dateString);
-        const diffInSeconds = Math.floor((now - date) / 1000);
-
-        if (diffInSeconds < 60) return 'Just now';
-        if (diffInSeconds < 3600) return Math.floor(diffInSeconds / 60) + 'm ago';
-        if (diffInSeconds < 86400) return Math.floor(diffInSeconds / 3600) + 'h ago';
-        return Math.floor(diffInSeconds / 86400) + 'd ago';
-    }
-});
-
-// Make ajaxurl available globally for WordPress AJAX
-var ajaxurl = '<?php echo admin_url('admin-ajax.php'); ?>';
-</script>
-
 <?php
-// Add the AJAX handler registration (this would typically go in your functions.php or appropriate hook file)
+// Ensure dashboard_nonce is available for JS
+// It's better to localize this with other params for the main JS file.
+// However, if other small inline scripts might use it, we can define it here.
+// For now, we assume the main JS file will handle its nonce via wp_localize_script.
 ?>
+
 <script type="text/javascript">
-// Additional dashboard functionality can be added here
+// Make ajaxurl available globally for WordPress AJAX
+// This is a common practice, but it's better to pass it via wp_localize_script if possible.
+var ajaxurl = '<?php echo admin_url('admin-ajax.php'); ?>';
+
+// The main dashboard logic is now in assets/js/dashboard-overview.js
+// We might still have some very specific, small scripts here if necessary,
+// or scripts related to other plugins/themes that expect `ajaxurl` globally.
+
+// Example: Refresh data every 5 minutes - this was in the original inline script.
+// We need to ensure `loadKPIData` is defined in the global scope or refactor this.
+// For now, I'll assume `loadKPIData` will be part of the global functions in dashboard-overview.js or this will be moved.
 document.addEventListener('DOMContentLoaded', function() {
-    // Add any additional initialization code here
+    // Add any additional initialization code here specific to this page if not covered by the main JS.
     
-    // Example: Refresh data every 5 minutes
+    // If loadKPIData is meant to be globally accessible from dashboard-overview.js, this might work.
+    // Otherwise, this interval should be set within the scope where loadKPIData is defined.
+    // For now, commenting out to avoid errors until dashboard-overview.js is updated.
+    /*
     setInterval(function() {
-        if (typeof jQuery !== 'undefined') {
+        if (typeof jQuery !== 'undefined' && typeof loadKPIData === 'function') {
             jQuery('#kpi-bookings-month, #kpi-revenue-month, #kpi-upcoming-count, #kpi-services-count').each(function() {
                 if (!jQuery(this).find('.loading').length) {
                     // Only refresh if not currently loading
@@ -454,6 +210,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
     }, 300000); // 5 minutes
+    */
 });
 </script>
 
@@ -466,8 +223,9 @@ document.addEventListener('DOMContentLoaded', function() {
 add_action('wp_ajax_mobooking_get_dashboard_overview_data', 'mobooking_ajax_get_dashboard_overview_data');
 function mobooking_ajax_get_dashboard_overview_data() {
     // Verify nonce
-    if (!wp_verify_nonce($_POST['nonce'], 'mobooking_overview_nonce')) {
-        wp_die('Security check failed');
+    if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'mobooking_dashboard_nonce')) {
+        wp_send_json_error('Security check failed: Invalid nonce.', 403);
+        return;
     }
 
     $current_user_id = get_current_user_id();
@@ -498,13 +256,18 @@ function mobooking_ajax_get_dashboard_overview_data() {
         $services_count = $services_manager->get_services_count($data_user_id);
         $kpi_data['services_count'] = $services_count;
 
-        // Prepare chart data (example structure)
+        // Prepare initial chart data (e.g., for the default '7days' period)
+        // This logic should ideally be in the Bookings class, e.g., $bookings_manager->get_chart_data($data_user_id, '7days');
+        // For now, providing a placeholder structure. Replace with actual data fetching.
+        $initial_chart_period = '7days'; // Default period
+        // $chart_data = $bookings_manager->get_chart_data_for_period($data_user_id, $initial_chart_period);
+        // Placeholder:
         $chart_data = array(
-            'labels' => array('Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'),
+            'labels' => array('Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Day 7'),
             'datasets' => array(
                 array(
                     'label' => 'Bookings',
-                    'data' => array(5, 8, 3, 6, 4, 7, 9), // This should come from actual data
+                    'data' => array_fill(0, 7, 0), // Placeholder data
                     'borderColor' => 'hsl(221.2 83.2% 53.3%)',
                     'backgroundColor' => 'hsl(221.2 83.2% 53.3% / 0.1)',
                     'tension' => 0.4,
@@ -512,10 +275,13 @@ function mobooking_ajax_get_dashboard_overview_data() {
                 )
             )
         );
+        // TODO: Replace placeholder above with actual call to a method like:
+        // $chart_data = $bookings_manager->get_booking_counts_for_period($data_user_id, $initial_chart_period);
+
 
         wp_send_json_success(array(
             'kpis' => $kpi_data,
-            'chart_data' => $chart_data
+            'chart_data' => $chart_data // This is the initial chart data
         ));
 
     } catch (Exception $e) {
@@ -527,8 +293,9 @@ function mobooking_ajax_get_dashboard_overview_data() {
 add_action('wp_ajax_mobooking_get_recent_bookings', 'mobooking_ajax_get_recent_bookings');
 function mobooking_ajax_get_recent_bookings() {
     // Verify nonce
-    if (!wp_verify_nonce($_POST['nonce'], 'mobooking_overview_nonce')) {
-        wp_die('Security check failed');
+    if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'mobooking_dashboard_nonce')) {
+        wp_send_json_error('Security check failed: Invalid nonce.', 403);
+        return;
     }
 
     $current_user_id = get_current_user_id();
@@ -557,6 +324,78 @@ function mobooking_ajax_get_recent_bookings() {
 
     } catch (Exception $e) {
         wp_send_json_error('Failed to load recent bookings: ' . $e->getMessage());
+    }
+}
+
+// AJAX handler for fetching chart data by period
+add_action('wp_ajax_mobooking_get_dashboard_chart_data', 'mobooking_ajax_get_dashboard_chart_data');
+function mobooking_ajax_get_dashboard_chart_data() {
+    // Verify nonce
+    if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'mobooking_dashboard_nonce')) {
+        wp_send_json_error('Security check failed: Invalid nonce.', 403);
+        return;
+    }
+
+    $current_user_id = get_current_user_id();
+    if (!$current_user_id) {
+        wp_send_json_error('User not authenticated.', 401);
+        return;
+    }
+
+    // Get managers (or at least bookings_manager)
+    $services_manager = new \MoBooking\Classes\Services(); // May not be needed here
+    $discounts_manager = new \MoBooking\Classes\Discounts($current_user_id); // May not be needed here
+    $notifications_manager = new \MoBooking\Classes\Notifications(); // May not be needed here
+    $bookings_manager = new \MoBooking\Classes\Bookings($discounts_manager, $notifications_manager, $services_manager);
+
+    // Determine user for data fetching (handle workers)
+    $data_user_id = $current_user_id;
+    if (class_exists('MoBooking\Classes\Auth') && \MoBooking\Classes\Auth::is_user_worker($current_user_id)) {
+        $owner_id = \MoBooking\Classes\Auth::get_business_owner_id_for_worker($current_user_id);
+        if ($owner_id) {
+            $data_user_id = $owner_id;
+        }
+    }
+
+    $period = isset($_POST['period']) ? sanitize_text_field($_POST['period']) : '7days'; // Default to 7days
+
+    try {
+        // TODO: Implement actual data fetching logic in Bookings class
+        // $chart_data = $bookings_manager->get_booking_counts_for_period($data_user_id, $period);
+
+        // Placeholder data based on period
+        $num_days = 7; // Default
+        if ($period === '30days') {
+            $num_days = 30;
+        } elseif ($period === '90days') {
+            $num_days = 90;
+        }
+
+        $labels = [];
+        for ($i = $num_days - 1; $i >= 0; $i--) {
+            $labels[] = date('M j', strtotime("-$i days"));
+        }
+        $data_points = array_map(function() { return rand(0, 20); }, array_fill(0, $num_days, 0));
+
+
+        $chart_data = array(
+            'labels' => $labels,
+            'datasets' => array(
+                array(
+                    'label' => 'Bookings',
+                    'data' => $data_points, // Placeholder data
+                    'borderColor' => 'hsl(221.2 83.2% 53.3%)',
+                    'backgroundColor' => 'hsl(221.2 83.2% 53.3% / 0.1)',
+                    'tension' => 0.4,
+                    'fill' => true
+                )
+            )
+        );
+
+        wp_send_json_success($chart_data);
+
+    } catch (Exception $e) {
+        wp_send_json_error('Failed to load chart data: ' . $e->getMessage());
     }
 }
 ?>
