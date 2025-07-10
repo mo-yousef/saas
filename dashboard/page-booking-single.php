@@ -89,9 +89,30 @@ function mobooking_get_feather_icon($icon_name, $attrs = 'width="18" height="18"
         case 'dollar-sign': $svg = '<svg xmlns="http://www.w3.org/2000/svg" '.$attrs.' viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>'; break;
         case 'info': $svg = '<svg xmlns="http://www.w3.org/2000/svg" '.$attrs.' viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>'; break;
         case 'message-square': $svg = '<svg xmlns="http://www.w3.org/2000/svg" '.$attrs.' viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>'; break;
+        case 'check-circle': $svg = '<svg xmlns="http://www.w3.org/2000/svg" '.$attrs.' viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>'; break;
+        case 'loader': $svg = '<svg xmlns="http://www.w3.org/2000/svg" '.$attrs.' viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="2" x2="12" y2="6"></line><line x1="12" y1="18" x2="12" y2="22"></line><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line><line x1="2" y1="12" x2="6" y2="12"></line><line x1="18" y1="12" x2="22" y2="12"></line><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line></svg>'; break;
+        case 'pause-circle': $svg = '<svg xmlns="http://www.w3.org/2000/svg" '.$attrs.' viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="10" y1="15" x2="10" y2="9"></line><line x1="14" y1="15" x2="14" y2="9"></line></svg>'; break;
+        case 'check-square': $svg = '<svg xmlns="http://www.w3.org/2000/svg" '.$attrs.' viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>'; break;
+        case 'x-circle': $svg = '<svg xmlns="http://www.w3.org/2000/svg" '.$attrs.' viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>'; break;
         default: $svg = '<!-- icon not found: '.esc_attr($icon_name).' -->'; break;
     }
     return $svg;
+}
+
+// Helper function to get icon based on status for badges
+function mobooking_get_status_badge_icon_svg($status) {
+    $attrs = 'class="feather"'; // CSS will handle size and margin
+    $icon_name = '';
+    switch ($status) {
+        case 'pending': $icon_name = 'clock'; break;
+        case 'confirmed': $icon_name = 'check-circle'; break;
+        case 'processing': $icon_name = 'loader'; break;
+        case 'on-hold': $icon_name = 'pause-circle'; break;
+        case 'completed': $icon_name = 'check-square'; break;
+        case 'cancelled': $icon_name = 'x-circle'; break;
+        default: return '';
+    }
+    return mobooking_get_feather_icon($icon_name, $attrs);
 }
 ?>
 <style>
@@ -109,7 +130,7 @@ function mobooking_get_feather_icon($icon_name, $attrs = 'width="18" height="18"
     .mobooking-sbs-item a:hover { text-decoration: underline !important; }
     .mobooking-status-update-section { margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed var(--border, #e0e0e0); }
     .mobooking-status-form { display: flex; align-items: center; gap: 0.75rem; margin-top: 0.5rem; flex-wrap: wrap; }
-    .mobooking-status-form label { font-weight: 600; }
+    .mobooking-status-form label { font-weight: 600; display: inline-flex; align-items: center; gap: 0.25rem;}
     .mobooking-service-items-list { list-style: none; padding: 0; }
     .mobooking-service-items-list > li { padding: 0.75rem 0; border-bottom: 1px dashed var(--border, #e0e0e0); }
     .mobooking-service-items-list > li:last-child { border-bottom: none; }
@@ -118,13 +139,79 @@ function mobooking_get_feather_icon($icon_name, $attrs = 'width="18" height="18"
     .mobooking-pricing-summary p { margin: 0.5rem 0; display: flex; justify-content: space-between; }
     .mobooking-pricing-summary strong.final-total { font-size: 1.2em; color: var(--primary); }
     .mobooking-meta-info { font-size: 0.8rem; color: var(--muted-foreground); text-align: right; margin-top: 1rem; }
-    .mobooking-status-badge { padding: 0.25em 0.6em; font-size: 0.85em; border-radius: var(--radius); color: #fff; }
-    .mobooking-status-pending { background-color: #ffc107; color: #333 } /* Amber */
-    .mobooking-status-confirmed { background-color: #28a745; } /* Green */
-    .mobooking-status-processing { background-color: #17a2b8; } /* Teal */
-    .mobooking-status-on-hold { background-color: #fd7e14; } /* Orange */
-    .mobooking-status-completed { background-color: #6f42c1; } /* Indigo */
-    .mobooking-status-cancelled { background-color: #dc3545; } /* Red */
+    /* New Status Badge Styles (ShadCN Inspired) */
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.25em 0.6em; /* Keep similar padding */
+        font-size: 0.85em;     /* Keep similar font size */
+        font-weight: 500;      /* ShadCN uses medium weight */
+        border-radius: var(--radius, 0.5rem);
+        border: 1px solid transparent;
+        line-height: 1.2;      /* Ensure consistent line height */
+    }
+
+    .status-badge .feather {
+        width: 1em;
+        height: 1em;
+        margin-right: 0.4em;
+        stroke-width: 2.5;
+    }
+
+    .status-badge.status-pending {
+        background-color: hsl(var(--muted)); /* Light gray */
+        color: hsl(var(--muted-foreground)); /* Darker gray text */
+        border-color: hsl(var(--border));    /* Subtle border */
+    }
+    .status-badge.status-pending .feather {
+        color: hsl(var(--muted-foreground));
+    }
+
+    .status-badge.status-confirmed {
+        background-color: hsl(var(--primary));
+        color: hsl(var(--primary-foreground));
+        border-color: hsl(var(--primary));
+    }
+    .status-badge.status-confirmed .feather {
+        color: hsl(var(--primary-foreground));
+    }
+
+    .status-badge.status-processing {
+        background-color: hsl(200, 80%, 95%); /* Lighter Blue */
+        color: hsl(200, 70%, 40%);            /* Darker Blue text */
+        border-color: hsl(200, 70%, 70%);     /* Blue border */
+    }
+    .status-badge.status-processing .feather {
+        color: hsl(200, 70%, 40%);
+    }
+
+    .status-badge.status-on-hold {
+        background-color: hsl(45, 100%, 95%); /* Lighter Yellow/Amber */
+        color: hsl(45, 100%, 25%);            /* Darker text for yellow */
+        border-color: hsl(45, 100%, 70%);     /* Yellow/Amber border */
+    }
+    .status-badge.status-on-hold .feather {
+        color: hsl(45, 100%, 25%);
+    }
+
+    .status-badge.status-completed {
+        background-color: hsl(145, 63%, 95%); /* Lighter Green */
+        color: hsl(145, 63%, 22%);            /* Darker Green text */
+        border-color: hsl(145, 63%, 72%);     /* Green border */
+    }
+    .status-badge.status-completed .feather {
+        color: hsl(145, 63%, 22%);
+    }
+
+    .status-badge.status-cancelled {
+        background-color: hsl(var(--destructive) / 0.1); /* Lighter Destructive Background */
+        color: hsl(var(--destructive));                  /* Destructive Text Color */
+        border-color: hsl(var(--destructive) / 0.3);     /* Destructive Border Color */
+    }
+    .status-badge.status-cancelled .feather {
+        color: hsl(var(--destructive));
+    }
+    /* End New Status Badge Styles */
 
     .mobooking-page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
     .mobooking-page-header h1 { font-size: 1.8rem; margin:0; color: var(--foreground); }
@@ -132,8 +219,50 @@ function mobooking_get_feather_icon($icon_name, $attrs = 'width="18" height="18"
     .mobooking-status-feedback.success { color: green; margin-top: 0.5rem; }
     .mobooking-status-feedback.error { color: red; margin-top: 0.5rem; }
 
+    /* Responsive Table for Services/Options */
+    .mobooking-services-table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+    .mobooking-services-table th, .mobooking-services-table td {
+        padding: 0.75rem;
+        text-align: left;
+        border-bottom: 1px solid var(--border, #e0e0e0);
+    }
+    .mobooking-services-table th {
+        background-color: hsl(var(--muted)/0.5);
+        font-weight: 600;
+        font-size: 0.9em;
+    }
+    .mobooking-services-table .service-name-cell { font-weight: 600; }
+    .mobooking-services-table .option-row td { padding-left: 2.5rem; font-size: 0.9em; }
+    .mobooking-services-table .option-name { color: var(--muted-foreground); }
+    .mobooking-services-table .price-cell { text-align: right; white-space: nowrap; }
+
     @media (max-width: 768px) {
         .mobooking-sbs-grid { grid-template-columns: 1fr; }
+        .mobooking-services-table thead { display: none; } /* Hide table headers on mobile */
+        .mobooking-services-table tr { display: block; margin-bottom: 1rem; border: 1px solid var(--border, #e0e0e0); border-radius: var(--radius, 0.5rem); }
+        .mobooking-services-table td { display: block; text-align: right; padding-left: 50%; position: relative; border-bottom: 1px dashed var(--border, #e0e0e0); }
+        .mobooking-services-table td:last-child { border-bottom: none; }
+        .mobooking-services-table td::before {
+            content: attr(data-label);
+            position: absolute;
+            left: 0.75rem;
+            width: calc(50% - 1.5rem); /* 50% minus padding */
+            padding-right: 0.75rem;
+            font-weight: 600;
+            text-align: left;
+            white-space: nowrap;
+        }
+        .mobooking-services-table .option-row td { padding-left: 1.5rem; /* Adjust for stacked mobile */ }
+        .mobooking-services-table .option-row td::before { padding-left: 1.5rem; /* Indent data label for options */ }
+        .mobooking-services-table .price-cell { text-align: right !important; } /* Ensure price is right aligned */
+        .mobooking-services-table td.service-name-cell { font-weight: bold; background-color: hsl(var(--muted)/0.3); padding-top: 1rem; padding-bottom: 1rem; text-align: left; padding-left: 0.75rem;}
+        .mobooking-services-table td.service-name-cell::before { display: none; } /* No data-label for the main service name cell */
+
+    }
+
+    @media (max-width: 480px) {
+        .mobooking-services-table td { padding-left: 40%; } /* Adjust for very small screens */
+        .mobooking-services-table td::before { width: calc(40% - 1.5rem); }
         .mobooking-page-header { flex-direction: column; align-items: flex-start; gap: 1rem; }
     }
 
@@ -176,7 +305,12 @@ function mobooking_get_feather_icon($icon_name, $attrs = 'width="18" height="18"
         </div>
         <div class="mobooking-sbs-panel-content">
             <div class="mobooking-status-update-section" style="border-top:none; margin-top:0; padding-top:0;">
-                <p class="mobooking-sbs-item"><strong><?php esc_html_e('Current Status:', 'mobooking'); ?></strong> <span id="mobooking-current-status-display" class="mobooking-status-badge mobooking-status-<?php echo esc_attr($booking['status']); ?>"><?php echo esc_html($status_display); ?></span></p>
+                <p class="mobooking-sbs-item"><strong><?php esc_html_e('Current Status:', 'mobooking'); ?></strong>
+                    <span id="mobooking-current-status-display" class="status-badge status-<?php echo esc_attr($booking['status']); ?>">
+                        <?php echo mobooking_get_status_badge_icon_svg($booking['status']); ?>
+                        <span class="status-text"><?php echo esc_html($status_display); ?></span>
+                    </span>
+                </p>
                 <div class="mobooking-status-form">
                     <label for="mobooking-single-booking-status-select"><?php echo mobooking_get_feather_icon('edit', 'width="16" height="16" style="vertical-align:middle; margin-right:0.25rem;"'); ?> <?php esc_html_e('Change Status:', 'mobooking'); ?></label>
                     <select id="mobooking-single-booking-status-select" data-booking-id="<?php echo esc_attr($booking['booking_id']); ?>">
@@ -202,41 +336,61 @@ function mobooking_get_feather_icon($icon_name, $attrs = 'width="18" height="18"
         </div>
         <div class="mobooking-sbs-panel-content">
             <?php if (isset($booking['items']) && is_array($booking['items']) && !empty($booking['items'])): ?>
-                <ul class="mobooking-service-items-list">
-                    <?php $subtotal_calc = 0; foreach ($booking['items'] as $item): $subtotal_calc += floatval($item['item_total_price']); ?>
-                        <li>
-                            <strong><?php echo esc_html($item['service_name']); ?></strong>
-                            (<?php echo esc_html($currency_symbol . number_format_i18n(floatval($item['service_price']), 2)); ?>)
+                <table class="mobooking-services-table">
+                    <thead>
+                        <tr>
+                            <th><?php esc_html_e('Service / Option', 'mobooking'); ?></th>
+                            <th><?php esc_html_e('Details', 'mobooking'); ?></th>
+                            <th class="price-cell"><?php esc_html_e('Price', 'mobooking'); ?></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php $subtotal_calc = 0; foreach ($booking['items'] as $item): $subtotal_calc += floatval($item['item_total_price']); ?>
+                            <tr>
+                                <td data-label="<?php esc_attr_e('Service', 'mobooking'); ?>" class="service-name-cell">
+                                    <?php echo esc_html($item['service_name']); ?>
+                                </td>
+                                <td data-label="<?php esc_attr_e('Base Price', 'mobooking'); ?>" class="price-cell">
+                                    <?php echo esc_html($currency_symbol . number_format_i18n(floatval($item['service_price']), 2)); ?>
+                                </td>
+                                <td data-label="<?php esc_attr_e('Item Total', 'mobooking'); ?>" class="price-cell">
+                                    <?php echo esc_html($currency_symbol . number_format_i18n(floatval($item['item_total_price']), 2)); ?>
+                                </td>
+                            </tr>
                             <?php if (!empty($item['selected_options']) && is_array($item['selected_options'])): ?>
-                                <ul class="mobooking-service-options-list">
-                                    <?php
-                                    if (is_array($item['selected_options'])) {
-                                        foreach ($item['selected_options'] as $option_key => $option_data):
-                                            $option_display_name = ''; $option_display_value = ''; $option_price_text = '';
-                                            if (is_array($option_data) && isset($option_data['name']) && isset($option_data['value'])) {
-                                                $option_display_name = $option_data['name'];
-                                                $option_display_value = is_array($option_data['value']) ? esc_html(wp_json_encode($option_data['value'])) : esc_html($option_data['value']);
-                                                $option_price = isset($option_data['price']) ? floatval($option_data['price']) : 0;
-                                                $option_price_text = ($option_price >= 0 ? '+' : '') . esc_html($currency_symbol . number_format_i18n($option_price, 2));
-                                            } elseif (is_string($option_key) && !is_array($option_data)) {
-                                                $option_display_name = $option_key; $option_display_value = esc_html($option_data);
-                                            } else {
-                                                $option_display_name = 'Option'; $option_display_value = esc_html(wp_json_encode($option_data));
-                                            }
-                                    ?>
-                                        <li>
-                                            <?php echo esc_html($option_display_name); ?>: <?php echo $option_display_value; ?>
-                                            <?php if (!empty($option_price_text)): ?> (<?php echo $option_price_text; ?>)<?php endif; ?>
-                                        </li>
-                                    <?php endforeach;
-                                    } else { echo '<li>' . esc_html__('Options data is not in expected array format.', 'mobooking') . '</li>'; } ?>
-                                </ul>
+                                <?php
+                                if (is_array($item['selected_options'])) {
+                                    foreach ($item['selected_options'] as $option_key => $option_data):
+                                        $option_display_name = ''; $option_display_value = ''; $option_price_text = '';
+                                        if (is_array($option_data) && isset($option_data['name']) && isset($option_data['value'])) {
+                                            $option_display_name = $option_data['name'];
+                                            $option_display_value = is_array($option_data['value']) ? esc_html(wp_json_encode($option_data['value'])) : esc_html($option_data['value']);
+                                            $option_price = isset($option_data['price']) ? floatval($option_data['price']) : 0;
+                                            $option_price_text = ($option_price >= 0 ? '+' : '') . esc_html($currency_symbol . number_format_i18n($option_price, 2));
+                                        } elseif (is_string($option_key) && !is_array($option_data)) {
+                                            $option_display_name = $option_key; $option_display_value = esc_html($option_data);
+                                        } else {
+                                            $option_display_name = 'Option'; $option_display_value = esc_html(wp_json_encode($option_data));
+                                        }
+                                ?>
+                                    <tr class="option-row">
+                                        <td data-label="<?php echo esc_attr($option_display_name); ?>" class="option-name">
+                                            └ <?php echo esc_html($option_display_name); ?>
+                                        </td>
+                                        <td data-label="<?php esc_attr_e('Value', 'mobooking'); ?>">
+                                            <?php echo $option_display_value; ?>
+                                        </td>
+                                        <td data-label="<?php esc_attr_e('Price', 'mobooking'); ?>" class="price-cell">
+                                            <?php if (!empty($option_price_text)) { echo $option_price_text; } ?>
+                                        </td>
+                                    </tr>
+                                <?php endforeach;
+                                } ?>
                             <?php endif; ?>
-                            <p style="text-align: right; margin-top: 0.25rem;"><em><?php esc_html_e('Item Total:', 'mobooking'); ?> <?php echo esc_html($currency_symbol . number_format_i18n(floatval($item['item_total_price']), 2)); ?></em></p>
-                        </li>
-                    <?php endforeach; ?>
-                </ul>
-                <hr style="margin: 1rem 0;">
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+                <hr style="margin: 1.5rem 0;">
                 <div class="mobooking-pricing-summary">
                     <p><span><?php esc_html_e('Subtotal:', 'mobooking'); ?></span> <span><?php echo esc_html($currency_symbol . number_format_i18n($subtotal_calc, 2)); ?></span></p>
                     <p><span><?php esc_html_e('Discount Applied:', 'mobooking'); ?></span> <span><?php echo esc_html($discount_amount_formatted); ?></span></p>
@@ -267,6 +421,15 @@ function mobooking_get_feather_icon($icon_name, $attrs = 'width="18" height="18"
 ?>
 <script type="text/javascript">
 jQuery(document).ready(function($) {
+    // Pre-generate icon HTML for dynamic updates
+    var statusIcons = {};
+    <?php
+        foreach (array_keys($booking_statuses_for_select) as $status_key) {
+            // Ensure SVG output is properly escaped for JavaScript string literal
+            echo "statusIcons['" . esc_js($status_key) . "'] = '" . str_replace(["\r", "\n"], "", addslashes(mobooking_get_status_badge_icon_svg($status_key))) . "';\n";
+        }
+    ?>
+
     $('#mobooking-single-save-status-btn').on('click', function() {
         var $button = $(this);
         var bookingId = $('#mobooking-single-booking-status-select').data('booking-id');
@@ -289,8 +452,22 @@ jQuery(document).ready(function($) {
             success: function(response) {
                 if (response.success) {
                     $feedback.text(response.data.message || '<?php echo esc_js( __( 'Status updated successfully!', 'mobooking' ) ); ?>').addClass('success').removeClass('error');
-                    $currentStatusDisplay.text(newStatus.charAt(0).toUpperCase() + newStatus.slice(1).replace('-', ' '));
-                    $currentStatusDisplay.removeClassWild("mobooking-status-*").addClass("mobooking-status-" + newStatus);
+
+                    var newStatusText = newStatus.charAt(0).toUpperCase() + newStatus.slice(1).replace('-', ' ');
+                    $currentStatusDisplay.find('.status-text').text(newStatusText);
+
+                    // Update classes for styling
+                    var newClass = 'status-badge status-' + newStatus;
+                    $currentStatusDisplay.attr('class', newClass);
+
+                    // Update icon
+                    if (statusIcons[newStatus]) {
+                        $currentStatusDisplay.find('.feather').remove(); // Remove old icon
+                        $currentStatusDisplay.prepend(statusIcons[newStatus]); // Add new icon
+                    } else {
+                        $currentStatusDisplay.find('.feather').remove(); // Remove icon if new status has no icon
+                    }
+
                 } else {
                     $feedback.text(response.data.message || '<?php echo esc_js( __( 'Error updating status.', 'mobooking' ) ); ?>').addClass('error').removeClass('success');
                 }
@@ -305,11 +482,14 @@ jQuery(document).ready(function($) {
         });
     });
 
-    $.fn.removeClassWild = function(mask) {
-        return this.removeClass(function(index, cls) {
-            var re = mask.replace(/\*/g, '\\S+');
-            return (cls.match(new RegExp('\\b' + re + '', 'g')) || []).join(' ');
-        });
-    };
+    // Helper to remove classes with wildcard - not strictly needed if we use .attr('class', newClass)
+    // $.fn.removeClassWild = function(mask) {
+    //     return this.removeClass(function(index, cls) {
+    //         var re = mask.replace(/\*/g, '\\S+');
+    //         return (cls.match(new RegExp('\\b' + re + '', 'g')) || []).join(' ');
+    //     });
+    // };
 });
 </script>
+
+[end of dashboard/page-booking-single.php]

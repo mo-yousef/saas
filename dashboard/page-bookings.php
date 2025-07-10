@@ -9,70 +9,81 @@ ini_set('display_errors', 1);
  */
 
 // Ensure critical classes are loaded
-// Assuming dashboard/page-bookings.php is one level down from the directory containing classes/.
 require_once __DIR__ . '/../classes/Database.php';
 require_once __DIR__ . '/../classes/Utils.php';
 require_once __DIR__ . '/../classes/Services.php';
 require_once __DIR__ . '/../classes/Discounts.php';
 require_once __DIR__ . '/../classes/Notifications.php';
 require_once __DIR__ . '/../classes/Bookings.php';
-// No separate BookingsManager.php was indicated; $bookings_manager is an instance of \MoBooking\Classes\Bookings
 
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
-// Instantiate necessary classes
-// Classes are now explicitly required above.
-// If not, require_once statements would be needed here for:
-// - MoBooking\Classes\Discounts
-// - MoBooking\Classes\Notifications
-// - MoBooking\Classes\Services
-// - MoBooking\Classes\Bookings
-// - MoBooking\Classes\Utils (if currency formatting is used server-side)
-// - MoBooking\Classes\Database (if not already loaded for get_table_name)
+// Feather Icons - define a helper function or include them directly
+if (!function_exists('mobooking_get_feather_icon')) { // Check if function exists to avoid re-declaration if included elsewhere
+    function mobooking_get_feather_icon($icon_name, $attrs = 'width="18" height="18"') {
+        $svg = '';
+        switch ($icon_name) {
+            case 'calendar': $svg = '<svg xmlns="http://www.w3.org/2000/svg" '.$attrs.' viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>'; break;
+            case 'clock': $svg = '<svg xmlns="http://www.w3.org/2000/svg" '.$attrs.' viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>'; break;
+            case 'check-circle': $svg = '<svg xmlns="http://www.w3.org/2000/svg" '.$attrs.' viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>'; break;
+            case 'loader': $svg = '<svg xmlns="http://www.w3.org/2000/svg" '.$attrs.' viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="2" x2="12" y2="6"></line><line x1="12" y1="18" x2="12" y2="22"></line><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line><line x1="2" y1="12" x2="6" y2="12"></line><line x1="18" y1="12" x2="22" y2="12"></line><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line></svg>'; break;
+            case 'pause-circle': $svg = '<svg xmlns="http://www.w3.org/2000/svg" '.$attrs.' viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="10" y1="15" x2="10" y2="9"></line><line x1="14" y1="15" x2="14" y2="9"></line></svg>'; break;
+            case 'check-square': $svg = '<svg xmlns="http://www.w3.org/2000/svg" '.$attrs.' viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>'; break;
+            case 'x-circle': $svg = '<svg xmlns="http://www.w3.org/2000/svg" '.$attrs.' viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>'; break;
+            default: $svg = '<!-- icon not found: '.esc_attr($icon_name).' -->'; break;
+        }
+        return $svg;
+    }
+}
+
+if (!function_exists('mobooking_get_status_badge_icon_svg')) { // Check if function exists
+    function mobooking_get_status_badge_icon_svg($status) {
+        $attrs = 'class="feather"'; // CSS will handle size and margin
+        $icon_name = '';
+        switch ($status) {
+            case 'pending': $icon_name = 'clock'; break;
+            case 'confirmed': $icon_name = 'check-circle'; break;
+            case 'processing': $icon_name = 'loader'; break;
+            case 'on-hold': $icon_name = 'pause-circle'; break;
+            case 'completed': $icon_name = 'check-square'; break;
+            case 'cancelled': $icon_name = 'x-circle'; break;
+            default: return '';
+        }
+        return mobooking_get_feather_icon($icon_name, $attrs);
+    }
+}
+
 
 $current_user_id = get_current_user_id();
-$kpi_data = ['bookings_month' => 0, 'revenue_month' => 0, 'upcoming_count' => 0]; // Default KPIs
+$kpi_data = ['bookings_month' => 0, 'revenue_month' => 0, 'upcoming_count' => 0];
 
-$currency_symbol = \MoBooking\Classes\Utils::get_currency_symbol('USD'); // Default
+$currency_symbol = \MoBooking\Classes\Utils::get_currency_symbol('USD');
 if ($current_user_id && isset($GLOBALS['mobooking_settings_manager'])) {
     $currency_code_setting = $GLOBALS['mobooking_settings_manager']->get_setting($current_user_id, 'biz_currency_code', 'USD');
     $currency_symbol = \MoBooking\Classes\Utils::get_currency_symbol($currency_code_setting);
 }
 
-
 $bookings_data = null;
 $initial_bookings_html = '';
 $initial_pagination_html = '';
 
-// Instantiate managers earlier to use for KPIs as well
 $services_manager = new \MoBooking\Classes\Services();
 $discounts_manager = new \MoBooking\Classes\Discounts($current_user_id);
 $notifications_manager = new \MoBooking\Classes\Notifications();
 $bookings_manager = new \MoBooking\Classes\Bookings($discounts_manager, $notifications_manager, $services_manager);
 
-// Basic router for single booking view
 if (isset($_GET['action']) && $_GET['action'] === 'view_booking' && isset($_GET['booking_id'])) {
     $single_booking_id = intval($_GET['booking_id']);
-    // Pass necessary variables to the single booking page context
-    // $bookings_manager, $currency_symbol, $current_user_id are already available
-
-    // Attempt to include the single booking page template
-    // The actual file will be created in a later step.
     $single_page_path = __DIR__ . '/page-booking-single.php';
     if (file_exists($single_page_path)) {
         include $single_page_path;
-        return; // Stop further processing of the list page
+        return;
     } else {
-        // Handle case where file doesn't exist yet, maybe show an error or fall through to list
-        // For now, we'll fall through, but ideally, this would be robust.
          echo '<div class="notice notice-error"><p>Single booking page template not found.</p></div>';
     }
 }
 
-
 if ($current_user_id) {
-    // Fetch KPI data
-    // Determine the user ID for fetching data (owner if current user is worker)
     $data_fetch_user_id = $current_user_id;
     $is_worker_viewing = false;
     if (class_exists('MoBooking\Classes\Auth') && \MoBooking\Classes\Auth::is_user_worker($current_user_id)) {
@@ -83,21 +94,18 @@ if ($current_user_id) {
         }
     }
     $kpi_data = $bookings_manager->get_kpi_data($data_fetch_user_id);
-    if ($is_worker_viewing) { // Workers should not see revenue
+    if ($is_worker_viewing) {
         $kpi_data['revenue_month'] = null;
     }
 
-
     $default_args = [
-        'limit' => 20, // Same as in Bookings::get_bookings_by_tenant default
+        'limit' => 20,
         'paged' => 1,
         'orderby' => 'booking_date',
         'order' => 'DESC',
     ];
-    // get_bookings_by_tenant now correctly handles if $current_user_id is a worker
     $bookings_result = $bookings_manager->get_bookings_by_tenant($current_user_id, $default_args);
 
-    // Prepare table structure for initial bookings
     if (!empty($bookings_result['bookings'])) {
         $initial_bookings_html .= '<div class="mobooking-table-responsive-wrapper">';
         $initial_bookings_html .= '<table class="mobooking-table wp-list-table widefat fixed striped">';
@@ -112,12 +120,14 @@ if ($current_user_id) {
         $initial_bookings_html .= '<tbody>';
 
         foreach ($bookings_result['bookings'] as $booking) {
-            $status_display = !empty($booking['status']) ? ucfirst(str_replace('-', ' ', $booking['status'])) : __('N/A', 'mobooking');
+            $status_val = $booking['status'];
+            $status_display = !empty($status_val) ? ucfirst(str_replace('-', ' ', $status_val)) : __('N/A', 'mobooking');
+            $status_icon_html = mobooking_get_status_badge_icon_svg($status_val);
+
             $total_price_formatted = esc_html($currency_symbol . number_format_i18n(floatval($booking['total_price']), 2));
             $booking_date_formatted = date_i18n(get_option('date_format'), strtotime($booking['booking_date']));
-            $booking_time_formatted = date_i18n(get_option('time_format'), strtotime($booking['booking_time'])); // Assuming booking_time is just time
+            $booking_time_formatted = date_i18n(get_option('time_format'), strtotime($booking['booking_time']));
 
-            // Corrected URL to point to the front-end dashboard route
             $details_page_url = home_url('/dashboard/bookings/?action=view_booking&booking_id=' . $booking['booking_id']);
 
             $initial_bookings_html .= '<tr data-booking-id="' . esc_attr($booking['booking_id']) . '">';
@@ -125,20 +135,20 @@ if ($current_user_id) {
             $initial_bookings_html .= '<td data-colname="' . esc_attr__('Customer', 'mobooking') . '">' . esc_html($booking['customer_name']) . '<br><small>' . esc_html($booking['customer_email']) . '</small></td>';
             $initial_bookings_html .= '<td data-colname="' . esc_attr__('Booked Date', 'mobooking') . '">' . esc_html($booking_date_formatted . ' ' . $booking_time_formatted) . '</td>';
             $initial_bookings_html .= '<td data-colname="' . esc_attr__('Total', 'mobooking') . '">' . $total_price_formatted . '</td>';
-            $initial_bookings_html .= '<td data-colname="' . esc_attr__('Status', 'mobooking') . '"><span class="mobooking-status-badge mobooking-status-' . esc_attr($booking['status']) . '">' . esc_html($status_display) . '</span></td>';
+            // Updated status badge HTML
+            $initial_bookings_html .= '<td data-colname="' . esc_attr__('Status', 'mobooking') . '"><span class="status-badge status-' . esc_attr($status_val) . '">' . $status_icon_html . '<span class="status-text">' . esc_html($status_display) . '</span></span></td>';
             $initial_bookings_html .= '<td data-colname="' . esc_attr__('Actions', 'mobooking') . '" class="mobooking-table-actions">';
             $initial_bookings_html .= '<a href="' . esc_url($details_page_url) . '" class="button button-small">' . __('View Details', 'mobooking') . '</a> ';
             $initial_bookings_html .= '<button class="button button-small mobooking-delete-booking-btn" data-booking-id="' . esc_attr($booking['booking_id']) . '">' . __('Delete', 'mobooking') . '</button>';
             $initial_bookings_html .= '</td></tr>';
         }
         $initial_bookings_html .= '</tbody></table>';
-        $initial_bookings_html .= '</div>'; // end mobooking-table-responsive-wrapper
+        $initial_bookings_html .= '</div>';
     } else {
-        $initial_bookings_html = '<p>' . __('No bookings found.', 'mobooking') . '</p>'; // Keep this if no bookings
+        $initial_bookings_html = '<p>' . __('No bookings found.', 'mobooking') . '</p>';
     }
 
-    // Basic pagination (JS will handle more complex pagination) - plan to restyle this too
-    if (isset($bookings_result['total_count']) && isset($bookings_result['per_page']) && $bookings_result['total_count'] > 0) { // Ensure keys exist before calculation
+    if (isset($bookings_result['total_count']) && isset($bookings_result['per_page']) && $bookings_result['total_count'] > 0) {
         $total_pages = ceil($bookings_result['total_count'] / $bookings_result['per_page']);
         if ($total_pages > 1) {
             $initial_pagination_html .= '<div class="pagination-links">';
@@ -149,15 +159,9 @@ if ($current_user_id) {
             $initial_pagination_html .= '</div>';
         }
     }
-    // Removed the redundant 'else' that was causing the parse error.
-    // The main 'else' for 'if ($current_user_id)' is below and handles the case where user is not identified.
-
-} else { // This 'else' corresponds to 'if ($current_user_id)'
+} else {
     $initial_bookings_html = '<p>' . __('Could not load bookings. User not identified.', 'mobooking') . '</p>';
-    // KPIs would also not be loaded, $kpi_data would remain default.
-    // $initial_pagination_html would remain empty.
 }
-
 
 $booking_statuses = [
     '' => __('All Statuses', 'mobooking'),
@@ -169,18 +173,68 @@ $booking_statuses = [
     'processing' => __('Processing', 'mobooking'),
 ];
 ?>
-<?php
-// NOTE: The <style> block for the modal has been removed from here.
-// These styles will be moved to a dedicated CSS file as part of the CSS implementation step.
-?>
+<style>
+    /* Status Badge Styles (copied from page-booking-single.php) */
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.25em 0.6em;
+        font-size: 0.85em;
+        font-weight: 500;
+        border-radius: var(--radius, 0.5rem);
+        border: 1px solid transparent;
+        line-height: 1.2;
+    }
+    .status-badge .feather {
+        width: 1em;
+        height: 1em;
+        margin-right: 0.4em;
+        stroke-width: 2.5;
+    }
+    .status-badge.status-pending {
+        background-color: hsl(var(--muted));
+        color: hsl(var(--muted-foreground));
+        border-color: hsl(var(--border));
+    }
+    .status-badge.status-pending .feather { color: hsl(var(--muted-foreground)); }
+    .status-badge.status-confirmed {
+        background-color: hsl(var(--primary));
+        color: hsl(var(--primary-foreground));
+        border-color: hsl(var(--primary));
+    }
+    .status-badge.status-confirmed .feather { color: hsl(var(--primary-foreground)); }
+    .status-badge.status-processing {
+        background-color: hsl(200, 80%, 95%);
+        color: hsl(200, 70%, 40%);
+        border-color: hsl(200, 70%, 70%);
+    }
+    .status-badge.status-processing .feather { color: hsl(200, 70%, 40%); }
+    .status-badge.status-on-hold {
+        background-color: hsl(45, 100%, 95%);
+        color: hsl(45, 100%, 25%);
+        border-color: hsl(45, 100%, 70%);
+    }
+    .status-badge.status-on-hold .feather { color: hsl(45, 100%, 25%); }
+    .status-badge.status-completed {
+        background-color: hsl(145, 63%, 95%);
+        color: hsl(145, 63%, 22%);
+        border-color: hsl(145, 63%, 72%);
+    }
+    .status-badge.status-completed .feather { color: hsl(145, 63%, 22%); }
+    .status-badge.status-cancelled {
+        background-color: hsl(var(--destructive) / 0.1);
+        color: hsl(var(--destructive));
+        border-color: hsl(var(--destructive) / 0.3);
+    }
+    .status-badge.status-cancelled .feather { color: hsl(var(--destructive)); }
+</style>
 
-<div class="wrap mobooking-dashboard-wrap mobooking-bookings-page-wrapper"> <?php // Main page wrapper with WP admin styles ?>
+<div class="wrap mobooking-dashboard-wrap mobooking-bookings-page-wrapper">
 
     <div class="mobooking-page-header">
         <h1 class="wp-heading-inline"><?php esc_html_e('Manage Bookings', 'mobooking'); ?></h1>
         <?php
-        // Only show "Add New Booking" button to non-workers (i.e., Business Owners)
-        $current_user_can_add_booking = true; // Default to true
+        $current_user_can_add_booking = true;
         if (class_exists('MoBooking\Classes\Auth') && \MoBooking\Classes\Auth::is_user_worker(get_current_user_id())) {
             $current_user_can_add_booking = false;
         }
@@ -192,56 +246,39 @@ $booking_statuses = [
         <?php endif; ?>
     </div>
 
-    <?php // KPI Section - Adopting modern KPI card structure from page-overview.php ?>
-    <div class="dashboard-kpi-grid mobooking-overview-kpis"> <?php // Add a specific class if needed to target these KPIs if they differ slightly from overview page, or use .mobooking-overview .dashboard-kpi-grid styles directly ?>
-        <div class="dashboard-kpi-card"> <?php // Use .kpi-card structure from page-overview.php ?>
+    <div class="dashboard-kpi-grid mobooking-overview-kpis">
+        <div class="dashboard-kpi-card">
             <div class="kpi-header">
                 <span class="kpi-title"><?php esc_html_e('Bookings This Month', 'mobooking'); ?></span>
-                <div class="kpi-icon bookings">📅</div> <?php // Example icon, adjust as needed ?>
+                <div class="kpi-icon bookings">📅</div>
             </div>
             <div class="kpi-value"><?php echo esc_html($kpi_data['bookings_month']); ?></div>
-            <?php /* Placeholder for trend, actual trend data not available here yet
-            <div class="kpi-trend positive">
-                <span>↗</span> +X%
-            </div>
-            */ ?>
         </div>
 
         <?php if ($kpi_data['revenue_month'] !== null) : ?>
         <div class="dashboard-kpi-card">
             <div class="kpi-header">
                 <span class="kpi-title"><?php esc_html_e('Revenue This Month', 'mobooking'); ?></span>
-                <div class="kpi-icon revenue">💰</div> <?php // Example icon ?>
+                <div class="kpi-icon revenue">💰</div>
             </div>
             <div class="kpi-value"><?php echo esc_html($currency_symbol . number_format_i18n(floatval($kpi_data['revenue_month']), 2)); ?></div>
-             <?php /* Placeholder for trend
-            <div class="kpi-trend positive">
-                <span>↗</span> +Y%
-            </div>
-            */ ?>
         </div>
         <?php endif; ?>
 
         <div class="dashboard-kpi-card">
             <div class="kpi-header">
                 <span class="kpi-title"><?php esc_html_e('Upcoming Confirmed Bookings', 'mobooking'); ?></span>
-                 <div class="kpi-icon upcoming">⏰</div> <?php // Example icon ?>
+                 <div class="kpi-icon upcoming">⏰</div>
             </div>
             <div class="kpi-value"><?php echo esc_html($kpi_data['upcoming_count']); ?></div>
-            <?php /* Placeholder for trend
-            <div class="kpi-trend neutral">
-                <span>→</span> Next 7 days
-            </div>
-             */ ?>
         </div>
     </div>
 
-    <?php // Filters Bar - Using .mobooking-card for consistent card appearance ?>
     <div class="mobooking-card mobooking-filters-wrapper">
-        <div class="mobooking-card-header"> <?php // Optional: Add a card header for the filter section ?>
+        <div class="mobooking-card-header">
             <h3><?php esc_html_e('Filter Bookings', 'mobooking'); ?></h3>
         </div>
-        <div class="mobooking-card-content"> <?php // Wrap content in mobooking-card-content ?>
+        <div class="mobooking-card-content">
         <div class="inside">
             <form id="mobooking-bookings-filter-form" class="mobooking-filters-form">
                 <div class="mobooking-filter-row">
@@ -263,7 +300,7 @@ $booking_statuses = [
                     </div>
                 </div>
                 <div class="mobooking-filter-row">
-                     <div class="mobooking-filter-item mobooking-filter-item-search"> <?php // Search on its own row or make it flexible ?>
+                     <div class="mobooking-filter-item mobooking-filter-item-search">
                         <label for="mobooking-search-query"><?php esc_html_e('Search:', 'mobooking'); ?></label>
                         <input type="search" id="mobooking-search-query" name="search_query" class="regular-text" placeholder="<?php esc_attr_e('Ref, Name, Email', 'mobooking'); ?>">
                     </div>
@@ -276,16 +313,10 @@ $booking_statuses = [
         </div>
     </div>
 
-    <?php // Bookings List Table ?>
     <div id="mobooking-bookings-list-container" class="mobooking-list-table-wrapper">
-        <?php
-        // Initial bookings HTML is generated by PHP and includes the table structure
-        // Ensure $initial_bookings_html uses class="wp-list-table widefat fixed striped" for the table
-        echo $initial_bookings_html; // WPCS: XSS ok. Escaped above.
-        ?>
+        <?php echo $initial_bookings_html; // WPCS: XSS ok. Escaped above. ?>
     </div>
 
-    <?php // Pagination ?>
     <div id="mobooking-bookings-pagination-container" class="tablenav bottom">
         <div class="tablenav-pages">
             <span class="pagination-links">
@@ -300,7 +331,11 @@ $booking_statuses = [
         <td data-colname="<?php esc_attr_e('Customer', 'mobooking'); ?>"><%= customer_name %><br><small><%= customer_email %></small></td>
         <td data-colname="<?php esc_attr_e('Booked Date', 'mobooking'); ?>"><%= booking_date_formatted %> <%= booking_time_formatted %></td>
         <td data-colname="<?php esc_attr_e('Total', 'mobooking'); ?>"><%= total_price_formatted %></td>
-        <td data-colname="<?php esc_attr_e('Status', 'mobooking'); ?>"><span class="mobooking-status-badge mobooking-status-<%= status %>"><%= status_display %></span></td>
+        <td data-colname="<?php esc_attr_e('Status', 'mobooking'); ?>">
+            <span class="status-badge status-<%= status %>">
+                <%= icon_html %> <span class="status-text"><%= status_display %></span>
+            </span>
+        </td>
         <td data-colname="<?php esc_attr_e('Actions', 'mobooking'); ?>" class="mobooking-table-actions">
             <a href="<%= details_page_url %>" class="button button-small"><?php esc_html_e('View Details', 'mobooking'); ?></a>
             <button class="button button-small mobooking-delete-booking-btn" data-booking-id="<%= booking_id %>"><?php esc_html_e('Delete', 'mobooking'); ?></button>
@@ -308,7 +343,4 @@ $booking_statuses = [
     </tr>
 </script>
 
-<?php // Inline styles removed. They will be merged into assets/css/dashboard-bookings-responsive.css ?>
-
-<?php // Modal HTML structure and old style blocks were confirmed removed previously. ?>
-</div> <?php // This closes .mobooking-bookings-page-wrapper ?>
+</div>
