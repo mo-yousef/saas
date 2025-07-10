@@ -117,7 +117,8 @@ if ($current_user_id) {
             $booking_date_formatted = date_i18n(get_option('date_format'), strtotime($booking['booking_date']));
             $booking_time_formatted = date_i18n(get_option('time_format'), strtotime($booking['booking_time'])); // Assuming booking_time is just time
 
-            $details_page_url = admin_url('admin.php?page=mobooking&action=view_booking&booking_id=' . $booking['booking_id']);
+            // Corrected URL to point to the front-end dashboard route
+            $details_page_url = home_url('/dashboard/bookings/?action=view_booking&booking_id=' . $booking['booking_id']);
 
             $initial_bookings_html .= '<tr data-booking-id="' . esc_attr($booking['booking_id']) . '">';
             $initial_bookings_html .= '<td data-colname="' . esc_attr__('Ref', 'mobooking') . '">' . esc_html($booking['booking_reference']) . '</td>';
