@@ -1207,5 +1207,27 @@ foreach ($calculated_service_items as $service_item) {
         
         return empty($errors) ? true : $errors;
     }
+
+    /**
+     * Get the owner user_id for a given booking_id.
+     *
+     * @param int $booking_id The ID of the booking.
+     * @return int|null The user_id of the booking owner, or null if not found.
+     */
+    public function get_booking_owner_id(int $booking_id): ?int {
+        if (empty($booking_id)) {
+            return null;
+        }
+        $bookings_table = Database::get_table_name('bookings');
+        $owner_id = $this->wpdb->get_var($this->wpdb->prepare(
+            "SELECT user_id FROM $bookings_table WHERE booking_id = %d",
+            $booking_id
+        ));
+
+        if ($owner_id === null) { // Check for null explicitly, as 0 could be a valid (though unlikely) user_id if not for auto-increment.
+            return null;
+        }
+        return (int) $owner_id;
+    }
 }
 ?>
