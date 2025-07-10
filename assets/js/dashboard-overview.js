@@ -85,6 +85,7 @@ jQuery(document).ready(function($) {
                 right: 'dayGridMonth,timeGridWeek,timeGridDay'
             },
             events: function(fetchInfo, successCallback, failureCallback) {
+                console.log('Calendar AJAX: Using nonce', dashboardNonce); // Debug nonce for calendar
                 $.ajax({
                     url: mobooking_overview_params.ajax_url,
                     type: 'POST',
@@ -168,7 +169,10 @@ jQuery(document).ready(function($) {
     }
 
     function updateKPIs(kpis) {
-        $('#kpi-bookings-month').text(kpis.bookings_month || '0');
+        console.log("updateKPIs called with:", kpis); // Log the kpis object
+        var bookingsMonthVal = kpis.bookings_month || '0';
+        console.log("Setting kpi-bookings-month to:", bookingsMonthVal, "Element found:", $('#kpi-bookings-month').length);
+        $('#kpi-bookings-month').text(bookingsMonthVal);
 
         if (!isWorker && typeof kpis.revenue_month !== 'undefined' && kpis.revenue_month !== null) {
              // Ensure revenue KPI box is visible if it was hidden by old logic
