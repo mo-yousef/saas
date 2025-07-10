@@ -1,3 +1,29 @@
+// Define jQuery helper plugins immediately after jQuery is available
+(function($) {
+    'use strict';
+    // Simple jQuery plugin for loading overlay
+    $.fn.showLoading = function() {
+        return this.each(function() {
+            const $this = $(this);
+            if ($this.find('.loading-overlay').length === 0) {
+                $this.css('position', 'relative'); // Ensure parent is positioned
+                $('<div class="loading-overlay" style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.7); display:flex; align-items:center; justify-content:center; z-index:10;"><span class="loading-spinner" style="width:2rem;height:2rem;border:3px solid #f3f3f3;border-top:3px solid #3498db;border-radius:50%;animation:spin 1s linear infinite;"></span></div>').appendTo($this);
+            }
+        });
+    };
+    $.fn.hideLoading = function() {
+        return this.each(function() {
+            $(this).find('.loading-overlay').remove();
+        });
+    };
+    // Keyframes for spinner (if not already in CSS)
+    // Ensure this runs only once
+    if ($('style#mobooking-dynamic-styles').length === 0) {
+        $('<style id="mobooking-dynamic-styles">@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }</style>').appendTo('head');
+    }
+})(jQuery);
+
+
 jQuery(document).ready(function($) {
     'use strict';
 
@@ -314,27 +340,6 @@ jQuery(document).ready(function($) {
             }
         }, 300000); // 5 minutes
     }
-
-    // Simple jQuery plugin for loading overlay (optional, can be replaced with specific classes)
-    $.fn.showLoading = function() {
-        return this.each(function() {
-            const $this = $(this);
-            if ($this.find('.loading-overlay').length === 0) {
-                $this.css('position', 'relative'); // Ensure parent is positioned
-                $('<div class="loading-overlay" style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.7); display:flex; align-items:center; justify-content:center; z-index:10;"><span class="loading-spinner" style="width:2rem;height:2rem;border:3px solid #f3f3f3;border-top:3px solid #3498db;border-radius:50%;animation:spin 1s linear infinite;"></span></div>').appendTo($this);
-            }
-        });
-    };
-    $.fn.hideLoading = function() {
-        return this.each(function() {
-            $(this).find('.loading-overlay').remove();
-        });
-    };
-    // Keyframes for spinner (if not already in CSS)
-    if ($('#mobooking-dynamic-styles').length === 0) {
-        $('<style id="mobooking-dynamic-styles">@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }</style>').appendTo('head');
-    }
-
 
     // Initial load check - the old script had: if ($('#mobooking-overview-content').length)
     // This is good practice if the script is loaded on multiple pages.
