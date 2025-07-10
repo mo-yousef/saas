@@ -437,72 +437,74 @@ if ( ! function_exists( 'mobooking_ajax_get_all_bookings_for_calendar' ) ) {
         $end_date_str = isset($_POST['end']) ? sanitize_text_field($_POST['end']) : null;
 
         try {
-            // TODO: Implement/use a method in Bookings class like:
-            // $bookings = $bookings_manager->get_bookings_for_calendar($data_user_id, $start_date_str, $end_date_str);
-            // For now, let's fetch all bookings as a placeholder and then filter/format.
-            // This is NOT efficient for large numbers of bookings and should be replaced.
-            $all_bookings_result = $bookings_manager->get_bookings_by_tenant($data_user_id, ['limit' => -1, 'status' => null]);
+            // TEMPORARY TEST: Return a simple dummy event to check if the AJAX handler itself is working.
+            $dummy_events = array(
+                array(
+                    'id'    => 'dummy1',
+                    'title' => 'Test Booking @ ' . date('H:i'),
+                    'start' => date('Y-m-d') . 'T10:00:00', // Today at 10 AM
+                    'end'   => date('Y-m-d') . 'T11:00:00', // Today at 11 AM
+                    'allDay' => false,
+                    'backgroundColor' => '#3a87ad',
+                    'borderColor' => '#3a87ad',
+                    'url' => '#'
+                ),
+                array(
+                    'id'    => 'dummy2',
+                    'title' => 'Another Test @ ' . date('H:i', strtotime('+2 hours')),
+                    'start' => date('Y-m-d', strtotime('+1 day')) . 'T14:00:00', // Tomorrow at 2 PM
+                    'end'   => date('Y-m-d', strtotime('+1 day')) . 'T15:00:00', // Tomorrow at 3 PM
+                    'allDay' => false,
+                    'backgroundColor' => '#468847',
+                    'borderColor' => '#468847',
+                    'url' => '#'
+                )
+            );
+            wp_send_json_success($dummy_events);
+            return; // Exit after sending dummy data
 
-            if (is_wp_error($all_bookings_result)) {
-                wp_send_json_error(array('message' => $all_bookings_result->get_error_message()), 400);
-                return;
-            }
+            // TODO: Restore actual data fetching logic below and remove dummy data above.
+            // $all_bookings_result = $bookings_manager->get_bookings_by_tenant($data_user_id, ['limit' => -1, 'status' => null]);
 
-            $bookings = $all_bookings_result['bookings'] ?? array();
-            $calendar_events = array();
+            // if (is_wp_error($all_bookings_result)) {
+            //     wp_send_json_error(array('message' => $all_bookings_result->get_error_message()), 400);
+            //     return;
+            // }
 
-            foreach ($bookings as $booking) {
-                // Combine date and time for a full start datetime.
-                // Ensure booking_date and booking_time are valid.
-                if (empty($booking['booking_date']) || empty($booking['booking_time'])) {
-                    continue;
-                }
+            // $bookings = $all_bookings_result['bookings'] ?? array();
+            // $calendar_events = array();
 
-                $start_datetime_str = $booking['booking_date'] . ' ' . $booking['booking_time'];
-                $start_datetime = new DateTime($start_datetime_str);
+            // foreach ($bookings as $booking) {
+            //     if (empty($booking['booking_date']) || empty($booking['booking_time'])) {
+            //         continue;
+            //     }
 
-                // Placeholder: Assume a default duration if not available, e.g., 1 hour.
-                // Ideally, service duration should be fetched and added.
-                $end_datetime = clone $start_datetime;
-                // $service_duration_minutes = $booking['service_duration'] ?? 60; // Assuming service_duration is available
-                // $end_datetime->add(new DateInterval('PT' . $service_duration_minutes . 'M'));
+            //     $start_datetime_str = $booking['booking_date'] . ' ' . $booking['booking_time'];
+            //     $start_datetime = new DateTime($start_datetime_str);
+            //     $end_datetime = clone $start_datetime;
+            //     // $service_duration_minutes = $booking['service_duration'] ?? 60;
+            //     // $end_datetime->add(new DateInterval('PT' . $service_duration_minutes . 'M'));
 
+            //     $event_color = '#3a87ad';
+            //     switch ($booking['status']) {
+            //         case 'confirmed': $event_color = '#468847'; break;
+            //         case 'pending': $event_color = '#f89406'; break;
+            //         case 'cancelled': $event_color = '#b94a48'; break;
+            //         case 'completed': $event_color = '#3a58ad'; break;
+            //     }
 
-                // Basic status to color mapping
-                $event_color = '#3a87ad'; // Default blue
-                switch ($booking['status']) {
-                    case 'confirmed':
-                        $event_color = '#468847'; // Green
-                        break;
-                    case 'pending':
-                        $event_color = '#f89406'; // Orange
-                        break;
-                    case 'cancelled':
-                        $event_color = '#b94a48'; // Red
-                        break;
-                    case 'completed':
-                         $event_color = '#3a58ad'; // Darker Blue
-                        break;
-                }
-
-                $calendar_events[] = array(
-                    'id' => $booking['booking_id'],
-                    'title' => $booking['customer_name'] . ' - ' . ($booking['service_name'] ?? 'Booking'), // Assuming service_name is available
-                    'start' => $start_datetime->format(DateTime::ATOM), // ISO8601
-                    // 'end' => $end_datetime->format(DateTime::ATOM), // ISO8601 if duration is known
-                    'allDay' => false, // Or true if it's an all-day event without specific time
-                    'url' => esc_url($dashboard_base_url . $booking['booking_id']),
-                    'backgroundColor' => $event_color,
-                    'borderColor' => $event_color,
-                    // You can add more custom properties here
-                    // 'extendedProps' => array(
-                    //     'status' => $booking['status'],
-                    //     'serviceName' => $booking['service_name'] ?? ''
-                    // )
-                );
-            }
-
-            wp_send_json_success($calendar_events);
+            //     $calendar_events[] = array(
+            //         'id' => $booking['booking_id'],
+            //         'title' => $booking['customer_name'] . ' - ' . ($booking['service_name'] ?? 'Booking'),
+            //         'start' => $start_datetime->format(DateTime::ATOM),
+            //         // 'end' => $end_datetime->format(DateTime::ATOM),
+            //         'allDay' => false,
+            //         'url' => esc_url($dashboard_base_url . $booking['booking_id']),
+            //         'backgroundColor' => $event_color,
+            //         'borderColor' => $event_color,
+            //     );
+            // }
+            // wp_send_json_success($calendar_events);
 
         } catch (Exception $e) {
             wp_send_json_error(array('message' => 'Failed to load bookings for calendar: ' . $e->getMessage()), 500);
