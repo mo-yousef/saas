@@ -202,7 +202,7 @@ class BookingFormRouter {
         $valid_dashboard_pages = [
             'overview', 'bookings', 'services', 'service-edit',
             'discounts', 'areas', 'workers', 'booking-form', 'settings',
-            'availability', 'customers' // Added 'customers'
+            'availability', 'customers', 'my-assigned-bookings' // Added for staff
         ];
 
         if (!in_array($dashboard_page_slug, $valid_dashboard_pages)) {

@@ -65,7 +65,15 @@ if ( $current_user_id > 0 ) {
             <li class="<?php echo ($current_page === 'overview') ? 'active' : ''; ?>"><a href="<?php echo esc_url($dashboard_base_url); ?>"><span class="mobooking-menu-icon"><?php echo mobooking_get_dashboard_menu_icon('overview'); ?></span><?php esc_html_e('Overview', 'mobooking'); ?></a></li>
             <?php endif; ?>
 
-            <?php if (current_user_can(\MoBooking\Classes\Auth::CAP_VIEW_BOOKINGS) || current_user_can(\MoBooking\Classes\Auth::CAP_MANAGE_BOOKINGS)) : ?>
+            <?php
+            // Show "My Assigned Bookings" for staff
+            if ( current_user_can( \MoBooking\Classes\Auth::ROLE_WORKER_STAFF ) ) :
+            ?>
+            <li class="<?php echo ($current_page === 'my-assigned-bookings') ? 'active' : ''; ?>"><a href="<?php echo esc_url(trailingslashit($dashboard_base_url) . 'my-assigned-bookings/'); ?>"><span class="mobooking-menu-icon"><?php echo mobooking_get_dashboard_menu_icon('bookings'); ?></span><?php esc_html_e('My Assigned Bookings', 'mobooking'); ?></a></li>
+            <?php
+            // Show general "Bookings" link for business owners (or users with broader booking view/manage caps)
+            elseif (current_user_can(\MoBooking\Classes\Auth::CAP_VIEW_BOOKINGS) || current_user_can(\MoBooking\Classes\Auth::CAP_MANAGE_BOOKINGS)) :
+            ?>
             <li class="<?php echo ($current_page === 'bookings') ? 'active' : ''; ?>"><a href="<?php echo esc_url(trailingslashit($dashboard_base_url) . 'bookings/'); ?>"><span class="mobooking-menu-icon"><?php echo mobooking_get_dashboard_menu_icon('bookings'); ?></span><?php esc_html_e('Bookings', 'mobooking'); ?></a></li>
             <?php endif; ?>
 
