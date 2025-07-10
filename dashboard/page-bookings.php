@@ -113,6 +113,7 @@ if ($current_user_id) {
         $initial_bookings_html .= '<th>' . esc_html__('Ref', 'mobooking') . '</th>';
         $initial_bookings_html .= '<th>' . esc_html__('Customer', 'mobooking') . '</th>';
         $initial_bookings_html .= '<th>' . esc_html__('Booked Date', 'mobooking') . '</th>';
+        $initial_bookings_html .= '<th>' . esc_html__('Assigned Staff', 'mobooking') . '</th>'; // New Column
         $initial_bookings_html .= '<th>' . esc_html__('Total', 'mobooking') . '</th>';
         $initial_bookings_html .= '<th>' . esc_html__('Status', 'mobooking') . '</th>';
         $initial_bookings_html .= '<th>' . esc_html__('Actions', 'mobooking') . '</th>';
@@ -127,6 +128,7 @@ if ($current_user_id) {
             $total_price_formatted = esc_html($currency_symbol . number_format_i18n(floatval($booking['total_price']), 2));
             $booking_date_formatted = date_i18n(get_option('date_format'), strtotime($booking['booking_date']));
             $booking_time_formatted = date_i18n(get_option('time_format'), strtotime($booking['booking_time']));
+            $assigned_staff_name = isset($booking['assigned_staff_name']) ? esc_html($booking['assigned_staff_name']) : esc_html__('Unassigned', 'mobooking');
 
             $details_page_url = home_url('/dashboard/bookings/?action=view_booking&booking_id=' . $booking['booking_id']);
 
@@ -134,12 +136,16 @@ if ($current_user_id) {
             $initial_bookings_html .= '<td data-colname="' . esc_attr__('Ref', 'mobooking') . '">' . esc_html($booking['booking_reference']) . '</td>';
             $initial_bookings_html .= '<td data-colname="' . esc_attr__('Customer', 'mobooking') . '">' . esc_html($booking['customer_name']) . '<br><small>' . esc_html($booking['customer_email']) . '</small></td>';
             $initial_bookings_html .= '<td data-colname="' . esc_attr__('Booked Date', 'mobooking') . '">' . esc_html($booking_date_formatted . ' ' . $booking_time_formatted) . '</td>';
+            $initial_bookings_html .= '<td data-colname="' . esc_attr__('Assigned Staff', 'mobooking') . '">' . $assigned_staff_name . '</td>'; // New Column Data
             $initial_bookings_html .= '<td data-colname="' . esc_attr__('Total', 'mobooking') . '">' . $total_price_formatted . '</td>';
             // Updated status badge HTML
             $initial_bookings_html .= '<td data-colname="' . esc_attr__('Status', 'mobooking') . '"><span class="status-badge status-' . esc_attr($status_val) . '">' . $status_icon_html . '<span class="status-text">' . esc_html($status_display) . '</span></span></td>';
             $initial_bookings_html .= '<td data-colname="' . esc_attr__('Actions', 'mobooking') . '" class="mobooking-table-actions">';
             $initial_bookings_html .= '<a href="' . esc_url($details_page_url) . '" class="button button-small">' . __('View Details', 'mobooking') . '</a> ';
-            $initial_bookings_html .= '<button class="button button-small mobooking-delete-booking-btn" data-booking-id="' . esc_attr($booking['booking_id']) . '">' . __('Delete', 'mobooking') . '</button>';
+            // Only show delete for owner, not worker
+            if (class_exists('MoBooking\Classes\Auth') && !\MoBooking\Classes\Auth::is_user_worker($current_user_id)) {
+                $initial_bookings_html .= '<button class="button button-small mobooking-delete-booking-btn" data-booking-id="' . esc_attr($booking['booking_id']) . '">' . __('Delete', 'mobooking') . '</button>';
+            }
             $initial_bookings_html .= '</td></tr>';
         }
         $initial_bookings_html .= '</tbody></table>';
@@ -304,6 +310,33 @@ $booking_statuses = [
                         <label for="mobooking-search-query"><?php esc_html_e('Search:', 'mobooking'); ?></label>
                         <input type="search" id="mobooking-search-query" name="search_query" class="regular-text" placeholder="<?php esc_attr_e('Ref, Name, Email', 'mobooking'); ?>">
                     </div>
+                    <div class="mobooking-filter-item">
+                        <label for="mobooking-staff-filter"><?php esc_html_e('Staff:', 'mobooking'); ?></label>
+                        <select id="mobooking-staff-filter" name="staff_filter" class="mobooking-filter-select">
+                            <option value=""><?php esc_html_e('All Staff', 'mobooking'); ?></option>
+                            <option value="0"><?php esc_html_e('Unassigned', 'mobooking'); ?></option>
+                            <?php
+                            // Fetch workers for the current business owner
+                            $owner_id_for_staff_filter = $current_user_id;
+                            if (class_exists('MoBooking\Classes\Auth') && \MoBooking\Classes\Auth::is_user_worker($current_user_id)) {
+                                $owner_id_for_staff_filter = \MoBooking\Classes\Auth::get_business_owner_id_for_worker($current_user_id);
+                            }
+
+                            if ($owner_id_for_staff_filter) {
+                                $staff_users = get_users([
+                                    'meta_key'   => \MoBooking\Classes\Auth::META_KEY_OWNER_ID,
+                                    'meta_value' => $owner_id_for_staff_filter,
+                                    'role__in'   => [\MoBooking\Classes\Auth::ROLE_WORKER_STAFF],
+                                    'orderby'    => 'display_name',
+                                    'order'      => 'ASC',
+                                ]);
+                                foreach ($staff_users as $staff_user) {
+                                    echo '<option value="' . esc_attr($staff_user->ID) . '">' . esc_html($staff_user->display_name) . '</option>';
+                                }
+                            }
+                            ?>
+                        </select>
+                    </div>
                 </div>
                 <div class="mobooking-filter-actions">
                     <button type="submit" class="button button-secondary"><?php esc_html_e('Filter', 'mobooking'); ?></button>
@@ -330,6 +363,7 @@ $booking_statuses = [
         <td data-colname="<?php esc_attr_e('Ref', 'mobooking'); ?>"><%= booking_reference %></td>
         <td data-colname="<?php esc_attr_e('Customer', 'mobooking'); ?>"><%= customer_name %><br><small><%= customer_email %></small></td>
         <td data-colname="<?php esc_attr_e('Booked Date', 'mobooking'); ?>"><%= booking_date_formatted %> <%= booking_time_formatted %></td>
+        <td data-colname="<?php esc_attr_e('Assigned Staff', 'mobooking'); ?>"><%= assigned_staff_name || '<?php echo esc_js(__('Unassigned', 'mobooking')); ?>' %></td>
         <td data-colname="<?php esc_attr_e('Total', 'mobooking'); ?>"><%= total_price_formatted %></td>
         <td data-colname="<?php esc_attr_e('Status', 'mobooking'); ?>">
             <span class="status-badge status-<%= status %>">
@@ -338,7 +372,9 @@ $booking_statuses = [
         </td>
         <td data-colname="<?php esc_attr_e('Actions', 'mobooking'); ?>" class="mobooking-table-actions">
             <a href="<%= details_page_url %>" class="button button-small"><?php esc_html_e('View Details', 'mobooking'); ?></a>
-            <button class="button button-small mobooking-delete-booking-btn" data-booking-id="<%= booking_id %>"><?php esc_html_e('Delete', 'mobooking'); ?></button>
+            <% if (typeof mobooking_dashboard_params !== 'undefined' && mobooking_dashboard_params.currentUserCanDeleteBookings) { %>
+                <button class="button button-small mobooking-delete-booking-btn" data-booking-id="<%= booking_id %>"><?php esc_html_e('Delete', 'mobooking'); ?></button>
+            <% } %>
         </td>
     </tr>
 </script>
