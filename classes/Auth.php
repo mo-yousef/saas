@@ -422,6 +422,7 @@ class Auth {
         } else {
             // If email fails, it's good to remove the transient to allow retrying without token collision,
             // or inform the user that the token was created but email failed.
+            error_log('MoBooking: wp_mail failed to send invitation to ' . $worker_email . '. Transient mobooking_invitation_ ' . $token . ' deleted.');
             delete_transient( $invitation_option_key );
             wp_send_json_error( array( 'message' => __( 'Invitation created, but failed to send the invitation email. Please check your site\'s email configuration or try again.', 'mobooking' ) ) );
         }
