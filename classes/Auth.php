@@ -193,7 +193,44 @@ class Auth {
             if ( is_wp_error( $result ) ) {
                 wp_send_json_error( array( 'message' => $result->get_error_message() ) );
             } else {
-                wp_send_json_success( array( 'message' => __( 'Worker details updated successfully.', 'mobooking' ) ) );
+                // Send notification email to worker
+                $worker_user = get_userdata($worker_user_id);
+                if ($worker_user) {
+                    $business_owner_user = get_userdata($current_owner_id);
+                    $business_name = $business_owner_user ? $business_owner_user->display_name : get_bloginfo('name');
+
+                    $subject = sprintf(__('Your Worker Account Details at %s Have Been Updated', 'mobooking'), get_bloginfo('name'));
+
+                    $updated_fields_messages = [];
+                    if (isset($update_args['first_name'])) {
+                        $updated_fields_messages[] = sprintf(__('Your first name was updated to: %s', 'mobooking'), esc_html($update_args['first_name']));
+                    }
+                    if (isset($update_args['last_name'])) {
+                        $updated_fields_messages[] = sprintf(__('Your last name was updated to: %s', 'mobooking'), esc_html($update_args['last_name']));
+                    }
+
+                    if (!empty($updated_fields_messages)) {
+                        $message_lines = [
+                            sprintf(__('Hi %s,', 'mobooking'), $worker_user->first_name ?: $worker_user->user_email),
+                            '',
+                            sprintf(__('Your account details at %s were recently updated by %s:', 'mobooking'), get_bloginfo('name'), esc_html($business_name)),
+                            '',
+                        ];
+                        $message_lines = array_merge($message_lines, $updated_fields_messages);
+                        $message_lines[] = '';
+                        $message_lines[] = sprintf(__('If you did not expect this change or have concerns, please contact %s.', 'mobooking'), esc_html($business_name));
+                        $message_lines[] = '';
+                        $message_lines[] = sprintf(__('Regards,', 'mobooking'));
+                        $message_lines[] = sprintf(__('The %s Team', 'mobooking'), get_bloginfo('name'));
+
+                        $message = implode("\r\n", $message_lines);
+
+                        if (!wp_mail($worker_user->user_email, $subject, $message)) {
+                            error_log("MoBooking: Failed to send account update email to worker: " . $worker_user->user_email);
+                        }
+                    }
+                }
+                wp_send_json_success( array( 'message' => __( 'Worker details updated successfully. The worker has been notified if changes were made.', 'mobooking' ) ) );
             }
         } else {
             // Nothing to update, but not an error per se. Could be considered success.
@@ -248,7 +285,37 @@ class Auth {
         // Optionally, send a welcome email or notification to the new worker
         // wp_new_user_notification( $new_user_id, null, 'user' ); // 'user' to send to user, 'admin' to admin, 'both' for both
 
-        wp_send_json_success( array( 'message' => __( 'Worker Staff created and assigned successfully.', 'mobooking' ) ) );
+        // Send custom email notification to the new worker
+        $business_owner_user = get_userdata($current_user_id);
+        $business_name = $business_owner_user ? $business_owner_user->display_name : get_bloginfo('name');
+
+        $subject = sprintf(__('Your Worker Account at %s has been Created', 'mobooking'), get_bloginfo('name'));
+
+        $message_lines = [
+            sprintf(__('Hi %s,', 'mobooking'), $first_name ?: $email),
+            '',
+            sprintf(__('A worker account has been created for you at %s by %s.', 'mobooking'), get_bloginfo('name'), esc_html($business_name)),
+            '',
+            __('Your login details are:', 'mobooking'),
+            '- ' . __('Email:', 'mobooking') . ' ' . $email,
+            '- ' . __('Password:', 'mobooking') . ' ' . esc_html($password) . ' (This was set by ' . esc_html($business_name) . ')',
+            '',
+            sprintf(__('You can log in here: %s', 'mobooking'), esc_url(home_url('/login/'))), // Assuming /login/ is the custom login page
+            '',
+            __('We recommend changing your password after your first login for security reasons.', 'mobooking'),
+            '',
+            sprintf(__('Regards,', 'mobooking')),
+            sprintf(__('The %s Team', 'mobooking'), get_bloginfo('name')),
+        ];
+        $message = implode("\r\n", $message_lines);
+
+        if (!wp_mail($email, $subject, $message)) {
+            error_log("MoBooking: Failed to send account creation email to new worker: " . $email);
+            // Don't fail the whole process, but log the error.
+            // The main success message below will still be sent to the admin.
+        }
+
+        wp_send_json_success( array( 'message' => __( 'Worker Staff created and assigned successfully. They have been notified by email.', 'mobooking' ) ) );
     }
 
     public function handle_ajax_change_worker_role() {
