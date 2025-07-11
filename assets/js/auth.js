@@ -466,37 +466,40 @@ jQuery(document).ready(function ($) {
             statusText: jqXHR.statusText,
             textStatus: textStatus,
             errorThrown: errorThrown,
-            responseText: jqXHR.responseText.substring(0, 500),
+            responseText: jqXHR.responseText ? jqXHR.responseText.substring(0, 500) : "[No responseText]",
             readyState: jqXHR.readyState,
           });
 
           let errorMsg = "An unexpected error occurred. Please try again.";
 
           if (textStatus === "timeout") {
-            errorMsg =
-              "Registration timed out. Please check your connection and try again.";
+            errorMsg = "Registration timed out. Please check your connection and try again.";
             DEBUG.error("Request timed out");
           } else if (jqXHR.status === 0) {
-            errorMsg =
-              "Connection failed. Please check your internet connection.";
-            DEBUG.error("Connection failed (status 0)");
+            // This often means the request was blocked (CORS), aborted, or there's no network.
+            // jqXHR.responseText will likely be undefined or empty.
+            errorMsg = "Connection or network error. Please check your internet connection and try again. If the issue persists, contact support.";
+            DEBUG.error("Connection/Network error (status 0 or request aborted)");
           } else if (jqXHR.status >= 500) {
-            errorMsg =
-              "Server error occurred. Please try again or contact support.";
+            errorMsg = "Server error occurred. Please try again or contact support. Check server logs for details.";
             DEBUG.error("Server error", { status: jqXHR.status });
           } else if (jqXHR.status === 403) {
-            errorMsg = "Access denied. Please refresh the page and try again.";
+            errorMsg = "Access denied (403). Please refresh the page and try again.";
             DEBUG.error("Access denied (403)");
           } else if (jqXHR.status === 404) {
-            errorMsg =
-              "Registration endpoint not found. Please contact support.";
+            errorMsg = "Registration endpoint not found (404). Please contact support.";
             DEBUG.error("Endpoint not found (404)");
-          } else if (jqXHR.responseJSON?.data?.message) {
+          } else if (jqXHR.responseJSON?.data?.message) { // If server sent a JSON error
             errorMsg = jqXHR.responseJSON.data.message;
-            DEBUG.error("Server returned error message", errorMsg);
-          } else if (jqXHR.responseText && jqXHR.responseText.length < 200) {
-            errorMsg = jqXHR.responseText;
-            DEBUG.error("Short response text", errorMsg);
+            DEBUG.error("Server returned JSON error message", errorMsg);
+          } else if (jqXHR.responseText) { // If there's some other text response
+             // Avoid showing long HTML error pages directly to the user if possible
+            errorMsg = "Received an unexpected response from the server. Please try again.";
+            DEBUG.error("Non-JSON error response text (first 200 chars)", jqXHR.responseText.substring(0,200));
+          } else {
+            // Fallback for other errors where responseText might be empty or undefined but status is not 0
+            errorMsg = `An error occurred (Status: ${jqXHR.status || 'N/A'}, Type: ${textStatus || 'N/A'}). Please try again.`;
+             DEBUG.error("Unhandled AJAX error type");
           }
 
           displayGlobalMessage($registerMessageDiv, errorMsg, false);
