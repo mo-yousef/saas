@@ -30,17 +30,23 @@ jQuery(document).ready(function($) {
     $('#mobooking-invite-worker-form').on('submit', function(e) {
         e.preventDefault();
         feedbackArea.hide();
-        var formData = $(this).serialize();
+        var $form = $(this);
+        var formData = $form.serialize();
+        var $submitButton = $form.find('input[type="submit"]');
+        var originalButtonText = $submitButton.val();
+        $submitButton.prop('disabled', true).val(mobooking_workers_params.i18n.sending || 'Sending...');
 
         $.post(mobooking_workers_params.ajax_url, formData, function(response) {
             if (response.success) {
                 showFeedback(response.data.message, true);
-                $('#worker_email').val(''); // Clear email field
+                $form[0].reset(); // Reset the form on success
             } else {
-                showFeedback(response.data.message || mobooking_workers_params.i18n.error_occurred, false);
+                showFeedback(response.data.message || mobooking_workers_params.i18n.error_occurred || 'An error occurred.', false);
             }
         }).fail(function() {
-            showFeedback(mobooking_workers_params.i18n.error_unexpected, false);
+            showFeedback(mobooking_workers_params.i18n.error_unexpected || 'An unexpected error occurred.', false);
+        }).always(function() {
+            $submitButton.prop('disabled', false).val(originalButtonText);
         });
     });
 

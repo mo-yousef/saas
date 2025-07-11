@@ -652,3 +652,156 @@
         break-inside: avoid;
     }
 }
+
+/* Workers Page Specific Styles */
+.mobooking-workers-page .mobooking-section-add-worker {
+    margin-bottom: 2em;
+    padding: 1.5rem;
+    background-color: hsl(0 0% 100%);
+    border: 1px solid hsl(214.3 31.8% 91.4%);
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.mobooking-workers-page .mobooking-collapsible-section {
+    margin-bottom: 1rem;
+    border: 1px solid hsl(214.3 31.8% 91.4%);
+    border-radius: 0.375rem;
+    overflow: hidden; /* Helps contain borders of summary */
+}
+
+.mobooking-workers-page .mobooking-collapsible-section:last-child {
+    margin-bottom: 0;
+}
+
+.mobooking-workers-page .mobooking-collapsible-summary {
+    padding: 0.75rem 1rem;
+    background-color: hsl(210 40% 98%);
+    cursor: pointer;
+    /* border-bottom: 1px solid hsl(214.3 31.8% 91.4%); */ /* Removed to prevent double border when closed */
+    transition: background-color 0.15s ease;
+    display: block; /* Make summary full width clickable */
+    position: relative; /* For pseudo-element arrow */
+    padding-left: 30px; /* Space for the arrow */
+}
+
+.mobooking-workers-page .mobooking-collapsible-section[open] > .mobooking-collapsible-summary {
+    border-bottom: 1px solid hsl(214.3 31.8% 91.4%); /* Add border only when open */
+}
+
+.mobooking-workers-page .mobooking-collapsible-summary:hover {
+    background-color: hsl(210 40% 96%);
+}
+
+.mobooking-workers-page .mobooking-collapsible-summary h3 {
+    margin: 0;
+    font-size: 1.125rem; /* h5 equivalent */
+    font-weight: 600;
+    color: hsl(222.2 84% 4.9%);
+    display: inline;
+}
+
+.mobooking-workers-page .mobooking-collapsible-summary::before {
+    content: '\\25B6'; /* Right-pointing triangle */
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%) rotate(0deg);
+    transition: transform 0.2s ease-in-out;
+    font-size: 0.8em;
+    color: hsl(215.4 16.3% 46.9%);
+}
+
+.mobooking-workers-page .mobooking-collapsible-section[open] > .mobooking-collapsible-summary::before {
+    transform: translateY(-50%) rotate(90deg); /* Down-pointing triangle */
+}
+
+.mobooking-workers-page .mobooking-collapsible-content {
+    padding: 1.5rem;
+    background-color: hsl(0 0% 100%);
+    border-top: 1px solid hsl(214.3 31.8% 91.4%); /* Separator if summary has no border when open */
+}
+.mobooking-workers-page .mobooking-collapsible-section:not([open]) .mobooking-collapsible-content {
+    padding-top: 0; /* Avoid double padding if content is rendered when closed by some browsers */
+}
+
+
+.mobooking-workers-page .mobooking-collapsible-content .form-table {
+    margin-top: 0;
+}
+
+.mobooking-workers-page .mobooking-form-spaced .submit {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid hsl(214.3 31.8% 91.4%);
+}
+
+
+/* Worker Table Actions */
+.mobooking-workers-table .actions-cell {
+    /* min-width: 380px; /* Auto-adjust or set a specific min-width if wrapping is an issue */
+}
+
+.mobooking-workers-table .mobooking-worker-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.mobooking-workers-table .mobooking-worker-actions .button,
+.mobooking-workers-table .mobooking-worker-actions .mobooking-role-select {
+    margin-bottom: 0;
+}
+
+.mobooking-workers-table .mobooking-action-form {
+    display: flex; /* Changed from inline-flex to flex for consistency */
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.mobooking-workers-table .mobooking-edit-worker-inline-form {
+    margin-top: 1rem;
+    padding: 1rem;
+    border: 1px solid hsl(214.3 31.8% 91.4%);
+    background-color: hsl(210 40% 98%);
+    border-radius: 0.375rem;
+}
+
+.mobooking-workers-table .mobooking-edit-worker-inline-form h4 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    font-size: 1rem;
+    font-weight: 600;
+}
+.mobooking-workers-table .mobooking-edit-worker-inline-form .regular-text {
+    width: 100%;
+    max-width: none;
+}
+.mobooking-workers-table .mobooking-edit-worker-inline-form .submit {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid hsl(214.3 31.8% 91.4%);
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+}
+
+/* Feedback area styling */
+#mobooking-feedback-area.notice {
+    margin-top: 0; /* Was 1rem, adjusted to be closer to h1 if it's the first thing */
+    margin-bottom: 1.5rem;
+}
+#mobooking-feedback-area.notice p {
+    margin: 0;
+}
+
+/* General spacing for page sections */
+.mobooking-workers-page .mobooking-section-current-workers {
+    margin-top: 2rem;
+}
+
+.mobooking-workers-page hr {
+    border: none;
+    border-top: 1px solid hsl(214.3 31.8% 91.4%);
+}
