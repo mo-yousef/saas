@@ -1823,9 +1823,11 @@ add_filter( 'wp_mail_from', function( $original_email_address ) {
  * Wrap email content with custom HTML template.
  */
 add_filter( 'wp_mail', function( $args ) {
+    error_log('[MoBooking Debug] Custom wp_mail filter triggered. Email to: ' . $args['to']); // DEBUG LINE
     $template_path = get_stylesheet_directory() . '/templates/email/default-email-template.php';
 
     if ( file_exists( $template_path ) ) {
+        error_log('[MoBooking Debug] Email template file found at: ' . $template_path); // DEBUG LINE
         $email_template = file_get_contents( $template_path );
 
         // Replace placeholders
