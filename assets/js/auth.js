@@ -1,6 +1,59 @@
 // MoBooking Auth Forms: Registration, Login, Forgot Password
+// Complete Enhanced Version with Debug Tree and Fixed Redirect
 jQuery(document).ready(function ($) {
   "use strict";
+
+  // Debug Tree System
+  const DEBUG = {
+    enabled: true,
+    level: 0,
+    indent: "  ",
+
+    log: function (message, data = null) {
+      if (!this.enabled) return;
+      const prefix = "🔍 MoBooking Debug:" + this.indent.repeat(this.level);
+      if (data) {
+        console.log(prefix + " " + message, data);
+      } else {
+        console.log(prefix + " " + message);
+      }
+    },
+
+    group: function (title) {
+      if (!this.enabled) return;
+      console.group("🔍 MoBooking Debug: " + title);
+      this.level++;
+    },
+
+    groupEnd: function () {
+      if (!this.enabled) return;
+      this.level = Math.max(0, this.level - 1);
+      console.groupEnd();
+    },
+
+    error: function (message, error = null) {
+      if (!this.enabled) return;
+      const prefix = "❌ MoBooking Error:" + this.indent.repeat(this.level);
+      if (error) {
+        console.error(prefix + " " + message, error);
+      } else {
+        console.error(prefix + " " + message);
+      }
+    },
+
+    success: function (message, data = null) {
+      if (!this.enabled) return;
+      const prefix = "✅ MoBooking Success:" + this.indent.repeat(this.level);
+      if (data) {
+        console.log(prefix + " " + message, data);
+      } else {
+        console.log(prefix + " " + message);
+      }
+    },
+  };
+
+  DEBUG.group("Auth Forms Initialization");
+  DEBUG.log("jQuery ready, starting auth forms setup");
 
   // --- Helper Functions ---
   function isValidEmail(email) {
@@ -9,22 +62,32 @@ jQuery(document).ready(function ($) {
   }
 
   function showFieldError($field, message, errorContainerSelector = null) {
+    DEBUG.log("Showing field error", {
+      field: $field.attr("id"),
+      message: message,
+    });
     $field.addClass("error");
-    $field.siblings(".field-error").remove(); // Remove previous error for this field
+    $field.siblings(".field-error").remove();
     const errorHtml = `<div class="field-error" style="color: #d63638; font-size: 0.875em; margin-top: 0.25rem;">${message}</div>`;
     if (errorContainerSelector) {
-        $(errorContainerSelector).html(errorHtml).show();
+      $(errorContainerSelector).html(errorHtml).show();
     } else {
-        $field.after(errorHtml);
+      $field.after(errorHtml);
     }
     $field.one("input change", function () {
       $(this).removeClass("error");
       $(this).siblings(".field-error").remove();
-      if (errorContainerSelector) { $(errorContainerSelector).hide().empty(); }
+      if (errorContainerSelector) {
+        $(errorContainerSelector).hide().empty();
+      }
     });
   }
 
   function displayGlobalMessage($messageDiv, message, isSuccess) {
+    DEBUG.log("Displaying global message", {
+      message: message,
+      isSuccess: isSuccess,
+    });
     const messageClass = isSuccess ? "success" : "error";
     const style = isSuccess
       ? "color: #155724; background-color: #d4edda; border: 1px solid #c3e6cb;"
@@ -32,53 +95,105 @@ jQuery(document).ready(function ($) {
     $messageDiv
       .removeClass("success error")
       .addClass(messageClass)
-      .html(`<div style="padding: 0.75rem 1.25rem; margin-bottom: 1rem; border-radius: 0.25rem; ${style}">${message}</div>`)
+      .html(
+        `<div style="padding: 0.75rem 1.25rem; margin-bottom: 1rem; border-radius: 0.25rem; ${style}">${message}</div>`
+      )
       .show();
   }
-
 
   // --- Registration Form Logic ---
   const $registerForm = $("#mobooking-register-form");
   const $registerMessageDiv = $("#mobooking-register-message");
 
+  DEBUG.log("Registration form found", { exists: $registerForm.length > 0 });
+
   if ($registerForm.length) {
+    DEBUG.group("Registration Form Setup");
+
     let registrationData = {};
     let currentStep = 1;
-    const totalSteps = $("#mobooking-progress-bar .mobooking-progress-step").length || 3; // Dynamically count steps or default
+    const totalSteps =
+      $("#mobooking-progress-bar .mobooking-progress-step").length || 3;
+
+    DEBUG.log("Registration form initialized", { totalSteps: totalSteps });
 
     function updateProgressBar() {
-        $("#mobooking-progress-bar .mobooking-progress-step").removeClass("active completed");
-        for (let i = 1; i <= totalSteps; i++) {
-            if (i < currentStep) {
-                $("#mobooking-progress-bar .mobooking-progress-step[data-step='" + i + "']").addClass("completed");
-            } else if (i === currentStep) {
-                $("#mobooking-progress-bar .mobooking-progress-step[data-step='" + i + "']").addClass("active");
-            }
+      DEBUG.log("Updating progress bar", {
+        currentStep: currentStep,
+        totalSteps: totalSteps,
+      });
+      $("#mobooking-progress-bar .mobooking-progress-step").removeClass(
+        "active completed"
+      );
+      for (let i = 1; i <= totalSteps; i++) {
+        if (i < currentStep) {
+          $(
+            "#mobooking-progress-bar .mobooking-progress-step[data-step='" +
+              i +
+              "']"
+          ).addClass("completed");
+        } else if (i === currentStep) {
+          $(
+            "#mobooking-progress-bar .mobooking-progress-step[data-step='" +
+              i +
+              "']"
+          ).addClass("active");
         }
+      }
     }
 
     function showStep(step) {
-      $(".mobooking-register-step").removeClass('active').hide();
-      $("#mobooking-register-step-" + step).show().addClass('active');
+      DEBUG.log("Showing step", { step: step });
+      $(".mobooking-register-step").removeClass("active").hide();
+      $("#mobooking-register-step-" + step)
+        .show()
+        .addClass("active");
       currentStep = step;
       updateProgressBar();
     }
 
-    showStep(1); // Initialize first step
+    showStep(1);
 
+    // Step navigation
     $("#mobooking-step-1-next").on("click", async function () {
-      if (await validateRegisterStep(1)) showStep(2);
+      DEBUG.group("Step 1 Navigation");
+      if (await validateRegisterStep(1)) {
+        DEBUG.success("Step 1 validation passed, moving to step 2");
+        showStep(2);
+      } else {
+        DEBUG.error("Step 1 validation failed");
+      }
+      DEBUG.groupEnd();
     });
-    $("#mobooking-step-2-prev").on("click", function () { showStep(1); });
+
+    $("#mobooking-step-2-prev").on("click", function () {
+      DEBUG.log("Going back to step 1");
+      showStep(1);
+    });
+
     $("#mobooking-step-2-next").on("click", async function () {
+      DEBUG.group("Step 2 Navigation");
       if (await validateRegisterStep(2)) {
+        DEBUG.success(
+          "Step 2 validation passed, updating confirmation and moving to step 3"
+        );
         updateConfirmationStep();
         showStep(3);
+      } else {
+        DEBUG.error("Step 2 validation failed");
       }
+      DEBUG.groupEnd();
     });
-    $("#mobooking-step-3-prev").on("click", function () { showStep(2); });
+
+    $("#mobooking-step-3-prev").on("click", function () {
+      DEBUG.log("Going back to step 2");
+      showStep(2);
+    });
 
     async function checkEmailExists(email) {
+      DEBUG.group("Email Existence Check");
+      DEBUG.log("Checking email", { email: email });
+
       return new Promise((resolve, reject) => {
         $.ajax({
           type: "POST",
@@ -86,92 +201,186 @@ jQuery(document).ready(function ($) {
           data: {
             action: "mobooking_check_email_exists",
             email: email,
-            // If you have a specific nonce for email checking and it's localized in mobooking_auth_params:
-            // nonce: mobooking_auth_params.check_email_nonce
           },
           dataType: "json",
-          success: (response) => resolve(response.data && response.data.exists),
-          error: () => reject(new Error("Failed to check email")),
+          timeout: 10000,
+          success: (response) => {
+            DEBUG.log("Email check response", response);
+            const exists = response.data && response.data.exists;
+            DEBUG.success("Email check completed", { exists: exists });
+            DEBUG.groupEnd();
+            resolve(exists);
+          },
+          error: (jqXHR, textStatus, errorThrown) => {
+            DEBUG.error("Email check failed", {
+              status: jqXHR.status,
+              textStatus: textStatus,
+              errorThrown: errorThrown,
+            });
+            DEBUG.groupEnd();
+            reject(new Error("Failed to check email"));
+          },
         });
       });
     }
 
     async function validateRegisterStep(step) {
+      DEBUG.group(`Step ${step} Validation`);
+
       $(".field-error").remove();
       let isValid = true;
-      // Consolidate data gathering
+
+      // Gather form data
       registrationData.first_name = $("#mobooking-first-name").val().trim();
       registrationData.last_name = $("#mobooking-last-name").val().trim();
       registrationData.email = $("#mobooking-user-email").val().trim();
       registrationData.password = $("#mobooking-user-pass").val();
-      registrationData.password_confirm = $("#mobooking-user-pass-confirm").val();
-      registrationData.company_name = $("#mobooking-company-name").val() ? $("#mobooking-company-name").val().trim() : "";
+      registrationData.password_confirm = $(
+        "#mobooking-user-pass-confirm"
+      ).val();
+      registrationData.company_name = $("#mobooking-company-name").val()
+        ? $("#mobooking-company-name").val().trim()
+        : "";
 
+      DEBUG.log("Gathered form data", registrationData);
 
       if (step === 1) {
-        if (!registrationData.first_name) { showFieldError($("#mobooking-first-name"), "First name is required."); isValid = false; }
-        if (!registrationData.last_name) { showFieldError($("#mobooking-last-name"), "Last name is required."); isValid = false; }
-        if (!registrationData.email || !isValidEmail(registrationData.email)) {
-            showFieldError($("#mobooking-user-email"), "Valid email is required."); isValid = false;
-        } else if (!$("#mobooking-user-email").is('[readonly]')) { // Only check email if not pre-filled (invitation) and email format is valid
-            try {
-                if (await checkEmailExists(registrationData.email)) {
-                    showFieldError($("#mobooking-user-email"), "This email is already registered.");
-                    isValid = false;
-                }
-            } catch (error) { console.error("Email validation error:", error); /* Allow submission if check fails, backend will catch it */ }
+        DEBUG.group("Step 1 Field Validation");
+
+        if (!registrationData.first_name) {
+          showFieldError($("#mobooking-first-name"), "First name is required.");
+          isValid = false;
+          DEBUG.error("First name validation failed");
         }
-        if (!registrationData.password || registrationData.password.length < 8) { showFieldError($("#mobooking-user-pass"), "Password must be at least 8 characters."); isValid = false; }
-        if (registrationData.password !== registrationData.password_confirm) { showFieldError($("#mobooking-user-pass-confirm"), "Passwords do not match."); isValid = false; }
+
+        if (!registrationData.last_name) {
+          showFieldError($("#mobooking-last-name"), "Last name is required.");
+          isValid = false;
+          DEBUG.error("Last name validation failed");
+        }
+
+        if (!registrationData.email || !isValidEmail(registrationData.email)) {
+          showFieldError(
+            $("#mobooking-user-email"),
+            "Valid email is required."
+          );
+          isValid = false;
+          DEBUG.error("Email validation failed");
+        } else {
+          try {
+            DEBUG.log("Starting email existence check");
+            if (await checkEmailExists(registrationData.email)) {
+              showFieldError(
+                $("#mobooking-user-email"),
+                "This email is already registered."
+              );
+              isValid = false;
+              DEBUG.error("Email already exists");
+            } else {
+              DEBUG.success("Email is available");
+            }
+          } catch (error) {
+            DEBUG.error("Email check failed, continuing...", error);
+            // Continue without email check if it fails
+          }
+        }
+
+        if (
+          !registrationData.password ||
+          registrationData.password.length < 8
+        ) {
+          showFieldError(
+            $("#mobooking-user-pass"),
+            "Password must be at least 8 characters."
+          );
+          isValid = false;
+          DEBUG.error("Password validation failed");
+        }
+
+        if (registrationData.password !== registrationData.password_confirm) {
+          showFieldError(
+            $("#mobooking-user-pass-confirm"),
+            "Passwords do not match."
+          );
+          isValid = false;
+          DEBUG.error("Password confirmation failed");
+        }
+
+        DEBUG.groupEnd();
       }
 
       if (step === 2) {
-        const isInvitation = $("#mobooking-inviter-id").length > 0 && $("#mobooking-inviter-id").val() !== "";
-        if (!isInvitation && !registrationData.company_name) {
-          // Company name is only required if it's not an invitation flow
-          // Check if company name field exists and is visible before requiring
-          if ($("#mobooking-company-name").is(":visible")) {
-            showFieldError($("#mobooking-company-name"), "Company name is required.");
-            isValid = false;
-          }
+        DEBUG.group("Step 2 Field Validation");
+
+        const inviterId = $("#mobooking-inviter-id").val();
+        if (!inviterId && !registrationData.company_name) {
+          showFieldError(
+            $("#mobooking-company-name"),
+            "Company name is required."
+          );
+          isValid = false;
+          DEBUG.error("Company name validation failed");
+        } else {
+          DEBUG.success("Company name validation passed");
         }
+
+        DEBUG.groupEnd();
       }
-      // Step 3 is confirmation, no new validation, but ensure previous steps were valid.
+
+      DEBUG.success(`Step ${step} validation result`, { isValid: isValid });
+      DEBUG.groupEnd();
       return isValid;
     }
 
     function updateConfirmationStep() {
+      DEBUG.log("Updating confirmation step with data", registrationData);
       $("#confirm-first-name").text(registrationData.first_name);
       $("#confirm-last-name").text(registrationData.last_name);
       $("#confirm-email").text(registrationData.email);
-      const isInvitation = $("#mobooking-inviter-id").length > 0 && $("#mobooking-inviter-id").val() !== "";
-      if (!isInvitation && registrationData.company_name) {
-        $("#confirm-company-name").text(registrationData.company_name);
-        $("#confirm-company-name-p").show();
-      } else {
-        $("#confirm-company-name-p").hide();
-      }
+      $("#confirm-company-name").text(registrationData.company_name || "N/A");
     }
 
+    // Enhanced form submission with comprehensive debugging
     $registerForm.on("submit", async function (e) {
       e.preventDefault();
-      // Ensure all steps are validated before final submission
-      if (!(await validateRegisterStep(1)) ) {
-        showStep(1); // Go back to step 1 if invalid
-        displayGlobalMessage($registerMessageDiv, "Please correct the errors in Step 1.", false);
+
+      DEBUG.group("🚀 REGISTRATION FORM SUBMISSION");
+      DEBUG.log("Form submission started");
+
+      // Final validation
+      DEBUG.group("Final Validation");
+      if (!(await validateRegisterStep(1))) {
+        showStep(1);
+        displayGlobalMessage(
+          $registerMessageDiv,
+          "Please correct the errors in Step 1.",
+          false
+        );
+        DEBUG.error("Final step 1 validation failed");
+        DEBUG.groupEnd();
+        DEBUG.groupEnd();
         return;
       }
       if (!(await validateRegisterStep(2))) {
-        showStep(2); // Go back to step 2 if invalid
-        displayGlobalMessage($registerMessageDiv, "Please correct the errors in Step 2.", false);
+        showStep(2);
+        displayGlobalMessage(
+          $registerMessageDiv,
+          "Please correct the errors in Step 2.",
+          false
+        );
+        DEBUG.error("Final step 2 validation failed");
+        DEBUG.groupEnd();
+        DEBUG.groupEnd();
         return;
       }
-
+      DEBUG.success("Final validation passed");
+      DEBUG.groupEnd();
 
       $registerMessageDiv.hide().empty();
       const $submitButton = $registerForm.find('input[type="submit"]');
       const originalButtonText = $submitButton.val();
 
+      // Prepare form data
       const formData = {
         action: "mobooking_register",
         nonce: mobooking_auth_params.register_nonce,
@@ -183,6 +392,7 @@ jQuery(document).ready(function ($) {
         company_name: registrationData.company_name,
       };
 
+      // Handle invitation flow
       const inviterId = $("#mobooking-inviter-id").val();
       const assignedRole = $("#mobooking-assigned-role").val();
       const invitationToken = $("#mobooking-invitation-token").val();
@@ -191,94 +401,246 @@ jQuery(document).ready(function ($) {
         formData.inviter_id = inviterId;
         formData.role_to_assign = assignedRole;
         formData.invitation_token = invitationToken;
-        formData.company_name = ''; // Ensure company name is empty for invitation flow
+        formData.company_name = "";
+        DEBUG.log("Invitation flow detected", {
+          inviterId,
+          assignedRole,
+          invitationToken,
+        });
       }
+
+      DEBUG.log("Prepared form data", formData);
+
+      // AJAX Registration Request
+      DEBUG.group("🌐 AJAX Registration Request");
 
       $.ajax({
         type: "POST",
         url: mobooking_auth_params.ajax_url,
         data: formData,
         dataType: "json",
-        beforeSend: () => $submitButton.prop("disabled", true).val("Creating Account..."),
+        timeout: 60000, // 60 second timeout
+        beforeSend: () => {
+          $submitButton.prop("disabled", true).val("Creating Account...");
+          DEBUG.log("AJAX request initiated", {
+            url: mobooking_auth_params.ajax_url,
+            action: formData.action,
+            email: formData.email,
+          });
+        },
         success: (response) => {
-          if (response.success) {
+          DEBUG.group("✅ AJAX Success Response");
+          DEBUG.log("Raw response received", response);
+
+          if (response && response.success) {
+            DEBUG.success("Registration successful!", response.data);
+
+            // Hide form and progress bar
             $registerForm.hide();
             $("#mobooking-progress-bar").hide();
-            showSuccessMessageWithCountdown(registrationData.first_name || "there", response.data.redirect_url || "/dashboard/");
+
+            const redirectUrl = response.data?.redirect_url || "/dashboard/";
+            const firstName = registrationData.first_name || "there";
+
+            DEBUG.log("Preparing success display and redirect", {
+              firstName: firstName,
+              redirectUrl: redirectUrl,
+            });
+
+            showSuccessMessageWithCountdown(firstName, redirectUrl);
           } else {
-            displayGlobalMessage($registerMessageDiv, response.data.message || "Registration failed. Please try again.", false);
+            DEBUG.error("Registration failed", response);
+            const errorMessage =
+              response?.data?.message ||
+              "Registration failed. Please try again.";
+            displayGlobalMessage($registerMessageDiv, errorMessage, false);
+            $submitButton.prop("disabled", false).val(originalButtonText);
           }
+
+          DEBUG.groupEnd();
         },
-        error: (jqXHR) => {
-            let errorMsg = "An unexpected error occurred. Please try again.";
-            if (jqXHR.responseJSON && jqXHR.responseJSON.data && jqXHR.responseJSON.data.message) {
-                errorMsg = jqXHR.responseJSON.data.message;
-            } else if (jqXHR.responseText) {
-                 try { // Try to parse if it's a stringified JSON error
-                    const errorResponse = JSON.parse(jqXHR.responseText);
-                    if (errorResponse && errorResponse.data && errorResponse.data.message) {
-                        errorMsg = errorResponse.data.message;
-                    }
-                } catch (e) { /* Use default error or jqXHR.responseText if short */
-                    if (jqXHR.responseText.length < 200) errorMsg = jqXHR.responseText;
-                }
-            }
+        error: (jqXHR, textStatus, errorThrown) => {
+          DEBUG.group("❌ AJAX Error Response");
+          DEBUG.error("AJAX request failed", {
+            status: jqXHR.status,
+            statusText: jqXHR.statusText,
+            textStatus: textStatus,
+            errorThrown: errorThrown,
+            responseText: jqXHR.responseText.substring(0, 500),
+            readyState: jqXHR.readyState,
+          });
+
+          let errorMsg = "An unexpected error occurred. Please try again.";
+
+          if (textStatus === "timeout") {
+            errorMsg =
+              "Registration timed out. Please check your connection and try again.";
+            DEBUG.error("Request timed out");
+          } else if (jqXHR.status === 0) {
+            errorMsg =
+              "Connection failed. Please check your internet connection.";
+            DEBUG.error("Connection failed (status 0)");
+          } else if (jqXHR.status >= 500) {
+            errorMsg =
+              "Server error occurred. Please try again or contact support.";
+            DEBUG.error("Server error", { status: jqXHR.status });
+          } else if (jqXHR.status === 403) {
+            errorMsg = "Access denied. Please refresh the page and try again.";
+            DEBUG.error("Access denied (403)");
+          } else if (jqXHR.status === 404) {
+            errorMsg =
+              "Registration endpoint not found. Please contact support.";
+            DEBUG.error("Endpoint not found (404)");
+          } else if (jqXHR.responseJSON?.data?.message) {
+            errorMsg = jqXHR.responseJSON.data.message;
+            DEBUG.error("Server returned error message", errorMsg);
+          } else if (jqXHR.responseText && jqXHR.responseText.length < 200) {
+            errorMsg = jqXHR.responseText;
+            DEBUG.error("Short response text", errorMsg);
+          }
+
           displayGlobalMessage($registerMessageDiv, errorMsg, false);
+          $submitButton.prop("disabled", false).val(originalButtonText);
+
+          DEBUG.groupEnd();
         },
         complete: () => {
-            // Only re-enable if not successful (form hidden on success)
-            if (!$registerForm.is(':hidden')) {
-                 $submitButton.prop("disabled", false).val(originalButtonText);
-            }
-        }
+          DEBUG.log("AJAX request completed");
+          DEBUG.groupEnd(); // Close AJAX group
+        },
       });
+
+      DEBUG.groupEnd(); // Close form submission group
     });
 
+    // Enhanced success message function with guaranteed redirect
     function showSuccessMessageWithCountdown(userName, redirectUrl) {
+      DEBUG.group("🎉 Success Message Display");
+      DEBUG.log("Showing success message", { userName, redirectUrl });
+
       let countdown = 3;
-      // Assuming $registerMessageDiv is inside the main form container which we want to replace.
-      const $formContainer = $registerForm.closest('.mobooking-auth-form-wrapper');
+      const $formContainer = $registerForm.closest(
+        ".mobooking-auth-form-wrapper"
+      );
 
       function updateMessage() {
         const message = `
-            <div style="text-align: center; padding: 30px; background: #f0f9ff; border: 2px solid #0ea5e9; border-radius: 8px; margin: 20px 0;">
-                <div style="color: #0ea5e9; font-size: 48px; margin-bottom: 20px;">✓</div>
-                <h3 style="color: #0369a1; margin: 0 0 15px 0; font-size: 24px;">Welcome, ${userName}!</h3>
-                <p style="color: #0369a1; margin: 0 0 20px 0; font-size: 16px;">
-                    Your account is ready. Redirecting in ${countdown} second${countdown !== 1 ? "s" : ""}...
-                </p>
-                <p style="margin-top: 15px; font-size: 14px; color: #64748b;">
-                    <a href="${redirectUrl}" style="color: #0ea5e9; text-decoration: none;">Go to Dashboard Now</a>
-                </p>
-            </div>`;
+          <div style="text-align: center; padding: 30px; background: #f0f9ff; border: 2px solid #0ea5e9; border-radius: 8px; margin: 20px 0;">
+            <div style="color: #0ea5e9; font-size: 48px; margin-bottom: 20px;">✓</div>
+            <h3 style="color: #0369a1; margin: 0 0 15px 0; font-size: 24px;">Welcome, ${userName}!</h3>
+            <p style="color: #0369a1; margin: 0 0 20px 0; font-size: 16px;">
+              Your account is ready. Redirecting in ${countdown} second${
+          countdown !== 1 ? "s" : ""
+        }...
+            </p>
+            <p style="margin-top: 15px; font-size: 14px; color: #64748b;">
+              <a href="${redirectUrl}" style="color: #0ea5e9; text-decoration: none;">Go to Dashboard Now</a>
+            </p>
+          </div>`;
+
         if ($formContainer.length) {
-            $formContainer.html(message).show();
-        } else { // Fallback if the wrapper isn't found
-            $registerMessageDiv.html(message).addClass('success').show();
+          $formContainer.html(message).show();
+          DEBUG.log("Message displayed in form container");
+        } else {
+          $registerMessageDiv.html(message).addClass("success").show();
+          DEBUG.log("Message displayed in message div (fallback)");
         }
       }
+
       updateMessage();
+
+      // Countdown timer
       const interval = setInterval(() => {
         countdown--;
-        if (countdown >= 0) updateMessage();
-        else {
+        DEBUG.log("Countdown tick", { countdown });
+
+        if (countdown >= 0) {
+          updateMessage();
+        } else {
+          DEBUG.log("Countdown finished, initiating redirect");
           clearInterval(interval);
-          window.location.href = redirectUrl;
+          performRedirect(redirectUrl);
         }
       }, 1000);
-    }
-  }
 
+      // Multiple fallback redirects to ensure it works
+      setTimeout(() => {
+        DEBUG.log("5-second fallback redirect triggered");
+        performRedirect(redirectUrl);
+      }, 5000);
+
+      setTimeout(() => {
+        DEBUG.log("10-second emergency redirect triggered");
+        performRedirect(redirectUrl);
+      }, 10000);
+
+      // Function to perform redirect with multiple methods
+      function performRedirect(url) {
+        DEBUG.group("🔄 Redirect Attempt");
+        DEBUG.log("Starting redirect to", url);
+
+        try {
+          // Method 1: Standard redirect
+          DEBUG.log("Attempting window.location.href redirect");
+          window.location.href = url;
+
+          // Method 2: Backup redirect (executes if above fails)
+          setTimeout(() => {
+            DEBUG.log("Attempting window.location.replace redirect (backup)");
+            window.location.replace(url);
+          }, 1000);
+
+          // Method 3: Emergency redirect
+          setTimeout(() => {
+            DEBUG.log("Attempting emergency redirect");
+            try {
+              window.location.assign(url);
+            } catch (e) {
+              DEBUG.error("All redirect methods failed", e);
+              // Last resort: show manual link
+              $registerMessageDiv
+                .html(
+                  `
+                <div style="text-align: center; padding: 20px; background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 5px;">
+                  <h4>Registration Successful!</h4>
+                  <p>Automatic redirect failed. Please click the link below:</p>
+                  <a href="${url}" style="display: inline-block; padding: 10px 20px; background: #007cba; color: white; text-decoration: none; border-radius: 3px;">Go to Dashboard</a>
+                </div>
+              `
+                )
+                .show();
+            }
+          }, 2000);
+        } catch (error) {
+          DEBUG.error("Redirect failed", error);
+        }
+
+        DEBUG.groupEnd();
+      }
+
+      DEBUG.groupEnd();
+    }
+
+    DEBUG.groupEnd(); // Close Registration Form Setup
+  }
 
   // --- Login Form Logic ---
   const $loginForm = $("#mobooking-login-form");
   const $loginMessageDiv = $("#mobooking-login-message");
 
+  DEBUG.log("Login form found", { exists: $loginForm.length > 0 });
+
   if ($loginForm.length) {
+    DEBUG.group("Login Form Setup");
+
     $loginForm.on("submit", function (e) {
       e.preventDefault();
+
+      DEBUG.group("Login Form Submission");
+      DEBUG.log("Login form submitted");
+
       $loginMessageDiv.hide().empty().removeClass("error success");
-      $(".field-error").remove(); // Clear previous field errors
+      $(".field-error").remove();
 
       const email = $("#mobooking-user-login").val().trim();
       const password = $("#mobooking-user-pass").val();
@@ -286,16 +648,30 @@ jQuery(document).ready(function ($) {
       const $submitButton = $loginForm.find('input[type="submit"]');
       const originalButtonText = $submitButton.val();
 
+      DEBUG.log("Login data gathered", { email, rememberMe });
+
       let valid = true;
       if (!email || !isValidEmail(email)) {
-        showFieldError($("#mobooking-user-login"), "Please enter a valid email address.");
+        showFieldError(
+          $("#mobooking-user-login"),
+          "Please enter a valid email address."
+        );
         valid = false;
+        DEBUG.error("Email validation failed");
       }
       if (!password) {
         showFieldError($("#mobooking-user-pass"), "Password is required.");
         valid = false;
+        DEBUG.error("Password validation failed");
       }
-      if (!valid) return;
+
+      if (!valid) {
+        DEBUG.error("Login validation failed");
+        DEBUG.groupEnd();
+        return;
+      }
+
+      DEBUG.log("Starting login AJAX request");
 
       $.ajax({
         type: "POST",
@@ -308,55 +684,93 @@ jQuery(document).ready(function ($) {
           rememberme: rememberMe ? "forever" : "",
         },
         dataType: "json",
-        beforeSend: () => $submitButton.prop("disabled", true).val("Logging In..."),
+        beforeSend: () => {
+          $submitButton.prop("disabled", true).val("Logging In...");
+          DEBUG.log("Login request sent");
+        },
         success: (response) => {
+          DEBUG.log("Login response received", response);
           if (response.success) {
-            displayGlobalMessage($loginMessageDiv, response.data.message || "Login successful! Redirecting...", true);
-            window.location.href = response.data.redirect_url || "/dashboard/";
+            DEBUG.success("Login successful");
+            displayGlobalMessage(
+              $loginMessageDiv,
+              response.data.message || "Login successful! Redirecting...",
+              true
+            );
+            const redirectUrl = response.data.redirect_url || "/dashboard/";
+            DEBUG.log("Redirecting to", redirectUrl);
+            setTimeout(() => {
+              window.location.href = redirectUrl;
+            }, 1000);
           } else {
-            displayGlobalMessage($loginMessageDiv, response.data.message || "Login failed. Please check your credentials.", false);
+            DEBUG.error("Login failed", response);
+            displayGlobalMessage(
+              $loginMessageDiv,
+              response.data.message ||
+                "Login failed. Please check your credentials.",
+              false
+            );
           }
         },
         error: (jqXHR) => {
-            let errorMsg = "An unexpected error occurred. Please try again.";
-            if (jqXHR.responseJSON && jqXHR.responseJSON.data && jqXHR.responseJSON.data.message) {
-                errorMsg = jqXHR.responseJSON.data.message;
-            } else if (jqXHR.responseText) {
-                 try {
-                    const errorResponse = JSON.parse(jqXHR.responseText);
-                    if (errorResponse && errorResponse.data && errorResponse.data.message) {
-                        errorMsg = errorResponse.data.message;
-                    }
-                } catch (e) {
-                    if (jqXHR.responseText.length < 200) errorMsg = jqXHR.responseText;
-                }
-            }
+          DEBUG.error("Login AJAX error", {
+            status: jqXHR.status,
+            responseText: jqXHR.responseText,
+          });
+          let errorMsg = "An unexpected error occurred. Please try again.";
+          if (jqXHR.responseJSON?.data?.message) {
+            errorMsg = jqXHR.responseJSON.data.message;
+          }
           displayGlobalMessage($loginMessageDiv, errorMsg, false);
         },
-        complete: () => $submitButton.prop("disabled", false).val(originalButtonText),
+        complete: () => {
+          $submitButton.prop("disabled", false).val(originalButtonText);
+          DEBUG.log("Login request completed");
+          DEBUG.groupEnd();
+        },
       });
     });
-  }
 
+    DEBUG.groupEnd();
+  }
 
   // --- Forgot Password Form Logic ---
   const $forgotPasswordForm = $("#mobooking-forgot-password-form");
   const $forgotPasswordMessageDiv = $("#mobooking-forgot-password-message");
 
+  DEBUG.log("Forgot password form found", {
+    exists: $forgotPasswordForm.length > 0,
+  });
+
   if ($forgotPasswordForm.length) {
+    DEBUG.group("Forgot Password Form Setup");
+
     $forgotPasswordForm.on("submit", function (e) {
       e.preventDefault();
+
+      DEBUG.group("Forgot Password Form Submission");
+      DEBUG.log("Forgot password form submitted");
+
       $forgotPasswordMessageDiv.hide().empty().removeClass("error success");
-      $(".field-error").remove(); // Clear previous field errors
+      $(".field-error").remove();
 
       const email = $("#mobooking-user-email-forgot").val().trim();
       const $submitButton = $forgotPasswordForm.find('input[type="submit"]');
       const originalButtonText = $submitButton.val();
 
+      DEBUG.log("Email for password reset", { email });
+
       if (!email || !isValidEmail(email)) {
-        showFieldError($("#mobooking-user-email-forgot"), "Please enter a valid email address.");
+        showFieldError(
+          $("#mobooking-user-email-forgot"),
+          "Please enter a valid email address."
+        );
+        DEBUG.error("Email validation failed");
+        DEBUG.groupEnd();
         return;
       }
+
+      DEBUG.log("Starting password reset request");
 
       $.ajax({
         type: "POST",
@@ -367,28 +781,57 @@ jQuery(document).ready(function ($) {
           user_email: email,
         },
         dataType: "json",
-        beforeSend: () => $submitButton.prop("disabled", true).val("Sending Link..."),
+        beforeSend: () => {
+          $submitButton.prop("disabled", true).val("Sending Link...");
+          DEBUG.log("Password reset request sent");
+        },
         success: (response) => {
-          // Backend sends success true even if email not found, for security.
-          displayGlobalMessage($forgotPasswordMessageDiv, response.data.message || "If an account with that email exists, a password reset link has been sent.", true);
-          if (response.success) { // This will usually be true from backend
-             $forgotPasswordForm.find('input[type="email"]').val(''); // Clear email field
-          }
+          DEBUG.log("Password reset response", response);
+          displayGlobalMessage(
+            $forgotPasswordMessageDiv,
+            response.data.message ||
+              "If an account with that email exists, a password reset link has been sent.",
+            true
+          );
         },
         error: (jqXHR) => {
-            // This error block might be hit for network errors or if server sends non-JSON/non-200 response
-            // For security, still show a generic success-like message unless it's a clear client/network fault
-            let errorMsg = "An issue occurred. If an account with that email exists, a link has been sent. Please check your connection or contact support if issues persist.";
-            // If server explicitly sent an error with success:false (e.g. bad nonce, which usually dies)
-            if (jqXHR.responseJSON && jqXHR.responseJSON.data && jqXHR.responseJSON.data.message && jqXHR.responseJSON.success === false) {
-                 errorMsg = jqXHR.responseJSON.data.message;
-                 displayGlobalMessage($forgotPasswordMessageDiv, errorMsg, false);
-            } else {
-                 displayGlobalMessage($forgotPasswordMessageDiv, errorMsg, true); // Treat as success-like for enumeration protection
-            }
+          DEBUG.error("Password reset error", {
+            status: jqXHR.status,
+            responseText: jqXHR.responseText,
+          });
+          let errorMsg = "An unexpected error occurred. Please try again.";
+          if (jqXHR.responseJSON?.data?.message) {
+            errorMsg = jqXHR.responseJSON.data.message;
+          }
+          displayGlobalMessage($forgotPasswordMessageDiv, errorMsg, false);
         },
-        complete: () => $submitButton.prop("disabled", false).val(originalButtonText),
+        complete: () => {
+          $submitButton.prop("disabled", false).val(originalButtonText);
+          DEBUG.log("Password reset request completed");
+          DEBUG.groupEnd();
+        },
       });
     });
+
+    DEBUG.groupEnd();
   }
+
+  DEBUG.success("Auth forms initialization completed");
+  DEBUG.groupEnd();
+
+  // Add global error handler
+  window.addEventListener("error", function (event) {
+    if (
+      event.error &&
+      event.error.stack &&
+      event.error.stack.includes("mobooking")
+    ) {
+      DEBUG.error("Global JavaScript error in MoBooking", {
+        message: event.error.message,
+        filename: event.filename,
+        lineno: event.lineno,
+        stack: event.error.stack,
+      });
+    }
+  });
 });

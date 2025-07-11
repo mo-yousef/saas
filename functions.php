@@ -1862,3 +1862,33 @@ if ( ! function_exists( 'mobooking_ajax_get_recent_bookings' ) ) {
 
 
 
+
+
+
+
+
+
+
+
+// Add to functions.php for debugging
+function mobooking_debug_registration_process() {
+    if (isset($_GET['debug_registration']) && current_user_can('manage_options')) {
+        echo '<pre>';
+        echo "Database Tables:\n";
+        global $wpdb;
+        $tables = $wpdb->get_results("SHOW TABLES LIKE '%mobooking%'");
+        var_dump($tables);
+        
+        echo "\nRoles:\n";
+        var_dump(get_role('mobooking_business_owner'));
+        
+        echo "\nSettings Class:\n";
+        var_dump(class_exists('MoBooking\Classes\Settings'));
+        
+        echo "\nGlobal Settings Manager:\n";
+        var_dump(isset($GLOBALS['mobooking_settings_manager']));
+        echo '</pre>';
+        exit;
+    }
+}
+add_action('init', 'mobooking_debug_registration_process');
