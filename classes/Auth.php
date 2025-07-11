@@ -665,8 +665,16 @@ public function handle_ajax_registration() {
 
         // Log the user in
         error_log('MoBooking: Logging user in and setting auth cookie');
-        wp_set_current_user($user_id, $email);
-        wp_set_auth_cookie($user_id, true, is_ssl());
+        $user_object = get_user_by('id', $user_id); // Get WP_User object for do_action
+        if ($user_object) {
+            wp_set_current_user($user_id, $user_object->user_login);
+            wp_set_auth_cookie($user_id, true, is_ssl());
+            // Fires the wp_login action hook, which is standard WordPress practice and allows other plugins to act on login.
+            do_action('wp_login', $user_object->user_login, $user_object);
+            error_log("MoBooking: User {$user_id} logged in, wp_login action hook fired.");
+        } else {
+            error_log("MoBooking: Failed to get user object for user ID {$user_id} during login process.");
+        }
 
         // Send welcome email (only for business owners, not invited workers)
         if (!$is_invitation_flow) {
