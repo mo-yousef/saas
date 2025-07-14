@@ -841,6 +841,7 @@ if ( ! function_exists( 'mobooking_ajax_get_all_bookings_for_calendar' ) ) {
 
     // Specific to Workers page (if exists)
     if ($current_page_slug === 'workers') {
+        wp_enqueue_style('mobooking-workers-enhanced', MOBOOKING_THEME_URI . 'assets/css/dashboard-workers-enhanced.css', [], MOBOOKING_VERSION);
         wp_enqueue_script('mobooking-dashboard-workers', MOBOOKING_THEME_URI . 'assets/js/dashboard-workers.js', array('jquery'), MOBOOKING_VERSION, true);
         $workers_params = array_merge($dashboard_params, [
             'i18n' => [
