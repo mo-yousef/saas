@@ -454,9 +454,9 @@ function mobooking_enqueue_dashboard_scripts($current_page_slug = '') {
         }
     }
 
-    // Ensure jQuery is always available for dashboard pages that might use it directly
-    // or have inline scripts depending on it (like page-workers.php).
+    // Ensure jQuery and Dashicons are always available for dashboard pages
     wp_enqueue_script('jquery');
+    wp_enqueue_style('dashicons');
 
     $user_id = get_current_user_id();
     $currency_code = 'USD'; // Default
@@ -802,6 +802,7 @@ if ( ! function_exists( 'mobooking_ajax_get_all_bookings_for_calendar' ) ) {
 
     // Specific to Availability page
     if ($current_page_slug === 'availability') {
+        wp_enqueue_style('mobooking-dashboard-availability', MOBOOKING_THEME_URI . 'assets/css/dashboard-availability.css', array(), MOBOOKING_VERSION);
         wp_enqueue_script('jquery-ui-datepicker'); // For calendar
         wp_enqueue_script('mobooking-dashboard-availability', MOBOOKING_THEME_URI . 'assets/js/dashboard-availability.js', array('jquery', 'jquery-ui-datepicker'), MOBOOKING_VERSION, true);
 
