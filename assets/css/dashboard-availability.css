@@ -142,7 +142,8 @@
     outline-offset: 2px;
 }
 
-.time-slot .delete-slot-btn {
+.time-slot .delete-slot-btn,
+.time-slot .add-slot-btn {
     color: var(--muted-foreground);
     background: transparent;
     border: none;
@@ -155,6 +156,11 @@
 .time-slot .delete-slot-btn:hover {
     color: var(--destructive);
     background-color: var(--destructive-foreground);
+}
+
+.time-slot .add-slot-btn:hover {
+    color: var(--primary);
+    background-color: var(--accent);
 }
 
 .day-off-text, .no-slots-text {
@@ -284,17 +290,34 @@ input:checked + .slider:before {
 }
 
 .copy-days-selection {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
     gap: 0.75rem;
     margin-bottom: 1.5rem;
 }
 
-.copy-days-selection label {
+.copy-day-label {
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    padding: 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
     cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s;
+}
+
+.copy-day-label:hover {
+    background-color: var(--accent);
+}
+
+.copy-day-label input:checked + span {
+    font-weight: 600;
+    color: var(--primary);
+}
+
+.copy-day-label input {
+    accent-color: var(--primary);
 }
 
 .mobooking-modal .form-actions {
