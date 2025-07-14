@@ -24,135 +24,96 @@ class Availability {
     }
 
     public function register_ajax_actions() {
-        // Recurring Slots Actions
-        add_action('wp_ajax_mobooking_get_recurring_slots', [$this, 'ajax_get_recurring_slots']);
-        add_action('wp_ajax_mobooking_save_recurring_slot', [$this, 'ajax_save_recurring_slot']);
-        add_action('wp_ajax_mobooking_delete_recurring_slot', [$this, 'ajax_delete_recurring_slot']);
+        // Recurring Schedule Actions
+        add_action('wp_ajax_mobooking_get_recurring_schedule', [$this, 'ajax_get_recurring_schedule']);
+        add_action('wp_ajax_mobooking_save_recurring_schedule', [$this, 'ajax_save_recurring_schedule']);
 
         // Date Override Actions
-        add_action('wp_ajax_mobooking_get_date_overrides', [$this, 'ajax_get_date_overrides']); // For a range or specific date
+        add_action('wp_ajax_mobooking_get_date_overrides', [$this, 'ajax_get_date_overrides']);
         add_action('wp_ajax_mobooking_save_date_override', [$this, 'ajax_save_date_override']);
         add_action('wp_ajax_mobooking_delete_date_override', [$this, 'ajax_delete_date_override']);
-
-        // Recurring Day Status
-        add_action('wp_ajax_mobooking_set_recurring_day_status', [$this, 'ajax_set_recurring_day_status']);
     }
 
-    // --- Recurring Availability Slot Methods ---
+    // --- Recurring Availability Schedule Methods ---
 
-    /**
-     * Get all recurring availability slots for a user.
-     * @param int $user_id
-     * @return array
-     */
-    public function get_recurring_slots(int $user_id): array {
+    public function get_recurring_schedule(int $user_id): array {
         if (empty($user_id)) {
             return [];
         }
-        $results = $this->wpdb->get_results(
+
+        $slots = $this->wpdb->get_results(
             $this->wpdb->prepare(
-                "SELECT slot_id, day_of_week, start_time, end_time, capacity, is_active
-                 FROM {$this->slots_table_name}
-                 WHERE user_id = %d ORDER BY day_of_week ASC, start_time ASC",
+                "SELECT day_of_week, start_time, end_time FROM {$this->slots_table_name} WHERE user_id = %d AND is_active = 1 ORDER BY start_time ASC",
                 $user_id
             ),
             ARRAY_A
         );
-        return $results ?: [];
-    }
 
-    /**
-     * Add or update a recurring availability slot.
-     * @param int $user_id
-     * @param array $slot_data
-     * @return int|false The ID of the inserted/updated slot, or false on failure.
-     */
-    public function save_recurring_slot(int $user_id, array $slot_data) {
-        if (empty($user_id) || empty($slot_data) || !isset($slot_data['day_of_week']) || empty($slot_data['start_time']) || empty($slot_data['end_time'])) {
-            return false; // Basic validation
+        $schedule = [];
+        for ($i = 0; $i < 7; $i++) {
+            $schedule[$i] = [
+                'day_of_week' => $i,
+                'is_enabled' => false,
+                'slots' => [],
+            ];
         }
 
-        $data = [
-            'user_id'       => $user_id,
-            'day_of_week'   => intval($slot_data['day_of_week']),
-            'start_time'    => sanitize_text_field($slot_data['start_time']),
-            'end_time'      => sanitize_text_field($slot_data['end_time']),
-            'capacity'      => isset($slot_data['capacity']) ? intval($slot_data['capacity']) : 1,
-            'is_active'     => isset($slot_data['is_active']) ? boolval($slot_data['is_active']) : 1,
-        ];
-        $formats = ['%d', '%d', '%s', '%s', '%d', '%d'];
+        foreach ($slots as $slot) {
+            $day = intval($slot['day_of_week']);
+            $schedule[$day]['is_enabled'] = true;
+            $schedule[$day]['slots'][] = [
+                'start_time' => $slot['start_time'],
+                'end_time' => $slot['end_time'],
+            ];
+        }
 
-        // Basic time validation (HH:MM:SS or HH:MM)
-        if (!preg_match('/^([01]\d|2[0-3]):([0-5]\d)(?::([0-5]\d))?$/', $data['start_time']) ||
-            !preg_match('/^([01]\d|2[0-3]):([0-5]\d)(?::([0-5]\d))?$/', $data['end_time'])) {
-            error_log("MoBooking Availability: Invalid time format for recurring slot. Start: {$data['start_time']}, End: {$data['end_time']}");
+        return array_values($schedule);
+    }
+
+    public function save_recurring_schedule(int $user_id, array $schedule_data): bool {
+        if (empty($user_id)) {
             return false;
         }
 
-        // Ensure start_time is before end_time
-        if (strtotime($data['start_time']) >= strtotime($data['end_time'])) {
-             error_log("MoBooking Availability: Start time must be before end time for recurring slot.");
-            return false;
+        // Start transaction
+        $this->wpdb->query('START TRANSACTION');
+
+        // Delete all existing recurring slots for the user
+        $this->wpdb->delete($this->slots_table_name, ['user_id' => $user_id], ['%d']);
+
+        foreach ($schedule_data as $day_data) {
+            if (empty($day_data['is_enabled']) || empty($day_data['slots'])) {
+                continue;
+            }
+
+            foreach ($day_data['slots'] as $slot) {
+                if (empty($slot['start_time']) || empty($slot['end_time'])) {
+                    continue;
+                }
+
+                $inserted = $this->wpdb->insert(
+                    $this->slots_table_name,
+                    [
+                        'user_id' => $user_id,
+                        'day_of_week' => intval($day_data['day_of_week']),
+                        'start_time' => sanitize_text_field($slot['start_time']),
+                        'end_time' => sanitize_text_field($slot['end_time']),
+                        'is_active' => 1,
+                        'capacity' => 1, // Default capacity
+                    ],
+                    ['%d', '%d', '%s', '%s', '%d', '%d']
+                );
+
+                if (!$inserted) {
+                    $this->wpdb->query('ROLLBACK'); // Rollback on failure
+                    return false;
+                }
+            }
         }
 
-        if (isset($slot_data['slot_id']) && !empty($slot_data['slot_id'])) {
-            // Update existing slot
-            $slot_id = intval($slot_data['slot_id']);
-            $updated = $this->wpdb->update($this->slots_table_name, $data, ['slot_id' => $slot_id, 'user_id' => $user_id], $formats, ['%d', '%d']);
-            return ($updated !== false) ? $slot_id : false;
-        } else {
-            // Insert new slot
-            $inserted = $this->wpdb->insert($this->slots_table_name, $data, $formats);
-            return ($inserted !== false) ? $this->wpdb->insert_id : false;
-        }
+        $this->wpdb->query('COMMIT'); // Commit transaction
+        return true;
     }
-
-    /**
-     * Delete a recurring availability slot.
-     * @param int $user_id
-     * @param int $slot_id
-     * @return bool True on success, false on failure.
-     */
-    public function delete_recurring_slot(int $user_id, int $slot_id): bool {
-        if (empty($user_id) || empty($slot_id)) {
-            return false;
-        }
-        $deleted = $this->wpdb->delete($this->slots_table_name, ['user_id' => $user_id, 'slot_id' => $slot_id], ['%d', '%d']);
-        return ($deleted !== false);
-    }
-
-    /**
-     * Set the status for an entire recurring day (e.g., mark all of Monday as off).
-     * This currently means deactivating all slots for that day.
-     * @param int $user_id
-     * @param int $day_of_week
-     * @param bool $is_day_off If true, marks day as off (deactivates slots). If false, (currently does nothing, user adds slots manually)
-     * @return bool True on success, false on failure.
-     */
-    public function set_recurring_day_status(int $user_id, int $day_of_week, bool $is_day_off): bool {
-        if (empty($user_id) || $day_of_week < 0 || $day_of_week > 6) {
-            return false;
-        }
-
-        if ($is_day_off) {
-            // Deactivate all existing slots for this user and day_of_week
-            $updated = $this->wpdb->update(
-                $this->slots_table_name,
-                ['is_active' => 0], // Set to inactive
-                ['user_id' => $user_id, 'day_of_week' => $day_of_week],
-                ['%d'], // format for data
-                ['%d', '%d']  // format for where
-            );
-            return ($updated !== false);
-        } else {
-            // If changing from "Day Off" to "Working Day", slots remain inactive.
-            // User needs to add/activate them explicitly.
-            // Potentially, we could activate all previously inactive slots for this day,
-            // but that might not be desired. Current approach: user rebuilds the schedule for that day.
-            return true; // No specific action to take other than UI will allow adding slots.
-        }
-    }
-
 
     // --- Date Override Methods ---
 
@@ -300,18 +261,18 @@ class Availability {
 
     // --- AJAX Handlers ---
 
-    public function ajax_get_recurring_slots() {
+    public function ajax_get_recurring_schedule() {
         check_ajax_referer('mobooking_availability_nonce', 'nonce');
         $user_id = get_current_user_id();
         if (!$user_id) {
             wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403);
             return;
         }
-        $slots = $this->get_recurring_slots($user_id);
-        wp_send_json_success($slots);
+        $schedule = $this->get_recurring_schedule($user_id);
+        wp_send_json_success($schedule);
     }
 
-    public function ajax_save_recurring_slot() {
+    public function ajax_save_recurring_schedule() {
         check_ajax_referer('mobooking_availability_nonce', 'nonce');
         $user_id = get_current_user_id();
         if (!$user_id) {
@@ -319,45 +280,16 @@ class Availability {
             return;
         }
 
-        $slot_data = isset($_POST['slot_data']) ? (array) json_decode(stripslashes($_POST['slot_data']), true) : [];
-        if (empty($slot_data)) {
-            wp_send_json_error(['message' => __('Slot data is missing.', 'mobooking')], 400);
+        $schedule_data = isset($_POST['schedule_data']) ? json_decode(stripslashes($_POST['schedule_data']), true) : [];
+        if (empty($schedule_data)) {
+            wp_send_json_error(['message' => __('Schedule data is missing.', 'mobooking')], 400);
             return;
         }
 
-        // Ensure slot_id is passed correctly if present in $slot_data
-        if(isset($slot_data['slot_id'])) $slot_data['slot_id'] = intval($slot_data['slot_id']);
-
-
-        $result_id = $this->save_recurring_slot($user_id, $slot_data);
-
-        if ($result_id === false) {
-            wp_send_json_error(['message' => __('Failed to save recurring slot. Please check your input.', 'mobooking')], 500);
+        if ($this->save_recurring_schedule($user_id, $schedule_data)) {
+            wp_send_json_success(['message' => __('Recurring schedule saved successfully.', 'mobooking')]);
         } else {
-            // Fetch the saved/updated slot to return it
-            $saved_slot = $this->wpdb->get_row( $this->wpdb->prepare("SELECT * FROM {$this->slots_table_name} WHERE slot_id = %d AND user_id = %d", $result_id, $user_id), ARRAY_A);
-            wp_send_json_success(['message' => __('Recurring slot saved successfully.', 'mobooking'), 'slot' => $saved_slot]);
-        }
-    }
-
-    public function ajax_delete_recurring_slot() {
-        check_ajax_referer('mobooking_availability_nonce', 'nonce');
-        $user_id = get_current_user_id();
-        if (!$user_id) {
-            wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403);
-            return;
-        }
-
-        $slot_id = isset($_POST['slot_id']) ? intval($_POST['slot_id']) : 0;
-        if (empty($slot_id)) {
-            wp_send_json_error(['message' => __('Slot ID is missing.', 'mobooking')], 400);
-            return;
-        }
-
-        if ($this->delete_recurring_slot($user_id, $slot_id)) {
-            wp_send_json_success(['message' => __('Recurring slot deleted successfully.', 'mobooking')]);
-        } else {
-            wp_send_json_error(['message' => __('Failed to delete recurring slot.', 'mobooking')], 500);
+            wp_send_json_error(['message' => __('Failed to save recurring schedule.', 'mobooking')], 500);
         }
     }
 
