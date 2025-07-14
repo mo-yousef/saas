@@ -1,44 +1,9 @@
 jQuery(document).ready(function ($) {
   "use strict";
 
-  // Nonce and AJAX URL from WordPress localization
   const ajaxUrl = mobooking_availability_params.ajax_url;
   const availabilityNonce = mobooking_availability_params.availability_nonce;
-
-  // --- DOM Elements ---
-  const $feedbackDiv = $("#mobooking-availability-feedback");
-  // Recurring Slots
-  const $recurringSlotsContainer = $("#recurring-slots-container");
-  const $addRecurringSlotBtn = $("#mobooking-add-recurring-slot-btn");
-  const $recurringSlotModal = $("#mobooking-recurring-slot-modal");
-  const $recurringSlotModalBackdrop = $(
-    "#mobooking-recurring-slot-modal-backdrop"
-  );
-  const $recurringSlotForm = $("#mobooking-recurring-slot-form");
-  const $recurringSlotModalTitle = $("#recurring-slot-modal-title");
-  const $recurringSlotModalError = $("#mobooking-recurring-slot-modal-error"); // Added
-  let currentRecurringSlots = []; // Store loaded slots - This was already correctly added
-  // Date Overrides
-  const $datepicker = $("#mobooking-availability-datepicker");
-  const $overrideDetailsDiv = $("#mobooking-override-details");
-  const $overrideFormTitle = $("#override-form-title");
-  const $overrideForm = $("#mobooking-date-override-form");
-  const $overrideDateInput = $("#override-date-input");
-  const $overrideIdInput = $("#override-id-input");
-  const $overrideIsUnavailableCheckbox = $("#override-is-unavailable");
-  const $overrideTimeSlotsSection = $("#override-time-slots-section");
-  const $deleteOverrideBtn = $("#mobooking-delete-override-btn");
-  const $clearOverrideFormBtn = $("#mobooking-clear-override-form-btn");
-
-  // Generic Modal Elements
-  const $genericModal = $("#mobooking-generic-modal");
-  const $genericModalBackdrop = $("#mobooking-generic-modal-backdrop");
-  const $genericModalTitle = $("#mobooking-generic-modal-title");
-  const $genericModalMessage = $("#mobooking-generic-modal-message");
-  const $genericModalConfirmBtn = $("#mobooking-generic-modal-confirm-btn");
-  const $genericModalCancelBtn = $("#mobooking-generic-modal-cancel-btn");
-
-  const i18n = mobooking_availability_params.i18n || {}; // Ensure i18n object exists
+  const i18n = mobooking_availability_params.i18n || {};
   const daysOfWeek = [
     i18n.sunday || "Sunday",
     i18n.monday || "Monday",
@@ -49,801 +14,329 @@ jQuery(document).ready(function ($) {
     i18n.saturday || "Saturday",
   ];
 
+  // --- DOM Elements ---
+  const $feedbackDiv = $("#mobooking-availability-feedback");
+  const $scheduleContainer = $("#recurring-schedule-container");
+  const $saveScheduleBtn = $("#mobooking-save-recurring-schedule-btn");
+
+  let scheduleData = []; // This will hold the state of the schedule
+  let isInitialSetup = true;
+
   // --- Utility Functions ---
   function showFeedback(message, type = "info") {
-    // type can be 'info', 'success', 'error'
     $feedbackDiv
-      .removeClass("notice-info notice-success notice-error notice-warning")
+      .removeClass("notice-info notice-success notice-error")
       .addClass("notice-" + type)
       .html("<p>" + message + "</p>")
       .fadeIn();
-    setTimeout(function () {
-      $feedbackDiv.fadeOut();
-    }, 5000);
+    setTimeout(() => $feedbackDiv.fadeOut(), 5000);
   }
 
-  function formatTimeForDisplay(timeStr) {
-    // HH:MM:SS to HH:MM AM/PM (or locale default)
-    if (!timeStr) return "";
-    const [hours, minutes] = timeStr.split(":");
-    const date = new Date();
-    date.setHours(parseInt(hours, 10));
-    date.setMinutes(parseInt(minutes, 10));
-    return date.toLocaleTimeString(navigator.language, {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: true,
-    });
-  }
-
-  function formatTimeForInput(timeStr) {
-    // HH:MM AM/PM or existing HH:MM:SS to HH:MM (24h for input type=time)
-    if (!timeStr) return "";
-    // Check if it's already in HH:MM or HH:MM:SS format
-    if (/^([01]\d|2[0-3]):([0-5]\d)(?::([0-5]\d))?$/.test(timeStr)) {
-      return timeStr.substring(0, 5); // Return HH:MM
-    }
-    // Attempt to parse other formats (like AM/PM) if necessary, though toLocaleTimeString might not be robustly parsable
-    // For now, this function assumes if it's not HH:MM:SS, it might be already suitable or needs manual entry.
-    // A more robust solution would use a library like moment.js or date-fns for time parsing/formatting if varied inputs are expected.
-    // Given we control the output from DB (HH:MM:SS), this simplified version is okay for now.
-    return timeStr; // Fallback
-  }
-
-  // --- Utility Functions ---
-  // (showFeedback, formatTimeForDisplay, formatTimeForInput remain the same)
-
-  // --- Generic Modal Functions ---
-  function openGenericModal() {
-    $genericModal.addClass("active");
-    $genericModalBackdrop.addClass("active");
-  }
-
-  function closeGenericModal() {
-    $genericModal.removeClass("active");
-    $genericModalBackdrop.removeClass("active");
-    // Detach event handlers to prevent multiple bindings
-    $genericModalConfirmBtn.off("click");
-    $genericModalCancelBtn.off("click");
-  }
-
-  function showAlertModal(message, title = i18n.alert || "Alert") {
-    $genericModalTitle.text(title);
-    $genericModalMessage.html(message); // Use .html() if message can contain HTML
-    $genericModalConfirmBtn.text(i18n.ok || "OK").show();
-    $genericModalCancelBtn.hide();
-
-    openGenericModal();
-
-    $genericModalConfirmBtn.on("click", function () {
-      closeGenericModal();
-    });
-    $genericModalCancelBtn.on("click", function () {
-      // Also make backdrop close it
-      closeGenericModal();
-    });
-    $genericModalBackdrop.on("click", function () {
-      // Also make backdrop close it
-      closeGenericModal();
-    });
-  }
-
-  function showConfirmationModal(
-    message,
-    title = i18n.confirm_action || "Confirm Action",
-    callbackOnConfirm,
-    callbackOnCancel = null
-  ) {
-    $genericModalTitle.text(title);
-    $genericModalMessage.html(message);
-    $genericModalConfirmBtn.text(i18n.yes || "Yes").show();
-    $genericModalCancelBtn.text(i18n.no || "No").show();
-
-    openGenericModal();
-
-    $genericModalConfirmBtn.on("click", function () {
-      closeGenericModal();
-      if (typeof callbackOnConfirm === "function") {
-        callbackOnConfirm();
-      }
-    });
-
-    $genericModalCancelBtn.on("click", function () {
-      closeGenericModal();
-      if (typeof callbackOnCancel === "function") {
-        callbackOnCancel();
-      }
-    });
-    $genericModalBackdrop.on("click", function () {
-      // Also make backdrop close it
-      closeGenericModal();
-      if (typeof callbackOnCancel === "function") {
-        // Consider backdrop click as cancel
-        callbackOnCancel();
-      }
-    });
-  }
-
-  // --- Recurring Slots ---
-  function openRecurringSlotModal(slotData = null) {
-    $recurringSlotForm[0].reset();
-    $recurringSlotModalError.hide().empty(); // Clear previous errors
-    $("#recurring-is-active").prop("checked", true); // Default to active
-
-    if (slotData) {
-      $recurringSlotModalTitle.text(
-        i18n.edit_recurring_slot || "Edit Recurring Slot"
-      );
-      $("#recurring-slot-id").val(slotData.slot_id);
-      $("#recurring-day-of-week").val(slotData.day_of_week);
-      $("#recurring-start-time").val(formatTimeForInput(slotData.start_time));
-      $("#recurring-end-time").val(formatTimeForInput(slotData.end_time));
-      $("#recurring-capacity").val(slotData.capacity);
-      $("#recurring-is-active").prop("checked", !!parseInt(slotData.is_active));
-    } else {
-      $recurringSlotModalTitle.text(
-        i18n.add_recurring_slot || "Add Recurring Slot"
-      );
-      $("#recurring-slot-id").val("");
-    }
-    // CSS now handles display via .active class
-    $recurringSlotModal.addClass("active");
-    $recurringSlotModalBackdrop.addClass("active");
-  }
-
-  function closeRecurringSlotModal() {
-    // CSS now handles display via .active class
-    $recurringSlotModal.removeClass("active");
-    $recurringSlotModalBackdrop.removeClass("active");
-  }
-
-  function renderRecurringSlots() {
-    // Now uses currentRecurringSlots global
-    $recurringSlotsContainer.empty();
-
-    const slotsByDay = {};
-    daysOfWeek.forEach((day, index) => (slotsByDay[index] = []));
-
-    if (currentRecurringSlots && currentRecurringSlots.forEach) {
-      // Ensure it's an array
-      currentRecurringSlots.forEach((slot) => {
-        if (slotsByDay[slot.day_of_week] !== undefined) {
-          // Ensure day_of_week is valid
-          slotsByDay[slot.day_of_week].push(slot);
-        }
-      });
-    }
+  // --- Schedule Rendering ---
+  function renderScheduleEditor() {
+    $scheduleContainer.empty();
+    const $scheduleList = $('<ul class="mobooking-schedule-editor"></ul>');
 
     daysOfWeek.forEach((dayName, dayIndex) => {
-      const $dayGroup = $('<div class="recurring-day-group"></div>');
-      const daySlots = slotsByDay[dayIndex] || [];
-      const isEffectivelyDayOff =
-        daySlots.length === 0 ||
-        daySlots.every((slot) => !parseInt(slot.is_active));
+      const dayData = scheduleData.find(d => d.day_of_week == dayIndex) || { day_of_week: dayIndex, is_enabled: false, slots: [] };
 
-      let dayOffButtonText = isEffectivelyDayOff
-        ? i18n.set_as_working_day || "Set as Working Day"
-        : i18n.mark_day_off || "Mark as Day Off";
-      let dayOffButtonClass = isEffectivelyDayOff
-        ? "button-primary"
-        : "mobooking-button-delete";
+      const $dayItem = $(`
+        <li class="day-schedule ${dayData.is_enabled ? 'day-enabled' : 'day-disabled'}">
+          <div class="day-header">
+            <div class="day-name-toggle">
+              <label class="mobooking-toggle-switch">
+                <input type="checkbox" class="day-toggle-switch" data-day-index="${dayIndex}" ${dayData.is_enabled ? 'checked' : ''}>
+                <span class="slider"></span>
+              </label>
+              <strong>${dayName}</strong>
+            </div>
+            <div class="day-actions">
+              ${isInitialSetup ? `
+              <button type="button" class="button button-small copy-schedule-btn" data-day-index="${dayIndex}">
+                <span class="dashicons dashicons-admin-page"></span>
+              </button>
+              ` : ''}
+            </div>
+          </div>
+          <div class="day-slots">
+            <!-- Slots will be rendered here -->
+          </div>
+        </li>
+      `);
 
-      $dayGroup.append(`
-                <div class="recurring-day-header">
-                    <h4>${dayName}</h4>
-                    <button type="button" class="button button-small mobooking-toggle-day-off-btn ${dayOffButtonClass}" data-day-index="${dayIndex}" data-is-currently-off="${isEffectivelyDayOff}">
-                        ${dayOffButtonText}
-                    </button>
-                </div>
-            `);
+      const $slotsContainer = $dayItem.find('.day-slots');
+      if (dayData.is_enabled) {
+        if (dayData.slots.length > 0) {
+          const totalSlots = dayData.slots.length;
+          dayData.slots.forEach((slot, slotIndex) => {
+            $slotsContainer.append(renderSlotInput(dayIndex, slotIndex, slot, totalSlots));
+          });
+        } else {
+          // This case should not be reached if we always ensure at least one slot
+          const newSlot = { start_time: '09:00', end_time: '17:00' };
+          dayData.slots.push(newSlot);
+          $slotsContainer.append(renderSlotInput(dayIndex, 0, newSlot, 1));
+        }
+      } else {
+        $slotsContainer.html(`<p class="day-off-text">${i18n.day_off_text || 'Unavailable'}</p>`);
+      }
 
-      const $ul = $('<ul class="recurring-slots-list"></ul>');
+      $scheduleList.append($dayItem);
+    });
 
-      if (!isEffectivelyDayOff) {
-        let activeSlotsRendered = 0;
-        if (daySlots.length > 0) {
-          daySlots.forEach((slot) => {
-            if (parseInt(slot.is_active)) {
-              activeSlotsRendered++;
-              const activeText = i18n.active || "Active";
-              const activeClass = "status-active";
-              const $li = $(`
-                                <li>
-                                    <span>
-                                        ${formatTimeForDisplay(
-                                          slot.start_time
-                                        )} - ${formatTimeForDisplay(
-                slot.end_time
-              )}
-                                        (Capacity: ${slot.capacity})
-                                        <span class="booking-status ${activeClass}" style="margin-left: 10px;">${activeText}</span>
-                                    </span>
-                                    <span class="slot-actions">
-                                        <button type="button" class="button button-small mobooking-edit-recurring-slot-btn" data-slot-id="${
-                                          slot.slot_id
-                                        }">${i18n.edit || "Edit"}</button>
-                                        <button type="button" class="button button-small button-link-delete mobooking-delete-recurring-slot-btn" data-slot-id="${
-                                          slot.slot_id
-                                        }">${i18n.delete || "Delete"}</button>
-                                    </span>
-                                </li>
-                            `);
-              $ul.append($li);
+    $scheduleContainer.append($scheduleList);
+  }
+
+  function renderSlotInput(dayIndex, slotIndex, slot, totalSlots) {
+    const showDelete = totalSlots > 1;
+    return `
+      <div class="time-slot" data-slot-index="${slotIndex}">
+        <input type="time" class="start-time" value="${slot.start_time}">
+        <span>-</span>
+        <input type="time" class="end-time" value="${slot.end_time}">
+        <button type="button" class="button button-small add-slot-btn" data-day-index="${dayIndex}" data-slot-index="${slotIndex}">
+          <span class="dashicons dashicons-plus"></span>
+        </button>
+        ${showDelete ? `
+        <button type="button" class="button button-link-delete delete-slot-btn" data-day-index="${dayIndex}" data-slot-index="${slotIndex}">
+          <span class="dashicons dashicons-trash"></span>
+        </button>
+        ` : ''}
+      </div>
+    `;
+  }
+
+  // --- Data & State Management ---
+  function loadSchedule() {
+    $.ajax({
+      url: ajaxUrl,
+      type: "POST",
+      data: {
+        action: "mobooking_get_recurring_schedule",
+        nonce: availabilityNonce,
+      },
+      success: function (response) {
+        if (response.success) {
+          scheduleData = response.data;
+          renderScheduleEditor();
+        } else {
+          showFeedback(i18n.error_loading_schedule || "Error loading schedule.", "error");
+        }
+      },
+      error: function () {
+        showFeedback(i18n.error_ajax || "AJAX error.", "error");
+      },
+    });
+  }
+
+  function saveSchedule() {
+    // Before saving, update scheduleData from the DOM
+    updateScheduleDataFromDOM();
+
+    // Validation for duplicate time slots
+    let hasDuplicates = false;
+    scheduleData.forEach(dayData => {
+        if (dayData.is_enabled && dayData.slots.length > 1) {
+            const slots = dayData.slots.map(slot => `${slot.start_time}-${slot.end_time}`);
+            const uniqueSlots = new Set(slots);
+            if (slots.length !== uniqueSlots.size) {
+                hasDuplicates = true;
             }
-          });
         }
-        if (activeSlotsRendered === 0) {
-          // If day is set to working but has no active slots
-          $ul.append(
-            `<li class="empty-day-slot">${
-              i18n.no_active_slots_for_working_day ||
-              "No active slots. Add some or edit existing ones."
-            }</li>`
-          );
-        }
-      } else {
-        // isEffectivelyDayOff is true
-        $ul.append(
-          `<li class="empty-day-slot">${
-            i18n.day_marked_as_off || "This day is marked as off."
-          }</li>`
-        );
-      }
-      $dayGroup.append($ul);
-      $recurringSlotsContainer.append($dayGroup);
     });
-  }
 
-  function loadRecurringSlots() {
-    $.ajax({
-      url: ajaxUrl,
-      type: "POST",
-      data: {
-        action: "mobooking_get_recurring_slots",
-        nonce: availabilityNonce,
-      },
-      success: function (response) {
-        if (response.success) {
-          currentRecurringSlots = response.data; // Store the loaded slots
-          renderRecurringSlots(); // Re-render with the new data
-        } else {
-          showFeedback(
-            response.data.message ||
-              i18n.error_loading_recurring_schedule ||
-              "Error loading recurring schedule.",
-            "error"
-          );
-          $recurringSlotsContainer.html(
-            `<p>${
-              i18n.error_loading_recurring_schedule_retry ||
-              "Could not load schedule. Please try again."
-            }</p>`
-          );
-        }
-      },
-      error: function () {
-        showFeedback(i18n.error_ajax || "AJAX error.", "error");
-        $recurringSlotsContainer.html(
-          `<p>${
-            i18n.error_loading_recurring_schedule_retry ||
-            "Could not load schedule. Please try again."
-          }</p>`
-        );
-      },
-    });
-  }
-
-  $addRecurringSlotBtn.on("click", function () {
-    openRecurringSlotModal();
-  });
-
-  $(".mobooking-modal-close, #mobooking-recurring-slot-modal-backdrop").on(
-    "click",
-    function () {
-      closeRecurringSlotModal();
-    }
-  );
-
-  $recurringSlotForm.on("submit", function (e) {
-    e.preventDefault();
-    const slotData = {
-      slot_id: $("#recurring-slot-id").val(),
-      day_of_week: $("#recurring-day-of-week").val(),
-      start_time: $("#recurring-start-time").val(),
-      end_time: $("#recurring-end-time").val(),
-      capacity: $("#recurring-capacity").val(),
-      is_active: $("#recurring-is-active").is(":checked") ? 1 : 0,
-    };
-
-    // Basic client-side validation
-    if (!slotData.start_time || !slotData.end_time) {
-      $recurringSlotModalError
-        .html(
-          i18n.start_end_time_required || "Start and End time are required."
-        )
-        .show();
-      return;
-    }
-    if (slotData.start_time >= slotData.end_time) {
-      $recurringSlotModalError
-        .html(
-          i18n.start_time_before_end || "Start time must be before end time."
-        )
-        .show();
-      return;
-    }
-    if (parseInt(slotData.capacity) < 1) {
-      $recurringSlotModalError
-        .html(
-          i18n.capacity_must_be_positive ||
-            "Capacity must be a positive number."
-        )
-        .show();
-      return;
-    }
-    $recurringSlotModalError.hide().empty(); // Clear errors if validation passes
-
-    $.ajax({
-      url: ajaxUrl,
-      type: "POST",
-      data: {
-        action: "mobooking_save_recurring_slot",
-        nonce: availabilityNonce,
-        slot_data: JSON.stringify(slotData),
-      },
-      success: function (response) {
-        if (response.success) {
-          showFeedback(response.data.message, "success"); // Global feedback for success
-          loadRecurringSlots(); // Refresh list
-          closeRecurringSlotModal();
-        } else {
-          // Show error inside the modal
-          $recurringSlotModalError
-            .html(
-              response.data.message ||
-                i18n.error_saving_slot ||
-                "Error saving slot."
-            )
-            .show();
-        }
-      },
-      error: function () {
-        // Show error inside the modal
-        $recurringSlotModalError
-          .html(i18n.error_ajax || "AJAX error. Please try again.")
-          .show();
-      },
-    });
-  });
-
-  $recurringSlotsContainer.on(
-    "click",
-    ".mobooking-edit-recurring-slot-btn",
-    function () {
-      const slotId = $(this).data("slot-id");
-      // Find the slot data from the already loaded slots (or make another AJAX call if not stored)
-      // For simplicity, assuming we can refetch or have it stored if loadRecurringSlots stores data globally.
-      // Better: fetch the specific slot for editing to ensure fresh data.
-      // For now, we'll re-fetch all and find. In a more complex app, store slots in a JS variable.
-      // Find slot from the stored currentRecurringSlots array
-      const slotToEdit = currentRecurringSlots.find((s) => s.slot_id == slotId);
-      if (slotToEdit) {
-        openRecurringSlotModal(slotToEdit);
-      } else {
-        // Fallback to refetch if not found, though it should be there
-        showFeedback(
-          i18n.error_slot_not_found ||
-            "Slot not found for editing. Refreshing list...",
-          "warning"
-        );
-        loadRecurringSlots();
-      }
-    }
-  );
-
-  $recurringSlotsContainer.on(
-    "click",
-    ".mobooking-delete-recurring-slot-btn",
-    function () {
-      const slotId = $(this).data("slot-id");
-      showConfirmationModal(
-        i18n.confirm_delete_slot ||
-          "Are you sure you want to delete this recurring slot?",
-        i18n.confirm_delete_title || "Confirm Deletion",
-        function () {
-          // onConfirm
-          $.ajax({
-            url: ajaxUrl,
-            type: "POST",
-            data: {
-              action: "mobooking_delete_recurring_slot",
-              nonce: availabilityNonce,
-              slot_id: slotId,
-            },
-            success: function (response) {
-              if (response.success) {
-                showFeedback(response.data.message, "success");
-                loadRecurringSlots(); // Refresh list
-              } else {
-                showAlertModal(
-                  response.data.message ||
-                    i18n.error_deleting_slot ||
-                    "Error deleting slot.",
-                  i18n.error_title || "Error"
-                );
-              }
-            },
-            error: function () {
-              showAlertModal(
-                i18n.error_ajax || "AJAX error.",
-                i18n.error_title || "Error"
-              );
-            },
-          });
-        }
-      );
-    }
-  );
-
-  // --- Date Overrides ---
-  let currentOverrides = []; // Store overrides for the current view (e.g., month)
-
-  $datepicker.datepicker({
-    dateFormat: "yy-mm-dd",
-    onSelect: function (dateText) {
-      $overrideDateInput.val(dateText);
-      $overrideFormTitle.text(
-        (i18n.manage_override_for || "Manage Override for:") + " " + dateText
-      );
-      $(".override-selected-date-display").text(
-        (i18n.selected_date || "Selected Date:") + " " + dateText
-      );
-
-      // Check if an override exists for this date
-      const existingOverride = currentOverrides.find(
-        (ov) => ov.override_date === dateText
-      );
-      if (existingOverride) {
-        $overrideIdInput.val(existingOverride.override_id);
-        $overrideIsUnavailableCheckbox.prop(
-          "checked",
-          !!parseInt(existingOverride.is_unavailable)
-        );
-        if (!!parseInt(existingOverride.is_unavailable)) {
-          $overrideTimeSlotsSection.hide();
-          $("#override-start-time").val("");
-          $("#override-end-time").val("");
-          $("#override-capacity").val("1");
-        } else {
-          $overrideTimeSlotsSection.show();
-          $("#override-start-time").val(
-            formatTimeForInput(existingOverride.start_time)
-          );
-          $("#override-end-time").val(
-            formatTimeForInput(existingOverride.end_time)
-          );
-          $("#override-capacity").val(existingOverride.capacity || 1);
-        }
-        $("#override-notes").val(existingOverride.notes || "");
-        $deleteOverrideBtn.show();
-      } else {
-        resetOverrideForm(dateText); // Keep date, clear other fields
-      }
-      $overrideDetailsDiv.show();
-    },
-    onChangeMonthYear: function (year, month) {
-      // Load overrides for the new month
-      const dateFrom = `${year}-${String(month).padStart(2, "0")}-01`;
-      const tempDate = new Date(year, month, 0); // Last day of prev month to get days in current month
-      const dateTo = `${year}-${String(month).padStart(2, "0")}-${String(
-        tempDate.getDate()
-      ).padStart(2, "0")}`;
-      loadDateOverrides(dateFrom, dateTo);
-    },
-    beforeShowDay: function (date) {
-      const dateString = $.datepicker.formatDate("yy-mm-dd", date);
-      const override = currentOverrides.find(
-        (ov) => ov.override_date === dateString
-      );
-      if (override) {
-        if (!!parseInt(override.is_unavailable)) {
-          return [
-            true,
-            "mobooking-date-unavailable",
-            i18n.day_off || "Day Off",
-          ];
-        } else {
-          return [
-            true,
-            "mobooking-date-custom-availability",
-            i18n.custom_availability || "Custom Availability",
-          ];
-        }
-      }
-      return [true, ""]; // Default, no special styling
-    },
-  });
-
-  function resetOverrideForm(dateText = null) {
-    $overrideForm[0].reset();
-    $overrideIdInput.val("");
-    $overrideIsUnavailableCheckbox.prop("checked", false);
-    $overrideTimeSlotsSection.show();
-    $deleteOverrideBtn.hide();
-    if (dateText) {
-      $overrideDateInput.val(dateText);
-      $overrideFormTitle.text(
-        (i18n.manage_override_for || "Manage Override for:") + " " + dateText
-      );
-      $(".override-selected-date-display").text(
-        (i18n.selected_date || "Selected Date:") + " " + dateText
-      );
-    } else {
-      $overrideDetailsDiv.hide();
-      $overrideFormTitle.text(
-        i18n.select_date_to_manage || "Select a date to manage overrides"
-      );
-      $(".override-selected-date-display").text("");
-    }
-  }
-
-  $clearOverrideFormBtn.on("click", function () {
-    const selectedDate = $datepicker.datepicker("getDate");
-    resetOverrideForm(
-      selectedDate ? $.datepicker.formatDate("yy-mm-dd", selectedDate) : null
-    );
-    if (!selectedDate) {
-      // If no date was selected, hide the form
-      $overrideDetailsDiv.hide();
-      $overrideFormTitle.text(
-        i18n.select_date_to_manage || "Select a date to manage overrides"
-      );
-    }
-  });
-
-  $overrideIsUnavailableCheckbox.on("change", function () {
-    if ($(this).is(":checked")) {
-      $overrideTimeSlotsSection.hide();
-    } else {
-      $overrideTimeSlotsSection.show();
-    }
-  });
-
-  function loadDateOverrides(dateFrom, dateTo) {
-    $.ajax({
-      url: ajaxUrl,
-      type: "POST",
-      data: {
-        action: "mobooking_get_date_overrides",
-        nonce: availabilityNonce,
-        date_from: dateFrom,
-        date_to: dateTo,
-      },
-      success: function (response) {
-        if (response.success) {
-          currentOverrides = response.data;
-          $datepicker.datepicker("refresh"); // Refresh to apply beforeShowDay styles
-        } else {
-          showFeedback(
-            response.data.message ||
-              i18n.error_loading_overrides ||
-              "Error loading date overrides.",
-            "error"
-          );
-        }
-      },
-      error: function () {
-        showFeedback(i18n.error_ajax || "AJAX error.", "error");
-      },
-    });
-  }
-
-  $overrideForm.on("submit", function (e) {
-    e.preventDefault();
-    const overrideData = {
-      override_id: $overrideIdInput.val(),
-      override_date: $overrideDateInput.val(),
-      is_unavailable: $overrideIsUnavailableCheckbox.is(":checked") ? 1 : 0,
-      notes: $("#override-notes").val(),
-    };
-
-    if (!overrideData.is_unavailable) {
-      overrideData.start_time = $("#override-start-time").val();
-      overrideData.end_time = $("#override-end-time").val();
-      overrideData.capacity = $("#override-capacity").val();
-
-      if (!overrideData.start_time || !overrideData.end_time) {
-        showFeedback(
-          i18n.start_end_time_required_override ||
-            "Start and End time are required for available overrides.",
-          "error"
-        );
+    if (hasDuplicates) {
+        showFeedback('You have duplicate time slots in one or more days. Please remove them before saving.', 'error');
         return;
-      }
-      if (overrideData.start_time >= overrideData.end_time) {
-        showFeedback(
-          i18n.start_time_before_end_override ||
-            "Start time must be before end time for overrides.",
-          "error"
-        );
-        return;
-      }
     }
 
     $.ajax({
       url: ajaxUrl,
       type: "POST",
       data: {
-        action: "mobooking_save_date_override",
+        action: "mobooking_save_recurring_schedule",
         nonce: availabilityNonce,
-        override_data: JSON.stringify(overrideData),
+        schedule_data: JSON.stringify(scheduleData),
       },
       success: function (response) {
         if (response.success) {
           showFeedback(response.data.message, "success");
-          // Refresh overrides for the current view
-          const currentMonthDate =
-            $datepicker.datepicker("getDate") || new Date();
-          const year = currentMonthDate.getFullYear();
-          const month = currentMonthDate.getMonth() + 1; // JS months are 0-indexed
-          const dateFrom = `${year}-${String(month).padStart(2, "0")}-01`;
-          const tempDate = new Date(year, month, 0);
-          const dateTo = `${year}-${String(month).padStart(2, "0")}-${String(
-            tempDate.getDate()
-          ).padStart(2, "0")}`;
-          loadDateOverrides(dateFrom, dateTo);
-
-          // Update form with new ID if it was an insert
-          if (response.data.override && response.data.override.override_id) {
-            $overrideIdInput.val(response.data.override.override_id);
-            $deleteOverrideBtn.show();
-          }
+          isInitialSetup = false;
+          loadSchedule(); // Reload to ensure data is fresh and UI is updated
         } else {
-          showFeedback(
-            response.data.message ||
-              i18n.error_saving_override ||
-              "Error saving override.",
-            "error"
-          );
+          showFeedback(response.data.message || "Error saving schedule.", "error");
         }
       },
       error: function () {
         showFeedback(i18n.error_ajax || "AJAX error.", "error");
       },
     });
-  });
+  }
 
-  $deleteOverrideBtn.on("click", function () {
-    const overrideId = $overrideIdInput.val();
-    if (!overrideId) {
-      showAlertModal(
-        i18n.error_no_override_to_delete || "No override selected to delete.",
-        i18n.error_title || "Error"
-      );
-      return;
-    }
+  function updateScheduleDataFromDOM() {
+    let updatedSchedule = [];
+    $('.mobooking-schedule-editor .day-schedule').each(function (dayIndex) {
+      const $dayItem = $(this);
+      const isEnabled = $dayItem.find('.day-toggle-switch').is(':checked');
+      let dayData = {
+        day_of_week: dayIndex,
+        is_enabled: isEnabled,
+        slots: []
+      };
 
-    showConfirmationModal(
-      i18n.confirm_delete_override ||
-        "Are you sure you want to delete the override for this date?",
-      i18n.confirm_delete_title || "Confirm Deletion",
-      function () {
-        // onConfirm
-        $.ajax({
-          url: ajaxUrl,
-          type: "POST",
-          data: {
-            action: "mobooking_delete_date_override",
-            nonce: availabilityNonce,
-            override_id: overrideId,
-          },
-          success: function (response) {
-            if (response.success) {
-              showFeedback(response.data.message, "success");
-              resetOverrideForm($overrideDateInput.val()); // Keep date, clear fields
-              // Refresh overrides
-              const currentMonthDate =
-                $datepicker.datepicker("getDate") || new Date();
-              const year = currentMonthDate.getFullYear();
-              const month = currentMonthDate.getMonth() + 1;
-              const dateFrom = `${year}-${String(month).padStart(2, "0")}-01`;
-              const tempDate = new Date(year, month, 0);
-              const dateTo = `${year}-${String(month).padStart(
-                2,
-                "0"
-              )}-${String(tempDate.getDate()).padStart(2, "0")}`;
-              loadDateOverrides(dateFrom, dateTo);
-            } else {
-              showAlertModal(
-                response.data.message ||
-                  i18n.error_deleting_override ||
-                  "Error deleting override.",
-                i18n.error_title || "Error"
-              );
-            }
-          },
-          error: function () {
-            showAlertModal(
-              i18n.error_ajax || "AJAX error.",
-              i18n.error_title || "Error"
-            );
-          },
+      if (isEnabled) {
+        $dayItem.find('.time-slot').each(function () {
+          const $slot = $(this);
+          const startTime = $slot.find('.start-time').val();
+          const endTime = $slot.find('.end-time').val();
+          if (startTime && endTime) {
+            dayData.slots.push({ start_time: startTime, end_time: endTime });
+          }
         });
       }
-    );
+      updatedSchedule.push(dayData);
+    });
+    scheduleData = updatedSchedule;
+  }
+
+
+  // --- Event Handlers ---
+  $scheduleContainer.on('change', '.day-toggle-switch', function () {
+    const $toggle = $(this);
+    const dayIndex = $toggle.data('day-index');
+    const isEnabled = $toggle.is(':checked');
+    const $dayItem = $toggle.closest('.day-schedule');
+    const $slotsContainer = $dayItem.find('.day-slots');
+
+    $dayItem.toggleClass('day-enabled', isEnabled).toggleClass('day-disabled', !isEnabled);
+
+    let dayData = scheduleData.find(d => d.day_of_week == dayIndex);
+    if (!dayData) {
+        dayData = { day_of_week: dayIndex, is_enabled: false, slots: [] };
+        scheduleData.push(dayData);
+    }
+    dayData.is_enabled = isEnabled;
+
+    if (isEnabled) {
+        $slotsContainer.html('');
+        if (dayData.slots.length === 0) {
+            // Add a default slot
+            const newSlot = { start_time: '09:00', end_time: '17:00' };
+            dayData.slots.push(newSlot);
+        }
+        const totalSlots = dayData.slots.length;
+        dayData.slots.forEach((slot, index) => {
+            $slotsContainer.append(renderSlotInput(dayIndex, index, slot, totalSlots));
+        });
+    } else {
+        $slotsContainer.html(`<p class="day-off-text">${i18n.day_off_text || 'Unavailable'}</p>`);
+    }
   });
 
-  // --- Initializations ---
+  $scheduleContainer.on('click', '.add-slot-btn', function () {
+    const dayIndex = $(this).data('day-index');
+    const dayData = scheduleData.find(d => d.day_of_week == dayIndex);
+    if (!dayData.is_enabled) return;
 
-  // Event handler for toggling day off status
-  $recurringSlotsContainer.on(
-    "click",
-    ".mobooking-toggle-day-off-btn",
-    function () {
-      const $button = $(this);
-      const dayIndex = $button.data("day-index");
-      const isCurrentlyOff = $button.data("is-currently-off");
-      const setToDayOff = !isCurrentlyOff; // If it's currently a working day (isCurrentlyOff = false), we want to mark it as off (setToDayOff = true).
+    const $slot = $(this).closest('.time-slot');
+    const lastEndTime = $slot.find('.end-time').val();
+    const [hours, minutes] = lastEndTime.split(':');
+    const newStartDate = new Date();
+    newStartDate.setHours(parseInt(hours, 10));
+    newStartDate.setMinutes(parseInt(minutes, 10));
+    newStartDate.setHours(newStartDate.getHours() + 1);
+    const newEndTime = ('0' + newStartDate.getHours()).slice(-2) + ':' + ('0' + newStartDate.getMinutes()).slice(-2);
 
-      const confirmMessage = setToDayOff
-        ? i18n.confirm_mark_day_off ||
-          "Are you sure you want to mark this day as off? All existing slots for this day will be deactivated."
-        : i18n.confirm_set_working_day ||
-          "Are you sure you want to set this as a working day? You will need to add or activate time slots.";
+    const newSlot = { start_time: lastEndTime, end_time: newEndTime };
+    const newSlotIndex = $slot.data('slot-index') + 1;
 
-      showConfirmationModal(
-        confirmMessage,
-        i18n.confirm_day_status_change_title || "Confirm Status Change",
-        function () {
-          // onConfirm
-          $.ajax({
-            url: ajaxUrl,
-            type: "POST",
-            data: {
-              action: "mobooking_set_recurring_day_status",
-              nonce: availabilityNonce,
-              day_of_week: dayIndex,
-              is_day_off: setToDayOff,
-            },
-            success: function (response) {
-              if (response.success) {
-                showFeedback(response.data.message, "success");
-                loadRecurringSlots(); // Refresh the entire recurring slots display
-              } else {
-                showAlertModal(
-                  response.data.message ||
-                    i18n.error_updating_day_status ||
-                    "Error updating day status.",
-                  i18n.error_title || "Error"
-                );
-              }
-            },
-            error: function () {
-              showAlertModal(
-                i18n.error_ajax || "AJAX error.",
-                i18n.error_title || "Error"
-              );
-            },
-          });
-        }
-        // No explicit onCancel callback needed here, as the modal just closes.
-      );
+    dayData.slots.splice(newSlotIndex, 0, newSlot);
+
+    const $slotsContainer = $(this).closest('.day-schedule').find('.day-slots');
+    $slotsContainer.empty();
+    dayData.slots.forEach((slot, index) => {
+        $slotsContainer.append(renderSlotInput(dayIndex, index, slot));
+    });
+  });
+
+  $scheduleContainer.on('click', '.delete-slot-btn', function () {
+    const dayIndex = $(this).data('day-index');
+    const slotIndex = $(this).data('slot-index');
+    const dayData = scheduleData.find(d => d.day_of_week == dayIndex);
+
+    if (dayData.slots.length > 1) {
+        dayData.slots.splice(slotIndex, 1);
     }
-  );
 
-  loadRecurringSlots();
-  // Load overrides for the current month on page load
-  const initialDate = $datepicker.datepicker("getDate") || new Date();
-  const initialYear = initialDate.getFullYear();
-  const initialMonth = initialDate.getMonth() + 1; // JS months are 0-indexed
-  const initialDateFrom = `${initialYear}-${String(initialMonth).padStart(
-    2,
-    "0"
-  )}-01`;
-  const initialTempDate = new Date(initialYear, initialMonth, 0); // Last day of prev month for days in current
-  const initialDateTo = `${initialYear}-${String(initialMonth).padStart(
-    2,
-    "0"
-  )}-${String(initialTempDate.getDate()).padStart(2, "0")}`;
-  loadDateOverrides(initialDateFrom, initialDateTo);
+    // Re-render the slots for the day
+    const $dayItem = $(this).closest('.day-schedule');
+    const $slotsContainer = $dayItem.find('.day-slots');
+    $slotsContainer.empty();
+    const totalSlots = dayData.slots.length;
+    if (totalSlots > 0) {
+      dayData.slots.forEach((slot, newSlotIndex) => {
+        $slotsContainer.append(renderSlotInput(dayIndex, newSlotIndex, slot, totalSlots));
+      });
+    }
+  });
+
+  $scheduleContainer.on('click', '.copy-schedule-btn', function () {
+    const sourceDayIndex = $(this).data('day-index');
+    updateScheduleDataFromDOM(); // Ensure we have the latest data
+    const sourceDayData = scheduleData.find(d => d.day_of_week == sourceDayIndex);
+
+    // Create and show a modal for copying
+    const $modal = $(`
+        <div class="mobooking-modal active">
+            <div class="mobooking-modal-content">
+                <h3>${i18n.copy_schedule || 'Copy Schedule'}</h3>
+                <p>${i18n.copy_from || 'Copy schedule from'} <strong>${daysOfWeek[sourceDayIndex]}</strong> ${i18n.to || 'to the following days'}:</p>
+                <div class="copy-days-selection">
+                    ${daysOfWeek.map((day, index) => {
+                        if (index === sourceDayIndex) return '';
+                        return `
+                            <label class="copy-day-label">
+                                <input type="checkbox" name="copy-day" value="${index}">
+                                <span>${day}</span>
+                            </label>
+                        `;
+                    }).join('')}
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="button mobooking-modal-close">${i18n.cancel || 'Cancel'}</button>
+                    <button type="button" class="button button-primary" id="confirm-copy-btn">${i18n.copy || 'Copy Schedule'}</button>
+                </div>
+            </div>
+        </div>
+        <div class="mobooking-modal-backdrop active"></div>
+    `);
+
+    $('body').append($modal);
+
+    $modal.on('click', '.mobooking-modal-close, .mobooking-modal-backdrop', function () {
+        $modal.remove();
+    });
+
+    $modal.on('click', '#confirm-copy-btn', function () {
+        const targetDays = [];
+        $modal.find('input[name="copy-day"]:checked').each(function () {
+            targetDays.push(parseInt($(this).val()));
+        });
+
+        if (targetDays.length > 0) {
+            targetDays.forEach(targetDayIndex => {
+                const targetDayData = scheduleData.find(d => d.day_of_week == targetDayIndex);
+                targetDayData.is_enabled = sourceDayData.is_enabled;
+                targetDayData.slots = JSON.parse(JSON.stringify(sourceDayData.slots)); // Deep copy
+            });
+            renderScheduleEditor();
+        }
+        $modal.remove();
+    });
+  });
+
+  $saveScheduleBtn.on('click', saveSchedule);
+
+  // --- Initialization ---
+  loadSchedule();
 });

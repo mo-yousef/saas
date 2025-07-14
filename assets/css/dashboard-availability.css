@@ -1,0 +1,338 @@
+:root {
+    --background: #ffffff;
+    --foreground: #020817;
+    --card: #ffffff;
+    --card-foreground: #020817;
+    --popover: #ffffff;
+    --popover-foreground: #020817;
+    --primary: #1a202c;
+    --primary-foreground: #f8fafc;
+    --secondary: #f1f5f9;
+    --secondary-foreground: #1a202c;
+    --muted: #f1f5f9;
+    --muted-foreground: #64748b;
+    --accent: #f1f5f9;
+    --accent-foreground: #1a202c;
+    --destructive: #ef4444;
+    --destructive-foreground: #f8fafc;
+    --border: #e2e8f0;
+    --input: #e2e8f0;
+    --ring: #94a3b8;
+    --radius: 0.5rem;
+}
+
+.mobooking-availability-page .mobooking-section {
+    background-color: var(--card);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.mobooking-availability-page h1 {
+    font-size: 2.25rem;
+    font-weight: 700;
+    color: var(--foreground);
+    margin-bottom: 0.5rem;
+}
+
+.mobooking-availability-page h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--foreground);
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.mobooking-availability-page p {
+    color: var(--muted-foreground);
+    margin-bottom: 1rem;
+}
+
+.mobooking-schedule-editor {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+}
+
+.day-schedule {
+    display: flex;
+    flex-direction: column;
+    padding: 1rem 1.5rem;
+    background-color: var(--card);
+    transition: background-color 0.2s;
+}
+
+.day-schedule:not(:last-child) {
+    border-bottom: 1px solid var(--border);
+}
+
+.day-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.day-name-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.day-name-toggle strong {
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--card-foreground);
+}
+
+.day-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.day-actions .button {
+    background-color: var(--secondary);
+    color: var(--secondary-foreground);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 32px;
+    width: 32px;
+}
+
+.day-actions .button:hover {
+    background-color: var(--accent);
+}
+
+.day-slots {
+    padding-top: 1rem;
+    padding-left: 3rem; /* Indent under the toggle */
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.time-slot {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.time-slot input[type="time"] {
+    background-color: var(--background);
+    border: 1px solid var(--input);
+    border-radius: var(--radius);
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    width: 120px;
+    transition: border-color 0.2s;
+}
+
+.time-slot input[type="time"]:focus {
+    border-color: var(--primary);
+    outline: 2px solid transparent;
+    outline-offset: 2px;
+}
+
+.time-slot .delete-slot-btn,
+.time-slot .add-slot-btn {
+    color: var(--muted-foreground);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: var(--radius);
+    transition: color 0.2s, background-color 0.2s;
+}
+
+.time-slot .delete-slot-btn:hover {
+    color: var(--destructive);
+    background-color: var(--destructive-foreground);
+}
+
+.time-slot .add-slot-btn:hover {
+    color: var(--primary);
+    background-color: var(--accent);
+}
+
+.day-off-text, .no-slots-text {
+    color: var(--muted-foreground);
+    font-style: italic;
+    font-size: 0.875rem;
+}
+
+/* Toggle Switch */
+.mobooking-toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 40px;
+    height: 24px;
+}
+
+.mobooking-toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--secondary);
+    transition: .4s;
+    border-radius: 24px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+input:checked + .slider {
+    background-color: var(--primary);
+}
+
+input:checked + .slider:before {
+    transform: translateX(16px);
+}
+
+/* Day Disabled State */
+.day-disabled {
+    background-color: var(--muted);
+}
+
+.day-disabled .day-header strong {
+    color: var(--muted-foreground);
+}
+
+.day-disabled .day-actions {
+    opacity: 0.5;
+    pointer-events: none;
+}
+.day-disabled .day-slots {
+    display: none;
+}
+
+/* Save Button */
+#mobooking-save-recurring-schedule-btn {
+    background-color: var(--primary);
+    color: var(--primary-foreground);
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    border-radius: var(--radius);
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+#mobooking-save-recurring-schedule-btn:hover {
+    background-color: #333;
+}
+
+/* Modal Styles */
+.mobooking-modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.6);
+}
+
+.mobooking-modal.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mobooking-modal-content {
+    background-color: var(--popover);
+    color: var(--popover-foreground);
+    padding: 1.5rem;
+    border-radius: var(--radius);
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+}
+
+.mobooking-modal-content h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.mobooking-modal-content p {
+    color: var(--muted-foreground);
+    margin-bottom: 1rem;
+}
+
+.copy-days-selection {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.copy-day-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s;
+}
+
+.copy-day-label:hover {
+    background-color: var(--accent);
+}
+
+.copy-day-label input:checked + span {
+    font-weight: 600;
+    color: var(--primary);
+}
+
+.copy-day-label input {
+    accent-color: var(--primary);
+}
+
+.mobooking-modal .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+}
+
+.mobooking-modal .button-primary {
+    background-color: var(--primary);
+    color: var(--primary-foreground);
+}
+
+.mobooking-modal .mobooking-modal-close {
+    background-color: var(--secondary);
+    color: var(--secondary-foreground);
+    border: 1px solid var(--border);
+}
