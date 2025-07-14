@@ -50,9 +50,6 @@ jQuery(document).ready(function ($) {
               <strong>${dayName}</strong>
             </div>
             <div class="day-actions">
-              <button type="button" class="button button-small add-slot-btn" data-day-index="${dayIndex}">
-                <span class="dashicons dashicons-plus"></span>
-              </button>
               <button type="button" class="button button-small copy-schedule-btn" data-day-index="${dayIndex}">
                 <span class="dashicons dashicons-admin-page"></span>
               </button>
@@ -89,6 +86,9 @@ jQuery(document).ready(function ($) {
         <input type="time" class="start-time" value="${slot.start_time}">
         <span>-</span>
         <input type="time" class="end-time" value="${slot.end_time}">
+        <button type="button" class="button button-small add-slot-btn" data-day-index="${dayIndex}" data-slot-index="${slotIndex}">
+          <span class="dashicons dashicons-plus"></span>
+        </button>
         <button type="button" class="button button-link-delete delete-slot-btn" data-day-index="${dayIndex}" data-slot-index="${slotIndex}">
           <span class="dashicons dashicons-trash"></span>
         </button>
@@ -198,12 +198,19 @@ jQuery(document).ready(function ($) {
     const dayData = scheduleData.find(d => d.day_of_week == dayIndex);
     if (!dayData.is_enabled) return;
 
-    const newSlot = { start_time: '09:00', end_time: '17:00' };
-    dayData.slots.push(newSlot);
-    const newSlotIndex = dayData.slots.length - 1;
+    const $slot = $(this).closest('.time-slot');
+    const lastEndTime = $slot.find('.end-time').val();
+
+    const newSlot = { start_time: lastEndTime, end_time: '17:00' };
+    const newSlotIndex = $slot.data('slot-index') + 1;
+
+    dayData.slots.splice(newSlotIndex, 0, newSlot);
+
     const $slotsContainer = $(this).closest('.day-schedule').find('.day-slots');
-    $slotsContainer.find('.no-slots-text').remove();
-    $slotsContainer.append(renderSlotInput(dayIndex, newSlotIndex, newSlot));
+    $slotsContainer.empty();
+    dayData.slots.forEach((slot, index) => {
+        $slotsContainer.append(renderSlotInput(dayIndex, index, slot));
+    });
   });
 
   $scheduleContainer.on('click', '.delete-slot-btn', function () {
@@ -236,21 +243,21 @@ jQuery(document).ready(function ($) {
         <div class="mobooking-modal active">
             <div class="mobooking-modal-content">
                 <h3>${i18n.copy_schedule || 'Copy Schedule'}</h3>
-                <p>${i18n.copy_from || 'Copy from'} <strong>${daysOfWeek[sourceDayIndex]}</strong> ${i18n.to || 'to'}:</p>
+                <p>${i18n.copy_from || 'Copy schedule from'} <strong>${daysOfWeek[sourceDayIndex]}</strong> ${i18n.to || 'to the following days'}:</p>
                 <div class="copy-days-selection">
                     ${daysOfWeek.map((day, index) => {
                         if (index === sourceDayIndex) return '';
                         return `
-                            <label>
+                            <label class="copy-day-label">
                                 <input type="checkbox" name="copy-day" value="${index}">
-                                ${day}
+                                <span>${day}</span>
                             </label>
                         `;
                     }).join('')}
                 </div>
                 <div class="form-actions">
-                    <button type="button" class="button button-primary" id="confirm-copy-btn">${i18n.copy || 'Copy'}</button>
                     <button type="button" class="button mobooking-modal-close">${i18n.cancel || 'Cancel'}</button>
+                    <button type="button" class="button button-primary" id="confirm-copy-btn">${i18n.copy || 'Copy Schedule'}</button>
                 </div>
             </div>
         </div>
