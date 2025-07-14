@@ -20,6 +20,7 @@ jQuery(document).ready(function ($) {
   const $saveScheduleBtn = $("#mobooking-save-recurring-schedule-btn");
 
   let scheduleData = []; // This will hold the state of the schedule
+  let isInitialSetup = true;
 
   // --- Utility Functions ---
   function showFeedback(message, type = "info") {
@@ -50,9 +51,11 @@ jQuery(document).ready(function ($) {
               <strong>${dayName}</strong>
             </div>
             <div class="day-actions">
+              ${isInitialSetup ? `
               <button type="button" class="button button-small copy-schedule-btn" data-day-index="${dayIndex}">
                 <span class="dashicons dashicons-admin-page"></span>
               </button>
+              ` : ''}
             </div>
           </div>
           <div class="day-slots">
@@ -64,11 +67,15 @@ jQuery(document).ready(function ($) {
       const $slotsContainer = $dayItem.find('.day-slots');
       if (dayData.is_enabled) {
         if (dayData.slots.length > 0) {
+          const totalSlots = dayData.slots.length;
           dayData.slots.forEach((slot, slotIndex) => {
-            $slotsContainer.append(renderSlotInput(dayIndex, slotIndex, slot));
+            $slotsContainer.append(renderSlotInput(dayIndex, slotIndex, slot, totalSlots));
           });
         } else {
-          $slotsContainer.html(`<p class="no-slots-text">${i18n.no_slots_text || 'No time slots for this day.'}</p>`);
+          // This case should not be reached if we always ensure at least one slot
+          const newSlot = { start_time: '09:00', end_time: '17:00' };
+          dayData.slots.push(newSlot);
+          $slotsContainer.append(renderSlotInput(dayIndex, 0, newSlot, 1));
         }
       } else {
         $slotsContainer.html(`<p class="day-off-text">${i18n.day_off_text || 'Unavailable'}</p>`);
@@ -80,7 +87,8 @@ jQuery(document).ready(function ($) {
     $scheduleContainer.append($scheduleList);
   }
 
-  function renderSlotInput(dayIndex, slotIndex, slot) {
+  function renderSlotInput(dayIndex, slotIndex, slot, totalSlots) {
+    const showDelete = totalSlots > 1;
     return `
       <div class="time-slot" data-slot-index="${slotIndex}">
         <input type="time" class="start-time" value="${slot.start_time}">
@@ -89,9 +97,11 @@ jQuery(document).ready(function ($) {
         <button type="button" class="button button-small add-slot-btn" data-day-index="${dayIndex}" data-slot-index="${slotIndex}">
           <span class="dashicons dashicons-plus"></span>
         </button>
+        ${showDelete ? `
         <button type="button" class="button button-link-delete delete-slot-btn" data-day-index="${dayIndex}" data-slot-index="${slotIndex}">
           <span class="dashicons dashicons-trash"></span>
         </button>
+        ` : ''}
       </div>
     `;
   }
@@ -134,7 +144,8 @@ jQuery(document).ready(function ($) {
       success: function (response) {
         if (response.success) {
           showFeedback(response.data.message, "success");
-          loadSchedule(); // Reload to ensure data is fresh
+          isInitialSetup = false;
+          loadSchedule(); // Reload to ensure data is fresh and UI is updated
         } else {
           showFeedback(response.data.message || "Error saving schedule.", "error");
         }
@@ -200,8 +211,14 @@ jQuery(document).ready(function ($) {
 
     const $slot = $(this).closest('.time-slot');
     const lastEndTime = $slot.find('.end-time').val();
+    const [hours, minutes] = lastEndTime.split(':');
+    const newStartDate = new Date();
+    newStartDate.setHours(parseInt(hours, 10));
+    newStartDate.setMinutes(parseInt(minutes, 10));
+    newStartDate.setHours(newStartDate.getHours() + 1);
+    const newEndTime = ('0' + newStartDate.getHours()).slice(-2) + ':' + ('0' + newStartDate.getMinutes()).slice(-2);
 
-    const newSlot = { start_time: lastEndTime, end_time: '17:00' };
+    const newSlot = { start_time: lastEndTime, end_time: newEndTime };
     const newSlotIndex = $slot.data('slot-index') + 1;
 
     dayData.slots.splice(newSlotIndex, 0, newSlot);
@@ -218,18 +235,19 @@ jQuery(document).ready(function ($) {
     const slotIndex = $(this).data('slot-index');
     const dayData = scheduleData.find(d => d.day_of_week == dayIndex);
 
-    dayData.slots.splice(slotIndex, 1);
+    if (dayData.slots.length > 1) {
+        dayData.slots.splice(slotIndex, 1);
+    }
 
     // Re-render the slots for the day
     const $dayItem = $(this).closest('.day-schedule');
     const $slotsContainer = $dayItem.find('.day-slots');
     $slotsContainer.empty();
-    if (dayData.slots.length > 0) {
+    const totalSlots = dayData.slots.length;
+    if (totalSlots > 0) {
       dayData.slots.forEach((slot, newSlotIndex) => {
-        $slotsContainer.append(renderSlotInput(dayIndex, newSlotIndex, slot));
+        $slotsContainer.append(renderSlotInput(dayIndex, newSlotIndex, slot, totalSlots));
       });
-    } else {
-      $slotsContainer.html(`<p class="no-slots-text">${i18n.no_slots_text || 'No time slots for this day.'}</p>`);
     }
   });
 
