@@ -193,12 +193,24 @@ jQuery(document).ready(function ($) {
 
     $dayItem.toggleClass('day-enabled', isEnabled).toggleClass('day-disabled', !isEnabled);
 
+    let dayData = scheduleData.find(d => d.day_of_week == dayIndex);
+    if (!dayData) {
+        dayData = { day_of_week: dayIndex, is_enabled: false, slots: [] };
+        scheduleData.push(dayData);
+    }
+    dayData.is_enabled = isEnabled;
+
     if (isEnabled) {
         $slotsContainer.html('');
-        // Add a default slot
-        const newSlot = { start_time: '09:00', end_time: '17:00' };
-        scheduleData.find(d => d.day_of_week == dayIndex).slots.push(newSlot);
-        $slotsContainer.append(renderSlotInput(dayIndex, 0, newSlot));
+        if (dayData.slots.length === 0) {
+            // Add a default slot
+            const newSlot = { start_time: '09:00', end_time: '17:00' };
+            dayData.slots.push(newSlot);
+        }
+        const totalSlots = dayData.slots.length;
+        dayData.slots.forEach((slot, index) => {
+            $slotsContainer.append(renderSlotInput(dayIndex, index, slot, totalSlots));
+        });
     } else {
         $slotsContainer.html(`<p class="day-off-text">${i18n.day_off_text || 'Unavailable'}</p>`);
     }
