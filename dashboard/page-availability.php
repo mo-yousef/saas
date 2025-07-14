@@ -31,63 +31,6 @@ if ( ! current_user_can( \MoBooking\Classes\Auth::CAP_MANAGE_AVAILABILITY ) ) {
         </button>
     </div>
 
-    <!-- Specific Date Overrides Section -->
-    <div class="mobooking-section">
-        <h2><?php esc_html_e('Specific Date Overrides & Days Off', 'mobooking'); ?></h2>
-        <p><?php esc_html_e('Use the calendar to select a date and then define custom availability for that day or mark it as unavailable. Overrides take precedence over the recurring weekly schedule.', 'mobooking'); ?></p>
-
-        <div class="mobooking-date-overrides-flex-container">
-            <div class="mobooking-calendar-container">
-                <div id="mobooking-availability-datepicker"></div>
-            </div>
-            <div class="mobooking-override-form-container">
-                <h3 id="override-form-title"><?php esc_html_e('Select a date to manage overrides', 'mobooking'); ?></h3>
-                <div id="mobooking-override-details" style="display:none;">
-                    <form id="mobooking-date-override-form">
-                        <input type="hidden" id="override-date-input" name="override_date">
-                        <input type="hidden" id="override-id-input" name="override_id">
-
-                        <p class="override-selected-date-display"></p>
-
-                        <div class="form-field">
-                            <label for="override-is-unavailable">
-                                <input type="checkbox" id="override-is-unavailable" name="is_unavailable">
-                                <?php esc_html_e('Mark as completely unavailable (Day Off)', 'mobooking'); ?>
-                            </label>
-                        </div>
-
-                        <div id="override-time-slots-section">
-                             <p><?php esc_html_e('If not marked as unavailable, define the available time slot for this day:', 'mobooking'); ?></p>
-                            <div class="form-field">
-                                <label for="override-start-time"><?php esc_html_e('Start Time:', 'mobooking'); ?></label>
-                                <input type="time" id="override-start-time" name="start_time" class="mobooking-input">
-                            </div>
-                            <div class="form-field">
-                                <label for="override-end-time"><?php esc_html_e('End Time:', 'mobooking'); ?></label>
-                                <input type="time" id="override-end-time" name="end_time" class="mobooking-input">
-                            </div>
-                            <div class="form-field">
-                                <label for="override-capacity"><?php esc_html_e('Capacity:', 'mobooking'); ?></label>
-                                <input type="number" id="override-capacity" name="capacity" min="1" value="1" class="mobooking-input small-text">
-                                <p class="description"><?php esc_html_e('Number of concurrent bookings allowed for this slot.', 'mobooking'); ?></p>
-                            </div>
-                        </div>
-
-                        <div class="form-field">
-                            <label for="override-notes"><?php esc_html_e('Notes (Optional):', 'mobooking'); ?></label>
-                            <textarea id="override-notes" name="notes" class="mobooking-textarea"></textarea>
-                        </div>
-
-                        <div class="form-actions">
-                            <button type="submit" class="button button-primary"><?php esc_html_e('Save Override', 'mobooking'); ?></button>
-                            <button type="button" id="mobooking-delete-override-btn" class="button mobooking-button-delete" style="display:none;"><?php esc_html_e('Delete Override for this Date', 'mobooking'); ?></button>
-                            <button type="button" id="mobooking-clear-override-form-btn" class="button"><?php esc_html_e('Clear / New Date', 'mobooking'); ?></button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <!-- Modal for Adding/Editing Recurring Slot -->
     <div id="mobooking-recurring-slot-modal" class="mobooking-modal">
