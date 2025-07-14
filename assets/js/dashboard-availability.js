@@ -133,6 +133,23 @@ jQuery(document).ready(function ($) {
     // Before saving, update scheduleData from the DOM
     updateScheduleDataFromDOM();
 
+    // Validation for duplicate time slots
+    let hasDuplicates = false;
+    scheduleData.forEach(dayData => {
+        if (dayData.is_enabled && dayData.slots.length > 1) {
+            const slots = dayData.slots.map(slot => `${slot.start_time}-${slot.end_time}`);
+            const uniqueSlots = new Set(slots);
+            if (slots.length !== uniqueSlots.size) {
+                hasDuplicates = true;
+            }
+        }
+    });
+
+    if (hasDuplicates) {
+        showFeedback('You have duplicate time slots in one or more days. Please remove them before saving.', 'error');
+        return;
+    }
+
     $.ajax({
       url: ajaxUrl,
       type: "POST",
