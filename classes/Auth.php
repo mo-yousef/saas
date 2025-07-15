@@ -991,4 +991,11 @@ public function handle_ajax_registration() {
         }
         return in_array( self::ROLE_BUSINESS_OWNER, (array) $user->roles );
     }
+
+    public static function get_effective_tenant_id_for_user(int $user_id) {
+        if (self::is_user_worker($user_id)) {
+            return self::get_business_owner_id_for_worker($user_id);
+        }
+        return $user_id;
+    }
 }
