@@ -143,12 +143,9 @@ class Customers {
 
         // Validate orderby column to prevent SQL injection
         $allowed_orderby_columns = ['id', 'full_name', 'email', 'phone_number', 'status', 'total_bookings', 'last_booking_date', 'created_at', 'last_activity_at'];
-        if (in_array($args['orderby'], $allowed_orderby_columns)) {
-            $sql .= " ORDER BY " . esc_sql($args['orderby']); // esc_sql for column names is generally safe if validated against a whitelist
-            $sql .= (strtoupper($args['order']) === 'DESC') ? " DESC" : " ASC";
-        } else {
-            $sql .= " ORDER BY full_name ASC"; // Default sort
-        }
+        $orderby = in_array($args['orderby'], $allowed_orderby_columns) ? $args['orderby'] : 'full_name';
+        $order = (strtoupper($args['order']) === 'DESC') ? 'DESC' : 'ASC';
+        $sql .= " ORDER BY " . $orderby . " " . $order;
 
         $sql .= " LIMIT %d OFFSET %d";
         $sql_params[] = $args['per_page'];
