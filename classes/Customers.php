@@ -324,12 +324,42 @@ class Customers {
             return null;
         }
 
-        return $this->db->get_row(
+        $customer = $this->db->get_row(
             $this->db->prepare(
                 "SELECT * FROM {$this->table_name} WHERE id = %d",
                 $customer_id
             )
         );
+
+        if ( $customer ) {
+            $customer->booking_overview = $this->get_booking_overview( $customer_id );
+        }
+
+        return $customer;
+    }
+
+    public function get_booking_overview( $customer_id ) {
+        $customer_id = absint( $customer_id );
+        if ( ! $customer_id ) {
+            return null;
+        }
+
+        $bookings_table = Database::get_table_name('bookings');
+
+        $query = $this->db->prepare(
+            "SELECT
+                COUNT(*) as total_bookings,
+                SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed_bookings,
+                SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending_bookings,
+                SUM(CASE WHEN status = 'cancelled' THEN 1 ELSE 0 END) as cancelled_bookings,
+                SUM(total_price) as total_spent,
+                AVG(total_price) as average_booking_value
+             FROM {$bookings_table}
+             WHERE customer_id = %d",
+            $customer_id
+        );
+
+        return $this->db->get_row( $query );
     }
 
     // Placeholder for update_customer_status(customer_id, status)

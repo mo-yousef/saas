@@ -1,0 +1,25 @@
+.customer-details-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 2rem;
+}
+
+.customer-details-section {
+    background: #fff;
+    padding: 1.5rem;
+    border: 1px solid #ccd0d4;
+    border-radius: 4px;
+    margin-bottom: 2rem;
+}
+
+.customer-details-section h2 {
+    margin-top: 0;
+    font-size: 1.2rem;
+    border-bottom: 1px solid #ccd0d4;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.form-table th {
+    width: 200px;
+}
