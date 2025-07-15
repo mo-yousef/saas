@@ -862,7 +862,7 @@ if ( ! function_exists( 'mobooking_ajax_get_all_bookings_for_calendar' ) ) {
     }
 
     // Specific to Customers page
-    if ($current_page_slug === 'customers') {
+    if ($current_page_slug === 'customers' || $current_page_slug === 'customer-details') {
         // wp_enqueue_script('mobooking-dashboard-customers', MOBOOKING_THEME_URI . 'assets/js/dashboard-customers.js', array('jquery'), MOBOOKING_VERSION, true);
         // $customers_params = array_merge($dashboard_params, [ // Use general dashboard_params which includes ajax_url and nonce
         //     'per_page' => 20, // Default items per page for customers list
