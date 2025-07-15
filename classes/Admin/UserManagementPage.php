@@ -42,15 +42,6 @@ class UserManagementPage {
             [ __CLASS__, 'render_user_management_page_content' ] // Callback function
         );
 
-        // Add the Customer Details page, but hide it from the menu
-        add_submenu_page(
-            null,                                        // Parent slug (null to hide from menu)
-            __( 'Customer Details', 'mobooking' ),       // Page title
-            __( 'Customer Details', 'mobooking' ),       // Menu title
-            'mobooking_view_customers',                  // Capability
-            'mobooking-customer-details',                // Menu slug
-            [ __CLASS__, 'render_customer_details_page' ] // Callback function
-        );
     }
 
     /**
