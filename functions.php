@@ -863,29 +863,29 @@ if ( ! function_exists( 'mobooking_ajax_get_all_bookings_for_calendar' ) ) {
 
     // Specific to Customers page
     if ($current_page_slug === 'customers') {
-        wp_enqueue_script('mobooking-dashboard-customers', MOBOOKING_THEME_URI . 'assets/js/dashboard-customers.js', array('jquery'), MOBOOKING_VERSION, true);
-        $customers_params = array_merge($dashboard_params, [ // Use general dashboard_params which includes ajax_url and nonce
-            'per_page' => 20, // Default items per page for customers list
-            'i18n' => [
-                'loading_customers' => __('Loading customers...', 'mobooking'),
-                'no_customers_found_filters' => __('No customers found matching your criteria.', 'mobooking'),
-                'no_customers_yet' => __('No customers found. Start by getting some bookings!', 'mobooking'),
-                'error_loading_customers' => __('Error loading customers.', 'mobooking'),
-                'error_ajax' => __('An AJAX error occurred. Please try again.', 'mobooking'),
-                'previous' => __('Previous', 'mobooking'),
-                'next' => __('Next', 'mobooking'),
-                'view_details' => __('View Details', 'mobooking'),
-                'full_name' => __('Full Name', 'mobooking'),
-                'email' => __('Email', 'mobooking'),
-                'phone_number' => __('Phone Number', 'mobooking'),
-                'total_bookings' => __('Total Bookings', 'mobooking'),
-                'last_booking_date' => __('Last Booking Date', 'mobooking'),
-                'status' => __('Status', 'mobooking'),
-                'actions' => __('Actions', 'mobooking'),
-                'n_a' => __('N/A', 'mobooking'),
-            ]
-        ]);
-        wp_localize_script('mobooking-dashboard-customers', 'mobooking_customers_params', $customers_params);
+        // wp_enqueue_script('mobooking-dashboard-customers', MOBOOKING_THEME_URI . 'assets/js/dashboard-customers.js', array('jquery'), MOBOOKING_VERSION, true);
+        // $customers_params = array_merge($dashboard_params, [ // Use general dashboard_params which includes ajax_url and nonce
+        //     'per_page' => 20, // Default items per page for customers list
+        //     'i18n' => [
+        //         'loading_customers' => __('Loading customers...', 'mobooking'),
+        //         'no_customers_found_filters' => __('No customers found matching your criteria.', 'mobooking'),
+        //         'no_customers_yet' => __('No customers found. Start by getting some bookings!', 'mobooking'),
+        //         'error_loading_customers' => __('Error loading customers.', 'mobooking'),
+        //         'error_ajax' => __('An AJAX error occurred. Please try again.', 'mobooking'),
+        //         'previous' => __('Previous', 'mobooking'),
+        //         'next' => __('Next', 'mobooking'),
+        //         'view_details' => __('View Details', 'mobooking'),
+        //         'full_name' => __('Full Name', 'mobooking'),
+        //         'email' => __('Email', 'mobooking'),
+        //         'phone_number' => __('Phone Number', 'mobooking'),
+        //         'total_bookings' => __('Total Bookings', 'mobooking'),
+        //         'last_booking_date' => __('Last Booking Date', 'mobooking'),
+        //         'status' => __('Status', 'mobooking'),
+        //         'actions' => __('Actions', 'mobooking'),
+        //         'n_a' => __('N/A', 'mobooking'),
+        //     ]
+        // ]);
+        // wp_localize_script('mobooking-dashboard-customers', 'mobooking_customers_params', $customers_params);
     }
 
     // Global dashboard script (always load for all dashboard pages)
