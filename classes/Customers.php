@@ -318,7 +318,20 @@ class Customers {
         return true;
     }
 
-    // Placeholder for get_customer_details(customer_id)
+    public function get_customer_by_id( $customer_id ) {
+        $customer_id = absint( $customer_id );
+        if ( ! $customer_id ) {
+            return null;
+        }
+
+        return $this->db->get_row(
+            $this->db->prepare(
+                "SELECT * FROM {$this->table_name} WHERE id = %d",
+                $customer_id
+            )
+        );
+    }
+
     // Placeholder for update_customer_status(customer_id, status)
     // Placeholder for add_customer_note(customer_id, note)
 

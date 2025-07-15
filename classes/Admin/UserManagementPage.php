@@ -41,6 +41,16 @@ class UserManagementPage {
             'mobooking-user-management',                 // Menu slug
             [ __CLASS__, 'render_user_management_page_content' ] // Callback function
         );
+
+        // Add the Customer Details page, but hide it from the menu
+        add_submenu_page(
+            null,                                        // Parent slug (null to hide from menu)
+            __( 'Customer Details', 'mobooking' ),       // Page title
+            __( 'Customer Details', 'mobooking' ),       // Menu title
+            'manage_options',                            // Capability
+            'mobooking-customer-details',                // Menu slug
+            [ __CLASS__, 'render_customer_details_page' ] // Callback function
+        );
     }
 
     /**
@@ -527,6 +537,20 @@ class UserManagementPage {
             });
         </script>
         <?php
+    }
+
+    public static function render_customer_details_page() {
+        if ( ! current_user_can( 'manage_options' ) ) {
+            wp_die( esc_html__( 'Permission denied.', 'mobooking' ) );
+        }
+
+        $customer_id = isset( $_GET['customer_id'] ) ? intval( $_GET['customer_id'] ) : 0;
+        if ( ! $customer_id ) {
+            wp_die( esc_html__( 'Invalid customer ID.', 'mobooking' ) );
+        }
+
+        // Include the customer details template
+        include_once MOBOOKING_THEME_DIR . 'dashboard/page-customer-details.php';
     }
 
     // Methods for handling form submissions or AJAX requests specific to this page will be added here.
