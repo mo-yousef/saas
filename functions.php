@@ -93,6 +93,142 @@ if ( ! function_exists( 'mobooking_ajax_get_all_bookings_for_calendar' ) ) {
         return;
     }
 }
+
+// New AJAX handlers for the overview page
+add_action('wp_ajax_mobooking_get_secondary_kpis', 'mobooking_ajax_get_secondary_kpis');
+function mobooking_ajax_get_secondary_kpis() {
+    // Security check
+    if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'mobooking_dashboard_nonce')) {
+        wp_send_json_error(array('message' => 'Security check failed.'), 403);
+        return;
+    }
+    // Placeholder data
+    $data = array(
+        'avg_booking_value' => '150.00',
+        'customer_retention' => '25%',
+        'popular_service' => 'Deep Cleaning',
+        'response_time' => '2 hours'
+    );
+    wp_send_json_success($data);
+}
+
+add_action('wp_ajax_mobooking_get_recent_activity', 'mobooking_ajax_get_recent_activity');
+function mobooking_ajax_get_recent_activity() {
+    if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'mobooking_dashboard_nonce')) {
+        wp_send_json_error(array('message' => 'Security check failed.'), 403);
+        return;
+    }
+    // Placeholder data
+    $data = array(
+        array('type' => 'booking', 'message' => 'New booking from John Doe'),
+        array('type' => 'customer', 'message' => 'New customer registered: Jane Smith'),
+        array('type' => 'payment', 'message' => 'Payment received for booking #123'),
+    );
+    wp_send_json_success($data);
+}
+
+add_action('wp_ajax_mobooking_get_business_health', 'mobooking_ajax_get_business_health');
+function mobooking_ajax_get_business_health() {
+    if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'mobooking_dashboard_nonce')) {
+        wp_send_json_error(array('message' => 'Security check failed.'), 403);
+        return;
+    }
+    // Placeholder data
+    $data = array(
+        array('name' => 'Service Configuration', 'status' => 'ok'),
+        array('name' => 'Area Coverage', 'status' => 'warning'),
+        array('name' => 'Payment Setup', 'status' => 'ok'),
+    );
+    wp_send_json_success($data);
+}
+
+add_action('wp_ajax_mobooking_get_financial_summary', 'mobooking_ajax_get_financial_summary');
+function mobooking_ajax_get_financial_summary() {
+    if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'mobooking_dashboard_nonce')) {
+        wp_send_json_error(array('message' => 'Security check failed.'), 403);
+        return;
+    }
+    // Placeholder data
+    $data = array(
+        'monthly_revenue' => '12,345.67',
+        'outstanding_payments' => '567.89',
+        'discounts_used' => '50',
+    );
+    wp_send_json_success($data);
+}
+
+add_action('wp_ajax_mobooking_get_customer_insights', 'mobooking_ajax_get_customer_insights');
+function mobooking_ajax_get_customer_insights() {
+    if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'mobooking_dashboard_nonce')) {
+        wp_send_json_error(array('message' => 'Security check failed.'), 403);
+        return;
+    }
+    // Placeholder data
+    $data = array(
+        'new_vs_returning' => '30% new, 70% returning',
+        'customer_lifetime_value' => '500.00',
+        'peak_booking_times' => 'Weekends, 10am-2pm',
+    );
+    wp_send_json_success($data);
+}
+
+add_action('wp_ajax_mobooking_get_service_performance', 'mobooking_ajax_get_service_performance');
+function mobooking_ajax_get_service_performance() {
+    if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'mobooking_dashboard_nonce')) {
+        wp_send_json_error(array('message' => 'Security check failed.'), 403);
+        return;
+    }
+    // Placeholder data
+    $data = array(
+        'most_booked_services' => array('Deep Cleaning', 'Standard Cleaning'),
+        'service_completion_rate' => '98%',
+        'average_service_duration' => '2.5 hours',
+    );
+    wp_send_json_success($data);
+}
+
+add_action('wp_ajax_mobooking_get_operational_alerts', 'mobooking_ajax_get_operational_alerts');
+function mobooking_ajax_get_operational_alerts() {
+    if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'mobooking_dashboard_nonce')) {
+        wp_send_json_error(array('message' => 'Security check failed.'), 403);
+        return;
+    }
+    // Placeholder data
+    $data = array(
+        array('type' => 'conflict', 'message' => 'Booking conflict for John Doe on 2024-12-25'),
+        array('type' => 'payment', 'message' => 'Payment failed for booking #456'),
+    );
+    wp_send_json_success($data);
+}
+
+add_action('wp_ajax_mobooking_get_quick_tips', 'mobooking_ajax_get_quick_tips');
+function mobooking_ajax_get_quick_tips() {
+    if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'mobooking_dashboard_nonce')) {
+        wp_send_json_error(array('message' => 'Security check failed.'), 403);
+        return;
+    }
+    // Placeholder data
+    $data = array(
+        'Offer discounts for recurring bookings to improve customer retention.',
+        'Ask for reviews after each completed job.',
+    );
+    wp_send_json_success($data);
+}
+
+add_action('wp_ajax_mobooking_get_integration_status', 'mobooking_ajax_get_integration_status');
+function mobooking_ajax_get_integration_status() {
+    if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'mobooking_dashboard_nonce')) {
+        wp_send_json_error(array('message' => 'Security check failed.'), 403);
+        return;
+    }
+    // Placeholder data
+    $data = array(
+        array('name' => 'WooCommerce', 'status' => 'connected'),
+        array('name' => 'Stripe', 'status' => 'connected'),
+        array('name' => 'Email Service', 'status' => 'disconnected'),
+    );
+    wp_send_json_success($data);
+}
 // END MOVED DASHBOARD AJAX HANDLERS
 
 
@@ -773,6 +909,7 @@ if ( ! function_exists( 'mobooking_ajax_get_all_bookings_for_calendar' ) ) {
         // Enqueue specific dashboard CSS. Assuming dashboard-areas.css and dashboard-bookings-responsive.css are relevant.
         wp_enqueue_style('mobooking-dashboard-areas', MOBOOKING_THEME_URI . 'assets/css/dashboard-areas.css', array('mobooking-style'), MOBOOKING_VERSION);
         wp_enqueue_style('mobooking-dashboard-bookings-responsive', MOBOOKING_THEME_URI . 'assets/css/dashboard-bookings-responsive.css', array('mobooking-style'), MOBOOKING_VERSION);
+        wp_enqueue_style('mobooking-dashboard-overview', MOBOOKING_THEME_URI . 'assets/css/dashboard-overview.css', array('mobooking-style'), MOBOOKING_VERSION);
 
         wp_enqueue_script('mobooking-dashboard-overview', MOBOOKING_THEME_URI . 'assets/js/dashboard-overview.js', array('jquery', 'fullcalendar-main-js'), MOBOOKING_VERSION, true);
 

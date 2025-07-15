@@ -62,6 +62,15 @@ jQuery(document).ready(function($) {
         initializeBookingsCalendar(); // Added calendar initialization
         bindEvents();
         setupDataRefresh(); // For the 5-minute interval refresh
+        loadSecondaryKPIData();
+        loadRecentActivity();
+        loadBusinessHealth();
+        loadFinancialSummary();
+        loadCustomerInsights();
+        loadServicePerformance();
+        loadOperationalAlerts();
+        loadQuickTips();
+        loadIntegrationStatus();
     }
 
     function initializeBookingsCalendar() {
@@ -343,6 +352,189 @@ jQuery(document).ready(function($) {
                 console.log("MoBooking: KPI data refresh skipped, already loading.");
             }
         }, 300000); // 5 minutes
+    }
+
+    function loadSecondaryKPIData() {
+        $.ajax({
+            url: mobooking_overview_params.ajax_url,
+            type: 'POST',
+            data: {
+                action: 'mobooking_get_secondary_kpis',
+                nonce: dashboardNonce
+            },
+            success: function(response) {
+                if (response.success) {
+                    $('#kpi-avg-booking-value').text(currencySymbol + response.data.avg_booking_value);
+                    $('#kpi-customer-retention').text(response.data.customer_retention);
+                    $('#kpi-popular-service').text(response.data.popular_service);
+                    $('#kpi-response-time').text(response.data.response_time);
+                }
+            }
+        });
+    }
+
+    function loadRecentActivity() {
+        $.ajax({
+            url: mobooking_overview_params.ajax_url,
+            type: 'POST',
+            data: {
+                action: 'mobooking_get_recent_activity',
+                nonce: dashboardNonce
+            },
+            success: function(response) {
+                if (response.success) {
+                    let html = '';
+                    response.data.forEach(function(item) {
+                        html += `<div class="activity-item"><span class="activity-type-${item.type}"></span> ${escapeHtml(item.message)}</div>`;
+                    });
+                    $('#recent-activity-list').html(html);
+                }
+            }
+        });
+    }
+
+    function loadBusinessHealth() {
+        $.ajax({
+            url: mobooking_overview_params.ajax_url,
+            type: 'POST',
+            data: {
+                action: 'mobooking_get_business_health',
+                nonce: dashboardNonce
+            },
+            success: function(response) {
+                if (response.success) {
+                    let html = '';
+                    response.data.forEach(function(item) {
+                        html += `<div class="health-item"><span class="health-status-${item.status}"></span> ${escapeHtml(item.name)}</div>`;
+                    });
+                    $('#business-health-container').html(html);
+                }
+            }
+        });
+    }
+
+    function loadFinancialSummary() {
+        $.ajax({
+            url: mobooking_overview_params.ajax_url,
+            type: 'POST',
+            data: {
+                action: 'mobooking_get_financial_summary',
+                nonce: dashboardNonce
+            },
+            success: function(response) {
+                if (response.success) {
+                    let html = `
+                        <p><strong>Monthly Revenue:</strong> ${currencySymbol}${escapeHtml(response.data.monthly_revenue)}</p>
+                        <p><strong>Outstanding Payments:</strong> ${currencySymbol}${escapeHtml(response.data.outstanding_payments)}</p>
+                        <p><strong>Discounts Used:</strong> ${escapeHtml(response.data.discounts_used)}</p>
+                    `;
+                    $('#financial-summary-container').html(html);
+                }
+            }
+        });
+    }
+
+    function loadCustomerInsights() {
+        $.ajax({
+            url: mobooking_overview_params.ajax_url,
+            type: 'POST',
+            data: {
+                action: 'mobooking_get_customer_insights',
+                nonce: dashboardNonce
+            },
+            success: function(response) {
+                if (response.success) {
+                    let html = `
+                        <p><strong>New vs Returning:</strong> ${escapeHtml(response.data.new_vs_returning)}</p>
+                        <p><strong>Customer Lifetime Value:</strong> ${currencySymbol}${escapeHtml(response.data.customer_lifetime_value)}</p>
+                        <p><strong>Peak Booking Times:</strong> ${escapeHtml(response.data.peak_booking_times)}</p>
+                    `;
+                    $('#customer-insights-container').html(html);
+                }
+            }
+        });
+    }
+
+    function loadServicePerformance() {
+        $.ajax({
+            url: mobooking_overview_params.ajax_url,
+            type: 'POST',
+            data: {
+                action: 'mobooking_get_service_performance',
+                nonce: dashboardNonce
+            },
+            success: function(response) {
+                if (response.success) {
+                    let html = `
+                        <p><strong>Most Booked Services:</strong> ${escapeHtml(response.data.most_booked_services.join(', '))}</p>
+                        <p><strong>Service Completion Rate:</strong> ${escapeHtml(response.data.service_completion_rate)}</p>
+                        <p><strong>Average Service Duration:</strong> ${escapeHtml(response.data.average_service_duration)}</p>
+                    `;
+                    $('#service-performance-container').html(html);
+                }
+            }
+        });
+    }
+
+    function loadOperationalAlerts() {
+        $.ajax({
+            url: mobooking_overview_params.ajax_url,
+            type: 'POST',
+            data: {
+                action: 'mobooking_get_operational_alerts',
+                nonce: dashboardNonce
+            },
+            success: function(response) {
+                if (response.success) {
+                    let html = '';
+                    response.data.forEach(function(item) {
+                        html += `<div class="alert-item alert-type-${item.type}">${escapeHtml(item.message)}</div>`;
+                    });
+                    $('#operational-alerts-container').html(html);
+                }
+            }
+        });
+    }
+
+    function loadQuickTips() {
+        $.ajax({
+            url: mobooking_overview_params.ajax_url,
+            type: 'POST',
+            data: {
+                action: 'mobooking_get_quick_tips',
+                nonce: dashboardNonce
+            },
+            success: function(response) {
+                if (response.success) {
+                    let html = '<ul>';
+                    response.data.forEach(function(tip) {
+                        html += `<li>${escapeHtml(tip)}</li>`;
+                    });
+                    html += '</ul>';
+                    $('#quick-tips-container').html(html);
+                }
+            }
+        });
+    }
+
+    function loadIntegrationStatus() {
+        $.ajax({
+            url: mobooking_overview_params.ajax_url,
+            type: 'POST',
+            data: {
+                action: 'mobooking_get_integration_status',
+                nonce: dashboardNonce
+            },
+            success: function(response) {
+                if (response.success) {
+                    let html = '';
+                    response.data.forEach(function(item) {
+                        html += `<div class="integration-item"><span class="integration-status-${item.status}"></span> ${escapeHtml(item.name)}</div>`;
+                    });
+                    $('#integration-status-container').html(html);
+                }
+            }
+        });
     }
 
     // Initial load check - the old script had: if ($('#mobooking-overview-content').length)

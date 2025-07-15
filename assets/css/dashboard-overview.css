@@ -1,0 +1,94 @@
+/* New styles for the overview page */
+
+.content-grid-secondary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.dashboard-widget {
+    background-color: #fff;
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.widget-title {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.secondary-kpis {
+    margin-top: 1.5rem;
+}
+
+.health-item, .integration-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.health-status-ok::before, .integration-status-connected::before {
+    content: '';
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: #28a745;
+    margin-right: 10px;
+}
+
+.health-status-warning::before {
+    content: '';
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: #ffc107;
+    margin-right: 10px;
+}
+
+.integration-status-disconnected::before {
+    content: '';
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: #dc3545;
+    margin-right: 10px;
+}
+
+.alert-item {
+    padding: 0.75rem 1.25rem;
+    margin-bottom: 1rem;
+    border: 1px solid transparent;
+    border-radius: 0.25rem;
+}
+
+.alert-type-conflict {
+    color: #721c24;
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+}
+
+.alert-type-payment {
+    color: #856404;
+    background-color: #fff3cd;
+    border-color: #ffeeba;
+}
+
+#quick-tips-container ul {
+    padding-left: 20px;
+    margin: 0;
+}
+
+#quick-tips-container li {
+    margin-bottom: 0.5rem;
+}
+
+#financial-summary-container p, #customer-insights-container p, #service-performance-container p {
+    margin: 0 0 0.5rem;
+}

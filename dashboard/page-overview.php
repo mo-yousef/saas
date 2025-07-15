@@ -120,48 +120,107 @@ $dashboard_base_url = home_url('/dashboard/');
         <!-- Recent Activity -->
         <div class="activity-container">
             <div class="activity-header">
-                <h3 class="activity-title"><?php esc_html_e('Recent Bookings', 'mobooking'); ?></h3>
+                <h3 class="activity-title"><?php esc_html_e('Recent Activity', 'mobooking'); ?></h3>
                 <a href="<?php echo esc_url($dashboard_base_url . 'bookings/'); ?>" class="view-all-btn">
                     <?php esc_html_e('View all', 'mobooking'); ?>
                 </a>
             </div>
-            <div class="activity-list" id="recent-bookings-list">
+            <div class="activity-list" id="recent-activity-list">
                 <div class="loading" style="margin: 2rem auto; display: block;"></div>
             </div>
         </div>
     </div>
 
+    <!-- Secondary KPI Metrics -->
+    <div class="dashboard-kpi-grid secondary-kpis">
+        <div class="dashboard-kpi-card">
+            <div class="kpi-header"><span class="kpi-title"><?php esc_html_e('Avg. Booking Value', 'mobooking'); ?></span></div>
+            <div class="kpi-value" id="kpi-avg-booking-value"><span class="loading"></span></div>
+        </div>
+        <div class="dashboard-kpi-card">
+            <div class="kpi-header"><span class="kpi-title"><?php esc_html_e('Customer Retention', 'mobooking'); ?></span></div>
+            <div class="kpi-value" id="kpi-customer-retention"><span class="loading"></span></div>
+        </div>
+        <div class="dashboard-kpi-card">
+            <div class="kpi-header"><span class="kpi-title"><?php esc_html_e('Most Popular Service', 'mobooking'); ?></span></div>
+            <div class="kpi-value" id="kpi-popular-service"><span class="loading"></span></div>
+        </div>
+        <div class="dashboard-kpi-card">
+            <div class="kpi-header"><span class="kpi-title"><?php esc_html_e('Response Time', 'mobooking'); ?></span></div>
+            <div class="kpi-value" id="kpi-response-time"><span class="loading"></span></div>
+        </div>
+    </div>
+
     <!-- Quick Actions -->
     <div class="quick-actions-grid">
-        <?php if (current_user_can(\MoBooking\Classes\Auth::CAP_MANAGE_BOOKINGS)) : ?>
         <a href="#" class="quick-action-card" id="add-booking-action">
             <div class="quick-action-icon">➕</div>
             <h4 class="quick-action-title"><?php esc_html_e('Add New Booking', 'mobooking'); ?></h4>
-            <p class="quick-action-desc"><?php esc_html_e('Create a booking for a customer', 'mobooking'); ?></p>
         </a>
-        <?php endif; ?>
-
-        <?php if (current_user_can(\MoBooking\Classes\Auth::CAP_MANAGE_SERVICES)) : ?>
         <a href="<?php echo esc_url($dashboard_base_url . 'services/'); ?>" class="quick-action-card">
             <div class="quick-action-icon">🧹</div>
             <h4 class="quick-action-title"><?php esc_html_e('Manage Services', 'mobooking'); ?></h4>
-            <p class="quick-action-desc"><?php esc_html_e('Add or edit your cleaning services', 'mobooking'); ?></p>
         </a>
-        <?php endif; ?>
-
-        <?php if (current_user_can(\MoBooking\Classes\Auth::CAP_MANAGE_DISCOUNTS)) : ?>
         <a href="<?php echo esc_url($dashboard_base_url . 'discounts/'); ?>" class="quick-action-card">
             <div class="quick-action-icon">🎯</div>
             <h4 class="quick-action-title"><?php esc_html_e('Create Discount', 'mobooking'); ?></h4>
-            <p class="quick-action-desc"><?php esc_html_e('Set up promotional offers', 'mobooking'); ?></p>
         </a>
-        <?php endif; ?>
-
         <a href="<?php echo esc_url($dashboard_base_url . 'booking-form/'); ?>" class="quick-action-card">
             <div class="quick-action-icon">🔗</div>
             <h4 class="quick-action-title"><?php esc_html_e('Share Booking Form', 'mobooking'); ?></h4>
-            <p class="quick-action-desc"><?php esc_html_e('Get your booking form link', 'mobooking'); ?></p>
         </a>
+        <a href="<?php echo esc_url($dashboard_base_url . 'customers/'); ?>" class="quick-action-card">
+            <div class="quick-action-icon">👥</div>
+            <h4 class="quick-action-title"><?php esc_html_e('Manage Customers', 'mobooking'); ?></h4>
+        </a>
+        <a href="#" class="quick-action-card" id="generate-report-action">
+            <div class="quick-action-icon">📊</div>
+            <h4 class="quick-action-title"><?php esc_html_e('Generate Report', 'mobooking'); ?></h4>
+        </a>
+    </div>
+
+    <div class="content-grid-secondary">
+        <!-- Business Health -->
+        <div class="dashboard-widget">
+            <h3 class="widget-title"><?php esc_html_e('Business Health', 'mobooking'); ?></h3>
+            <div id="business-health-container"></div>
+        </div>
+
+        <!-- Financial Summary -->
+        <div class="dashboard-widget">
+            <h3 class="widget-title"><?php esc_html_e('Financial Summary', 'mobooking'); ?></h3>
+            <div id="financial-summary-container"></div>
+        </div>
+
+        <!-- Customer Insights -->
+        <div class="dashboard-widget">
+            <h3 class="widget-title"><?php esc_html_e('Customer Insights', 'mobooking'); ?></h3>
+            <div id="customer-insights-container"></div>
+        </div>
+
+        <!-- Service Performance -->
+        <div class="dashboard-widget">
+            <h3 class="widget-title"><?php esc_html_e('Service Performance', 'mobooking'); ?></h3>
+            <div id="service-performance-container"></div>
+        </div>
+
+        <!-- Operational Alerts -->
+        <div class="dashboard-widget">
+            <h3 class="widget-title"><?php esc_html_e('Operational Alerts', 'mobooking'); ?></h3>
+            <div id="operational-alerts-container"></div>
+        </div>
+
+        <!-- Quick Tips -->
+        <div class="dashboard-widget">
+            <h3 class="widget-title"><?php esc_html_e('Quick Tips & Guidance', 'mobooking'); ?></h3>
+            <div id="quick-tips-container"></div>
+        </div>
+
+        <!-- Integration Status -->
+        <div class="dashboard-widget">
+            <h3 class="widget-title"><?php esc_html_e('Integration Status', 'mobooking'); ?></h3>
+            <div id="integration-status-container"></div>
+        </div>
     </div>
 </div>
 
