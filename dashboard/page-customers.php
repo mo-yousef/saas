@@ -123,7 +123,9 @@ $total_customers = $customers_manager->get_customer_count_by_tenant_id( $tenant_
                             </span>
                         </td>
                         <td data-label="<?php esc_attr_e( 'Actions', 'mobooking' ); ?>">
-                            <a href="#" class="view-customer-details" data-customer-id="<?php echo $customer->id; ?>"><?php esc_html_e( 'View Details', 'mobooking' ); ?></a>
+                            <a href="<?php echo esc_url( admin_url( 'admin.php?page=mobooking-customer-details&customer_id=' . $customer->id ) ); ?>" class="button">
+                                <?php esc_html_e( 'View Details', 'mobooking' ); ?>
+                            </a>
                         </td>
                     </tr>
                 <?php endforeach; ?>

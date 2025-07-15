@@ -1426,5 +1426,32 @@ foreach ($calculated_service_items as $service_item) {
 
         return true;
     }
+
+    public function get_bookings_by_customer_id( $customer_id ) {
+        $customer_id = absint( $customer_id );
+        if ( ! $customer_id ) {
+            return [];
+        }
+
+        $bookings_table = Database::get_table_name('bookings');
+        $items_table = Database::get_table_name('booking_items');
+
+        $bookings = $this->wpdb->get_results(
+            $this->wpdb->prepare(
+                "SELECT b.*, GROUP_CONCAT(i.service_name SEPARATOR ', ') as service_name
+                 FROM {$bookings_table} b
+                 LEFT JOIN {$items_table} i ON b.booking_id = i.booking_id
+                 WHERE b.customer_id = %d
+                 GROUP BY b.booking_id
+                 ORDER BY b.booking_date DESC",
+                $customer_id
+            ),
+            ARRAY_A
+        );
+
+        return [
+            'bookings' => $bookings ?: [],
+        ];
+    }
 }
 ?>
