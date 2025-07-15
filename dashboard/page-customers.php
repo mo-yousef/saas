@@ -99,7 +99,7 @@ $total_customers = $customers_manager->get_customer_count_by_tenant_id( $tenant_
                                 <a href='" . esc_url( $url ) . "'>
                                     <span>{$title}</span>
                                     <span class='sorting-indicator'></span>
-                                a>
+                                </a>
                               </th>";
                     } else {
                         echo "<th scope='col' class='{$class}'>{$title}</th>";
