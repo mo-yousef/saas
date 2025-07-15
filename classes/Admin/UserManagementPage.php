@@ -47,7 +47,7 @@ class UserManagementPage {
             null,                                        // Parent slug (null to hide from menu)
             __( 'Customer Details', 'mobooking' ),       // Page title
             __( 'Customer Details', 'mobooking' ),       // Menu title
-            'manage_options',                            // Capability
+            'mobooking_view_customers',                  // Capability
             'mobooking-customer-details',                // Menu slug
             [ __CLASS__, 'render_customer_details_page' ] // Callback function
         );
@@ -540,8 +540,8 @@ class UserManagementPage {
     }
 
     public static function render_customer_details_page() {
-        if ( ! current_user_can( 'manage_options' ) ) {
-            wp_die( esc_html__( 'Permission denied.', 'mobooking' ) );
+        if ( ! current_user_can( 'mobooking_view_customers' ) ) {
+            wp_die( esc_html__( 'You do not have permission to view this page.', 'mobooking' ) );
         }
 
         $customer_id = isset( $_GET['customer_id'] ) ? intval( $_GET['customer_id'] ) : 0;
