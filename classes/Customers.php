@@ -362,10 +362,40 @@ class Customers {
         return $this->db->get_row( $query );
     }
 
-    // Placeholder for update_customer_status(customer_id, status)
-    // Placeholder for add_customer_note(customer_id, note)
+    public function get_kpi_data($tenant_id) {
+        $tenant_id = absint($tenant_id);
+        if (!$tenant_id) {
+            return [
+                'total_customers' => 0,
+                'new_customers_month' => 0,
+                'active_customers' => 0,
+            ];
+        }
 
-} // end class Customers
+        // Total Customers
+        $total_customers = $this->get_customer_count_by_tenant_id($tenant_id);
+
+        // New Customers This Month
+        $current_month_start = date('Y-m-01 00:00:00');
+        $new_customers_month = $this->db->get_var(
+            $this->db->prepare(
+                "SELECT COUNT(*) FROM {$this->table_name} WHERE tenant_id = %d AND created_at >= %s",
+                $tenant_id,
+                $current_month_start
+            )
+        );
+
+        // Active Customers
+        $active_customers = $this->get_customer_count_by_tenant_id($tenant_id, ['status' => 'active']);
+
+        return [
+            'total_customers' => is_wp_error($total_customers) ? 0 : $total_customers,
+            'new_customers_month' => $new_customers_month ? absint($new_customers_month) : 0,
+            'active_customers' => is_wp_error($active_customers) ? 0 : $active_customers,
+        ];
+    }
+
+}
 
 // Initialize and register AJAX actions (if not already handled by a central manager)
 // This is typically done once, for example, in functions.php or a plugin loader.
