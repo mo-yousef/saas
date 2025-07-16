@@ -746,11 +746,11 @@ input:checked + .mb-toggle-slider:before {
                     <div class="mb-form-group">
                         <label class="mb-form-label"><?php esc_html_e('Status', 'mobooking'); ?></label>
                         <div class="mb-flex mb-items-center mb-gap-3">
-                            <label class="mb-toggle-switch">
+                            <label class="mobooking-toggle-switch">
                                 <input type="checkbox" id="service-status" name="status" <?php checked($service_status, 'active'); ?>>
-                                <span class="mb-toggle-slider"></span>
+                                <span class="slider"></span>
                             </label>
-                            <span id="status-text" class="mb-text-sm">
+                            <span id="status-text" class="mb-text-sm toggle-label">
                                 <?php echo $service_status === 'active' ? esc_html__('Active', 'mobooking') : esc_html__('Inactive', 'mobooking'); ?>
                             </span>
                         </div>
@@ -931,11 +931,11 @@ input:checked + .mb-toggle-slider:before {
                                     <div class="mb-form-group">
                                         <label class="mb-form-label"><?php esc_html_e('Required', 'mobooking'); ?></label>
                                         <div class="mb-flex mb-items-center mb-gap-3">
-                                            <label class="mb-toggle-switch">
+                                            <label class="mobooking-toggle-switch">
                                                 <input type="checkbox" name="options[<?php echo esc_attr($index); ?>][is_required]" value="1" <?php checked(!empty($option['is_required'])); ?>>
-                                                <span class="mb-toggle-slider"></span>
+                                                <span class="slider"></span>
                                             </label>
-                                            <span class="mb-text-sm mb-text-muted-foreground"><?php esc_html_e('Customer must select this option', 'mobooking'); ?></span>
+                                            <span class="mb-text-sm mb-text-muted-foreground toggle-label"><?php esc_html_e('Customer must select this option', 'mobooking'); ?></span>
                                         </div>
                                     </div>
                                 </div>
@@ -1179,11 +1179,11 @@ input:checked + .mb-toggle-slider:before {
                 <div class="mb-form-group">
                     <label class="mb-form-label"><?php esc_html_e('Required', 'mobooking'); ?></label>
                     <div class="mb-flex mb-items-center mb-gap-3">
-                        <label class="mb-toggle-switch">
+                            <label class="mobooking-toggle-switch">
                             <input type="checkbox" name="options[][is_required]" value="1">
-                            <span class="mb-toggle-slider"></span>
+                                <span class="slider"></span>
                         </label>
-                        <span class="mb-text-sm mb-text-muted-foreground"><?php esc_html_e('Customer must select this option', 'mobooking'); ?></span>
+                            <span class="mb-text-sm mb-text-muted-foreground toggle-label"><?php esc_html_e('Customer must select this option', 'mobooking'); ?></span>
                     </div>
                 </div>
             </div>
