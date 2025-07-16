@@ -83,8 +83,11 @@ if (!empty($current_slug)) {
                 <tr valign="top">
                     <th scope="row"><label for="bf_show_progress_bar"><?php esc_html_e('Show Progress Bar', 'mobooking'); ?></label></th>
                     <td>
-                        <input name="bf_show_progress_bar" type="checkbox" id="bf_show_progress_bar" value="1" <?php echo mobooking_is_setting_checked($bf_settings, 'bf_show_progress_bar', true); ?>>
-                        <p class="description"><?php esc_html_e('Display a step-by-step progress indicator on the form.', 'mobooking'); ?></p>
+                        <label class="mobooking-toggle-switch">
+                            <input name="bf_show_progress_bar" type="checkbox" id="bf_show_progress_bar" value="1" <?php echo mobooking_is_setting_checked($bf_settings, 'bf_show_progress_bar', true); ?>>
+                            <span class="slider"></span>
+                        </label>
+                        <label for="bf_show_progress_bar" class="toggle-label"><?php esc_html_e( 'Show Progress Bar', 'mobooking' ); ?></label>
                     </td>
                 </tr>
                 <tr valign="top">
@@ -111,8 +114,11 @@ if (!empty($current_slug)) {
                 <tr valign="top">
                     <th scope="row"><label for="bf_form_enabled"><?php esc_html_e('Enable Booking Form', 'mobooking'); ?></label></th>
                     <td>
-                        <input name="bf_form_enabled" type="checkbox" id="bf_form_enabled" value="1" <?php echo mobooking_is_setting_checked($bf_settings, 'bf_form_enabled', true); ?>>
-                        <label for="bf_form_enabled"><?php esc_html_e('Allow customers to submit bookings through the public form', 'mobooking'); ?></label>
+                        <label class="mobooking-toggle-switch">
+                            <input name="bf_form_enabled" type="checkbox" id="bf_form_enabled" value="1" <?php echo mobooking_is_setting_checked($bf_settings, 'bf_form_enabled', true); ?>>
+                            <span class="slider"></span>
+                        </label>
+                        <label for="bf_form_enabled" class="toggle-label"><?php esc_html_e( 'Enable Booking Form', 'mobooking' ); ?></label>
                         <p class="description"><?php esc_html_e('When disabled, the form will show a maintenance message instead of allowing bookings.', 'mobooking'); ?></p>
                     </td>
                 </tr>
@@ -129,39 +135,60 @@ if (!empty($current_slug)) {
                         <fieldset>
                             <legend class="screen-reader-text"><span><?php esc_html_e('Form Features', 'mobooking'); ?></span></legend>
                             <label for="bf_allow_service_selection">
-                                <input name="bf_allow_service_selection" type="checkbox" id="bf_allow_service_selection" value="1" <?php echo mobooking_is_setting_checked($bf_settings, 'bf_allow_service_selection', true); ?>>
-                                <?php esc_html_e('Allow customers to select services', 'mobooking'); ?>
+                                <label class="mobooking-toggle-switch">
+                                    <input name="bf_allow_service_selection" type="checkbox" id="bf_allow_service_selection" value="1" <?php echo mobooking_is_setting_checked($bf_settings, 'bf_allow_service_selection', true); ?>>
+                                    <span class="slider"></span>
+                                </label>
+                                <label for="bf_allow_service_selection" class="toggle-label"><?php esc_html_e( 'Allow service selection', 'mobooking' ); ?></label>
                             </label><br><br>
 
                             <label for="bf_enable_location_check">
-                                <input name="bf_enable_location_check" type="checkbox" id="bf_enable_location_check" value="1" <?php echo mobooking_is_setting_checked($bf_settings, 'bf_enable_location_check', true); ?>>
-                                <?php esc_html_e('Enable Location Check Step (Step 1)', 'mobooking'); ?>
+                                <label class="mobooking-toggle-switch">
+                                    <input name="bf_enable_location_check" type="checkbox" id="bf_enable_location_check" value="1" <?php echo mobooking_is_setting_checked($bf_settings, 'bf_enable_location_check', true); ?>>
+                                    <span class="slider"></span>
+                                </label>
+                                <label for="bf_enable_location_check" class="toggle-label"><?php esc_html_e( 'Enable location check', 'mobooking' ); ?></label>
                             </label>
                             <p class="description" style="margin-left:22px; margin-top:0; margin-bottom:10px;"><?php esc_html_e('If unchecked, Step 1 (Location Check) will be skipped. Services will be assumed available everywhere.', 'mobooking'); ?></p>
                             
                             <label for="bf_allow_date_time_selection">
-                                <input name="bf_allow_date_time_selection" type="checkbox" id="bf_allow_date_time_selection" value="1" <?php echo mobooking_is_setting_checked($bf_settings, 'bf_allow_date_time_selection', true); ?>>
-                                <?php esc_html_e('Allow customers to select date and time', 'mobooking'); ?>
+                                <label class="mobooking-toggle-switch">
+                                    <input name="bf_allow_date_time_selection" type="checkbox" id="bf_allow_date_time_selection" value="1" <?php echo mobooking_is_setting_checked($bf_settings, 'bf_allow_date_time_selection', true); ?>>
+                                    <span class="slider"></span>
+                                </label>
+                                <label for="bf_allow_date_time_selection" class="toggle-label"><?php esc_html_e( 'Allow date and time selection', 'mobooking' ); ?></label>
                             </label><br><br>
                             
                             <label for="bf_require_phone">
-                                <input name="bf_require_phone" type="checkbox" id="bf_require_phone" value="1" <?php echo mobooking_is_setting_checked($bf_settings, 'bf_require_phone', true); ?>>
-                                <?php esc_html_e('Require phone number', 'mobooking'); ?>
+                                <label class="mobooking-toggle-switch">
+                                    <input name="bf_require_phone" type="checkbox" id="bf_require_phone" value="1" <?php echo mobooking_is_setting_checked($bf_settings, 'bf_require_phone', true); ?>>
+                                    <span class="slider"></span>
+                                </label>
+                                <label for="bf_require_phone" class="toggle-label"><?php esc_html_e( 'Require phone number', 'mobooking' ); ?></label>
                             </label><br><br>
                             
                             <label for="bf_allow_special_instructions">
-                                <input name="bf_allow_special_instructions" type="checkbox" id="bf_allow_special_instructions" value="1" <?php echo mobooking_is_setting_checked($bf_settings, 'bf_allow_special_instructions', true); ?>>
-                                <?php esc_html_e('Allow special instructions/notes', 'mobooking'); ?>
+                                <label class="mobooking-toggle-switch">
+                                    <input name="bf_allow_special_instructions" type="checkbox" id="bf_allow_special_instructions" value="1" <?php echo mobooking_is_setting_checked($bf_settings, 'bf_allow_special_instructions', true); ?>>
+                                    <span class="slider"></span>
+                                </label>
+                                <label for="bf_allow_special_instructions" class="toggle-label"><?php esc_html_e( 'Allow special instructions', 'mobooking' ); ?></label>
                             </label><br><br>
                             
                             <label for="bf_show_pricing">
-                                <input name="bf_show_pricing" type="checkbox" id="bf_show_pricing" value="1" <?php echo mobooking_is_setting_checked($bf_settings, 'bf_show_pricing', true); ?>>
-                                <?php esc_html_e('Show pricing information', 'mobooking'); ?>
+                                <label class="mobooking-toggle-switch">
+                                    <input name="bf_show_pricing" type="checkbox" id="bf_show_pricing" value="1" <?php echo mobooking_is_setting_checked($bf_settings, 'bf_show_pricing', true); ?>>
+                                    <span class="slider"></span>
+                                </label>
+                                <label for="bf_show_pricing" class="toggle-label"><?php esc_html_e( 'Show pricing information', 'mobooking' ); ?></label>
                             </label><br><br>
                             
                             <label for="bf_allow_discount_codes">
-                                <input name="bf_allow_discount_codes" type="checkbox" id="bf_allow_discount_codes" value="1" <?php echo mobooking_is_setting_checked($bf_settings, 'bf_allow_discount_codes', true); ?>>
-                                <?php esc_html_e('Allow discount code application', 'mobooking'); ?>
+                                <label class="mobooking-toggle-switch">
+                                    <input name="bf_allow_discount_codes" type="checkbox" id="bf_allow_discount_codes" value="1" <?php echo mobooking_is_setting_checked($bf_settings, 'bf_allow_discount_codes', true); ?>>
+                                    <span class="slider"></span>
+                                </label>
+                                <label for="bf_allow_discount_codes" class="toggle-label"><?php esc_html_e( 'Allow discount codes', 'mobooking' ); ?></label>
                             </label>
                         </fieldset>
                     </td>
@@ -282,18 +309,27 @@ if (!empty($current_slug)) {
                         <fieldset>
                             <legend class="screen-reader-text"><span><?php esc_html_e('Advanced Options', 'mobooking'); ?></span></legend>
                             <label for="bf_enable_recaptcha">
-                                <input name="bf_enable_recaptcha" type="checkbox" id="bf_enable_recaptcha" value="1" <?php echo mobooking_is_setting_checked($bf_settings, 'bf_enable_recaptcha', false); ?>>
-                                <?php esc_html_e('Enable reCAPTCHA protection', 'mobooking'); ?>
+                                <label class="mobooking-toggle-switch">
+                                    <input name="bf_enable_recaptcha" type="checkbox" id="bf_enable_recaptcha" value="1" <?php echo mobooking_is_setting_checked($bf_settings, 'bf_enable_recaptcha', false); ?>>
+                                    <span class="slider"></span>
+                                </label>
+                                <label for="bf_enable_recaptcha" class="toggle-label"><?php esc_html_e( 'Enable reCAPTCHA', 'mobooking' ); ?></label>
                             </label><br><br>
                             
                             <label for="bf_enable_ssl_required">
-                                <input name="bf_enable_ssl_required" type="checkbox" id="bf_enable_ssl_required" value="1" <?php echo mobooking_is_setting_checked($bf_settings, 'bf_enable_ssl_required', true); ?>>
-                                <?php esc_html_e('Require SSL/HTTPS', 'mobooking'); ?>
+                                <label class="mobooking-toggle-switch">
+                                    <input name="bf_enable_ssl_required" type="checkbox" id="bf_enable_ssl_required" value="1" <?php echo mobooking_is_setting_checked($bf_settings, 'bf_enable_ssl_required', true); ?>>
+                                    <span class="slider"></span>
+                                </label>
+                                <label for="bf_enable_ssl_required" class="toggle-label"><?php esc_html_e( 'Require SSL for submission', 'mobooking' ); ?></label>
                             </label><br><br>
                             
                             <label for="bf_debug_mode">
-                                <input name="bf_debug_mode" type="checkbox" id="bf_debug_mode" value="1" <?php echo mobooking_is_setting_checked($bf_settings, 'bf_debug_mode', false); ?>>
-                                <?php esc_html_e('Enable debug mode (for troubleshooting)', 'mobooking'); ?>
+                                <label class="mobooking-toggle-switch">
+                                    <input name="bf_debug_mode" type="checkbox" id="bf_debug_mode" value="1" <?php echo mobooking_is_setting_checked($bf_settings, 'bf_debug_mode', false); ?>>
+                                    <span class="slider"></span>
+                                </label>
+                                <label for="bf_debug_mode" class="toggle-label"><?php esc_html_e( 'Enable Debug Mode', 'mobooking' ); ?></label>
                             </label>
                         </fieldset>
                     </td>

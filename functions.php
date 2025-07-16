@@ -165,6 +165,7 @@ function mobooking_scripts() {
 
     // Enqueue main stylesheet, making it dependent on the reset
     wp_enqueue_style( 'mobooking-style', get_stylesheet_uri(), array('mobooking-reset'), MOBOOKING_VERSION );
+    wp_enqueue_style( 'mobooking-toggle-switch', MOBOOKING_THEME_URI . 'assets/css/toggle-switch.css', array('mobooking-style'), MOBOOKING_VERSION );
 
     if ( is_page_template( 'page-login.php' ) || is_page_template('page-register.php') || is_page_template('page-forgot-password.php') ) {
         // Enqueue the new auth pages specific CSS

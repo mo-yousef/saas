@@ -66,8 +66,11 @@ if ( ! current_user_can( \MoBooking\Classes\Auth::CAP_MANAGE_AVAILABILITY ) ) {
                 </div>
                  <div class="form-field">
                     <label for="recurring-is-active">
-                        <input type="checkbox" id="recurring-is-active" name="is_active" checked>
-                        <?php esc_html_e('Active (slot is available for booking)', 'mobooking'); ?>
+                        <label class="mobooking-toggle-switch">
+                            <input type="checkbox" id="recurring-is-active" name="is_active" checked>
+                            <span class="slider"></span>
+                        </label>
+                        <label for="recurring-is-active" class="toggle-label"><?php esc_html_e('Active', 'mobooking'); ?></label>
                     </label>
                 </div>
                 <div class="form-actions">
