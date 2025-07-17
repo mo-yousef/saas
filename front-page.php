@@ -2,7 +2,7 @@
 /**
  * The template for displaying the front page.
  *
- * @package MoBooking
+ * @package Nord Booking
  */
 
 get_header();
@@ -647,7 +647,7 @@ get_header();
     <header>
         <div class="container">
             <nav>
-                <div class="logo">MoBooking</div>
+                <div class="logo">Nord Booking</div>
                 <ul class="nav-links">
                     <li><a href="<?php echo esc_url(home_url('/features/')); ?>">Features</a></li>
                     <li><a href="#how-it-works">How It Works</a></li>
@@ -892,7 +892,7 @@ get_header();
                     <div class="section-badge">Testimonials</div>
                     <h2 class="section-title">What our customers say</h2>
                     <p class="section-description">
-                        Join thousands of cleaning businesses that have transformed their operations with MoBooking.
+                        Join thousands of cleaning businesses that have transformed their operations with Nord Booking.
                     </p>
                 </div>
 
@@ -915,7 +915,7 @@ get_header();
                     <div class="card testimonial slide-up delay-200">
                         <div class="card-content">
                             <p class="testimonial-content">
-                                "Outstanding customer support and the platform is so easy to use. We've seen a 150% increase in revenue since switching to MoBooking. Our customers love how simple it is to book our services online."
+                                "Outstanding customer support and the platform is so easy to use. We've seen a 150% increase in revenue since switching to Nord Booking. Our customers love how simple it is to book our services online."
                             </p>
                             <div class="testimonial-author">
                                 <div class="author-avatar">LR</div>
@@ -937,7 +937,7 @@ get_header();
                     <div class="section-badge">Integrations</div>
                     <h2 class="section-title">Seamlessly connects with your tools</h2>
                     <p class="section-description">
-                        MoBooking integrates with the platforms you already use to streamline your workflow.
+                        Nord Booking integrates with the platforms you already use to streamline your workflow.
                     </p>
                 </div>
 
@@ -976,7 +976,7 @@ get_header();
                     <div class="section-badge">FAQ</div>
                     <h2 class="section-title">Frequently asked questions</h2>
                     <p class="section-description">
-                        Everything you need to know about MoBooking and how it can help your cleaning business.
+                        Everything you need to know about Nord Booking and how it can help your cleaning business.
                     </p>
                 </div>
 
@@ -990,8 +990,8 @@ get_header();
 
                     <div class="card slide-up delay-100" style="margin-bottom: 1rem;">
                         <div class="card-content">
-                            <h3 style="font-weight: 600; margin-bottom: 0.5rem;">Do I need technical skills to use MoBooking?</h3>
-                            <p style="color: hsl(var(--muted-foreground)); margin: 0;">Not at all! MoBooking is designed for business owners, not developers. Everything is point-and-click with no coding required.</p>
+                            <h3 style="font-weight: 600; margin-bottom: 0.5rem;">Do I need technical skills to use Nord Booking?</h3>
+                            <p style="color: hsl(var(--muted-foreground)); margin: 0;">Not at all! Nord Booking is designed for business owners, not developers. Everything is point-and-click with no coding required.</p>
                         </div>
                     </div>
 
@@ -1012,7 +1012,7 @@ get_header();
                     <div class="card slide-up delay-400">
                         <div class="card-content">
                             <h3 style="font-weight: 600; margin-bottom: 0.5rem;">Is there a free trial?</h3>
-                            <p style="color: hsl(var(--muted-foreground)); margin: 0;">Yes! We offer a 14-day free trial with no credit card required. You can explore all features and see how MoBooking works for your business.</p>
+                            <p style="color: hsl(var(--muted-foreground)); margin: 0;">Yes! We offer a 14-day free trial with no credit card required. You can explore all features and see how Nord Booking works for your business.</p>
                         </div>
                     </div>
                 </div>
@@ -1031,7 +1031,7 @@ get_header();
                 </h2>
                 
                 <p class="section-description slide-up delay-100">
-                    Start your free trial today and see how MoBooking can help you streamline operations and grow your revenue.
+                    Start your free trial today and see how Nord Booking can help you streamline operations and grow your revenue.
                 </p>
 
                 <div class="hero-actions slide-up delay-200">
@@ -1051,7 +1051,7 @@ get_header();
         <div class="container">
             <div class="footer-grid">
                 <div class="footer-section">
-                    <h3>MoBooking</h3>
+                    <h3>Nord Booking</h3>
                     <p style="color: hsl(var(--muted-foreground)); margin-bottom: 1rem;">The ultimate SaaS platform for cleaning service companies. Streamline your bookings, manage customers, and grow your business.</p>
                     <div style="display: flex; gap: 1rem;">
                         <a href="/dashboard" style="color: hsl(var(--muted-foreground)); text-decoration: none;">Twitter</a>
@@ -1095,7 +1095,7 @@ get_header();
             </div>
 
             <div class="footer-bottom">
-                <p>&copy; 2024 MoBooking. All rights reserved.</p>
+                <p>&copy; 2024 Nord Booking. All rights reserved.</p>
             </div>
         </div>
     </footer>
