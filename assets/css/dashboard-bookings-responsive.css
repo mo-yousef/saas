@@ -191,18 +191,14 @@ body.wp-admin #wpbody-content .mobooking-overview {
 
 /* Secondary/Default Button */
 .mobooking-dashboard-wrap .button.button-secondary,
-.mobooking-dashboard-wrap
-  .button:not(.button-primary):not([class*="delete"]):not(.page-title-action) {
+.mobooking-dashboard-wrap .button:not(.button-primary):not([class*="delete"]):not(.page-title-action) {
   background-color: var(--mobk-dashboard-card);
   color: var(--mobk-dashboard-card-foreground);
   border: 1px solid var(--mobk-dashboard-input);
 }
 
 .mobooking-dashboard-wrap .button.button-secondary:hover:not(:disabled),
-.mobooking-dashboard-wrap
-  .button:not(.button-primary):not([class*="delete"]):not(
-    .page-title-action
-  ):hover:not(:disabled) {
+.mobooking-dashboard-wrap .button:not(.button-primary):not([class*="delete"]):not(.page-title-action):hover:not(:disabled) {
   background-color: var(--mobk-dashboard-accent);
 }
 
@@ -517,11 +513,7 @@ table.mobooking-table.wp-list-table {
   color: hsl(260 70% 45%);
 }
 
-.status-badge:not([class*="pending"]):not([class*="confirmed"]):not(
-    [class*="completed"]
-  ):not([class*="cancelled"]):not([class*="on-hold"]):not(
-    [class*="processing"]
-  ) {
+.status-badge:not([class*="pending"]):not([class*="confirmed"]):not([class*="completed"]):not([class*="cancelled"]):not([class*="on-hold"]):not([class*="processing"]) {
   background-color: hsl(210 40% 90%);
   color: hsl(210 10% 40%);
 }
@@ -538,10 +530,7 @@ table.mobooking-table.wp-list-table {
   gap: 0.375rem;
 }
 
-.mobooking-bookings-page-wrapper
-  .tablenav-pages
-  .pagination-links
-  .page-numbers {
+.mobooking-bookings-page-wrapper .tablenav-pages .pagination-links .page-numbers {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -559,27 +548,18 @@ table.mobooking-table.wp-list-table {
     color 0.15s ease-in-out;
 }
 
-.mobooking-bookings-page-wrapper
-  .tablenav-pages
-  .pagination-links
-  .page-numbers:hover {
+.mobooking-bookings-page-wrapper .tablenav-pages .pagination-links .page-numbers:hover {
   background-color: var(--mobk-dashboard-accent);
 }
 
-.mobooking-bookings-page-wrapper
-  .tablenav-pages
-  .pagination-links
-  .page-numbers.current {
+.mobooking-bookings-page-wrapper .tablenav-pages .pagination-links .page-numbers.current {
   background-color: var(--mobk-dashboard-primary);
   border-color: var(--mobk-dashboard-primary);
   color: var(--mobk-dashboard-primary-foreground);
   cursor: default;
 }
 
-.mobooking-bookings-page-wrapper
-  .tablenav-pages
-  .pagination-links
-  .page-numbers.dots {
+.mobooking-bookings-page-wrapper .tablenav-pages .pagination-links .page-numbers.dots {
   border: none;
   background: transparent;
 }
@@ -680,7 +660,7 @@ table.mobooking-table.wp-list-table {
   color: hsl(221.2 83.2% 47.3%);
 }
 
-.mobooking-overview .activity-list > *:not(:last-child) {
+.mobooking-overview .activity-list>*:not(:last-child) {
   margin-bottom: 0.75rem;
 }
 
@@ -891,12 +871,12 @@ table.mobooking-table.wp-list-table {
   padding-left: 0;
 }
 
-.mobooking-service-items-list > li {
+.mobooking-service-items-list>li {
   padding: 0.75rem 0;
   border-bottom: 1px solid hsl(210 30% 96%);
 }
 
-.mobooking-service-items-list > li:last-child {
+.mobooking-service-items-list>li:last-child {
   border-bottom: none;
 }
 
