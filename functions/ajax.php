@@ -378,4 +378,294 @@ if (!function_exists('mobooking_ajax_get_subscription_usage')) {
 
 // Fix the KPI data handler - the JS expects 'mobooking_get_dashboard_kpi_data' but we have 'mobooking_get_dashboard_overview_data'
 add_action('wp_ajax_mobooking_get_dashboard_kpi_data', 'mobooking_ajax_get_dashboard_overview_data');
+
+
+
+
+
+/**
+ * Fixed AJAX Functions for MoBooking Dashboard
+ * This file contains the corrected AJAX handlers to fix the 500 errors
+ */
+
+// Ensure these are defined globally and early for admin-ajax.php
+
+// AJAX handler for dashboard KPI data (Fixed action name mismatch)
+add_action('wp_ajax_mobooking_get_dashboard_kpi_data', 'mobooking_ajax_get_dashboard_kpi_data');
+if (!function_exists('mobooking_ajax_get_dashboard_kpi_data')) {
+    function mobooking_ajax_get_dashboard_kpi_data() {
+        // Security check
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'mobooking_dashboard_nonce')) {
+            wp_send_json_error(array('message' => 'Security check failed: Invalid nonce.'), 403);
+            return;
+        }
+
+        $current_user_id = get_current_user_id();
+        if (!$current_user_id) {
+            wp_send_json_error(array('message' => 'User not authenticated.'), 401);
+            return;
+        }
+
+        // Initialize managers if not already done
+        if (!isset($GLOBALS['mobooking_services_manager']) || !isset($GLOBALS['mobooking_bookings_manager'])) {
+            // Try to initialize managers
+            try {
+                if (!isset($GLOBALS['mobooking_services_manager'])) {
+                    $GLOBALS['mobooking_services_manager'] = new \MoBooking\Classes\Services();
+                }
+                if (!isset($GLOBALS['mobooking_bookings_manager'])) {
+                    $GLOBALS['mobooking_bookings_manager'] = new \MoBooking\Classes\Bookings();
+                }
+            } catch (Exception $e) {
+                wp_send_json_error(array('message' => 'Failed to initialize core components: ' . $e->getMessage()), 500);
+                return;
+            }
+        }
+
+        $services_manager = $GLOBALS['mobooking_services_manager'];
+        $bookings_manager = $GLOBALS['mobooking_bookings_manager'];
+
+        // Handle worker permissions
+        $data_user_id = $current_user_id;
+        if (class_exists('MoBooking\Classes\Auth') && \MoBooking\Classes\Auth::is_user_worker($current_user_id)) {
+            $owner_id = \MoBooking\Classes\Auth::get_business_owner_id_for_worker($current_user_id);
+            if ($owner_id) {
+                $data_user_id = $owner_id;
+            }
+        }
+
+        try {
+            // Get KPI data
+            $kpi_data = $bookings_manager->get_kpi_data($data_user_id);
+            
+            // Get services count
+            $services_count = $services_manager->get_services_count($data_user_id);
+            
+            // Prepare response data
+            $response_data = array(
+                'total_bookings' => isset($kpi_data['total_bookings']) ? $kpi_data['total_bookings'] : 0,
+                'pending_bookings' => isset($kpi_data['pending_bookings']) ? $kpi_data['pending_bookings'] : 0,
+                'revenue_month' => isset($kpi_data['revenue_month']) ? $kpi_data['revenue_month'] : 0,
+                'services_count' => $services_count,
+                'revenue_today' => isset($kpi_data['revenue_today']) ? $kpi_data['revenue_today'] : 0,
+                'bookings_today' => isset($kpi_data['bookings_today']) ? $kpi_data['bookings_today'] : 0,
+                'confirmed_bookings' => isset($kpi_data['confirmed_bookings']) ? $kpi_data['confirmed_bookings'] : 0,
+                'completed_bookings' => isset($kpi_data['completed_bookings']) ? $kpi_data['completed_bookings'] : 0,
+            );
+
+            wp_send_json_success($response_data);
+        } catch (Exception $e) {
+            wp_send_json_error(array('message' => 'Failed to load dashboard data: ' . $e->getMessage()), 500);
+        }
+    }
+}
+
+// AJAX handler for recent bookings
+add_action('wp_ajax_mobooking_get_recent_bookings', 'mobooking_ajax_get_recent_bookings');
+if (!function_exists('mobooking_ajax_get_recent_bookings')) {
+    function mobooking_ajax_get_recent_bookings() {
+        // Security check
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'mobooking_dashboard_nonce')) {
+            wp_send_json_error(array('message' => 'Security check failed: Invalid nonce.'), 403);
+            return;
+        }
+
+        $current_user_id = get_current_user_id();
+        if (!$current_user_id) {
+            wp_send_json_error(array('message' => 'User not authenticated.'), 401);
+            return;
+        }
+
+        // Initialize bookings manager if not available
+        if (!isset($GLOBALS['mobooking_bookings_manager'])) {
+            try {
+                $GLOBALS['mobooking_bookings_manager'] = new \MoBooking\Classes\Bookings();
+            } catch (Exception $e) {
+                wp_send_json_error(array('message' => 'Failed to initialize bookings manager: ' . $e->getMessage()), 500);
+                return;
+            }
+        }
+
+        $bookings_manager = $GLOBALS['mobooking_bookings_manager'];
+        $limit = isset($_POST['limit']) ? intval($_POST['limit']) : 5;
+
+        // Handle worker permissions
+        $data_user_id = $current_user_id;
+        if (class_exists('MoBooking\Classes\Auth') && \MoBooking\Classes\Auth::is_user_worker($current_user_id)) {
+            $owner_id = \MoBooking\Classes\Auth::get_business_owner_id_for_worker($current_user_id);
+            if ($owner_id) {
+                $data_user_id = $owner_id;
+            }
+        }
+
+        try {
+            $recent_bookings = $bookings_manager->get_recent_bookings($data_user_id, $limit);
+            wp_send_json_success(array('recent_bookings' => $recent_bookings));
+        } catch (Exception $e) {
+            wp_send_json_error(array('message' => 'Failed to load recent bookings: ' . $e->getMessage()), 500);
+        }
+    }
+}
+
+// AJAX handler for customer insights
+add_action('wp_ajax_mobooking_get_customer_insights', 'mobooking_ajax_get_customer_insights');
+if (!function_exists('mobooking_ajax_get_customer_insights')) {
+    function mobooking_ajax_get_customer_insights() {
+        // Security check
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'mobooking_dashboard_nonce')) {
+            wp_send_json_error(array('message' => 'Security check failed: Invalid nonce.'), 403);
+            return;
+        }
+
+        $current_user_id = get_current_user_id();
+        if (!$current_user_id) {
+            wp_send_json_error(array('message' => 'User not authenticated.'), 401);
+            return;
+        }
+
+        // Handle worker permissions
+        $data_user_id = $current_user_id;
+        if (class_exists('MoBooking\Classes\Auth') && \MoBooking\Classes\Auth::is_user_worker($current_user_id)) {
+            $owner_id = \MoBooking\Classes\Auth::get_business_owner_id_for_worker($current_user_id);
+            if ($owner_id) {
+                $data_user_id = $owner_id;
+            }
+        }
+
+        try {
+            // Initialize customers manager if needed
+            if (!class_exists('MoBooking\Classes\Customers')) {
+                wp_send_json_error(array('message' => 'Customers class not available.'), 500);
+                return;
+            }
+
+            $customers_manager = new \MoBooking\Classes\Customers();
+            $insights_data = $customers_manager->get_customer_insights($data_user_id);
+
+            wp_send_json_success($insights_data);
+        } catch (Exception $e) {
+            wp_send_json_error(array('message' => 'Failed to load customer insights: ' . $e->getMessage()), 500);
+        }
+    }
+}
+
+// AJAX handler for top services
+add_action('wp_ajax_mobooking_get_top_services', 'mobooking_ajax_get_top_services');
+if (!function_exists('mobooking_ajax_get_top_services')) {
+    function mobooking_ajax_get_top_services() {
+        // Security check
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'mobooking_dashboard_nonce')) {
+            wp_send_json_error(array('message' => 'Security check failed: Invalid nonce.'), 403);
+            return;
+        }
+
+        $current_user_id = get_current_user_id();
+        if (!$current_user_id) {
+            wp_send_json_error(array('message' => 'User not authenticated.'), 401);
+            return;
+        }
+
+        // Handle worker permissions
+        $data_user_id = $current_user_id;
+        if (class_exists('MoBooking\Classes\Auth') && \MoBooking\Classes\Auth::is_user_worker($current_user_id)) {
+            $owner_id = \MoBooking\Classes\Auth::get_business_owner_id_for_worker($current_user_id);
+            if ($owner_id) {
+                $data_user_id = $owner_id;
+            }
+        }
+
+        try {
+            // Initialize services manager if not available
+            if (!isset($GLOBALS['mobooking_services_manager'])) {
+                $GLOBALS['mobooking_services_manager'] = new \MoBooking\Classes\Services();
+            }
+
+            $services_manager = $GLOBALS['mobooking_services_manager'];
+            $limit = isset($_POST['limit']) ? intval($_POST['limit']) : 5;
+            
+            $top_services = $services_manager->get_top_services($data_user_id, $limit);
+            wp_send_json_success(array('top_services' => $top_services));
+        } catch (Exception $e) {
+            wp_send_json_error(array('message' => 'Failed to load top services: ' . $e->getMessage()), 500);
+        }
+    }
+}
+
+// AJAX handler for chart data
+add_action('wp_ajax_mobooking_get_chart_data', 'mobooking_ajax_get_chart_data');
+if (!function_exists('mobooking_ajax_get_chart_data')) {
+    function mobooking_ajax_get_chart_data() {
+        // Security check
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'mobooking_dashboard_nonce')) {
+            wp_send_json_error(array('message' => 'Security check failed: Invalid nonce.'), 403);
+            return;
+        }
+
+        $current_user_id = get_current_user_id();
+        if (!$current_user_id) {
+            wp_send_json_error(array('message' => 'User not authenticated.'), 401);
+            return;
+        }
+
+        // Handle worker permissions
+        $data_user_id = $current_user_id;
+        if (class_exists('MoBooking\Classes\Auth') && \MoBooking\Classes\Auth::is_user_worker($current_user_id)) {
+            $owner_id = \MoBooking\Classes\Auth::get_business_owner_id_for_worker($current_user_id);
+            if ($owner_id) {
+                $data_user_id = $owner_id;
+            }
+        }
+
+        $period = isset($_POST['period']) ? sanitize_text_field($_POST['period']) : 'week';
+
+        try {
+            // Initialize bookings manager if not available
+            if (!isset($GLOBALS['mobooking_bookings_manager'])) {
+                $GLOBALS['mobooking_bookings_manager'] = new \MoBooking\Classes\Bookings();
+            }
+
+            $bookings_manager = $GLOBALS['mobooking_bookings_manager'];
+            $chart_data = $bookings_manager->get_chart_data($data_user_id, $period);
+
+            wp_send_json_success($chart_data);
+        } catch (Exception $e) {
+            wp_send_json_error(array('message' => 'Failed to load chart data: ' . $e->getMessage()), 500);
+        }
+    }
+}
+
+// Error logging function for debugging
+if (!function_exists('mobooking_log_ajax_error')) {
+    function mobooking_log_ajax_error($message, $context = array()) {
+        if (WP_DEBUG && WP_DEBUG_LOG) {
+            error_log('[MoBooking AJAX Error] ' . $message . ' Context: ' . print_r($context, true));
+        }
+    }
+}
+
+// Add debugging handler for admin-ajax.php
+add_action('wp_ajax_mobooking_debug_ajax', 'mobooking_debug_ajax_handler');
+if (!function_exists('mobooking_debug_ajax_handler')) {
+    function mobooking_debug_ajax_handler() {
+        $debug_info = array(
+            'ajax_url' => admin_url('admin-ajax.php'),
+            'current_user' => get_current_user_id(),
+            'nonce_valid' => wp_verify_nonce($_POST['nonce'] ?? '', 'mobooking_dashboard_nonce'),
+            'globals_available' => array(
+                'services_manager' => isset($GLOBALS['mobooking_services_manager']),
+                'bookings_manager' => isset($GLOBALS['mobooking_bookings_manager']),
+            ),
+            'classes_available' => array(
+                'Services' => class_exists('MoBooking\Classes\Services'),
+                'Bookings' => class_exists('MoBooking\Classes\Bookings'),
+                'Customers' => class_exists('MoBooking\Classes\Customers'),
+                'Auth' => class_exists('MoBooking\Classes\Auth'),
+            ),
+            'wp_debug' => WP_DEBUG,
+            'wp_debug_log' => WP_DEBUG_LOG,
+        );
+
+        wp_send_json_success($debug_info);
+    }
+}
 ?>

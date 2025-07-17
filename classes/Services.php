@@ -1140,4 +1140,52 @@ public function handle_get_public_services_ajax() {
         $preset_icons = self::get_all_preset_icons();
         wp_send_json_success(['icons' => $preset_icons]);
     }
+
+    /**
+     * Get top services by booking count and revenue
+     * Add this method to the Services class
+     */
+    public function get_top_services($tenant_id, $limit = 5) {
+        $services_table = Database::get_table_name('services');
+        $bookings_table = Database::get_table_name('bookings');
+        
+        $sql = "
+            SELECT 
+                s.service_id,
+                s.name,
+                s.price,
+                COUNT(b.booking_id) as bookings_count,
+                SUM(b.total_price) as revenue
+            FROM {$services_table} s
+            LEFT JOIN {$bookings_table} b ON s.service_id = b.service_id AND b.user_id = %d
+            WHERE s.user_id = %d AND s.status = 'active'
+            GROUP BY s.service_id
+            ORDER BY bookings_count DESC, revenue DESC
+            LIMIT %d
+        ";
+        
+        $results = $this->wpdb->get_results(
+            $this->wpdb->prepare($sql, $tenant_id, $tenant_id, $limit),
+            ARRAY_A
+        );
+        
+        return $results ?: [];
+    }
+    /**
+     * Get services count for a tenant
+     * Add this method to the Services class
+     */
+    public function get_services_count($tenant_id) {
+        $services_table = Database::get_table_name('services');
+        
+        $count = $this->wpdb->get_var(
+            $this->wpdb->prepare(
+                "SELECT COUNT(*) FROM {$services_table} WHERE user_id = %d AND status = 'active'",
+                $tenant_id
+            )
+        );
+        
+        return intval($count);
+    }
+
 }
