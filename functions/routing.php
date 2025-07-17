@@ -15,7 +15,6 @@ function mobooking_flush_rewrite_rules_on_activation_deactivation() {
 }
 add_action('after_switch_theme', 'mobooking_flush_rewrite_rules_on_activation_deactivation');
 add_action('switch_theme', 'mobooking_flush_rewrite_rules_on_activation_deactivation'); // Flushes on deactivation too
-add_action( 'wp_enqueue_scripts', 'mobooking_enqueue_dashboard_scripts' );
 
 // Function to handle script enqueuing (was mobooking_enqueue_dashboard_scripts)
 // No changes needed to its definition, only to its invocation if necessary
