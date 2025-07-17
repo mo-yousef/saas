@@ -53,11 +53,11 @@ if ( $current_user_id > 0 ) {
         </a>
     </div>
 
-    <?php if ( ! empty( $user_mobooking_role_display_name ) ) : ?>
+    <!-- <?php if ( ! empty( $user_mobooking_role_display_name ) ) : ?>
         <div class="dashboard-user-role" style="padding: 10px 1rem; color: #E0E0E0;background-color: rgba(0,0,0,0.1);">
             <?php echo esc_html( sprintf( __( 'Role: %s', 'mobooking' ), $user_mobooking_role_display_name ) ); ?>
         </div>
-    <?php endif; ?>
+    <?php endif; ?> -->
 
     <nav class="dashboard-nav">
         <div class="nav-group">
