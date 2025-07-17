@@ -1453,5 +1453,255 @@ foreach ($calculated_service_items as $service_item) {
             'bookings' => $bookings ?: [],
         ];
     }
+
+
+
+// Add these methods to classes/Services.php
+
+    /**
+     * Get top services by booking count
+     * @param int $user_id
+     * @param int $limit
+     * @return array
+     */
+    public function get_top_services(int $user_id, int $limit = 5) {
+        if (empty($user_id)) {
+            return [];
+        }
+        
+        $services_table = Database::get_table_name('services');
+        $bookings_table = Database::get_table_name('bookings');
+        
+        $sql = "SELECT s.service_id, s.name, s.price, 
+                       COUNT(b.booking_id) as booking_count,
+                       SUM(b.total_price) as total_revenue
+                FROM $services_table s
+                LEFT JOIN $bookings_table b ON s.service_id = b.service_id AND b.user_id = %d
+                WHERE s.user_id = %d AND s.status = 'active'
+                GROUP BY s.service_id
+                ORDER BY booking_count DESC, total_revenue DESC
+                LIMIT %d";
+        
+        $results = $this->wpdb->get_results($this->wpdb->prepare($sql, $user_id, $user_id, $limit), ARRAY_A);
+        
+        if (!$results) {
+            return [];
+        }
+        
+        // Format the results
+        return array_map(function($service) {
+            return [
+                'service_id' => intval($service['service_id']),
+                'name' => $service['name'],
+                'price' => floatval($service['price']),
+                'booking_count' => intval($service['booking_count']),
+                'revenue' => floatval($service['total_revenue'] ?? 0)
+            ];
+        }, $results);
+    }
+
+    /**
+     * Get services count for a user
+     * @param int $user_id
+     * @return int
+     */
+    public function get_services_count(int $user_id) {
+        if (empty($user_id)) {
+            return 0;
+        }
+        
+        $table_name = Database::get_table_name('services');
+        $count = $this->wpdb->get_var($this->wpdb->prepare(
+            "SELECT COUNT(*) FROM $table_name WHERE user_id = %d AND status = 'active'",
+            $user_id
+        ));
+        
+        return intval($count);
+    }
+
+// Add these methods to classes/Bookings.php
+
+    /**
+     * Get live activity feed for dashboard
+     * @param int $user_id
+     * @param int $limit
+     * @return array
+     */
+    public function get_live_activity(int $user_id, int $limit = 10) {
+        if (empty($user_id)) {
+            return [];
+        }
+        
+        $table_name = Database::get_table_name('bookings');
+        
+        $results = $this->wpdb->get_results($this->wpdb->prepare(
+            "SELECT booking_id, booking_reference, customer_name, customer_email, 
+                    booking_date, booking_time, status, total_price, created_at
+             FROM $table_name 
+             WHERE user_id = %d 
+             ORDER BY created_at DESC 
+             LIMIT %d",
+            $user_id, $limit
+        ), ARRAY_A);
+        
+        if (!$results) {
+            return [];
+        }
+        
+        // Format activities for the frontend
+        return array_map(function($booking) {
+            $type = $this->get_activity_type($booking['status']);
+            return [
+                'type' => $type,
+                'text' => $this->get_activity_text($booking),
+                'timestamp' => $booking['created_at'],
+                'status' => $booking['status'],
+                'booking_id' => $booking['booking_id'],
+                'customer_name' => $booking['customer_name']
+            ];
+        }, $results);
+    }
+
+    /**
+     * Get activity type based on booking status
+     * @param string $status
+     * @return string
+     */
+    private function get_activity_type($status) {
+        $types = [
+            'pending' => 'booking_created',
+            'confirmed' => 'booking_confirmed', 
+            'completed' => 'booking_completed',
+            'cancelled' => 'booking_cancelled'
+        ];
+        
+        return $types[$status] ?? 'booking_created';
+    }
+
+    /**
+     * Get activity text for dashboard feed
+     * @param array $booking
+     * @return string
+     */
+    private function get_activity_text($booking) {
+        $customer_name = $booking['customer_name'] ?? 'Unknown Customer';
+        $date = date('M j', strtotime($booking['booking_date']));
+        $price = number_format($booking['total_price'], 2);
+        
+        switch ($booking['status']) {
+            case 'confirmed':
+                return sprintf('%s confirmed booking for %s ($%s)', $customer_name, $date, $price);
+            case 'completed':
+                return sprintf('%s completed booking for %s ($%s)', $customer_name, $date, $price);
+            case 'cancelled':
+                return sprintf('%s cancelled booking for %s', $customer_name, $date);
+            default:
+                return sprintf('%s created new booking for %s ($%s)', $customer_name, $date, $price);
+        }
+    }
+
+    /**
+     * Get booking chart data for dashboard
+     * @param int $user_id
+     * @param string $period (week, month, year)
+     * @return array
+     */
+    public function get_booking_chart_data(int $user_id, string $period = 'week') {
+        if (empty($user_id)) {
+            return [];
+        }
+        
+        $table_name = Database::get_table_name('bookings');
+        
+        // Define date range based on period
+        switch ($period) {
+            case 'year':
+                $date_condition = "booking_date >= DATE_SUB(NOW(), INTERVAL 1 YEAR)";
+                break;
+            case 'month':
+                $date_condition = "booking_date >= DATE_SUB(NOW(), INTERVAL 1 MONTH)";
+                break;
+            default:
+                $date_condition = "booking_date >= DATE_SUB(NOW(), INTERVAL 1 WEEK)";
+                break;
+        }
+        
+        $results = $this->wpdb->get_results($this->wpdb->prepare(
+            "SELECT status, COUNT(*) as count
+             FROM $table_name 
+             WHERE user_id = %d AND $date_condition
+             GROUP BY status",
+            $user_id
+        ), ARRAY_A);
+        
+        // Default statuses
+        $statuses = ['pending', 'confirmed', 'completed', 'cancelled'];
+        $data = array_fill_keys($statuses, 0);
+        
+        // Fill with actual data
+        foreach ($results as $row) {
+            $data[$row['status']] = intval($row['count']);
+        }
+        
+        return [
+            'labels' => ['Pending', 'Confirmed', 'Completed', 'Cancelled'],
+            'values' => array_values($data)
+        ];
+    }
+
+// Add this method to classes/Customers.php (or create the class if it doesn't exist)
+
+    /**
+     * Get customer insights for dashboard
+     * @param int $user_id
+     * @return array
+     */
+    public function get_customer_insights(int $user_id) {
+        if (empty($user_id)) {
+            return [
+                'new_customers' => 0,
+                'returning_customers' => 0,
+                'retention_rate' => 0
+            ];
+        }
+        
+        $bookings_table = Database::get_table_name('bookings');
+        
+        // Get unique customers this month
+        $new_customers = $this->wpdb->get_var($this->wpdb->prepare(
+            "SELECT COUNT(DISTINCT customer_email) 
+             FROM $bookings_table 
+             WHERE user_id = %d 
+             AND created_at >= DATE_SUB(NOW(), INTERVAL 1 MONTH)",
+            $user_id
+        ));
+        
+        // Get returning customers (customers with more than 1 booking)
+        $returning_customers = $this->wpdb->get_var($this->wpdb->prepare(
+            "SELECT COUNT(*) FROM (
+                SELECT customer_email, COUNT(*) as booking_count
+                FROM $bookings_table 
+                WHERE user_id = %d 
+                GROUP BY customer_email 
+                HAVING booking_count > 1
+            ) as repeat_customers",
+            $user_id
+        ));
+        
+        // Calculate retention rate
+        $total_customers = $this->wpdb->get_var($this->wpdb->prepare(
+            "SELECT COUNT(DISTINCT customer_email) FROM $bookings_table WHERE user_id = %d",
+            $user_id
+        ));
+        
+        $retention_rate = $total_customers > 0 ? round(($returning_customers / $total_customers) * 100, 1) : 0;
+        
+        return [
+            'new_customers' => intval($new_customers),
+            'returning_customers' => intval($returning_customers),
+            'retention_rate' => floatval($retention_rate)
+        ];
+    }
+
 }
 ?>
