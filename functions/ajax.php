@@ -67,20 +67,6 @@ if ( ! function_exists( 'mobooking_ajax_get_recent_bookings' ) ) {
 add_action('wp_ajax_mobooking_get_all_bookings_for_calendar', 'mobooking_ajax_get_all_bookings_for_calendar');
 if ( ! function_exists( 'mobooking_ajax_get_all_bookings_for_calendar' ) ) {
     function mobooking_ajax_get_all_bookings_for_calendar() {
-        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'mobooking_dashboard_nonce')) {
-            wp_send_json_error(array('message' => 'Security check failed: Invalid nonce.'), 403); return;
-        }
-        // Forcing a simple success for now to test AJAX plumbing
-        wp_send_json_success(array(
-            array('id' => 'test1', 'title' => 'Calendar Test Event', 'start' => date('Y-m-d'))
-        ));
-        return;
-    }
-}
-// AJAX handler for fetching all bookings for FullCalendar
-add_action('wp_ajax_mobooking_get_all_bookings_for_calendar', 'mobooking_ajax_get_all_bookings_for_calendar');
-if ( ! function_exists( 'mobooking_ajax_get_all_bookings_for_calendar' ) ) {
-    function mobooking_ajax_get_all_bookings_for_calendar() {
         // Verify nonce
         if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'mobooking_dashboard_nonce')) {
             wp_send_json_error(array('message' => 'Security check failed: Invalid nonce.'), 403);
