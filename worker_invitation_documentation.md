@@ -1,10 +1,10 @@
 # Managing Your Workers
 
-This guide explains how to use the Worker Invitation feature to add team members to your MoBooking dashboard and manage their access.
+This guide explains how to use the Worker Invitation feature to add team members to your Nord Booking dashboard and manage their access.
 
 ## 1. Feature Overview
 
-The Worker Invitation feature allows you as a Business Owner to invite team members (workers) to access your MoBooking dashboard. This helps you delegate tasks like managing bookings, services, and more, without sharing your primary account details. Each worker gets their own login and specific permissions based on the role you assign them.
+The Worker Invitation feature allows you as a Business Owner to invite team members (workers) to access your Nord Booking dashboard. This helps you delegate tasks like managing bookings, services, and more, without sharing your primary account details. Each worker gets their own login and specific permissions based on the role you assign them.
 
 **Benefits:**
 
@@ -15,7 +15,7 @@ The Worker Invitation feature allows you as a Business Owner to invite team memb
 
 ## 2. Understanding Worker Roles
 
-When you invite a worker, you'll assign them a specific role. Each role has different permissions within the MoBooking dashboard:
+When you invite a worker, you'll assign them a specific role. Each role has different permissions within the Nord Booking dashboard:
 
 *   **Manager (`mobooking_worker_manager`)**
     *   **Dashboard Access:** Full access to most operational areas of the dashboard.
@@ -52,7 +52,7 @@ All worker roles also have basic 'read' access to WordPress, which is standard.
 Follow these steps to invite a new worker:
 
 1.  **Navigate to Manage Workers:**
-    *   Log in to your MoBooking dashboard.
+    *   Log in to your Nord Booking dashboard.
     *   In the sidebar navigation, click on "Workers".
 
 2.  **Use the Invitation Form:**
@@ -68,18 +68,18 @@ Follow these steps to invite a new worker:
 
 Once you've sent an invitation, here's what the invited worker needs to do:
 
-1.  **Check Email:** They will receive an email from your business (via MoBooking) with the subject "You have been invited to [Your Business Name]".
+1.  **Check Email:** They will receive an email from your business (via Nord Booking) with the subject "You have been invited to [Your Business Name]".
 2.  **Click Registration Link:** The email contains a unique link to complete their registration. This link is valid for 7 days.
 3.  **Complete Registration:**
     *   The registration page will have their email address pre-filled.
     *   They will need to choose a password and complete any other required fields on the simple registration form.
-    *   Upon successful registration, they will be able to log in to the MoBooking dashboard with the permissions you assigned.
+    *   Upon successful registration, they will be able to log in to the Nord Booking dashboard with the permissions you assigned.
 
 ## 5. Managing Your Workers
 
 On the "Manage Workers" page, below the invitation form, you'll see a list of "Current Workers" associated with your business.
 
-*   **Viewing Workers:** The table displays each worker's email address and their currently assigned MoBooking role.
+*   **Viewing Workers:** The table displays each worker's email address and their currently assigned Nord Booking role.
 
 *   **Changing a Worker's Role:**
     1.  Find the worker in the list.
@@ -93,9 +93,9 @@ On the "Manage Workers" page, below the invitation form, you'll see a list of "C
     2.  In the "Actions" column, click the "Revoke Access" button.
     3.  A confirmation prompt will appear to ensure you want to proceed.
     4.  If you confirm:
-        *   The worker's specific MoBooking roles (Manager, Staff, Viewer) will be removed.
+        *   The worker's specific Nord Booking roles (Manager, Staff, Viewer) will be removed.
         *   Their association with your business account will be deleted.
-        *   If the worker has no other roles on your WordPress site (e.g., if they were only a worker for your MoBooking system), their account will be set to a standard 'Subscriber' role. This means they can still log into your WordPress site but will not have access to the MoBooking dashboard or its functionalities.
+        *   If the worker has no other roles on your WordPress site (e.g., if they were only a worker for your Nord Booking system), their account will be set to a standard 'Subscriber' role. This means they can still log into your WordPress site but will not have access to the Nord Booking dashboard or its functionalities.
         *   The worker will be removed from your "Current Workers" list.
         *   You'll see a confirmation message. This action cannot be undone directly; you would need to re-invite them if you wish to grant access again.
 
@@ -115,5 +115,5 @@ On the "Manage Workers" page, below the invitation form, you'll see a list of "C
 
 ---
 
-We hope this guide helps you effectively manage your team with MoBooking!
+We hope this guide helps you effectively manage your team with Nord Booking!
 If you have further questions, please refer to our main support documentation or contact our support team.
