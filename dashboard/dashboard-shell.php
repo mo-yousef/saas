@@ -34,6 +34,23 @@ if ( ! function_exists( 'mobooking_dashboard_enqueue_styles_fix' ) ) {
                 // Log error if CSS file itself is not found
                 error_log('[MoBooking Styles Fix] CSS file not found at: ' . $css_file_abs_path);
             }
+
+            // Enqueue the new enhanced sidebar CSS
+            $sidebar_css_rel_path = '/assets/css/mobooking-dashboard-sidebar-enhanced.css';
+            $sidebar_css_abs_path = get_stylesheet_directory() . $sidebar_css_rel_path;
+            $sidebar_css_url = get_stylesheet_directory_uri() . $sidebar_css_rel_path;
+
+            if (file_exists($sidebar_css_abs_path)) {
+                wp_enqueue_style(
+                    'mobooking-dashboard-sidebar-enhanced',
+                    $sidebar_css_url,
+                    array('mobooking-dashboard-styles'), // Depends on the main dashboard styles
+                    filemtime($sidebar_css_abs_path),
+                    'all'
+                );
+            } else {
+                error_log('[MoBooking Styles Fix] Enhanced sidebar CSS file not found at: ' . $sidebar_css_abs_path);
+            }
         }
     }
     add_action( 'wp_enqueue_scripts', 'mobooking_dashboard_enqueue_styles_fix', 20 );
