@@ -7,9 +7,9 @@
 
 :root {
     --sidebar-background-color: #ffffff;
-    --sidebar-text-color: #333333;
-    --sidebar-link-hover-background-color: #f0f0f0;
-    --sidebar-link-active-background-color: #e0e0e0;
+    --sidebar-text-color: #252b37;
+    --sidebar-link-hover-background-color: #fafafa;
+    --sidebar-link-active-background-color: #fafafa;
     --sidebar-group-separator-color: #eeeeee;
 }
 
@@ -27,11 +27,15 @@
     margin-bottom: 1.5rem;
 }
 
+span.mobooking-menu-icon svg {
+    color: #a4a7ae;
+}
+
 .mobooking-dashboard-sidebar .dashboard-nav .nav-group-title {
     font-size: 0.8rem;
     font-weight: 600;
     text-transform: uppercase;
-    color: #999;
+    color: #717680;
     padding: 0 1rem;
     margin-bottom: 0.5rem;
 }
