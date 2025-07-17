@@ -1,0 +1,89 @@
+/**
+ * MoBooking Dashboard Sidebar Enhanced Styles
+ *
+ * This file contains styles for the enhanced MoBooking dashboard sidebar, including
+ * a white background, better link grouping, and a subscription plan box.
+ */
+
+:root {
+    --sidebar-background-color: #ffffff;
+    --sidebar-text-color: #333333;
+    --sidebar-link-hover-background-color: #f0f0f0;
+    --sidebar-link-active-background-color: #e0e0e0;
+    --sidebar-group-separator-color: #eeeeee;
+}
+
+.mobooking-dashboard-sidebar {
+    background-color: var(--sidebar-background-color);
+    color: var(--sidebar-text-color);
+}
+
+.mobooking-dashboard-sidebar .dashboard-nav ul {
+    padding-left: 0;
+    list-style: none;
+}
+
+.mobooking-dashboard-sidebar .dashboard-nav .nav-group {
+    margin-bottom: 1.5rem;
+}
+
+.mobooking-dashboard-sidebar .dashboard-nav .nav-group-title {
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #999;
+    padding: 0 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.mobooking-dashboard-sidebar .dashboard-nav li a {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    color: var(--sidebar-text-color);
+    text-decoration: none;
+    transition: background-color 0.2s ease;
+}
+
+.mobooking-dashboard-sidebar .dashboard-nav li a:hover {
+    background-color: var(--sidebar-link-hover-background-color);
+}
+
+.mobooking-dashboard-sidebar .dashboard-nav li.active a {
+    background-color: var(--sidebar-link-active-background-color);
+    font-weight: 600;
+}
+
+.mobooking-dashboard-sidebar .mobooking-menu-icon {
+    margin-right: 0.75rem;
+}
+
+.mobooking-subscription-plan {
+    padding: 1.5rem;
+    margin-top: auto;
+    border-top: 1px solid var(--sidebar-group-separator-color);
+}
+
+.mobooking-subscription-plan-box {
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    padding: 1rem;
+    text-align: center;
+}
+
+.mobooking-subscription-plan-box h4 {
+    margin: 0 0 0.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.mobooking-subscription-plan-box p {
+    margin: 0 0 1rem;
+    font-size: 0.875rem;
+    color: #666;
+}
+
+.mobooking-subscription-plan-box .mobooking-btn {
+    width: 100%;
+    text-align: center;
+}
