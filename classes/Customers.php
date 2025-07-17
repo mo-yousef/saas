@@ -395,6 +395,62 @@ class Customers {
         ];
     }
 
+
+/**
+ * Get customer insights for dashboard
+ * Add this method to the Customers class
+ */
+public function get_customer_insights($tenant_id) {
+    $customers_table = Database::get_table_name('mob_customers');
+    $bookings_table = Database::get_table_name('bookings');
+    
+    // Get new customers this month
+    $new_customers_month = $this->db->get_var(
+        $this->db->prepare(
+            "SELECT COUNT(*) FROM {$customers_table} 
+             WHERE tenant_id = %d 
+             AND created_at >= DATE_SUB(CURDATE(), INTERVAL 1 MONTH)",
+            $tenant_id
+        )
+    );
+    
+    // Get returning customers (customers with more than 1 booking)
+    $returning_customers = $this->db->get_var(
+        $this->db->prepare(
+            "SELECT COUNT(DISTINCT customer_email) FROM {$bookings_table} 
+             WHERE user_id = %d 
+             AND customer_email IN (
+                 SELECT customer_email FROM {$bookings_table} 
+                 WHERE user_id = %d 
+                 GROUP BY customer_email 
+                 HAVING COUNT(*) > 1
+             )",
+            $tenant_id, $tenant_id
+        )
+    );
+    
+    // Get total customers
+    $total_customers = $this->db->get_var(
+        $this->db->prepare(
+            "SELECT COUNT(DISTINCT customer_email) FROM {$bookings_table} WHERE user_id = %d",
+            $tenant_id
+        )
+    );
+    
+    // Calculate retention rate
+    $retention_rate = 0;
+    if ($total_customers > 0) {
+        $retention_rate = round(($returning_customers / $total_customers) * 100, 1);
+    }
+    
+    return [
+        'new_customers' => intval($new_customers_month ?: 0),
+        'returning_customers' => intval($returning_customers ?: 0),
+        'total_customers' => intval($total_customers ?: 0),
+        'retention_rate' => $retention_rate
+    ];
+}
+
 }
 
 // Initialize and register AJAX actions (if not already handled by a central manager)

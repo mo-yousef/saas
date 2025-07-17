@@ -1,6 +1,6 @@
 /**
- * MoBooking Dashboard Overview - Refactored Version
- * Focused on KPIs, live activity, and business insights
+ * MoBooking Dashboard Overview - Fixed Version
+ * Corrected AJAX action names and improved error handling
  */
 
 jQuery(document).ready(function ($) {
@@ -19,6 +19,16 @@ jQuery(document).ready(function ($) {
   function initializeDashboard() {
     console.log("🚀 Initializing MoBooking Dashboard Overview...");
 
+    // Check if required parameters are available
+    if (!mobooking_overview_params.ajax_url || !dashboardNonce) {
+      console.error("❌ Missing required parameters:", {
+        ajax_url: mobooking_overview_params.ajax_url,
+        nonce: dashboardNonce,
+      });
+      showErrorMessage("Configuration error: Missing required parameters");
+      return;
+    }
+
     // Load all data
     loadKPIData();
     loadLiveActivityFeed();
@@ -35,186 +45,226 @@ jQuery(document).ready(function ($) {
   }
 
   function loadKPIData() {
-    if (!mobooking_overview_params.ajax_url || !dashboardNonce) {
-      console.error("❌ AJAX URL or nonce not defined");
-      showFallbackKPIs();
-      return;
-    }
+    console.log("📊 Loading KPI data...");
 
     // Show loading indicators
     $(".kpi-value .loading").show();
+    $(".kpi-value").not(".loading").hide();
 
     $.ajax({
       url: mobooking_overview_params.ajax_url,
       type: "POST",
       data: {
-        action: "mobooking_get_dashboard_kpi_data",
+        action: "mobooking_get_dashboard_kpi_data", // Fixed action name
         nonce: dashboardNonce,
       },
+      timeout: 30000, // 30 second timeout
       success: function (response) {
         console.log("📊 KPI Response:", response);
+
         if (response.success && response.data) {
           updateKPIs(response.data);
         } else {
-          console.warn("⚠️ KPI Response not successful, using fallback");
+          console.warn("⚠️ KPI Response not successful:", response);
           showFallbackKPIs();
+          if (response.data && response.data.message) {
+            showErrorMessage("KPI Error: " + response.data.message);
+          }
         }
       },
       error: function (xhr, status, error) {
-        console.error("❌ KPI AJAX Error:", error);
+        console.error("❌ KPI AJAX Error:", {
+          status: status,
+          error: error,
+          responseText: xhr.responseText,
+          statusCode: xhr.status,
+        });
+
         showFallbackKPIs();
+
+        // Show user-friendly error message
+        if (xhr.status === 500) {
+          showErrorMessage(
+            "Server error loading dashboard data. Please check server logs."
+          );
+        } else if (xhr.status === 403) {
+          showErrorMessage(
+            "Access denied. Please refresh the page and try again."
+          );
+        } else {
+          showErrorMessage("Failed to load dashboard data. Please try again.");
+        }
+      },
+      complete: function () {
+        $(".kpi-value .loading").hide();
+        $(".kpi-value").not(".loading").show();
       },
     });
   }
 
   function updateKPIs(data) {
-    // Update each KPI with animation
-    animateValue("kpi-bookings-today", data.bookings_today || 0);
-    animateValue("kpi-bookings-month", data.bookings_month || 0);
-    animateValue("kpi-upcoming-count", data.upcoming_count || 0);
-    animateValue("kpi-completed-count", data.completed_count || 0);
-    animateValue("kpi-cancelled-count", data.cancelled_count || 0);
-    animateValue("kpi-new-customers", data.new_customers || 0);
+    console.log("📈 Updating KPIs with data:", data);
 
-    // Revenue and average booking value (only for non-workers)
-    if (!isWorker) {
-      const revenueValue = parseFloat(data.revenue_month || 0);
-      const avgBookingValue = parseFloat(data.avg_booking_value || 0);
+    // Update each KPI with safe fallbacks
+    const kpis = [
+      { selector: "#kpi-total-bookings", value: data.total_bookings || 0 },
+      { selector: "#kpi-pending-bookings", value: data.pending_bookings || 0 },
+      {
+        selector: "#kpi-revenue-month",
+        value: data.revenue_month || 0,
+        isCurrency: true,
+      },
+      { selector: "#kpi-services-count", value: data.services_count || 0 },
+      {
+        selector: "#kpi-revenue-today",
+        value: data.revenue_today || 0,
+        isCurrency: true,
+      },
+      { selector: "#kpi-bookings-today", value: data.bookings_today || 0 },
+      {
+        selector: "#kpi-confirmed-bookings",
+        value: data.confirmed_bookings || 0,
+      },
+      {
+        selector: "#kpi-completed-bookings",
+        value: data.completed_bookings || 0,
+      },
+    ];
 
-      $("#kpi-revenue-month").text(currencySymbol + revenueValue.toFixed(2));
-      $("#kpi-avg-booking-value").text(
-        currencySymbol + avgBookingValue.toFixed(2)
-      );
-    }
-
-    // Update trends
-    updateTrends(data.trends || {});
-  }
-
-  function animateValue(elementId, endValue, duration = 1000) {
-    const element = $("#" + elementId);
-    const startValue = 0;
-    const increment = endValue / (duration / 16);
-    let currentValue = startValue;
-
-    const timer = setInterval(function () {
-      currentValue += increment;
-      if (currentValue >= endValue) {
-        currentValue = endValue;
-        clearInterval(timer);
+    kpis.forEach(function (kpi) {
+      const element = $(kpi.selector);
+      if (element.length > 0) {
+        let displayValue = kpi.value;
+        if (kpi.isCurrency) {
+          displayValue = currencySymbol + parseFloat(kpi.value).toFixed(2);
+        }
+        element.text(displayValue);
+        element.removeClass("loading");
       }
-      element.text(Math.floor(currentValue));
-    }, 16);
-  }
-
-  function updateTrends(trends) {
-    // Update trend indicators based on data
-    Object.keys(trends).forEach((key) => {
-      const trendElement = $("#" + key + "-trend");
-      const trend = trends[key];
-
-      if (trend.direction === "up") {
-        trendElement.removeClass("negative neutral").addClass("positive");
-        trendElement.find("span:first-child").text("↗");
-      } else if (trend.direction === "down") {
-        trendElement.removeClass("positive neutral").addClass("negative");
-        trendElement.find("span:first-child").text("↘");
-      } else {
-        trendElement.removeClass("positive negative").addClass("neutral");
-        trendElement.find("span:first-child").text("→");
-      }
-
-      // Update trend text
-      const trendText = trendElement.text().replace(/^[→↗↘]\s*/, "");
-      trendElement.html(
-        `<span>${trendElement.find("span:first-child").text()}</span> ${
-          trend.text || trendText
-        }`
-      );
     });
+
+    // Hide loading indicators
+    $(".kpi-value .loading").hide();
   }
 
   function showFallbackKPIs() {
-    $(".kpi-value").each(function () {
-      $(this).text("--");
+    console.log("📊 Showing fallback KPIs");
+
+    const fallbackKPIs = [
+      { selector: "#kpi-total-bookings", value: "0" },
+      { selector: "#kpi-pending-bookings", value: "0" },
+      { selector: "#kpi-revenue-month", value: currencySymbol + "0.00" },
+      { selector: "#kpi-services-count", value: "0" },
+      { selector: "#kpi-revenue-today", value: currencySymbol + "0.00" },
+      { selector: "#kpi-bookings-today", value: "0" },
+      { selector: "#kpi-confirmed-bookings", value: "0" },
+      { selector: "#kpi-completed-bookings", value: "0" },
+    ];
+
+    fallbackKPIs.forEach(function (kpi) {
+      const element = $(kpi.selector);
+      if (element.length > 0) {
+        element.text(kpi.value);
+        element.removeClass("loading");
+      }
     });
+
+    $(".kpi-value .loading").hide();
   }
 
   function loadLiveActivityFeed() {
-    const container = $("#live-activity-feed");
+    console.log("📡 Loading recent bookings...");
 
     $.ajax({
       url: mobooking_overview_params.ajax_url,
       type: "POST",
       data: {
-        action: "mobooking_get_live_activity",
+        action: "mobooking_get_recent_bookings",
         nonce: dashboardNonce,
-        limit: 10,
+        limit: 5,
       },
+      timeout: 30000,
       success: function (response) {
-        if (response.success && response.data) {
-          renderActivityFeed(response.data, container);
+        console.log("📡 Recent bookings response:", response);
+
+        if (
+          response.success &&
+          response.data &&
+          response.data.recent_bookings
+        ) {
+          updateLiveActivityFeed(response.data.recent_bookings);
         } else {
-          container.html('<p class="no-data">No recent activity found.</p>');
+          console.warn("⚠️ Recent bookings response not successful:", response);
+          showEmptyActivityFeed();
         }
       },
-      error: function () {
-        container.html(
-          '<p class="error-message">Error loading activity feed.</p>'
-        );
+      error: function (xhr, status, error) {
+        console.error("❌ Recent bookings AJAX error:", {
+          status: status,
+          error: error,
+          responseText: xhr.responseText,
+        });
+        showEmptyActivityFeed();
       },
     });
   }
 
-  function renderActivityFeed(activities, container) {
-    if (!activities || activities.length === 0) {
-      container.html('<p class="no-data">No recent activity found.</p>');
+  function updateLiveActivityFeed(bookings) {
+    const container = $("#live-activity-feed");
+    if (container.length === 0) return;
+
+    if (!bookings || bookings.length === 0) {
+      container.html(
+        '<div class="no-activity">No recent bookings found.</div>'
+      );
       return;
     }
 
-    let html = '<div class="activity-list">';
-    activities.forEach((activity) => {
+    let html = "";
+    bookings.forEach(function (booking) {
+      const bookingDate = new Date(
+        booking.booking_date + " " + booking.booking_time
+      );
+      const formattedDate = bookingDate.toLocaleDateString();
+      const formattedTime = bookingDate.toLocaleTimeString();
+
       html += `
-                <div class="activity-item">
-                    <div class="activity-icon ${activity.type}">
-                        ${getActivityIcon(activity.type)}
-                    </div>
-                    <div class="activity-content">
-                        <div class="activity-text">${escapeHtml(
-                          activity.text
-                        )}</div>
-                        <div class="activity-time">${getTimeAgo(
-                          activity.timestamp
-                        )}</div>
-                    </div>
-                    <div class="activity-status">
-                        <span class="status-badge status-${activity.status}">${
-        activity.status
+        <div class="activity-item">
+          <div class="activity-content">
+            <div class="activity-title">${escapeHtml(
+              booking.customer_name || "N/A"
+            )}</div>
+            <div class="activity-details">
+              <span class="activity-ref">#${escapeHtml(
+                booking.booking_reference || "N/A"
+              )}</span>
+              <span class="activity-date">${formattedDate} at ${formattedTime}</span>
+              <span class="activity-status status-${booking.status}">${
+        booking.status || "pending"
       }</span>
-                    </div>
-                </div>
-            `;
+            </div>
+          </div>
+          <div class="activity-price">
+            ${currencySymbol}${parseFloat(booking.total_price || 0).toFixed(2)}
+          </div>
+        </div>
+      `;
     });
-    html += "</div>";
 
     container.html(html);
   }
 
-  function getActivityIcon(type) {
-    const icons = {
-      booking_created: "📅",
-      booking_confirmed: "✅",
-      booking_completed: "🏁",
-      booking_cancelled: "❌",
-      payment_received: "💰",
-      customer_registered: "👥",
-      service_updated: "🧹",
-    };
-    return icons[type] || "📋";
+  function showEmptyActivityFeed() {
+    const container = $("#live-activity-feed");
+    if (container.length > 0) {
+      container.html(
+        '<div class="no-activity">No recent bookings available.</div>'
+      );
+    }
   }
 
   function loadTopServices() {
-    const container = $("#top-services-list");
+    console.log("🏆 Loading top services...");
 
     $.ajax({
       url: mobooking_overview_params.ajax_url,
@@ -224,65 +274,78 @@ jQuery(document).ready(function ($) {
         nonce: dashboardNonce,
         limit: 5,
       },
+      timeout: 30000,
       success: function (response) {
-        if (response.success && response.data) {
-          renderTopServices(response.data, container);
+        console.log("🏆 Top services response:", response);
+
+        if (response.success && response.data && response.data.top_services) {
+          updateTopServices(response.data.top_services);
         } else {
-          container.html('<p class="no-data">No services data available.</p>');
+          console.warn("⚠️ Top services response not successful:", response);
+          showEmptyTopServices();
         }
       },
-      error: function () {
-        container.html(
-          '<p class="error-message">Error loading top services.</p>'
-        );
+      error: function (xhr, status, error) {
+        console.error("❌ Top services AJAX error:", {
+          status: status,
+          error: error,
+          responseText: xhr.responseText,
+        });
+        showEmptyTopServices();
       },
     });
   }
 
-  function renderTopServices(services, container) {
+  function updateTopServices(services) {
+    const container = $("#top-services-list");
+    if (container.length === 0) return;
+
     if (!services || services.length === 0) {
-      container.html('<p class="no-data">No services found.</p>');
+      container.html(
+        '<div class="no-services">No services data available.</div>'
+      );
       return;
     }
 
-    let html = '<div class="services-list">';
-    services.forEach((service, index) => {
-      const rankIcon =
-        index === 0
-          ? "🥇"
-          : index === 1
-          ? "🥈"
-          : index === 2
-          ? "🥉"
-          : `${index + 1}.`;
+    let html = '<div class="services-grid">';
+    services.forEach(function (service) {
       html += `
-                <div class="service-item">
-                    <div class="service-rank">${rankIcon}</div>
-                    <div class="service-info">
-                        <div class="service-name">${escapeHtml(
-                          service.name
-                        )}</div>
-                        <div class="service-bookings">${
-                          service.booking_count
-                        } bookings</div>
-                    </div>
-                    <div class="service-revenue">
-                        ${
-                          !isWorker
-                            ? currencySymbol +
-                              parseFloat(service.revenue || 0).toFixed(2)
-                            : ""
-                        }
-                    </div>
-                </div>
-            `;
+        <div class="service-item">
+          <div class="service-info">
+            <div class="service-name">${escapeHtml(service.name || "N/A")}</div>
+            <div class="service-stats">
+              <span class="service-bookings">${
+                service.bookings_count || 0
+              } bookings</span>
+              ${
+                service.revenue
+                  ? `<span class="service-revenue">${currencySymbol}${parseFloat(
+                      service.revenue
+                    ).toFixed(2)}</span>`
+                  : ""
+              }
+            </div>
+          </div>
+        </div>
+      `;
     });
     html += "</div>";
 
     container.html(html);
   }
 
+  function showEmptyTopServices() {
+    const container = $("#top-services-list");
+    if (container.length > 0) {
+      container.html(
+        '<div class="no-services">No services data available.</div>'
+      );
+    }
+  }
+
   function loadCustomerInsights() {
+    console.log("👥 Loading customer insights...");
+
     $.ajax({
       url: mobooking_overview_params.ajax_url,
       type: "POST",
@@ -290,13 +353,27 @@ jQuery(document).ready(function ($) {
         action: "mobooking_get_customer_insights",
         nonce: dashboardNonce,
       },
+      timeout: 30000,
       success: function (response) {
+        console.log("👥 Customer insights response:", response);
+
         if (response.success && response.data) {
           updateCustomerInsights(response.data);
+        } else {
+          console.warn(
+            "⚠️ Customer insights response not successful:",
+            response
+          );
+          showFallbackCustomerInsights();
         }
       },
-      error: function () {
-        console.error("Error loading customer insights");
+      error: function (xhr, status, error) {
+        console.error("❌ Customer insights AJAX error:", {
+          status: status,
+          error: error,
+          responseText: xhr.responseText,
+        });
+        showFallbackCustomerInsights();
       },
     });
   }
@@ -315,19 +392,29 @@ jQuery(document).ready(function ($) {
       $("#insight-returning-percentage").text(
         Math.round((data.returning_customers / total) * 100) + "%"
       );
+    } else {
+      $("#insight-new-percentage").text("0%");
+      $("#insight-returning-percentage").text("0%");
     }
-    $("#insight-retention-percentage").text((data.retention_rate || 0) + "%");
+  }
+
+  function showFallbackCustomerInsights() {
+    $("#insight-new-customers").text("0");
+    $("#insight-returning-customers").text("0");
+    $("#insight-retention-rate").text("0%");
+    $("#insight-new-percentage").text("0%");
+    $("#insight-returning-percentage").text("0%");
   }
 
   function initializeBookingStatusChart() {
     const ctx = document.getElementById("booking-status-chart");
     if (!ctx) {
-      console.warn("Chart canvas not found");
+      console.warn("📊 Chart canvas not found");
       return;
     }
 
     if (typeof Chart === "undefined") {
-      console.error("Chart.js is not loaded");
+      console.error("❌ Chart.js is not loaded");
       return;
     }
 
@@ -336,6 +423,8 @@ jQuery(document).ready(function ($) {
   }
 
   function loadChartData(period) {
+    console.log("📊 Loading chart data for period:", period);
+
     $.ajax({
       url: mobooking_overview_params.ajax_url,
       type: "POST",
@@ -344,47 +433,50 @@ jQuery(document).ready(function ($) {
         nonce: dashboardNonce,
         period: period,
       },
+      timeout: 30000,
       success: function (response) {
+        console.log("📊 Chart data response:", response);
+
         if (response.success && response.data) {
-          renderChart(response.data);
+          updateChart(response.data);
+        } else {
+          console.warn("⚠️ Chart data response not successful:", response);
+          showEmptyChart();
         }
       },
-      error: function () {
-        console.error("Error loading chart data");
+      error: function (xhr, status, error) {
+        console.error("❌ Chart data AJAX error:", {
+          status: status,
+          error: error,
+          responseText: xhr.responseText,
+        });
+        showEmptyChart();
       },
     });
   }
 
-  function renderChart(data) {
-    const ctx = document
-      .getElementById("booking-status-chart")
-      .getContext("2d");
+  function updateChart(data) {
+    const ctx = document.getElementById("booking-status-chart");
+    if (!ctx) return;
 
     // Destroy existing chart
     if (bookingStatusChart) {
       bookingStatusChart.destroy();
     }
 
+    // Create new chart
     bookingStatusChart = new Chart(ctx, {
-      type: "doughnut",
+      type: "line",
       data: {
-        labels: data.labels || [
-          "Confirmed",
-          "Pending",
-          "Completed",
-          "Cancelled",
-        ],
+        labels: data.labels || [],
         datasets: [
           {
-            data: data.values || [0, 0, 0, 0],
-            backgroundColor: [
-              "hsl(142.1 76.2% 36.3%)",
-              "hsl(47.9 95.8% 53.1%)",
-              "hsl(221.2 83.2% 53.3%)",
-              "hsl(0 84.2% 60.2%)",
-            ],
-            borderWidth: 0,
-            cutout: "60%",
+            label: "Bookings",
+            data: data.values || [],
+            borderColor: "#3b82f6",
+            backgroundColor: "rgba(59, 130, 246, 0.1)",
+            tension: 0.4,
+            fill: true,
           },
         ],
       },
@@ -393,10 +485,14 @@ jQuery(document).ready(function ($) {
         maintainAspectRatio: false,
         plugins: {
           legend: {
-            position: "bottom",
-            labels: {
-              padding: 20,
-              usePointStyle: true,
+            display: false,
+          },
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              stepSize: 1,
             },
           },
         },
@@ -404,413 +500,130 @@ jQuery(document).ready(function ($) {
     });
   }
 
+  function showEmptyChart() {
+    const ctx = document.getElementById("booking-status-chart");
+    if (!ctx) return;
+
+    // Destroy existing chart
+    if (bookingStatusChart) {
+      bookingStatusChart.destroy();
+    }
+
+    // Show empty state
+    const container = ctx.parentElement;
+    if (container) {
+      container.innerHTML =
+        '<div class="chart-empty">No chart data available</div>';
+    }
+  }
+
   function updateSubscriptionUsage() {
-    // Get current usage data
-    $.ajax({
-      url: mobooking_overview_params.ajax_url,
-      type: "POST",
-      data: {
-        action: "mobooking_get_subscription_usage",
-        nonce: dashboardNonce,
-      },
-      success: function (response) {
-        if (response.success && response.data) {
-          const usage = response.data;
-
-          // Update usage displays
-          $("#usage-bookings").text(
-            `${usage.bookings_used} / ${usage.bookings_limit}`
-          );
-          $("#usage-services").text(
-            `${usage.services_used} / ${usage.services_limit}`
-          );
-
-          // Calculate and update progress
-          const bookingsPercentage = Math.round(
-            (usage.bookings_used / usage.bookings_limit) * 100
-          );
-          $("#usage-progress-bar").css("width", bookingsPercentage + "%");
-          $("#usage-progress-text").text(bookingsPercentage + "% used");
-
-          // Update progress bar color based on usage
-          const progressBar = $("#usage-progress-bar");
-          progressBar.removeClass("progress-warning progress-danger");
-          if (bookingsPercentage >= 90) {
-            progressBar.addClass("progress-danger");
-          } else if (bookingsPercentage >= 75) {
-            progressBar.addClass("progress-warning");
-          }
-        }
-      },
-      error: function () {
-        console.error("Error loading subscription usage");
-      },
-    });
+    // Placeholder for subscription usage updates
+    console.log("📊 Updating subscription usage...");
   }
 
   function bindEvents() {
+    // Refresh button
+    $(document).on("click", "#refresh-dashboard", function (e) {
+      e.preventDefault();
+      console.log("🔄 Manual refresh triggered");
+      initializeDashboard();
+    });
+
     // Chart period selector
-    $(".period-btn").on("click", function () {
-      const period = $(this).data("period");
-      $(".period-btn").removeClass("active");
-      $(this).addClass("active");
+    $(document).on("change", "#chart-period-selector", function () {
+      const period = $(this).val();
       loadChartData(period);
     });
 
     // Quick action buttons
-    $("#add-booking-action").on("click", function (e) {
+    $(document).on("click", "#add-booking-action", function (e) {
       e.preventDefault();
-      openAddBookingModal();
-    });
-
-    // Subscription action buttons
-    $(".btn-upgrade").on("click", function (e) {
-      e.preventDefault();
-      window.open("/upgrade", "_blank");
-    });
-
-    $(".btn-manage").on("click", function (e) {
-      e.preventDefault();
+      // Redirect to add booking page or show modal
       window.location.href =
-        mobooking_overview_params.dashboard_base_url + "settings/#subscription";
+        mobooking_overview_params.dashboard_url + "bookings/";
     });
-
-    // Refresh button (if added to UI)
-    $(document).on("click", ".refresh-data", function (e) {
-      e.preventDefault();
-      refreshAllData();
-    });
-  }
-
-  function openAddBookingModal() {
-    // This would open a modal or redirect to add booking page
-    // For now, we'll redirect to the bookings page
-    window.location.href =
-      mobooking_overview_params.dashboard_base_url + "bookings/?action=add";
-  }
-
-  function refreshAllData() {
-    console.log("🔄 Refreshing all dashboard data...");
-
-    // Show loading states
-    $(".kpi-value").html('<span class="loading"></span>');
-    $("#live-activity-feed").html(
-      '<div class="loading-activity"><span class="loading"></span><p>Loading activities...</p></div>'
-    );
-    $("#top-services-list").html(
-      '<div class="loading-services"><span class="loading"></span><p>Loading services...</p></div>'
-    );
-
-    // Reload all data
-    loadKPIData();
-    loadLiveActivityFeed();
-    loadTopServices();
-    loadCustomerInsights();
-    updateSubscriptionUsage();
-
-    // Reload chart with current period
-    const activePeriod = $(".period-btn.active").data("period") || "week";
-    loadChartData(activePeriod);
   }
 
   function setupDataRefresh() {
-    // Auto-refresh data every 5 minutes
+    // Auto-refresh every 5 minutes
     refreshInterval = setInterval(function () {
-      console.log("⏰ Auto-refreshing dashboard data...");
-
-      // Only refresh if no loading indicators are visible
-      if ($(".loading:visible").length === 0) {
-        loadKPIData();
-        loadLiveActivityFeed();
-        updateSubscriptionUsage();
-      }
+      console.log("🔄 Auto-refreshing dashboard data...");
+      loadKPIData();
+      loadLiveActivityFeed();
     }, 300000); // 5 minutes
-  }
 
-  // Utility functions
-  function escapeHtml(text) {
-    if (typeof text !== "string") return "";
-    const map = {
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-      "'": "&#039;",
-    };
-    return text.replace(/[&<>"']/g, function (m) {
-      return map[m];
+    // Clear interval on page unload
+    $(window).on("beforeunload", function () {
+      if (refreshInterval) {
+        clearInterval(refreshInterval);
+      }
     });
   }
 
-  function getTimeAgo(dateString) {
-    try {
-      const now = new Date();
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) {
-        return "Invalid date";
-      }
-      const diffInSeconds = Math.floor((now - date) / 1000);
+  function showErrorMessage(message) {
+    console.error("❌ Error:", message);
 
-      if (diffInSeconds < 5)
-        return mobooking_overview_params.i18n.time_ago_just_now || "Just now";
-      if (diffInSeconds < 60)
-        return (
-          diffInSeconds +
-          (mobooking_overview_params.i18n.time_ago_seconds_suffix || "s ago")
-        );
-      if (diffInSeconds < 3600)
-        return (
-          Math.floor(diffInSeconds / 60) +
-          (mobooking_overview_params.i18n.time_ago_minutes_suffix || "m ago")
-        );
-      if (diffInSeconds < 86400)
-        return (
-          Math.floor(diffInSeconds / 3600) +
-          (mobooking_overview_params.i18n.time_ago_hours_suffix || "h ago")
-        );
-      return (
-        Math.floor(diffInSeconds / 86400) +
-        (mobooking_overview_params.i18n.time_ago_days_suffix || "d ago")
+    // Show error in a user-friendly way
+    let errorContainer = $("#dashboard-error-message");
+    if (errorContainer.length === 0) {
+      errorContainer = $(
+        '<div id="dashboard-error-message" class="notice notice-error" style="margin: 10px 0;"><p></p></div>'
       );
-    } catch (e) {
-      console.error("Error in getTimeAgo:", e);
-      return dateString;
+      $(".mobooking-overview").prepend(errorContainer);
     }
+
+    errorContainer.find("p").text(message);
+    errorContainer.show();
+
+    // Auto-hide after 10 seconds
+    setTimeout(function () {
+      errorContainer.fadeOut();
+    }, 10000);
   }
 
-  function formatCurrency(amount) {
-    return currencySymbol + parseFloat(amount || 0).toFixed(2);
+  function escapeHtml(text) {
+    const div = document.createElement("div");
+    div.textContent = text;
+    return div.innerHTML;
   }
 
-  function showNotification(message, type = "info") {
-    // Simple notification system
-    const notification = $(`
-            <div class="mobooking-notification notification-${type}">
-                ${escapeHtml(message)}
-                <button class="notification-close">&times;</button>
-            </div>
-        `);
+  // Debug function to help troubleshoot issues
+  function debugDashboard() {
+    console.log("🔍 Dashboard Debug Info:");
+    console.log("- AJAX URL:", mobooking_overview_params.ajax_url);
+    console.log("- Nonce:", dashboardNonce);
+    console.log("- Currency Symbol:", currencySymbol);
+    console.log("- Is Worker:", isWorker);
+    console.log("- jQuery version:", $.fn.jquery);
+    console.log("- Chart.js available:", typeof Chart !== "undefined");
 
-    $("body").append(notification);
-
-    setTimeout(() => {
-      notification.fadeOut(() => notification.remove());
-    }, 5000);
-
-    notification.find(".notification-close").on("click", () => {
-      notification.fadeOut(() => notification.remove());
+    // Test AJAX connectivity
+    $.ajax({
+      url: mobooking_overview_params.ajax_url,
+      type: "POST",
+      data: {
+        action: "mobooking_debug_ajax",
+        nonce: dashboardNonce,
+      },
+      success: function (response) {
+        console.log("🔍 AJAX Debug Response:", response);
+      },
+      error: function (xhr, status, error) {
+        console.error("🔍 AJAX Debug Error:", {
+          status: status,
+          error: error,
+          responseText: xhr.responseText,
+        });
+      },
     });
   }
 
-  // Error handling
-  $(document).ajaxError(function (event, xhr, settings, thrownError) {
-    if (settings.url && settings.url.includes("mobooking_")) {
-      console.error("MoBooking AJAX Error:", {
-        url: settings.url,
-        error: thrownError,
-        status: xhr.status,
-        responseText: xhr.responseText,
-      });
+  // Expose debug function globally for testing
+  window.debugMoBookingDashboard = debugDashboard;
 
-      // Show user-friendly error message
-      if (xhr.status === 403) {
-        showNotification("Session expired. Please refresh the page.", "error");
-      } else if (xhr.status === 500) {
-        showNotification("Server error. Please try again later.", "error");
-      }
-    }
-  });
-
-  // Cleanup function
-  function cleanup() {
-    if (refreshInterval) {
-      clearInterval(refreshInterval);
-    }
-    if (bookingStatusChart) {
-      bookingStatusChart.destroy();
-    }
+  // Initial debug on load if in debug mode
+  if (mobooking_overview_params.debug) {
+    debugDashboard();
   }
-
-  // Cleanup on page unload
-  $(window).on("beforeunload", cleanup);
-
-  // Expose some functions globally for debugging
-  window.MoBookingDashboard = {
-    refreshData: refreshAllData,
-    loadKPIData: loadKPIData,
-    loadChart: loadChartData,
-    updateUsage: updateSubscriptionUsage,
-  };
-
-  console.log("✅ MoBooking Dashboard Overview initialized successfully");
 });
-
-// Additional CSS for new elements (can be moved to separate CSS file)
-const additionalCSS = `
-    <style>
-    .activity-list {
-        display: flex;
-        flex-direction: column;
-        gap: 0.75rem;
-    }
-    
-    .activity-item {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        padding: 0.75rem;
-        background: var(--mobk-dashboard-muted);
-        border-radius: var(--mobk-dashboard-radius-sm);
-        transition: background-color 0.2s ease;
-    }
-    
-    .activity-item:hover {
-        background: var(--mobk-dashboard-accent);
-    }
-    
-    .activity-icon {
-        width: 2rem;
-        height: 2rem;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.875rem;
-        background: var(--mobk-dashboard-card);
-        flex-shrink: 0;
-    }
-    
-    .activity-content {
-        flex: 1;
-        min-width: 0;
-    }
-    
-    .activity-text {
-        font-size: 0.875rem;
-        font-weight: 500;
-        color: var(--mobk-dashboard-foreground);
-        margin-bottom: 0.25rem;
-    }
-    
-    .activity-time {
-        font-size: 0.75rem;
-        color: var(--mobk-dashboard-muted-foreground);
-    }
-    
-    .activity-status {
-        flex-shrink: 0;
-    }
-    
-    .services-list {
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-    }
-    
-    .service-item {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        padding: 0.75rem;
-        background: var(--mobk-dashboard-muted);
-        border-radius: var(--mobk-dashboard-radius-sm);
-        transition: background-color 0.2s ease;
-    }
-    
-    .service-item:hover {
-        background: var(--mobk-dashboard-accent);
-    }
-    
-    .service-rank {
-        font-size: 1rem;
-        font-weight: 600;
-        width: 1.5rem;
-        text-align: center;
-        flex-shrink: 0;
-    }
-    
-    .service-info {
-        flex: 1;
-        min-width: 0;
-    }
-    
-    .service-name {
-        font-size: 0.875rem;
-        font-weight: 500;
-        color: var(--mobk-dashboard-foreground);
-        margin-bottom: 0.125rem;
-    }
-    
-    .service-bookings {
-        font-size: 0.75rem;
-        color: var(--mobk-dashboard-muted-foreground);
-    }
-    
-    .service-revenue {
-        font-size: 0.875rem;
-        font-weight: 600;
-        color: var(--mobk-dashboard-primary);
-        flex-shrink: 0;
-    }
-    
-    .no-data, .error-message {
-        text-align: center;
-        padding: 2rem;
-        color: var(--mobk-dashboard-muted-foreground);
-        font-style: italic;
-    }
-    
-    .error-message {
-        color: var(--mobk-dashboard-destructive);
-    }
-    
-    .mobooking-notification {
-        position: fixed;
-        top: 1rem;
-        right: 1rem;
-        z-index: 9999;
-        padding: 0.75rem 1rem;
-        border-radius: var(--mobk-dashboard-radius);
-        color: white;
-        font-size: 0.875rem;
-        font-weight: 500;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    }
-    
-    .notification-info {
-        background: var(--mobk-dashboard-primary);
-    }
-    
-    .notification-success {
-        background: hsl(142.1 76.2% 36.3%);
-    }
-    
-    .notification-error {
-        background: var(--mobk-dashboard-destructive);
-    }
-    
-    .notification-close {
-        background: none;
-        border: none;
-        color: inherit;
-        font-size: 1.25rem;
-        cursor: pointer;
-        padding: 0;
-        margin-left: auto;
-    }
-    
-    .progress-warning .progress-fill {
-        background: linear-gradient(90deg, #f59e0b, #fbbf24) !important;
-    }
-    
-    .progress-danger .progress-fill {
-        background: linear-gradient(90deg, #ef4444, #f87171) !important;
-    }
-    </style>
-`;
-
-// Inject additional CSS
-document.head.insertAdjacentHTML("beforeend", additionalCSS);

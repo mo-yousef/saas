@@ -1453,8 +1453,84 @@ foreach ($calculated_service_items as $service_item) {
             'bookings' => $bookings ?: [],
         ];
     }
-
-
+/**
+ * Get chart data for dashboard
+ * Add this method to the Bookings class
+ */
+public function get_chart_data($tenant_id, $period = 'week') {
+    $bookings_table = Database::get_table_name('bookings');
+    
+    // Define date range based on period
+    switch ($period) {
+        case 'month':
+            $days = 30;
+            $date_format = '%Y-%m-%d';
+            break;
+        case '3months':
+            $days = 90;
+            $date_format = '%Y-%m-%d';
+            break;
+        case 'year':
+            $days = 365;
+            $date_format = '%Y-%m';
+            break;
+        default: // week
+            $days = 7;
+            $date_format = '%Y-%m-%d';
+            break;
+    }
+    
+    $sql = "
+        SELECT 
+            DATE_FORMAT(booking_date, '{$date_format}') as period_label,
+            COUNT(*) as booking_count,
+            SUM(total_price) as revenue
+        FROM {$bookings_table}
+        WHERE user_id = %d 
+        AND booking_date >= DATE_SUB(CURDATE(), INTERVAL {$days} DAY)
+        GROUP BY period_label
+        ORDER BY period_label ASC
+    ";
+    
+    $results = $this->wpdb->get_results(
+        $this->wpdb->prepare($sql, $tenant_id),
+        ARRAY_A
+    );
+    
+    // Format data for Chart.js
+    $labels = [];
+    $values = [];
+    
+    foreach ($results as $row) {
+        $labels[] = $row['period_label'];
+        $values[] = intval($row['booking_count']);
+    }
+    
+    // Fill missing dates with zeros if needed
+    if ($period === 'week') {
+        $labels = [];
+        $values = [];
+        $data_map = [];
+        
+        // Create map from results
+        foreach ($results as $row) {
+            $data_map[$row['period_label']] = intval($row['booking_count']);
+        }
+        
+        // Fill last 7 days
+        for ($i = 6; $i >= 0; $i--) {
+            $date = date('Y-m-d', strtotime("-{$i} days"));
+            $labels[] = date('M j', strtotime($date));
+            $values[] = isset($data_map[$date]) ? $data_map[$date] : 0;
+        }
+    }
+    
+    return [
+        'labels' => $labels,
+        'values' => $values,
+        'period' => $period
+    ];
+}
 
 // Add these methods to classes/Services.php
 
