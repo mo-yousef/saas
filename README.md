@@ -1,4 +1,4 @@
-# MoBooking Theme
+# Nord Booking Theme
 
 This theme provides booking functionalities for businesses.
 
@@ -15,7 +15,7 @@ Each user with the "Business Owner" role (a custom role provided by this theme) 
   1.  Log in to your WordPress Admin Dashboard.
   2.  Navigate to **Users**.
   3.  Find the user account that has the "Business Owner" role and click on their username to edit their profile.
-  4.  Scroll down to the **"MoBooking Settings"** section.
+  4.  Scroll down to the **"Nord Booking Settings"** section.
   5.  You will see a field labeled **"Business Slug"**.
   6.  Enter a unique, URL-friendly slug for this business.
       - **Examples:** `acme-cleaning`, `johns-bakery`, `alpha-consulting`

@@ -2,7 +2,7 @@
 /**
  * Template Name: Features Page
  *
- * @package MoBooking
+ * @package Nord Booking
  */
 
 get_header(); // Even if front-page doesn't use it, page templates generally should.
@@ -316,7 +316,7 @@ get_header(); // Even if front-page doesn't use it, page templates generally sho
     <header class="front-page-header">
         <div class="container">
             <nav class="front-page-nav">
-                <a href="<?php echo esc_url(home_url('/')); ?>" class="logo">MoBooking</a>
+                <a href="<?php echo esc_url(home_url('/')); ?>" class="logo">Nord Booking</a>
                 <ul class="nav-links">
                     <li><a href="<?php echo esc_url(home_url('/features/')); ?>">Features</a></li>
                     <li><a href="<?php echo esc_url(home_url('/#how-it-works')); ?>">How It Works</a></li>
@@ -360,7 +360,7 @@ get_header(); // Even if front-page doesn't use it, page templates generally sho
                 </h2>
 
                 <p class="hero-description slide-up delay-100" style="font-size: 1.125rem; max-width: 42rem; margin-bottom:0;">
-                    Stop juggling spreadsheets and missed calls. MoBooking gives you everything you need to streamline operations, delight customers, and grow your revenue.
+                    Stop juggling spreadsheets and missed calls. Nord Booking gives you everything you need to streamline operations, delight customers, and grow your revenue.
                 </p>
                 <!-- Removed hero-actions and hero-stats from front-page.php as they are not in the new content spec for this hero -->
             </div>
@@ -748,7 +748,7 @@ get_header(); // Even if front-page doesn't use it, page templates generally sho
                         <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="hsl(var(--primary))" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-star"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
                     </div>
                     <h2 class="section-title">Join 1000+ Successful Cleaning Businesses</h2>
-                    <p class="section-description" style="max-width: 42rem;">See why cleaning businesses across the globe choose MoBooking to grow their operations.</p>
+                    <p class="section-description" style="max-width: 42rem;">See why cleaning businesses across the globe choose Nord Booking to grow their operations.</p>
                 </div>
 
                 <div class="testimonials-grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
@@ -756,7 +756,7 @@ get_header(); // Even if front-page doesn't use it, page templates generally sho
                     <div class="card testimonial" style="padding: 1.5rem; border-left: 4px solid hsl(var(--primary));">
                         <div class="card-content" style="padding:0;">
                             <p class="testimonial-content" style="font-style: italic; margin-bottom: 1.5rem; color: hsl(var(--muted-foreground)); line-height: 1.6;">
-                                "150% revenue increase since switching to MoBooking. Their platform is intuitive and the support is top-notch!"
+                                "150% revenue increase since switching to Nord Booking. Their platform is intuitive and the support is top-notch!"
                             </p>
                             <div class="testimonial-author" style="display: flex; align-items: center; gap: 1rem;">
                                 <!-- <div class="author-avatar" style="width: 2.5rem; height: 2.5rem; border-radius: 50%; background-color: hsl(var(--muted)); display: flex; align-items: center; justify-content: center; font-weight: 600; color: hsl(var(--foreground));">LR</div> -->
@@ -807,7 +807,7 @@ get_header(); // Even if front-page doesn't use it, page templates generally sho
         <section id="primary-cta" class="section cta-section" style="padding: 4rem 0; text-align: center; background-color: hsl(var(--primary)); color: hsl(var(--primary-foreground));">
             <div class="container">
                 <h2 class="section-title" style="color: hsl(var(--primary-foreground)); font-size: clamp(1.8rem, 4vw, 2.5rem);">Ready to Transform Your Cleaning Business?</h2>
-                <p class="section-description" style="color: hsl(var(--primary-foreground)/0.85); margin-bottom: 2.5rem; font-size: 1.125rem;">Join thousands of cleaning businesses that have streamlined their operations with MoBooking.</p>
+                <p class="section-description" style="color: hsl(var(--primary-foreground)/0.85); margin-bottom: 2.5rem; font-size: 1.125rem;">Join thousands of cleaning businesses that have streamlined their operations with Nord Booking.</p>
                 <div class="hero-actions" style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
                     <a href="<?php echo esc_url(home_url('/register/')); ?>" class="btn btn-xl" style="background-color: hsl(var(--background)); color: hsl(var(--primary));">Start Free Trial</a>
                     <a href="<?php echo esc_url(home_url('/contact/#schedule-demo')); ?>" class="btn btn-outline btn-xl" style="border-color: hsl(var(--primary-foreground)/0.5); color: hsl(var(--primary-foreground)); background-color: transparent;">Schedule Demo</a>
@@ -821,8 +821,8 @@ get_header(); // Even if front-page doesn't use it, page templates generally sho
         <!-- Secondary CTA Section -->
         <section id="secondary-cta" class="section" style="padding: 4rem 0; background-color: hsl(var(--muted)/0.3);">
             <div class="container" style="text-align: center;">
-                <h2 class="section-title" style="font-size: clamp(1.5rem, 3vw, 2rem);">See MoBooking in Action</h2>
-                <p class="section-description" style="margin-bottom: 2rem; font-size: 1rem;">Book a personalized demo and see how MoBooking can work for your specific cleaning business needs.</p>
+                <h2 class="section-title" style="font-size: clamp(1.5rem, 3vw, 2rem);">See Nord Booking in Action</h2>
+                <p class="section-description" style="margin-bottom: 2rem; font-size: 1rem;">Book a personalized demo and see how Nord Booking can work for your specific cleaning business needs.</p>
                 <a href="<?php echo esc_url(home_url('/contact/#schedule-demo')); ?>" class="btn btn-primary btn-lg" style="margin-bottom: 1.5rem;">Schedule Demo</a>
                 <ul style="list-style: none; padding: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 0.5rem 1.5rem; color: hsl(var(--muted-foreground)); font-size: 0.875rem;">
                     <li style="display: inline-flex; align-items: center;">✓ 30-minute personalized demo</li>
@@ -843,8 +843,8 @@ get_header(); // Even if front-page doesn't use it, page templates generally sho
                     <!-- FAQ 1 -->
                     <div class="card faq-item">
                         <div class="card-content">
-                            <h3 class="faq-question">Do I need technical skills to use MoBooking?</h3>
-                            <p class="faq-answer">Not at all! MoBooking is designed for business owners, not developers. Everything is point-and-click with no coding required.</p>
+                            <h3 class="faq-question">Do I need technical skills to use Nord Booking?</h3>
+                            <p class="faq-answer">Not at all! Nord Booking is designed for business owners, not developers. Everything is point-and-click with no coding required.</p>
                         </div>
                     </div>
                     <!-- FAQ 2 -->
@@ -865,7 +865,7 @@ get_header(); // Even if front-page doesn't use it, page templates generally sho
                     <div class="card faq-item">
                         <div class="card-content">
                             <h3 class="faq-question">Is there a free trial?</h3>
-                            <p class="faq-answer">Yes! We offer a 14-day free trial with no credit card required. You can explore all features and see how MoBooking works for your business.</p>
+                            <p class="faq-answer">Yes! We offer a 14-day free trial with no credit card required. You can explore all features and see how Nord Booking works for your business.</p>
                         </div>
                     </div>
                     <!-- FAQ 5 -->
@@ -892,7 +892,7 @@ get_header(); // Even if front-page doesn't use it, page templates generally sho
     <footer class="front-page-footer">
         <div class="container">
             <div class="footer-bottom">
-                <p>&copy; <?php echo date('Y'); ?> MoBooking. All rights reserved. | <a href="<?php echo esc_url(home_url('/privacy-policy/')); ?>">Privacy Policy</a> | <a href="<?php echo esc_url(home_url('/terms-of-service/')); ?>">Terms of Service</a></p>
+                <p>&copy; <?php echo date('Y'); ?> Nord Booking. All rights reserved. | <a href="<?php echo esc_url(home_url('/privacy-policy/')); ?>">Privacy Policy</a> | <a href="<?php echo esc_url(home_url('/terms-of-service/')); ?>">Terms of Service</a></p>
             </div>
         </div>
     </footer>
