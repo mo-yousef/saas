@@ -123,14 +123,12 @@ class Services {
                 'description' => wp_kses_post($service_data['description']),
                 'price' => floatval($service_data['price']),
                 'duration' => intval($service_data['duration']),
-                'category' => isset($service_data['category']) ? sanitize_text_field($service_data['category']) : '', // Default to empty string if not set
                 'icon' => sanitize_text_field($service_data['icon']),
                 'image_url' => esc_url_raw($service_data['image_url']),
                 'status' => sanitize_text_field($service_data['status']),
                 'created_at' => current_time('mysql', 1), // GMT
                 'updated_at' => current_time('mysql', 1), // GMT
             ),
-            // Removed '%s' for category
             array('%d', '%s', '%s', '%f', '%d', '%s', '%s', '%s', '%s', '%s')
         );
 
