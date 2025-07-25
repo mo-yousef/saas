@@ -406,6 +406,7 @@ private function verify_database_tables() {
             $selected_service_items = $payload['selected_services'] ?? [];
             $customer = $payload['customer'] ?? [];
             $discount_info = $payload['discount_info'] ?? null;
+            $time_slot = $payload['time_slot'] ?? null;
 
             if (empty($selected_service_items) || empty($customer)) {
                 return new \WP_Error('missing_data', __('Selected services and customer data are required.', 'mobooking'));
@@ -491,7 +492,7 @@ private function verify_database_tables() {
                 'service_address' => sanitize_textarea_field($customer['address']),
                 'zip_code' => sanitize_text_field($payload['zip_code']),
                 'booking_date' => sanitize_text_field($customer['date']),
-                'booking_time' => sanitize_text_field($customer['time']),
+                'booking_time' => sanitize_text_field($time_slot),
                 'special_instructions' => sanitize_textarea_field($customer['instructions'] ?? ''),
                 'discount_amount' => $discount_amount,
                 'total_price' => $final_total_server,
@@ -585,7 +586,7 @@ foreach ($calculated_service_items as $service_item) {
             $email_booking_details = [
                 'booking_reference' => $booking_reference,
                 'service_names' => implode('; ', $email_services_summary_array),
-                'booking_date_time' => $customer['date'] . ' at ' . $customer['time'],
+                'booking_date_time' => $customer['date'] . ' at ' . $time_slot,
                 'total_price' => $final_total_server,
                 'customer_name' => $customer['name'],
                 'customer_email' => $customer['email'],
