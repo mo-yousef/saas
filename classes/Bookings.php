@@ -42,52 +42,67 @@ class Bookings {
      * @param string $data_type Description of what data is being decoded (for error messages)
      * @return array|WP_Error Decoded array on success, WP_Error on failure
      */
-private function safe_json_decode($json_string, $data_type = 'data') {
-    if (empty($json_string)) {
-        return new \WP_Error('empty_json', __('Empty JSON string provided for ' . $data_type, 'mobooking'));
-    }
-
-    // Log the original JSON for debugging
-    error_log("MoBooking - Decoding {$data_type}: " . substr($json_string, 0, 200) . (strlen($json_string) > 200 ? '...' : ''));
-
-    // First, try to decode as-is
-    $decoded = json_decode($json_string, true);
+    private function safe_json_decode($json_string, $data_type = 'data') {
+        if (empty($json_string)) {
+            return new \WP_Error('empty_json', sprintf(__('Empty data provided for %s', 'mobooking'), $data_type));
+        }
     
-    if (json_last_error() === JSON_ERROR_NONE) {
-        return $decoded;
-    }
-
-    // If that fails, try to fix common issues
-    error_log("MoBooking - Initial JSON decode failed for {$data_type}. Error: " . json_last_error_msg());
-
-    // Try to fix escaped quotes and other common issues
-    $fixed_json = str_replace(['\\"', "\\'"], ['"', "'"], $json_string);
-    $decoded = json_decode($fixed_json, true);
+        // Clean the JSON string first
+        $json_string = $this->clean_json_string($json_string);
+        
+        // Log the cleaned JSON for debugging
+        error_log("MoBooking - Decoding {$data_type}: " . substr($json_string, 0, 300) . (strlen($json_string) > 300 ? '...' : ''));
     
-    if (json_last_error() === JSON_ERROR_NONE) {
-        error_log("MoBooking - JSON decode successful after fixing quotes for {$data_type}");
-        return $decoded;
-    }
-
-    // Try stripslashes if it's still failing
-    $stripped_json = stripslashes($json_string);
-    $decoded = json_decode($stripped_json, true);
+        // Try to decode
+        $decoded = json_decode($json_string, true);
+        
+        if (json_last_error() === JSON_ERROR_NONE) {
+            return $decoded;
+        }
     
-    if (json_last_error() === JSON_ERROR_NONE) {
-        error_log("MoBooking - JSON decode successful after stripslashes for {$data_type}");
-        return $decoded;
-    }
-
-    // If all attempts fail, return error
-    $error_message = sprintf(
-        __('Failed to decode JSON for %s. Error: %s', 'mobooking'),
-        $data_type,
-        json_last_error_msg()
-    );
+        // If initial decode fails, try common fixes
+        $error_msg = json_last_error_msg();
+        error_log("MoBooking - Initial JSON decode failed for {$data_type}. Error: " . $error_msg);
     
-    error_log("MoBooking - " . $error_message);
-    return new \WP_Error('json_decode_error', $error_message);
-}
+        // Try with stripslashes
+        $stripped_json = stripslashes($json_string);
+        $decoded = json_decode($stripped_json, true);
+        
+        if (json_last_error() === JSON_ERROR_NONE) {
+            error_log("MoBooking - JSON decode successful after stripslashes for {$data_type}");
+            return $decoded;
+        }
+    
+        // Try with recursive stripslashes (for double encoding)
+        $double_stripped = stripslashes(stripslashes($json_string));
+        $decoded = json_decode($double_stripped, true);
+        
+        if (json_last_error() === JSON_ERROR_NONE) {
+            error_log("MoBooking - JSON decode successful after double stripslashes for {$data_type}");
+            return $decoded;
+        }
+    
+        // Final attempt: try to parse URL-decoded string
+        $url_decoded = urldecode($json_string);
+        $decoded = json_decode($url_decoded, true);
+        
+        if (json_last_error() === JSON_ERROR_NONE) {
+            error_log("MoBooking - JSON decode successful after URL decode for {$data_type}");
+            return $decoded;
+        }
+    
+        // If all attempts fail, return comprehensive error
+        $final_error = sprintf(
+            __('Failed to decode JSON for %s. Original error: %s', 'mobooking'),
+            $data_type,
+            $error_msg
+        );
+        
+        error_log("MoBooking - " . $final_error);
+        error_log("MoBooking - Raw JSON string (first 500 chars): " . substr($json_string, 0, 500));
+        
+        return new \WP_Error('json_decode_error', $final_error);
+    }
 
     /**
      * Manually clean JSON string to fix common issues
@@ -99,144 +114,243 @@ private function safe_json_decode($json_string, $data_type = 'data') {
         // Remove BOM if present
         $json_string = preg_replace('/^\xEF\xBB\xBF/', '', $json_string);
         
-        // Fix common escaping issues
-        $json_string = str_replace(['\\"', "\\'"], ['"', "'"], $json_string);
+        // Remove null bytes
+        $json_string = str_replace("\0", '', $json_string);
         
-        // Remove control characters
-        $json_string = preg_replace('/[\x00-\x1F\x7F]/', '', $json_string);
+        // Trim whitespace
+        $json_string = trim($json_string);
         
-        // Fix double encoding
-        if (strpos($json_string, '\\u') !== false) {
-            $decoded = json_decode('"' . $json_string . '"');
-            if ($decoded !== null) {
-                $json_string = $decoded;
-            }
-        }
+        // Remove control characters but preserve needed escapes
+        $json_string = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/', '', $json_string);
         
-        return trim($json_string);
+        return $json_string;
     }
 
-public function handle_create_booking_public_ajax() {
-    // Security check - verify nonce
-    if (!wp_verify_nonce($_POST['nonce'], 'mobooking_booking_form_nonce')) {
-        error_log('MoBooking - Nonce verification failed');
-        wp_send_json_error(['message' => __('Security check failed. Please refresh the page and try again.', 'mobooking')], 403);
-        return;
-    }
-
-    error_log('MoBooking - Processing booking submission: ' . print_r($_POST, true));
-
-    // Get and validate tenant ID
-    $tenant_id = isset($_POST['tenant_id']) ? intval($_POST['tenant_id']) : 0;
-    if (!$tenant_id || !get_userdata($tenant_id)) {
-        error_log('MoBooking - Invalid tenant ID: ' . $tenant_id);
-        wp_send_json_error(['message' => __('Invalid tenant ID.', 'mobooking')], 400);
-        return;
-    }
-
-    // Get and validate required JSON data
-    $selected_services_json = isset($_POST['selected_services']) ? stripslashes_deep($_POST['selected_services']) : '';
-    $customer_details_json = isset($_POST['customer_details']) ? stripslashes_deep($_POST['customer_details']) : '';
-    $discount_info_json = isset($_POST['discount_info']) ? stripslashes_deep($_POST['discount_info']) : '';
-    $pricing_json = isset($_POST['pricing']) ? stripslashes_deep($_POST['pricing']) : '';
-
-    // Decode JSON data with error handling
-    $selected_services = $this->safe_json_decode($selected_services_json, 'selected_services');
-    if (is_wp_error($selected_services)) {
-        error_log('MoBooking - Selected services JSON decode error: ' . $selected_services->get_error_message());
-        wp_send_json_error(['message' => __('Invalid services data.', 'mobooking')], 400);
-        return;
-    }
-
-    $customer_details = $this->safe_json_decode($customer_details_json, 'customer_details');
-    if (is_wp_error($customer_details)) {
-        error_log('MoBooking - Customer details JSON decode error: ' . $customer_details->get_error_message());
-        wp_send_json_error(['message' => __('Invalid customer data.', 'mobooking')], 400);
-        return;
-    }
-
-    // Decode optional data
-    $discount_info = null;
-    if (!empty($discount_info_json)) {
-        $discount_info = $this->safe_json_decode($discount_info_json, 'discount_info');
-        if (is_wp_error($discount_info)) {
-            error_log('MoBooking - Discount info JSON decode error: ' . $discount_info->get_error_message());
-            $discount_info = null; // Continue without discount if invalid
-        }
-    }
-
-    $pricing_info = null;
-    if (!empty($pricing_json)) {
-        $pricing_info = $this->safe_json_decode($pricing_json, 'pricing');
-        if (is_wp_error($pricing_info)) {
-            error_log('MoBooking - Pricing info JSON decode error: ' . $pricing_info->get_error_message());
-            $pricing_info = null; // Continue without pricing if invalid
-        }
-    }
-
-    // Get optional location data
-    $zip_code = isset($_POST['zip_code']) ? sanitize_text_field($_POST['zip_code']) : '';
-    $country_code = isset($_POST['country_code']) ? sanitize_text_field($_POST['country_code']) : '';
-
-    // Validate required data
-    if (empty($selected_services) || !is_array($selected_services)) {
-        wp_send_json_error(['message' => __('No services selected.', 'mobooking')], 400);
-        return;
-    }
-
-    if (empty($customer_details) || !is_array($customer_details)) {
-        wp_send_json_error(['message' => __('Customer information is required.', 'mobooking')], 400);
-        return;
-    }
-
-    // Validate customer details
-    $required_fields = ['name', 'email', 'phone', 'address', 'date', 'time'];
-    foreach ($required_fields as $field) {
-        if (empty($customer_details[$field])) {
-            wp_send_json_error(['message' => sprintf(__('Missing required field: %s', 'mobooking'), $field)], 400);
+    public function handle_create_booking_public_ajax() {
+        // Enhanced logging for debugging
+        error_log('MoBooking - AJAX Request started');
+        error_log('MoBooking - $_POST data: ' . print_r($_POST, true));
+        
+        // Security check - verify nonce
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'mobooking_booking_form_nonce')) {
+            error_log('MoBooking - Nonce verification failed. Expected: mobooking_booking_form_nonce, Received: ' . ($_POST['nonce'] ?? 'none'));
+            wp_send_json_error(['message' => __('Security check failed. Please refresh the page and try again.', 'mobooking')], 403);
             return;
         }
-    }
-
-    // Validate email format
-    if (!is_email($customer_details['email'])) {
-        wp_send_json_error(['message' => __('Invalid email address.', 'mobooking')], 400);
-        return;
-    }
-
-    // Prepare the payload for create_booking method
-    $payload = [
-        'selected_services' => $selected_services,
-        'customer' => $customer_details,
-        'discount_info' => $discount_info,
-        'zip_code' => $zip_code,
-        'country_code' => $country_code,
-        'pricing' => $pricing_info
-    ];
-
-    error_log('MoBooking - Processed payload: ' . print_r($payload, true));
-
-    // Call the main create_booking method
-    $result = $this->create_booking($tenant_id, $payload);
-
-    if (is_wp_error($result)) {
-        error_log('MoBooking - Booking creation failed: ' . $result->get_error_message());
-        wp_send_json_error(['message' => $result->get_error_message()], 400);
-    } else {
-        error_log('MoBooking - Booking created successfully: ' . print_r($result, true));
+    
+        // Get and validate tenant ID
+        $tenant_id = isset($_POST['tenant_id']) ? intval($_POST['tenant_id']) : 0;
+        if (!$tenant_id) {
+            error_log('MoBooking - Missing or invalid tenant ID: ' . $tenant_id);
+            wp_send_json_error(['message' => __('Invalid tenant information.', 'mobooking')], 400);
+            return;
+        }
+    
+        // Verify tenant exists
+        $tenant_user = get_userdata($tenant_id);
+        if (!$tenant_user) {
+            error_log('MoBooking - Tenant user not found: ' . $tenant_id);
+            wp_send_json_error(['message' => __('Business not found.', 'mobooking')], 400);
+            return;
+        }
+    
+        // Get and validate JSON data - use direct access to avoid URL decoding issues
+        $selected_services_json = isset($_POST['selected_services']) ? wp_unslash($_POST['selected_services']) : '';
+        $customer_details_json = isset($_POST['customer_details']) ? wp_unslash($_POST['customer_details']) : '';
+        $discount_info_json = isset($_POST['discount_info']) ? wp_unslash($_POST['discount_info']) : '';
+        $pricing_json = isset($_POST['pricing']) ? wp_unslash($_POST['pricing']) : '';
+    
+        error_log('MoBooking - Raw JSON data received:');
+        error_log('Selected Services: ' . $selected_services_json);
+        error_log('Customer Details: ' . $customer_details_json);
+        error_log('Pricing: ' . $pricing_json);
+    
+        // Decode JSON data with enhanced error handling
+        $selected_services = $this->safe_json_decode($selected_services_json, 'selected_services');
+        if (is_wp_error($selected_services)) {
+            error_log('MoBooking - Selected services JSON decode error: ' . $selected_services->get_error_message());
+            wp_send_json_error(['message' => __('Invalid services data. Please try again.', 'mobooking')], 400);
+            return;
+        }
+    
+        $customer_details = $this->safe_json_decode($customer_details_json, 'customer_details');
+        if (is_wp_error($customer_details)) {
+            error_log('MoBooking - Customer details JSON decode error: ' . $customer_details->get_error_message());
+            wp_send_json_error(['message' => __('Invalid customer information. Please check your form data.', 'mobooking')], 400);
+            return;
+        }
+    
+        // Decode optional data
+        $discount_info = null;
+        if (!empty($discount_info_json)) {
+            $discount_info = $this->safe_json_decode($discount_info_json, 'discount_info');
+            if (is_wp_error($discount_info)) {
+                error_log('MoBooking - Discount info JSON decode error (non-critical): ' . $discount_info->get_error_message());
+                $discount_info = null; // Continue without discount if invalid
+            }
+        }
+    
+        $pricing_info = null;
+        if (!empty($pricing_json)) {
+            $pricing_info = $this->safe_json_decode($pricing_json, 'pricing');
+            if (is_wp_error($pricing_info)) {
+                error_log('MoBooking - Pricing info JSON decode error (non-critical): ' . $pricing_info->get_error_message());
+                $pricing_info = null; // Continue without pricing if invalid
+            }
+        }
+    
+        // Get optional location data
+        $zip_code = isset($_POST['zip_code']) ? sanitize_text_field($_POST['zip_code']) : '';
+        $country_code = isset($_POST['country_code']) ? sanitize_text_field($_POST['country_code']) : '';
+    
+        // Validate required data
+        if (empty($selected_services) || !is_array($selected_services)) {
+            error_log('MoBooking - No services selected or invalid format');
+            wp_send_json_error(['message' => __('Please select at least one service.', 'mobooking')], 400);
+            return;
+        }
+    
+        if (empty($customer_details) || !is_array($customer_details)) {
+            error_log('MoBooking - Customer details missing or invalid format');
+            wp_send_json_error(['message' => __('Customer information is required.', 'mobooking')], 400);
+            return;
+        }
+    
+        // Validate customer details - check for required fields
+        $required_fields = ['name', 'email', 'phone', 'address', 'date', 'time'];
+        $missing_fields = [];
         
-        // Format success message
-        $success_message = !empty($result['message']) ? 
-            sprintf($result['message'], $result['booking_reference']) : 
-            __('Booking created successfully!', 'mobooking');
-        
-        wp_send_json_success([
-            'message' => $success_message,
-            'booking_id' => $result['booking_id'],
-            'booking_reference' => $result['booking_reference'],
-            'final_total' => $result['final_total']
-        ]);
+        foreach ($required_fields as $field) {
+            if (empty($customer_details[$field]) || (is_string($customer_details[$field]) && trim($customer_details[$field]) === '')) {
+                $missing_fields[] = $field;
+            }
+        }
+    
+        if (!empty($missing_fields)) {
+            error_log('MoBooking - Missing required customer fields: ' . implode(', ', $missing_fields));
+            wp_send_json_error(['message' => sprintf(__('Missing required information: %s', 'mobooking'), implode(', ', $missing_fields))], 400);
+            return;
+        }
+    
+        // Validate email format
+        if (!is_email($customer_details['email'])) {
+            error_log('MoBooking - Invalid email format: ' . $customer_details['email']);
+            wp_send_json_error(['message' => __('Please provide a valid email address.', 'mobooking')], 400);
+            return;
+        }
+    
+        // Validate date format
+        $date_obj = DateTime::createFromFormat('Y-m-d', $customer_details['date']);
+        if (!$date_obj || $date_obj->format('Y-m-d') !== $customer_details['date']) {
+            error_log('MoBooking - Invalid date format: ' . $customer_details['date']);
+            wp_send_json_error(['message' => __('Please provide a valid date.', 'mobooking')], 400);
+            return;
+        }
+    
+        // Validate time format
+        $time_obj = DateTime::createFromFormat('H:i', $customer_details['time']);
+        if (!$time_obj || $time_obj->format('H:i') !== $customer_details['time']) {
+            error_log('MoBooking - Invalid time format: ' . $customer_details['time']);
+            wp_send_json_error(['message' => __('Please provide a valid time.', 'mobooking')], 400);
+            return;
+        }
+    
+        // Check if booking date is not in the past
+        $booking_datetime = DateTime::createFromFormat('Y-m-d H:i', $customer_details['date'] . ' ' . $customer_details['time']);
+        $now = new DateTime();
+        if ($booking_datetime < $now) {
+            error_log('MoBooking - Booking date is in the past: ' . $customer_details['date'] . ' ' . $customer_details['time']);
+            wp_send_json_error(['message' => __('Booking date and time cannot be in the past.', 'mobooking')], 400);
+            return;
+        }
+    
+        // Prepare the payload for create_booking method
+        $payload = [
+            'selected_services' => $selected_services,
+            'customer' => $customer_details,
+            'discount_info' => $discount_info,
+            'zip_code' => $zip_code,
+            'country_code' => $country_code,
+            'pricing' => $pricing_info
+        ];
+    
+        error_log('MoBooking - Final payload prepared: ' . print_r($payload, true));
+    
+        // Verify database tables exist before attempting to create booking
+        if (!$this->verify_database_tables()) {
+            error_log('MoBooking - Database tables verification failed');
+            wp_send_json_error(['message' => __('System error: Database not properly configured. Please contact support.', 'mobooking')], 500);
+            return;
+        }
+    
+        // Call the main create_booking method
+        try {
+            $result = $this->create_booking($tenant_id, $payload);
+    
+            if (is_wp_error($result)) {
+                error_log('MoBooking - Booking creation failed (WP_Error): ' . $result->get_error_message());
+                error_log('MoBooking - WP_Error code: ' . $result->get_error_code());
+                error_log('MoBooking - WP_Error data: ' . print_r($result->get_error_data(), true));
+                
+                // Map specific error codes to user-friendly messages
+                $error_code = $result->get_error_code();
+                $error_message = $result->get_error_message();
+                
+                switch ($error_code) {
+                    case 'db_booking_error':
+                        $user_message = __('Could not save booking to database. Please try again.', 'mobooking');
+                        break;
+                    case 'invalid_service':
+                        $user_message = __('One or more selected services are no longer available.', 'mobooking');
+                        break;
+                    case 'discount_error':
+                        $user_message = __('There was an issue applying the discount code.', 'mobooking');
+                        break;
+                    default:
+                        $user_message = $error_message;
+                        break;
+                }
+                
+                wp_send_json_error(['message' => $user_message], 500);
+                return;
+            }
+    
+            error_log('MoBooking - Booking created successfully: ' . print_r($result, true));
+            
+            // Format success response
+            $success_message = !empty($result['message']) ? 
+                sprintf($result['message'], $result['booking_reference']) : 
+                sprintf(__('Booking confirmed! Your reference is %s.', 'mobooking'), $result['booking_reference']);
+    
+            wp_send_json_success([
+                'message' => $success_message,
+                'booking_id' => $result['booking_id'],
+                'booking_reference' => $result['booking_reference'],
+                'total_price' => $result['final_total'] ?? 0
+            ]);
+    
+        } catch (Exception $e) {
+            error_log('MoBooking - Exception during booking creation: ' . $e->getMessage());
+            error_log('MoBooking - Exception trace: ' . $e->getTraceAsString());
+            wp_send_json_error(['message' => __('An unexpected error occurred. Please try again or contact support.', 'mobooking')], 500);
+        }
     }
+/**
+ * Verify that required database tables exist
+ */
+private function verify_database_tables() {
+    $required_tables = ['bookings', 'booking_items', 'services'];
+    
+    foreach ($required_tables as $table_suffix) {
+        $table_name = Database::get_table_name($table_suffix);
+        
+        if ($this->wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name) {
+            error_log("MoBooking - Required table missing: $table_name");
+            return false;
+        }
+    }
+    
+    return true;
 }
 
 
