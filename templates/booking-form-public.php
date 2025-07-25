@@ -232,7 +232,7 @@ echo $css_variables;
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo esc_html($form_config['form_header']); ?> - <?php echo esc_html($business_info['name']); ?></title>
-    <script src="https://elements.cronofy.com/js/CronofyElements.v1.js"></script>
+    <script src="https://elements.cronofy.com/js/CronofyElements.v1.65.3.js"></script>
     <?php wp_head(); ?>
 
     <style>
