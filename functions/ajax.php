@@ -668,4 +668,15 @@ if (!function_exists('mobooking_debug_ajax_handler')) {
         wp_send_json_success($debug_info);
     }
 }
+
+add_action('wp_ajax_mobooking_get_cronofy_data', 'mobooking_ajax_get_cronofy_data');
+add_action('wp_ajax_nopriv_mobooking_get_cronofy_data', 'mobooking_ajax_get_cronofy_data');
+function mobooking_ajax_get_cronofy_data() {
+    $data = mobooking_get_cronofy_element_token_and_availability_query();
+    if ($data) {
+        wp_send_json_success($data);
+    } else {
+        wp_send_json_error(['message' => 'Failed to get Cronofy data.']);
+    }
+}
 ?>

@@ -593,14 +593,11 @@ jQuery(document).ready(function ($) {
   }
 
   function storeCustomerDetails() {
-    const datetime = $("#preferred-datetime").val().split(' ');
     customerDetails = {
         name: $("#customer-name").val().trim(),
         email: $("#customer-email").val().trim(),
         phone: $("#customer-phone").val().trim(),
         address: $("#service-address").val().trim(),
-        date: datetime[0],
-        time: datetime[1],
         instructions: $("#special-instructions").val().trim(),
     };
 
@@ -1226,34 +1223,29 @@ jQuery(document).ready(function ($) {
     // Bind events
     bindEvents();
 
-    // Initialize flatpickr
-    flatpickr("#preferred-datetime", {
-        enableTime: true,
-        dateFormat: "Y-m-d H:i",
-        minDate: "today",
-        onReady: function(selectedDates, dateStr, instance) {
-            // Fetch availability data and disable dates/times
-            $.ajax({
-                url: AJAX_URL,
-                type: 'POST',
-                data: {
-                    action: 'mobooking_get_recurring_schedule',
-                    nonce: FORM_NONCE,
-                    tenant_id: TENANT_ID
-                },
-                success: function(response) {
-                    if (response.success) {
-                        const schedule = response.data;
-                        instance.set('disable', [
-                            function(date) {
-                                const dayOfWeek = date.getDay();
-                                const day = schedule.find(d => d.day_of_week === dayOfWeek);
-                                return !day || !day.is_enabled;
-                            }
-                        ]);
+    $.ajax({
+        url: AJAX_URL,
+        type: 'POST',
+        data: {
+            action: 'mobooking_get_cronofy_data',
+            nonce: FORM_NONCE,
+            tenant_id: TENANT_ID
+        },
+        success: function(response) {
+            if (response.success) {
+                CronofyElements.DateTimePicker({
+                    element_token: response.data.element_token,
+                    target_id: "cronofy-date-time-picker",
+                    availability_query: response.data.availability_query,
+                    callback: function(notification) {
+                        if (notification.notification.type === 'slot_selected') {
+                            const datetime = notification.notification.slot.start.split('T');
+                            customerDetails.date = datetime[0];
+                            customerDetails.time = datetime[1].substring(0, 5);
+                        }
                     }
-                }
-            });
+                });
+            }
         }
     });
 
