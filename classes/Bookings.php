@@ -376,11 +376,10 @@ public function handle_create_booking_public_ajax() {
                 'customer_email' => sanitize_email($customer['email']),
                 'customer_phone' => sanitize_text_field($customer['phone']),
                 'service_address' => sanitize_textarea_field($customer['address']),
+                'zip_code' => sanitize_text_field($payload['zip_code']),
                 'booking_date' => sanitize_text_field($customer['date']),
                 'booking_time' => sanitize_text_field($customer['time']),
                 'special_instructions' => sanitize_textarea_field($customer['instructions'] ?? ''),
-                // REMOVED: 'selected_services' - this column doesn't exist in the schema
-                // REMOVED: 'subtotal_price' - this column doesn't exist in the schema
                 'discount_amount' => $discount_amount,
                 'total_price' => $final_total_server,
                 'status' => 'pending',
