@@ -420,7 +420,6 @@ private function verify_database_tables() {
                 if (!$service_id) continue;
 
                 // Get service details from database
-                //$service_details = $this->services_manager->get_service_by_id($service_id, $tenant_user_id);
                 $service_details = $this->services_manager->get_service($service_id, $tenant_user_id);
                 if (!$service_details) {
                     return new \WP_Error('invalid_service', __('Invalid service selected.', 'mobooking'));
