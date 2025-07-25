@@ -1067,6 +1067,7 @@ jQuery(document).ready(function ($) {
       zip_code: $("#mobooking-zip").val() || "",
       country_code: $("#mobooking-country").val() || "",
       pricing: pricingJson,
+      time_slot: customerDetails.time,
     };
 
     debugLog("Submitting booking data", submissionData);
@@ -1232,33 +1233,7 @@ jQuery(document).ready(function ($) {
         minDate: "today",
         onChange: function(selectedDates, dateStr, instance) {
             const date = dateStr.split(' ')[0];
-            $.ajax({
-                url: AJAX_URL,
-                type: 'POST',
-                data: {
-                    action: 'mobooking_get_available_slots',
-                    nonce: FORM_NONCE,
-                    tenant_id: TENANT_ID,
-                    date: date
-                },
-                success: function(response) {
-                    if (response.success) {
-                        const slots = response.data;
-                        const timePicker = instance.timeContainer;
-                        timePicker.innerHTML = '';
-                        slots.forEach(function(slot) {
-                            const option = document.createElement('div');
-                            option.classList.add('flatpickr-time-option');
-                            option.textContent = slot.start_time;
-                            option.addEventListener('click', function() {
-                                const datetime = date + ' ' + slot.start_time;
-                                instance.setDate(datetime, true);
-                            });
-                            timePicker.appendChild(option);
-                        });
-                    }
-                }
-            });
+            generateTimeSlots(date, instance);
         }
     });
 
@@ -1268,6 +1243,27 @@ jQuery(document).ready(function ($) {
     } else {
       locationVerified = true;
       showStep(2);
+    }
+  }
+
+  function generateTimeSlots(date, instance) {
+    const dayOfWeek = new Date(date).getDay();
+    const availability = selectedService.availability.find(d => d.day_of_week === dayOfWeek);
+    const timePicker = instance.timeContainer;
+    timePicker.innerHTML = '';
+
+    if (availability && availability.is_enabled) {
+        availability.slots.forEach(function(slot) {
+            const option = document.createElement('div');
+            option.classList.add('flatpickr-time-option');
+            option.textContent = slot.start_time;
+            option.addEventListener('click', function() {
+                const datetime = date + ' ' + slot.start_time;
+                instance.setDate(datetime, true);
+                customerDetails.time = slot.start_time;
+            });
+            timePicker.appendChild(option);
+        });
     }
   }
 
