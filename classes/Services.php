@@ -626,6 +626,7 @@ public function handle_get_public_services_ajax() {
         $services_for_public = [];
         
         if ($all_services) {
+            $availability_manager = new Availability();
             foreach ($all_services as $service_item) {
                 error_log('[MoBooking Services Debug] Processing service: ' . $service_item['name']);
                 
@@ -666,6 +667,7 @@ public function handle_get_public_services_ajax() {
                     }
                 }
                 $item['options'] = $options;
+                $item['availability'] = $availability_manager->get_recurring_schedule($tenant_id);
                 
                 $services_for_public[] = $item;
                 error_log('[MoBooking Services Debug] Added service: ' . $item['name'] . ' with ' . count($options) . ' options');
