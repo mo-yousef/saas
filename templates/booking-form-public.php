@@ -187,7 +187,7 @@ if (!$form_config['form_enabled']) {
 
 // The wp_localize_script call is now in functions.php, but we need to pass the data to it.
 // We'll define a global variable that the function in functions.php can access.
-<?php
+
 add_action('wp_footer', function() use ($tenant_id, $tenant_user_id, $currency, $business_info, $form_config) {
     $params = [
         'ajax_url' => admin_url('admin-ajax.php'),
@@ -221,7 +221,7 @@ add_action('wp_footer', function() use ($tenant_id, $tenant_user_id, $currency, 
     wp_localize_script('mobooking-booking-form', 'moBookingParams', $params);
 }, 20);
 ?>
-?>
+
 
 
 <div class="mobooking-booking-form-container" id="mobooking-booking-form-container">
