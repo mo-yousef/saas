@@ -167,3 +167,6 @@ set_error_handler('mobooking_ajax_error_handler');
 error_log('MoBooking Debug: ' . print_r(get_defined_vars(), true));
 
 ?>
+
+
+
