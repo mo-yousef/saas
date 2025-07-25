@@ -187,43 +187,40 @@ if (!$form_config['form_enabled']) {
 
 // The wp_localize_script call is now in functions.php, but we need to pass the data to it.
 // We'll define a global variable that the function in functions.php can access.
-$GLOBALS['mobooking_public_booking_form_params'] = [
-    'ajax_url' => admin_url('admin-ajax.php'),
-    'nonce' => wp_create_nonce('mobooking_booking_nonce'),
-    'tenant_id' => $tenant_id,
-    'tenant_user_id' => $tenant_user_id,
-    'currency' => $currency,
-    'business_info' => $business_info,
-    'form_config' => $form_config,
-    'i18n' => [
-        'loading' => __('Loading...', 'mobooking'),
-        'error_generic' => __('An error occurred. Please try again.', 'mobooking'),
-        'error_location' => __('Please enter a valid location.', 'mobooking'),
-        'error_services' => __('Please select at least one service.', 'mobooking'),
-        'error_required_option' => __('This option is required.', 'mobooking'),
-        'error_invalid_email' => __('Please enter a valid email address.', 'mobooking'),
-        'success_booking' => __('Booking submitted successfully!', 'mobooking'),
-        'step_location' => __('Location', 'mobooking'),
-        'step_services' => __('Services', 'mobooking'),
-        'step_options' => __('Options', 'mobooking'),
-        'step_details' => __('Details', 'mobooking'),
-        'step_review' => __('Review', 'mobooking'),
-        'continue' => __('Continue', 'mobooking'),
-        'back' => __('Back', 'mobooking'),
-        'submit' => __('Submit Booking', 'mobooking'),
-        'apply_discount' => __('Apply Discount', 'mobooking'),
-        'discount_applied' => __('Discount applied successfully!', 'mobooking'),
-        'discount_invalid' => __('Invalid discount code.', 'mobooking'),
-    ]
-];
-// Action to actually print the localized script data
-// This should be hooked to 'wp_footer' to ensure the script handle is registered.
-add_action('wp_footer', function() {
-    global $mobooking_public_booking_form_params;
-    if (isset($mobooking_public_booking_form_params)) {
-        wp_localize_script('mobooking-booking-form', 'moBookingParams', $mobooking_public_booking_form_params);
-    }
+<?php
+add_action('wp_footer', function() use ($tenant_id, $tenant_user_id, $currency, $business_info, $form_config) {
+    $params = [
+        'ajax_url' => admin_url('admin-ajax.php'),
+        'nonce' => wp_create_nonce('mobooking_booking_nonce'),
+        'tenant_id' => $tenant_id,
+        'tenant_user_id' => $tenant_user_id,
+        'currency' => $currency,
+        'business_info' => $business_info,
+        'form_config' => $form_config,
+        'i18n' => [
+            'loading' => __('Loading...', 'mobooking'),
+            'error_generic' => __('An error occurred. Please try again.', 'mobooking'),
+            'error_location' => __('Please enter a valid location.', 'mobooking'),
+            'error_services' => __('Please select at least one service.', 'mobooking'),
+            'error_required_option' => __('This option is required.', 'mobooking'),
+            'error_invalid_email' => __('Please enter a valid email address.', 'mobooking'),
+            'success_booking' => __('Booking submitted successfully!', 'mobooking'),
+            'step_location' => __('Location', 'mobooking'),
+            'step_services' => __('Services', 'mobooking'),
+            'step_options' => __('Options', 'mobooking'),
+            'step_details' => __('Details', 'mobooking'),
+            'step_review' => __('Review', 'mobooking'),
+            'continue' => __('Continue', 'mobooking'),
+            'back' => __('Back', 'mobooking'),
+            'submit' => __('Submit Booking', 'mobooking'),
+            'apply_discount' => __('Apply Discount', 'mobooking'),
+            'discount_applied' => __('Discount applied successfully!', 'mobooking'),
+            'discount_invalid' => __('Invalid discount code.', 'mobooking'),
+        ]
+    ];
+    wp_localize_script('mobooking-booking-form', 'moBookingParams', $params);
 }, 20);
+?>
 ?>
 
 
@@ -256,6 +253,7 @@ add_action('wp_footer', function() {
     <div class="mobooking-feedback" id="mobooking-feedback" style="display: none;" role="alert"></div>
 
     <!-- Step 1: Location Check -->
+<?php if ($form_config['enable_location_check']): ?>
     <div class="mobooking-step" id="mobooking-step-1" data-step="1">
         <div class="mobooking-step-content">
             <h2 class="mobooking-step-title">
@@ -280,6 +278,7 @@ add_action('wp_footer', function() {
             </form>
         </div>
     </div>
+<?php endif; ?>
 
     <!-- Step 2: Service Selection -->
     <div class="mobooking-step" id="mobooking-step-2" data-step="2" style="display: none;">
