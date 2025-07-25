@@ -587,21 +587,21 @@ jQuery(document).ready(function ($) {
     if (customerDetails.phone) $("#customer-phone").val(customerDetails.phone);
     if (customerDetails.address)
       $("#service-address").val(customerDetails.address);
-    if (customerDetails.date) $("#preferred-date").val(customerDetails.date);
-    if (customerDetails.time) $("#preferred-time").val(customerDetails.time);
+    if (customerDetails.date && customerDetails.time) $("#preferred-datetime").val(customerDetails.date + ' ' + customerDetails.time);
     if (customerDetails.instructions)
       $("#special-instructions").val(customerDetails.instructions);
   }
 
   function storeCustomerDetails() {
+    const datetime = $("#preferred-datetime").val().split(' ');
     customerDetails = {
-      name: $("#customer-name").val().trim(),
-      email: $("#customer-email").val().trim(),
-      phone: $("#customer-phone").val().trim(),
-      address: $("#service-address").val().trim(),
-      date: $("#preferred-date").val(),
-      time: $("#preferred-time").val(),
-      instructions: $("#special-instructions").val().trim(),
+        name: $("#customer-name").val().trim(),
+        email: $("#customer-email").val().trim(),
+        phone: $("#customer-phone").val().trim(),
+        address: $("#service-address").val().trim(),
+        date: datetime[0],
+        time: datetime[1],
+        instructions: $("#special-instructions").val().trim(),
     };
 
     debugLog("Customer details stored", customerDetails);
@@ -1225,6 +1225,37 @@ jQuery(document).ready(function ($) {
 
     // Bind events
     bindEvents();
+
+    // Initialize flatpickr
+    flatpickr("#preferred-datetime", {
+        enableTime: true,
+        dateFormat: "Y-m-d H:i",
+        minDate: "today",
+        onReady: function(selectedDates, dateStr, instance) {
+            // Fetch availability data and disable dates/times
+            $.ajax({
+                url: AJAX_URL,
+                type: 'POST',
+                data: {
+                    action: 'mobooking_get_recurring_schedule',
+                    nonce: FORM_NONCE,
+                    tenant_id: TENANT_ID
+                },
+                success: function(response) {
+                    if (response.success) {
+                        const schedule = response.data;
+                        instance.set('disable', [
+                            function(date) {
+                                const dayOfWeek = date.getDay();
+                                const day = schedule.find(d => d.day_of_week === dayOfWeek);
+                                return !day || !day.is_enabled;
+                            }
+                        ]);
+                    }
+                }
+            });
+        }
+    });
 
     // Initialize first step
     if (FORM_CONFIG.enable_location_check) {
