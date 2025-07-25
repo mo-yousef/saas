@@ -166,6 +166,29 @@ set_error_handler('mobooking_ajax_error_handler');
 
 error_log('MoBooking Debug: ' . print_r(get_defined_vars(), true));
 
+function mobooking_enqueue_public_booking_form_assets() {
+    if (is_page_template('templates/booking-form-public.php') || is_singular('booking')) {
+        wp_enqueue_script('jquery');
+        wp_enqueue_script('jquery-ui-core');
+        wp_enqueue_script('jquery-ui-datepicker');
+        wp_enqueue_style('jquery-ui-datepicker', 'https://code.jquery.com/ui/1.12.1/themes/ui-lightness/jquery-ui.css');
+
+        wp_enqueue_script('mobooking-booking-form', get_template_directory_uri() . '/assets/js/booking-form-public.js', ['jquery', 'jquery-ui-datepicker'], MOBOOKING_VERSION, true);
+        wp_enqueue_style('mobooking-booking-form', get_template_directory_uri() . '/assets/css/booking-form.css', [], MOBOOKING_VERSION);
+
+        // This part is tricky because the tenant ID is determined in the template.
+        // We will need to adjust the template to make this data available earlier
+        // or localize it directly in the template. For now, we prepare an empty array.
+        $params = [
+            'ajax_url' => admin_url('admin-ajax.php'),
+            'nonce' => wp_create_nonce('mobooking_booking_nonce'),
+            // Tenant-specific data will be added in the template
+        ];
+        wp_localize_script('mobooking-booking-form', 'moBookingParams', $params);
+    }
+}
+add_action('wp_enqueue_scripts', 'mobooking_enqueue_public_booking_form_assets');
+
 ?>
 
 
