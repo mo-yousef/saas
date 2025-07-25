@@ -232,7 +232,8 @@ echo $css_variables;
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo esc_html($form_config['form_header']); ?> - <?php echo esc_html($business_info['name']); ?></title>
-    <script src="https://elements.cronofy.com/js/CronofyElements.v1.65.3.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <?php wp_head(); ?>
 
     <style>
@@ -1520,7 +1521,14 @@ body.mobooking-body {
                                 <div class="mobooking-form-section">
                                     <h3><?php esc_html_e('Service Details', 'mobooking'); ?></h3>
                                     
-                                    <div id="cronofy-date-time-picker"></div>
+                                    <div class="mobooking-form-group">
+                                        <label for="preferred-datetime" class="mobooking-label">
+                                            <?php esc_html_e('Preferred Date & Time', 'mobooking'); ?>
+                                            <span class="mobooking-required" aria-label="required">*</span>
+                                        </label>
+                                        <input type="text" id="preferred-datetime" name="preferred_datetime" class="mobooking-input" required
+                                               placeholder="<?php esc_attr_e('Select Date and Time', 'mobooking'); ?>">
+                                    </div>
                                     
                                     <div class="mobooking-form-group">
                                         <label for="special-instructions" class="mobooking-label">
