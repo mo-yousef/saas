@@ -1269,3 +1269,56 @@ body.mobooking-form-active {
 .mobooking-form-group-radio label {
     font-weight: normal; /* Standard weight for radio labels */
 }
+
+/* Flatpickr Styles */
+.flatpickr-calendar {
+    background: var(--mobk-color-card);
+    border: 1px solid var(--mobk-color-border);
+    border-radius: var(--mobk-border-radius);
+    box-shadow: var(--shadow-lg);
+}
+
+.flatpickr-months .flatpickr-month {
+    color: var(--mobk-color-card-foreground);
+}
+
+.flatpickr-months .flatpickr-prev-month,
+.flatpickr-months .flatpickr-next-month {
+    color: var(--mobk-color-muted-foreground);
+}
+
+.flatpickr-weekdays {
+    background: var(--mobk-color-muted);
+}
+
+.flatpickr-weekday {
+    color: var(--mobk-color-card-foreground);
+}
+
+.flatpickr-day {
+    color: var(--mobk-color-card-foreground);
+}
+
+.flatpickr-day.today {
+    border-color: var(--mobk-color-primary);
+}
+
+.flatpickr-day.selected,
+.flatpickr-day.startRange,
+.flatpickr-day.endRange {
+    background: var(--mobk-color-primary);
+    color: var(--mobk-color-primary-foreground);
+    border-color: var(--mobk-color-primary);
+}
+
+.flatpickr-time {
+    background: var(--mobk-color-muted);
+}
+
+.flatpickr-time .numInputWrapper .numInput {
+    color: var(--mobk-color-card-foreground);
+}
+
+.flatpickr-time .flatpickr-am-pm {
+    color: var(--mobk-color-card-foreground);
+}

@@ -593,11 +593,14 @@ jQuery(document).ready(function ($) {
   }
 
   function storeCustomerDetails() {
+    const datetime = $("#preferred-datetime").val().split(' ');
     customerDetails = {
         name: $("#customer-name").val().trim(),
         email: $("#customer-email").val().trim(),
         phone: $("#customer-phone").val().trim(),
         address: $("#service-address").val().trim(),
+        date: datetime[0],
+        time: datetime[1],
         instructions: $("#special-instructions").val().trim(),
     };
 
@@ -1223,29 +1226,39 @@ jQuery(document).ready(function ($) {
     // Bind events
     bindEvents();
 
-    $.ajax({
-        url: AJAX_URL,
-        type: 'POST',
-        data: {
-            action: 'mobooking_get_cronofy_data',
-            nonce: FORM_NONCE,
-            tenant_id: TENANT_ID
-        },
-        success: function(response) {
-            if (response.success) {
-                CronofyElements.DateTimePicker({
-                    element_token: response.data.element_token,
-                    target_id: "cronofy-date-time-picker",
-                    availability_query: response.data.availability_query,
-                    callback: function(notification) {
-                        if (notification.notification.type === 'slot_selected') {
-                            const datetime = notification.notification.slot.start.split('T');
-                            customerDetails.date = datetime[0];
-                            customerDetails.time = datetime[1].substring(0, 5);
-                        }
+    flatpickr("#preferred-datetime", {
+        enableTime: true,
+        dateFormat: "Y-m-d H:i",
+        minDate: "today",
+        onChange: function(selectedDates, dateStr, instance) {
+            const date = dateStr.split(' ')[0];
+            $.ajax({
+                url: AJAX_URL,
+                type: 'POST',
+                data: {
+                    action: 'mobooking_get_available_slots',
+                    nonce: FORM_NONCE,
+                    tenant_id: TENANT_ID,
+                    date: date
+                },
+                success: function(response) {
+                    if (response.success) {
+                        const slots = response.data;
+                        const timePicker = instance.timeContainer;
+                        timePicker.innerHTML = '';
+                        slots.forEach(function(slot) {
+                            const option = document.createElement('div');
+                            option.classList.add('flatpickr-time-option');
+                            option.textContent = slot.start_time;
+                            option.addEventListener('click', function() {
+                                const datetime = date + ' ' + slot.start_time;
+                                instance.setDate(datetime, true);
+                            });
+                            timePicker.appendChild(option);
+                        });
                     }
-                });
-            }
+                }
+            });
         }
     });
 

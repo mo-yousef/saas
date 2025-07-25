@@ -669,14 +669,24 @@ if (!function_exists('mobooking_debug_ajax_handler')) {
     }
 }
 
-add_action('wp_ajax_mobooking_get_cronofy_data', 'mobooking_ajax_get_cronofy_data');
-add_action('wp_ajax_nopriv_mobooking_get_cronofy_data', 'mobooking_ajax_get_cronofy_data');
-function mobooking_ajax_get_cronofy_data() {
-    $data = mobooking_get_cronofy_element_token_and_availability_query();
-    if ($data) {
-        wp_send_json_success($data);
-    } else {
-        wp_send_json_error(['message' => 'Failed to get Cronofy data.']);
+add_action('wp_ajax_mobooking_get_available_slots', 'mobooking_ajax_get_available_slots');
+add_action('wp_ajax_nopriv_mobooking_get_available_slots', 'mobooking_ajax_get_available_slots');
+function mobooking_ajax_get_available_slots() {
+    $date = $_POST['date'];
+    $day_of_week = date('w', strtotime($date));
+
+    $availability = new MoBooking\Classes\Availability();
+    $schedule = $availability->get_recurring_schedule($_POST['tenant_id']);
+
+    $slots = [];
+    foreach ($schedule as $day) {
+        if ($day['day_of_week'] == $day_of_week && $day['is_enabled']) {
+            foreach ($day['slots'] as $slot) {
+                $slots[] = $slot;
+            }
+        }
     }
+
+    wp_send_json_success($slots);
 }
 ?>
