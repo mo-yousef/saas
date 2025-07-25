@@ -185,18 +185,9 @@ if (!$form_config['form_enabled']) {
     return;
 }
 
-// Enqueue required scripts and styles
-wp_enqueue_script('jquery');
-wp_enqueue_script('jquery-ui-core');
-wp_enqueue_script('jquery-ui-datepicker');
-wp_enqueue_style('jquery-ui-datepicker', 'https://code.jquery.com/ui/1.12.1/themes/ui-lightness/jquery-ui.css');
-
-// Enqueue custom booking form assets
-wp_enqueue_script('mobooking-booking-form', get_template_directory_uri() . '/assets/js/booking-form-complete.js', ['jquery', 'jquery-ui-datepicker'], '1.0.0', true);
-wp_enqueue_style('mobooking-booking-form', get_template_directory_uri() . '/assets/css/booking-form.css', [], '1.0.0');
-
-// Localize script with parameters
-wp_localize_script('mobooking-booking-form', 'moBookingParams', [
+// The wp_localize_script call is now in functions.php, but we need to pass the data to it.
+// We'll define a global variable that the function in functions.php can access.
+$GLOBALS['mobooking_public_booking_form_params'] = [
     'ajax_url' => admin_url('admin-ajax.php'),
     'nonce' => wp_create_nonce('mobooking_booking_nonce'),
     'tenant_id' => $tenant_id,
@@ -224,7 +215,15 @@ wp_localize_script('mobooking-booking-form', 'moBookingParams', [
         'discount_applied' => __('Discount applied successfully!', 'mobooking'),
         'discount_invalid' => __('Invalid discount code.', 'mobooking'),
     ]
-]);
+];
+// Action to actually print the localized script data
+// This should be hooked to 'wp_footer' to ensure the script handle is registered.
+add_action('wp_footer', function() {
+    global $mobooking_public_booking_form_params;
+    if (isset($mobooking_public_booking_form_params)) {
+        wp_localize_script('mobooking-booking-form', 'moBookingParams', $mobooking_public_booking_form_params);
+    }
+}, 20);
 ?>
 
 
