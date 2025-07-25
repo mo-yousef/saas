@@ -48,7 +48,7 @@ class BookingFormRouter {
 
         // Public Booking Form by Business Slug Rule
         add_rewrite_rule(
-            '^bookings/([^/]+)/?$',
+            '^booking/([^/]+)/?$',
             'index.php?mobooking_slug=$matches[1]&mobooking_page_type=public',
             'top'
         );
@@ -87,8 +87,8 @@ class BookingFormRouter {
         error_log('[MoBooking Router] Processing request: /' . $request_path);
         error_log('[MoBooking Router] Path segments: ' . print_r($path_segments, true));
 
-        // --- Match /bookings/{slug}/ ---
-        if (isset($path_segments[0]) && $path_segments[0] === 'bookings' && isset($path_segments[1])) {
+        // --- Match /booking/{slug}/ ---
+        if (isset($path_segments[0]) && $path_segments[0] === 'booking' && isset($path_segments[1])) {
             return $this->handle_public_booking_route($path_segments[1], $theme_dir, $template);
         }
 
