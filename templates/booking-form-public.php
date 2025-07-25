@@ -1143,6 +1143,9 @@ jQuery(document).ready(function($) {
             // Skip location step
             currentStep = 2;
             loadServices();
+            showStep(currentStep);
+        } else {
+            showStep(currentStep);
         }
         
         // Initialize datepicker
@@ -1150,9 +1153,6 @@ jQuery(document).ready(function($) {
         
         // Bind event handlers
         bindEventHandlers();
-        
-        // Show initial step
-        showStep(currentStep);
     }
     
     function initializeDatepicker() {
