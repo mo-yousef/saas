@@ -34,6 +34,7 @@ $service_options_data = [];
 $error_message = '';
 
 // Get current user and business settings
+$breadcrumb_services = admin_url('admin.php?page=mobooking-services');
 $user_id = get_current_user_id();
 $settings_manager = new \MoBooking\Classes\Settings();
 $biz_settings = $settings_manager->get_business_settings($user_id);
