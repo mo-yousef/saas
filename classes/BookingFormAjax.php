@@ -438,9 +438,14 @@ class BookingFormAjax {
                     'total_price' => number_format($booking_data['pricing']['total'], 2),
                     'total_duration' => $total_duration,
                     'status' => 'pending',
-                    'created_at' => current_time('mysql', 1)
+                    'created_at' => current_time('mysql', 1),
+                    'service_frequency' => sanitize_text_field($booking_data['customer']['service_frequency'] ?? 'one-time'),
+                    'has_pets' => sanitize_text_field($booking_data['customer']['has_pets'] ?? 'no'),
+                    'pet_details' => wp_kses_post($booking_data['customer']['pet_details'] ?? ''),
+                    'property_access' => sanitize_text_field($booking_data['customer']['property_access'] ?? ''),
+                    'access_details' => wp_kses_post($booking_data['customer']['access_details'] ?? ''),
                 ],
-                ['%d', '%d', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%f', '%f', '%f', '%d', '%s', '%s']
+                ['%d', '%d', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%f', '%f', '%f', '%d', '%s', '%s', '%s', '%s', '%s', '%s', '%s']
             );
 
             if (!$booking_inserted) {
