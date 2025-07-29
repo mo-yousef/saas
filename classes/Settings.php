@@ -23,11 +23,18 @@ class Settings {
         'bf_step_1_title'             => 'Step 1: Location & Date',
         'bf_step_2_title'             => 'Step 2: Choose Services',
         'bf_step_3_title'             => 'Step 3: Service Options',
-        'bf_step_4_title'             => 'Step 4: Your Details',
-        'bf_step_5_title'             => 'Step 5: Review & Confirm',
+        'bf_step_4_title'             => 'Pet Information',
+        'bf_step_5_title'             => 'Service Frequency',
+        'bf_step_6_title'             => 'Date & Time',
+        'bf_step_7_title'             => 'Contact & Access Details',
+        'bf_step_8_title'             => 'Booking Confirmed',
         'bf_success_message'          => 'Thank you for your booking! We will contact you soon to confirm the details. A confirmation email has been sent to you.',
         
         // Form Control Settings
+        'bf_enable_pet_information'     => '1', // Enable/disable Step 4
+        'bf_enable_service_frequency'   => '1', // Enable/disable Step 5
+        'bf_enable_datetime_selection'  => '1', // Enable/disable Step 6
+        'bf_enable_property_access'     => '1', // Enable/disable Step 7
         'bf_form_enabled'             => '1', // Enable/disable entire form
         'bf_maintenance_message'      => 'We are temporarily not accepting new bookings. Please check back later or contact us directly.',
         'bf_allow_service_selection'  => '1', // Allow customers to select services
