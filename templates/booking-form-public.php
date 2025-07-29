@@ -229,9 +229,9 @@ add_action('wp_footer', function() use ($tenant_id, $tenant_user_id, $currency, 
     <?php if ($form_config['show_progress_bar']): ?>
     <div class="mobooking-progress-wrapper">
         <div class="mobooking-progress-bar-bg">
-            <div class="mobooking-progress-bar" id="mobooking-progress-bar" style="width: 20%; background-color: <?php echo esc_attr($form_config['theme_color']); ?>"></div>
+            <div class="mobooking-progress-bar" id="mobooking-progress-bar" style="width: 12.5%; background-color: <?php echo esc_attr($form_config['theme_color']); ?>"></div>
         </div>
-        <div class="mobooking-progress-text" id="mobooking-progress-text">Step 1 of 5</div>
+        <div class="mobooking-progress-text" id="mobooking-progress-text">Step 1 of 8</div>
     </div>
     <?php endif; ?>
 
@@ -353,68 +353,148 @@ add_action('wp_footer', function() use ($tenant_id, $tenant_user_id, $currency, 
         </div>
     </div>
 
-    <!-- Step 4: Customer Details -->
+    <!-- Step 4: Pet Information -->
     <div class="mobooking-step" id="mobooking-step-4" data-step="4" style="display: none;">
+        <div class="mobooking-step-content">
+            <h2 class="mobooking-step-title">
+                <i class="fas fa-paw"></i>
+                <?php echo esc_html($form_config['step_4_title'] ?? 'Pet Information'); ?>
+            </h2>
+            <p class="mobooking-step-description">
+                <?php esc_html_e('Do you have any pets? This helps us prepare for your service.', 'mobooking'); ?>
+            </p>
+
+            <div class="mobooking-form-group">
+                <label class="mobooking-radio-label">
+                    <input type="radio" name="has_pets" value="no" id="pets-no" checked>
+                    <span class="mobooking-radio-custom"></span>
+                    <?php esc_html_e('No, I don\'t have pets', 'mobooking'); ?>
+                </label>
+                <label class="mobooking-radio-label">
+                    <input type="radio" name="has_pets" value="yes" id="pets-yes">
+                    <span class="mobooking-radio-custom"></span>
+                    <?php esc_html_e('Yes, I have pets', 'mobooking'); ?>
+                </label>
+            </div>
+
+            <div class="mobooking-form-group" id="pet-details-section" style="display: none;">
+                <label for="pet-details"><?php esc_html_e('Pet Details:', 'mobooking'); ?></label>
+                <textarea id="pet-details" name="pet_details" class="mobooking-textarea" rows="3" placeholder="<?php esc_attr_e('Please describe your pets (type, number, any special considerations)...', 'mobooking'); ?>"></textarea>
+                <p class="mobooking-field-description"><?php esc_html_e('Example: 2 cats, 1 dog (friendly), bird in living room', 'mobooking'); ?></p>
+            </div>
+
+            <div class="mobooking-form-actions">
+                <button type="button" class="mobooking-btn mobooking-btn-secondary" id="mobooking-step-4-back">
+                    <i class="fas fa-arrow-left"></i>
+                    <?php esc_html_e('Back', 'mobooking'); ?>
+                </button>
+                <button type="button" class="mobooking-btn mobooking-btn-primary" id="mobooking-step-4-continue">
+                    <?php esc_html_e('Continue', 'mobooking'); ?>
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    <!-- Step 5: Service Frequency -->
+    <div class="mobooking-step" id="mobooking-step-5" data-step="5" style="display: none;">
+        <div class="mobooking-step-content">
+            <h2 class="mobooking-step-title">
+                <i class="fas fa-calendar-alt"></i>
+                <?php echo esc_html($form_config['step_5_title'] ?? 'Service Frequency'); ?>
+            </h2>
+            <p class="mobooking-step-description">
+                <?php esc_html_e('How often would you like this service?', 'mobooking'); ?>
+            </p>
+
+            <div class="mobooking-frequency-options">
+                <label class="mobooking-frequency-card">
+                    <input type="radio" name="service_frequency" value="one-time" id="freq-onetime" checked>
+                    <div class="mobooking-frequency-content">
+                        <i class="fas fa-calendar-day"></i>
+                        <h3><?php esc_html_e('One-time', 'mobooking'); ?></h3>
+                        <p><?php esc_html_e('Single service visit', 'mobooking'); ?></p>
+                    </div>
+                </label>
+
+                <label class="mobooking-frequency-card">
+                    <input type="radio" name="service_frequency" value="weekly" id="freq-weekly">
+                    <div class="mobooking-frequency-content">
+                        <i class="fas fa-calendar-week"></i>
+                        <h3><?php esc_html_e('Weekly', 'mobooking'); ?></h3>
+                        <p><?php esc_html_e('Every week', 'mobooking'); ?></p>
+                        <span class="mobooking-frequency-discount"><?php esc_html_e('Save 10%', 'mobooking'); ?></span>
+                    </div>
+                </label>
+
+                <label class="mobooking-frequency-card">
+                    <input type="radio" name="service_frequency" value="monthly" id="freq-monthly">
+                    <div class="mobooking-frequency-content">
+                        <i class="fas fa-calendar"></i>
+                        <h3><?php esc_html_e('Monthly', 'mobooking'); ?></h3>
+                        <p><?php esc_html_e('Once per month', 'mobooking'); ?></p>
+                        <span class="mobooking-frequency-discount"><?php esc_html_e('Save 5%', 'mobooking'); ?></span>
+                    </div>
+                </label>
+            </div>
+
+            <div class="mobooking-form-actions">
+                <button type="button" class="mobooking-btn mobooking-btn-secondary" id="mobooking-step-5-back">
+                    <i class="fas fa-arrow-left"></i>
+                    <?php esc_html_e('Back', 'mobooking'); ?>
+                </button>
+                <button type="button" class="mobooking-btn mobooking-btn-primary" id="mobooking-step-5-continue">
+                    <?php esc_html_e('Continue', 'mobooking'); ?>
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    <!-- Step 6: Date & Time Selection -->
+    <div class="mobooking-step" id="mobooking-step-6" data-step="6" style="display: none;">
         <div class="mobooking-step-with-sidebar">
             <div class="mobooking-step-main">
                 <h2 class="mobooking-step-title">
-                    <i class="fas fa-user"></i>
-                    <?php echo esc_html($form_config['step_4_title']); ?>
+                    <i class="fas fa-clock"></i>
+                    <?php echo esc_html($form_config['step_6_title'] ?? 'Date & Time'); ?>
                 </h2>
                 <p class="mobooking-step-description">
-                    <?php esc_html_e('Please provide your contact information and service details.', 'mobooking'); ?>
+                    <?php esc_html_e('When would you like your service?', 'mobooking'); ?>
                 </p>
 
-                <form id="mobooking-details-form">
-                    <div class="mobooking-form-row">
-                        <div class="mobooking-form-group">
-                            <label for="customer-name"><?php esc_html_e('Full Name:', 'mobooking'); ?> <span class="required">*</span></label>
-                            <input type="text" id="customer-name" name="customer_name" class="mobooking-input" required>
-                        </div>
-                        <div class="mobooking-form-group">
-                            <label for="customer-email"><?php esc_html_e('Email Address:', 'mobooking'); ?> <span class="required">*</span></label>
-                            <input type="email" id="customer-email" name="customer_email" class="mobooking-input" required>
-                        </div>
-                    </div>
-
-                    <div class="mobooking-form-row">
-                        <div class="mobooking-form-group">
-                            <label for="customer-phone"><?php esc_html_e('Phone Number:', 'mobooking'); ?> <span class="required">*</span></label>
-                            <input type="tel" id="customer-phone" name="customer_phone" class="mobooking-input" required>
-                        </div>
+                <div class="mobooking-datetime-selection">
+                    <div class="mobooking-form-group">
+                        <label for="preferred-date"><?php esc_html_e('Preferred Date:', 'mobooking'); ?> <span class="required">*</span></label>
+                        <input type="date" id="preferred-date" name="preferred_date" class="mobooking-input" required min="<?php echo date('Y-m-d'); ?>">
                     </div>
 
                     <div class="mobooking-form-group">
-                        <label for="service-address"><?php esc_html_e('Service Address:', 'mobooking'); ?> <span class="required">*</span></label>
-                        <textarea id="service-address" name="service_address" class="mobooking-textarea" rows="3" required></textarea>
+                        <label for="preferred-time"><?php esc_html_e('Preferred Time:', 'mobooking'); ?> <span class="required">*</span></label>
+                        <select id="preferred-time" name="preferred_time" class="mobooking-select" required>
+                            <option value=""><?php esc_html_e('Select time', 'mobooking'); ?></option>
+                            <option value="08:00">8:00 AM</option>
+                            <option value="09:00">9:00 AM</option>
+                            <option value="10:00">10:00 AM</option>
+                            <option value="11:00">11:00 AM</option>
+                            <option value="12:00">12:00 PM</option>
+                            <option value="13:00">1:00 PM</option>
+                            <option value="14:00">2:00 PM</option>
+                            <option value="15:00">3:00 PM</option>
+                            <option value="16:00">4:00 PM</option>
+                            <option value="17:00">5:00 PM</option>
+                        </select>
                     </div>
 
-                    <div class="mobooking-form-row">
-                        <div class="mobooking-form-group">
-                            <label for="preferred-date"><?php esc_html_e('Preferred Date:', 'mobooking'); ?> <span class="required">*</span></label>
-                            <input type="text" id="preferred-date" name="preferred_date" class="mobooking-input mobooking-datepicker" required readonly>
-                        </div>
-                        <div class="mobooking-form-group">
-                            <label for="preferred-time"><?php esc_html_e('Preferred Time:', 'mobooking'); ?> <span class="required">*</span></label>
-                            <select id="preferred-time" name="preferred_time" class="mobooking-select" required>
-                                <option value=""><?php esc_html_e('Select time...', 'mobooking'); ?></option>
-                                <!-- Time slots will be populated via AJAX based on availability -->
-                            </select>
-                        </div>
+                    <div class="mobooking-time-slots" id="available-time-slots" style="display: none;">
+                        <!-- Available time slots will be loaded here -->
                     </div>
-
-                    <div class="mobooking-form-group">
-                        <label for="special-instructions"><?php esc_html_e('Special Instructions:', 'mobooking'); ?></label>
-                        <textarea id="special-instructions" name="special_instructions" class="mobooking-textarea" rows="3" placeholder="<?php esc_attr_e('Any special requests or instructions...', 'mobooking'); ?>"></textarea>
-                    </div>
-                </form>
+                </div>
 
                 <div class="mobooking-form-actions">
-                    <button type="button" class="mobooking-btn mobooking-btn-secondary" id="mobooking-step-4-back">
+                    <button type="button" class="mobooking-btn mobooking-btn-secondary" id="mobooking-step-6-back">
                         <i class="fas fa-arrow-left"></i>
                         <?php esc_html_e('Back', 'mobooking'); ?>
                     </button>
-                    <button type="button" class="mobooking-btn mobooking-btn-primary" id="mobooking-step-4-continue">
+                    <button type="button" class="mobooking-btn mobooking-btn-primary" id="mobooking-step-6-continue">
                         <?php esc_html_e('Continue', 'mobooking'); ?>
                         <i class="fas fa-arrow-right"></i>
                     </button>
@@ -422,87 +502,192 @@ add_action('wp_footer', function() use ($tenant_id, $tenant_user_id, $currency, 
             </div>
 
             <div class="mobooking-sidebar">
-                <div class="mobooking-summary-content" id="mobooking-summary-sidebar">
+                <div class="mobooking-summary-content" id="mobooking-datetime-summary">
+                    <!-- Summary will be updated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Step 7: Contact & Property Access Details -->
+    <div class="mobooking-step" id="mobooking-step-7" data-step="7" style="display: none;">
+        <div class="mobooking-step-with-sidebar">
+            <div class="mobooking-step-main">
+                <h2 class="mobooking-step-title">
+                    <i class="fas fa-user-edit"></i>
+                    <?php echo esc_html($form_config['step_7_title'] ?? 'Contact & Access Details'); ?>
+                </h2>
+                <p class="mobooking-step-description">
+                    <?php esc_html_e('Please provide your contact information and let us know how we can access your property.', 'mobooking'); ?>
+                </p>
+
+                <form id="mobooking-details-form">
+                    <!-- Contact Information -->
+                    <div class="mobooking-section">
+                        <h3 class="mobooking-section-title"><?php esc_html_e('Contact Information', 'mobooking'); ?></h3>
+
+                        <div class="mobooking-form-row">
+                            <div class="mobooking-form-group">
+                                <label for="customer-name"><?php esc_html_e('Full Name:', 'mobooking'); ?> <span class="required">*</span></label>
+                                <input type="text" id="customer-name" name="customer_name" class="mobooking-input" required>
+                            </div>
+                            <div class="mobooking-form-group">
+                                <label for="customer-email"><?php esc_html_e('Email Address:', 'mobooking'); ?> <span class="required">*</span></label>
+                                <input type="email" id="customer-email" name="customer_email" class="mobooking-input" required>
+                            </div>
+                        </div>
+
+                        <div class="mobooking-form-group">
+                            <label for="customer-phone"><?php esc_html_e('Phone Number:', 'mobooking'); ?> <span class="required">*</span></label>
+                            <input type="tel" id="customer-phone" name="customer_phone" class="mobooking-input" required>
+                        </div>
+                    </div>
+
+                    <!-- Service Address -->
+                    <div class="mobooking-section">
+                        <h3 class="mobooking-section-title"><?php esc_html_e('Service Address', 'mobooking'); ?></h3>
+
+                        <div class="mobooking-form-group">
+                            <label for="street-address"><?php esc_html_e('Street Address:', 'mobooking'); ?> <span class="required">*</span></label>
+                            <input type="text" id="street-address" name="street_address" class="mobooking-input" placeholder="<?php esc_attr_e('123 Main Street', 'mobooking'); ?>" required>
+                        </div>
+
+                        <div class="mobooking-form-row">
+                            <div class="mobooking-form-group">
+                                <label for="apartment"><?php esc_html_e('Apartment/Suite:', 'mobooking'); ?></label>
+                                <input type="text" id="apartment" name="apartment" class="mobooking-input" placeholder="<?php esc_attr_e('Apt 4B (optional)', 'mobooking'); ?>">
+                            </div>
+                            <div class="mobooking-form-group">
+                                <label for="service-city"><?php esc_html_e('City:', 'mobooking'); ?></label>
+                                <input type="text" id="service-city" name="service_city" class="mobooking-input" readonly>
+                            </div>
+                        </div>
+
+                        <div class="mobooking-form-row">
+                            <div class="mobooking-form-group">
+                                <label for="service-state"><?php esc_html_e('State:', 'mobooking'); ?></label>
+                                <input type="text" id="service-state" name="service_state" class="mobooking-input" readonly>
+                            </div>
+                            <div class="mobooking-form-group">
+                                <label for="service-zipcode"><?php esc_html_e('ZIP Code:', 'mobooking'); ?></label>
+                                <input type="text" id="service-zipcode" name="service_zipcode" class="mobooking-input" readonly>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Property Access -->
+                    <div class="mobooking-section">
+                        <h3 class="mobooking-section-title"><?php esc_html_e('Property Access', 'mobooking'); ?></h3>
+                        <p class="mobooking-section-description"><?php esc_html_e('How will our team access your property?', 'mobooking'); ?></p>
+
+                        <div class="mobooking-access-options">
+                            <label class="mobooking-access-option">
+                                <input type="radio" name="property_access" value="home" id="access-home" checked>
+                                <div class="mobooking-access-content">
+                                    <i class="fas fa-home"></i>
+                                    <span><?php esc_html_e('I\'ll be home', 'mobooking'); ?></span>
+                                </div>
+                            </label>
+
+                            <label class="mobooking-access-option">
+                                <input type="radio" name="property_access" value="key_mat" id="access-key">
+                                <div class="mobooking-access-content">
+                                    <i class="fas fa-key"></i>
+                                    <span><?php esc_html_e('Key under mat', 'mobooking'); ?></span>
+                                </div>
+                            </label>
+
+                            <label class="mobooking-access-option">
+                                <input type="radio" name="property_access" value="lockbox" id="access-lockbox">
+                                <div class="mobooking-access-content">
+                                    <i class="fas fa-lock"></i>
+                                    <span><?php esc_html_e('Lockbox', 'mobooking'); ?></span>
+                                </div>
+                            </label>
+
+                            <label class="mobooking-access-option">
+                                <input type="radio" name="property_access" value="concierge" id="access-concierge">
+                                <div class="mobooking-access-content">
+                                    <i class="fas fa-concierge-bell"></i>
+                                    <span><?php esc_html_e('Building concierge', 'mobooking'); ?></span>
+                                </div>
+                            </label>
+
+                            <label class="mobooking-access-option">
+                                <input type="radio" name="property_access" value="other" id="access-other">
+                                <div class="mobooking-access-content">
+                                    <i class="fas fa-edit"></i>
+                                    <span><?php esc_html_e('Other', 'mobooking'); ?></span>
+                                </div>
+                            </label>
+                        </div>
+
+                        <div class="mobooking-form-group" id="custom-access-details" style="display: none;">
+                            <label for="access-details"><?php esc_html_e('Access Details:', 'mobooking'); ?></label>
+                            <textarea id="access-details" name="access_details" class="mobooking-textarea" rows="3" placeholder="<?php esc_attr_e('Please describe how our team can access your property...', 'mobooking'); ?>"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Special Instructions -->
+                    <div class="mobooking-section">
+                        <h3 class="mobooking-section-title"><?php esc_html_e('Special Instructions', 'mobooking'); ?></h3>
+                        <div class="mobooking-form-group">
+                            <label for="special-instructions"><?php esc_html_e('Additional Notes:', 'mobooking'); ?></label>
+                            <textarea id="special-instructions" name="special_instructions" class="mobooking-textarea" rows="4" placeholder="<?php esc_attr_e('Any special requests, areas of focus, or important information...', 'mobooking'); ?>"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="mobooking-form-actions">
+                        <button type="button" class="mobooking-btn mobooking-btn-secondary" id="mobooking-step-7-back">
+                            <i class="fas fa-arrow-left"></i>
+                            <?php esc_html_e('Back', 'mobooking'); ?>
+                        </button>
+                        <button type="button" class="mobooking-btn mobooking-btn-primary" id="mobooking-step-7-continue">
+                            <?php esc_html_e('Continue', 'mobooking'); ?>
+                            <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="mobooking-sidebar">
+                <div class="mobooking-summary-content" id="mobooking-contact-summary">
                     <!-- Summary will be updated here -->
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Step 5: Review & Confirm -->
-    <div class="mobooking-step" id="mobooking-step-5" data-step="5" style="display: none;">
+    <!-- Step 8: Booking Confirmation -->
+    <div class="mobooking-step" id="mobooking-step-8" data-step="8" style="display: none;">
         <div class="mobooking-step-content">
-            <h2 class="mobooking-step-title">
-                <i class="fas fa-check-circle"></i>
-                <?php echo esc_html($form_config['step_5_title']); ?>
-            </h2>
-            <p class="mobooking-step-description">
-                <?php esc_html_e('Please review your booking details and confirm.', 'mobooking'); ?>
-            </p>
-
-            <div class="mobooking-booking-summary" id="mobooking-booking-summary">
-                <!-- Booking summary will be generated here -->
-            </div>
-
-            <?php if ($form_config['allow_discount_codes']): ?>
-            <div class="mobooking-discount-section">
-                <h3><?php esc_html_e('Discount Code', 'mobooking'); ?></h3>
-                <div class="mobooking-form-row">
-                    <div class="mobooking-form-group">
-                        <input type="text" id="discount-code" name="discount_code" class="mobooking-input" placeholder="<?php esc_attr_e('Enter discount code', 'mobooking'); ?>">
-                    </div>
-                    <div class="mobooking-form-group">
-                        <button type="button" class="mobooking-btn mobooking-btn-secondary" id="apply-discount-btn">
-                            <?php esc_html_e('Apply', 'mobooking'); ?>
-                        </button>
-                    </div>
+            <div class="mobooking-success-container">
+                <div class="mobooking-success-icon">
+                    <i class="fas fa-check-circle"></i>
                 </div>
-                <div class="mobooking-discount-feedback" id="mobooking-discount-feedback" style="display: none;"></div>
-            </div>
-            <?php endif; ?>
 
-            <div class="mobooking-pricing-summary" id="mobooking-pricing-summary">
-                <!-- Pricing breakdown will be shown here -->
-            </div>
+                <h2 class="mobooking-success-title">
+                    <?php echo esc_html($form_config['step_8_title'] ?? 'Booking Confirmed!'); ?>
+                </h2>
 
-            <?php if ($form_config['terms_conditions_url']): ?>
-            <div class="mobooking-terms-section">
-                <label class="mobooking-checkbox-label">
-                    <input type="checkbox" id="accept-terms" name="accept_terms" required>
-                    <span class="mobooking-checkmark"></span>
-                    <?php printf(
-                        esc_html__('I agree to the %s', 'mobooking'),
-                        '<a href="' . esc_url($form_config['terms_conditions_url']) . '" target="_blank">' . esc_html__('Terms & Conditions', 'mobooking') . '</a>'
-                    ); ?>
-                </label>
-            </div>
-            <?php endif; ?>
+                <p class="mobooking-success-message">
+                    <?php echo esc_html($form_config['success_message'] ?? 'Thank you for your booking! We will contact you soon to confirm the details.'); ?>
+                </p>
 
-            <div class="mobooking-form-actions">
-                <button type="button" class="mobooking-btn mobooking-btn-secondary" id="mobooking-step-5-back">
-                    <i class="fas fa-arrow-left"></i>
-                    <?php esc_html_e('Back', 'mobooking'); ?>
-                </button>
-                <button type="button" class="mobooking-btn mobooking-btn-primary mobooking-btn-lg" id="mobooking-submit-booking">
-                    <i class="fas fa-check"></i>
-                    <?php esc_html_e('Confirm Booking', 'mobooking'); ?>
-                </button>
-            </div>
-        </div>
-    </div>
+                <div class="mobooking-booking-details" id="mobooking-final-booking-details">
+                    <!-- Booking details will be populated here via JavaScript -->
+                </div>
 
-    <!-- Step 6: Success -->
-    <div class="mobooking-step" id="mobooking-step-6" data-step="6" style="display: none;">
-        <div class="mobooking-step-content mobooking-success-content">
-            <div class="mobooking-success-icon">
-                <i class="fas fa-check-circle"></i>
-            </div>
-            <h2 class="mobooking-success-title"><?php esc_html_e('Booking Confirmed!', 'mobooking'); ?></h2>
-            <div class="mobooking-success-message" id="mobooking-success-message">
-                <p><?php echo esc_html($form_config['success_message']); ?></p>
-            </div>
-            <div class="mobooking-booking-reference" id="mobooking-booking-reference" style="display: none;">
-                <p><strong><?php esc_html_e('Booking Reference:', 'mobooking'); ?></strong> <span id="mobooking-reference-number"></span></p>
+                <div class="mobooking-success-actions">
+                    <button type="button" class="mobooking-btn mobooking-btn-primary" onclick="window.print()">
+                        <i class="fas fa-print"></i>
+                        <?php esc_html_e('Print Confirmation', 'mobooking'); ?>
+                    </button>
+
+                    <button type="button" class="mobooking-btn mobooking-btn-secondary" id="mobooking-new-booking">
+                        <i class="fas fa-plus"></i>
+                        <?php esc_html_e('Book Another Service', 'mobooking'); ?>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
