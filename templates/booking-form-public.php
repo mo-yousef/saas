@@ -158,11 +158,18 @@ $form_config = [
     'step_1_title' => $bf_settings['bf_step_1_title'] ?? 'Check Service Area',
     'step_2_title' => $bf_settings['bf_step_2_title'] ?? 'Select Services',
     'step_3_title' => $bf_settings['bf_step_3_title'] ?? 'Configure Options',
-    'step_4_title' => $bf_settings['bf_step_4_title'] ?? 'Your Details',
-    'step_5_title' => $bf_settings['bf_step_5_title'] ?? 'Review & Confirm',
+    'step_4_title' => $bf_settings['bf_step_4_title'] ?? 'Pet Information',
+    'step_5_title' => $bf_settings['bf_step_5_title'] ?? 'Service Frequency',
+    'step_6_title' => $bf_settings['bf_step_6_title'] ?? 'Date & Time',
+    'step_7_title' => $bf_settings['bf_step_7_title'] ?? 'Contact & Access Details',
+    'step_8_title' => $bf_settings['bf_step_8_title'] ?? 'Booking Confirmed!',
     'success_message' => $bf_settings['bf_success_message'] ?? 'Thank you for your booking! We will contact you soon.',
     'terms_conditions_url' => $bf_settings['bf_terms_conditions_url'] ?? '',
     'custom_css' => $bf_settings['bf_custom_css'] ?? '',
+    'bf_enable_pet_information'     => ($bf_settings['bf_enable_pet_information'] ?? '1') === '1',
+    'bf_enable_service_frequency'   => ($bf_settings['bf_enable_service_frequency'] ?? '1') === '1',
+    'bf_enable_datetime_selection'  => ($bf_settings['bf_enable_datetime_selection'] ?? '1') === '1',
+    'bf_enable_property_access'     => ($bf_settings['bf_enable_property_access'] ?? '1') === '1',
 ];
 
 // Currency settings
@@ -354,11 +361,12 @@ add_action('wp_footer', function() use ($tenant_id, $tenant_user_id, $currency, 
     </div>
 
     <!-- Step 4: Pet Information -->
+    <?php if ($form_config['bf_enable_pet_information']): ?>
     <div class="mobooking-step" id="mobooking-step-4" data-step="4" style="display: none;">
         <div class="mobooking-step-content">
             <h2 class="mobooking-step-title">
                 <i class="fas fa-paw"></i>
-                <?php echo esc_html($form_config['step_4_title'] ?? 'Pet Information'); ?>
+                <?php echo esc_html($form_config['step_4_title']); ?>
             </h2>
             <p class="mobooking-step-description">
                 <?php esc_html_e('Do you have any pets? This helps us prepare for your service.', 'mobooking'); ?>
@@ -395,12 +403,15 @@ add_action('wp_footer', function() use ($tenant_id, $tenant_user_id, $currency, 
             </div>
         </div>
     </div>
+    <?php endif; ?>
+
     <!-- Step 5: Service Frequency -->
+    <?php if ($form_config['bf_enable_service_frequency']): ?>
     <div class="mobooking-step" id="mobooking-step-5" data-step="5" style="display: none;">
         <div class="mobooking-step-content">
             <h2 class="mobooking-step-title">
                 <i class="fas fa-calendar-alt"></i>
-                <?php echo esc_html($form_config['step_5_title'] ?? 'Service Frequency'); ?>
+                <?php echo esc_html($form_config['step_5_title']); ?>
             </h2>
             <p class="mobooking-step-description">
                 <?php esc_html_e('How often would you like this service?', 'mobooking'); ?>
@@ -449,13 +460,16 @@ add_action('wp_footer', function() use ($tenant_id, $tenant_user_id, $currency, 
             </div>
         </div>
     </div>
+    <?php endif; ?>
+
     <!-- Step 6: Date & Time Selection -->
+    <?php if ($form_config['bf_enable_datetime_selection']): ?>
     <div class="mobooking-step" id="mobooking-step-6" data-step="6" style="display: none;">
         <div class="mobooking-step-with-sidebar">
             <div class="mobooking-step-main">
                 <h2 class="mobooking-step-title">
                     <i class="fas fa-clock"></i>
-                    <?php echo esc_html($form_config['step_6_title'] ?? 'Date & Time'); ?>
+                    <?php echo esc_html($form_config['step_6_title']); ?>
                 </h2>
                 <p class="mobooking-step-description">
                     <?php esc_html_e('When would you like your service?', 'mobooking'); ?>
@@ -508,13 +522,16 @@ add_action('wp_footer', function() use ($tenant_id, $tenant_user_id, $currency, 
             </div>
         </div>
     </div>
+    <?php endif; ?>
+
     <!-- Step 7: Contact & Property Access Details -->
+    <?php if ($form_config['bf_enable_property_access']): ?>
     <div class="mobooking-step" id="mobooking-step-7" data-step="7" style="display: none;">
         <div class="mobooking-step-with-sidebar">
             <div class="mobooking-step-main">
                 <h2 class="mobooking-step-title">
                     <i class="fas fa-user-edit"></i>
-                    <?php echo esc_html($form_config['step_7_title'] ?? 'Contact & Access Details'); ?>
+                    <?php echo esc_html($form_config['step_7_title']); ?>
                 </h2>
                 <p class="mobooking-step-description">
                     <?php esc_html_e('Please provide your contact information and let us know how we can access your property.', 'mobooking'); ?>
@@ -656,6 +673,7 @@ add_action('wp_footer', function() use ($tenant_id, $tenant_user_id, $currency, 
             </div>
         </div>
     </div>
+    <?php endif; ?>
 
     <!-- Step 8: Booking Confirmation -->
     <div class="mobooking-step" id="mobooking-step-8" data-step="8" style="display: none;">
@@ -666,11 +684,11 @@ add_action('wp_footer', function() use ($tenant_id, $tenant_user_id, $currency, 
                 </div>
 
                 <h2 class="mobooking-success-title">
-                    <?php echo esc_html($form_config['step_8_title'] ?? 'Booking Confirmed!'); ?>
+                    <?php echo esc_html($form_config['step_8_title']); ?>
                 </h2>
 
                 <p class="mobooking-success-message">
-                    <?php echo esc_html($form_config['success_message'] ?? 'Thank you for your booking! We will contact you soon to confirm the details.'); ?>
+                    <?php echo esc_html($form_config['success_message']); ?>
                 </p>
 
                 <div class="mobooking-booking-details" id="mobooking-final-booking-details">
