@@ -36,9 +36,6 @@ if (!empty($current_slug)) {
 }
 
 ?>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@melloware/coloris@0.25.0/dist/coloris.min.css">
-<script src="https://cdn.jsdelivr.net/npm/@melloware/coloris@0.25.0/dist/coloris.min.js"></script>
-
 <div id="mobooking-booking-form-settings-page" class="wrap">
     <h1><?php esc_html_e('Booking Form Settings', 'mobooking'); ?></h1>
     <p><?php esc_html_e('Customize the appearance and behavior of your public booking form.', 'mobooking'); ?></p>
