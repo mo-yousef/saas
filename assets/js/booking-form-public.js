@@ -24,7 +24,6 @@ jQuery(document).ready(function ($) {
   let customerDetails = {};
   let discountInfo = null;
   let totalPrice = 0;
-  let locationVerified = !FORM_CONFIG.enable_location_check;
 
   // --- UTILITY FUNCTIONS ---
 
@@ -230,7 +229,6 @@ jQuery(document).ready(function ($) {
               I18N.service_available ||
               "Service is available in your area!"
           );
-          locationVerified = true;
           setTimeout(() => showStep(2), 1500);
         } else {
           showFeedback(
@@ -921,19 +919,6 @@ jQuery(document).ready(function ($) {
     });
 
     // Validate current step
-    if (
-      currentStep === 1 &&
-      FORM_CONFIG.enable_location_check &&
-      !locationVerified
-    ) {
-      showFeedback(
-        $("#mobooking-location-feedback"),
-        "error",
-        I18N.verify_location || "Please verify your location first."
-      );
-      return;
-    }
-
     if (currentStep === 2 && !selectedService) {
       showFeedback(
         $("#mobooking-services-feedback"),
@@ -1241,7 +1226,6 @@ jQuery(document).ready(function ($) {
     if (FORM_CONFIG.enable_location_check) {
       showStep(1);
     } else {
-      locationVerified = true;
       showStep(2);
     }
   }
