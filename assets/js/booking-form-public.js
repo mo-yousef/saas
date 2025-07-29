@@ -381,6 +381,7 @@ jQuery(document).ready(function ($) {
         debugLog("Services loaded from server", response);
 
         if (response.success && response.data) {
+          PRELOADED_SERVICES = response.data;
           renderServiceCards(response.data);
           debugLog("Rendered services", response.data);
         } else {
@@ -508,6 +509,10 @@ jQuery(document).ready(function ($) {
   // --- STEP 3: SERVICE OPTIONS ---
 
   function displayServiceOptions() {
+    if (!selectedService) {
+      debugLog("No service selected, cannot display options");
+      return;
+    }
     debugLog("Displaying service options", {
         selectedService: selectedService,
         options: selectedService.options
