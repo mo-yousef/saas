@@ -399,6 +399,7 @@ jQuery(document).ready(function ($) {
   }
 
   function renderServiceCards(services) {
+    console.log('Rendering service cards:', services);
     const $container = $("#mobooking-services-container");
     let html = "";
 
