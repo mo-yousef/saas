@@ -37,6 +37,37 @@ jQuery(document).ready(function ($) {
     }
   }
 
+  // --- AJAX DEBUG WRAPPER ---
+  const originalAjax = $.ajax;
+  $.ajax = function() {
+      const args = Array.prototype.slice.call(arguments);
+      const xhr = originalAjax.apply(this, args);
+
+      if (IS_DEBUG) {
+          const requestData = args[0] && args[0].data ? args[0].data : {};
+          const action = requestData.action || 'N/A';
+
+          console.groupCollapsed(`[AJAX SENT] ${action}`);
+          console.log('Request URL:', args[0].url);
+          console.log('Request Data:', requestData);
+          console.groupEnd();
+
+          xhr.done(function(responseData) {
+              console.groupCollapsed(`[AJAX SUCCESS] ${action}`);
+              console.log('Response:', responseData);
+              console.groupEnd();
+          }).fail(function(jqXHR, textStatus, errorThrown) {
+              console.group(`[AJAX FAILED] ${action}`);
+              console.error('Status:', textStatus);
+              console.error('Error:', errorThrown);
+              console.error('Response Text:', jqXHR.responseText);
+              console.groupEnd();
+          });
+      }
+
+      return xhr;
+  };
+
   function safeJsonEncode(data) {
     try {
       const cleanData = cleanDataForJson(data);
