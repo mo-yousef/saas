@@ -274,7 +274,7 @@ if (!$form_config['form_enabled']) {
             </div>
 
             <div class="mobooking-services-list" id="mobooking-services-list" style="display: none;">
-                <!-- Services will be loaded here via AJAX -->
+                <div id="mobooking-services-container"></div>
             </div>
 
             <div class="mobooking-form-actions">
