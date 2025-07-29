@@ -401,6 +401,8 @@ jQuery(document).ready(function ($) {
   function renderServiceCards(services) {
     console.log('Rendering service cards:', services);
     const $container = $("#mobooking-services-container");
+    const $loading = $("#mobooking-services-loading");
+    const $list = $("#mobooking-services-list");
     let html = "";
 
     services.forEach((service) => {
@@ -468,6 +470,8 @@ jQuery(document).ready(function ($) {
     });
 
     $container.html(html);
+    $loading.hide();
+    $list.show();
 
     // Pre-select if already chosen
     if (selectedService) {
@@ -498,6 +502,7 @@ jQuery(document).ready(function ($) {
     $('[data-step-next="3"]').prop("disabled", false);
     showFeedback($("#mobooking-services-feedback"), "", "", true);
     updateLiveSummary();
+    displayServiceOptions();
   }
 
   // --- STEP 3: SERVICE OPTIONS ---
