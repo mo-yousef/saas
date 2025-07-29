@@ -522,6 +522,8 @@ jQuery(document).ready(function ($) {
         options: selectedService.options
     });
 
+    console.log('Rendering options for service:', selectedService.name, selectedService.options);
+
     const $container = $("#mobooking-service-options");
     $container.empty();
 
