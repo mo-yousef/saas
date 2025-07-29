@@ -170,6 +170,34 @@ class Services {
         return $service;
     }
 
+    public function get_service_options(array $service_ids, int $user_id) {
+        if (empty($service_ids) || empty($user_id)) {
+            return [];
+        }
+
+        $options_by_service = [];
+        foreach ($service_ids as $service_id) {
+            $options_by_service[$service_id] = [];
+        }
+
+        $service_options_table = Database::get_table_name('service_options');
+        $service_ids_placeholders = implode(',', array_fill(0, count($service_ids), '%d'));
+
+        $query = $this->wpdb->prepare(
+            "SELECT * FROM $service_options_table WHERE service_id IN ($service_ids_placeholders) AND user_id = %d ORDER BY sort_order ASC, name ASC",
+            array_merge($service_ids, [$user_id])
+        );
+
+        $all_options = $this->wpdb->get_results($query, ARRAY_A);
+
+        foreach ($all_options as $option) {
+            $service_id = intval($option['service_id']);
+            $options_by_service[$service_id][] = $option;
+        }
+
+        return $options_by_service;
+    }
+
     public function get_services_by_user(int $user_id, array $args = []) {
         if ( empty($user_id) ) {
             return array();
