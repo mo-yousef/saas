@@ -146,12 +146,14 @@ jQuery(document).ready(function ($) {
     loadStepData(currentStep);
 
     // Scroll to top of form
-    $("html, body").animate(
-      {
-        scrollTop: $(".mobooking-form-wrapper").offset().top - 50,
-      },
-      300
-    );
+    if ($(".mobooking-form-wrapper").length) {
+      $("html, body").animate(
+        {
+          scrollTop: $(".mobooking-form-wrapper").offset().top - 50,
+        },
+        300
+      );
+    }
   }
 
   function updateProgressBar(step) {
@@ -683,7 +685,8 @@ jQuery(document).ready(function ($) {
   }
 
   function storeCustomerDetails() {
-    const datetime = $("#preferred-datetime").val().split(' ');
+    const datetimeValue = $("#preferred-datetime").val();
+    const datetime = datetimeValue ? datetimeValue.split(' ') : [null, null];
     customerDetails = {
         name: $("#customer-name").val().trim(),
         email: $("#customer-email").val().trim(),
