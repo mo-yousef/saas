@@ -631,7 +631,7 @@ body.mobooking-form-active {
 
 .mobooking-bf__service-icon img {
     /* If icon is an img tag */
-    max-width: 100%;
+    max-width: 40px;
     max-height: 100%;
 }
 
