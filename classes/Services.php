@@ -582,13 +582,17 @@ class Services {
     }
 
 public function handle_get_public_services_ajax() {
+    error_log('[MoBooking Debug] handle_get_public_services_ajax called.');
     // Check nonce
     if (!check_ajax_referer('mobooking_booking_form_nonce', 'nonce', false)) {
+        error_log('[MoBooking Debug] Nonce verification failed.');
         wp_send_json_error(['message' => __('Error: Nonce verification failed.', 'mobooking')], 403);
         return;
     }
+    error_log('[MoBooking Debug] Nonce verified.');
 
     $tenant_id = isset($_POST['tenant_id']) ? intval($_POST['tenant_id']) : 0;
+    error_log('[MoBooking Debug] Tenant ID: ' . $tenant_id);
     if (empty($tenant_id)) {
         wp_send_json_error(['message' => __('Tenant ID is required.', 'mobooking')], 400);
         return;
