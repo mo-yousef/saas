@@ -489,7 +489,10 @@ jQuery(document).ready(function ($) {
     const $card = $(e.currentTarget);
     const serviceId = parseInt($card.data("service-id"));
 
-    debugLog("Service selected", serviceId);
+    debugLog("Service selected", {
+        serviceId: serviceId,
+        service: PRELOADED_SERVICES.find((s) => s.service_id === serviceId)
+    });
 
     $(".mobooking-service-card").removeClass("selected");
     $card.addClass("selected");
@@ -504,6 +507,7 @@ jQuery(document).ready(function ($) {
     showFeedback($("#mobooking-services-feedback"), "", "", true);
     updateLiveSummary();
     displayServiceOptions();
+    showStep(3);
   }
 
   // --- STEP 3: SERVICE OPTIONS ---
