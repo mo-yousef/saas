@@ -1192,4 +1192,23 @@ public function handle_get_public_services_ajax() {
         return intval($count);
     }
 
+    public function get_services_by_tenant_id($tenant_id) {
+        error_log('[MoBooking Services Debug] Getting services for tenant_id: ' . $tenant_id);
+
+        $table_name = Database::get_table_name('services');
+        $sql = $this->wpdb->prepare("SELECT * FROM $table_name WHERE user_id = %d AND status = 'active'", $tenant_id);
+
+        error_log('[MoBooking Services Debug] SQL: ' . $sql);
+
+        $services = $this->wpdb->get_results($sql, ARRAY_A);
+
+        if ($this->wpdb->last_error) {
+            error_log('[MoBooking Services DB Error] get_services_by_tenant_id failed: ' . $this->wpdb->last_error);
+            return new \WP_Error('db_error', __('Could not get services from the database.', 'mobooking'));
+        }
+
+        error_log('[MoBooking Services Debug] Found ' . count($services) . ' services for tenant_id: ' . $tenant_id);
+
+        return $services;
+    }
 }
