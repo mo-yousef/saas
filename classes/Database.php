@@ -22,6 +22,39 @@ class Database {
         return $wpdb->prefix . 'mobooking_' . $name;
     }
 
+    public function migrate_to_enhanced_booking_form() {
+        global $wpdb;
+
+        $bookings_table = $this->get_table_name('bookings');
+
+        // Check if new columns already exist
+        $columns = $wpdb->get_results("DESCRIBE {$bookings_table}");
+        $existing_columns = array_column($columns, 'Field');
+
+        $new_columns = [
+            'has_pets' => 'BOOLEAN DEFAULT FALSE',
+            'pet_details' => 'TEXT',
+            'service_frequency' => 'VARCHAR(20) DEFAULT "one-time"',
+            'property_access_method' => 'VARCHAR(50)',
+            'property_access_details' => 'TEXT',
+            'street_address' => 'VARCHAR(255)',
+            'apartment' => 'VARCHAR(100)'
+        ];
+
+        foreach ($new_columns as $column => $definition) {
+            if (!in_array($column, $existing_columns)) {
+                $sql = "ALTER TABLE {$bookings_table} ADD COLUMN {$column} {$definition}";
+                $wpdb->query($sql);
+
+                if ($wpdb->last_error) {
+                    error_log("MoBooking Migration Error: " . $wpdb->last_error);
+                }
+            }
+        }
+
+        // Update database version
+        update_option('mobooking_db_version', '2.0.0');
+    }
     public static function create_tables() {
         error_log('[MoBooking DB Debug] Attempting to create/update custom tables...');
         global $wpdb;
@@ -117,6 +150,8 @@ class Database {
             customer_email VARCHAR(255) NOT NULL,
             customer_phone VARCHAR(50),
             service_address TEXT NOT NULL,
+            street_address VARCHAR(255),
+            apartment VARCHAR(100),
             zip_code VARCHAR(20),
             booking_date DATE NOT NULL,
             booking_time TIME NOT NULL,
@@ -129,6 +164,11 @@ class Database {
             payment_status VARCHAR(50) NOT NULL DEFAULT 'pending',
             created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
             updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            has_pets BOOLEAN DEFAULT FALSE,
+            pet_details TEXT,
+            service_frequency VARCHAR(20) DEFAULT 'one-time',
+            property_access_method VARCHAR(50),
+            property_access_details TEXT,
             PRIMARY KEY (booking_id),
             INDEX user_id_idx (user_id),
             INDEX customer_id_idx (customer_id), -- Original customer_id index

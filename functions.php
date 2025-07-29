@@ -179,6 +179,13 @@ function mobooking_enqueue_public_booking_form_assets() {
 }
 add_action('wp_enqueue_scripts', 'mobooking_enqueue_public_booking_form_assets');
 
+// Add these AJAX hooks
+add_action('wp_ajax_mobooking_submit_booking', [$mobooking_bookings_manager, 'handle_enhanced_booking_submission']);
+add_action('wp_ajax_nopriv_mobooking_submit_booking', [$mobooking_bookings_manager, 'handle_enhanced_booking_submission']);
+
+add_action('wp_ajax_mobooking_get_available_times', [$mobooking_availability_manager, 'get_available_time_slots']);
+add_action('wp_ajax_nopriv_mobooking_get_available_times', [$mobooking_availability_manager, 'get_available_time_slots']);
+
 ?>
 
 
