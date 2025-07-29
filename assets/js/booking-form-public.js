@@ -523,7 +523,70 @@ jQuery(document).ready(function ($) {
 
     let html = "";
     selectedService.options.forEach((option) => {
-        // ... (rendering logic remains the same)
+      if (!option || typeof option.option_id === "undefined") {
+        debugLog("Invalid option data", option);
+        return;
+      }
+
+      const requiredAttr = option.is_required ? "required" : "";
+      const requiredIndicator = option.is_required
+        ? '<span class="mobooking-required">*</span>'
+        : "";
+      const priceImpact = parseFloat(option.price_impact || 0);
+      const priceDisplay =
+        priceImpact !== 0
+          ? `<span class="option-price">(+${CURRENCY.symbol}${formatPrice(
+              priceImpact
+            )})</span>`
+          : "";
+
+      html += `<div class="mobooking-form-group" data-option-id="${option.option_id}">`;
+      html += `<label class="mobooking-label">${escapeHtml(
+        option.name
+      )} ${priceDisplay} ${requiredIndicator}</label>`;
+
+      switch (option.type) {
+        case "checkbox":
+          html += `<input type="checkbox" id="option_${option.option_id}" name="option_${option.option_id}"
+                             value="1" data-price="${priceImpact}" ${requiredAttr}>`;
+          break;
+        case "text":
+          html += `<input type="text" id="option_${option.option_id}" name="option_${option.option_id}"
+                             class="mobooking-input" data-price="${priceImpact}" ${requiredAttr}>`;
+          break;
+        case "textarea":
+          html += `<textarea id="option_${option.option_id}" name="option_${option.option_id}"
+                             class="mobooking-textarea" data-price="${priceImpact}" ${requiredAttr}></textarea>`;
+          break;
+        case "select":
+          html += `<select id="option_${option.option_id}" name="option_${option.option_id}"
+                             class="mobooking-select" data-price="${priceImpact}" ${requiredAttr}>`;
+          if (option.option_values && Array.isArray(option.option_values)) {
+            option.option_values.forEach((val) => {
+              html += `<option value="${escapeHtml(val.value)}">${escapeHtml(
+                val.label
+              )}</option>`;
+            });
+          }
+          html += "</select>";
+          break;
+        case "quantity":
+          html += `
+                        <div class="mobooking-quantity-input-wrapper">
+                            <button type="button" class="mobooking-btn-quantity minus" data-target="option_${option.option_id}">-</button>
+                            <input type="number" id="option_${option.option_id}" name="option_${option.option_id}"
+                                   value="0" min="0" class="mobooking-input" data-price="${priceImpact}" ${requiredAttr}>
+                            <button type="button" class="mobooking-btn-quantity plus" data-target="option_${option.option_id}">+</button>
+                        </div>`;
+          break;
+      }
+
+      if (option.description) {
+        html += `<div class="option-description">${escapeHtml(
+          option.description
+        )}</div>`;
+      }
+      html += "</div>";
     });
 
     $container.html(html);
