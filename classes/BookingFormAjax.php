@@ -48,8 +48,6 @@ class BookingFormAjax {
         add_action('wp_ajax_nopriv_mobooking_check_service_area', [$this, 'handle_check_service_area']);
         add_action('wp_ajax_mobooking_check_service_area', [$this, 'handle_check_service_area']);
         
-        add_action('wp_ajax_nopriv_mobooking_get_service_options', [$this, 'handle_get_service_options']);
-        add_action('wp_ajax_mobooking_get_service_options', [$this, 'handle_get_service_options']);
         
         add_action('wp_ajax_nopriv_mobooking_get_available_time_slots', [$this, 'handle_get_available_time_slots']);
         add_action('wp_ajax_mobooking_get_available_time_slots', [$this, 'handle_get_available_time_slots']);
@@ -166,23 +164,16 @@ class BookingFormAjax {
                 return;
             }
 
-            // Format services for frontend
-            $formatted_services = array_map(function($service) {
-                return [
-                    'service_id' => intval($service['service_id']),
-                    'name' => $service['name'],
-                    'description' => $service['description'],
-                    'price' => floatval($service['price']),
-                    'duration' => intval($service['duration']),
-                    'icon' => $service['icon'],
-                    'image_url' => $service['image_url']
-                ];
+            $service_ids = array_column($services, 'service_id');
+            $service_options = $this->services_manager->get_service_options($service_ids, $tenant_user_id);
+
+            $formatted_services = array_map(function($service) use ($service_options) {
+                $service_id = intval($service['service_id']);
+                $service['options'] = $service_options[$service_id] ?? [];
+                return $service;
             }, $services);
 
-            wp_send_json_success([
-                'services' => $formatted_services,
-                'count' => count($formatted_services)
-            ]);
+            wp_send_json_success($formatted_services);
 
         } catch (Exception $e) {
             error_log('MoBooking - Get public services error: ' . $e->getMessage());
@@ -190,76 +181,6 @@ class BookingFormAjax {
         }
     }
 
-    /**
-     * Get service options for selected services
-     */
-    public function handle_get_service_options() {
-        if (!check_ajax_referer('mobooking_booking_nonce', 'nonce', false)) {
-            wp_send_json_error(['message' => __('Security check failed.', 'mobooking')], 403);
-            return;
-        }
-
-        $tenant_user_id = isset($_POST['tenant_user_id']) ? intval($_POST['tenant_user_id']) : 0;
-        $service_ids = isset($_POST['service_ids']) ? array_map('intval', $_POST['service_ids']) : [];
-
-        if (empty($tenant_user_id) || empty($service_ids)) {
-            wp_send_json_error(['message' => __('Invalid parameters.', 'mobooking')], 400);
-            return;
-        }
-
-        try {
-            $options = [];
-            $service_options_table = Database::get_table_name('service_options');
-
-            foreach ($service_ids as $service_id) {
-                // Verify service belongs to tenant
-                $services_table = Database::get_table_name('services');
-                $service_exists = $this->wpdb->get_var($this->wpdb->prepare(
-                    "SELECT COUNT(*) FROM $services_table WHERE service_id = %d AND user_id = %d",
-                    $service_id, $tenant_user_id
-                ));
-
-                if (!$service_exists) {
-                    continue;
-                }
-
-                // Get options for this service
-                $service_options = $this->wpdb->get_results($this->wpdb->prepare(
-                    "SELECT option_id, name, description, type, is_required, 
-                            price_impact_type, price_impact_value, option_values, sort_order
-                     FROM $service_options_table 
-                     WHERE service_id = %d AND user_id = %d 
-                     ORDER BY sort_order ASC, name ASC",
-                    $service_id, $tenant_user_id
-                ), ARRAY_A);
-
-                if (!empty($service_options)) {
-                    $options[$service_id] = array_map(function($option) {
-                        return [
-                            'option_id' => intval($option['option_id']),
-                            'name' => $option['name'],
-                            'description' => $option['description'],
-                            'type' => $option['type'],
-                            'is_required' => boolval($option['is_required']),
-                            'price_impact_type' => $option['price_impact_type'],
-                            'price_impact_value' => floatval($option['price_impact_value']),
-                            'option_values' => $this->parse_option_values($option['option_values']),
-                            'sort_order' => intval($option['sort_order'])
-                        ];
-                    }, $service_options);
-                }
-            }
-
-            wp_send_json_success([
-                'options' => $options,
-                'services_count' => count($service_ids)
-            ]);
-
-        } catch (Exception $e) {
-            error_log('MoBooking - Get service options error: ' . $e->getMessage());
-            wp_send_json_error(['message' => __('Error loading service options.', 'mobooking')], 500);
-        }
-    }
 
     /**
      * Get available time slots for a specific date
