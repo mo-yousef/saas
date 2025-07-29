@@ -29,10 +29,11 @@ jQuery(document).ready(function ($) {
 
   function debugLog(message, data = null) {
     if (IS_DEBUG) {
-      if (window.debugLog) {
-        window.debugLog(message);
-      }
-      console.log("MoBooking Debug:", message, data);
+        console.group("MoBooking Debug: " + message);
+        if (data) {
+            console.log(data);
+        }
+        console.groupEnd();
     }
   }
 
@@ -345,6 +346,7 @@ jQuery(document).ready(function ($) {
 
         if (response.success && response.data) {
           renderServiceCards(response.data);
+          debugLog("Rendered services", response.data);
         } else {
           $("#mobooking-services-container").html(
             `<p>${I18N.no_services || "No services available."}</p>`
@@ -464,7 +466,10 @@ jQuery(document).ready(function ($) {
   // --- STEP 3: SERVICE OPTIONS ---
 
   function displayServiceOptions() {
-    debugLog("Displaying service options", selectedService);
+    debugLog("Displaying service options", {
+        selectedService: selectedService,
+        options: selectedService.options
+    });
 
     const $container = $("#mobooking-service-options");
     $container.empty();
@@ -1161,9 +1166,13 @@ jQuery(document).ready(function ($) {
   // --- INITIALIZATION ---
 
   function initializeForm() {
-    debugLog("Initializing MoBooking form");
-    debugLog("Form config", FORM_CONFIG);
-    debugLog("Preloaded services", PRELOADED_SERVICES);
+    debugLog("Initializing MoBooking form", {
+        FORM_CONFIG,
+        PRELOADED_SERVICES,
+        TENANT_ID,
+        AJAX_URL,
+        IS_DEBUG
+    });
 
     // Validate required data
     if (!TENANT_ID || !FORM_NONCE) {
