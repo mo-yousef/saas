@@ -218,8 +218,8 @@ if (!empty($current_slug)) {
                     <th scope="row"><label for="bf_theme_color"><?php esc_html_e('Primary Theme Color', 'mobooking'); ?></label></th>
                     <td>
                         <div class="mobooking-color-picker-wrapper">
-                            <span class="mobooking-setting-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-palette"><path d="m12 3-8.5 8.5a5 5 0 1 0 7 7L21 12Z"/><path d="M22 13v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h6"/><path d="m22 7-3-3-3 3"/><path d="M15 2 9 8"/></svg></span>
                             <input name="bf_theme_color" type="text" id="bf_theme_color" value="<?php echo mobooking_get_setting_value($bf_settings, 'bf_theme_color', '#1abc9c'); ?>" class="mobooking-color-picker" data-default-color="#1abc9c" data-alpha-enabled="true">
+                            <span class="mobooking-color-preview" style="background-color: <?php echo mobooking_get_setting_value($bf_settings, 'bf_theme_color', '#1abc9c'); ?>;"></span>
                         </div>
                         <p class="description"><?php esc_html_e('Main color for buttons and progress bar accents.', 'mobooking'); ?></p>
                     </td>
@@ -228,8 +228,8 @@ if (!empty($current_slug)) {
                     <th scope="row"><label for="bf_secondary_color"><?php esc_html_e('Secondary Color', 'mobooking'); ?></label></th>
                     <td>
                         <div class="mobooking-color-picker-wrapper">
-                            <span class="mobooking-setting-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-swatch-book"><path d="M15.5 3H5a2 2 0 0 0-2 2v14c0 1.1.9 2 2 2h14a2 2 0 0 0 2-2V8.5L15.5 3Z"/><path d="M15 3v6h6"/><path d="M10 16s.8-1.1 1.2-1.3c.6-.3 1.2-.3 1.6-.2.7.2 1.2.7 1.2 1.5 0 .6-.4 1-1 1.2-.5.2-1 .2-1.4.1-.4-.1-.8-.3-1.2-.5L9 16"/><path d="M8 13s.8-1.1 1.2-1.3c.6-.3 1.2-.3 1.6-.2.7.2 1.2.7 1.2 1.5 0 .6-.4 1-1 1.2-.5.2-1 .2-1.4.1-.4-.1-.8-.3-1.2-.5L7 13"/></svg></span>
                             <input name="bf_secondary_color" type="text" id="bf_secondary_color" value="<?php echo mobooking_get_setting_value($bf_settings, 'bf_secondary_color', '#34495e'); ?>" class="mobooking-color-picker" data-default-color="#34495e" data-alpha-enabled="true">
+                            <span class="mobooking-color-preview" style="background-color: <?php echo mobooking_get_setting_value($bf_settings, 'bf_secondary_color', '#34495e'); ?>;"></span>
                         </div>
                         <p class="description"><?php esc_html_e('Color for borders, icons, and secondary elements.', 'mobooking'); ?></p>
                     </td>
@@ -238,8 +238,8 @@ if (!empty($current_slug)) {
                     <th scope="row"><label for="bf_background_color"><?php esc_html_e('Background Color', 'mobooking'); ?></label></th>
                     <td>
                         <div class="mobooking-color-picker-wrapper">
-                            <span class="mobooking-setting-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-image"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg></span>
                             <input name="bf_background_color" type="text" id="bf_background_color" value="<?php echo mobooking_get_setting_value($bf_settings, 'bf_background_color', '#ffffff'); ?>" class="mobooking-color-picker" data-default-color="#ffffff" data-alpha-enabled="true">
+                            <span class="mobooking-color-preview" style="background-color: <?php echo mobooking_get_setting_value($bf_settings, 'bf_background_color', '#ffffff'); ?>;"></span>
                         </div>
                         <p class="description"><?php esc_html_e('Background color for the form container.', 'mobooking'); ?></p>
                     </td>
@@ -247,36 +247,27 @@ if (!empty($current_slug)) {
                 <tr valign="top">
                     <th scope="row"><label for="bf_font_family"><?php esc_html_e('Font Family', 'mobooking'); ?></label></th>
                     <td>
-                        <div class="mobooking-select-wrapper">
-                            <span class="mobooking-setting-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-type"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" x2="15" y1="20" y2="20"/><line x1="12" x2="12" y1="4" y2="20"/></svg></span>
-                            <select name="bf_font_family" id="bf_font_family" class="mobooking-styled-select">
-                                <option value="system-ui" <?php selected(mobooking_get_setting_value($bf_settings, 'bf_font_family', 'system-ui'), 'system-ui'); ?>><?php esc_html_e('System Default', 'mobooking'); ?></option>
-                                <option value="Arial, sans-serif" <?php selected(mobooking_get_setting_value($bf_settings, 'bf_font_family'), 'Arial, sans-serif'); ?>><?php esc_html_e('Arial', 'mobooking'); ?></option>
-                                <option value="Helvetica, sans-serif" <?php selected(mobooking_get_setting_value($bf_settings, 'bf_font_family'), 'Helvetica, sans-serif'); ?>><?php esc_html_e('Helvetica', 'mobooking'); ?></option>
-                                <option value="Georgia, serif" <?php selected(mobooking_get_setting_value($bf_settings, 'bf_font_family'), 'Georgia, serif'); ?>><?php esc_html_e('Georgia', 'mobooking'); ?></option>
-                                <option value="'Times New Roman', serif" <?php selected(mobooking_get_setting_value($bf_settings, 'bf_font_family'), "'Times New Roman', serif"); ?>><?php esc_html_e('Times New Roman', 'mobooking'); ?></option>
-                            </select>
-                        </div>
+                        <select name="bf_font_family" id="bf_font_family">
+                            <option value="system-ui" <?php selected(mobooking_get_setting_value($bf_settings, 'bf_font_family', 'system-ui'), 'system-ui'); ?>><?php esc_html_e('System Default', 'mobooking'); ?></option>
+                            <option value="Arial, sans-serif" <?php selected(mobooking_get_setting_value($bf_settings, 'bf_font_family'), 'Arial, sans-serif'); ?>><?php esc_html_e('Arial', 'mobooking'); ?></option>
+                            <option value="Helvetica, sans-serif" <?php selected(mobooking_get_setting_value($bf_settings, 'bf_font_family'), 'Helvetica, sans-serif'); ?>><?php esc_html_e('Helvetica', 'mobooking'); ?></option>
+                            <option value="Georgia, serif" <?php selected(mobooking_get_setting_value($bf_settings, 'bf_font_family'), 'Georgia, serif'); ?>><?php esc_html_e('Georgia', 'mobooking'); ?></option>
+                            <option value="'Times New Roman', serif" <?php selected(mobooking_get_setting_value($bf_settings, 'bf_font_family'), "'Times New Roman', serif"); ?>><?php esc_html_e('Times New Roman', 'mobooking'); ?></option>
+                        </select>
                         <p class="description"><?php esc_html_e('Font family for the booking form text.', 'mobooking'); ?></p>
                     </td>
                 </tr>
                 <tr valign="top">
                     <th scope="row"><label for="bf_border_radius"><?php esc_html_e('Border Radius (px)', 'mobooking'); ?></label></th>
                     <td>
-                        <div class="mobooking-input-wrapper">
-                            <span class="mobooking-setting-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-radius"><path d="M20.34 17.52a10 10 0 1 0-2.82 2.82"/><path d="M18 22s-2-2-4-2-4 2-4 2"/><path d="m13.5 13.5-3-3"/><path d="M15 12a3 3 0 0 0-3-3"/><path d="M22 18s-2-2-2-4 2-4 2-4"/><circle cx="12" cy="12" r="10"/></svg></span>
-                            <input name="bf_border_radius" type="number" id="bf_border_radius" value="<?php echo mobooking_get_setting_value($bf_settings, 'bf_border_radius', '8'); ?>" min="0" max="50" class="small-text mobooking-styled-input">
-                        </div>
+                        <input name="bf_border_radius" type="number" id="bf_border_radius" value="<?php echo mobooking_get_setting_value($bf_settings, 'bf_border_radius', '8'); ?>" min="0" max="50" class="small-text">
                         <p class="description"><?php esc_html_e('Roundness of form elements (0 = square, higher = more rounded).', 'mobooking'); ?></p>
                     </td>
                 </tr>
                 <tr valign="top">
                     <th scope="row"><label for="bf_custom_css"><?php esc_html_e('Custom CSS', 'mobooking'); ?></label></th>
                     <td>
-                        <div class="mobooking-input-wrapper">
-                             <span class="mobooking-setting-icon" style="top: 18px; transform: translateY(0);"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-curly-braces"><path d="M8 3H7a2 2 0 0 0-2 2v5a2 2 0 0 1-2 2 2 2 0 0 1 2 2v5c0 1.1.9 2 2 2h1"/><path d="M16 21h1a2 2 0 0 0 2-2v-5c0-1.1.9-2 2-2a2 2 0 0 1-2-2V5a2 2 0 0 0-2-2h-1"/></svg></span>
-                            <textarea name="bf_custom_css" id="bf_custom_css" class="large-text code mobooking-styled-textarea" rows="8" placeholder="<?php esc_attr_e('/* Your custom CSS rules here */', 'mobooking'); ?>"><?php echo mobooking_get_setting_textarea($bf_settings, 'bf_custom_css'); ?></textarea>
-                        </div>
+                        <textarea name="bf_custom_css" id="bf_custom_css" class="large-text code" rows="8" placeholder="<?php esc_attr_e('/* Your custom CSS rules here */', 'mobooking'); ?>"><?php echo mobooking_get_setting_textarea($bf_settings, 'bf_custom_css'); ?></textarea>
                         <p class="description"><?php esc_html_e('Apply custom styles to the public booking form. Use with caution.', 'mobooking'); ?></p>
                         <p class="description"><strong><?php esc_html_e('Tip:', 'mobooking'); ?></strong> <?php esc_html_e('Use .mobooking-form as the main selector to target form elements.', 'mobooking'); ?></p>
                     </td>
@@ -525,32 +516,17 @@ fieldset label {
 
 /* Color picker alignment */
 .mobooking-color-picker-wrapper {
-    position: relative;
     display: flex;
     align-items: center;
+    gap: 10px;
 }
 
-.mobooking-setting-icon {
-    position: absolute;
-    left: 10px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #888;
-    pointer-events: none;
-}
-
-.mobooking-color-picker-wrapper .mobooking-color-picker,
-.mobooking-input-wrapper .mobooking-styled-input,
-.mobooking-select-wrapper .mobooking-styled-select,
-.mobooking-input-wrapper .mobooking-styled-textarea {
-    padding-left: 36px !important;
-}
-
-.mobooking-input-wrapper,
-.mobooking-select-wrapper {
-    position: relative;
-    display: inline-flex;
-    align-items: center;
+.mobooking-color-preview {
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+    display: inline-block;
 }
 
 .wp-picker-container {
@@ -611,7 +587,11 @@ jQuery(document).ready(function($) {
 
     // Initialize Color Picker (WordPress handles this)
     if (typeof $.fn.wpColorPicker === 'function') {
-        $('.mobooking-color-picker').wpColorPicker();
+        $('.mobooking-color-picker').wpColorPicker({
+            change: function(event, ui) {
+                $(event.target).closest('.mobooking-color-picker-wrapper').find('.mobooking-color-preview').css('background-color', ui.color.toString());
+            }
+        });
     }
 
     // Dynamic update for public link and embed code
