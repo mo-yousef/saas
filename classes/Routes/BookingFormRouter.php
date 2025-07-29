@@ -322,7 +322,7 @@ class BookingFormRouter {
         $request_path = isset($wp->request) ? trim($wp->request, '/') : '';
         
         // Only show debug for booking URLs
-        if (strpos($request_path, 'bookings/') !== 0) {
+        if (strpos($request_path, 'booking/') !== 0) {
             return;
         }
 
