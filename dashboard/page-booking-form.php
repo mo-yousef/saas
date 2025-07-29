@@ -220,6 +220,7 @@ if (!empty($current_slug)) {
                         <div class="mobooking-color-picker-wrapper">
                             <input name="bf_theme_color" type="text" id="bf_theme_color" value="<?php echo mobooking_get_setting_value($bf_settings, 'bf_theme_color', '#1abc9c'); ?>" class="mobooking-color-picker" data-default-color="#1abc9c" data-alpha-enabled="true">
                             <span class="mobooking-color-preview" style="background-color: <?php echo mobooking_get_setting_value($bf_settings, 'bf_theme_color', '#1abc9c'); ?>;"></span>
+                            <span class="mobooking-color-hex-code"><?php echo mobooking_get_setting_value($bf_settings, 'bf_theme_color', '#1abc9c'); ?></span>
                         </div>
                         <p class="description"><?php esc_html_e('Main color for buttons and progress bar accents.', 'mobooking'); ?></p>
                     </td>
@@ -230,6 +231,7 @@ if (!empty($current_slug)) {
                         <div class="mobooking-color-picker-wrapper">
                             <input name="bf_secondary_color" type="text" id="bf_secondary_color" value="<?php echo mobooking_get_setting_value($bf_settings, 'bf_secondary_color', '#34495e'); ?>" class="mobooking-color-picker" data-default-color="#34495e" data-alpha-enabled="true">
                             <span class="mobooking-color-preview" style="background-color: <?php echo mobooking_get_setting_value($bf_settings, 'bf_secondary_color', '#34495e'); ?>;"></span>
+                            <span class="mobooking-color-hex-code"><?php echo mobooking_get_setting_value($bf_settings, 'bf_secondary_color', '#34495e'); ?></span>
                         </div>
                         <p class="description"><?php esc_html_e('Color for borders, icons, and secondary elements.', 'mobooking'); ?></p>
                     </td>
@@ -240,6 +242,7 @@ if (!empty($current_slug)) {
                         <div class="mobooking-color-picker-wrapper">
                             <input name="bf_background_color" type="text" id="bf_background_color" value="<?php echo mobooking_get_setting_value($bf_settings, 'bf_background_color', '#ffffff'); ?>" class="mobooking-color-picker" data-default-color="#ffffff" data-alpha-enabled="true">
                             <span class="mobooking-color-preview" style="background-color: <?php echo mobooking_get_setting_value($bf_settings, 'bf_background_color', '#ffffff'); ?>;"></span>
+                            <span class="mobooking-color-hex-code"><?php echo mobooking_get_setting_value($bf_settings, 'bf_background_color', '#ffffff'); ?></span>
                         </div>
                         <p class="description"><?php esc_html_e('Background color for the form container.', 'mobooking'); ?></p>
                     </td>
@@ -529,6 +532,12 @@ fieldset label {
     display: inline-block;
 }
 
+.mobooking-color-hex-code {
+    font-family: monospace;
+    font-size: 14px;
+    color: #555;
+}
+
 .wp-picker-container {
     display: inline-block;
 }
@@ -589,7 +598,9 @@ jQuery(document).ready(function($) {
     if (typeof $.fn.wpColorPicker === 'function') {
         $('.mobooking-color-picker').wpColorPicker({
             change: function(event, ui) {
-                $(event.target).closest('.mobooking-color-picker-wrapper').find('.mobooking-color-preview').css('background-color', ui.color.toString());
+                var hexColor = ui.color.toString();
+                $(event.target).closest('.mobooking-color-picker-wrapper').find('.mobooking-color-preview').css('background-color', hexColor);
+                $(event.target).closest('.mobooking-color-picker-wrapper').find('.mobooking-color-hex-code').text(hexColor);
             }
         });
     }
