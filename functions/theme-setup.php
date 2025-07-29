@@ -101,6 +101,44 @@ if ( is_page_template('templates/booking-form-public.php') || $page_type_for_scr
     // wp_enqueue_script('mobooking-booking-form', MOBOOKING_THEME_URI . 'assets/js/booking-form.js', array('jquery', 'jquery-ui-datepicker'), MOBOOKING_VERSION, true); // Commented out old script
     wp_enqueue_script('mobooking-public-booking-form', MOBOOKING_THEME_URI . 'assets/js/booking-form-public.js', array('jquery', 'flatpickr'), MOBOOKING_VERSION, true); // Enqueue new script
 
+    wp_localize_script('mobooking-public-booking-form', 'mobooking_booking_form_params', [
+        'ajax_url' => admin_url('admin-ajax.php'),
+        'nonce' => wp_create_nonce('mobooking_booking_form_nonce'),
+        'tenant_id' => $effective_tenant_id_for_public_form,
+        'currency' => $public_form_currency, // Pass the currency object
+        'site_url' => site_url(),
+        'i18n' => $i18n_strings,
+        'settings' => [
+            // Ensure specific string settings are JS-escaped
+            'bf_header_text' => isset($tenant_settings['bf_header_text']) ? esc_js($tenant_settings['bf_header_text']) : '',
+            'bf_show_pricing' => $tenant_settings['bf_show_pricing'] ?? '1',
+            'bf_allow_discount_codes' => $tenant_settings['bf_allow_discount_codes'] ?? '1',
+            'bf_theme_color' => $tenant_settings['bf_theme_color'] ?? '#1abc9c',
+            // For bf_custom_css, esc_js might be too aggressive if it contains valid CSS quotes.
+            // However, if it's breaking JS, it needs care. wp_json_encode (used by wp_localize_script) should handle it.
+            // If bf_custom_css is truly the issue, it implies very unusual characters.
+            'bf_custom_css' => $tenant_settings['bf_custom_css'] ?? '',
+            'bf_form_enabled' => $tenant_settings['bf_form_enabled'] ?? '1',
+            'bf_maintenance_message' => isset($tenant_settings['bf_maintenance_message']) ? esc_js($tenant_settings['bf_maintenance_message']) : '',
+            'bf_enable_location_check' => $tenant_settings['bf_enable_location_check'] ?? '1',
+            // Add any other settings, ensuring strings that might contain problematic characters are escaped
+            // For example, if there were other free-text fields:
+            // 'another_free_text_setting' => isset($tenant_settings['another_free_text_setting']) ? esc_js($tenant_settings['another_free_text_setting']) : '',
+        ],
+        // Add debug info
+        'debug_info' => [
+            'page_type' => $page_type_for_scripts,
+            'query_var_tenant_id' => get_query_var('mobooking_tenant_id_on_page', 0),
+            'get_tid' => $_GET['tid'] ?? null,
+            'user_logged_in' => is_user_logged_in(),
+            'current_user_id' => get_current_user_id(),
+            'request_uri' => $_SERVER['REQUEST_URI'] ?? '',
+        ],
+        // Pass PHP debug data if available
+        'is_debug_mode' => $GLOBALS['mobooking_is_debug_mode_active_flag'] ?? false,
+        'initial_debug_info' => $GLOBALS['mobooking_initial_php_debug_data'] ?? []
+    ], 'mobooking-public-booking-form'); // Localize to the new script handle
+
     $effective_tenant_id_for_public_form = 0;
 
     // Method 1: Prioritize tenant_id set by the slug-based routing via query_var
