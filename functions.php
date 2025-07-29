@@ -24,7 +24,6 @@ require_once MOBOOKING_THEME_DIR . 'functions/initialization.php';
 require_once MOBOOKING_THEME_DIR . 'functions/utilities.php';
 require_once MOBOOKING_THEME_DIR . 'functions/debug.php';
 require_once MOBOOKING_THEME_DIR . 'functions/email.php';
-require_once MOBOOKING_THEME_DIR . 'functions/enqueue.php';
 
 
 /**
