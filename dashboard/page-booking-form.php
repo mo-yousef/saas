@@ -36,10 +36,6 @@ if (!empty($current_slug)) {
 }
 
 ?>
-<?php
-wp_enqueue_style( 'coloris', 'https://cdn.jsdelivr.net/npm/@melloware/coloris@0.25.0/dist/coloris.min.css', [], '0.25.0' );
-wp_enqueue_script( 'coloris', 'https://cdn.jsdelivr.net/npm/@melloware/coloris@0.25.0/dist/coloris.min.js', [], '0.25.0', true );
-?>
 <div id="mobooking-booking-form-settings-page" class="wrap">
     <h1><?php esc_html_e('Booking Form Settings', 'mobooking'); ?></h1>
     <p><?php esc_html_e('Customize the appearance and behavior of your public booking form.', 'mobooking'); ?></p>
@@ -221,21 +217,21 @@ wp_enqueue_script( 'coloris', 'https://cdn.jsdelivr.net/npm/@melloware/coloris@0
                 <tr valign="top">
                     <th scope="row"><label for="bf_theme_color"><?php esc_html_e('Primary Theme Color', 'mobooking'); ?></label></th>
                     <td>
-                        <input name="bf_theme_color" type="text" id="bf_theme_color" value="<?php echo mobooking_get_setting_value($bf_settings, 'bf_theme_color', '#1abc9c'); ?>" data-coloris>
+                        <input name="bf_theme_color" type="text" id="bf_theme_color" value="<?php echo mobooking_get_setting_value($bf_settings, 'bf_theme_color', '#1abc9c'); ?>" class="mobooking-color-picker" data-default-color="#1abc9c" data-alpha-enabled="true">
                         <p class="description"><?php esc_html_e('Main color for buttons and progress bar accents.', 'mobooking'); ?></p>
                     </td>
                 </tr>
                 <tr valign="top">
                     <th scope="row"><label for="bf_secondary_color"><?php esc_html_e('Secondary Color', 'mobooking'); ?></label></th>
                     <td>
-                        <input name="bf_secondary_color" type="text" id="bf_secondary_color" value="<?php echo mobooking_get_setting_value($bf_settings, 'bf_secondary_color', '#34495e'); ?>" data-coloris>
+                        <input name="bf_secondary_color" type="text" id="bf_secondary_color" value="<?php echo mobooking_get_setting_value($bf_settings, 'bf_secondary_color', '#34495e'); ?>" class="mobooking-color-picker" data-default-color="#34495e" data-alpha-enabled="true">
                         <p class="description"><?php esc_html_e('Color for borders, icons, and secondary elements.', 'mobooking'); ?></p>
                     </td>
                 </tr>
                 <tr valign="top">
                     <th scope="row"><label for="bf_background_color"><?php esc_html_e('Background Color', 'mobooking'); ?></label></th>
                     <td>
-                        <input name="bf_background_color" type="text" id="bf_background_color" value="<?php echo mobooking_get_setting_value($bf_settings, 'bf_background_color', '#ffffff'); ?>" data-coloris>
+                        <input name="bf_background_color" type="text" id="bf_background_color" value="<?php echo mobooking_get_setting_value($bf_settings, 'bf_background_color', '#ffffff'); ?>" class="mobooking-color-picker" data-default-color="#ffffff" data-alpha-enabled="true">
                         <p class="description"><?php esc_html_e('Background color for the form container.', 'mobooking'); ?></p>
                     </td>
                 </tr>
@@ -510,8 +506,8 @@ fieldset label {
 }
 
 /* Color picker alignment */
-.clr-field {
-    width: 100%;
+.wp-picker-container {
+    display: inline-block;
 }
 
 /* Responsive adjustments */
@@ -566,23 +562,10 @@ jQuery(document).ready(function($) {
         $('#mobooking-' + $(this).data('tab') + '-settings-tab').show();
     });
 
-    // Initialize Coloris
-    Coloris({
-      el: '[data-coloris]',
-      swatches: [
-        '#264653',
-        '#2a9d8f',
-        '#e9c46a',
-        '#f4a261',
-        '#e76f51',
-        '#d62828',
-        '#023e8a',
-        '#0077b6',
-        '#0096c7',
-        '#00b4d8',
-        '#48cae4'
-      ]
-    });
+    // Initialize Color Picker (WordPress handles this)
+    if (typeof $.fn.wpColorPicker === 'function') {
+        $('.mobooking-color-picker').wpColorPicker();
+    }
 
     // Dynamic update for public link and embed code
     const businessSlugInput = $('#bf_business_slug');
