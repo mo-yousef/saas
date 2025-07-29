@@ -377,6 +377,7 @@ jQuery(document).ready(function ($) {
         tenant_id: TENANT_ID,
       },
       success: function (response) {
+        console.log('Services loaded from server:', response);
         debugLog("Services loaded from server", response);
 
         if (response.success && response.data) {
