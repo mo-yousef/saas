@@ -125,10 +125,10 @@ jQuery(document).ready(function ($) {
   function updateProgressBar(step) {
     if (!FORM_CONFIG.show_progress_bar) return;
 
-    const totalSteps = 5;
+    const totalSteps = 8;
     const progressPercentage = ((step - 1) / (totalSteps - 1)) * 100;
 
-    $(".mobooking-progress-line-fill").css(
+    $(".mobooking-progress-bar").css(
       "width",
       Math.min(100, Math.max(0, progressPercentage)) + "%"
     );
@@ -156,10 +156,66 @@ jQuery(document).ready(function ($) {
         displayServiceOptions();
         break;
       case 4:
-        populateCustomerForm();
+        // No specific data to load, but we can bind events here
+        $('input[name="has_pets"]').on('change', function() {
+            if (this.value === 'yes') {
+                $('#pet-details-section').show();
+            } else {
+                $('#pet-details-section').hide();
+            }
+        });
         break;
       case 5:
-        populateReviewData();
+        // No specific data to load, but we can bind events here
+        $('input[name="service_frequency"]').on('change', function() {
+            customerDetails.service_frequency = this.value;
+            debugLog("Service frequency stored", customerDetails.service_frequency);
+        });
+        break;
+      case 6:
+        flatpickr("#preferred-date", {
+            minDate: "today",
+            onChange: function(selectedDates, dateStr, instance) {
+                customerDetails.date = dateStr;
+                debugLog("Date selected", customerDetails.date);
+                // TODO: Add logic to fetch available time slots
+            }
+        });
+        $("#preferred-time").on('change', function() {
+            customerDetails.time = this.value;
+            debugLog("Time selected", customerDetails.time);
+        });
+        break;
+      case 7:
+        populateCustomerForm();
+        $('input[name="property_access"]').on('change', function() {
+            if (this.value === 'other') {
+                $('#custom-access-details').show();
+            } else {
+                $('#custom-access-details').hide();
+            }
+        });
+        break;
+      case 8:
+        // Populate final booking details
+        let finalDetailsHtml = `
+            <p><strong>${I18N.booking_reference || "Booking Reference"}:</strong> ${escapeHtml(
+          customerDetails.booking_reference || "N/A"
+        )}</p>
+            <p><strong>${I18N.service || "Service"}:</strong> ${escapeHtml(
+          selectedService.name
+        )}</p>
+            <p><strong>${I18N.customer || "Customer"}:</strong> ${escapeHtml(
+          customerDetails.name
+        )}</p>
+            <p><strong>${I18N.email || "Email"}:</strong> ${escapeHtml(
+          customerDetails.email
+        )}</p>
+            <p><strong>${I18N.total || "Total"}:</strong> ${
+          CURRENCY.symbol
+        }${formatPrice(totalPrice)}</p>
+        `;
+        $("#mobooking-final-booking-details").html(finalDetailsHtml);
         break;
     }
     updateLiveSummary();
@@ -600,6 +656,11 @@ jQuery(document).ready(function ($) {
         date: datetime[0],
         time: datetime[1],
         instructions: $("#special-instructions").val().trim(),
+        has_pets: $('input[name="has_pets"]:checked').val(),
+        pet_details: $("#pet-details").val().trim(),
+        service_frequency: $('input[name="service_frequency"]:checked').val(),
+        property_access: $('input[name="property_access"]:checked').val(),
+        access_details: $("#access-details").val().trim(),
     };
 
     debugLog("Customer details stored", customerDetails);
@@ -645,80 +706,6 @@ jQuery(document).ready(function ($) {
   }
 
   // --- STEP 5: REVIEW & CONFIRM ---
-
-  function populateReviewData() {
-    debugLog("Populating review data");
-
-    if (!selectedService) return;
-
-    // Customer information review
-    let customerInfoHtml = `
-            <p><strong>${I18N.name || "Name"}:</strong> ${escapeHtml(
-      customerDetails.name
-    )}</p>
-            <p><strong>${I18N.email || "Email"}:</strong> ${escapeHtml(
-      customerDetails.email
-    )}</p>
-            <p><strong>${I18N.phone || "Phone"}:</strong> ${escapeHtml(
-      customerDetails.phone
-    )}</p>
-            <p><strong>${I18N.address || "Address"}:</strong> ${escapeHtml(
-      customerDetails.address
-    )}</p>
-        `;
-    $("#customer-info-review").html(customerInfoHtml);
-
-    // Service details review
-    let serviceDetailsHtml = `
-            <p><strong>${I18N.service || "Service"}:</strong> ${escapeHtml(
-      selectedService.name
-    )}</p>
-            ${
-              FORM_CONFIG.show_pricing
-                ? `<p><strong>${I18N.base_price || "Base Price"}:</strong> ${
-                    CURRENCY.symbol
-                  }${formatPrice(selectedService.price)}</p>`
-                : ""
-            }
-        `;
-
-    if (Object.keys(selectedOptions).length > 0) {
-      serviceDetailsHtml += `<p><strong>${
-        I18N.options || "Options"
-      }:</strong></p><ul>`;
-      $.each(selectedOptions, function (id, opt) {
-        serviceDetailsHtml += `<li>${escapeHtml(opt.name)}: ${escapeHtml(
-          opt.value
-        )}`;
-        if (opt.price > 0 && FORM_CONFIG.show_pricing) {
-          serviceDetailsHtml += ` (+${CURRENCY.symbol}${formatPrice(
-            opt.price
-          )})`;
-        }
-        serviceDetailsHtml += "</li>";
-      });
-      serviceDetailsHtml += "</ul>";
-    }
-    $("#service-details-review").html(serviceDetailsHtml);
-
-    // Booking information review
-    let bookingInfoHtml = `
-            <p><strong>${
-              I18N.preferred_date || "Preferred Date"
-            }:</strong> ${escapeHtml(customerDetails.date)}</p>
-            <p><strong>${
-              I18N.preferred_time || "Preferred Time"
-            }:</strong> ${escapeHtml(customerDetails.time)}</p>
-        `;
-    if (customerDetails.instructions) {
-      bookingInfoHtml += `<p><strong>${
-        I18N.special_instructions || "Special Instructions"
-      }:</strong> ${escapeHtml(customerDetails.instructions)}</p>`;
-    }
-    $("#booking-info-review").html(bookingInfoHtml);
-
-    updateLiveSummary();
-  }
 
   function handleDiscountApply() {
     debugLog("Discount apply initiated");
@@ -929,34 +916,10 @@ jQuery(document).ready(function ($) {
     }
 
     if (currentStep === 3) {
-      // Validate required options
-      let allRequiredFilled = true;
-      $("#mobooking-service-options .mobooking-form-group").each(function () {
-        const $input = $(this).find(
-          "input[required], textarea[required], select[required]"
-        );
-        if ($input.length) {
-          if (
-            ($input.is(":checkbox") && !$input.is(":checked")) ||
-            (!$input.is(":checkbox") && !$input.val().trim())
-          ) {
-            allRequiredFilled = false;
-            return false;
-          }
-        }
-      });
-
-      if (!allRequiredFilled) {
-        showFeedback(
-          $("#mobooking-options-feedback"),
-          "error",
-          I18N.required_field || "Please fill in all required fields."
-        );
-        return;
-      }
+      // TODO: Add validation for service options
     }
 
-    if (currentStep === 4 && !validateCustomerDetails()) {
+    if (currentStep === 7 && !validateCustomerDetails()) {
       return;
     }
 
@@ -1067,7 +1030,7 @@ jQuery(document).ready(function ($) {
         debugLog("Booking submission response", response);
 
         if (response && response.success && response.data) {
-          showStep(6); // Success step
+          showStep(8); // Success step
 
           // Update success details
           $("#success-details").html(`
@@ -1223,11 +1186,11 @@ jQuery(document).ready(function ($) {
     });
 
     // Initialize first step
-    if (FORM_CONFIG.enable_location_check) {
-      showStep(1);
-    } else {
-      showStep(2);
+    let initialStep = 1;
+    if (!FORM_CONFIG.enable_location_check) {
+        initialStep = 2;
     }
+    showStep(initialStep);
   }
 
   function generateTimeSlots(date, instance) {
@@ -1269,4 +1232,3 @@ jQuery(document).ready(function ($) {
   // Start the form
   initializeForm();
 });
-
