@@ -9,7 +9,7 @@ jQuery(document).ready(function ($) {
   const MOB_PARAMS = window.mobooking_booking_form_params || {};
   const PRELOADED_SERVICES = window.MOB_PRELOADED_SERVICES || [];
   // Correctly initialize FORM_CONFIG from the localized settings
-  const FORM_CONFIG = MOB_PARAMS.settings || {};
+  const FORM_CONFIG = MOB_PARAMS.form_config || {};
   const CURRENCY = MOB_PARAMS.currency || { symbol: "$", code: "USD" };
   const TENANT_ID = MOB_PARAMS.tenant_id || null;
   const FORM_NONCE = MOB_PARAMS.nonce || null; // Use MOB_PARAMS

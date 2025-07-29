@@ -48,9 +48,6 @@ class BookingFormAjax {
         add_action('wp_ajax_nopriv_mobooking_check_service_area', [$this, 'handle_check_service_area']);
         add_action('wp_ajax_mobooking_check_service_area', [$this, 'handle_check_service_area']);
         
-        add_action('wp_ajax_nopriv_mobooking_get_public_services', [$this, 'handle_get_public_services']);
-        add_action('wp_ajax_mobooking_get_public_services', [$this, 'handle_get_public_services']);
-        
         add_action('wp_ajax_nopriv_mobooking_get_service_options', [$this, 'handle_get_service_options']);
         add_action('wp_ajax_mobooking_get_service_options', [$this, 'handle_get_service_options']);
         
