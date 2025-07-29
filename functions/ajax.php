@@ -689,4 +689,34 @@ function mobooking_ajax_get_available_slots() {
 
     wp_send_json_success($slots);
 }
+
+add_action('wp_ajax_mobooking_get_public_services', 'mobooking_ajax_get_public_services');
+add_action('wp_ajax_nopriv_mobooking_get_public_services', 'mobooking_ajax_get_public_services');
+function mobooking_ajax_get_public_services() {
+    if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'mobooking_booking_form_nonce')) {
+        wp_send_json_error(array('message' => 'Security check failed: Invalid nonce.'), 403);
+        return;
+    }
+
+    $tenant_id = isset($_POST['tenant_id']) ? intval($_POST['tenant_id']) : 0;
+    if (!$tenant_id) {
+        wp_send_json_error(array('message' => 'Tenant ID is required.'), 400);
+        return;
+    }
+
+    if (!isset($GLOBALS['mobooking_services_manager'])) {
+        wp_send_json_error(array('message' => 'Services component not available.'), 500);
+        return;
+    }
+
+    $services_manager = $GLOBALS['mobooking_services_manager'];
+    $services = $services_manager->get_services_by_tenant_id($tenant_id);
+
+    if (is_wp_error($services)) {
+        wp_send_json_error(array('message' => $services->get_error_message()), 500);
+        return;
+    }
+
+    wp_send_json_success($services);
+}
 ?>
