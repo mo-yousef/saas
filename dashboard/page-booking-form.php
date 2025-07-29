@@ -32,7 +32,7 @@ if (empty($current_slug) && !empty($biz_settings['biz_name'])) {
 $public_booking_url = '';
 if (!empty($current_slug)) {
     // Use the new standardized URL structure
-    $public_booking_url = trailingslashit(site_url()) . 'bookings/' . esc_attr($current_slug) . '/';
+    $public_booking_url = trailingslashit(site_url()) . 'booking/' . esc_attr($current_slug) . '/';
 }
 
 ?>
@@ -62,7 +62,7 @@ if (!empty($current_slug)) {
                         <input name="bf_business_slug" type="text" id="bf_business_slug" value="<?php echo esc_attr($current_slug); ?>" class="regular-text">
                         <p class="description">
                             <?php esc_html_e('Unique slug for your public booking page URL (e.g., your-business-name). It will be used like: ', 'mobooking'); ?>
-                            <code><?php echo trailingslashit(site_url()); ?>bookings/your-business-slug/</code>
+                            <code><?php echo trailingslashit(site_url()); ?>booking/your-business-slug/</code>
                         </p>
                         <p class="description"><?php esc_html_e('Changing this will change your public booking form URL. Only use lowercase letters, numbers, and hyphens.', 'mobooking'); ?></p>
                         <?php if (!empty($public_booking_url)): ?>
@@ -588,7 +588,7 @@ jQuery(document).ready(function($) {
     function updateShareableLinks(slug) {
         const sanitizedSlug = slug.trim().toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, '');
         if (sanitizedSlug) {
-            const publicLink = baseSiteUrl + 'bookings/' + sanitizedSlug + '/';
+            const publicLink = baseSiteUrl + 'booking/' + sanitizedSlug + '/';
             const embedLink = baseSiteUrl + 'embed-booking/' + sanitizedSlug + '/'; // New embed link structure
             const embedCode = `<iframe src="${embedLink}" title="Booking Form" style="width:100%; height:800px; border:1px solid #ccc;"></iframe>`;
             
