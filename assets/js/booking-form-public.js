@@ -5,6 +5,8 @@
 jQuery(document).ready(function ($) {
   "use strict";
 
+  console.log('MoBooking public booking form script loaded.');
+
   // Global parameters from PHP localization
   const MOB_PARAMS = window.mobooking_booking_form_params || {};
   const PRELOADED_SERVICES = window.MOB_PRELOADED_SERVICES || [];
