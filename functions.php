@@ -186,6 +186,10 @@ add_action('wp_ajax_nopriv_mobooking_submit_booking', [$mobooking_bookings_manag
 add_action('wp_ajax_mobooking_get_available_times', [$mobooking_availability_manager, 'get_available_time_slots']);
 add_action('wp_ajax_nopriv_mobooking_get_available_times', [$mobooking_availability_manager, 'get_available_time_slots']);
 
+// Instantiate the new booking form classes
+new \MoBooking\Classes\Routes\BookingFormRouter();
+new \MoBooking\Classes\BookingFormAjax();
+
 ?>
 
 
