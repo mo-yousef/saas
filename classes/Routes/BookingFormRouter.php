@@ -28,7 +28,7 @@ class BookingFormRouter {
 
     public function template_include($template) {
         if (get_query_var('mobooking_slug')) {
-            return MOBOOKING_PLUGIN_DIR . 'templates/booking-form-public.php';
+            return plugin_dir_path(__FILE__) . '../../templates/booking-form-public.php';
         }
         return $template;
     }
