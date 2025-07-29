@@ -438,7 +438,7 @@ class BookingFormAjax {
                     'special_instructions' => wp_kses_post($booking_data['customer']['instructions'] ?? ''),
                     'subtotal_price' => floatval($booking_data['pricing']['subtotal']),
                     'discount_amount' => floatval($booking_data['pricing']['discount_amount']),
-                    'total_price' => floatval($booking_data['pricing']['total']),
+                    'total_price' => number_format($booking_data['pricing']['total'], 2),
                     'total_duration' => $total_duration,
                     'status' => 'pending',
                     'created_at' => current_time('mysql', 1)
@@ -835,7 +835,7 @@ class BookingFormAjax {
                 'service_names' => implode(', ', array_column($booking_data['services'], 'name')),
                 'booking_date_time' => date('F j, Y', strtotime($booking_data['customer']['date'])) . ' at ' . date('g:i A', strtotime($booking_data['customer']['time'])),
                 'service_address' => $booking_data['customer']['address'],
-                'total_price' => ' . number_format($booking_data['pricing']['total'], 2),
+                'total_price' => number_format($booking_data['pricing']['total'], 2),
                 'special_instructions' => $booking_data['customer']['instructions'] ?? 'None',
                 'business_name' => $business_settings['biz_name'] ?? 'MoBooking',
                 'admin_booking_link' => admin_url('admin.php?page=mobooking-bookings&booking_id=' . $booking_id)
