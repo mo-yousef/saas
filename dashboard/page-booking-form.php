@@ -141,6 +141,41 @@ if (!empty($current_slug)) {
                                 </label>
                                 <label for="bf_allow_service_selection" class="toggle-label"><?php esc_html_e( 'Allow service selection', 'mobooking' ); ?></label>
                             </label><br><br>
+                            <label for="bf_enable_pet_information">
+                                <label class="mobooking-toggle-switch">
+                                    <input name="bf_enable_pet_information" type="checkbox" id="bf_enable_pet_information" value="1" <?php echo mobooking_is_setting_checked($bf_settings, 'bf_enable_pet_information', true); ?>>
+                                    <span class="slider"></span>
+                                </label>
+                                <label for="bf_enable_pet_information" class="toggle-label"><?php esc_html_e('Enable pet information step', 'mobooking'); ?></label>
+                            </label>
+                            <p class="description" style="margin-left:22px; margin-top:0; margin-bottom:10px;"><?php esc_html_e('Ask customers about pets before booking.', 'mobooking'); ?></p><br><br>
+
+                            <label for="bf_enable_service_frequency">
+                                <label class="mobooking-toggle-switch">
+                                    <input name="bf_enable_service_frequency" type="checkbox" id="bf_enable_service_frequency" value="1" <?php echo mobooking_is_setting_checked($bf_settings, 'bf_enable_service_frequency', true); ?>>
+                                    <span class="slider"></span>
+                                </label>
+                                <label for="bf_enable_service_frequency" class="toggle-label"><?php esc_html_e('Enable service frequency selection', 'mobooking'); ?></label>
+                            </label>
+                            <p class="description" style="margin-left:22px; margin-top:0; margin-bottom:10px;"><?php esc_html_e('Allow customers to choose between one-time, daily, weekly, or monthly service.', 'mobooking'); ?></p><br><br>
+
+                            <label for="bf_enable_datetime_selection">
+                                <label class="mobooking-toggle-switch">
+                                    <input name="bf_enable_datetime_selection" type="checkbox" id="bf_enable_datetime_selection" value="1" <?php echo mobooking_is_setting_checked($bf_settings, 'bf_enable_datetime_selection', true); ?>>
+                                    <span class="slider"></span>
+                                </label>
+                                <label for="bf_enable_datetime_selection" class="toggle-label"><?php esc_html_e('Enable date & time selection', 'mobooking'); ?></label>
+                            </label>
+                            <p class="description" style="margin-left:22px; margin-top:0; margin-bottom:10px;"><?php esc_html_e('Allow customers to select preferred date and time.', 'mobooking'); ?></p><br><br>
+
+                            <label for="bf_enable_property_access">
+                                <label class="mobooking-toggle-switch">
+                                    <input name="bf_enable_property_access" type="checkbox" id="bf_enable_property_access" value="1" <?php echo mobooking_is_setting_checked($bf_settings, 'bf_enable_property_access', true); ?>>
+                                    <span class="slider"></span>
+                                </label>
+                                <label for="bf_enable_property_access" class="toggle-label"><?php esc_html_e('Enable property access options', 'mobooking'); ?></label>
+                            </label>
+                            <p class="description" style="margin-left:22px; margin-top:0; margin-bottom:10px;"><?php esc_html_e('Ask customers how service providers can access their property.', 'mobooking'); ?></p><br><br>
 
                             <label for="bf_enable_location_check">
                                 <label class="mobooking-toggle-switch">

@@ -1322,3 +1322,507 @@ body.mobooking-form-active {
 .flatpickr-time .flatpickr-am-pm {
     color: var(--mobk-color-card-foreground);
 }
+/* New Step Styles */
+
+/* Pet Information Step */
+.mobooking-radio-label {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    border: 2px solid var(--mobk-color-border);
+    border-radius: var(--mobk-border-radius);
+    margin-bottom: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.mobooking-radio-label:hover {
+    border-color: var(--mobk-color-primary);
+    background-color: color-mix(in srgb, var(--mobk-color-primary) 5%, transparent);
+}
+
+.mobooking-radio-label input[type="radio"] {
+    margin-right: 0.75rem;
+}
+
+.mobooking-radio-label input[type="radio"]:checked + .mobooking-radio-custom + span {
+    color: var(--mobk-color-primary);
+    font-weight: 500;
+}
+
+.mobooking-radio-custom {
+    width: 1.25rem;
+    height: 1.25rem;
+    border: 2px solid var(--mobk-color-border);
+    border-radius: 50%;
+    margin-right: 0.75rem;
+    position: relative;
+    transition: all 0.2s ease;
+}
+
+.mobooking-radio-label input[type="radio"]:checked + .mobooking-radio-custom {
+    border-color: var(--mobk-color-primary);
+    background-color: var(--mobk-color-primary);
+}
+
+.mobooking-radio-label input[type="radio"]:checked + .mobooking-radio-custom::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 0.5rem;
+    height: 0.5rem;
+    background-color: white;
+    border-radius: 50%;
+}
+
+/* Service Frequency Step */
+.mobooking-frequency-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.mobooking-frequency-card {
+    border: 2px solid var(--mobk-color-border);
+    border-radius: var(--mobk-border-radius);
+    padding: 1.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    background: white;
+}
+
+.mobooking-frequency-card:hover {
+    border-color: var(--mobk-color-primary);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.mobooking-frequency-card.selected {
+    border-color: var(--mobk-color-primary);
+    background-color: color-mix(in srgb, var(--mobk-color-primary) 10%, transparent);
+}
+
+.mobooking-frequency-card input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.mobooking-frequency-content i {
+    font-size: 2rem;
+    color: var(--mobk-color-primary);
+    margin-bottom: 0.75rem;
+}
+
+.mobooking-frequency-content h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--mobk-color-foreground);
+}
+
+.mobooking-frequency-content p {
+    color: var(--mobk-color-muted-foreground);
+    margin-bottom: 0.5rem;
+}
+
+.mobooking-frequency-discount {
+    display: inline-block;
+    background-color: var(--mobk-color-accent);
+    color: var(--mobk-color-accent-foreground);
+    padding: 0.25rem 0.5rem;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+/* Date & Time Selection Step */
+.mobooking-datetime-selection {
+    max-width: 500px;
+}
+
+.mobooking-time-slots-grid {
+   display: grid;
+   grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+   gap: 0.75rem;
+   margin-top: 1rem;
+}
+
+.mobooking-time-slot {
+   padding: 0.75rem;
+   border: 2px solid var(--mobk-color-border);
+   border-radius: var(--mobk-border-radius);
+   background: white;
+   cursor: pointer;
+   text-align: center;
+   font-weight: 500;
+   transition: all 0.2s ease;
+}
+
+.mobooking-time-slot.available:hover {
+   border-color: var(--mobk-color-primary);
+   background-color: color-mix(in srgb, var(--mobk-color-primary) 5%, transparent);
+}
+
+.mobooking-time-slot.selected {
+   border-color: var(--mobk-color-primary);
+   background-color: var(--mobk-color-primary);
+   color: white;
+}
+
+.mobooking-time-slot.unavailable {
+   background-color: var(--mobk-color-muted);
+   color: var(--mobk-color-muted-foreground);
+   cursor: not-allowed;
+   opacity: 0.5;
+}
+
+/* Contact & Property Access Step */
+.mobooking-section {
+   margin-bottom: 2.5rem;
+   padding-bottom: 2rem;
+   border-bottom: 1px solid var(--mobk-color-border);
+}
+
+.mobooking-section:last-child {
+   border-bottom: none;
+   margin-bottom: 0;
+}
+
+.mobooking-section-title {
+   font-size: 1.25rem;
+   font-weight: 600;
+   margin-bottom: 0.75rem;
+   color: var(--mobk-color-foreground);
+   display: flex;
+   align-items: center;
+   gap: 0.5rem;
+}
+
+.mobooking-section-title::before {
+   content: '';
+   width: 4px;
+   height: 1.25rem;
+   background-color: var(--mobk-color-primary);
+   border-radius: 2px;
+}
+
+.mobooking-section-description {
+   color: var(--mobk-color-muted-foreground);
+   margin-bottom: 1.5rem;
+   font-size: 0.95rem;
+}
+
+.mobooking-access-options {
+   display: grid;
+   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+   gap: 1rem;
+   margin-bottom: 1.5rem;
+}
+
+.mobooking-access-option {
+   border: 2px solid var(--mobk-color-border);
+   border-radius: var(--mobk-border-radius);
+   padding: 1rem;
+   cursor: pointer;
+   transition: all 0.2s ease;
+   background: white;
+   position: relative;
+}
+
+.mobooking-access-option:hover {
+   border-color: var(--mobk-color-primary);
+   background-color: color-mix(in srgb, var(--mobk-color-primary) 5%, transparent);
+}
+
+.mobooking-access-option input[type="radio"] {
+   position: absolute;
+   opacity: 0;
+   pointer-events: none;
+}
+
+.mobooking-access-option input[type="radio"]:checked + .mobooking-access-content {
+   color: var(--mobk-color-primary);
+}
+
+.mobooking-access-option:has(input[type="radio"]:checked) {
+   border-color: var(--mobk-color-primary);
+   background-color: color-mix(in srgb, var(--mobk-color-primary) 10%, transparent);
+}
+
+.mobooking-access-content {
+   display: flex;
+   flex-direction: column;
+   align-items: center;
+   gap: 0.5rem;
+   text-align: center;
+}
+
+.mobooking-access-content i {
+   font-size: 1.5rem;
+   color: var(--mobk-color-primary);
+}
+
+.mobooking-access-content span {
+   font-weight: 500;
+   font-size: 0.9rem;
+}
+
+/* Success/Confirmation Step */
+.mobooking-success-container {
+   text-align: center;
+   max-width: 600px;
+   margin: 0 auto;
+   padding: 2rem;
+}
+
+.mobooking-success-icon {
+   font-size: 4rem;
+   color: var(--mobk-color-success, #22c55e);
+   margin-bottom: 1.5rem;
+}
+
+.mobooking-success-title {
+   font-size: 2rem;
+   font-weight: 700;
+   color: var(--mobk-color-foreground);
+   margin-bottom: 1rem;
+}
+
+.mobooking-success-message {
+   font-size: 1.1rem;
+   color: var(--mobk-color-muted-foreground);
+   margin-bottom: 2rem;
+   line-height: 1.6;
+}
+
+.mobooking-booking-details {
+   background-color: var(--mobk-color-muted, #f8f9fa);
+   border-radius: var(--mobk-border-radius);
+   padding: 2rem;
+   margin: 2rem 0;
+   text-align: left;
+}
+
+.mobooking-confirmation-details {
+   display: flex;
+   flex-direction: column;
+   gap: 1rem;
+}
+
+.mobooking-confirmation-item {
+   padding: 0.75rem;
+   background: white;
+   border-radius: calc(var(--mobk-border-radius) - 2px);
+   border-left: 4px solid var(--mobk-color-primary);
+}
+
+.mobooking-confirmation-item strong {
+   color: var(--mobk-color-foreground);
+   display: block;
+   margin-bottom: 0.25rem;
+}
+
+.mobooking-success-actions {
+   display: flex;
+   justify-content: center;
+   gap: 1rem;
+   margin-top: 2rem;
+}
+
+.mobooking-success-actions .mobooking-btn {
+   min-width: 150px;
+}
+
+/* Responsive Design Updates */
+@media (max-width: 768px) {
+   .mobooking-frequency-options {
+       grid-template-columns: 1fr;
+   }
+
+   .mobooking-access-options {
+       grid-template-columns: repeat(2, 1fr);
+   }
+
+   .mobooking-time-slots-grid {
+       grid-template-columns: repeat(3, 1fr);
+   }
+
+   .mobooking-success-actions {
+       flex-direction: column;
+       align-items: center;
+   }
+
+   .mobooking-success-actions .mobooking-btn {
+       width: 100%;
+       max-width: 300px;
+   }
+}
+
+@media (max-width: 480px) {
+   .mobooking-access-options {
+       grid-template-columns: 1fr;
+   }
+
+   .mobooking-time-slots-grid {
+       grid-template-columns: repeat(2, 1fr);
+   }
+}
+
+/* Enhanced Loading States */
+.mobooking-loading {
+   display: flex;
+   align-items: center;
+   justify-content: center;
+   padding: 2rem;
+   color: var(--mobk-color-muted-foreground);
+}
+
+.mobooking-loading::before {
+   content: '';
+   width: 1rem;
+   height: 1rem;
+   border: 2px solid var(--mobk-color-border);
+   border-top-color: var(--mobk-color-primary);
+   border-radius: 50%;
+   margin-right: 0.5rem;
+   animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+   to {
+       transform: rotate(360deg);
+   }
+}
+
+/* Field Description Styling */
+.mobooking-field-description {
+   font-size: 0.85rem;
+   color: var(--mobk-color-muted-foreground);
+   margin-top: 0.25rem;
+   font-style: italic;
+}
+
+/* Enhanced Summary Sidebar */
+.mobooking-summary-item {
+   padding: 1rem;
+   background: white;
+   border-radius: var(--mobk-border-radius);
+   border: 1px solid var(--mobk-color-border);
+   margin-bottom: 1rem;
+}
+
+.mobooking-summary-item:last-child {
+   margin-bottom: 0;
+}
+
+.mobooking-summary-item strong {
+   color: var(--mobk-color-primary);
+   display: block;
+   margin-bottom: 0.5rem;
+}
+
+/* Progress Bar Updates for 8 Steps */
+.mobooking-progress-wrapper {
+   margin-bottom: 2rem;
+}
+
+.mobooking-progress-bar-bg {
+   width: 100%;
+   height: 6px;
+   background-color: var(--mobk-color-border);
+   border-radius: 3px;
+   overflow: hidden;
+}
+
+.mobooking-progress-bar {
+   height: 100%;
+   background-color: var(--mobk-color-primary);
+   transition: width 0.3s ease;
+   border-radius: 3px;
+}
+
+.mobooking-progress-text {
+   text-align: center;
+   font-size: 0.9rem;
+   color: var(--mobk-color-muted-foreground);
+   margin-top: 0.5rem;
+   font-weight: 500;
+}
+
+/* Step Animations */
+.mobooking-step {
+   opacity: 0;
+   transform: translateX(20px);
+   transition: all 0.3s ease;
+}
+
+.mobooking-step[style*="display: block"] {
+   opacity: 1;
+   transform: translateX(0);
+}
+
+/* Form Validation Enhancements */
+.mobooking-input:invalid,
+.mobooking-textarea:invalid,
+.mobooking-select:invalid {
+   border-color: var(--mobk-color-destructive, #ef4444);
+}
+
+.mobooking-input:valid,
+.mobooking-textarea:valid,
+.mobooking-select:valid {
+   border-color: var(--mobk-color-success, #22c55e);
+}
+
+/* Required Field Indicator */
+.required {
+   color: var(--mobk-color-destructive, #ef4444);
+   font-weight: bold;
+}
+
+/* Disabled Step Handling */
+.mobooking-step[data-disabled="true"] {
+   display: none !important;
+}
+
+/* Enhanced Button States */
+.mobooking-btn:disabled {
+   opacity: 0.6;
+   cursor: not-allowed;
+   pointer-events: none;
+}
+
+.mobooking-btn .mobooking-spinner {
+   display: inline-block;
+   width: 1rem;
+   height: 1rem;
+   border: 2px solid transparent;
+   border-top-color: currentColor;
+   border-radius: 50%;
+   animation: spin 1s linear infinite;
+   margin-right: 0.5rem;
+}
+
+/* Print Styles for Confirmation */
+@media print {
+   .mobooking-success-actions {
+       display: none;
+   }
+
+   .mobooking-booking-details {
+       border: 2px solid #000;
+       background: white !important;
+   }
+
+   .mobooking-confirmation-item {
+       background: white !important;
+       border: 1px solid #ccc;
+       page-break-inside: avoid;
+   }
+}
