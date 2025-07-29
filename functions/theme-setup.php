@@ -98,7 +98,7 @@ if ( is_page_template('templates/booking-form-public.php') || $page_type_for_scr
 
     wp_enqueue_script('jquery-ui-datepicker');
     // wp_enqueue_script('mobooking-booking-form', MOBOOKING_THEME_URI . 'assets/js/booking-form.js', array('jquery', 'jquery-ui-datepicker'), MOBOOKING_VERSION, true); // Commented out old script
-    wp_enqueue_script('mobooking-public-booking-form', MOBOOKING_THEME_URI . 'assets/js/booking-form-public.js', array('jquery', 'jquery-ui-datepicker'), MOBOOKING_VERSION, true); // Enqueue new script
+    wp_enqueue_script('mobooking-public-booking-form', MOBOOKING_THEME_URI . 'assets/js/booking-form-public.js', array('jquery', 'jquery-ui-datepicker'), MOBOOKING_VERSION, false); // Enqueue new script
 
     $effective_tenant_id_for_public_form = 0;
 
