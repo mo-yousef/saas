@@ -167,7 +167,8 @@ set_error_handler('mobooking_ajax_error_handler');
 error_log('MoBooking Debug: ' . print_r(get_defined_vars(), true));
 
 function mobooking_enqueue_public_booking_form_assets() {
-    if (is_page_template('templates/booking-form-public.php') || is_singular('booking')) {
+    // Use query var check which is more reliable with template_include
+    if (get_query_var('mobooking_slug')) {
         wp_enqueue_script('jquery');
         wp_enqueue_script('jquery-ui-core');
         wp_enqueue_script('jquery-ui-datepicker');
@@ -187,7 +188,6 @@ add_action('wp_ajax_mobooking_get_available_times', [$mobooking_availability_man
 add_action('wp_ajax_nopriv_mobooking_get_available_times', [$mobooking_availability_manager, 'get_available_time_slots']);
 
 // Instantiate the new booking form classes
-new \MoBooking\Classes\Routes\BookingFormRouter();
 new \MoBooking\Classes\BookingFormAjax();
 
 ?>

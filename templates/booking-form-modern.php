@@ -238,5 +238,12 @@ $biz_settings = $settings_manager->get_business_settings($tenant_user_id);
 </div>
 
 <?php
+// Localize script with necessary data
+wp_localize_script('mobooking-booking-form', 'mobooking_booking_form_params', [
+    'ajax_url' => admin_url('admin-ajax.php'),
+    'nonce' => wp_create_nonce('mobooking_booking_nonce'),
+    'tenant_id' => $tenant_user_id,
+]);
+
 get_footer('booking');
 ?>
