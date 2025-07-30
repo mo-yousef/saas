@@ -39,43 +39,56 @@ $dashboard_base_url = home_url('/dashboard/');
 
 <div class="mobooking-overview-refactored">
 
+    <div class="overview-header">
+        <h1 class="overview-title">
+            <?php printf(esc_html__('Welcome back, %s!', 'mobooking'), esc_html($user->display_name)); ?>
+        </h1>
+        <p class="overview-subtitle">
+            <?php esc_html_e('Here\'s what\'s happening with your business today.', 'mobooking'); ?>
+        </p>
+    </div>
+
     <!-- Statistics Widgets -->
-    <div class="card widget-span-3">
+    <div class="dashboard-kpi-card widget-span-3">
         <div class="card-header">
             <h3 class="card-title">Total Bookings</h3>
             <p class="card-description">pending, confirmed</p>
         </div>
         <div class="card-content">
+            <i data-feather="book"></i>
             <p class="text-2xl font-bold" id="total-bookings-value">--</p>
         </div>
     </div>
 
-    <div class="card widget-span-3">
+    <div class="dashboard-kpi-card widget-span-3">
         <div class="card-header">
             <h3 class="card-title">Total Revenue</h3>
             <p class="card-description">this month</p>
         </div>
         <div class="card-content">
+            <i data-feather="dollar-sign"></i>
             <p class="text-2xl font-bold" id="total-revenue-value">--</p>
         </div>
     </div>
 
-    <div class="card widget-span-3">
+    <div class="dashboard-kpi-card widget-span-3">
         <div class="card-header">
             <h3 class="card-title">This Month</h3>
             <p class="card-description">this week, today</p>
         </div>
         <div class="card-content">
+            <i data-feather="bar-chart-2"></i>
             <p class="text-2xl font-bold" id="revenue-breakdown-value">--</p>
         </div>
     </div>
 
-    <div class="card widget-span-3">
+    <div class="dashboard-kpi-card widget-span-3">
         <div class="card-header">
             <h3 class="card-title">Completion Rate</h3>
             <p class="card-description">completed</p>
         </div>
         <div class="card-content">
+            <i data-feather="check-circle"></i>
             <p class="text-2xl font-bold" id="completion-rate-value">--</p>
         </div>
     </div>
@@ -156,4 +169,7 @@ var mobooking_overview_params = {
         error: '<?php esc_html_e('Error loading data', 'mobooking'); ?>'
     }
 };
+</script>
+<script>
+    feather.replace();
 </script>
