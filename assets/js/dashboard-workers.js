@@ -7,7 +7,7 @@
 
 (function ($) {
   "use strict";
-  console.log("MoBooking Workers: Enhanced JavaScript Loaded");
+  console.log("MoBooking Workers: Enhanced JavaScript Loaded - New Version");
   // Wait for DOM and localized parameters
   $(document).ready(function () {
     if (typeof mobooking_workers_params === "undefined") {
@@ -28,6 +28,7 @@
   MoBookingWorkersManager.prototype = {
     // Initialize the manager
     init: function () {
+      console.log("MoBookingWorkersManager: init");
       this.bindEvents();
       this.initializeComponents();
       this.loadExistingData();
@@ -35,6 +36,7 @@
 
     // Bind all event handlers
     bindEvents: function () {
+      console.log("MoBookingWorkersManager: bindEvents");
       this.bindAccordionEvents();
       this.bindFormEvents();
       this.bindTableEvents();
@@ -60,10 +62,14 @@
      */
     bindAccordionEvents: function () {
       var self = this;
+      console.log("MoBookingWorkersManager: bindAccordionEvents");
 
-      $('.mobooking-accordion-trigger').on('click', function(e) {
-          e.preventDefault();
-          self.handleAccordionToggle($(this));
+      $('.mobooking-accordion-trigger').each(function() {
+        $(this).on('click', function(e) {
+            e.preventDefault();
+            console.log("Accordion trigger clicked");
+            self.handleAccordionToggle($(this));
+        });
       });
 
       // Keyboard navigation for accordion
