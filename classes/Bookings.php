@@ -29,23 +29,26 @@ class Bookings {
             return;
         }
 
-        // Decode JSON data
-        $customer_details = $this->safe_json_decode($_POST['customer_details'] ?? '', 'customer_details');
-        $selected_services = $this->safe_json_decode($_POST['selected_services'] ?? '', 'selected_services');
-        $service_options = $this->safe_json_decode($_POST['service_options'] ?? '', 'service_options');
-        $pet_information = $this->safe_json_decode($_POST['pet_information'] ?? '', 'pet_information');
-        $property_access = $this->safe_json_decode($_POST['property_access'] ?? '', 'property_access');
-        $location_data = $this->safe_json_decode($_POST['location_data'] ?? '', 'location_data');
-        $pricing_data = $this->safe_json_decode($_POST['pricing_data'] ?? '', 'pricing_data');
-
-        // Get simple fields
-        $service_frequency = sanitize_text_field($_POST['service_frequency'] ?? 'one-time');
-
-        // Validate required data
-        if (is_wp_error($customer_details) || is_wp_error($selected_services)) {
-            wp_send_json_error(['message' => __('Invalid form data. Please try again.', 'mobooking')], 400);
+        // The new JS sends a single booking_data object
+        $booking_data_from_post = isset($_POST['booking_data']) ? stripslashes_deep($_POST['booking_data']) : null;
+        if (!$booking_data_from_post) {
+            wp_send_json_error(['message' => __('Invalid form data.', 'mobooking')], 400);
             return;
         }
+
+        // Extract data from the main object
+        $customer_details = $booking_data_from_post['contact'] ?? [];
+        $selected_services = [$booking_data_from_post['service']] ?? []; // The new structure has one service
+        $service_options = $booking_data_from_post['options'] ?? [];
+        $pet_information = $booking_data_from_post['pets'] ?? [];
+        $property_access = $booking_data_from_post['access'] ?? [];
+        $service_frequency = $booking_data_from_post['frequency'] ?? 'one-time';
+        $pricing_data = $booking_data_from_post['pricing'] ?? [];
+        $datetime = $booking_data_from_post['datetime'] ?? [];
+
+        // Add date and time to customer details for validation
+        $customer_details['date'] = $datetime['date'] ?? '';
+        $customer_details['time'] = $datetime['time'] ?? '';
 
         // Enhanced validation
         $validation_result = $this->validate_enhanced_booking_data([
@@ -62,23 +65,23 @@ class Bookings {
         }
 
         // Create enhanced booking
-        $booking_data = [
+        $booking_data_to_create = [
             'tenant_id' => $tenant_id,
             'customer_details' => $customer_details,
             'selected_services' => $selected_services,
-            'service_options' => $service_options ?: [],
-            'pet_information' => $pet_information ?: ['has_pets' => false, 'details' => ''],
+            'service_options' => $service_options,
+            'pet_information' => $pet_information,
             'service_frequency' => $service_frequency,
-            'property_access' => $property_access ?: ['method' => 'home', 'details' => ''],
-            'location_data' => $location_data ?: [],
-            'pricing_data' => $pricing_data ?: [],
+            'property_access' => $property_access,
+            'location_data' => [], // This was not in the new JS object, add if needed
+            'pricing_data' => $pricing_data,
             'booking_status' => 'pending',
             'booking_date' => current_time('mysql'),
-            'service_date' => $customer_details['date'] ?? '',
-            'service_time' => $customer_details['time'] ?? ''
+            'service_date' => $customer_details['date'],
+            'service_time' => $customer_details['time']
         ];
 
-        $booking_result = $this->create_enhanced_booking($booking_data);
+        $booking_result = $this->create_enhanced_booking($booking_data_to_create);
 
         if (is_wp_error($booking_result)) {
             error_log('MoBooking - Enhanced booking creation failed: ' . $booking_result->get_error_message());
@@ -87,14 +90,14 @@ class Bookings {
         }
 
         // Send confirmation emails
-        $this->send_enhanced_booking_confirmations($booking_result['booking_id'], $booking_data);
+        $this->send_enhanced_booking_confirmations($booking_result['booking_id'], $booking_data_to_create);
 
         // Return success response
         wp_send_json_success([
             'message' => __('Booking submitted successfully!', 'mobooking'),
             'booking_reference' => $booking_result['booking_reference'],
             'booking_id' => $booking_result['booking_id'],
-            'total_amount' => $pricing_data['final_total'] ?? 0
+            'total_amount' => $pricing_data['total'] ?? 0
         ]);
     }
 
