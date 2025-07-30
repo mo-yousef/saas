@@ -16,6 +16,7 @@ class Areas {
         add_action('wp_ajax_mobooking_get_cities_for_country', [$this, 'handle_get_cities_for_country_ajax']);
         add_action('wp_ajax_mobooking_get_areas_for_city', [$this, 'handle_get_areas_for_city_ajax']);
         add_action('wp_ajax_mobooking_add_bulk_areas', [$this, 'handle_add_bulk_areas_ajax']);
+        add_action('wp_ajax_mobooking_get_areas', [$this, 'handle_get_areas_ajax']);
     }
 
     private function load_area_data_from_json() {
@@ -172,6 +173,26 @@ class Areas {
                 ),
                 'added_count' => $added_count
             ]);
+        }
+    }
+
+    public function get_areas_by_user(int $user_id, array $args = []) {
+        $table_name = Database::get_table_name('service_areas');
+        $sql = "SELECT * FROM $table_name WHERE user_id = %d";
+        $areas = $this->wpdb->get_results($this->wpdb->prepare($sql, $user_id), ARRAY_A);
+        error_log('Get Areas SQL: ' . $this->wpdb->last_query);
+        error_log('Get Areas Result: ' . print_r($areas, true));
+        return $areas;
+    }
+
+    public function handle_get_areas_ajax() {
+        check_ajax_referer('mobooking_dashboard_nonce', 'nonce');
+        $user_id = get_current_user_id();
+        $areas = $this->get_areas_by_user($user_id);
+        if (is_wp_error($areas)) {
+            wp_send_json_error(['message' => $areas->get_error_message()]);
+        } else {
+            wp_send_json_success(['areas' => $areas]);
         }
     }
 }
