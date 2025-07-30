@@ -248,7 +248,7 @@ function mobooking_enqueue_dashboard_scripts($current_page_slug = '') {
 
         wp_enqueue_style(
             'mobooking-overview-css',
-            get_template_directory_uri() . '/assets/css/dashboard-overview.css',
+            get_template_directory_uri() . '/assets/css/dashboard-overview-refactored.css',
             array(),
             MOBOOKING_VERSION
         );

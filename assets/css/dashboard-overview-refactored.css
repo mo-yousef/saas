@@ -1,0 +1,260 @@
+/* ==========================================================================
+   Refactored Dashboard Overview - Shadcn UI Inspired
+   ========================================================================== */
+
+:root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
+    --radius: 0.5rem;
+}
+
+.dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+}
+
+/* Base styles */
+body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+}
+
+.mobooking-overview-refactored {
+    padding: 2rem;
+    display: grid;
+    gap: 1.5rem;
+    grid-template-columns: repeat(12, 1fr);
+}
+
+/* Card styles */
+.card {
+    background-color: hsl(var(--card));
+    color: hsl(var(--card-foreground));
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius);
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    padding: 1.5rem;
+}
+
+.card-header {
+    margin-bottom: 1rem;
+}
+
+.card-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: hsl(var(--card-foreground));
+    margin: 0;
+}
+
+.card-description {
+    font-size: 0.875rem;
+    color: hsl(var(--muted-foreground));
+    margin-top: 0.25rem;
+}
+
+.card-content {
+    /* Content styles */
+}
+
+.card-footer {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid hsl(var(--border));
+}
+
+/* Grid layout for widgets */
+.widget-span-1 { grid-column: span 1; }
+.widget-span-2 { grid-column: span 2; }
+.widget-span-3 { grid-column: span 3; }
+.widget-span-4 { grid-column: span 4; }
+.widget-span-5 { grid-column: span 5; }
+.widget-span-6 { grid-column: span 6; }
+.widget-span-7 { grid-column: span 7; }
+.widget-span-8 { grid-column: span 8; }
+.widget-span-9 { grid-column: span 9; }
+.widget-span-10 { grid-column: span 10; }
+.widget-span-11 { grid-column: span 11; }
+.widget-span-12 { grid-column: span 12; }
+
+/* Button styles */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius);
+    font-size: 0.875rem;
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    text-decoration: none;
+    transition: all 0.2s ease-in-out;
+    border: 1px solid transparent;
+}
+
+.btn-primary {
+    background-color: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+    border-color: hsl(var(--primary));
+}
+
+.btn-primary:hover {
+    background-color: hsl(var(--primary) / 0.9);
+}
+
+.btn-secondary {
+    background-color: hsl(var(--secondary));
+    color: hsl(var(--secondary-foreground));
+    border-color: hsl(var(--border));
+}
+
+.btn-secondary:hover {
+    background-color: hsl(var(--secondary) / 0.9);
+}
+
+.btn-ghost {
+    background-color: transparent;
+    color: hsl(var(--primary));
+    border-color: transparent;
+}
+
+.btn-ghost:hover {
+    background-color: hsl(var(--accent));
+}
+
+/* Specific widget styles */
+.text-2xl {
+    font-size: 1.5rem;
+    line-height: 2rem;
+}
+
+.font-bold {
+    font-weight: 700;
+}
+
+/* Quick Actions Widget */
+.quick-actions-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+}
+
+/* Recent Bookings Widget */
+.recent-bookings-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.booking-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid hsl(var(--border));
+}
+
+.booking-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.booking-item-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.booking-item-customer {
+    font-weight: 600;
+}
+
+.booking-item-service {
+    color: hsl(var(--muted-foreground));
+    font-size: 0.875rem;
+}
+
+.booking-item-price {
+    font-weight: 600;
+}
+
+/* Setup Progress Widget */
+.setup-progress-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.setup-progress-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.setup-progress-item .icon {
+    width: 1.25rem;
+    height: 1.25rem;
+    border-radius: 50%;
+    background-color: hsl(var(--muted));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: hsl(var(--muted-foreground));
+}
+
+.setup-progress-item.completed .icon {
+    background-color: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+}
+
+/* Tips & Resources Widget */
+.tips-resources-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.tip-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: hsl(var(--primary));
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.tip-item:hover {
+    text-decoration: underline;
+}
