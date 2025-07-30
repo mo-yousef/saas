@@ -97,19 +97,12 @@ body {
     border-top: 1px solid hsl(var(--border));
 }
 
-/* Grid layout for widgets */
-.widget-span-1 { grid-column: span 1; }
-.widget-span-2 { grid-column: span 2; }
-.widget-span-3 { grid-column: span 3; }
-.widget-span-4 { grid-column: span 4; }
-.widget-span-5 { grid-column: span 5; }
-.widget-span-6 { grid-column: span 6; }
-.widget-span-7 { grid-column: span 7; }
-.widget-span-8 { grid-column: span 8; }
-.widget-span-9 { grid-column: span 9; }
-.widget-span-10 { grid-column: span 10; }
-.widget-span-11 { grid-column: span 11; }
-.widget-span-12 { grid-column: span 12; }
+.dashboard-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
 
 /* Button styles */
 .btn {
@@ -188,38 +181,28 @@ body {
     0 2px 4px -2px rgba(0, 0, 0, 0.1);
 }
 
-.dashboard-kpi-card .card-header {
+.kpi-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 0.75rem;
 }
 
-.dashboard-kpi-card .card-title {
+.kpi-title {
   font-size: 0.875rem;
   font-weight: 500;
   color: hsl(var(--muted-foreground));
-  text-transform: uppercase;
-  letter-spacing: 0.025em;
 }
 
-.dashboard-kpi-card .card-content {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-}
-
-.dashboard-kpi-card .feather {
+.kpi-icon img {
   width: 2rem;
   height: 2rem;
-  color: hsl(var(--primary));
 }
 
-.dashboard-kpi-card .text-2xl {
+.kpi-value {
   font-size: 1.875rem;
   font-weight: 700;
   color: hsl(var(--foreground));
-  margin-bottom: 0.25rem;
   line-height: 1.2;
 }
 

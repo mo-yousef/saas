@@ -49,47 +49,37 @@ $dashboard_base_url = home_url('/dashboard/');
     </div>
 
     <!-- Statistics Widgets -->
-    <div class="dashboard-kpi-card widget-span-3">
-        <div class="card-header">
-            <h3 class="card-title">Total Bookings</h3>
-            <p class="card-description">pending, confirmed</p>
+    <div class="dashboard-kpi-grid mobooking-overview-kpis">
+        <div class="dashboard-kpi-card">
+            <div class="kpi-header">
+                <span class="kpi-title">Total Bookings</span>
+                <div class="kpi-icon bookings"><img draggable="false" role="img" class="emoji" alt="📅" src="https://s.w.org/images/core/emoji/16.0.1/svg/1f4c5.svg"></div>
+            </div>
+            <div class="kpi-value" id="total-bookings-value">--</div>
         </div>
-        <div class="card-content">
-            <i data-feather="book"></i>
-            <p class="text-2xl font-bold" id="total-bookings-value">--</p>
-        </div>
-    </div>
 
-    <div class="dashboard-kpi-card widget-span-3">
-        <div class="card-header">
-            <h3 class="card-title">Total Revenue</h3>
-            <p class="card-description">this month</p>
+        <div class="dashboard-kpi-card">
+            <div class="kpi-header">
+                <span class="kpi-title">Total Revenue</span>
+                <div class="kpi-icon revenue"><img draggable="false" role="img" class="emoji" alt="💰" src="https://s.w.org/images/core/emoji/16.0.1/svg/1f4b0.svg"></div>
+            </div>
+            <div class="kpi-value" id="total-revenue-value">--</div>
         </div>
-        <div class="card-content">
-            <i data-feather="dollar-sign"></i>
-            <p class="text-2xl font-bold" id="total-revenue-value">--</p>
-        </div>
-    </div>
 
-    <div class="dashboard-kpi-card widget-span-3">
-        <div class="card-header">
-            <h3 class="card-title">This Month</h3>
-            <p class="card-description">this week, today</p>
+        <div class="dashboard-kpi-card">
+            <div class="kpi-header">
+                <span class="kpi-title">Revenue Breakdown</span>
+                 <div class="kpi-icon upcoming"><img draggable="false" role="img" class="emoji" alt="⏰" src="https://s.w.org/images/core/emoji/16.0.1/svg/23f0.svg"></div>
+            </div>
+            <div class="kpi-value" id="revenue-breakdown-value">--</div>
         </div>
-        <div class="card-content">
-            <i data-feather="bar-chart-2"></i>
-            <p class="text-2xl font-bold" id="revenue-breakdown-value">--</p>
-        </div>
-    </div>
 
-    <div class="dashboard-kpi-card widget-span-3">
-        <div class="card-header">
-            <h3 class="card-title">Completion Rate</h3>
-            <p class="card-description">completed</p>
-        </div>
-        <div class="card-content">
-            <i data-feather="check-circle"></i>
-            <p class="text-2xl font-bold" id="completion-rate-value">--</p>
+        <div class="dashboard-kpi-card">
+            <div class="kpi-header">
+                <span class="kpi-title">Completion Rate</span>
+                 <div class="kpi-icon upcoming"><img draggable="false" role="img" class="emoji" alt="✅" src="https://s.w.org/images/core/emoji/16.0.1/svg/2705.svg"></div>
+            </div>
+            <div class="kpi-value" id="completion-rate-value">--</div>
         </div>
     </div>
 
@@ -169,7 +159,4 @@ var mobooking_overview_params = {
         error: '<?php esc_html_e('Error loading data', 'mobooking'); ?>'
     }
 };
-</script>
-<script>
-    feather.replace();
 </script>
