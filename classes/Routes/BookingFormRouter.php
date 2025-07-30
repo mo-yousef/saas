@@ -32,4 +32,15 @@ class BookingFormRouter {
         }
         return $template;
     }
+
+    public static function get_user_id_by_slug($slug) {
+        global $wpdb;
+        $settings_table = Database::get_table_name('tenant_settings');
+        $user_id = $wpdb->get_var($wpdb->prepare(
+            "SELECT user_id FROM {$settings_table} WHERE setting_name = %s AND setting_value = %s",
+            'bf_business_slug',
+            $slug
+        ));
+        return $user_id ? (int) $user_id : null;
+    }
 }
