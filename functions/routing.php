@@ -1,9 +1,12 @@
 <?php
-// Routing and Template Handling Refactored to BookingFormRouter class
+// Routing for front-end booking form and dashboard.
 
-// Initialize the new router
+// Initialize the routers
 if (class_exists('MoBooking\\Classes\\Routes\\BookingFormRouter')) {
     new \MoBooking\Classes\Routes\BookingFormRouter();
+}
+if (class_exists('MoBooking\\Classes\\Routes\\DashboardRouter')) {
+    new \MoBooking\Classes\Routes\DashboardRouter();
 }
 
 // Theme activation/deactivation hook for flushing rewrite rules
