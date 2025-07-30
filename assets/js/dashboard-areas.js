@@ -22,7 +22,6 @@ jQuery(document).ready(function ($) {
   // Debug element existence
   console.log("DOM Elements Check:", {
     countrySelector: $countrySelector.length,
-    areaCountryField: $areaCountryField.length,
     countryFilter: $countryFilter.length,
     citySelector: $citySelector.length,
     areasListContainer: $areasListContainer.length,
@@ -32,11 +31,6 @@ jQuery(document).ready(function ($) {
   if ($countrySelector.length === 0) {
     console.error(
       "Country selector not found! Looking for #mobooking-country-selector"
-    );
-  }
-  if ($areaCountryField.length === 0) {
-    console.error(
-      "Area country field not found! Looking for #mobooking-area-country"
     );
   }
 
@@ -143,13 +137,6 @@ jQuery(document).ready(function ($) {
             })
           );
 
-          // Clear and populate manual entry dropdown
-          $areaCountryField.empty().append(
-            $("<option>", {
-              value: "",
-              text: i18n.select_country || "Select a country...",
-            })
-          );
 
           // Clear and populate filter dropdown
           $countryFilter.empty().append(
@@ -173,14 +160,6 @@ jQuery(document).ready(function ($) {
               })
             );
 
-            // Add to manual entry (uses country name as value)
-            $areaCountryField.append(
-              $("<option>", {
-                value: country.name,
-                "data-code": country.code,
-                text: optionText,
-              })
-            );
 
             // Add to filter
             $countryFilter.append(
@@ -199,10 +178,6 @@ jQuery(document).ready(function ($) {
             console.log(
               "Country Selector options count:",
               $countrySelector.find("option").length
-            );
-            console.log(
-              "Area Country Field options count:",
-              $areaCountryField.find("option").length
             );
             console.log(
               "Country Filter options count:",

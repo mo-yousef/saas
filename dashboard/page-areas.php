@@ -66,7 +66,7 @@ wp_localize_script('mobooking-dashboard-areas', 'mobooking_areas_params', [
     <div class="mobooking-dashboard-grid">
         
         <!-- Quick Area Selection Card -->
-        <div class="mobooking-card" id="mobooking-area-selection-wrapper">
+        <div class="mobooking-card mobooking-card-full-width" id="mobooking-area-selection-wrapper">
             <div class="mobooking-card-header">
                 <h3 class="mobooking-card-title">
                     <svg class="mobooking-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
