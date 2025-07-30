@@ -608,11 +608,9 @@ class Areas {
             return '';
         }
 
-        if (isset($data['countries']) && is_array($data['countries'])) {
-            foreach ($data['countries'] as $country_code => $country_data) {
-                if (isset($country_data['name']) && $country_data['name'] === $country_name) {
-                    return $country_code;
-                }
+        foreach ($data as $country_code => $country_data) {
+            if (isset($country_data['name']) && $country_data['name'] === $country_name) {
+                return $country_code;
             }
         }
 
