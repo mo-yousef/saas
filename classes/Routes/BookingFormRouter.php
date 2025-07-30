@@ -27,13 +27,12 @@ class BookingFormRouter {
     }
 
     public function template_include($template) {
-        if (get_query_var('mobooking_slug')) {
-            // Point to the new modern booking form template
+        // Only apply this logic if it's a booking form request and NOT a dashboard request.
+        if (get_query_var('mobooking_slug') && !get_query_var('mobooking_dashboard_page')) {
             $modern_template = MOBOOKING_THEME_DIR . 'templates/booking-form-modern.php';
             if (file_exists($modern_template)) {
                 return $modern_template;
             }
-            // Fallback to the old one if the new one doesn't exist for some reason
             return MOBOOKING_THEME_DIR . 'templates/booking-form-public.php';
         }
         return $template;
