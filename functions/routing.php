@@ -350,4 +350,5 @@ function mobooking_enqueue_dashboard_scripts($current_page_slug = '') {
     wp_enqueue_script('mobooking-dashboard-global', MOBOOKING_THEME_URI . 'assets/js/dashboard.js', array('jquery'), MOBOOKING_VERSION, true);
     wp_localize_script('mobooking-dashboard-global', 'mobooking_dashboard_params', $dashboard_params);
 }
+add_action('wp_enqueue_scripts', 'mobooking_enqueue_dashboard_scripts');
 ?>
