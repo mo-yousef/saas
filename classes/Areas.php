@@ -51,12 +51,19 @@ class Areas {
         if (is_wp_error($data)) {
             return $data;
         }
+        $cities = [];
         foreach ($data as $country_data) {
             if ($country_data['country_code'] === $country_code) {
-                return $country_data['cities'];
+                foreach ($country_data['cities'] as $city_data) {
+                    $cities[] = [
+                        'code' => $city_data['city_name'],
+                        'name' => $city_data['city_name']
+                    ];
+                }
+                break;
             }
         }
-        return [];
+        return $cities;
     }
 
     public function get_areas_for_city($country_code, $city_name) {
@@ -130,6 +137,8 @@ class Areas {
         check_ajax_referer('mobooking_dashboard_nonce', 'nonce');
         $country_code = isset($_POST['country_code']) ? sanitize_text_field($_POST['country_code']) : '';
         $city_name = isset($_POST['city_name']) ? sanitize_text_field($_POST['city_name']) : '';
+        error_log('Country Code: ' . $country_code);
+        error_log('City Name: ' . $city_name);
         $areas = $this->get_areas_for_city($country_code, $city_name);
         if (is_wp_error($areas)) {
             wp_send_json_error(['message' => $areas->get_error_message()]);
