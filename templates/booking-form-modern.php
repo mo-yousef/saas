@@ -20,22 +20,7 @@ $settings_manager = new \MoBooking\Classes\Settings();
 $form_settings = $settings_manager->get_booking_form_settings($tenant_user_id);
 $biz_settings = $settings_manager->get_business_settings($tenant_user_id);
 
-// Enqueue modern form assets
-wp_enqueue_style('mobooking-booking-form-modern', MOBOOKING_THEME_URI . 'assets/css/booking-form-modern.css', [], MOBOOKING_VERSION);
-wp_enqueue_script('mobooking-booking-form', MOBOOKING_THEME_URI . 'assets/js/booking-form.js', ['jquery', 'jquery-ui-datepicker'], MOBOOKING_VERSION, true);
-
-// Localize script with necessary data
-wp_localize_script('mobooking-booking-form', 'mobooking_booking_form_params', [
-    'ajax_url' => admin_url('admin-ajax.php'),
-    'nonce' => wp_create_nonce('mobooking_booking_nonce'),
-    'tenant_id' => $tenant_user_id,
-    'settings' => $form_settings,
-    'currency_symbol' => $biz_settings['biz_currency_symbol'] ?? '$',
-    'currency_code' => $biz_settings['biz_currency_code'] ?? 'USD',
-    'i18n' => [
-        // Add any needed internationalization strings here
-    ],
-]);
+// Script and style enqueueing is now handled by the mobooking_scripts function in functions/theme-setup.php
 
 ?>
 
