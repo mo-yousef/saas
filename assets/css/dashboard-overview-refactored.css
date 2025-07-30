@@ -155,6 +155,74 @@ body {
     background-color: hsl(var(--accent));
 }
 
+/* Header */
+.overview-header {
+  margin-bottom: 2rem;
+}
+
+.overview-title {
+  font-size: 2.25rem;
+  font-weight: 800;
+  color: hsl(var(--foreground));
+  margin-bottom: 0.5rem;
+}
+
+.overview-subtitle {
+  color: hsl(var(--muted-foreground));
+  font-size: 1.125rem;
+  font-weight: 400;
+}
+
+/* Standardized KPI Grid and Card styles */
+.dashboard-kpi-card {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  padding: 1rem;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  transition: box-shadow 0.2s ease-in-out, transform 0.2s ease-in-out;
+}
+
+.dashboard-kpi-card:hover {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -2px rgba(0, 0, 0, 0.1);
+}
+
+.dashboard-kpi-card .card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.dashboard-kpi-card .card-title {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: hsl(var(--muted-foreground));
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.dashboard-kpi-card .card-content {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.dashboard-kpi-card .feather {
+  width: 2rem;
+  height: 2rem;
+  color: hsl(var(--primary));
+}
+
+.dashboard-kpi-card .text-2xl {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: hsl(var(--foreground));
+  margin-bottom: 0.25rem;
+  line-height: 1.2;
+}
+
 /* Specific widget styles */
 .text-2xl {
     font-size: 1.5rem;
