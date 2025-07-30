@@ -300,198 +300,53 @@ $all_worker_roles = [
 
             if ( ! empty( $workers ) ) :
             ?>
-                <div class="mobooking-table-container">
-                    <table class="mobooking-table">
-                        <thead>
-                            <tr>
-                                <th scope="col" class="mobooking-table-header">
-                                    <div class="mobooking-table-header-content">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-                                            <polyline points="22,6 12,13 2,6"></polyline>
-                                        </svg>
-                                        <?php esc_html_e( 'Email', 'mobooking' ); ?>
-                                    </div>
-                                </th>
-                                <th scope="col" class="mobooking-table-header">
-                                    <div class="mobooking-table-header-content">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                                            <circle cx="12" cy="7" r="4"></circle>
-                                        </svg>
-                                        <?php esc_html_e( 'Name', 'mobooking' ); ?>
-                                    </div>
-                                </th>
-                                <th scope="col" class="mobooking-table-header">
-                                    <div class="mobooking-table-header-content">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
-                                            <circle cx="9" cy="7" r="4"></circle>
-                                            <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
-                                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                                        </svg>
-                                        <?php esc_html_e( 'Role', 'mobooking' ); ?>
-                                    </div>
-                                </th>
-                                <th scope="col" class="mobooking-table-header mobooking-table-header-actions">
-                                    <div class="mobooking-table-header-content">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                            <circle cx="12" cy="12" r="1"></circle>
-                                            <circle cx="12" cy="5" r="1"></circle>
-                                            <circle cx="12" cy="19" r="1"></circle>
-                                        </svg>
-                                        <?php esc_html_e( 'Actions', 'mobooking' ); ?>
-                                    </div>
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ( $workers as $worker ) : ?>
-                                <?php
-                                $current_worker_role_name = __('N/A', 'mobooking');
-                                $current_worker_role_key = '';
+                <div class="mobooking-table">
+                    <div class="mobooking-table-header">
+                        <div class="mobooking-table-cell"><?php esc_html_e( 'Email', 'mobooking' ); ?></div>
+                        <div class="mobooking-table-cell"><?php esc_html_e( 'Name', 'mobooking' ); ?></div>
+                        <div class="mobooking-table-cell"><?php esc_html_e( 'Role', 'mobooking' ); ?></div>
+                        <div class="mobooking-table-cell"><?php esc_html_e( 'Actions', 'mobooking' ); ?></div>
+                    </div>
+                    <div class="mobooking-table-body">
+                        <?php foreach ( $workers as $worker ) : ?>
+                            <?php
+                            $current_worker_role_name = __('N/A', 'mobooking');
+                            $current_worker_role_key = '';
 
-                                if (in_array(\MoBooking\Classes\Auth::ROLE_WORKER_STAFF, $worker->roles)) {
-                                    $current_worker_role_name = $all_worker_roles[\MoBooking\Classes\Auth::ROLE_WORKER_STAFF];
-                                    $current_worker_role_key = \MoBooking\Classes\Auth::ROLE_WORKER_STAFF;
-                                }
-                                ?>
-                                <tr id="worker-row-<?php echo esc_attr( $worker->ID ); ?>" class="mobooking-table-row">
-                                    <td class="mobooking-table-cell worker-email-display">
-                                        <div class="mobooking-table-cell-content">
-                                            <div class="mobooking-avatar">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                                                    <circle cx="12" cy="7" r="4"></circle>
-                                                </svg>
-                                            </div>
-                                            <span class="mobooking-table-primary-text"><?php echo esc_html( $worker->user_email ); ?></span>
-                                        </div>
-                                    </td>
-                                    <td class="mobooking-table-cell">
-                                        <div class="mobooking-table-cell-content">
-                                            <span class="mobooking-table-primary-text worker-full-name-display">
-                                                <?php 
-                                                $full_name = trim($worker->first_name . ' ' . $worker->last_name);
-                                                echo esc_html($full_name ?: __('No name set', 'mobooking')); 
-                                                ?>
-                                            </span>
-                                            <span class="mobooking-table-secondary-text worker-first-name-display" style="display: none;"><?php echo esc_html( $worker->first_name ); ?></span>
-                                            <span class="mobooking-table-secondary-text worker-last-name-display" style="display: none;"><?php echo esc_html( $worker->last_name ); ?></span>
-                                        </div>
-                                    </td>
-                                    <td class="mobooking-table-cell">
-                                        <div class="mobooking-table-cell-content">
-                                            <div class="mobooking-badge mobooking-badge-secondary worker-role-display">
-                                                <?php echo esc_html( $current_worker_role_name ); ?>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td class="mobooking-table-cell mobooking-table-cell-actions">
-                                        <div class="mobooking-table-actions">
-                                            <button type="button" class="mobooking-button mobooking-button-sm mobooking-button-outline mobooking-edit-worker-details-btn" data-worker-id="<?php echo esc_attr( $worker->ID ); ?>">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                                                </svg>
-                                                <?php esc_html_e( 'Edit', 'mobooking' ); ?>
-                                            </button>
-
-                                            <div class="mobooking-inline-form-group">
-                                                <form class="mobooking-change-role-form mobooking-inline-form">
-                                                    <?php wp_nonce_field( 'mobooking_change_worker_role_nonce_' . $worker->ID, 'mobooking_change_role_nonce' ); ?>
-                                                    <input type="hidden" name="action" value="mobooking_change_worker_role">
-                                                    <input type="hidden" name="worker_user_id" value="<?php echo esc_attr( $worker->ID ); ?>">
-                                                    
-                                                    <select name="new_role" class="mobooking-select mobooking-select-sm mobooking-role-select">
-                                                        <?php foreach ( $all_worker_roles as $role_key => $role_name ) : ?>
-                                                            <option value="<?php echo esc_attr( $role_key ); ?>" <?php selected( $current_worker_role_key, $role_key ); ?>>
-                                                                <?php echo esc_html( $role_name ); ?>
-                                                            </option>
-                                                        <?php endforeach; ?>
-                                                    </select>
-                                                    
-                                                    <button type="submit" class="mobooking-button mobooking-button-sm mobooking-button-secondary mobooking-change-role-submit-btn">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                            <polyline points="20,6 9,17 4,12"></polyline>
-                                                        </svg>
-                                                        <?php esc_html_e( 'Update', 'mobooking' ); ?>
-                                                    </button>
-                                                </form>
-                                            </div>
-
-                                            <form class="mobooking-delete-worker-form mobooking-inline-form">
-                                                <?php wp_nonce_field( 'mobooking_revoke_worker_access_nonce_' . $worker->ID, 'mobooking_revoke_access_nonce' ); ?>
-                                                <input type="hidden" name="action" value="mobooking_revoke_worker_access">
-                                                <input type="hidden" name="worker_user_id" value="<?php echo esc_attr( $worker->ID ); ?>">
-                                                
-                                                <button type="submit" class="mobooking-button mobooking-button-sm mobooking-button-destructive mobooking-delete-worker-btn">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                        <polyline points="3,6 5,6 21,6"></polyline>
-                                                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                                                    </svg>
-                                                    <?php esc_html_e( 'Revoke Access', 'mobooking' ); ?>
-                                                </button>
-                                            </form>
-                                        </div>
-
-                                        <!-- Edit Worker Details Form (Initially Hidden) -->
-                                        <div id="edit-worker-form-<?php echo esc_attr( $worker->ID ); ?>" class="mobooking-edit-worker-form" style="display: none;">
-                                            <div class="mobooking-edit-form-container">
-                                                <div class="mobooking-edit-form-header">
-                                                    <h4 class="mobooking-edit-form-title">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                                                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                                                        </svg>
-                                                        <?php esc_html_e( 'Edit Worker Details', 'mobooking' ); ?>
-                                                    </h4>
-                                                </div>
-                                                
-                                                <form class="mobooking-edit-details-actual-form mobooking-form">
-                                                    <?php wp_nonce_field( 'mobooking_edit_details_nonce_' . $worker->ID, 'mobooking_edit_details_nonce_field' ); ?>
-                                                    <input type="hidden" name="action" value="mobooking_edit_worker_details">
-                                                    <input type="hidden" name="worker_user_id" value="<?php echo esc_attr( $worker->ID ); ?>">
-                                                    
-                                                    <div class="mobooking-form-grid">
-                                                        <div class="mobooking-form-group">
-                                                            <label for="edit_first_name_<?php echo esc_attr( $worker->ID ); ?>" class="mobooking-label">
-                                                                <?php esc_html_e( 'First Name', 'mobooking' ); ?>
-                                                            </label>
-                                                            <input type="text" id="edit_first_name_<?php echo esc_attr( $worker->ID ); ?>" name="edit_first_name" value="<?php echo esc_attr( $worker->first_name ); ?>" class="mobooking-input">
-                                                        </div>
-                                                        
-                                                        <div class="mobooking-form-group">
-                                                            <label for="edit_last_name_<?php echo esc_attr( $worker->ID ); ?>" class="mobooking-label">
-                                                                <?php esc_html_e( 'Last Name', 'mobooking' ); ?>
-                                                            </label>
-                                                            <input type="text" id="edit_last_name_<?php echo esc_attr( $worker->ID ); ?>" name="edit_last_name" value="<?php echo esc_attr( $worker->last_name ); ?>" class="mobooking-input">
-                                                        </div>
-                                                    </div>
-                                                    
-                                                    <div class="mobooking-form-actions">
-                                                        <button type="submit" class="mobooking-button mobooking-button-primary mobooking-save-details-btn">
-                                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                                <polyline points="20,6 9,17 4,12"></polyline>
-                                                            </svg>
-                                                            <?php esc_html_e( 'Save Changes', 'mobooking' ); ?>
-                                                        </button>
-                                                        <button type="button" class="mobooking-button mobooking-button-outline mobooking-cancel-edit-details-btn" data-worker-id="<?php echo esc_attr( $worker->ID ); ?>">
-                                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                                <line x1="18" y1="6" x2="6" y2="18"></line>
-                                                                <line x1="6" y1="6" x2="18" y2="18"></line>
-                                                            </svg>
-                                                            <?php esc_html_e( 'Cancel', 'mobooking' ); ?>
-                                                        </button>
-                                                    </div>
-                                                </form>
-                                            </div>
-                                        </div>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
+                            if (in_array(\MoBooking\Classes\Auth::ROLE_WORKER_STAFF, $worker->roles)) {
+                                $current_worker_role_name = $all_worker_roles[\MoBooking\Classes\Auth::ROLE_WORKER_STAFF];
+                                $current_worker_role_key = \MoBooking\Classes\Auth::ROLE_WORKER_STAFF;
+                            }
+                            ?>
+                            <div id="worker-row-<?php echo esc_attr( $worker->ID ); ?>" class="mobooking-table-row">
+                                <div class="mobooking-table-cell" data-label="<?php esc_attr_e( 'Email', 'mobooking' ); ?>">
+                                    <?php echo esc_html( $worker->user_email ); ?>
+                                </div>
+                                <div class="mobooking-table-cell" data-label="<?php esc_attr_e( 'Name', 'mobooking' ); ?>">
+                                    <?php
+                                    $full_name = trim($worker->first_name . ' ' . $worker->last_name);
+                                    echo esc_html($full_name ?: __('No name set', 'mobooking'));
+                                    ?>
+                                </div>
+                                <div class="mobooking-table-cell" data-label="<?php esc_attr_e( 'Role', 'mobooking' ); ?>">
+                                    <div class="mobooking-badge mobooking-badge-secondary worker-role-display">
+                                        <?php echo esc_html( $current_worker_role_name ); ?>
+                                    </div>
+                                </div>
+                                <div class="mobooking-table-cell" data-label="<?php esc_attr_e( 'Actions', 'mobooking' ); ?>">
+                                    <div class="mobooking-table-actions">
+                                        <button type="button" class="mobooking-button mobooking-button-sm mobooking-button-outline mobooking-edit-worker-details-btn" data-worker-id="<?php echo esc_attr( $worker->ID ); ?>"><?php esc_html_e( 'Edit', 'mobooking' ); ?></button>
+                                        <form class="mobooking-delete-worker-form mobooking-inline-form">
+                                            <?php wp_nonce_field( 'mobooking_revoke_worker_access_nonce_' . $worker->ID, 'mobooking_revoke_access_nonce' ); ?>
+                                            <input type="hidden" name="action" value="mobooking_revoke_worker_access">
+                                            <input type="hidden" name="worker_user_id" value="<?php echo esc_attr( $worker->ID ); ?>">
+                                            <button type="submit" class="mobooking-button mobooking-button-sm mobooking-button-destructive mobooking-delete-worker-btn"><?php esc_html_e( 'Revoke Access', 'mobooking' ); ?></button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
                 </div>
             <?php else : ?>
                 <div class="mobooking-empty-state">

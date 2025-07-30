@@ -61,9 +61,9 @@
     bindAccordionEvents: function () {
       var self = this;
 
-      $(document).on("click", ".mobooking-accordion-trigger", function (e) {
-        e.preventDefault();
-        self.handleAccordionToggle($(this));
+      $('.mobooking-accordion-trigger').on('click', function(e) {
+          e.preventDefault();
+          self.handleAccordionToggle($(this));
       });
 
       // Keyboard navigation for accordion
