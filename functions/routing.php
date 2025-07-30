@@ -124,6 +124,7 @@ function mobooking_enqueue_dashboard_scripts($current_page_slug = '') {
 
     // Specific to Bookings page
     if ($current_page_slug === 'bookings') {
+        wp_enqueue_style('mobooking-dashboard-tables-refactored', MOBOOKING_THEME_URI . 'assets/css/dashboard-tables-refactored.css', array(), MOBOOKING_VERSION);
         wp_enqueue_script('jquery-ui-datepicker');
         wp_enqueue_script('mobooking-dashboard-bookings', MOBOOKING_THEME_URI . 'assets/js/dashboard-bookings.js', array('jquery', 'jquery-ui-datepicker'), MOBOOKING_VERSION, true);
         $bookings_params = array_merge($dashboard_params, [
@@ -340,6 +341,7 @@ function mobooking_enqueue_dashboard_scripts($current_page_slug = '') {
 
     // Specific to Customers page
     if ($current_page_slug === 'customers' || $current_page_slug === 'customer-details') {
+        wp_enqueue_style('mobooking-dashboard-tables-refactored', MOBOOKING_THEME_URI . 'assets/css/dashboard-tables-refactored.css', array(), MOBOOKING_VERSION);
         wp_enqueue_style('mobooking-dashboard-customer-details', MOBOOKING_THEME_URI . 'assets/css/dashboard-customer-details.css', array(), MOBOOKING_VERSION);
     }
 

@@ -26,14 +26,6 @@ jQuery(document).ready(function($) {
         return temp.innerHTML;
     }
 
-    function renderTemplate(templateHtml, data) {
-        let template = templateHtml;
-        for (const key in data) {
-            const value = (typeof data[key] === 'string' || typeof data[key] === 'number') ? data[key] : '';
-            template = template.replace(new RegExp('<%=\\s*' + key + '\\s*%>', 'g'), sanitizeHTML(String(value)));
-        }
-        return template;
-    }
 
     function loadBookings(page = 1) {
         currentFilters.paged = page;
@@ -86,11 +78,27 @@ jQuery(document).ready(function($) {
                         // are directly available on `booking` or added to `bookingDataForTemplate`.
                         // `created_at_formatted` is no longer in the table template.
 
-                        bookingsListContainer.find('tbody').append(renderTemplate(bookingItemTemplate, bookingDataForTemplate));
+                        const tableBody = bookingsListContainer.find('.mobooking-table-body');
+                        if(tableBody.length === 0) {
+                            bookingsListContainer.html('<div class="mobooking-table"><div class="mobooking-table-body"></div></div>');
+                        }
+                        tableBody.append(bookingItemTemplate.replace(/<%= booking_id %>/g, booking.booking_id)
+                            .replace(/<%= booking_reference %>/g, booking.booking_reference)
+                            .replace(/<%= customer_name %>/g, booking.customer_name)
+                            .replace(/<%= customer_email %>/g, booking.customer_email)
+                            .replace(/<%= booking_date_formatted %>/g, bookingDataForTemplate.booking_date_formatted)
+                            .replace(/<%= booking_time_formatted %>/g, bookingDataForTemplate.booking_time_formatted)
+                            .replace(/<%= assigned_staff_name %>/g, booking.assigned_staff_name || 'Unassigned')
+                            .replace(/<%= total_price_formatted %>/g, bookingDataForTemplate.total_price_formatted)
+                            .replace(/<%= status %>/g, booking.status)
+                            .replace(/<%= status_display %>/g, bookingDataForTemplate.status_display)
+                            .replace(/<%= icon_html %>/g, '') // Icons are now in the CSS
+                            .replace(/<%= details_page_url %>/g, bookingDataForTemplate.details_page_url)
+                        );
                     });
                     renderPagination(response.data.total_count, response.data.per_page, response.data.current_page);
                 } else if (response.success) {
-                    bookingsListContainer.html('<p>' + (mobooking_bookings_params.i18n.no_bookings_found || 'No bookings found.') + '</p>');
+                    bookingsListContainer.html('<div class="mobooking-table"><div class="mobooking-table-body"><div class="mobooking-table-row no-items"><div class="mobooking-table-cell" colspan="7">' + (mobooking_bookings_params.i18n.no_bookings_found || 'No bookings found.') + '</div></div></div></div>');
                 } else {
                     bookingsListContainer.html('<p>' + (response.data.message || mobooking_bookings_params.i18n.error_loading_bookings || 'Error loading bookings.') + '</p>');
                 }
