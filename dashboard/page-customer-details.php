@@ -9,6 +9,8 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit; // Exit if accessed directly.
 }
 
+require_once __DIR__ . '/../functions/utilities.php';
+
 // Security check
 if ( ! current_user_can( 'mobooking_view_customers' ) ) {
     wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'mobooking' ) );
@@ -27,7 +29,13 @@ $bookings = $bookings_manager->get_bookings_by_customer_id( $customer_id );
 ?>
 
 <div class="wrap mobooking-customer-details-page">
-    <h1><?php echo esc_html( $customer->full_name ); ?></h1>
+    <div class="customer-details-header">
+        <h1><?php echo esc_html( $customer->full_name ); ?></h1>
+        <div class="customer-details-actions">
+            <button id="mobooking-edit-customer-btn" class="button button-secondary"><?php esc_html_e('Edit', 'mobooking'); ?></button>
+            <button id="mobooking-save-customer-btn" class="button button-primary" style="display: none;"><?php esc_html_e('Save', 'mobooking'); ?></button>
+        </div>
+    </div>
 
     <div class="customer-details-grid">
         <div class="customer-details-main">
@@ -62,27 +70,27 @@ $bookings = $bookings_manager->get_bookings_by_customer_id( $customer_id );
                 <table class="form-table">
                     <tr>
                         <th><?php esc_html_e( 'Primary Service Address', 'mobooking' ); ?></th>
-                        <td><?php echo esc_html( $customer->address_line_1 ); ?></td>
+                        <td data-field="address_line_1"><?php echo esc_html( $customer->address_line_1 ); ?></td>
                     </tr>
                     <tr>
                         <th><?php esc_html_e( 'Secondary Service Address', 'mobooking' ); ?></th>
-                        <td><?php echo esc_html( $customer->address_line_2 ); ?></td>
+                        <td data-field="address_line_2"><?php echo esc_html( $customer->address_line_2 ); ?></td>
                     </tr>
                     <tr>
                         <th><?php esc_html_e( 'City', 'mobooking' ); ?></th>
-                        <td><?php echo esc_html( $customer->city ); ?></td>
+                        <td data-field="city"><?php echo esc_html( $customer->city ); ?></td>
                     </tr>
                     <tr>
                         <th><?php esc_html_e( 'State', 'mobooking' ); ?></th>
-                        <td><?php echo esc_html( $customer->state ); ?></td>
+                        <td data-field="state"><?php echo esc_html( $customer->state ); ?></td>
                     </tr>
                     <tr>
                         <th><?php esc_html_e( 'ZIP Code', 'mobooking' ); ?></th>
-                        <td><?php echo esc_html( $customer->zip_code ); ?></td>
+                        <td data-field="zip_code"><?php echo esc_html( $customer->zip_code ); ?></td>
                     </tr>
                     <tr>
                         <th><?php esc_html_e( 'Country', 'mobooking' ); ?></th>
-                        <td><?php echo esc_html( $customer->country ); ?></td>
+                        <td data-field="country"><?php echo esc_html( $customer->country ); ?></td>
                     </tr>
                 </table>
             </div>

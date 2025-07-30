@@ -719,4 +719,30 @@ function mobooking_ajax_get_public_services() {
 
     wp_send_json_success($services);
 }
+
+add_action('wp_ajax_mobooking_update_customer_details', 'mobooking_ajax_update_customer_details');
+function mobooking_ajax_update_customer_details() {
+    if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'mobooking_customer_details_nonce')) {
+        wp_send_json_error(array('message' => 'Security check failed: Invalid nonce.'), 403);
+        return;
+    }
+
+    $customer_data = $_POST['customer_data'];
+    $customer_id = intval($customer_data['customer_id']);
+
+    if (!$customer_id) {
+        wp_send_json_error(array('message' => 'Customer ID is required.'), 400);
+        return;
+    }
+
+    $customers_manager = new \MoBooking\Classes\Customers();
+    $result = $customers_manager->update_customer($customer_id, $customer_data);
+
+    if (is_wp_error($result)) {
+        wp_send_json_error(array('message' => $result->get_error_message()), 500);
+        return;
+    }
+
+    wp_send_json_success(array('message' => 'Customer details updated successfully.'));
+}
 ?>

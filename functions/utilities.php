@@ -189,4 +189,26 @@ function mobooking_get_dashboard_menu_icon(string $key): string {
     }
     return $icons[$key] ?? '';
 }
+
+if (!function_exists('mobooking_format_price')) {
+    function mobooking_format_price($price) {
+        $currency_symbol = \MoBooking\Classes\Utils::get_currency_symbol();
+        return esc_html($currency_symbol . number_format_i18n(floatval($price), 2));
+    }
+}
+
+add_filter( 'document_title_parts', 'mobooking_customer_details_title', 10, 1 );
+function mobooking_customer_details_title( $title_parts ) {
+    if ( is_page_template( 'dashboard/page-customer-details.php' ) ) {
+        $customer_id = isset( $_GET['customer_id'] ) ? absint( $_GET['customer_id'] ) : 0;
+        if ( $customer_id ) {
+            $customers_manager = new \MoBooking\Classes\Customers();
+            $customer = $customers_manager->get_customer_by_id( $customer_id );
+            if ( $customer ) {
+                $title_parts['title'] = $customer->full_name;
+            }
+        }
+    }
+    return $title_parts;
+}
 ?>

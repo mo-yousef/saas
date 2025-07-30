@@ -343,6 +343,11 @@ function mobooking_enqueue_dashboard_scripts($current_page_slug = '') {
     if ($current_page_slug === 'customers' || $current_page_slug === 'customer-details') {
         wp_enqueue_style('mobooking-dashboard-tables-refactored', MOBOOKING_THEME_URI . 'assets/css/dashboard-tables-refactored.css', array(), MOBOOKING_VERSION);
         wp_enqueue_style('mobooking-dashboard-customer-details', MOBOOKING_THEME_URI . 'assets/css/dashboard-customer-details.css', array(), MOBOOKING_VERSION);
+        wp_enqueue_script('mobooking-dashboard-customer-details', MOBOOKING_THEME_URI . 'assets/js/dashboard-customer-details.js', array('jquery'), MOBOOKING_VERSION, true);
+        $customer_details_params = array_merge($dashboard_params, [
+            'nonce' => wp_create_nonce('mobooking_customer_details_nonce'),
+        ]);
+        wp_localize_script('mobooking-dashboard-customer-details', 'mobooking_customer_details_params', $customer_details_params);
     }
 
     // Global dashboard script (always load for all dashboard pages)
