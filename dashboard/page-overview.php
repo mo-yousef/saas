@@ -168,5 +168,7 @@ var mobooking_overview_params = {
 };
 </script>
 <script>
-    feather.replace();
+    document.addEventListener('DOMContentLoaded', function() {
+        feather.replace();
+    });
 </script>
