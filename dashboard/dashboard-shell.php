@@ -221,6 +221,7 @@ error_log('[MoBooking Shell Debug] dashboard-shell.php execution started. User l
             </main>
         </div>
     </div>
+    <div id="toast-container"></div>
     <?php wp_footer(); ?>
     <script>
         // Basic mobile nav toggle

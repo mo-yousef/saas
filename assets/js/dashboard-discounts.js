@@ -172,15 +172,15 @@ jQuery(document).ready(function($) {
             data: dataToSend,
             success: function(response) {
                 if (response.success) {
-                    feedbackDiv.text(response.data.message).addClass('success').show();
+                    window.showAlert(response.data.message, 'success');
                     formContainer.slideUp();
                     loadDiscounts(discountIdField.val() ? currentFilters.paged : 1); // Refresh current page on edit, or go to page 1 on add
                 } else {
-                    feedbackDiv.text(response.data.message || 'Error saving.').addClass('error').show();
+                    window.showAlert(response.data.message || 'Error saving.', 'error');
                 }
             },
             error: function() {
-                feedbackDiv.text('AJAX error saving.').addClass('error').show();
+                window.showAlert('AJAX error saving.', 'error');
             },
             complete: function() {
                 submitButton.prop('disabled', false).text(originalButtonText);
