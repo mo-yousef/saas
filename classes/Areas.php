@@ -621,63 +621,36 @@ public function get_service_coverage(int $user_id, $args = []) {
     }
 
     $table_name = Database::get_table_name('service_areas');
-
-    // Pagination parameters
     $paged = isset($args['paged']) ? max(1, intval($args['paged'])) : 1;
     $limit = isset($args['limit']) ? max(1, intval($args['limit'])) : 20;
     $offset = ($paged - 1) * $limit;
-
-    // Build WHERE clause
     $where_conditions = ['user_id = %d'];
     $where_values = [$user_id];
 
-    // Add search filter
     if (!empty($args['search'])) {
         $search_term = '%' . $this->wpdb->esc_like($args['search']) . '%';
-        $where_conditions[] = '(area_name LIKE %s OR area_value LIKE %s OR country_code LIKE %s)';
-        $where_values[] = $search_term;
+        $where_conditions[] = '(area_name LIKE %s OR area_value LIKE %s)';
         $where_values[] = $search_term;
         $where_values[] = $search_term;
     }
 
-    // Add country filter (expects country name, convert to country code)
-    if (!empty($args['country'])) {
-        $country_name = sanitize_text_field($args['country']);
-        $country_code = $this->get_country_code_from_name($country_name);
-        if ($country_code) {
-            $where_conditions[] = 'country_code = %s';
-            $where_values[] = $country_code;
-        }
+    if (!empty($args['city'])) {
+        $where_conditions[] = 'area_name = %s';
+        $where_values[] = sanitize_text_field($args['city']);
     }
 
-    // Add status filter
     if (!empty($args['status'])) {
-        if ($args['status'] === 'active') {
-            $where_conditions[] = "(status = 'active' OR status IS NULL)";
-        } elseif ($args['status'] === 'inactive') {
-            $where_conditions[] = "status = 'inactive'";
-        }
+        $where_conditions[] = "status = %s";
+        $where_values[] = sanitize_text_field($args['status']);
     }
 
     $where_clause = 'WHERE ' . implode(' AND ', $where_conditions);
-
-    // Get total count
     $total_count_sql = "SELECT COUNT(area_id) FROM $table_name $where_clause";
     $total_count = $this->wpdb->get_var($this->wpdb->prepare($total_count_sql, $where_values));
+    $sql = "SELECT * FROM $table_name $where_clause ORDER BY area_name ASC, area_value ASC LIMIT %d OFFSET %d";
+    $coverage = $this->wpdb->get_results($this->wpdb->prepare($sql, array_merge($where_values, [$limit, $offset])), ARRAY_A);
 
-    // Get paginated results
-    $sql = "SELECT * FROM $table_name $where_clause ORDER BY country_code ASC, area_name ASC LIMIT %d OFFSET %d";
-    $coverage = $this->wpdb->get_results(
-        $this->wpdb->prepare($sql, array_merge($where_values, [$limit, $offset])), 
-        ARRAY_A
-    );
-
-    return [
-        'coverage' => $coverage,
-        'total_count' => (int) $total_count,
-        'per_page' => $limit,
-        'current_page' => $paged
-    ];
+    return ['coverage' => $coverage, 'total_count' => (int) $total_count, 'per_page' => $limit, 'current_page' => $paged];
 }
 
 public function get_service_coverage_grouped(int $user_id, $filters = []) {
@@ -700,13 +673,7 @@ public function get_service_coverage_grouped(int $user_id, $filters = []) {
     }
 
     $where_clause = 'WHERE ' . implode(' AND ', $where_conditions);
-
-    $sql = "SELECT area_name as city_name, COUNT(area_id) as area_count, status
-            FROM $table_name
-            $where_clause
-            GROUP BY area_name, status
-            ORDER BY area_name ASC";
-
+    $sql = "SELECT area_name as city_name, COUNT(area_id) as area_count, status FROM $table_name $where_clause GROUP BY area_name, status ORDER BY area_name ASC";
     $results = $this->wpdb->get_results($this->wpdb->prepare($sql, $where_values), ARRAY_A);
 
     return ['cities' => $results];
