@@ -193,7 +193,7 @@ window.mobooking_areas_i18n = <?php echo json_encode([
 
 <?php
 // Enqueue enhanced scripts and styles
-wp_enqueue_script('mobooking-enhanced-areas', get_template_directory_uri() . '/assets/js/enhanced-areas.js', ['jquery'], '1.0.0', true);
+wp_enqueue_script('mobooking-enhanced-areas', get_template_directory_uri() . '/assets/js/enhanced-areas.js', ['jquery', 'wp-i18n'], '1.0.0', true);
 wp_enqueue_style('mobooking-enhanced-areas', get_template_directory_uri() . '/assets/css/enhanced-areas.css', [], '1.0.0');
 
 wp_localize_script('mobooking-enhanced-areas', 'mobooking_areas_params', [
