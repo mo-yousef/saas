@@ -164,6 +164,7 @@ function mobooking_enqueue_dashboard_scripts($current_page_slug = '') {
 
     // Specific to Areas page
     if ($current_page_slug === 'areas') {
+        wp_enqueue_style('mobooking-enhanced-areas', MOBOOKING_THEME_URI . 'assets/css/enhanced-areas.css', array(), MOBOOKING_VERSION);
         // wp_enqueue_script('mobooking-dashboard-areas', MOBOOKING_THEME_URI . 'assets/js/dashboard-areas.js', array('jquery'), MOBOOKING_VERSION, true);
         $areas_params = array_merge($dashboard_params, [
             'i18n' => [
@@ -240,8 +241,6 @@ function mobooking_enqueue_dashboard_scripts($current_page_slug = '') {
         wp_enqueue_script('fullcalendar-main-js', 'https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js', array('jquery'), '5.11.3', true);
         wp_enqueue_script('chart.js', 'https://cdn.jsdelivr.net/npm/chart.js', array(), null, true);
 
-        // Enqueue specific dashboard CSS. Assuming dashboard-areas.css and dashboard-bookings-responsive.css are relevant.
-        wp_enqueue_style('mobooking-dashboard-areas', MOBOOKING_THEME_URI . 'assets/css/dashboard-areas.css', array('mobooking-style'), MOBOOKING_VERSION);
         wp_enqueue_style('mobooking-dashboard-bookings-responsive', MOBOOKING_THEME_URI . 'assets/css/dashboard-bookings-responsive.css', array('mobooking-style'), MOBOOKING_VERSION);
 
         wp_enqueue_script('mobooking-dashboard-overview', MOBOOKING_THEME_URI . 'assets/js/dashboard-overview.js', array('jquery', 'fullcalendar-main-js'), MOBOOKING_VERSION, true);
