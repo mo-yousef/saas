@@ -51,6 +51,23 @@ if ( ! function_exists( 'mobooking_dashboard_enqueue_styles_fix' ) ) {
             } else {
                 error_log('[MoBooking Styles Fix] Enhanced sidebar CSS file not found at: ' . $sidebar_css_abs_path);
             }
+
+            // Enqueue the new dropdown CSS
+            $dropdown_css_rel_path = '/assets/css/dashboard-header-dropdown.css';
+            $dropdown_css_abs_path = get_stylesheet_directory() . $dropdown_css_rel_path;
+            $dropdown_css_url = get_stylesheet_directory_uri() . $dropdown_css_rel_path;
+
+            if (file_exists($dropdown_css_abs_path)) {
+                wp_enqueue_style(
+                    'mobooking-dashboard-header-dropdown',
+                    $dropdown_css_url,
+                    array('mobooking-dashboard-styles'), // Depends on the main dashboard styles
+                    filemtime($dropdown_css_abs_path),
+                    'all'
+                );
+            } else {
+                error_log('[MoBooking Styles Fix] Dropdown CSS file not found at: ' . $dropdown_css_abs_path);
+            }
         }
     }
     add_action( 'wp_enqueue_scripts', 'mobooking_dashboard_enqueue_styles_fix', 20 );
