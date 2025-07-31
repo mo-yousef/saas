@@ -20,7 +20,6 @@ jQuery(document).ready(function ($) {
   const $saveScheduleBtn = $("#mobooking-save-recurring-schedule-btn");
 
   let scheduleData = []; // This will hold the state of the schedule
-  let isInitialSetup = true;
 
   // --- Utility Functions ---
   function showFeedback(message, type = "info") {
@@ -51,11 +50,7 @@ jQuery(document).ready(function ($) {
               <strong>${dayName}</strong>
             </div>
             <div class="day-actions">
-              ${isInitialSetup ? `
-              <button type="button" class="button button-small copy-schedule-btn" data-day-index="${dayIndex}">
-                <span class="dashicons dashicons-admin-page"></span>
-              </button>
-              ` : ''}
+              <button type="button" class="button button-small copy-schedule-btn dashicons dashicons-admin-page" title="${i18n.copy_schedule || 'Copy Schedule'}" data-day-index="${dayIndex}"></button>
             </div>
           </div>
           <div class="day-slots">
@@ -91,17 +86,17 @@ jQuery(document).ready(function ($) {
     const showDelete = totalSlots > 1;
     return `
       <div class="time-slot" data-slot-index="${slotIndex}">
-        <input type="time" class="start-time" value="${slot.start_time}">
-        <span>-</span>
-        <input type="time" class="end-time" value="${slot.end_time}">
-        <button type="button" class="button button-small add-slot-btn" data-day-index="${dayIndex}" data-slot-index="${slotIndex}">
-          <span class="dashicons dashicons-plus"></span>
-        </button>
-        ${showDelete ? `
-        <button type="button" class="button button-link-delete delete-slot-btn" data-day-index="${dayIndex}" data-slot-index="${slotIndex}">
-          <span class="dashicons dashicons-trash"></span>
-        </button>
-        ` : ''}
+        <div class="time-inputs">
+          <input type="time" class="start-time" value="${slot.start_time}">
+          <span class="time-separator">-</span>
+          <input type="time" class="end-time" value="${slot.end_time}">
+        </div>
+        <div class="slot-actions">
+          <button type="button" class="button button-small add-slot-btn dashicons dashicons-plus" title="${i18n.add_slot || 'Add Slot'}" data-day-index="${dayIndex}" data-slot-index="${slotIndex}"></button>
+          ${showDelete ? `
+          <button type="button" class="button button-link-delete delete-slot-btn dashicons dashicons-trash" title="${i18n.delete_slot || 'Delete Slot'}" data-day-index="${dayIndex}" data-slot-index="${slotIndex}"></button>
+          ` : ''}
+        </div>
       </div>
     `;
   }
@@ -161,7 +156,6 @@ jQuery(document).ready(function ($) {
       success: function (response) {
         if (response.success) {
           showFeedback(response.data.message, "success");
-          isInitialSetup = false;
           loadSchedule(); // Reload to ensure data is fresh and UI is updated
         } else {
           showFeedback(response.data.message || "Error saving schedule.", "error");
@@ -325,7 +319,11 @@ jQuery(document).ready(function ($) {
 
         if (targetDays.length > 0) {
             targetDays.forEach(targetDayIndex => {
-                const targetDayData = scheduleData.find(d => d.day_of_week == targetDayIndex);
+                let targetDayData = scheduleData.find(d => d.day_of_week == targetDayIndex);
+                if (!targetDayData) {
+                    targetDayData = { day_of_week: targetDayIndex, is_enabled: false, slots: [] };
+                    scheduleData.push(targetDayData);
+                }
                 targetDayData.is_enabled = sourceDayData.is_enabled;
                 targetDayData.slots = JSON.parse(JSON.stringify(sourceDayData.slots)); // Deep copy
             });
