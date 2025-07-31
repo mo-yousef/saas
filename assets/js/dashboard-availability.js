@@ -287,6 +287,7 @@ jQuery(document).ready(function ($) {
 
     // Create and show a modal for copying
     const $modal = $(`
+      <div class="mobooking-modal-backdrop active">
         <div class="mobooking-modal active">
             <div class="mobooking-modal-content">
                 <h3>${i18n.copy_schedule || 'Copy Schedule'}</h3>
@@ -308,13 +309,15 @@ jQuery(document).ready(function ($) {
                 </div>
             </div>
         </div>
-        <div class="mobooking-modal-backdrop active"></div>
+      </div>
     `);
 
     $('body').append($modal);
 
-    $modal.on('click', '.mobooking-modal-close, .mobooking-modal-backdrop', function () {
+    $modal.on('click', '.mobooking-modal-close, .mobooking-modal-backdrop', function (e) {
+      if ($(e.target).is('.mobooking-modal-backdrop, .mobooking-modal-close')) {
         $modal.remove();
+      }
     });
 
     $modal.on('click', '#confirm-copy-btn', function () {
