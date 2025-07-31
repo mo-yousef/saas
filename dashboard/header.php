@@ -35,11 +35,10 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
                     <span class="user-email"><?php echo esc_html( $user->user_email ); ?></span>
                 </li>
                 <li><div class="dropdown-divider"></div></li>
-                <li><a class="dropdown-item" href="<?php echo esc_url(home_url('/dashboard/my-assigned-bookings/')); ?>"><?php esc_html_e('My Bookings', 'mobooking'); ?></a></li>
-                <li><a class="dropdown-item" href="<?php echo esc_url(home_url('/dashboard/booking-form/')); ?>"><?php esc_html_e('Booking Form', 'mobooking'); ?></a></li>
-                <li><a class="dropdown-item" href="<?php echo esc_url(home_url('/dashboard/settings/')); ?>"><?php esc_html_e('Settings', 'mobooking'); ?></a></li>
+                <li><a class="dropdown-item" href="<?php echo esc_url(home_url('/dashboard/booking-form/')); ?>"><?php echo mobooking_get_dashboard_menu_icon('booking_form'); ?><span><?php esc_html_e('Booking Form', 'mobooking'); ?></span></a></li>
+                <li><a class="dropdown-item" href="<?php echo esc_url(home_url('/dashboard/settings/')); ?>"><?php echo mobooking_get_dashboard_menu_icon('settings'); ?><span><?php esc_html_e('Settings', 'mobooking'); ?></span></a></li>
                 <li><div class="dropdown-divider"></div></li>
-                <li><a class="dropdown-item" href="<?php echo wp_logout_url( home_url() ); ?>"><?php esc_html_e('Logout', 'mobooking'); ?></a></li>
+                <li><a class="dropdown-item" href="<?php echo wp_logout_url( home_url() ); ?>"><?php echo mobooking_get_dashboard_menu_icon('logout'); ?><span><?php esc_html_e('Logout', 'mobooking'); ?></span></a></li>
             </ul>
         </div>
     </div>
