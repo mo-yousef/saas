@@ -610,25 +610,7 @@ jQuery(document).ready(function ($) {
     );
 
     function showGlobalFeedbackList(message, type = "info") {
-      $(".mobooking-global-feedback").remove();
-      const styles = `padding:10px; margin:10px 0; border-radius:4px; background-color:${
-        type === "success" ? "#d4edda" : "#f8d7da"
-      }; border-color:${type === "success" ? "#c3e6cb" : "#f5c6cb"}; color:${
-        type === "success" ? "#155724" : "#721c24"
-      };`;
-      const fbHtml = `<div class="mobooking-global-feedback ${type}" style="${styles}">${sanitizeHTML(
-        message
-      )}</div>`;
-      const $h1 = $("h1").first();
-      if ($h1.length) $h1.after(fbHtml);
-      else servicesListContainer.before(fbHtml);
-      setTimeout(
-        () =>
-          $(".mobooking-global-feedback").fadeOut(500, function () {
-            $(this).remove();
-          }),
-        5000
-      );
+      window.showAlert(message, type);
     }
 
     paginationContainer.on("click", "a.page-numbers", function (e) {
