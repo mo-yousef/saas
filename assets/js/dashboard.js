@@ -37,43 +37,30 @@ jQuery(document).ready(function ($) {
     $('[data-toggle="tooltip"]').tooltip();
   }
 
-  // Form validation helpers
+  // Centralized notification helpers, now using the new Toast system
   window.MoBookingDashboard = {
     showAlert: function (message, type = "info") {
-      const alertClass =
-        type === "error"
-          ? "mb-alert-error"
-          : type === "success"
-          ? "mb-alert-success"
-          : type === "warning"
-          ? "mb-alert-warning"
-          : "mb-alert-info";
+      // Ensure the global showToast function exists
+      if (typeof window.showToast === 'function') {
+        // Map old type to new type and create a title
+        const title = type.charAt(0).toUpperCase() + type.slice(1);
 
-      let $alertContainer = $("#mb-alert-container");
-
-      // If no alert container exists, create one
-      if (!$alertContainer.length) {
-        $alertContainer = $('<div id="mb-alert-container"></div>');
-        $(".mb-page-container").prepend($alertContainer);
+        window.showToast({
+          type: type, // 'success', 'error', 'warning', 'info'
+          title: title,
+          message: message,
+        });
+      } else {
+        // Fallback to console if the toast system isn't loaded
+        console.log(`[MoBooking Fallback Alert] Type: ${type}, Message: ${message}`);
+        // Optional: could even fallback to a simple browser alert
+        // alert(`${title}: ${message}`);
       }
-
-      $alertContainer.html(
-        '<div class="mb-alert ' + alertClass + '">' + message + "</div>"
-      );
-
-      // Auto-hide success messages
-      if (type === "success") {
-        setTimeout(function () {
-          $alertContainer.empty();
-        }, 3000);
-      }
-
-      // Scroll to top to show alert
-      $("html, body").animate({ scrollTop: 0 }, 300);
     },
 
     hideAlert: function () {
-      $("#mb-alert-container").empty();
+      // This function is now a no-op as toasts handle their own lifecycle.
+      // It's kept for backward compatibility to prevent errors if called.
     },
   };
 
