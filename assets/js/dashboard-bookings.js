@@ -209,16 +209,16 @@ jQuery(document).ready(function($) {
                         // $row.fadeOut(300, function() { $(this).remove(); });
                         // If removing directly, also update total counts if displayed.
                         if(mobooking_bookings_params.i18n.booking_deleted_successfully) {
-                             alert(mobooking_bookings_params.i18n.booking_deleted_successfully);
+                             window.showAlert(mobooking_bookings_params.i18n.booking_deleted_successfully, 'success');
                         } else {
-                            alert(response.data.message || 'Booking deleted.');
+                            window.showAlert(response.data.message || 'Booking deleted.', 'success');
                         }
                     } else {
-                        alert('Error: ' + (response.data.message || mobooking_bookings_params.i18n.error_deleting_booking || 'Could not delete booking.'));
+                        window.showAlert('Error: ' + (response.data.message || mobooking_bookings_params.i18n.error_deleting_booking || 'Could not delete booking.'), 'error');
                     }
                 },
                 error: function() {
-                    alert(mobooking_bookings_params.i18n.error_deleting_booking_ajax || 'AJAX error deleting booking.');
+                    window.showAlert(mobooking_bookings_params.i18n.error_deleting_booking_ajax || 'AJAX error deleting booking.', 'error');
                 }
             });
         }
