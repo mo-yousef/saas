@@ -23,12 +23,15 @@ jQuery(document).ready(function ($) {
 
   // --- Utility Functions ---
   function showFeedback(message, type = "info") {
-    $feedbackDiv
-      .removeClass("notice-info notice-success notice-error")
-      .addClass("notice-" + type)
-      .html("<p>" + message + "</p>")
-      .fadeIn();
-    setTimeout(() => $feedbackDiv.fadeOut(), 5000);
+    showFloatingAlert(message, type);
+  }
+
+  function showFloatingAlert(message, type = 'success') {
+      const $alert = $('#mobooking-floating-alert');
+      $alert.text(message).addClass('show');
+      setTimeout(() => {
+          $alert.removeClass('show');
+      }, 3000);
   }
 
   // --- Schedule Rendering ---
@@ -155,10 +158,14 @@ jQuery(document).ready(function ($) {
       },
       success: function (response) {
         if (response.success) {
-          showFeedback(response.data.message, "success");
-          loadSchedule(); // Reload to ensure data is fresh and UI is updated
+            showFloatingAlert(response.data.message, 'success');
+            $saveScheduleBtn.text(i18n.saved || 'Saved');
+            setTimeout(() => {
+                $saveScheduleBtn.text(i18n.save_changes || 'Save Weekly Schedule');
+            }, 2000);
+            loadSchedule(); // Reload to ensure data is fresh and UI is updated
         } else {
-          showFeedback(response.data.message || "Error saving schedule.", "error");
+            showFloatingAlert(response.data.message || 'Error saving schedule.', 'error');
         }
       },
       error: function () {
