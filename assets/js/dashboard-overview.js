@@ -1,5 +1,5 @@
 /**
- * MoBooking Dashboard Overview - Refactored for Shadcn UI look
+ * MoBooking Dashboard Overview - Refactored for shadcn UI
  */
 
 jQuery(document).ready(function ($) {
@@ -24,7 +24,9 @@ jQuery(document).ready(function ($) {
 
         // Load static data
         populateSetupProgress();
-        populateTipsAndResources();
+
+        // Add event listeners
+        addEventListeners();
     }
 
     function loadStatisticWidgets() {
@@ -80,11 +82,11 @@ jQuery(document).ready(function ($) {
                 if (response.success && response.data.recent_bookings) {
                     updateRecentBookings(response.data.recent_bookings);
                 } else {
-                    $('#recent-bookings-list').html('<p>No recent bookings.</p>');
+                    $('#recent-bookings-list').html('<p class="text-center text-gray-500">No recent bookings.</p>');
                 }
             },
             error: function () {
-                $('#recent-bookings-list').html('<p>Error loading bookings.</p>');
+                $('#recent-bookings-list').html('<p class="text-center text-red-500">Error loading bookings.</p>');
             }
         });
     }
@@ -92,17 +94,21 @@ jQuery(document).ready(function ($) {
     function updateRecentBookings(bookings) {
         const container = $('#recent-bookings-list');
         if (!bookings || bookings.length === 0) {
-            container.html('<p>No recent bookings found.</p>');
+            container.html('<p class="text-center text-gray-500">No recent bookings found.</p>');
             return;
         }
 
         let html = '<div class="recent-bookings-list">';
         bookings.forEach(function (booking) {
+            const avatarLetter = (booking.customer_name || 'N/A').charAt(0).toUpperCase();
             html += `
                 <div class="booking-item">
                     <div class="booking-item-details">
-                        <div class="booking-item-customer">${escapeHtml(booking.customer_name || 'N/A')}</div>
-                        <div class="booking-item-service">${escapeHtml(booking.service_name || 'N/A')}</div>
+                        <div class="booking-item-avatar">${escapeHtml(avatarLetter)}</div>
+                        <div>
+                            <div class="booking-item-customer">${escapeHtml(booking.customer_name || 'N/A')}</div>
+                            <div class="booking-item-service">${escapeHtml(booking.service_name || 'N/A')}</div>
+                        </div>
                     </div>
                     <div class="booking-item-price">
                         ${currencySymbol}${parseFloat(booking.total_price || 0).toFixed(2)}
@@ -117,37 +123,18 @@ jQuery(document).ready(function ($) {
     function populateSetupProgress() {
         const container = $('#setup-progress-list');
         const steps = [
-            { name: 'Add Services', completed: true }, // Assuming user has added at least one service
-            { name: 'Set Service Areas', completed: false },
-            { name: 'Business Info', completed: true }, // Assuming basic info is filled
-            { name: 'Customize Branding', completed: false }
+            { name: 'Add Services', completed: true, url: mobooking_overview_params.dashboard_base_url + 'services/' },
+            { name: 'Set Service Areas', completed: false, url: mobooking_overview_params.dashboard_base_url + 'areas/' },
+            { name: 'Business Info', completed: true, url: mobooking_overview_params.dashboard_base_url + 'settings/' },
+            { name: 'Customize Branding', completed: false, url: mobooking_overview_params.dashboard_base_url + 'settings/' }
         ];
 
         let html = '<div class="setup-progress-list">';
         steps.forEach(function(step) {
             html += `
-                <div class="setup-progress-item ${step.completed ? 'completed' : ''}">
+                <a href="${step.url}" class="setup-progress-item ${step.completed ? 'completed' : ''}">
                     <div class="icon">${step.completed ? '✔' : ''}</div>
                     <span>${step.name}</span>
-                </div>
-            `;
-        });
-        html += '</div>';
-        container.html(html);
-    }
-
-    function populateTipsAndResources() {
-        const container = $('#tips-resources-list');
-        const tips = [
-            { name: 'Share Your Booking Link', url: '#' },
-            { name: 'Create Promotional Codes', url: '#' }
-        ];
-
-        let html = '<div class="tips-resources-list">';
-        tips.forEach(function(tip) {
-            html += `
-                <a href="${tip.url}" class="tip-item">
-                    <span>${tip.name}</span>
                 </a>
             `;
         });
@@ -155,11 +142,30 @@ jQuery(document).ready(function ($) {
         container.html(html);
     }
 
+    function addEventListeners() {
+        const copyButton = $('#copy-share-link-button');
+        if (copyButton.length) {
+            copyButton.on('click', function() {
+                const input = $('.share-link-input');
+                input.select();
+                document.execCommand('copy');
+
+                const originalText = copyButton.html();
+                copyButton.html(mobooking_overview_params.i18n.copied || 'Copied!');
+                setTimeout(function() {
+                    copyButton.html(originalText);
+                    feather.replace(); // Re-render the icon
+                }, 2000);
+            });
+        }
+    }
+
     function showErrorInWidgets() {
-        $('#total-bookings-value').text('Error');
-        $('#total-revenue-value').text('Error');
-        $('#revenue-breakdown-value').text('Error');
-        $('#completion-rate-value').text('Error');
+        const errorText = mobooking_overview_params.i18n.error || 'Error';
+        $('#total-bookings-value').text(errorText);
+        $('#total-revenue-value').text(errorText);
+        $('#revenue-breakdown-value').text(errorText);
+        $('#completion-rate-value').text(errorText);
     }
 
     function escapeHtml(text) {
