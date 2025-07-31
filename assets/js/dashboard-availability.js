@@ -23,15 +23,11 @@ jQuery(document).ready(function ($) {
 
   // --- Utility Functions ---
   function showFeedback(message, type = "info") {
-    showFloatingAlert(message, type);
+    window.showAlert(message, type);
   }
 
   function showFloatingAlert(message, type = 'success') {
-      const $alert = $('#mobooking-floating-alert');
-      $alert.text(message).addClass('show');
-      setTimeout(() => {
-          $alert.removeClass('show');
-      }, 3000);
+      window.showAlert(message, type);
   }
 
   // --- Schedule Rendering ---
