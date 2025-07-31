@@ -164,7 +164,7 @@ function mobooking_enqueue_dashboard_scripts($current_page_slug = '') {
 
     // Specific to Areas page
     if ($current_page_slug === 'areas') {
-        wp_enqueue_script('mobooking-dashboard-areas', MOBOOKING_THEME_URI . 'assets/js/dashboard-areas.js', array('jquery'), MOBOOKING_VERSION, true);
+        // wp_enqueue_script('mobooking-dashboard-areas', MOBOOKING_THEME_URI . 'assets/js/dashboard-areas.js', array('jquery'), MOBOOKING_VERSION, true);
         $areas_params = array_merge($dashboard_params, [
             'i18n' => [
                 'loading_areas' => __('Loading areas...', 'mobooking'),

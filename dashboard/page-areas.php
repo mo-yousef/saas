@@ -1,437 +1,274 @@
 <?php
 /**
- * Template Name: Service Areas Management Dashboard Page
- * 
- * @package MoBooking
+ * Enhanced Service Areas Dashboard Page
+ * Country-based selection with persistent visual management
  */
 
-defined('ABSPATH') || exit;
+if (!defined('ABSPATH')) exit;
 
-
-// Ensure user is logged in and has proper permissions
+// Security check
 if (!is_user_logged_in()) {
     wp_redirect(home_url('/login/'));
     exit;
 }
 
-$current_user = wp_get_current_user();
-if (!in_array('mobooking_business_owner', $current_user->roles)) {
-    wp_die(__('Access denied. You must be a business owner to access this page.', 'mobooking'));
-}
-
-// Enqueue necessary scripts and styles
-wp_enqueue_script('mobooking-dashboard-areas', get_template_directory_uri() . '/assets/js/dashboard-areas.js', ['jquery'], '1.0.0', true);
-wp_enqueue_style('mobooking-dashboard-areas', get_template_directory_uri() . '/assets/css/dashboard-areas.css', [], '1.0.0');
-
-// Localize script with AJAX parameters and translations
-wp_localize_script('mobooking-dashboard-areas', 'mobooking_areas_params', [
-    'ajax_url' => admin_url('admin-ajax.php'),
-    'nonce' => wp_create_nonce('mobooking_dashboard_nonce'),
-    'user_id' => get_current_user_id(),
-    'i18n' => [
-        'fields_required' => __('Country and area information are required.', 'mobooking'),
-        'error_loading' => __('Error loading areas. Please try again.', 'mobooking'),
-        'success_added' => __('Service area added successfully!', 'mobooking'),
-        'success_updated' => __('Service area updated successfully!', 'mobooking'),
-        'success_deleted' => __('Service area deleted successfully!', 'mobooking'),
-        'error_generic' => __('An error occurred. Please try again.', 'mobooking'),
-        'confirm_delete' => __('Are you sure you want to delete this service area?', 'mobooking'),
-        'no_areas_found' => __('No service areas found. Add your first area below.', 'mobooking'),
-        'loading' => __('Loading...', 'mobooking'),
-        'select_country' => __('Select a country first', 'mobooking'),
-        'select_city' => __('Select a city to view available areas', 'mobooking'),
-        'areas_added' => __('Selected areas have been added to your service coverage!', 'mobooking'),
-        'no_areas_selected' => __('Please select at least one area to add.', 'mobooking')
-    ]
-]);
+$current_user_id = get_current_user_id();
 ?>
 
-<div class="mobooking-dashboard-content">
-    <!-- Page Header -->
+<div class="mobooking-dashboard-page">
     <div class="mobooking-page-header">
-        <div class="mobooking-page-header-content">
-            <h1 class="mobooking-page-title">
-                <svg class="mobooking-page-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                </svg>
-                <?php esc_html_e('Service Areas', 'mobooking'); ?>
-            </h1>
-            <p class="mobooking-page-description">
-                <?php esc_html_e('Manage your service coverage areas to control where you offer your cleaning services. You can select from available regions or add specific locations manually for precise coverage control.', 'mobooking'); ?>
-            </p>
-        </div>
+        <h2 class="mobooking-page-title">
+            <svg class="mobooking-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+            </svg>
+            <?php esc_html_e('Service Areas Management', 'mobooking'); ?>
+        </h2>
+        <p class="mobooking-page-description">
+            <?php esc_html_e('Build your service coverage by selecting countries, then choosing specific cities and areas within them.', 'mobooking'); ?>
+        </p>
     </div>
 
-    <!-- Main Grid Layout -->
-    <div class="mobooking-dashboard-grid">
-        
-        <!-- Quick Area Selection Card -->
-        <div class="mobooking-card" id="mobooking-area-selection-wrapper">
+    <div class="mobooking-dashboard-content">
+        <!-- Country Selection Card -->
+        <div class="mobooking-card" id="country-selection-card">
             <div class="mobooking-card-header">
                 <h3 class="mobooking-card-title">
                     <svg class="mobooking-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
-                    <?php esc_html_e('Quick Area Selection', 'mobooking'); ?>
+                    <?php esc_html_e('Select Country', 'mobooking'); ?>
                 </h3>
                 <p class="mobooking-card-description">
-                    <?php esc_html_e('Browse and select service areas by country and city. This method allows you to quickly add multiple areas from predefined regional data.', 'mobooking'); ?>
+                    <?php esc_html_e('Choose a country to add to your service coverage. You can manage multiple countries separately.', 'mobooking'); ?>
                 </p>
             </div>
 
-            <div class="mobooking-form-row">
+            <div class="country-selection-form">
                 <div class="mobooking-form-group">
                     <label for="mobooking-country-selector" class="mobooking-form-label">
-                        <?php esc_html_e('Select Country', 'mobooking'); ?>
+                        <?php esc_html_e('Available Countries', 'mobooking'); ?>
                     </label>
-                    <select id="mobooking-country-selector" name="mobooking_country_selector" class="mobooking-form-select">
-                        <option value=""><?php esc_html_e('Choose a country...', 'mobooking'); ?></option>
+                    <select id="mobooking-country-selector" class="mobooking-form-select">
+                        <option value=""><?php esc_html_e('Choose a country to add...', 'mobooking'); ?></option>
                     </select>
                 </div>
-
-                <div class="mobooking-form-group">
-                    <label for="mobooking-city-selector" class="mobooking-form-label">
-                        <?php esc_html_e('Select City', 'mobooking'); ?>
-                    </label>
-                    <select id="mobooking-city-selector" name="mobooking_city_selector" class="mobooking-form-select" disabled>
-                        <option value=""><?php esc_html_e('First select a country...', 'mobooking'); ?></option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="mobooking-form-group">
-                <label class="mobooking-form-label">
-                    <?php esc_html_e('Available Areas & ZIP Codes', 'mobooking'); ?>
-                </label>
-                <div id="mobooking-area-zip-selector-container" class="mobooking-zip-selector">
-                    <div class="mobooking-empty-state">
-                        <svg class="mobooking-empty-state-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                        </svg>
-                        <p class="mobooking-empty-state-text">
-                            <?php esc_html_e('Select a country and city to browse available service areas with their ZIP codes', 'mobooking'); ?>
-                        </p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="mobooking-form-actions">
-                <button type="button" id="mobooking-add-selected-areas-btn" class="mobooking-btn mobooking-btn-primary" disabled>
-                    <svg class="mobooking-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
-                    </svg>
-                    <?php esc_html_e('Add Selected Areas', 'mobooking'); ?>
-                </button>
-            </div>
-
-            <div id="mobooking-selection-feedback" class="mobooking-feedback" style="display: none;"></div>
-        </div>
-
-        <!-- Manual Entry Card -->
-        <div class="mobooking-card" id="mobooking-area-form-wrapper">
-            <div class="mobooking-card-header">
-                <h3 class="mobooking-card-title" id="mobooking-area-form-title">
-                    <svg class="mobooking-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                    </svg>
-                    <?php esc_html_e('Manual Area Entry', 'mobooking'); ?>
-                </h3>
-                <p class="mobooking-card-description">
-                    <?php esc_html_e('Add individual service areas by manually entering the country name and specific area details. Perfect for locations not covered in the quick selection above.', 'mobooking'); ?>
-                </p>
-            </div>
-
-            <form id="mobooking-area-form">
-                <input type="hidden" id="mobooking-area-id" name="area_id" value="">
-                
-                <div class="mobooking-form-row">
-                    <div class="mobooking-form-group">
-                        <label for="mobooking-area-country" class="mobooking-form-label">
-                            <?php esc_html_e('Country', 'mobooking'); ?>
-                            <span class="mobooking-required">*</span>
-                        </label>
-                        <select 
-                            id="mobooking-area-country" 
-                            name="country_name" 
-                            required 
-                            class="mobooking-form-select"
-                        >
-                            <option value=""><?php esc_html_e('Select a country...', 'mobooking'); ?></option>
-                        </select>
-                        <small class="mobooking-form-helper">
-                            <?php esc_html_e('Choose the country where this service area is located', 'mobooking'); ?>
-                        </small>
-                    </div>
-                </div>
-
-                <div class="mobooking-form-row">
-                    <div class="mobooking-form-group">
-                        <label for="mobooking-area-name" class="mobooking-form-label">
-                            <?php esc_html_e('Area Name', 'mobooking'); ?>
-                            <span class="mobooking-required">*</span>
-                        </label>
-                        <input 
-                            type="text" 
-                            id="mobooking-area-name" 
-                            name="area_name" 
-                            required 
-                            class="mobooking-form-input" 
-                            placeholder="<?php esc_attr_e('e.g., Downtown Manhattan, Brooklyn Heights, Westminster', 'mobooking'); ?>"
-                            maxlength="100"
-                        >
-                        <small class="mobooking-form-helper">
-                            <?php esc_html_e('Enter a descriptive name for this service area or neighborhood', 'mobooking'); ?>
-                        </small>
-                    </div>
-
-                    <div class="mobooking-form-group">
-                        <label for="mobooking-area-zipcode" class="mobooking-form-label">
-                            <?php esc_html_e('ZIP / Postal Code', 'mobooking'); ?>
-                            <span class="mobooking-required">*</span>
-                        </label>
-                        <input 
-                            type="text" 
-                            id="mobooking-area-zipcode" 
-                            name="area_zipcode" 
-                            required 
-                            class="mobooking-form-input" 
-                            placeholder="<?php esc_attr_e('e.g., 10001, M5V 3A3, SW1A 1AA', 'mobooking'); ?>"
-                            maxlength="15"
-                        >
-                        <small class="mobooking-form-helper">
-                            <?php esc_html_e('Enter the ZIP or postal code for this service area', 'mobooking'); ?>
-                        </small>
-                    </div>
-                </div>
-
-                <div id="mobooking-area-form-feedback" class="mobooking-feedback" style="display: none;"></div>
 
                 <div class="mobooking-form-actions">
-                    <button type="submit" id="mobooking-save-area-btn" class="mobooking-btn mobooking-btn-primary">
+                    <button type="button" id="select-country-btn" class="mobooking-btn mobooking-btn-primary" disabled>
                         <svg class="mobooking-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
                         </svg>
-                        <?php esc_html_e('Add Area', 'mobooking'); ?>
-                    </button>
-                    <button type="button" id="mobooking-cancel-edit-area-btn" class="mobooking-btn mobooking-btn-secondary" style="display: none;">
-                        <?php esc_html_e('Cancel Edit', 'mobooking'); ?>
+                        <?php esc_html_e('Add Country', 'mobooking'); ?>
                     </button>
                 </div>
-            </form>
+            </div>
         </div>
 
-        <!-- Current Service Areas List -->
+        <!-- Cities & Areas Selection Card (Initially Hidden) -->
+        <div class="mobooking-card" id="cities-areas-selection-card" style="display: none;">
+            <div class="mobooking-card-header">
+                <div class="selection-header-content">
+                    <div>
+                        <h3 class="mobooking-card-title">
+                            <svg class="mobooking-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                            </svg>
+                            <?php esc_html_e('Select Cities & Areas', 'mobooking'); ?>
+                            <span id="selected-country-name" class="country-badge"></span>
+                        </h3>
+                        <p class="mobooking-card-description">
+                            <?php esc_html_e('Choose specific cities and areas within the selected country for your service coverage.', 'mobooking'); ?>
+                        </p>
+                    </div>
+                    <button type="button" id="cancel-selection-btn" class="mobooking-btn mobooking-btn-secondary mobooking-btn-sm">
+                        <?php esc_html_e('Cancel', 'mobooking'); ?>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Cities Selection -->
+            <div class="cities-selection-section">
+                <h4 class="section-title"><?php esc_html_e('Available Cities', 'mobooking'); ?></h4>
+                <div id="cities-grid" class="selection-grid">
+                    <!-- Cities will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Areas Selection (Initially Hidden) -->
+            <div class="areas-selection-section" id="areas-selection-section" style="display: none;">
+                <h4 class="section-title">
+                    <?php esc_html_e('Available Areas in', 'mobooking'); ?> 
+                    <span id="selected-city-name" class="city-badge"></span>
+                </h4>
+                <div id="areas-grid" class="selection-grid">
+                    <!-- Areas will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="mobooking-form-actions" id="selection-actions" style="display: none;">
+                <button type="button" id="save-selections-btn" class="mobooking-btn mobooking-btn-success">
+                    <svg class="mobooking-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    <?php esc_html_e('Save Selected Areas', 'mobooking'); ?>
+                </button>
+                <button type="button" id="back-to-cities-btn" class="mobooking-btn mobooking-btn-secondary" style="display: none;">
+                    <?php esc_html_e('← Back to Cities', 'mobooking'); ?>
+                </button>
+            </div>
+
+            <div id="selection-feedback" class="mobooking-feedback" style="display: none;"></div>
+        </div>
+
+        <!-- Current Service Coverage -->
         <div class="mobooking-card mobooking-card-full-width">
             <div class="mobooking-card-header">
                 <h3 class="mobooking-card-title">
                     <svg class="mobooking-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-3-4a2 2 0 00-2-2h-6a2 2 0 00-2 2v1h10V5z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
-                    <?php esc_html_e('Current Service Areas', 'mobooking'); ?>
+                    <?php esc_html_e('Your Service Coverage', 'mobooking'); ?>
                 </h3>
                 <p class="mobooking-card-description">
-                    <?php esc_html_e('Manage your existing service areas. You can edit or remove areas as your business coverage changes.', 'mobooking'); ?>
+                    <?php esc_html_e('Manage your active service areas by country. You can enable/disable specific cities or areas, or remove entire countries.', 'mobooking'); ?>
                 </p>
             </div>
 
-            <!-- Filter and Search -->
-            <div class="mobooking-filters-row">
-                <div class="mobooking-search-wrapper">
-                    <input 
-                        type="text" 
-                        id="mobooking-areas-search" 
-                        class="mobooking-search-input" 
-                        placeholder="<?php esc_attr_e('Search areas by name or ZIP code...', 'mobooking'); ?>"
-                    >
-                    <svg class="mobooking-search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                    </svg>
-                </div>
-                
-                <div class="mobooking-filter-group">
-                    <select id="mobooking-country-filter" class="mobooking-form-select mobooking-form-select-sm">
-                        <option value=""><?php esc_html_e('All Countries', 'mobooking'); ?></option>
-                    </select>
-                    <button type="button" id="mobooking-clear-filters" class="mobooking-btn mobooking-btn-text">
-                        <?php esc_html_e('Clear Filters', 'mobooking'); ?>
-                    </button>
+            <!-- Search and Filter Controls -->
+            <div class="mobooking-table-controls">
+                <div class="mobooking-search-filter-row">
+                    <div class="mobooking-search-group">
+                        <div class="mobooking-search-input-wrapper">
+                            <svg class="mobooking-search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                            </svg>
+                            <input type="text" id="coverage-search" class="mobooking-search-input" placeholder="<?php esc_attr_e('Search countries, cities, areas...', 'mobooking'); ?>">
+                        </div>
+                    </div>
+
+                    <div class="mobooking-filter-group">
+                        <select id="country-filter" class="mobooking-form-select mobooking-form-select-sm">
+                            <option value=""><?php esc_html_e('All Countries', 'mobooking'); ?></option>
+                        </select>
+                        <select id="status-filter" class="mobooking-form-select mobooking-form-select-sm">
+                            <option value=""><?php esc_html_e('All Status', 'mobooking'); ?></option>
+                            <option value="active"><?php esc_html_e('Active', 'mobooking'); ?></option>
+                            <option value="inactive"><?php esc_html_e('Inactive', 'mobooking'); ?></option>
+                        </select>
+                        <button type="button" id="clear-coverage-filters-btn" class="mobooking-btn mobooking-btn-secondary mobooking-btn-sm">
+                            <?php esc_html_e('Clear', 'mobooking'); ?>
+                        </button>
+                    </div>
                 </div>
             </div>
 
-            <!-- Areas List Container -->
-            <div id="mobooking-areas-list-container" class="mobooking-areas-list">
-                <div class="mobooking-loading-state">
+            <!-- Service Coverage Display -->
+            <div class="service-coverage-container">
+                <div id="coverage-loading" class="mobooking-loading-state" style="display: none;">
                     <div class="mobooking-spinner"></div>
-                    <p><?php esc_html_e('Loading your service areas...', 'mobooking'); ?></p>
+                    <p><?php esc_html_e('Loading your service coverage...', 'mobooking'); ?></p>
+                </div>
+
+                <div id="service-coverage-list">
+                    <!-- Coverage will be loaded here -->
+                </div>
+
+                <div id="no-coverage-state" class="mobooking-empty-state" style="display: none;">
+                    <svg class="mobooking-empty-state-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                    </svg>
+                    <h4 class="mobooking-empty-state-title"><?php esc_html_e('No Service Areas Yet', 'mobooking'); ?></h4>
+                    <p class="mobooking-empty-state-text">
+                        <?php esc_html_e('Start by selecting a country above to define your service coverage areas.', 'mobooking'); ?>
+                    </p>
                 </div>
             </div>
 
             <!-- Pagination -->
-            <div id="mobooking-areas-pagination-container" class="mobooking-pagination-wrapper"></div>
+            <div id="coverage-pagination" class="mobooking-pagination-container"></div>
         </div>
-
     </div>
 </div>
 
-<!-- Area Item Template -->
-<template id="mobooking-area-item-template">
-    <div class="mobooking-area-item" data-area-id="{{area_id}}">
-        <div class="mobooking-area-info">
-            <div class="mobooking-area-primary">
-                <h4 class="mobooking-area-name">{{area_name}}</h4>
-                <span class="mobooking-area-zipcode">{{area_zipcode}}</span>
-            </div>
-            <div class="mobooking-area-secondary">
-                <span class="mobooking-area-country">{{country_name}}</span>
-                <span class="mobooking-area-date" title="<?php esc_attr_e('Date Added', 'mobooking'); ?>">
-                    {{created_at_formatted}}
-                </span>
-            </div>
-        </div>
-
-        
-        <div class="mobooking-area-actions">
-            <button type="button" class="mobooking-btn mobooking-btn-sm mobooking-btn-outline mobooking-edit-area-btn" 
-                    data-area-id="{{area_id}}" title="<?php esc_attr_e('Edit Area', 'mobooking'); ?>">
-                <svg class="mobooking-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                </svg>
-                <?php esc_html_e('Edit', 'mobooking'); ?>
-            </button>
-            <button type="button" class="mobooking-btn mobooking-btn-sm mobooking-btn-danger mobooking-delete-area-btn" 
-                    data-area-id="{{area_id}}" title="<?php esc_attr_e('Delete Area', 'mobooking'); ?>">
-                <svg class="mobooking-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                </svg>
-                <?php esc_html_e('Delete', 'mobooking'); ?>
-            </button>
-        </div>
-    </div>
-</template>
+<script>
+// Enhanced localization for JavaScript
+window.mobooking_areas_i18n = <?php echo json_encode([
+    // Basic messages
+    'loading' => __('Loading...', 'mobooking'),
+    'error' => __('Error', 'mobooking'),
+    'success' => __('Success', 'mobooking'),
+    'saving' => __('Saving...', 'mobooking'),
+    
+    // Selection flow
+    'choose_country' => __('Choose a country to add...', 'mobooking'),
+    'select_cities' => __('Select cities in', 'mobooking'),
+    'select_areas' => __('Select areas in', 'mobooking'),
+    'no_cities_available' => __('No cities available for this country', 'mobooking'),
+    'no_areas_available' => __('No areas available for this city', 'mobooking'),
+    
+    // Actions
+    'add_country' => __('Add Country', 'mobooking'),
+    'save_selections' => __('Save Selected Areas', 'mobooking'),
+    'back_to_cities' => __('← Back to Cities', 'mobooking'),
+    'cancel' => __('Cancel', 'mobooking'),
+    
+    // Status and feedback
+    'areas_selected' => __('{{count}} areas selected', 'mobooking'),
+    'cities_selected' => __('{{count}} cities selected', 'mobooking'),
+    'country_added_success' => __('Service areas added successfully for {{country}}!', 'mobooking'),
+    'selection_saved' => __('Your service area selections have been saved.', 'mobooking'),
+    
+    // Management
+    'enable_area' => __('Enable Area', 'mobooking'),
+    'disable_area' => __('Disable Area', 'mobooking'),
+    'remove_country' => __('Remove Country', 'mobooking'),
+    'confirm_remove_country' => __('Are you sure you want to remove all service areas for {{country}}?', 'mobooking'),
+    'confirm_disable_area' => __('Disable this service area?', 'mobooking'),
+    
+    // Filters
+    'all_countries' => __('All Countries', 'mobooking'),
+    'all_status' => __('All Status', 'mobooking'),
+    'active' => __('Active', 'mobooking'),
+    'inactive' => __('Inactive', 'mobooking'),
+    'clear' => __('Clear', 'mobooking'),
+    
+    // Pagination
+    'previous' => __('Previous', 'mobooking'),
+    'next' => __('Next', 'mobooking'),
+]); ?>
+</script>
 
 <?php
-/**
- * Debug Helper for Areas Issue
- * Add this to functions.php or create as a separate file to debug the issue
- */
+// Enqueue enhanced scripts and styles
+wp_enqueue_script('mobooking-enhanced-areas', get_template_directory_uri() . '/assets/js/enhanced-areas.js', ['jquery'], '1.0.0', true);
+wp_enqueue_style('mobooking-enhanced-areas', get_template_directory_uri() . '/assets/css/enhanced-areas.css', [], '1.0.0');
 
-// Debug AJAX handler and its action hook have been moved to Classes/Areas.php
-
-// Add this JavaScript to your page-areas.php for debugging
+wp_localize_script('mobooking-enhanced-areas', 'mobooking_areas_params', [
+    'ajax_url' => admin_url('admin-ajax.php'),
+    'nonce' => wp_create_nonce('mobooking_dashboard_nonce'),
+    'user_id' => $current_user_id,
+]);
 ?>
-<script>
-function debugAreasIssue() {
-    console.log('Running areas debug...');
-    
-    jQuery.ajax({
-        url: '<?php echo admin_url('admin-ajax.php'); ?>',
-        type: 'POST',
-        data: {
-            action: 'mobooking_debug_areas'
-        },
-        success: function(response) {
-            console.log('Debug response:', response);
-            
-            if (response.success) {
-                console.log('=== AREAS DEBUG INFO ===');
-                console.log('User logged in:', response.data.user_logged_in);
-                console.log('User ID:', response.data.current_user_id);
-                console.log('JSON file exists:', response.data.json_file_exists);
-                console.log('JSON file path:', response.data.json_file_path);
-                console.log('JSON content length:', response.data.json_content_length);
-                console.log('JSON first 100 chars:', response.data.json_first_100_chars);
-                console.log('JSON decode error:', response.data.json_decode_error);
-                console.log('JSON data type:', response.data.json_data_type);
-                console.log('JSON keys:', response.data.json_keys);
-                console.log('JSON count:', response.data.json_count);
-                console.log('First country:', response.data.first_country_code, response.data.first_country_data);
-                console.log('Areas class exists:', response.data.areas_class_exists);
-                console.log('========================');
-            }
-        },
-        error: function(xhr, status, error) {
-            console.log('Debug AJAX error:', error);
-            console.log('Status:', status);
-            console.log('Response:', xhr.responseText);
-        }
-    });
+<?php
+// // Enqueue required scripts and styles
+//         wp_enqueue_style('mobooking-dashboard-areas-refactored', 
+//             get_template_directory_uri() . '/assets/css/dashboard-areas-refactored.css', 
+//             [], '1.0.0');
+// wp_enqueue_script('mobooking-dashboard-areas-refactored', get_template_directory_uri() . '/assets/js/dashboard-areas-refactored.js', ['jquery'], '1.0.0', true);
+// wp_localize_script('mobooking-dashboard-areas-refactored', 'mobooking_areas_params', [
+//     'ajax_url' => admin_url('admin-ajax.php'),
+//     'nonce' => wp_create_nonce('mobooking_dashboard_nonce'),
+//     'user_id' => $current_user_id,
+// ]);
+?>
+
+
+<style>
+svg {
+    max-width: 20px;
 }
 
-// Run debug automatically
-jQuery(document).ready(function() {
-    debugAreasIssue();
-    
-    // Also test the actual countries endpoint
-    setTimeout(function() {
-        console.log('Testing actual countries endpoint...');
-        jQuery.ajax({
-            url: '<?php echo admin_url('admin-ajax.php'); ?>',
-            type: 'POST',
-            data: {
-                action: 'mobooking_get_countries',
-                nonce: '<?php echo wp_create_nonce('mobooking_dashboard_nonce'); ?>'
-            },
-            success: function(response) {
-                console.log('Countries endpoint response:', response);
-            },
-            error: function(xhr, status, error) {
-                console.log('Countries endpoint error:', error);
-                console.log('Response text:', xhr.responseText);
-            }
-        });
-    }, 1000);
-});
-</script>
 
-
-
-
-
-<script>
-// Add this to monitor when dropdowns get cleared
-function monitorDropdowns() {
-    console.log('Setting up dropdown monitors...');
-    
-    const countrySelector = jQuery("#mobooking-country-selector");
-    const areaCountryField = jQuery("#mobooking-area-country");
-    
-    // Monitor changes to the dropdowns
-    const observer = new MutationObserver(function(mutations) {
-        mutations.forEach(function(mutation) {
-            if (mutation.type === 'childList') {
-                const target = mutation.target;
-                const optionCount = target.options ? target.options.length : 0;
-                
-                if (target.id === 'mobooking-country-selector') {
-                    console.log('Country Selector changed! Now has', optionCount, 'options');
-                    if (optionCount === 1) {
-                        console.log('WARNING: Country selector was cleared to just default option!');
-                        console.trace('Call stack:');
-                    }
-                }
-                
-                if (target.id === 'mobooking-area-country') {
-                    console.log('Area Country Field changed! Now has', optionCount, 'options');
-                    if (optionCount === 1) {
-                        console.log('WARNING: Area country field was cleared to just default option!');
-                        console.trace('Call stack:');
-                    }
-                }
-            }
-        });
-    });
-    
-    // Start observing
-    if (countrySelector.length > 0) {
-        observer.observe(countrySelector[0], { childList: true });
-    }
-    if (areaCountryField.length > 0) {
-        observer.observe(areaCountryField[0], { childList: true });
-    }
-    
-    console.log('Dropdown monitors active');
-}
-
-// Run the monitor
-monitorDropdowns();
-</script>
+</style>
