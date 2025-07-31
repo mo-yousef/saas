@@ -122,7 +122,7 @@
             html += `
                 <div class="city-card" data-city-code="${escapeHtml(city.code)}" data-city-name="${escapeHtml(city.name)}">
                     <span class="city-name">${escapeHtml(city.name)}</span>
-                    <span class="city-action-link">${__('Manage Areas', 'mobooking')} &rarr;</span>
+                    <span class="city-action-link">${wp.i18n.__('Manage Areas', 'mobooking')} &rarr;</span>
                 </div>
             `;
         });
