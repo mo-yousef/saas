@@ -10,6 +10,36 @@ class Notifications {
     }
 
     /**
+     * Wraps email content in a standardized HTML template.
+     * @param string $subject The email subject.
+     * @param string $header_title The title to display in the email header.
+     * @param string $body_content The main HTML content of the email.
+     * @return string The full HTML email.
+     */
+    private function get_styled_email_html(string $subject, string $header_title, string $body_content): string {
+        $template_path = get_template_directory() . '/templates/email/base-email-template.php';
+
+        if (!file_exists($template_path)) {
+            // Fallback to a simple layout if template is missing
+            return "<h1>{$header_title}</h1>{$body_content}";
+        }
+
+        ob_start();
+        include $template_path;
+        $template = ob_get_clean();
+
+        $replacements = [
+            '{{SUBJECT}}'      => $subject,
+            '{{HEADER_TITLE}}' => $header_title,
+            '{{BODY_CONTENT}}' => $body_content,
+            '{{SITE_NAME}}'    => get_bloginfo('name'),
+            '{{SITE_URL}}'     => home_url('/'),
+        ];
+
+        return str_replace(array_keys($replacements), array_values($replacements), $template);
+    }
+
+    /**
      * Builds common email headers.
      * @param int $tenant_user_id The ID of the tenant/business owner.
      * @return array Array of email headers.
@@ -114,20 +144,24 @@ class Notifications {
 
         $subject = sprintf(__('Your Booking Confirmation with %s - Ref: %s', 'mobooking'), $tenant_business_name, $ref);
 
-        $message  = "<p>" . sprintf(__('Dear %s,', 'mobooking'), $customer_name) . "</p>";
-        $message .= "<p>" . sprintf(__('Thank you for your booking with %s. Your booking (Ref: %s) is confirmed.', 'mobooking'), $tenant_business_name, $ref) . "</p>";
-        $message .= "<h3>" . __('Booking Summary:', 'mobooking') . "</h3>";
-        $message .= "<ul>";
-        $message .= "<li><strong>" . __('Services:', 'mobooking') . "</strong> " . $services . "</li>";
-        $message .= "<li><strong>" . __('Date & Time:', 'mobooking') . "</strong> " . $datetime . "</li>";
-        $message .= "<li><strong>" . __('Service Address:', 'mobooking') . "</strong><br>" . $address . "</li>";
-        $message .= "<li><strong>" . __('Total Price:', 'mobooking') . "</strong> " . $price_display . "</li>";
-        $message .= "</ul>";
-        $message .= "<p>" . sprintf(__('If you have any questions, please contact %s.', 'mobooking'), $tenant_business_name) . "</p>";
-        $message .= "<p>" . __('Thank you,', 'mobooking') . "<br>" . $tenant_business_name . "</p>";
+        $body_content  = '<h2>' . __('Booking Confirmed!', 'mobooking') . '</h2>';
+        $body_content .= "<p>" . sprintf(__('Dear %s,', 'mobooking'), $customer_name) . "</p>";
+        $body_content .= "<p>" . sprintf(__('Thank you for your booking with %s. Your booking (Ref: %s) is confirmed.', 'mobooking'), "<strong>{$tenant_business_name}</strong>", "<strong>{$ref}</strong>") . "</p>";
+        $body_content .= '<div class="booking-details">';
+        $body_content .= "<h3>" . __('Booking Summary:', 'mobooking') . "</h3>";
+        $body_content .= "<ul>";
+        $body_content .= "<li><strong>" . __('Services:', 'mobooking') . "</strong> " . $services . "</li>";
+        $body_content .= "<li><strong>" . __('Date & Time:', 'mobooking') . "</strong> " . $datetime . "</li>";
+        $body_content .= "<li><strong>" . __('Service Address:', 'mobooking') . "</strong><br>" . $address . "</li>";
+        $body_content .= "<li><strong>" . __('Total Price:', 'mobooking') . "</strong> " . $price_display . "</li>";
+        $body_content .= "</ul>";
+        $body_content .= '</div>';
+        $body_content .= "<p>" . sprintf(__('If you have any questions, please contact %s.', 'mobooking'), $tenant_business_name) . "</p>";
+
+        $full_email_html = $this->get_styled_email_html($subject, $tenant_business_name, $body_content);
 
         $headers = $this->get_email_headers($tenant_user_id);
-        $email_sent = wp_mail($customer_email, $subject, $message, $headers);
+        $email_sent = wp_mail($customer_email, $subject, $full_email_html, $headers);
 
         if ($locale_switched_for_email) {
             restore_current_locale();
@@ -207,29 +241,30 @@ class Notifications {
         // Subject and message using translated strings
         $subject = sprintf(__('New Booking Received - Ref: %s - %s', 'mobooking'), $ref, $customer_name);
 
-        $message  = "<p>" . sprintf(__('You have received a new booking (Ref: %s).', 'mobooking'), $ref) . "</p>";
-        // Add business name context if it's part of the message structure
-        $message .= "<h3>" . __('Customer Details:', 'mobooking') . "</h3>";
-        $message .= "<ul>";
-        $message .= "<li><strong>" . __('Name:', 'mobooking') . "</strong> " . $customer_name . "</li>";
-        $message .= "<li><strong>" . __('Email:', 'mobooking') . "</strong> " . $customer_email_val . "</li>";
-        $message .= "<li><strong>" . __('Phone:', 'mobooking') . "</strong> " . $customer_phone . "</li>";
-        $message .= "</ul>";
-        $message .= "<h3>" . __('Booking Details:', 'mobooking') . "</h3>";
-        $message .= "<ul>";
-        $message .= "<li><strong>" . __('Services:', 'mobooking') . "</strong> " . $services . "</li>";
-        $message .= "<li><strong>" . __('Date & Time:', 'mobooking') . "</strong> " . $datetime . "</li>";
-        $message .= "<li><strong>" . __('Service Address:', 'mobooking') . "</strong><br>" . $address . "</li>";
-        $message .= "<li><strong>" . __('Total Price:', 'mobooking') . "</strong> " . $price_display . "</li>";
-        $message .= "<li><strong>" . __('Special Instructions:', 'mobooking') . "</strong><br>" . $instructions . "</li>";
-        $message .= "</ul>";
-        $message .= "<p>" . __('Please review this booking in your dashboard.', 'mobooking') . "</p>";
-        // Example of using tenant_business_name in the email body if needed for clarity
-        // $message .= "<p>" . sprintf(__('This booking is for your business: %s', 'mobooking'), $tenant_business_name) . "</p>";
+        $body_content  = '<h2>' . __('New Booking Received!', 'mobooking') . '</h2>';
+        $body_content .= "<p>" . sprintf(__('You have received a new booking (Ref: %s).', 'mobooking'), "<strong>{$ref}</strong>") . "</p>";
+        $body_content .= '<div class="booking-details">';
+        $body_content .= "<h3>" . __('Customer Details:', 'mobooking') . "</h3>";
+        $body_content .= "<ul>";
+        $body_content .= "<li><strong>" . __('Name:', 'mobooking') . "</strong> " . $customer_name . "</li>";
+        $body_content .= "<li><strong>" . __('Email:', 'mobooking') . "</strong> " . $customer_email_val . "</li>";
+        $body_content .= "<li><strong>" . __('Phone:', 'mobooking') . "</strong> " . $customer_phone . "</li>";
+        $body_content .= "</ul>";
+        $body_content .= "<h3>" . __('Booking Details:', 'mobooking') . "</h3>";
+        $body_content .= "<ul>";
+        $body_content .= "<li><strong>" . __('Services:', 'mobooking') . "</strong> " . $services . "</li>";
+        $body_content .= "<li><strong>" . __('Date & Time:', 'mobooking') . "</strong> " . $datetime . "</li>";
+        $body_content .= "<li><strong>" . __('Service Address:', 'mobooking') . "</strong><br>" . $address . "</li>";
+        $body_content .= "<li><strong>" . __('Total Price:', 'mobooking') . "</strong> " . $price_display . "</li>";
+        $body_content .= "<li><strong>" . __('Special Instructions:', 'mobooking') . "</strong><br>" . $instructions . "</li>";
+        $body_content .= "</ul>";
+        $body_content .= '</div>';
+        $body_content .= '<p style="text-align:center; margin-top: 24px;"><a href="' . esc_url(home_url('/dashboard/bookings/')) . '" class="button">' . __('View in Dashboard', 'mobooking') . '</a></p>';
 
+        $full_email_html = $this->get_styled_email_html($subject, $tenant_business_name, $body_content);
 
         $headers = $this->get_email_headers($tenant_user_id);
-        $email_sent = wp_mail($admin_email, $subject, $message, $headers);
+        $email_sent = wp_mail($admin_email, $subject, $full_email_html, $headers);
 
         if ($locale_switched_for_email) {
             restore_current_locale();
@@ -295,18 +330,22 @@ class Notifications {
 
         $subject = sprintf(__('New Booking Assignment - Ref: %s - %s', 'mobooking'), $ref, $tenant_business_name);
 
-        $message  = "<p>" . sprintf(__('Hi %s,', 'mobooking'), esc_html($staff_user->display_name)) . "</p>";
-        $message .= "<p>" . sprintf(__('You have been assigned a new booking (Ref: %s) for %s.', 'mobooking'), $ref, $tenant_business_name) . "</p>";
-        $message .= "<h3>" . __('Booking Details:', 'mobooking') . "</h3>";
-        $message .= "<ul>";
-        $message .= "<li><strong>" . __('Customer:', 'mobooking') . "</strong> " . $customer_name . "</li>";
-        $message .= "<li><strong>" . __('Date & Time:', 'mobooking') . "</strong> " . $datetime . "</li>";
-        $message .= "</ul>";
-        $message .= "<p>" . sprintf(__('You can view the details of this booking in your dashboard: %s', 'mobooking'), '<a href="' . esc_url($dashboard_link) . '">' . esc_url($dashboard_link) . '</a>') . "</p>";
-        $message .= "<p>" . __('Thank you,', 'mobooking') . "<br>" . $tenant_business_name . "</p>";
+        $body_content  = '<h2>' . __('New Booking Assignment', 'mobooking') . '</h2>';
+        $body_content .= "<p>" . sprintf(__('Hi %s,', 'mobooking'), esc_html($staff_user->display_name)) . "</p>";
+        $body_content .= "<p>" . sprintf(__('You have been assigned a new booking (Ref: %s) for %s.', 'mobooking'), "<strong>{$ref}</strong>", "<strong>{$tenant_business_name}</strong>") . "</p>";
+        $body_content .= '<div class="booking-details">';
+        $body_content .= "<h3>" . __('Booking Details:', 'mobooking') . "</h3>";
+        $body_content .= "<ul>";
+        $body_content .= "<li><strong>" . __('Customer:', 'mobooking') . "</strong> " . $customer_name . "</li>";
+        $body_content .= "<li><strong>" . __('Date & Time:', 'mobooking') . "</strong> " . $datetime . "</li>";
+        $body_content .= "</ul>";
+        $body_content .= '</div>';
+        $body_content .= '<p style="text-align:center; margin-top: 24px;"><a href="' . esc_url($dashboard_link) . '" class="button">' . __('View Your Assignments', 'mobooking') . '</a></p>';
+
+        $full_email_html = $this->get_styled_email_html($subject, $tenant_business_name, $body_content);
 
         $headers = $this->get_email_headers($tenant_user_id); // From the perspective of the business
-        $email_sent = wp_mail($staff_user->user_email, $subject, $message, $headers);
+        $email_sent = wp_mail($staff_user->user_email, $subject, $full_email_html, $headers);
 
         if ($locale_switched) {
             restore_current_locale();
@@ -365,17 +404,21 @@ class Notifications {
 
         $subject = sprintf(__('Booking Status Updated - Ref: %s - %s', 'mobooking'), $ref, $tenant_business_name);
 
-        $message  = "<p>" . sprintf(__('The status for booking reference %s has been updated.', 'mobooking'), $ref) . "</p>";
-        $message .= "<ul>";
-        $message .= "<li><strong>" . __('Old Status:', 'mobooking') . "</strong> " . esc_html(ucfirst($old_status)) . "</li>";
-        $message .= "<li><strong>" . __('New Status:', 'mobooking') . "</strong> " . esc_html(ucfirst($new_status)) . "</li>";
-        $message .= "<li><strong>" . __('Updated By:', 'mobooking') . "</strong> " . esc_html($updater_name) . " (ID: {$updated_by_user_id})</li>";
-        $message .= "</ul>";
-        $message .= "<p>" . sprintf(__('You can view the booking details here: %s', 'mobooking'), '<a href="' . esc_url($dashboard_link) . '">' . esc_url($dashboard_link) . '</a>') . "</p>";
-        $message .= "<p>" . __('Regards,', 'mobooking') . "<br>" . __('MoBooking System', 'mobooking') . "</p>"; // Or $tenant_business_name
+        $body_content  = '<h2>' . __('Booking Status Updated', 'mobooking') . '</h2>';
+        $body_content .= "<p>" . sprintf(__('The status for booking reference %s has been updated.', 'mobooking'), "<strong>{$ref}</strong>") . "</p>";
+        $body_content .= '<div class="booking-details">';
+        $body_content .= "<ul>";
+        $body_content .= "<li><strong>" . __('Old Status:', 'mobooking') . "</strong> " . esc_html(ucfirst($old_status)) . "</li>";
+        $body_content .= "<li><strong>" . __('New Status:', 'mobooking') . "</strong> " . esc_html(ucfirst($new_status)) . "</li>";
+        $body_content .= "<li><strong>" . __('Updated By:', 'mobooking') . "</strong> " . esc_html($updater_name) . " (ID: {$updated_by_user_id})</li>";
+        $body_content .= "</ul>";
+        $body_content .= '</div>';
+        $body_content .= '<p style="text-align:center; margin-top: 24px;"><a href="' . esc_url($dashboard_link) . '" class="button">' . __('View Booking Details', 'mobooking') . '</a></p>';
+
+        $full_email_html = $this->get_styled_email_html($subject, $tenant_business_name, $body_content);
 
         $headers = $this->get_email_headers($tenant_user_id);
-        $email_sent = wp_mail($admin_user->user_email, $subject, $message, $headers);
+        $email_sent = wp_mail($admin_user->user_email, $subject, $full_email_html, $headers);
 
         if ($locale_switched) {
             restore_current_locale();

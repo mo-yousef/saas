@@ -1,0 +1,119 @@
+/*
+ * Standardized HTML Email Styles
+ */
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+    background-color: #f4f4f7;
+    margin: 0;
+    padding: 0;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.email-wrapper {
+    background-color: #f4f4f7;
+    padding: 20px;
+}
+
+.email-container {
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    max-width: 600px;
+    margin: 0 auto;
+    overflow: hidden;
+}
+
+.email-header {
+    background-color: #4a5568;
+    color: #ffffff;
+    padding: 24px;
+    text-align: center;
+}
+
+.email-header h1 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 600;
+}
+
+.email-body {
+    padding: 24px;
+    color: #4a5568;
+    line-height: 1.6;
+}
+
+.email-body h2 {
+    color: #2d3748;
+    font-size: 20px;
+    margin-top: 0;
+}
+
+.email-body p {
+    margin: 0 0 16px;
+}
+
+.email-body a {
+    color: #3182ce;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.email-body .button {
+    display: inline-block;
+    background-color: #3182ce;
+    color: #ffffff;
+    padding: 12px 24px;
+    border-radius: 4px;
+    text-align: center;
+    font-weight: 600;
+    text-decoration: none;
+    margin-top: 16px;
+}
+
+.email-footer {
+    background-color: #edf2f7;
+    color: #718096;
+    padding: 16px;
+    text-align: center;
+    font-size: 12px;
+}
+
+.email-footer a {
+    color: #718096;
+    text-decoration: underline;
+}
+
+/* Specific content styles */
+.booking-details {
+    background-color: #f7fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    padding: 16px;
+    margin-top: 16px;
+}
+
+.booking-details h3 {
+    margin-top: 0;
+    color: #2d3748;
+    font-size: 16px;
+}
+
+.booking-details ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.booking-details li {
+    padding: 8px 0;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.booking-details li:last-child {
+    border-bottom: none;
+}
+
+.booking-details li strong {
+    color: #4a5568;
+}
