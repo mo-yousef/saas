@@ -39,13 +39,11 @@ wp_nonce_field('mobooking_services_nonce', 'mobooking_services_nonce_field');
 ?>
 
 <style>
-
-
 .services-header {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
-    padding-bottom: 1.5rem;
+    gap: 1.5rem;
+    padding-bottom: 2rem;
 }
 
 .services-header-top {
@@ -57,7 +55,7 @@ wp_nonce_field('mobooking_services_nonce', 'mobooking_services_nonce_field');
 }
 
 .services-title {
-    font-size: 1.875rem;
+    font-size: 2rem;
     font-weight: 700;
     color: hsl(222.2 84% 4.9%);
     margin: 0;
@@ -68,16 +66,16 @@ wp_nonce_field('mobooking_services_nonce', 'mobooking_services_nonce_field');
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    height: 2.5rem;
-    padding: 0 1rem;
-    font-size: 0.875rem;
-    font-weight: 500;
+    height: 2.75rem;
+    padding: 0 1.25rem;
+    font-size: 0.9375rem;
+    font-weight: 600;
     background-color: hsl(222.2 84% 4.9%);
     color: hsl(210 40% 98%);
     border: 1px solid hsl(222.2 84% 4.9%);
-    border-radius: 0.375rem;
+    border-radius: 0.5rem;
     text-decoration: none;
-    transition: all 0.15s ease;
+    transition: all 0.2s ease;
     cursor: pointer;
 }
 
@@ -90,37 +88,37 @@ wp_nonce_field('mobooking_services_nonce', 'mobooking_services_nonce_field');
 .services-controls {
     display: flex;
     flex-wrap: wrap;
-    gap: 1rem;
+    gap: 1.5rem;
     align-items: center;
 }
 
 .search-container {
     position: relative;
     flex: 1;
-    min-width: 200px;
-    max-width: 400px;
+    min-width: 250px;
+    max-width: 450px;
 }
 
 .search-input {
     width: 100%;
-    height: 2.5rem;
-    padding: 0 2.75rem 0 0.75rem;
-    font-size: 0.875rem;
+    height: 2.75rem;
+    padding: 0 3rem 0 1rem;
+    font-size: 0.9375rem;
     border: 1px solid hsl(214.3 31.8% 91.4%);
-    border-radius: 0.375rem;
+    border-radius: 0.5rem;
     background-color: hsl(0 0% 100%);
-    transition: border-color 0.15s ease;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .search-input:focus {
     outline: none;
     border-color: hsl(221.2 83.2% 53.3%);
-    box-shadow: 0 0 0 3px hsl(221.2 83.2% 53.3% / 0.1);
+    box-shadow: 0 0 0 4px hsl(221.2 83.2% 53.3% / 0.1);
 }
 
 .search-icon {
     position: absolute;
-    right: 0.75rem;
+    right: 1rem;
     top: 50%;
     transform: translateY(-50%);
     color: hsl(215.4 16.3% 46.9%);
@@ -128,84 +126,85 @@ wp_nonce_field('mobooking_services_nonce', 'mobooking_services_nonce_field');
 }
 
 .filter-select {
-    height: 2.5rem;
-    padding: 0 0.75rem;
-    font-size: 0.875rem;
+    height: 2.75rem;
+    padding: 0 1rem;
+    font-size: 0.9375rem;
     border: 1px solid hsl(214.3 31.8% 91.4%);
-    border-radius: 0.375rem;
+    border-radius: 0.5rem;
     background-color: hsl(0 0% 100%);
     cursor: pointer;
-    transition: border-color 0.15s ease;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .filter-select:focus {
     outline: none;
     border-color: hsl(221.2 83.2% 53.3%);
-    box-shadow: 0 0 0 3px hsl(221.2 83.2% 53.3% / 0.1);
+    box-shadow: 0 0 0 4px hsl(221.2 83.2% 53.3% / 0.1);
 }
 .services-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 2rem;
+    gap: 2rem;
+    margin-bottom: 2.5rem;
 }
 
 .service-card {
     background-color: hsl(0 0% 100%);
     border: 1px solid hsl(214.3 31.8% 91.4%);
-    border-radius: 0.5rem;
-    padding: 1.5rem;
-    transition: all 0.15s ease;
+    border-radius: 0.75rem;
+    padding: 2rem;
+    transition: all 0.2s ease-in-out;
     position: relative;
     overflow: hidden;
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.05);
 }
 
 .service-card:hover {
-    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-    transform: translateY(-1px);
+    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    transform: translateY(-2px);
 }
 
 .service-card-header {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    margin-bottom: 1rem;
+    margin-bottom: 1.5rem;
 }
 
 .service-name {
-    font-size: 1.125rem;
+    font-size: 1.25rem;
     font-weight: 600;
     color: hsl(222.2 84% 4.9%);
     margin: 0;
-    line-height: 1.25;
+    line-height: 1.3;
 }
 
 .service-status {
     display: inline-flex;
     align-items: center;
-    padding: 0.25rem 0.5rem;
-    font-size: 0.75rem;
-    font-weight: 500;
+    padding: 0.375rem 0.75rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
     border-radius: 9999px;
     text-transform: uppercase;
     letter-spacing: 0.05em;
 }
 
 .service-status.active {
-    background-color: hsl(142 76% 36% / 0.1);
+    background-color: hsl(142 76% 36% / 0.15);
     color: hsl(142 76% 36%);
 }
 
 .service-status.inactive {
-    background-color: hsl(0 84.2% 60.2% / 0.1);
+    background-color: hsl(0 84.2% 60.2% / 0.15);
     color: hsl(0 84.2% 60.2%);
 }
 
 .service-details {
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
-    margin-bottom: 1.5rem;
+    gap: 1rem;
+    margin-bottom: 2rem;
 }
 
 .service-detail-row {
@@ -215,39 +214,39 @@ wp_nonce_field('mobooking_services_nonce', 'mobooking_services_nonce_field');
 }
 
 .service-detail-label {
-    font-size: 0.875rem;
+    font-size: 0.9375rem;
     color: hsl(215.4 16.3% 46.9%);
     font-weight: 500;
 }
 
 .service-detail-value {
-    font-size: 0.875rem;
+    font-size: 0.9375rem;
     color: hsl(222.2 84% 4.9%);
     font-weight: 600;
 }
 
 .service-price {
     color: hsl(142 76% 36%);
-    font-size: 1rem;
+    font-size: 1.125rem;
 }
 
 .service-actions {
     display: flex;
-    gap: 0.5rem;
+    gap: 0.75rem;
 }
 
 .btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    height: 2rem;
-    padding: 0 0.75rem;
-    font-size: 0.75rem;
-    font-weight: 500;
-    border-radius: 0.375rem;
+    height: 2.25rem;
+    padding: 0 1rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    border-radius: 0.5rem;
     text-decoration: none;
     cursor: pointer;
-    transition: all 0.15s ease;
+    transition: all 0.2s ease;
     border: 1px solid;
 }
 
@@ -276,31 +275,31 @@ wp_nonce_field('mobooking_services_nonce', 'mobooking_services_nonce_field');
 
 .empty-state {
     text-align: center;
-    padding: 3rem 1rem;
+    padding: 4rem 1.5rem;
     color: hsl(215.4 16.3% 46.9%);
 }
 
 .empty-state-icon {
-    font-size: 3rem;
-    margin-bottom: 1rem;
-    opacity: 0.5;
+    font-size: 3.5rem;
+    margin-bottom: 1.5rem;
+    opacity: 0.6;
 }
 
 .empty-state-title {
-    font-size: 1.25rem;
-    font-weight: 600;
+    font-size: 1.5rem;
+    font-weight: 700;
     color: hsl(222.2 84% 4.9%);
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.75rem;
 }
 
 .empty-state-description {
-    font-size: 0.875rem;
-    margin-bottom: 1.5rem;
+    font-size: 0.9375rem;
+    margin-bottom: 2rem;
 }
 
 .loading-state {
     text-align: center;
-    padding: 2rem;
+    padding: 3rem;
     color: hsl(215.4 16.3% 46.9%);
 }
 
@@ -308,16 +307,17 @@ wp_nonce_field('mobooking_services_nonce', 'mobooking_services_nonce_field');
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 0.5rem;
-    margin-top: 2rem;
-    padding-top: 1.5rem;}
+    gap: 0.75rem;
+    margin-top: 2.5rem;
+    padding-top: 2rem;
+}
 
 .page-numbers {
     display: flex;
     list-style: none;
     margin: 0;
     padding: 0;
-    gap: 0.25rem;
+    gap: 0.5rem;
 }
 
 .page-numbers li {
@@ -329,15 +329,15 @@ wp_nonce_field('mobooking_services_nonce', 'mobooking_services_nonce_field');
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 2.5rem;
-    height: 2.5rem;
-    font-size: 0.875rem;
-    font-weight: 500;
+    width: 2.75rem;
+    height: 2.75rem;
+    font-size: 0.9375rem;
+    font-weight: 600;
     border: 1px solid hsl(214.3 31.8% 91.4%);
-    border-radius: 0.375rem;
+    border-radius: 0.5rem;
     text-decoration: none;
     color: hsl(222.2 84% 4.9%);
-    transition: all 0.15s ease;
+    transition: all 0.2s ease;
 }
 
 .page-numbers a:hover {
@@ -352,21 +352,21 @@ wp_nonce_field('mobooking_services_nonce', 'mobooking_services_nonce_field');
 }
 
 .feedback-message {
-    padding: 1rem;
-    border-radius: 0.375rem;
-    margin-bottom: 1rem;
-    font-size: 0.875rem;
-    font-weight: 500;
+    padding: 1.25rem;
+    border-radius: 0.5rem;
+    margin-bottom: 1.5rem;
+    font-size: 0.9375rem;
+    font-weight: 600;
 }
 
 .feedback-success {
-    background-color: hsl(142 76% 36% / 0.1);
+    background-color: hsl(142 76% 36% / 0.15);
     color: hsl(142 76% 36%);
     border: 1px solid hsl(142 76% 36% / 0.3);
 }
 
 .feedback-error {
-    background-color: hsl(0 84.2% 60.2% / 0.1);
+    background-color: hsl(0 84.2% 60.2% / 0.15);
     color: hsl(0 84.2% 60.2%);
     border: 1px solid hsl(0 84.2% 60.2% / 0.3);
 }
@@ -387,11 +387,11 @@ wp_nonce_field('mobooking_services_nonce', 'mobooking_services_nonce_field');
     
     .services-grid {
         grid-template-columns: 1fr;
-        gap: 1rem;
+        gap: 1.5rem;
     }
     
     .service-card {
-        padding: 1rem;
+        padding: 1.5rem;
     }
     
     .service-actions {
@@ -411,8 +411,8 @@ wp_nonce_field('mobooking_services_nonce', 'mobooking_services_nonce_field');
             <h1 class="services-title"><?php esc_html_e('Manage Your Services', 'mobooking'); ?></h1>
             <a href="<?php echo esc_url(site_url('/dashboard/service-edit/')); ?>" class="add-service-btn">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="12" y1="5" x2="12" y2="19"></line>
-                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                    <path d="M5 12h14" />
+                    <path d="M12 5v14" />
                 </svg>
                 <?php esc_html_e('Add New Service', 'mobooking'); ?>
             </a>
@@ -429,8 +429,8 @@ wp_nonce_field('mobooking_services_nonce', 'mobooking_services_nonce_field');
                     value=""
                 >
                 <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="11" cy="11" r="8"></circle>
-                    <path d="m21 21-4.35-4.35"></path>
+                    <path d="m21 21-4.3-4.3" />
+                    <circle cx="11" cy="11" r="8" />
                 </svg>
             </div>
             
@@ -462,11 +462,11 @@ wp_nonce_field('mobooking_services_nonce', 'mobooking_services_nonce_field');
                 <div class="empty-state">
                     <div class="empty-state-icon">
                         <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                            <polyline points="14,2 14,8 20,8"></polyline>
-                            <line x1="16" y1="13" x2="8" y2="13"></line>
-                            <line x1="16" y1="17" x2="8" y2="17"></line>
-                            <polyline points="10,9 9,9 8,9"></polyline>
+                            <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
+                            <polyline points="14 2 14 8 20 8" />
+                            <line x1="16" y1="13" x2="8" y2="13" />
+                            <line x1="16" y1="17" x2="8" y2="17" />
+                            <line x1="10" y1="9" x2="8" y2="9" />
                         </svg>
                     </div>
                     <h3 class="empty-state-title"><?php esc_html_e('No services yet', 'mobooking'); ?></h3>
@@ -475,8 +475,8 @@ wp_nonce_field('mobooking_services_nonce', 'mobooking_services_nonce_field');
                     </p>
                     <a href="<?php echo esc_url(site_url('/dashboard/service-edit/')); ?>" class="add-service-btn">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <line x1="12" y1="5" x2="12" y2="19"></line>
-                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                            <path d="M5 12h14" />
+                            <path d="M12 5v14" />
                         </svg>
                         <?php esc_html_e('Create First Service', 'mobooking'); ?>
                     </a>
@@ -529,15 +529,16 @@ wp_nonce_field('mobooking_services_nonce', 'mobooking_services_nonce_field');
         <div class="service-actions">
             <a href="<?php echo esc_url(site_url('/dashboard/service-edit/')); ?>?service_id=<%= service_id %>" class="btn btn-edit">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                    <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+                    <path d="m15 5 4 4" />
                 </svg>
                 <?php esc_html_e('Edit', 'mobooking'); ?>
             </a>
             <button class="btn btn-delete service-delete-btn" data-service-id="<%= service_id %>" data-service-name="<%= name %>">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="3,6 5,6 21,6"></polyline>
-                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    <path d="M3 6h18" />
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+                    <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
                 </svg>
                 <?php esc_html_e('Delete', 'mobooking'); ?>
             </button>
@@ -774,7 +775,7 @@ jQuery(document).ready(function($) {
                 <li>
                     <a href="#" class="page-link" data-page="${currentPage - 1}">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <polyline points="15,18 9,12 15,6"></polyline>
+                            <path d="m15 18-6-6 6-6" />
                         </svg>
                     </a>
                 </li>
@@ -813,7 +814,7 @@ jQuery(document).ready(function($) {
                 <li>
                     <a href="#" class="page-link" data-page="${currentPage + 1}">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <polyline points="9,18 15,12 9,6"></polyline>
+                            <path d="m9 18 6-6-6-6" />
                         </svg>
                     </a>
                 </li>
@@ -830,7 +831,7 @@ jQuery(document).ready(function($) {
         $servicesContainer.html(`
             <div class="loading-state">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="animation: spin 1s linear infinite;">
-                    <path d="M21 12a9 9 0 11-6.219-8.56"/>
+                    <path d="M21 12a9 9 0 1 1-6.219-8.56" />
                 </svg>
                 <p>${window.mobookingServicesData.i18n.loading}</p>
             </div>
