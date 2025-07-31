@@ -270,34 +270,43 @@ input:checked + .slider:before {
 }
 
 /* Modal Styles */
-.mobooking-modal {
-    display: none;
+.mobooking-modal-backdrop {
     position: fixed;
-    z-index: 1000;
-    left: 0;
     top: 0;
-    width: 100%;
-    height: 100%;
-    overflow: auto;
+    left: 0;
+    z-index: 50;
+    width: 100vw;
+    height: 100vh;
     background-color: hsla(var(--background), 0.8);
     backdrop-filter: blur(4px);
+    display: none;
+}
+
+.mobooking-modal-backdrop.active {
+    display: block;
+}
+
+.mobooking-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 50;
+    width: 100%;
+    max-width: 420px;
+    background-color: hsl(var(--card));
+    border-radius: var(--radius);
+    box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+    border: 1px solid hsl(var(--border));
+    display: none;
 }
 
 .mobooking-modal.active {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: block;
 }
 
 .mobooking-modal-content {
-    background-color: hsl(var(--popover));
-    color: hsl(var(--popover-foreground));
     padding: 1.5rem;
-    border-radius: var(--radius);
-    width: 90%;
-    max-width: 420px;
-    box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
-    border: 1px solid hsl(var(--border));
 }
 
 .mobooking-modal-content h3 {
@@ -348,15 +357,36 @@ input:checked + .slider:before {
     gap: 0.5rem;
 }
 
+.mobooking-modal .button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius);
+    font-size: 0.875rem;
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    transition: background-color 0.2s;
+    border: 1px solid transparent;
+}
+
 .mobooking-modal .button-primary {
     background-color: hsl(var(--primary));
     color: hsl(var(--primary-foreground));
+    border-color: hsl(var(--primary));
+}
+
+.mobooking-modal .button-primary:hover {
+    background-color: hsl(var(--primary) / 0.9);
 }
 
 .mobooking-modal .mobooking-modal-close {
     background-color: hsl(var(--secondary));
     color: hsl(var(--secondary-foreground));
-    border: 1px solid hsl(var(--border));
+    border-color: hsl(var(--border));
+}
+
+.mobooking-modal .mobooking-modal-close:hover {
+    background-color: hsl(var(--accent));
 }
 
 /* Responsive adjustments */
