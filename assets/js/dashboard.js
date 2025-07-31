@@ -80,4 +80,22 @@ jQuery(document).ready(function ($) {
   // Export for global use
   window.showAlert = window.MoBookingDashboard.showAlert;
   window.hideAlert = window.MoBookingDashboard.hideAlert;
+
+  // User dropdown menu
+  const userMenu = document.querySelector(".user-menu");
+  if (userMenu) {
+    const userMenuToggle = userMenu.querySelector(".user-menu-toggle");
+    userMenuToggle.addEventListener("click", function (e) {
+      e.stopPropagation();
+      userMenu.classList.toggle("open");
+    });
+  }
+
+  // Close dropdown when clicking outside
+  document.addEventListener("click", function (e) {
+    const openUserMenu = document.querySelector(".user-menu.open");
+    if (openUserMenu && !openUserMenu.contains(e.target)) {
+      openUserMenu.classList.remove("open");
+    }
+  });
 });

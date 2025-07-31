@@ -22,8 +22,25 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
     <div class="dashboard-header-right">
         <?php $user = wp_get_current_user(); ?>
         <div class="user-menu">
-            <span><?php echo esc_html( $user->display_name ); ?></span>
-            <a href="<?php echo wp_logout_url( home_url('/login/') ); // Assumes /login/ uses page-login.php ?>"><?php esc_html_e('Logout', 'mobooking'); ?></a>
+            <div class="user-menu-toggle">
+                <div class="user-avatar">
+                    <?php echo esc_html( strtoupper( substr( $user->display_name, 0, 1 ) ) ); ?>
+                </div>
+                <span><?php echo esc_html( $user->display_name ); ?></span>
+                <div class="arrow-down"></div>
+            </div>
+            <ul class="user-dropdown-menu">
+                <li class="dropdown-header">
+                    <span class="user-display-name"><?php echo esc_html( $user->display_name ); ?></span>
+                    <span class="user-email"><?php echo esc_html( $user->user_email ); ?></span>
+                </li>
+                <li><div class="dropdown-divider"></div></li>
+                <li><a class="dropdown-item" href="<?php echo esc_url(home_url('/dashboard/my-assigned-bookings/')); ?>"><?php esc_html_e('My Bookings', 'mobooking'); ?></a></li>
+                <li><a class="dropdown-item" href="<?php echo esc_url(home_url('/dashboard/booking-form/')); ?>"><?php esc_html_e('Booking Form', 'mobooking'); ?></a></li>
+                <li><a class="dropdown-item" href="<?php echo esc_url(home_url('/dashboard/settings/')); ?>"><?php esc_html_e('Settings', 'mobooking'); ?></a></li>
+                <li><div class="dropdown-divider"></div></li>
+                <li><a class="dropdown-item" href="<?php echo wp_logout_url( home_url() ); ?>"><?php esc_html_e('Logout', 'mobooking'); ?></a></li>
+            </ul>
         </div>
     </div>
 </header>
