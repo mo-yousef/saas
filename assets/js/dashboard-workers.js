@@ -544,27 +544,8 @@
     },
 
     showGlobalAlert: function (message, isSuccess) {
-      var $alert = $("#mobooking-feedback-area");
-      var alertClass = isSuccess
-        ? "mobooking-alert-success"
-        : "mobooking-alert-error";
-
-      $alert
-        .removeClass("mobooking-alert-success mobooking-alert-error")
-        .addClass(alertClass)
-        .find("p")
-        .text(message);
-
-      $alert.slideDown(300);
-
-      if (isSuccess) {
-        setTimeout(function () {
-          $alert.slideUp(300);
-        }, 5000);
-      }
-
-      // Scroll to top to ensure visibility
-      $("html, body").animate({ scrollTop: 0 }, 300);
+      const type = isSuccess ? 'success' : 'error';
+      window.showAlert(message, type);
     },
 
     showInlineAlert: function ($alertArea, message, isSuccess) {

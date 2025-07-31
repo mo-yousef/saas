@@ -288,6 +288,7 @@
      * Show feedback message inside the modal
      */
     function showModalFeedback(message, type = 'success') {
+        window.showAlert(message, type);
         $modalFeedback.removeClass('success error').addClass(type).html(message).fadeIn();
         setTimeout(() => $modalFeedback.fadeOut(), 5000);
     }
@@ -390,15 +391,16 @@
             },
             success: function (response) {
                 if (response.success) {
+                    window.showAlert(response.data.message || 'City removed.', 'success');
                     // Optimistically remove from UI
                     $btn.closest('.coverage-city-item').fadeOut(300, function() { $(this).remove(); });
                 } else {
-                    alert(i18n.error_removing_city);
+                    window.showAlert(response.data.message || i18n.error_removing_city, 'error');
                     $btn.prop('disabled', false).text('Remove');
                 }
             },
             error: function() {
-                alert(i18n.error_removing_city);
+                window.showAlert(i18n.error_removing_city, 'error');
                 $btn.prop('disabled', false).text('Remove');
             }
         });

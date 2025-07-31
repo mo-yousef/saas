@@ -85,15 +85,17 @@ jQuery(document).ready(function($) {
             },
             success: function(response) {
                 if (response.success) {
-                    feedbackDiv.text(response.data.message || mobooking_biz_settings_params.i18n.save_success || 'Settings saved.').addClass('notice notice-success').show();
-                    // Force page reload on successful save to apply new settings (like language)
-                    location.reload();
+                    window.showAlert(response.data.message || mobooking_biz_settings_params.i18n.save_success || 'Settings saved.', 'success');
+                    // Force page reload on successful save to apply new settings (like language), after a short delay
+                    setTimeout(function() {
+                        location.reload();
+                    }, 1500);
                 } else {
-                    feedbackDiv.text(response.data.message || mobooking_biz_settings_params.i18n.error_saving || 'Error saving.').addClass('notice notice-error').show();
+                    window.showAlert(response.data.message || mobooking_biz_settings_params.i18n.error_saving || 'Error saving.', 'error');
                 }
             },
             error: function() {
-                feedbackDiv.text(mobooking_biz_settings_params.i18n.error_ajax || 'AJAX error.').addClass('notice notice-error').show();
+                window.showAlert(mobooking_biz_settings_params.i18n.error_ajax || 'AJAX error.', 'error');
             },
             complete: function() {
                 saveButton.prop('disabled', false).text(originalButtonText);
