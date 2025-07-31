@@ -33,12 +33,6 @@ class Areas {
         // Public ZIP code checking
         add_action('wp_ajax_nopriv_mobooking_check_zip_availability', [$this, 'handle_check_zip_code_public_ajax']);
         add_action('wp_ajax_mobooking_check_zip_availability', [$this, 'handle_check_zip_code_public_ajax']);
-
-        // Enhanced coverage management
-        add_action('wp_ajax_mobooking_get_service_coverage', [$this, 'handle_get_service_coverage_ajax']);
-        add_action('wp_ajax_mobooking_get_service_coverage_grouped', [$this, 'handle_get_service_coverage_grouped_ajax']);
-        add_action('wp_ajax_mobooking_toggle_area_status', [$this, 'handle_toggle_area_status_ajax']);
-        add_action('wp_ajax_mobooking_remove_country_coverage', [$this, 'handle_remove_country_coverage_ajax']);
     }
 
     /**
@@ -625,37 +619,6 @@ public function get_service_coverage(int $user_id, $args = []) {
     if (empty($user_id)) {
         return ['coverage' => [], 'total_count' => 0, 'per_page' => 0, 'current_page' => 1];
     }
-public function get_service_coverage_grouped(int $user_id, $filters = []) {
-    if (empty($user_id)) {
-        return ['cities' => []];
-    }
-
-    $table_name = Database::get_table_name('service_areas');
-    $where_conditions = ['user_id = %d'];
-    $where_values = [$user_id];
-
-    if (!empty($filters['city'])) {
-        $where_conditions[] = 'area_name = %s';
-        $where_values[] = sanitize_text_field($filters['city']);
-    }
-
-    if (!empty($filters['status'])) {
-        $where_conditions[] = 'status = %s';
-        $where_values[] = sanitize_text_field($filters['status']);
-    }
-
-    $where_clause = 'WHERE ' . implode(' AND ', $where_conditions);
-
-    $sql = "SELECT area_name as city_name, COUNT(area_id) as area_count, status
-            FROM $table_name
-            $where_clause
-            GROUP BY area_name, status
-            ORDER BY area_name ASC";
-
-    $results = $this->wpdb->get_results($this->wpdb->prepare($sql, $where_values), ARRAY_A);
-
-    return ['cities' => $results];
-}
 
     $table_name = Database::get_table_name('service_areas');
 
@@ -715,6 +678,38 @@ public function get_service_coverage_grouped(int $user_id, $filters = []) {
         'per_page' => $limit,
         'current_page' => $paged
     ];
+}
+
+public function get_service_coverage_grouped(int $user_id, $filters = []) {
+    if (empty($user_id)) {
+        return ['cities' => []];
+    }
+
+    $table_name = Database::get_table_name('service_areas');
+    $where_conditions = ['user_id = %d'];
+    $where_values = [$user_id];
+
+    if (!empty($filters['city'])) {
+        $where_conditions[] = 'area_name = %s';
+        $where_values[] = sanitize_text_field($filters['city']);
+    }
+
+    if (!empty($filters['status'])) {
+        $where_conditions[] = 'status = %s';
+        $where_values[] = sanitize_text_field($filters['status']);
+    }
+
+    $where_clause = 'WHERE ' . implode(' AND ', $where_conditions);
+
+    $sql = "SELECT area_name as city_name, COUNT(area_id) as area_count, status
+            FROM $table_name
+            $where_clause
+            GROUP BY area_name, status
+            ORDER BY area_name ASC";
+
+    $results = $this->wpdb->get_results($this->wpdb->prepare($sql, $where_values), ARRAY_A);
+
+    return ['cities' => $results];
 }
 
 /**
@@ -858,6 +853,71 @@ public function handle_toggle_area_status_ajax() {
     wp_send_json_success(['message' => $message]);
 }
 
+public function handle_save_city_areas_ajax() {
+    check_ajax_referer('mobooking_dashboard_nonce', 'nonce');
+
+    $user_id = get_current_user_id();
+    if (!$user_id) {
+        wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403);
+        return;
+    }
+
+    $city_code = isset($_POST['city_code']) ? sanitize_text_field($_POST['city_code']) : '';
+    $areas_data = isset($_POST['areas_data']) ? $_POST['areas_data'] : [];
+
+    if (empty($city_code)) {
+        wp_send_json_error(['message' => __('City code is required.', 'mobooking')], 400);
+        return;
+    }
+
+    // First, remove all existing areas for this city
+    $this->wpdb->delete(
+        Database::get_table_name('service_areas'),
+        ['user_id' => $user_id, 'area_name' => $city_code],
+        ['%d', '%s']
+    );
+
+    // Now, add the new areas
+    $result = $this->add_bulk_areas($user_id, $areas_data);
+
+    if (is_wp_error($result)) {
+        wp_send_json_error(['message' => $result->get_error_message()], 400);
+        return;
+    }
+
+    wp_send_json_success($result);
+}
+
+public function handle_remove_city_coverage_ajax() {
+    check_ajax_referer('mobooking_dashboard_nonce', 'nonce');
+
+    $user_id = get_current_user_id();
+    if (!$user_id) {
+        wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403);
+        return;
+    }
+
+    $city_code = isset($_POST['city_code']) ? sanitize_text_field($_POST['city_code']) : '';
+
+    if (empty($city_code)) {
+        wp_send_json_error(['message' => __('City code is required.', 'mobooking')], 400);
+        return;
+    }
+
+    $deleted = $this->wpdb->delete(
+        Database::get_table_name('service_areas'),
+        ['user_id' => $user_id, 'area_name' => $city_code],
+        ['%d', '%s']
+    );
+
+    if (false === $deleted) {
+        wp_send_json_error(['message' => __('Could not remove city coverage.', 'mobooking')], 500);
+        return;
+    }
+
+    wp_send_json_success(['deleted_count' => $deleted]);
+}
+
 /**
  * Handle remove country coverage AJAX request
  */
@@ -892,6 +952,17 @@ public function handle_remove_country_coverage_ajax() {
     wp_send_json_success(['message' => $message, 'deleted_count' => $result]);
 }
 
+/**
+ * Enhanced register_ajax_actions method - ADD THESE TO YOUR EXISTING METHOD
+ */
+public function register_enhanced_ajax_actions() {
+    // Add these to your existing register_ajax_actions method
+    add_action('wp_ajax_mobooking_get_service_coverage', [$this, 'handle_get_service_coverage_ajax']);
+    add_action('wp_ajax_mobooking_toggle_area_status', [$this, 'handle_toggle_area_status_ajax']);
+    add_action('wp_ajax_mobooking_remove_country_coverage', [$this, 'handle_remove_country_coverage_ajax']);
+        add_action('wp_ajax_mobooking_save_city_areas', [$this, 'handle_save_city_areas_ajax']);
+        add_action('wp_ajax_mobooking_remove_city_coverage', [$this, 'handle_remove_city_coverage_ajax']);
+}
 
 /**
  * Update database schema to support status column (run this once)
