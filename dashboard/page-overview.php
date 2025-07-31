@@ -1,6 +1,6 @@
 <?php
 /**
- * Dashboard Page: Overview - Refactored KPI-focused version
+ * Dashboard Page: Overview - Refactored for shadcn UI
  * @package MoBooking
  */
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
@@ -37,8 +37,7 @@ if (class_exists('MoBooking\Classes\Auth') && \MoBooking\Classes\Auth::is_user_w
 $dashboard_base_url = home_url('/dashboard/');
 ?>
 
-<div class="mobooking-overview-refactored">
-
+<div class="mobooking-overview">
     <div class="overview-header">
         <h1 class="overview-title">
             <?php printf(esc_html__('Welcome back, %s!', 'mobooking'), esc_html($user->display_name)); ?>
@@ -48,103 +47,100 @@ $dashboard_base_url = home_url('/dashboard/');
         </p>
     </div>
 
-    <!-- Statistics Widgets -->
-    <div class="dashboard-kpi-card widget-span-3">
-        <div class="card-header">
-            <h3 class="card-title">Total Bookings</h3>
-            <p class="card-description">pending, confirmed</p>
+    <div class="overview-grid">
+        <!-- KPI Cards -->
+        <div class="card kpi-card">
+            <div class="card-header">
+                <h3 class="card-title">Total Bookings</h3>
+                <div class="card-icon"><i data-feather="book-open"></i></div>
+            </div>
+            <div class="card-content">
+                <p class="card-value" id="total-bookings-value">--</p>
+                <p class="card-description">All pending & confirmed</p>
+            </div>
         </div>
-        <div class="card-content">
-            <i data-feather="book"></i>
-            <p class="text-2xl font-bold" id="total-bookings-value">--</p>
-        </div>
-    </div>
 
-    <div class="dashboard-kpi-card widget-span-3">
-        <div class="card-header">
-            <h3 class="card-title">Total Revenue</h3>
-            <p class="card-description">this month</p>
+        <div class="card kpi-card">
+            <div class="card-header">
+                <h3 class="card-title">Total Revenue</h3>
+                <div class="card-icon"><i data-feather="dollar-sign"></i></div>
+            </div>
+            <div class="card-content">
+                <p class="card-value" id="total-revenue-value">--</p>
+                <p class="card-description">This month</p>
+            </div>
         </div>
-        <div class="card-content">
-            <i data-feather="dollar-sign"></i>
-            <p class="text-2xl font-bold" id="total-revenue-value">--</p>
-        </div>
-    </div>
 
-    <div class="dashboard-kpi-card widget-span-3">
-        <div class="card-header">
-            <h3 class="card-title">This Month</h3>
-            <p class="card-description">this week, today</p>
+        <div class="card kpi-card">
+            <div class="card-header">
+                <h3 class="card-title">Today's Revenue</h3>
+                <div class="card-icon"><i data-feather="bar-chart-2"></i></div>
+            </div>
+            <div class="card-content">
+                <p class="card-value" id="revenue-breakdown-value">--</p>
+                <p class="card-description">Revenue for today</p>
+            </div>
         </div>
-        <div class="card-content">
-            <i data-feather="bar-chart-2"></i>
-            <p class="text-2xl font-bold" id="revenue-breakdown-value">--</p>
-        </div>
-    </div>
 
-    <div class="dashboard-kpi-card widget-span-3">
-        <div class="card-header">
-            <h3 class="card-title">Completion Rate</h3>
-            <p class="card-description">completed</p>
+        <div class="card kpi-card">
+            <div class="card-header">
+                <h3 class="card-title">Completion Rate</h3>
+                <div class="card-icon"><i data-feather="check-circle"></i></div>
+            </div>
+            <div class="card-content">
+                <p class="card-value" id="completion-rate-value">--</p>
+                <p class="card-description">Of all bookings</p>
+            </div>
         </div>
-        <div class="card-content">
-            <i data-feather="check-circle"></i>
-            <p class="text-2xl font-bold" id="completion-rate-value">--</p>
-        </div>
-    </div>
 
-    <!-- Activity Widgets -->
-    <div class="card widget-span-12">
-        <div class="card-header">
-            <h3 class="card-title">Recent Bookings</h3>
+        <!-- Recent Bookings -->
+        <div class="card recent-bookings-card">
+            <div class="card-header">
+                <h3 class="card-title">Recent Bookings</h3>
+            </div>
+            <div class="card-content" id="recent-bookings-list">
+                <!-- Recent bookings will be loaded here -->
+            </div>
+            <div class="card-footer">
+                <a href="<?php echo esc_url($dashboard_base_url . 'bookings/'); ?>" class="btn btn-ghost">View All</a>
+            </div>
         </div>
-        <div class="card-content" id="recent-bookings-list">
-            <!-- Recent bookings will be loaded here -->
-        </div>
-        <div class="card-footer">
-            <a href="#" class="btn btn-ghost">View All</a>
-        </div>
-    </div>
 
-    <!-- Promotion & Sharing, Quick Actions, Setup Progress -->
-    <div class="card widget-span-4">
-        <div class="card-header">
-            <h3 class="card-title">Share Your Booking Link</h3>
-            <p class="card-description">Add your booking form link to your website and social media</p>
+        <!-- Quick Actions -->
+        <div class="card quick-actions-card">
+            <div class="card-header">
+                <h3 class="card-title">Quick Actions</h3>
+            </div>
+            <div class="card-content">
+                <a href="<?php echo esc_url($dashboard_base_url . 'services/'); ?>" class="btn btn-secondary"><i data-feather="plus"></i> Add Service</a>
+                <a href="<?php echo esc_url($dashboard_base_url . 'discounts/'); ?>" class="btn btn-secondary"><i data-feather="percent"></i> Create Discount</a>
+                <a href="<?php echo esc_url($dashboard_base_url . 'areas/'); ?>" class="btn btn-secondary"><i data-feather="map"></i> Service Areas</a>
+                <a href="<?php echo esc_url($dashboard_base_url . 'settings/'); ?>" class="btn btn-secondary"><i data-feather="settings"></i> Settings</a>
+            </div>
         </div>
-        <div class="card-content">
-            <!-- Sharing link content -->
-        </div>
-    </div>
 
-    <div class="card widget-span-4">
-        <div class="card-header">
-            <h3 class="card-title">Quick Actions</h3>
+        <!-- Setup Progress -->
+        <div class="card setup-progress-card">
+            <div class="card-header">
+                <h3 class="card-title">Setup Progress</h3>
+            </div>
+            <div class="card-content" id="setup-progress-list">
+                <!-- Progress steps will be loaded here -->
+            </div>
         </div>
-        <div class="card-content">
-            <a href="<?php echo esc_url($dashboard_base_url . 'services/'); ?>" class="btn btn-secondary">Add Service</a>
-            <a href="<?php echo esc_url($dashboard_base_url . 'discounts/'); ?>" class="btn btn-secondary">Create Discount</a>
-            <a href="<?php echo esc_url($dashboard_base_url . 'areas/'); ?>" class="btn btn-secondary">Service Areas</a>
-            <a href="<?php echo esc_url($dashboard_base_url . 'settings/'); ?>" class="btn btn-secondary">Settings</a>
-        </div>
-    </div>
 
-    <div class="card widget-span-4">
-        <div class="card-header">
-            <h3 class="card-title">Setup Progress</h3>
-        </div>
-        <div class="card-content" id="setup-progress-list">
-            <!-- Progress steps will be loaded here -->
-        </div>
-    </div>
-
-    <!-- Tips & Resources -->
-    <div class="card widget-span-12">
-        <div class="card-header">
-            <h3 class="card-title">Tips & Resources</h3>
-        </div>
-        <div class="card-content" id="tips-resources-list">
-            <!-- Tips will be loaded here -->
+        <!-- Share Link -->
+        <div class="card share-link-card">
+            <div class="card-header">
+                <h3 class="card-title">Share Your Booking Link</h3>
+            </div>
+            <div class="card-content">
+                <p class="card-description">Add your booking form link to your website and social media.</p>
+                <div class="share-link-input-wrapper">
+                    <input type="text" readonly value="<?php echo esc_url(home_url('/booking/')); // This is a placeholder, will need to be made dynamic ?>" class="share-link-input">
+                    <button class="btn btn-primary" id="copy-share-link-button"><i data-feather="copy"></i></button>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -156,7 +152,7 @@ var mobooking_overview_params = {
     ajax_url: ajaxurl,
     nonce: '<?php echo wp_create_nonce('mobooking_dashboard_nonce'); ?>',
     currency_symbol: '<?php echo esc_js($currency_symbol); ?>',
-    is__worker: <?php echo $is_worker ? 'true' : 'false'; ?>,
+    is_worker: <?php echo $is_worker ? 'true' : 'false'; ?>,
     dashboard_base_url: '<?php echo esc_js($dashboard_base_url); ?>',
     i18n: {
         time_ago_just_now: '<?php esc_html_e('Just now', 'mobooking'); ?>',
@@ -166,7 +162,8 @@ var mobooking_overview_params = {
         time_ago_days_suffix: '<?php esc_html_e('d ago', 'mobooking'); ?>',
         loading: '<?php esc_html_e('Loading...', 'mobooking'); ?>',
         no_data: '<?php esc_html_e('No data available', 'mobooking'); ?>',
-        error: '<?php esc_html_e('Error loading data', 'mobooking'); ?>'
+        error: '<?php esc_html_e('Error loading data', 'mobooking'); ?>',
+        copied: '<?php esc_html_e('Copied!', 'mobooking'); ?>'
     }
 };
 </script>
