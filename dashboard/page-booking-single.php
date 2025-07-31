@@ -535,7 +535,7 @@ jQuery(document).ready(function($) {
             },
             success: function(response) {
                 if (response.success) {
-                    $feedback.text(response.data.message || '<?php echo esc_js( __( 'Status updated successfully!', 'mobooking' ) ); ?>').addClass('success').removeClass('error');
+                    window.showAlert(response.data.message || '<?php echo esc_js( __( 'Status updated successfully!', 'mobooking' ) ); ?>', 'success');
 
                     var newStatusText = newStatus.charAt(0).toUpperCase() + newStatus.slice(1).replace('-', ' ');
                     $currentStatusDisplay.find('.status-text').text(newStatusText);
@@ -553,37 +553,25 @@ jQuery(document).ready(function($) {
                     }
 
                 } else {
-                    $feedback.text(response.data.message || '<?php echo esc_js( __( 'Error updating status.', 'mobooking' ) ); ?>').addClass('error').removeClass('success');
+                    window.showAlert(response.data.message || '<?php echo esc_js( __( 'Error updating status.', 'mobooking' ) ); ?>', 'error');
                 }
             },
             error: function() {
-                $feedback.text('<?php echo esc_js( __( 'AJAX request failed.', 'mobooking' ) ); ?>').addClass('error').removeClass('success');
+                window.showAlert('<?php echo esc_js( __( 'AJAX request failed.', 'mobooking' ) ); ?>', 'error');
             },
             complete: function() {
                 $button.prop('disabled', false);
-                 setTimeout(function() { $feedback.text(''); }, 5000);
             }
         });
     });
-
-    // Helper to remove classes with wildcard - not strictly needed if we use .attr('class', newClass)
-    // $.fn.removeClassWild = function(mask) {
-    //     return this.removeClass(function(index, cls) {
-    //         var re = mask.replace(/\*/g, '\\S+');
-    //         return (cls.match(new RegExp('\\b' + re + '', 'g')) || []).join(' ');
-    //     });
-    // };
 
     $('#mobooking-single-save-staff-assignment-btn').on('click', function() {
         var $button = $(this);
         var bookingId = $('#mobooking-single-assign-staff-select').data('booking-id');
         var staffId = $('#mobooking-single-assign-staff-select').val();
-        var $feedback = $('#mobooking-single-staff-assignment-feedback');
         var $currentStaffDisplay = $('#mobooking-current-assigned-staff');
         var selectedStaffName = $('#mobooking-single-assign-staff-select option:selected').text();
 
-
-        $feedback.text('<?php echo esc_js( __( 'Updating assignment...', 'mobooking' ) ); ?>').removeClass('success error');
         $button.prop('disabled', true);
 
         $.ajax({
@@ -591,28 +579,27 @@ jQuery(document).ready(function($) {
             type: 'POST',
             data: {
                 action: 'mobooking_assign_staff_to_booking',
-                nonce: '<?php echo wp_create_nonce('mobooking_dashboard_nonce'); ?>', // Ensure this nonce is appropriate
+                nonce: '<?php echo wp_create_nonce('mobooking_dashboard_nonce'); ?>',
                 booking_id: bookingId,
                 staff_id: staffId
             },
             success: function(response) {
                 if (response.success) {
-                    $feedback.text(response.data.message || '<?php echo esc_js( __( 'Assignment updated successfully!', 'mobooking' ) ); ?>').addClass('success').removeClass('error');
+                    window.showAlert(response.data.message || '<?php echo esc_js( __( 'Assignment updated successfully!', 'mobooking' ) ); ?>', 'success');
                     if (staffId === "0" || staffId === 0) {
                         $currentStaffDisplay.text('<?php echo esc_js(__('Unassigned', 'mobooking')); ?>');
                     } else {
-                        $currentStaffDisplay.text(selectedStaffName.split(' (')[0]); // Get only the name part
+                        $currentStaffDisplay.text(selectedStaffName.split(' (')[0]);
                     }
                 } else {
-                    $feedback.text(response.data.message || '<?php echo esc_js( __( 'Error updating assignment.', 'mobooking' ) ); ?>').addClass('error').removeClass('success');
+                    window.showAlert(response.data.message || '<?php echo esc_js( __( 'Error updating assignment.', 'mobooking' ) ); ?>', 'error');
                 }
             },
             error: function() {
-                $feedback.text('<?php echo esc_js( __( 'AJAX request failed.', 'mobooking' ) ); ?>').addClass('error').removeClass('success');
+                window.showAlert('<?php echo esc_js( __( 'AJAX request failed.', 'mobooking' ) ); ?>', 'error');
             },
             complete: function() {
                 $button.prop('disabled', false);
-                setTimeout(function() { $feedback.text(''); }, 5000);
             }
         });
     });
