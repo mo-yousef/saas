@@ -14,6 +14,8 @@ if ( ! current_user_can( \MoBooking\Classes\Auth::CAP_MANAGE_AVAILABILITY ) ) {
     <h1><?php esc_html_e('Manage Availability', 'mobooking'); ?></h1>
     <p><?php esc_html_e('Define your regular working hours and set specific dates for overrides or days off.', 'mobooking'); ?></p>
 
+    <div id="mobooking-floating-alert" class="mobooking-floating-alert" style="display:none;"></div>
+
     <div id="mobooking-availability-feedback" class="notice" style="display:none;"></div>
 
     <!-- Recurring Weekly Availability Section -->

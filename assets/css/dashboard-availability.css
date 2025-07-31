@@ -390,7 +390,37 @@ input:checked + .slider:before {
 }
 
 /* Responsive adjustments */
+/* Floating Alert Styles */
+.mobooking-floating-alert {
+    position: fixed;
+    top: 2rem;
+    right: 2rem;
+    z-index: 1050;
+    padding: 1rem 1.5rem;
+    border-radius: var(--radius);
+    background-color: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    opacity: 0;
+    transform: translateY(-20px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.mobooking-floating-alert.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
 @media (max-width: 768px) {
+    .mobooking-floating-alert {
+        top: 1rem;
+        right: 1rem;
+        left: 1rem;
+        transform: translateY(-100%);
+    }
     .mobooking-availability-page h1 {
         font-size: 1.75rem;
     }
