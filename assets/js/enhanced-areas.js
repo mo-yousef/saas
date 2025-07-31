@@ -17,9 +17,6 @@
   };
 
   // DOM elements
-  const $countrySelector = $("#mobooking-country-selector");
-  const $selectCountryBtn = $("#select-country-btn");
-  const $countrySelectionCard = $("#country-selection-card");
   const $citiesAreasCard = $("#cities-areas-selection-card");
   const $cancelSelectionBtn = $("#cancel-selection-btn");
   const $selectedCountryName = $("#selected-country-name");
@@ -54,7 +51,14 @@
       return;
     }
 
-    loadCountries();
+    // Automatically load Sweden
+    currentCountry = { code: 'SE', name: 'Sweden' };
+    $selectedCountryName.text(currentCountry.name);
+    $citiesAreasCard.show();
+    $areasSelectionSection.hide();
+    $selectionActions.hide();
+    loadCitiesForCountry(currentCountry.code);
+
     loadServiceCoverage();
     bindEvents();
   }
@@ -63,9 +67,6 @@
    * Bind all event handlers
    */
   function bindEvents() {
-    // Country selection
-    $countrySelector.on("change", handleCountrySelectChange);
-    $selectCountryBtn.on("click", handleSelectCountry);
     $cancelSelectionBtn.on("click", handleCancelSelection);
 
     // Cities and areas selection
@@ -102,101 +103,8 @@
     $(document).on("click", ".page-numbers", handlePaginationClick);
   }
 
-  /**
-   * Load available countries
-   */
-  function loadCountries() {
-    $.ajax({
-      url: mobooking_areas_params.ajax_url,
-      type: "POST",
-      data: {
-        action: "mobooking_get_countries",
-        nonce: mobooking_areas_params.nonce,
-      },
-      success: function (response) {
-        if (response.success && response.data?.countries) {
-          populateCountryDropdown(response.data.countries);
-        } else {
-          showFeedback(
-            $selectionFeedback,
-            i18n.error || "Error loading countries",
-            "error"
-          );
-        }
-      },
-      error: function () {
-        showFeedback(
-          $selectionFeedback,
-          i18n.error || "Error loading countries",
-          "error"
-        );
-      },
-    });
-  }
 
-  /**
-   * Populate country dropdown
-   */
-  function populateCountryDropdown(countries) {
-    $countrySelector.empty().append(
-      $("<option>", {
-        value: "",
-        text: i18n.choose_country || "Choose a country to add...",
-      })
-    );
 
-    countries.forEach(function (country) {
-      $countrySelector.append(
-        $("<option>", { value: country.code, text: country.name })
-      );
-    });
-
-    // Also populate filter dropdown
-    $countryFilter.empty().append(
-      $("<option>", {
-        value: "",
-        text: i18n.all_countries || "All Countries",
-      })
-    );
-
-    countries.forEach(function (country) {
-      $countryFilter.append(
-        $("<option>", { value: country.name, text: country.name })
-      );
-    });
-  }
-
-  /**
-   * Handle country selector change
-   */
-  function handleCountrySelectChange() {
-    const selected = $(this).val();
-    $selectCountryBtn.prop("disabled", !selected);
-  }
-
-  /**
-   * Handle select country button click
-   */
-  function handleSelectCountry() {
-    const countryCode = $countrySelector.val();
-    const countryName = $countrySelector.find("option:selected").text();
-
-    if (!countryCode) return;
-
-    currentCountry = { code: countryCode, name: countryName };
-    selectedCities.clear();
-    selectedAreas.clear();
-
-    // Update UI
-    $selectedCountryName.text(countryName);
-    $countrySelectionCard.hide();
-    $citiesAreasCard.show();
-    $areasSelectionSection.hide();
-    $selectionActions.hide();
-
-    // Load cities for selected country
-    loadCitiesForCountry(countryCode);
-  }
 
   /**
    * Handle cancel selection

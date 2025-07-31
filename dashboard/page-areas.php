@@ -29,38 +29,26 @@ $current_user_id = get_current_user_id();
     </div>
 
     <div class="mobooking-dashboard-content">
-        <!-- Country Selection Card -->
-        <div class="mobooking-card" id="country-selection-card">
+        <!-- Country Display Card -->
+        <div class="mobooking-card">
             <div class="mobooking-card-header">
                 <h3 class="mobooking-card-title">
                     <svg class="mobooking-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945"/>
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
-                    <?php esc_html_e('Select Country', 'mobooking'); ?>
+                    <?php esc_html_e('Service Country', 'mobooking'); ?>
                 </h3>
                 <p class="mobooking-card-description">
-                    <?php esc_html_e('Choose a country to add to your service coverage. You can manage multiple countries separately.', 'mobooking'); ?>
+                    <?php esc_html_e('Your service areas are configured for Sweden.', 'mobooking'); ?>
                 </p>
             </div>
-
             <div class="country-selection-form">
                 <div class="mobooking-form-group">
-                    <label for="mobooking-country-selector" class="mobooking-form-label">
-                        <?php esc_html_e('Available Countries', 'mobooking'); ?>
+                    <label class="mobooking-form-label">
+                        <?php esc_html_e('Selected Country', 'mobooking'); ?>
                     </label>
-                    <select id="mobooking-country-selector" class="mobooking-form-select">
-                        <option value=""><?php esc_html_e('Choose a country to add...', 'mobooking'); ?></option>
-                    </select>
-                </div>
-
-                <div class="mobooking-form-actions">
-                    <button type="button" id="select-country-btn" class="mobooking-btn mobooking-btn-primary" disabled>
-                        <svg class="mobooking-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
-                        </svg>
-                        <?php esc_html_e('Add Country', 'mobooking'); ?>
-                    </button>
+                    <div class="static-country-display">Sweden</div>
                 </div>
             </div>
         </div>
