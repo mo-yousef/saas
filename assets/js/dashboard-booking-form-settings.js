@@ -75,25 +75,14 @@ jQuery(document).ready(function ($) {
       },
       success: function (response) {
         if (response && response.success) {
-          feedbackDiv
-            .text(response.data?.message || "Settings saved successfully.")
-            .addClass("notice notice-success")
-            .show();
+          window.showAlert(response.data?.message || "Settings saved successfully.", 'success');
 
           // Update shareable links if slug was saved
           if (settingsData.bf_business_slug) {
             updateShareableLinks(settingsData.bf_business_slug);
           }
-
-          // Auto-hide success message after 3 seconds
-          setTimeout(() => {
-            feedbackDiv.fadeOut();
-          }, 3000);
         } else {
-          feedbackDiv
-            .text(response?.data?.message || "Failed to save settings.")
-            .addClass("notice notice-error")
-            .show();
+          window.showAlert(response?.data?.message || "Failed to save settings.", 'error');
         }
       },
       error: function (xhr, status, error) {
@@ -106,7 +95,7 @@ jQuery(document).ready(function ($) {
           errorMessage = "Server error: " + error;
         }
 
-        feedbackDiv.text(errorMessage).addClass("notice notice-error").show();
+        window.showAlert(errorMessage, 'error');
       },
       complete: function () {
         // Re-enable form

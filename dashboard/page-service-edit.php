@@ -1993,24 +1993,12 @@ jQuery(document).ready(function($) {
     }
 
     function showAlert(message, type = 'info') {
-        const alertClass = `mb-alert-${type}`; // success, error, warning, info
-        const $alertContainer = $('#mb-alert-container');
-        
-        $alertContainer.html(
-            `<div class="mb-alert ${alertClass}">${$('<div>').text(message).html()}</div>`
-        );
-        
-        if (type === 'success' || type === 'warning') {
-            setTimeout(hideAlert, 5000); // Longer for warnings too
-        }
-        // Scroll to top only if not already visible or if it's an error
-        if (type === 'error' || $alertContainer.offset().top < $(window).scrollTop()) {
-             $('html, body').animate({ scrollTop: $alertContainer.offset().top - 20 }, 300); // Adjust offset as needed
-        }
+        window.showAlert(message, type);
     }
 
     function hideAlert() {
-        $('#mb-alert-container').empty();
+        // This is now a no-op as the global toast system handles its own lifecycle.
+        // Kept for backward compatibility if any code calls it directly.
     }
 
     // Image handling
