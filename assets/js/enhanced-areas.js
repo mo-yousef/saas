@@ -1,1083 +1,434 @@
 /**
  * Enhanced Service Areas Management JavaScript
- * Country-based selection with persistent visual management
+ * Swedish-focused, modal-based city and area management
  */
 
 (function ($) {
-  "use strict";
+    "use strict";
 
-  // Global state
-  let currentCountry = null;
-  let selectedCities = new Map();
-  let selectedAreas = new Map();
-  let coverageFilters = {
-    search: "",
-    country: "",
-    status: "",
-  };
+    // Global state
+    let currentCity = null;
+    let citiesData = [];
 
-  // DOM elements
-  const $citiesAreasCard = $("#cities-areas-selection-card");
-  const $cancelSelectionBtn = $("#cancel-selection-btn");
-  const $selectedCountryName = $("#selected-country-name");
-  const $citiesGrid = $("#cities-grid");
-  const $areasSelectionSection = $("#areas-selection-section");
-  const $selectedCityName = $("#selected-city-name");
-  const $areasGrid = $("#areas-grid");
-  const $selectionActions = $("#selection-actions");
-  const $saveSelectionsBtn = $("#save-selections-btn");
-  const $backToCitiesBtn = $("#back-to-cities-btn");
-  const $selectionFeedback = $("#selection-feedback");
+    // DOM elements
+    const $citiesGridContainer = $("#cities-grid-container");
+    const $coverageList = $("#service-coverage-list");
+    const $cityFilter = $("#city-filter");
+    const $statusFilter = $("#status-filter");
+    const $coverageSearch = $("#coverage-search");
+    const $clearFiltersBtn = $("#clear-coverage-filters-btn");
 
-  // Coverage management elements
-  const $coverageSearch = $("#coverage-search");
-  const $countryFilter = $("#country-filter");
-  const $statusFilter = $("#status-filter");
-  const $clearCoverageFiltersBtn = $("#clear-coverage-filters-btn");
-  const $coverageLoading = $("#coverage-loading");
-  const $serviceCoverageList = $("#service-coverage-list");
-  const $noCoverageState = $("#no-coverage-state");
-  const $coveragePagination = $("#coverage-pagination");
+    // Modal elements
+    const $modal = $("#area-selection-modal");
+    const $modalCityName = $("#modal-city-name");
+    const $modalAreasGrid = $("#modal-areas-grid");
+    const $modalSaveBtn = $("#modal-save-btn");
+    const $modalCancelBtn = $("#modal-cancel-btn");
+    const $modalCloseBtn = $(".mobooking-modal-close-btn");
+    const $modalSelectAll = $("#modal-select-all");
+    const $modalDeselectAll = $("#modal-deselect-all");
+    const $modalFeedback = $("#modal-feedback");
 
-  // i18n shorthand
-  const i18n = window.mobooking_areas_i18n || {};
+    // i18n shorthand
+    const i18n = mobooking_areas_params.i18n || {};
 
-  /**
-   * Initialize the application
-   */
-  function init() {
-    if (typeof mobooking_areas_params === "undefined") {
-      console.error("MoBooking Areas: Parameters not loaded");
-      return;
+    /**
+     * Initialize the application
+     */
+    function init() {
+        loadCities();
+        loadServiceCoverage();
+        bindEvents();
     }
 
-    // Automatically load Sweden
-    currentCountry = { code: 'SE', name: 'Sweden' };
-    $selectedCountryName.text(currentCountry.name);
-    $citiesAreasCard.show();
-    $areasSelectionSection.hide();
-    $selectionActions.hide();
-    loadCitiesForCountry(currentCountry.code);
+    /**
+     * Bind all event handlers
+     */
+    function bindEvents() {
+        // City selection
+        $citiesGridContainer.on("click", ".city-card", handleCityClick);
 
-    loadServiceCoverage();
-    bindEvents();
-  }
+        // Modal actions
+        $modalCancelBtn.on("click", closeModal);
+        $modalCloseBtn.on("click", closeModal);
+        $modalSaveBtn.on("click", handleSaveAreas);
+        $modalSelectAll.on("click", () => $modalAreasGrid.find("input[type='checkbox']").prop("checked", true));
+        $modalDeselectAll.on("click", () => $modalAreasGrid.find("input[type='checkbox']").prop("checked", false));
 
-  /**
-   * Bind all event handlers
-   */
-  function bindEvents() {
-    $cancelSelectionBtn.on("click", handleCancelSelection);
+        // Coverage management
+        $coverageSearch.on("input", debounce(loadServiceCoverage, 500));
+        $cityFilter.on("change", loadServiceCoverage);
+        $statusFilter.on("change", loadServiceCoverage);
+        $clearFiltersBtn.on("click", clearCoverageFilters);
+        $coverageList.on("click", ".toggle-city-btn", handleToggleCity);
+        $coverageList.on("click", ".remove-city-btn", handleRemoveCity);
+    }
 
-    // Cities and areas selection
-    $(document).on("click", ".city-item", handleCitySelection);
-    $(document).on("change", ".area-checkbox", handleAreaSelection);
-    $saveSelectionsBtn.on("click", handleSaveSelections);
-    $backToCitiesBtn.on("click", handleBackToCities);
+    /**
+     * Debounce function for search input
+     */
+    function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
 
-    // Coverage management
-    let searchTimeout;
-    $coverageSearch.on("input", function () {
-      clearTimeout(searchTimeout);
-      searchTimeout = setTimeout(() => {
-        coverageFilters.search = $(this).val().trim();
-        loadServiceCoverage(1);
-      }, 500);
-    });
+    /**
+     * Load available Swedish cities
+     */
+    function loadCities() {
+        $citiesGridContainer.html(`<div class="mobooking-loading-state"><div class="mobooking-spinner"></div><p>${i18n.loading_cities}</p></div>`);
 
-    $countryFilter.on("change", function () {
-      coverageFilters.country = $(this).val();
-      loadServiceCoverage(1);
-    });
+        $.ajax({
+            url: mobooking_areas_params.ajax_url,
+            type: "POST",
+            data: {
+                action: "mobooking_get_cities_for_country",
+                nonce: mobooking_areas_params.nonce,
+                country_code: mobooking_areas_params.country_code,
+            },
+            success: function (response) {
+                if (response.success && response.data?.cities) {
+                    citiesData = response.data.cities;
+                    displayCities(citiesData);
+                    populateCityFilter(citiesData);
+                } else {
+                    $citiesGridContainer.html(`<div class="mobooking-empty-state"><p>${i18n.no_cities_available}</p></div>`);
+                }
+            },
+            error: function () {
+                $citiesGridContainer.html(`<div class="mobooking-error-state"><p>${i18n.error}</p></div>`);
+            },
+        });
+    }
 
-    $statusFilter.on("change", function () {
-      coverageFilters.status = $(this).val();
-      loadServiceCoverage(1);
-    });
-
-    $clearCoverageFiltersBtn.on("click", clearCoverageFilters);
-
-    // Coverage actions (delegated)
-    $(document).on("click", ".toggle-area-btn", handleToggleArea);
-    $(document).on("click", ".remove-country-btn", handleRemoveCountry);
-    $(document).on("click", ".page-numbers", handlePaginationClick);
-  }
-
-
-
-
-  /**
-   * Handle cancel selection
-   */
-  function handleCancelSelection() {
-    currentCountry = null;
-    selectedCities.clear();
-    selectedAreas.clear();
-
-    $countrySelectionCard.show();
-    $citiesAreasCard.hide();
-    $countrySelector.val("");
-    $selectCountryBtn.prop("disabled", true);
-  }
-
-  /**
-   * Load cities for selected country
-   */
-  function loadCitiesForCountry(countryCode) {
-    $citiesGrid.html(
-      '<div class="loading-state"><div class="mobooking-spinner"></div><p>' +
-        (i18n.loading || "Loading...") +
-        "</p></div>"
-    );
-
-    $.ajax({
-      url: mobooking_areas_params.ajax_url,
-      type: "POST",
-      data: {
-        action: "mobooking_get_cities_for_country",
-        nonce: mobooking_areas_params.nonce,
-        country_code: countryCode,
-      },
-      success: function (response) {
-        if (response.success && response.data?.cities) {
-          displayCities(response.data.cities);
-        } else {
-          $citiesGrid.html(
-            '<div class="empty-state"><p>' +
-              (i18n.no_cities_available || "No cities available") +
-              "</p></div>"
-          );
+    /**
+     * Display cities grid
+     */
+    function displayCities(cities) {
+        if (!cities.length) {
+            $citiesGridContainer.html(`<div class="mobooking-empty-state"><p>${i18n.no_cities_available}</p></div>`);
+            return;
         }
-      },
-      error: function () {
-        $citiesGrid.html(
-          '<div class="error-state"><p>' +
-            (i18n.error || "Error loading cities") +
-            "</p></div>"
-        );
-      },
-    });
-  }
 
-  /**
-   * Display cities grid
-   */
-  function displayCities(cities) {
-    if (!cities.length) {
-      $citiesGrid.html(
-        '<div class="empty-state"><p>' +
-          (i18n.no_cities_available || "No cities available") +
-          "</p></div>"
-      );
-      return;
-    }
-
-    let html = '<div class="cities-grid-content">';
-    cities.forEach(function (city) {
-      const isSelected = selectedCities.has(city.code);
-      html += `
-                <div class="city-item ${
-                  isSelected ? "selected" : ""
-                }" data-city-code="${escapeHtml(
-        city.code
-      )}" data-city-name="${escapeHtml(city.name)}">
-                    <div class="city-icon">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
-                        </svg>
-                    </div>
-                    <div class="city-name">${escapeHtml(city.name)}</div>
-                    <div class="city-status">
-                        ${
-                          isSelected
-                            ? '<span class="status-badge selected">Selected</span>'
-                            : '<span class="status-badge">Click to select</span>'
-                        }
-                    </div>
+        let html = '<div class="cities-grid">';
+        cities.forEach(function (city) {
+            html += `
+                <div class="city-card" data-city-code="${escapeHtml(city.code)}" data-city-name="${escapeHtml(city.name)}">
+                    <span class="city-name">${escapeHtml(city.name)}</span>
+                    <span class="city-action-link">${__('Manage Areas', 'mobooking')} &rarr;</span>
                 </div>
             `;
-    });
-    html += "</div>";
-
-    $citiesGrid.html(html);
-    updateSelectionActions();
-  }
-
-  /**
-   * Handle city selection
-   */
-  function handleCitySelection() {
-    const $city = $(this);
-    const cityCode = $city.data("city-code");
-    const cityName = $city.data("city-name");
-
-    if ($city.hasClass("selected")) {
-      // Deselect city
-      selectedCities.delete(cityCode);
-      $city.removeClass("selected");
-      $city
-        .find(".status-badge")
-        .removeClass("selected")
-        .text("Click to select");
-    } else {
-      // Select city and load its areas
-      selectedCities.set(cityCode, { name: cityName, areas: new Map() });
-      $city.addClass("selected");
-      $city.find(".status-badge").addClass("selected").text("Selected");
-
-      // Load areas for this city
-      loadAreasForCity(currentCountry.code, cityCode, cityName);
+        });
+        html += "</div>";
+        $citiesGridContainer.html(html);
     }
 
-    updateSelectionActions();
-  }
+    /**
+     * Populate the city filter dropdown
+     */
+    function populateCityFilter(cities) {
+        $cityFilter.empty().append($("<option>", { value: "", text: i18n.all_cities || "All Cities" }));
+        cities.forEach(function (city) {
+            $cityFilter.append($("<option>", { value: city.name, text: city.name }));
+        });
+    }
 
-  /**
-   * Load areas for selected city
-   */
-  function loadAreasForCity(countryCode, cityCode, cityName) {
-    $selectedCityName.text(cityName);
-    $areasSelectionSection.show();
-    $backToCitiesBtn.show();
+    /**
+     * Handle city card click
+     */
+    function handleCityClick() {
+        const $cityCard = $(this);
+        currentCity = {
+            code: $cityCard.data("city-code"),
+            name: $cityCard.data("city-name"),
+        };
+        openModal();
+    }
 
-    $areasGrid.html(
-      '<div class="loading-state"><div class="mobooking-spinner"></div><p>' +
-        (i18n.loading || "Loading...") +
-        "</p></div>"
-    );
+    /**
+     * Open and prepare the area selection modal
+     */
+    function openModal() {
+        $modalCityName.text(currentCity.name);
+        $modalAreasGrid.html(`<div class="mobooking-loading-state"><div class="mobooking-spinner"></div><p>${i18n.loading_areas}</p></div>`);
+        $modal.fadeIn(200);
 
-    $.ajax({
-      url: mobooking_areas_params.ajax_url,
-      type: "POST",
-      data: {
-        action: "mobooking_get_areas_for_city",
-        nonce: mobooking_areas_params.nonce,
-        country_code: countryCode,
-        city_code: cityCode,
-      },
-      success: function (response) {
-        if (response.success && response.data?.areas) {
-          displayAreas(response.data.areas, cityCode);
-        } else {
-          $areasGrid.html(
-            '<div class="empty-state"><p>' +
-              (i18n.no_areas_available || "No areas available") +
-              "</p></div>"
-          );
+        // Fetch areas for the city
+        $.when(
+            getAreasForCity(currentCity.code),
+            getSavedAreasForCity(currentCity.code)
+        ).done(function(areasResponse, savedAreasResponse) {
+            const allAreas = areasResponse[0].data.areas;
+            const savedAreas = savedAreasResponse[0].data.areas.map(a => a.area_value);
+            displayAreasInModal(allAreas, savedAreas);
+        }).fail(function() {
+            $modalAreasGrid.html(`<div class="mobooking-error-state"><p>${i18n.error}</p></div>`);
+        });
+    }
+
+    /**
+     * Get all available areas for a city
+     */
+    function getAreasForCity(cityCode) {
+        return $.ajax({
+            url: mobooking_areas_params.ajax_url,
+            type: "POST",
+            data: {
+                action: "mobooking_get_areas_for_city",
+                nonce: mobooking_areas_params.nonce,
+                country_code: mobooking_areas_params.country_code,
+                city_code: cityCode,
+            },
+        });
+    }
+
+    /**
+     * Get already saved/enabled areas for a city
+     */
+    function getSavedAreasForCity(cityCode) {
+        return $.ajax({
+            url: mobooking_areas_params.ajax_url,
+            type: "POST",
+            data: {
+                action: "mobooking_get_service_coverage",
+                nonce: mobooking_areas_params.nonce,
+                city: cityCode,
+                limit: -1, // Get all
+            },
+        });
+    }
+
+    /**
+     * Close the area selection modal
+     */
+    function closeModal() {
+        $modal.fadeOut(200);
+        currentCity = null;
+        $modalFeedback.hide();
+    }
+
+    /**
+     * Display areas in the modal
+     */
+    function displayAreasInModal(areas, savedAreas) {
+        if (!areas || !areas.length) {
+            $modalAreasGrid.html(`<div class="mobooking-empty-state"><p>${i18n.no_areas_available}</p></div>`);
+            return;
         }
-      },
-      error: function () {
-        $areasGrid.html(
-          '<div class="error-state"><p>' +
-            (i18n.error || "Error loading areas") +
-            "</p></div>"
-        );
-      },
-    });
-  }
 
-  /**
-   * Display areas grid
-   */
-  function displayAreas(areas, cityCode) {
-    if (!areas.length) {
-      $areasGrid.html(
-        '<div class="empty-state"><p>' +
-          (i18n.no_areas_available || "No areas available") +
-          "</p></div>"
-      );
-      return;
-    }
-
-    let html = `
-            <div class="areas-header">
-                <div class="selection-controls">
-                    <button type="button" class="select-all-areas-btn mobooking-btn-link" data-city="${cityCode}">Select All</button>
-                    <button type="button" class="deselect-all-areas-btn mobooking-btn-link" data-city="${cityCode}" style="display: none;">Deselect All</button>
-                </div>
-            </div>
-            <div class="areas-grid-content">
-        `;
-
-    areas.forEach(function (area) {
-      const areaId = `${cityCode}-${area.code}`;
-      const isSelected = selectedAreas.has(areaId);
-
-      html += `
-                <label class="area-item ${isSelected ? "selected" : ""}">
-                    <input type="checkbox" 
-                           class="area-checkbox" 
-                           value="${areaId}"
-                           data-city-code="${cityCode}"
-                           data-area-name="${escapeHtml(area.name)}"
-                           data-zip-code="${escapeHtml(area.zip_code)}"
-                           ${isSelected ? "checked" : ""}>
-                    <div class="area-content">
-                        <div class="area-name">${escapeHtml(area.name)}</div>
-                        <div class="area-zip">${escapeHtml(area.zip_code)}</div>
-                    </div>
+        let html = "";
+        areas.forEach(function (area) {
+            const isChecked = savedAreas.includes(area.zip_code);
+            html += `
+                <label class="modal-area-item">
+                    <input type="checkbox" value="${escapeHtml(area.zip_code)}" data-area-name="${escapeHtml(area.name)}" ${isChecked ? "checked" : ""}>
+                    <span class="area-name">${escapeHtml(area.name)}</span>
+                    <span class="area-zip">${escapeHtml(area.zip_code)}</span>
                 </label>
             `;
-    });
-
-    html += "</div>";
-    $areasGrid.html(html);
-
-    // Bind area selection controls
-    $(document).on("click", ".select-all-areas-btn", function () {
-      const cityCode = $(this).data("city");
-      $(`.area-checkbox[data-city-code="${cityCode}"]:not(:checked)`)
-        .prop("checked", true)
-        .trigger("change");
-    });
-
-    $(document).on("click", ".deselect-all-areas-btn", function () {
-      const cityCode = $(this).data("city");
-      $(`.area-checkbox[data-city-code="${cityCode}"]:checked`)
-        .prop("checked", false)
-        .trigger("change");
-    });
-
-    updateAreaSelectionControls(cityCode);
-  }
-
-  /**
-   * Handle area selection
-   */
-  function handleAreaSelection() {
-    const $checkbox = $(this);
-    const areaId = $checkbox.val();
-    const cityCode = $checkbox.data("city-code");
-    const areaName = $checkbox.data("area-name");
-    const zipCode = $checkbox.data("zip-code");
-
-    if ($checkbox.is(":checked")) {
-      selectedAreas.set(areaId, {
-        city_code: cityCode,
-        area_name: areaName,
-        zip_code: zipCode,
-        country_code: currentCountry.code,
-        country_name: currentCountry.name,
-      });
-      $checkbox.closest(".area-item").addClass("selected");
-    } else {
-      selectedAreas.delete(areaId);
-      $checkbox.closest(".area-item").removeClass("selected");
+        });
+        $modalAreasGrid.html(html);
     }
 
-    updateAreaSelectionControls(cityCode);
-    updateSelectionActions();
-  }
-
-  /**
-   * Update area selection controls
-   */
-  function updateAreaSelectionControls(cityCode) {
-    const $selectAll = $(`.select-all-areas-btn[data-city="${cityCode}"]`);
-    const $deselectAll = $(`.deselect-all-areas-btn[data-city="${cityCode}"]`);
-    const totalAreas = $(`.area-checkbox[data-city-code="${cityCode}"]`).length;
-    const selectedAreasCount = $(
-      `.area-checkbox[data-city-code="${cityCode}"]:checked`
-    ).length;
-
-    if (selectedAreasCount === 0) {
-      $selectAll.show();
-      $deselectAll.hide();
-    } else if (selectedAreasCount === totalAreas) {
-      $selectAll.hide();
-      $deselectAll.show();
-    } else {
-      $selectAll.show();
-      $deselectAll.show();
-    }
-  }
-
-  /**
-   * Handle back to cities
-   */
-  function handleBackToCities() {
-    $areasSelectionSection.hide();
-    $backToCitiesBtn.hide();
-    updateSelectionActions();
-  }
-
-  /**
-   * Update selection actions visibility and content
-   */
-  function updateSelectionActions() {
-    const hasSelections = selectedCities.size > 0 || selectedAreas.size > 0;
-
-    if (hasSelections) {
-      $selectionActions.show();
-
-      let buttonText = i18n.save_selections || "Save Selected Areas";
-      if (selectedAreas.size > 0) {
-        buttonText += ` (${selectedAreas.size})`;
-      } else if (selectedCities.size > 0) {
-        buttonText =
-          (i18n.save_selections || "Save Selected Areas") +
-          ` (${selectedCities.size} cities)`;
-      }
-
-      $saveSelectionsBtn.find("svg").siblings().remove();
-      $saveSelectionsBtn.append(` ${buttonText}`);
-    } else {
-      $selectionActions.hide();
-    }
-  }
-
-  /**
-   * Handle save selections
-   */
-  function handleSaveSelections() {
-    if (selectedAreas.size === 0) {
-      showFeedback(
-        $selectionFeedback,
-        "Please select at least one area to save.",
-        "error"
-      );
-      return;
-    }
-
-    const areasData = Array.from(selectedAreas.values());
-    const originalText = $saveSelectionsBtn.html();
-
-    $saveSelectionsBtn.prop("disabled", true).html(`
-            <div class="mobooking-spinner mobooking-spinner-sm"></div>
-            ${i18n.saving || "Saving..."}
-        `);
-
-    $.ajax({
-      url: mobooking_areas_params.ajax_url,
-      type: "POST",
-      data: {
-        action: "mobooking_add_bulk_areas",
-        nonce: mobooking_areas_params.nonce,
-        areas_data: areasData,
-      },
-      success: function (response) {
-        if (response.success) {
-          const message = (
-            i18n.country_added_success ||
-            "Service areas added successfully for {{country}}!"
-          ).replace("{{country}}", currentCountry.name);
-          showFeedback($selectionFeedback, message, "success");
-
-          // Reset the selection
-          setTimeout(() => {
-            handleCancelSelection();
-            loadServiceCoverage(1); // Refresh coverage display
-          }, 2000);
-        } else {
-          showFeedback(
-            $selectionFeedback,
-            response.data?.message || "Error saving selections.",
-            "error"
-          );
-        }
-      },
-      error: function () {
-        showFeedback($selectionFeedback, "Error saving selections.", "error");
-      },
-      complete: function () {
-        $saveSelectionsBtn.prop("disabled", false).html(originalText);
-      },
-    });
-  }
-
-  /**
-   * Load service coverage
-   */
-  function loadServiceCoverage(page = 1) {
-    showCoverageLoading(true);
-
-    $.ajax({
-      url: mobooking_areas_params.ajax_url,
-      type: "POST",
-      data: {
-        action: "mobooking_get_service_coverage",
-        nonce: mobooking_areas_params.nonce,
-        paged: page,
-        limit: 20,
-        search: coverageFilters.search,
-        country: coverageFilters.country,
-        status: coverageFilters.status,
-      },
-      success: function (response) {
-        if (response.success && response.data) {
-          renderServiceCoverage(response.data);
-          renderCoveragePagination(response.data);
-        } else {
-          showNoCoverageState();
-        }
-      },
-      error: function () {
-        showCoverageError();
-      },
-      complete: function () {
-        showCoverageLoading(false);
-      },
-    });
-  }
-
-  /**
-   * Render service coverage
-   */
-  function renderServiceCoverage(data) {
-    if (!data.coverage || data.coverage.length === 0) {
-      showNoCoverageState();
-      return;
-    }
-
-    $noCoverageState.hide();
-
-    // Group coverage by country
-    const coverageByCountry = {};
-    data.coverage.forEach(function (area) {
-      const countryName =
-        getCountryNameFromCode(area.country_code) || area.country_code;
-      if (!coverageByCountry[countryName]) {
-        coverageByCountry[countryName] = {
-          country_code: area.country_code,
-          areas: [],
-        };
-      }
-      coverageByCountry[countryName].areas.push(area);
-    });
-
-    let html = "";
-    Object.keys(coverageByCountry)
-      .sort()
-      .forEach(function (countryName) {
-        const countryData = coverageByCountry[countryName];
-        const activeAreas = countryData.areas.filter(
-          (a) => a.status === "active" || !a.status
-        );
-        const inactiveAreas = countryData.areas.filter(
-          (a) => a.status === "inactive"
-        );
-
-        html += `
-                <div class="coverage-country" data-country="${escapeHtml(
-                  countryData.country_code
-                )}">
-                    <div class="coverage-country-header">
-                        <div class="country-info">
-                            <div class="country-flag">${escapeHtml(
-                              countryData.country_code
-                            )}</div>
-                            <div class="country-details">
-                                <h4 class="country-name">${escapeHtml(
-                                  countryName
-                                )}</h4>
-                                <div class="country-stats">
-                                    <span class="stat active">${
-                                      activeAreas.length
-                                    } active</span>
-                                    ${
-                                      inactiveAreas.length > 0
-                                        ? `<span class="stat inactive">${inactiveAreas.length} inactive</span>`
-                                        : ""
-                                    }
-                                </div>
-                            </div>
-                        </div>
-                        <div class="country-actions">
-                            <button type="button" class="toggle-country-btn mobooking-btn-link" data-country="${escapeHtml(
-                              countryData.country_code
-                            )}">
-                                <svg class="expand-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                                </svg>
-                                View Areas
-                            </button>
-                            <button type="button" class="remove-country-btn mobooking-btn-link mobooking-btn-danger" 
-                                    data-country-code="${escapeHtml(
-                                      countryData.country_code
-                                    )}" 
-                                    data-country-name="${escapeHtml(
-                                      countryName
-                                    )}">
-                                Remove Country
-                            </button>
-                        </div>
-                    </div>
-                    <div class="coverage-areas" style="display: none;">
-                        <div class="areas-list">
-            `;
-
-        // Group areas by city
-        const areasByCity = {};
-        countryData.areas.forEach(function (area) {
-          if (!areasByCity[area.area_name]) {
-            areasByCity[area.area_name] = [];
-          }
-          areasByCity[area.area_name].push(area);
+    /**
+     * Handle saving areas from the modal
+     */
+    function handleSaveAreas() {
+        const selectedAreas = [];
+        $modalAreasGrid.find("input[type='checkbox']:checked").each(function () {
+            selectedAreas.push({
+                area_name: $(this).data("area-name"),
+                area_zipcode: $(this).val(),
+                country_code: mobooking_areas_params.country_code,
+                country_name: 'Sweden',
+                city_name: currentCity.name,
+            });
         });
 
-        Object.keys(areasByCity)
-          .sort()
-          .forEach(function (cityName) {
-            const cityAreas = areasByCity[cityName];
-            html += `
-                    <div class="city-group">
-                        <div class="city-header">
-                            <h5 class="city-name">${escapeHtml(cityName)}</h5>
-                            <span class="city-count">${
-                              cityAreas.length
-                            } areas</span>
-                        </div>
-                        <div class="city-areas">
-                `;
+        const originalBtnText = $modalSaveBtn.html();
+        $modalSaveBtn.prop("disabled", true).html(`<div class="mobooking-spinner mobooking-spinner-sm"></div> ${i18n.saving}`);
 
-            cityAreas.forEach(function (area) {
-              const isActive = area.status !== "inactive";
-              html += `
-                        <div class="area-row ${
-                          isActive ? "active" : "inactive"
-                        }" data-area-id="${area.area_id}">
-                            <div class="area-info">
-                                <div class="area-name">${escapeHtml(
-                                  area.area_name
-                                )}</div>
-                                <div class="area-zip">${escapeHtml(
-                                  area.area_value
-                                )}</div>
-                            </div>
-                            <div class="area-status">
-                                <span class="status-indicator ${
-                                  isActive ? "active" : "inactive"
-                                }">
-                                    ${isActive ? "Active" : "Inactive"}
-                                </span>
-                            </div>
-                            <div class="area-actions">
-                                <button type="button" class="toggle-area-btn mobooking-btn-link" 
-                                        data-area-id="${area.area_id}" 
-                                        data-current-status="${
-                                          isActive ? "active" : "inactive"
-                                        }">
-                                    ${isActive ? "Disable" : "Enable"}
-                                </button>
-                            </div>
-                        </div>
-                    `;
-            });
+        $.ajax({
+            url: mobooking_areas_params.ajax_url,
+            type: "POST",
+            data: {
+                action: "mobooking_save_city_areas",
+                nonce: mobooking_areas_params.nonce,
+                city_code: currentCity.code,
+                areas_data: selectedAreas,
+            },
+            success: function (response) {
+                if (response.success) {
+                    showModalFeedback(i18n.areas_saved_success.replace('%s', currentCity.name), "success");
+                    setTimeout(() => {
+                        closeModal();
+                        loadServiceCoverage(); // Refresh coverage list
+                    }, 1500);
+                } else {
+                    showModalFeedback(response.data?.message || i18n.error_saving, "error");
+                }
+            },
+            error: function () {
+                showModalFeedback(i18n.error_saving, "error");
+            },
+            complete: function () {
+                $modalSaveBtn.prop("disabled", false).html(originalBtnText);
+            }
+        });
+    }
 
+    /**
+     * Show feedback message inside the modal
+     */
+    function showModalFeedback(message, type = 'success') {
+        $modalFeedback.removeClass('success error').addClass(type).html(message).fadeIn();
+        setTimeout(() => $modalFeedback.fadeOut(), 5000);
+    }
+
+    /**
+     * Load and display service coverage
+     */
+    function loadServiceCoverage() {
+        $coverageList.html(`<div class="mobooking-loading-state"><div class="mobooking-spinner"></div></div>`);
+
+        const filters = {
+            search: $coverageSearch.val().trim(),
+            city: $cityFilter.val(),
+            status: $statusFilter.val(),
+            country_code: mobooking_areas_params.country_code,
+            groupby: 'city',
+        };
+
+        $.ajax({
+            url: mobooking_areas_params.ajax_url,
+            type: "POST",
+            data: {
+                action: "mobooking_get_service_coverage_grouped",
+                nonce: mobooking_areas_params.nonce,
+                filters: filters,
+            },
+            success: function (response) {
+                if (response.success && response.data?.cities) {
+                    renderCoverage(response.data.cities);
+                } else {
+                    $coverageList.html(`<div class="mobooking-empty-state"><p>${i18n.no_coverage || 'No service coverage found.'}</p></div>`);
+                }
+            },
+            error: function () {
+                $coverageList.html(`<div class="mobooking-error-state"><p>${i18n.error}</p></div>`);
+            },
+        });
+    }
+
+    /**
+     * Render the service coverage section
+     */
+    function renderCoverage(cities) {
+        if (!cities.length) {
+            $coverageList.html(`<div class="mobooking-empty-state"><p>${i18n.no_coverage || 'No service coverage found.'}</p></div>`);
+            return;
+        }
+
+        let html = '<div class="coverage-cities-list">';
+        cities.forEach(function (city) {
             html += `
-                        </div>
+                <div class="coverage-city-item" data-city-code="${escapeHtml(city.city_code)}">
+                    <div class="city-info">
+                        <span class="city-name">${escapeHtml(city.city_name)}</span>
+                        <span class="city-stats">${city.area_count} areas</span>
                     </div>
-                `;
-          });
-
-        html += `
-                        </div>
+                    <div class="city-actions">
+                        <button type="button" class="toggle-city-btn mobooking-btn mobooking-btn-secondary mobooking-btn-sm" data-status="${city.status}">
+                            ${city.status === 'active' ? 'Disable' : 'Enable'}
+                        </button>
+                        <button type="button" class="remove-city-btn mobooking-btn mobooking-btn-danger mobooking-btn-sm">
+                            Remove
+                        </button>
                     </div>
                 </div>
             `;
-      });
-
-    $serviceCoverageList.html(html);
-
-    // Bind toggle country visibility
-    $(document).on("click", ".toggle-country-btn", function () {
-      const $btn = $(this);
-      const $areas = $btn.closest(".coverage-country").find(".coverage-areas");
-      const $icon = $btn.find(".expand-icon");
-
-      if ($areas.is(":visible")) {
-        $areas.slideUp();
-        $icon.css("transform", "rotate(0deg)");
-        $btn.find("svg").siblings().text("View Areas");
-      } else {
-        $areas.slideDown();
-        $icon.css("transform", "rotate(180deg)");
-        $btn.find("svg").siblings().text("Hide Areas");
-      }
-    });
-  }
-
-  /**
-   * Handle toggle area status
-   */
-  function handleToggleArea() {
-    const $btn = $(this);
-    const areaId = $btn.data("area-id");
-    const currentStatus = $btn.data("current-status");
-    const newStatus = currentStatus === "active" ? "inactive" : "active";
-    const $row = $btn.closest(".area-row");
-
-    $btn
-      .prop("disabled", true)
-      .html('<div class="mobooking-spinner mobooking-spinner-sm"></div>');
-
-    $.ajax({
-      url: mobooking_areas_params.ajax_url,
-      type: "POST",
-      data: {
-        action: "mobooking_toggle_area_status",
-        nonce: mobooking_areas_params.nonce,
-        area_id: areaId,
-        status: newStatus,
-      },
-      success: function (response) {
-        if (response.success) {
-          // Update UI
-          $row.removeClass("active inactive").addClass(newStatus);
-          $row
-            .find(".status-indicator")
-            .removeClass("active inactive")
-            .addClass(newStatus)
-            .text(newStatus === "active" ? "Active" : "Inactive");
-          $btn
-            .data("current-status", newStatus)
-            .text(newStatus === "active" ? "Disable" : "Enable");
-
-          // Update country stats
-          updateCountryStats($row.closest(".coverage-country"));
-        } else {
-          showFeedback(
-            $selectionFeedback,
-            response.data?.message || "Error updating area status.",
-            "error"
-          );
-        }
-      },
-      error: function () {
-        showFeedback(
-          $selectionFeedback,
-          "Error updating area status.",
-          "error"
-        );
-      },
-      complete: function () {
-        $btn.prop("disabled", false);
-      },
-    });
-  }
-
-  /**
-   * Handle remove country
-   */
-  function handleRemoveCountry() {
-    const $btn = $(this);
-    const countryCode = $btn.data("country-code");
-    const countryName = $btn.data("country-name");
-
-    const confirmMessage = (
-      i18n.confirm_remove_country ||
-      "Are you sure you want to remove all service areas for {{country}}?"
-    ).replace("{{country}}", countryName);
-
-    if (!confirm(confirmMessage)) {
-      return;
+        });
+        html += "</div>";
+        $coverageList.html(html);
     }
 
-    $btn
-      .prop("disabled", true)
-      .html('<div class="mobooking-spinner mobooking-spinner-sm"></div>');
+    /**
+     * Handle toggling a city's service status
+     */
+    function handleToggleCity() {
+        // Future implementation
+    }
 
-    $.ajax({
-      url: mobooking_areas_params.ajax_url,
-      type: "POST",
-      data: {
-        action: "mobooking_remove_country_coverage",
-        nonce: mobooking_areas_params.nonce,
-        country_code: countryCode,
-      },
-      success: function (response) {
-        if (response.success) {
-          $btn.closest(".coverage-country").fadeOut(300, function () {
-            $(this).remove();
-            // Check if any coverage remains
-            if ($serviceCoverageList.children().length === 0) {
-              showNoCoverageState();
+    /**
+     * Handle removing all areas for a city
+     */
+    function handleRemoveCity() {
+        const $btn = $(this);
+        const cityCode = $btn.closest('.coverage-city-item').data('city-code');
+        const cityName = $btn.closest('.coverage-city-item').find('.city-name').text();
+
+        if (!confirm(i18n.confirm_remove_city.replace('%s', cityName))) {
+            return;
+        }
+
+        $btn.prop('disabled', true).html('<div class="mobooking-spinner mobooking-spinner-sm"></div>');
+
+        $.ajax({
+            url: mobooking_areas_params.ajax_url,
+            type: "POST",
+            data: {
+                action: "mobooking_remove_city_coverage",
+                nonce: mobooking_areas_params.nonce,
+                city_code: cityCode,
+            },
+            success: function (response) {
+                if (response.success) {
+                    // Optimistically remove from UI
+                    $btn.closest('.coverage-city-item').fadeOut(300, function() { $(this).remove(); });
+                } else {
+                    alert(i18n.error_removing_city);
+                    $btn.prop('disabled', false).text('Remove');
+                }
+            },
+            error: function() {
+                alert(i18n.error_removing_city);
+                $btn.prop('disabled', false).text('Remove');
             }
-          });
-        } else {
-          showFeedback(
-            $selectionFeedback,
-            response.data?.message || "Error removing country coverage.",
-            "error"
-          );
-          $btn.prop("disabled", false).text("Remove Country");
-        }
-      },
-      error: function () {
-        showFeedback(
-          $selectionFeedback,
-          "Error removing country coverage.",
-          "error"
-        );
-        $btn.prop("disabled", false).text("Remove Country");
-      },
-    });
-  }
-
-  /**
-   * Update country statistics
-   */
-  function updateCountryStats($countryElement) {
-    const activeAreas = $countryElement.find(".area-row.active").length;
-    const inactiveAreas = $countryElement.find(".area-row.inactive").length;
-
-    let statsHtml = `<span class="stat active">${activeAreas} active</span>`;
-    if (inactiveAreas > 0) {
-      statsHtml += `<span class="stat inactive">${inactiveAreas} inactive</span>`;
+        });
     }
 
-    $countryElement.find(".country-stats").html(statsHtml);
-  }
-
-  /**
-   * Render coverage pagination
-   */
-  function renderCoveragePagination(data) {
-    if (data.total_count <= data.per_page) {
-      $coveragePagination.empty();
-      return;
+    /**
+     * Clear all coverage filters
+     */
+    function clearCoverageFilters() {
+        $coverageSearch.val('');
+        $cityFilter.val('');
+        $statusFilter.val('');
+        loadServiceCoverage();
     }
 
-    const totalPages = Math.ceil(data.total_count / data.per_page);
-    const currentPage = data.current_page;
-    let html = '<div class="mobooking-pagination"><ul class="page-numbers">';
-
-    // Previous button
-    if (currentPage > 1) {
-      html += `<li><a href="#" class="page-numbers prev" data-page="${
-        currentPage - 1
-      }">← ${i18n.previous || "Previous"}</a></li>`;
+    /**
+     * Utility to escape HTML
+     */
+    function escapeHtml(text) {
+        const map = {
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#039;",
+        };
+        return text ? text.replace(/[&<>"']/g, (m) => map[m]) : "";
     }
 
-    // Page numbers
-    const startPage = Math.max(1, currentPage - 2);
-    const endPage = Math.min(totalPages, currentPage + 2);
+    // Initialize the page
+    $(document).ready(init);
 
-    if (startPage > 1) {
-      html += '<li><a href="#" class="page-numbers" data-page="1">1</a></li>';
-      if (startPage > 2) {
-        html += '<li><span class="page-numbers dots">…</span></li>';
-      }
-    }
-
-    for (let i = startPage; i <= endPage; i++) {
-      html += `<li><a href="#" class="page-numbers ${
-        i === currentPage ? "current" : ""
-      }" data-page="${i}">${i}</a></li>`;
-    }
-
-    if (endPage < totalPages) {
-      if (endPage < totalPages - 1) {
-        html += '<li><span class="page-numbers dots">…</span></li>';
-      }
-      html += `<li><a href="#" class="page-numbers" data-page="${totalPages}">${totalPages}</a></li>`;
-    }
-
-    // Next button
-    if (currentPage < totalPages) {
-      html += `<li><a href="#" class="page-numbers next" data-page="${
-        currentPage + 1
-      }">${i18n.next || "Next"} →</a></li>`;
-    }
-
-    html += "</ul></div>";
-    $coveragePagination.html(html);
-  }
-
-  /**
-   * Handle pagination clicks
-   */
-  function handlePaginationClick(e) {
-    e.preventDefault();
-    if ($(this).hasClass("current") || $(this).hasClass("dots")) return;
-
-    const page = parseInt($(this).data("page"));
-    if (page) {
-      loadServiceCoverage(page);
-    }
-  }
-
-  /**
-   * Clear coverage filters
-   */
-  function clearCoverageFilters() {
-    $coverageSearch.val("");
-    $countryFilter.val("");
-    $statusFilter.val("");
-    coverageFilters.search = "";
-    coverageFilters.country = "";
-    coverageFilters.status = "";
-    loadServiceCoverage(1);
-  }
-
-  /**
-   * Show/hide coverage loading state
-   */
-  function showCoverageLoading(show) {
-    if (show) {
-      $coverageLoading.show();
-      $serviceCoverageList.hide();
-      $noCoverageState.hide();
-    } else {
-      $coverageLoading.hide();
-      $serviceCoverageList.show();
-    }
-  }
-
-  /**
-   * Show no coverage state
-   */
-  function showNoCoverageState() {
-    $serviceCoverageList.hide();
-    $coveragePagination.empty();
-    $noCoverageState.show();
-  }
-
-  /**
-   * Show coverage error
-   */
-  function showCoverageError() {
-    $serviceCoverageList.html(
-      '<div class="error-state"><p>Error loading service coverage. Please try again.</p></div>'
-    );
-    $noCoverageState.hide();
-  }
-
-  /**
-   * Utility functions
-   */
-  function showFeedback($element, message, type = "success", duration = 5000) {
-    $element
-      .removeClass("success error info")
-      .addClass(type)
-      .html(message)
-      .fadeIn();
-    if (duration > 0) {
-      setTimeout(() => $element.fadeOut(), duration);
-    }
-  }
-
-  function escapeHtml(text) {
-    const map = {
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-      "'": "&#039;",
-    };
-    return text.replace(/[&<>"']/g, function (m) {
-      return map[m];
-    });
-  }
-
-  function getCountryNameFromCode(countryCode) {
-    const $option = $countryFilter
-      .find(`option`)
-      .filter(function () {
-        return $(this).text().toLowerCase().includes(countryCode.toLowerCase());
-      })
-      .first();
-    return $option.length ? $option.text() : countryCode;
-  }
-
-  // Initialize when document is ready
-  $(document).ready(init);
 })(jQuery);
-
-/**
- * Debug Script for Enhanced Areas
- * Add this to your browser console to check for errors
- */
-
-console.log("🔍 Starting Enhanced Areas Debug...");
-
-// Check if all required elements exist
-const requiredElements = [
-  "#mobooking-country-selector",
-  "#select-country-btn",
-  "#country-selection-card",
-  "#cities-areas-selection-card",
-  "#cities-grid",
-  "#areas-grid",
-  "#service-coverage-list",
-];
-
-console.log("📋 Checking DOM elements...");
-requiredElements.forEach((selector) => {
-  const element = document.querySelector(selector);
-  console.log(
-    `${element ? "✅" : "❌"} ${selector}: ${element ? "Found" : "NOT FOUND"}`
-  );
-});
-
-// Check if parameters are available
-console.log("🔍 Checking parameters...");
-if (typeof mobooking_areas_params !== "undefined") {
-  console.log("✅ mobooking_areas_params available:", mobooking_areas_params);
-} else {
-  console.error("❌ mobooking_areas_params not available!");
-}
-
-if (typeof mobooking_areas_i18n !== "undefined") {
-  console.log("✅ mobooking_areas_i18n available");
-} else {
-  console.error("❌ mobooking_areas_i18n not available!");
-}
-
-// Test basic AJAX
-console.log("🔍 Testing basic AJAX connection...");
-if (
-  typeof jQuery !== "undefined" &&
-  typeof mobooking_areas_params !== "undefined"
-) {
-  jQuery.ajax({
-    url: mobooking_areas_params.ajax_url,
-    type: "POST",
-    data: {
-      action: "mobooking_get_countries",
-      nonce: mobooking_areas_params.nonce,
-    },
-    success: function (response) {
-      console.log("✅ Countries AJAX test successful:", response);
-    },
-    error: function (xhr, status, error) {
-      console.error("❌ Countries AJAX test failed:");
-      console.error("Status:", status);
-      console.error("Error:", error);
-      console.error("Response Text:", xhr.responseText);
-    },
-  });
-
-  // Test service coverage endpoint
-  jQuery.ajax({
-    url: mobooking_areas_params.ajax_url,
-    type: "POST",
-    data: {
-      action: "mobooking_get_service_coverage",
-      nonce: mobooking_areas_params.nonce,
-    },
-    success: function (response) {
-      console.log("✅ Service Coverage AJAX test successful:", response);
-    },
-    error: function (xhr, status, error) {
-      console.error("❌ Service Coverage AJAX test failed:");
-      console.error("Status:", status);
-      console.error("Error:", error);
-      console.error("Response Text:", xhr.responseText);
-    },
-  });
-} else {
-  console.error("❌ Cannot test AJAX - jQuery or parameters missing");
-}
-
-// Check for JavaScript errors
-window.addEventListener("error", function (e) {
-  console.error("🚨 JavaScript Error Detected:");
-  console.error("Message:", e.message);
-  console.error("Source:", e.filename);
-  console.error("Line:", e.lineno);
-  console.error("Column:", e.colno);
-  console.error("Error Object:", e.error);
-});
-
-console.log("🔍 Debug script loaded. Check above for any issues.");
