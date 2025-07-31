@@ -33,6 +33,11 @@ class Areas {
         // Public ZIP code checking
         add_action('wp_ajax_nopriv_mobooking_check_zip_availability', [$this, 'handle_check_zip_code_public_ajax']);
         add_action('wp_ajax_mobooking_check_zip_availability', [$this, 'handle_check_zip_code_public_ajax']);
+
+        // Enhanced coverage management
+        add_action('wp_ajax_mobooking_get_service_coverage', [$this, 'handle_get_service_coverage_ajax']);
+        add_action('wp_ajax_mobooking_toggle_area_status', [$this, 'handle_toggle_area_status_ajax']);
+        add_action('wp_ajax_mobooking_remove_country_coverage', [$this, 'handle_remove_country_coverage_ajax']);
     }
 
     /**
@@ -841,15 +846,6 @@ public function handle_remove_country_coverage_ajax() {
     wp_send_json_success(['message' => $message, 'deleted_count' => $result]);
 }
 
-/**
- * Enhanced register_ajax_actions method - ADD THESE TO YOUR EXISTING METHOD
- */
-public function register_enhanced_ajax_actions() {
-    // Add these to your existing register_ajax_actions method
-    add_action('wp_ajax_mobooking_get_service_coverage', [$this, 'handle_get_service_coverage_ajax']);
-    add_action('wp_ajax_mobooking_toggle_area_status', [$this, 'handle_toggle_area_status_ajax']);
-    add_action('wp_ajax_mobooking_remove_country_coverage', [$this, 'handle_remove_country_coverage_ajax']);
-}
 
 /**
  * Update database schema to support status column (run this once)
