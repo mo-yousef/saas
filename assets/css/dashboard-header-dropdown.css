@@ -1,4 +1,4 @@
-/* Dashboard Header Dropdown Menu Styles */
+/* Dashboard Header Dropdown Menu Styles (shadcn UI inspired) */
 
 .mobooking-dashboard-header .user-menu {
     position: relative;
@@ -10,31 +10,32 @@
     align-items: center;
     gap: 0.5rem;
     padding: 0.5rem;
-    border-radius: 0.25rem;
+    border-radius: 0.5rem;
     transition: background-color 0.2s ease-in-out;
 }
 
 .user-menu-toggle:hover {
-    background-color: rgba(0, 0, 0, 0.05);
+    background-color: hsl(240 4.8% 95.9%);
 }
 
 .user-menu-toggle .user-avatar {
     width: 32px;
     height: 32px;
     border-radius: 50%;
-    background-color: #f0f0f0;
+    background-color: hsl(240 4.8% 95.9%);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: bold;
+    font-weight: 600;
+    color: hsl(240 5.9% 10%);
 }
 
 .user-menu-toggle .arrow-down {
     width: 0;
     height: 0;
-    border-left: 5px solid transparent;
-    border-right: 5px solid transparent;
-    border-top: 5px solid #333;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-top: 4px solid hsl(240 5.9% 10%);
     transition: transform 0.2s ease-in-out;
 }
 
@@ -45,17 +46,17 @@
 .user-dropdown-menu {
     display: none;
     position: absolute;
-    top: 100%;
+    top: calc(100% + 0.25rem);
     right: 0;
     background-color: #fff;
-    border: 1px solid #ddd;
-    border-radius: 0.25rem;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-    min-width: 200px;
+    border: 1px solid hsl(240 5.9% 90%);
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    min-width: 220px;
     z-index: 1000;
     list-style: none;
-    padding: 0.5rem 0;
-    margin: 0.5rem 0 0;
+    padding: 0.5rem;
+    margin: 0;
 }
 
 .user-menu.open .user-dropdown-menu {
@@ -63,53 +64,64 @@
 }
 
 .user-dropdown-menu .dropdown-header {
-    padding: 0.5rem 1rem;
-    font-weight: bold;
-    color: #333;
-    border-bottom: 1px solid #eee;
+    padding: 0.75rem 1rem;
+    font-weight: 600;
+    color: hsl(240 5.9% 10%);
+    border-bottom: 1px solid hsl(240 5.9% 90%);
     margin-bottom: 0.5rem;
 }
 
 .user-dropdown-menu .dropdown-header .user-display-name {
     display: block;
-    font-size: 1rem;
+    font-size: 0.875rem;
 }
 
 .user-dropdown-menu .dropdown-header .user-email {
-    font-size: 0.8rem;
-    font-weight: normal;
-    color: #666;
+    font-size: 0.75rem;
+    font-weight: 400;
+    color: hsl(240 5% 64.9%);
 }
 
 .user-dropdown-menu .dropdown-item {
-    display: block;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
     width: 100%;
-    padding: 0.5rem 1rem;
+    padding: 0.75rem 1rem;
     clear: both;
-    font-weight: 400;
-    color: #212529;
+    font-weight: 500;
+    font-size: 0.875rem;
+    color: hsl(240 5.9% 10%);
     text-align: inherit;
     white-space: nowrap;
     background-color: transparent;
     border: 0;
+    border-radius: 0.25rem;
     text-decoration: none;
+    transition: background-color 0.15s ease-in-out;
 }
 
 .user-dropdown-menu .dropdown-item:hover {
-    background-color: #f8f9fa;
-    color: #16181b;
+    background-color: hsl(240 4.8% 95.9%);
+    color: hsl(240 5.9% 10%);
+}
+
+.user-dropdown-menu .dropdown-item svg {
+    width: 16px;
+    height: 16px;
+    color: hsl(240 3.8% 46.1%);
 }
 
 .user-dropdown-menu .dropdown-divider {
     height: 0;
     margin: 0.5rem 0;
     overflow: hidden;
-    border-top: 1px solid #e9ecef;
+    border-top: 1px solid hsl(240 5.9% 90%);
 }
 
 /* Responsive */
 @media (max-width: 768px) {
     .user-dropdown-menu {
-        min-width: 180px;
+        min-width: 200px;
     }
 }
