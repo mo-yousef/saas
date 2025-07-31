@@ -248,8 +248,9 @@ jQuery(document).ready(function ($) {
 
     const $slotsContainer = $(this).closest('.day-schedule').find('.day-slots');
     $slotsContainer.empty();
+    const totalSlots = dayData.slots.length;
     dayData.slots.forEach((slot, index) => {
-        $slotsContainer.append(renderSlotInput(dayIndex, index, slot));
+        $slotsContainer.append(renderSlotInput(dayIndex, index, slot, totalSlots));
     });
   });
 
@@ -271,6 +272,11 @@ jQuery(document).ready(function ($) {
       dayData.slots.forEach((slot, newSlotIndex) => {
         $slotsContainer.append(renderSlotInput(dayIndex, newSlotIndex, slot, totalSlots));
       });
+    } else {
+        // If no slots are left, you might want to re-render the "Unavailable" text
+        // or ensure the day is marked as disabled if that's the desired behavior.
+        // For now, we'll just clear it, but a better implementation might be needed
+        // depending on product requirements.
     }
   });
 
