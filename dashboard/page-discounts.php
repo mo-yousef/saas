@@ -34,8 +34,8 @@ wp_nonce_field('mobooking_dashboard_nonce', 'mobooking_dashboard_nonce_field');
         <button id="mobooking-add-new-discount-btn" class="button button-primary"><?php esc_html_e('Add New Discount Code', 'mobooking'); ?></button>
     </div>
 
-    <div id="mobooking-discounts-list-container">
-    <table class="wp-list-table widefat striped fixed">
+    <div id="mobooking-discounts-list-container" class="mobooking-table-container">
+    <table class="wp-list-table widefat striped">
         <thead>
             <tr>
                 <th scope="col"><?php esc_html_e('Code', 'mobooking'); ?></th>
