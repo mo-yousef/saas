@@ -91,13 +91,13 @@ jQuery(document).ready(function($) {
         form[0].reset();
         discountIdField.val('');
         formTitle.text(mobooking_discounts_params.i18n.add_new_title || 'Add New Discount Code');
-        modal.fadeIn();
+        modal.removeClass('hidden');
     });
 
     // Cancel Form
     modal.on('click', '.mobooking-modal-close, .mobooking-modal-backdrop', function(e) {
         if ($(e.target).is('.mobooking-modal-close') || $(e.target).is('.mobooking-modal-backdrop')) {
-            modal.fadeOut();
+            modal.addClass('hidden');
         }
     });
 
@@ -120,8 +120,8 @@ jQuery(document).ready(function($) {
                     $('#mobooking-discount-value').val(d.value);
                     $('#mobooking-discount-expiry').val(d.expiry_date || '');
                     $('#mobooking-discount-limit').val(d.usage_limit || '');
-                    $('#mobooking-discount-status').val(d.status);
-                    modal.fadeIn();
+                    $('#mobooking-discount-status').prop('checked', d.status === 'active');
+                    modal.removeClass('hidden');
                 } else {
                     alert(response.data.message || 'Error fetching details.');
                 }
@@ -160,6 +160,8 @@ jQuery(document).ready(function($) {
         let dataToSend = { action: 'mobooking_save_discount', nonce: mobooking_discounts_params.nonce };
         formData.forEach(item => dataToSend[item.name] = item.value);
 
+        dataToSend.status = $('#mobooking-discount-status').is(':checked') ? 'active' : 'inactive';
+
         // Ensure usage_limit is sent as empty if 0, to be stored as NULL by PHP logic
         if (dataToSend.usage_limit === '0') dataToSend.usage_limit = '';
 
@@ -171,7 +173,7 @@ jQuery(document).ready(function($) {
             success: function(response) {
                 if (response.success) {
                     window.showAlert(response.data.message, 'success');
-                    modal.fadeOut();
+                    modal.addClass('hidden');
                     loadDiscounts(discountIdField.val() ? currentFilters.paged : 1); // Refresh current page on edit, or go to page 1 on add
                 } else {
                     window.showAlert(response.data.message || 'Error saving.', 'error');
