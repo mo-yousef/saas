@@ -381,3 +381,574 @@ add_action('wp_ajax_create_service_areas_table', function() {
 });
 
 ?>
+
+
+
+<?php
+/**
+ * Enhanced Dashboard Asset Enqueue Function
+ * Add this to your main plugin file or functions.php
+ * @package MoBooking
+ */
+
+/**
+ * Enqueue enhanced dashboard assets
+ * Call this function on the dashboard overview page
+ */
+function mobooking_enqueue_enhanced_dashboard_assets() {
+    // Only enqueue on dashboard overview page
+    if (!is_admin() && !mobooking_is_dashboard_overview_page()) {
+        return;
+    }
+    
+    $plugin_url = get_template_directory_uri() . '/';
+    $version = defined('MOBOOKING_VERSION') ? MOBOOKING_VERSION : '1.0.0';
+    
+    // Enqueue Feather Icons first (highest priority)
+    wp_enqueue_script(
+        'feather-icons',
+        'https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.29.0/feather.min.js',
+        array(),
+        '4.29.0',
+        false // Load in head for immediate availability
+    );
+    
+    // Enqueue Chart.js
+    wp_enqueue_script(
+        'chart-js',
+        'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js',
+        array(),
+        '3.9.1',
+        true
+    );
+    
+    // Enqueue enhanced dashboard CSS
+    wp_enqueue_style(
+        'mobooking-dashboard-enhanced',
+        $plugin_url . 'assets/css/dashboard-overview-enhanced.css',
+        array(),
+        $version
+    );
+    
+    // Enqueue enhanced dashboard JavaScript (depends on feather and chart)
+    wp_enqueue_script(
+        'mobooking-dashboard-enhanced',
+        $plugin_url . 'assets/js/dashboard-overview-enhanced.js',
+        array('jquery', 'feather-icons', 'chart-js'),
+        $version,
+        true
+    );
+    
+    // Localize script with dashboard data
+    $current_user_id = get_current_user_id();
+    $data_user_id = $current_user_id;
+    $is_worker = false;
+    
+    // Handle workers
+    if (class_exists('MoBooking\Classes\Auth') && \MoBooking\Classes\Auth::is_user_worker($current_user_id)) {
+        $owner_id = \MoBooking\Classes\Auth::get_business_owner_id_for_worker($current_user_id);
+        if ($owner_id) {
+            $data_user_id = $owner_id;
+            $is_worker = true;
+        }
+    }
+    
+    // Get managers and data
+    $services_manager = new \MoBooking\Classes\Services();
+    $discounts_manager = new \MoBooking\Classes\Discounts($current_user_id);
+    $notifications_manager = new \MoBooking\Classes\Notifications();
+    $bookings_manager = new \MoBooking\Classes\Bookings($discounts_manager, $notifications_manager, $services_manager);
+    $settings_manager = new \MoBooking\Classes\Settings();
+    
+    // Get statistics
+    $stats = $bookings_manager->get_booking_statistics($data_user_id);
+    
+    // Calculate metrics
+    global $wpdb;
+    $bookings_table = \MoBooking\Classes\Database::get_table_name('bookings');
+    
+    $today_revenue = $wpdb->get_var($wpdb->prepare(
+        "SELECT SUM(total_price) FROM $bookings_table WHERE user_id = %d AND status IN ('completed', 'confirmed') AND DATE(booking_date) = CURDATE()",
+        $data_user_id
+    ));
+    
+    $week_bookings = $wpdb->get_var($wpdb->prepare(
+        "SELECT COUNT(*) FROM $bookings_table WHERE user_id = %d AND YEARWEEK(booking_date, 1) = YEARWEEK(CURDATE(), 1)",
+        $data_user_id
+    ));
+    
+    $completed_bookings = $stats['by_status']['completed'] ?? 0;
+    $total_bookings = $stats['total'];
+    $completion_rate = ($total_bookings > 0) ? ($completed_bookings / $total_bookings) * 100 : 0;
+    $avg_booking_value = ($total_bookings > 0) ? ($stats['total_revenue'] / $total_bookings) : 0;
+    // Get setup progress
+    $setup_progress = $settings_manager->get_setup_progress($data_user_id);
+    $setup_percentage = 0;
+    if (!empty($setup_progress['total_count']) && $setup_progress['total_count'] > 0) {
+        $setup_percentage = round(($setup_progress['completed_count'] / $setup_progress['total_count']) * 100);
+    }
+    
+    // Get services count
+    $services_result = $services_manager->get_services_by_user($data_user_id, ['status' => 'active']);
+    $active_services = $services_result['total_count'] ?? 0;
+    
+    // Get currency symbol
+    $currency_symbol = \MoBooking\Classes\Utils::get_currency_symbol($settings_manager->get_setting($data_user_id, 'biz_currency_code', 'USD'));
+    
+    wp_localize_script('mobooking-dashboard-enhanced', 'mobooking_overview_params', array(
+        'ajax_url' => admin_url('admin-ajax.php'),
+        'nonce' => wp_create_nonce('mobooking_dashboard_nonce'),
+        'currency_symbol' => $currency_symbol,
+        'is_worker' => $is_worker,
+        'dashboard_base_url' => home_url('/dashboard/'),
+        'user_id' => $data_user_id,
+        'current_time' => current_time('mysql'),
+        'stats' => array(
+            'total_revenue' => floatval($stats['total_revenue'] ?? 0),
+            'total_bookings' => intval($stats['total'] ?? 0),
+            'today_revenue' => floatval($today_revenue ?? 0),
+            'completion_rate' => floatval($completion_rate),
+            'week_bookings' => intval($week_bookings ?? 0),
+            'avg_booking_value' => floatval($avg_booking_value),
+            'active_services' => intval($active_services),
+            'setup_percentage' => intval($setup_percentage)
+        ),
+        'i18n' => array(
+            'time_ago_just_now' => __('Just now', 'mobooking'),
+            'time_ago_seconds_suffix' => __('s ago', 'mobooking'),
+            'time_ago_minutes_suffix' => __('m ago', 'mobooking'),
+            'time_ago_hours_suffix' => __('h ago', 'mobooking'),
+            'time_ago_days_suffix' => __('d ago', 'mobooking'),
+            'loading' => __('Loading...', 'mobooking'),
+            'no_data' => __('No data available', 'mobooking'),
+            'error' => __('Error loading data', 'mobooking'),
+            'copied' => __('Copied!', 'mobooking'),
+            'new_booking' => __('New booking received', 'mobooking'),
+            'booking_updated' => __('Booking status updated', 'mobooking'),
+            'service_created' => __('New service created', 'mobooking'),
+            'worker_added' => __('New worker added', 'mobooking'),
+            'settings_updated' => __('Settings updated', 'mobooking'),
+            'refresh_success' => __('Data refreshed successfully', 'mobooking'),
+            'refresh_error' => __('Failed to refresh data', 'mobooking'),
+            'export_success' => __('Data exported successfully', 'mobooking'),
+            'export_error' => __('Failed to export data', 'mobooking'),
+            'network_error' => __('Network connection error', 'mobooking'),
+            'unauthorized' => __('You are not authorized to perform this action', 'mobooking')
+        )
+    ));
+}
+
+/**
+ * Helper function to check if current page is dashboard overview
+ */
+function mobooking_is_dashboard_overview_page() {
+    // Adjust this logic based on your routing system
+    global $wp;
+    $current_url = home_url($wp->request);
+    
+    // Check if we're on the dashboard overview page
+    return (
+        strpos($current_url, '/dashboard/') !== false && 
+        (strpos($current_url, '/dashboard/overview') !== false || 
+         $current_url === home_url('/dashboard/') ||
+         $current_url === home_url('/dashboard'))
+    );
+}
+
+/**
+ * Add inline styles for critical rendering path optimization
+ */
+function mobooking_add_critical_dashboard_styles() {
+    if (!mobooking_is_dashboard_overview_page()) {
+        return;
+    }
+    
+    ?>
+    <style id="mobooking-critical-styles">
+        /* Critical styles for immediate rendering */
+        .mobooking-overview-enhanced {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: hsl(0 0% 100%);
+            min-height: 100vh;
+            padding: 1.5rem;
+        }
+        
+        .overview-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 1.5rem;
+        }
+        
+        .card {
+            background: hsl(0 0% 100%);
+            border: 1px solid hsl(214.3 31.8% 91.4%);
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        }
+        
+        .grid-span-3 { grid-column: span 3; }
+        .grid-span-4 { grid-column: span 4; }
+        .grid-span-6 { grid-column: span 6; }
+        .grid-span-8 { grid-column: span 8; }
+        
+        @media (max-width: 1024px) {
+            .grid-span-3, .grid-span-4 { grid-column: span 6; }
+            .grid-span-8 { grid-column: span 12; }
+        }
+        
+        @media (max-width: 768px) {
+            .overview-grid { grid-template-columns: 1fr; }
+            .grid-span-3, .grid-span-4, .grid-span-6, .grid-span-8 { grid-column: span 1; }
+            .mobooking-overview-enhanced { padding: 1rem; }
+        }
+    </style>
+    <?php
+}
+
+/**
+ * Hook the asset enqueue functions
+ */
+add_action('wp_enqueue_scripts', 'mobooking_enqueue_enhanced_dashboard_assets');
+add_action('wp_head', 'mobooking_add_critical_dashboard_styles', 1);
+
+/**
+ * Add preload hints for external resources
+ */
+function mobooking_add_dashboard_preload_hints() {
+    if (!mobooking_is_dashboard_overview_page()) {
+        return;
+    }
+    
+    ?>
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js" as="script">
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.29.0/feather.min.js" as="script">
+    <link rel="dns-prefetch" href="//cdnjs.cloudflare.com">
+    <?php
+}
+add_action('wp_head', 'mobooking_add_dashboard_preload_hints', 2);
+
+/**
+ * Add dashboard meta tags for better mobile experience
+ */
+function mobooking_add_dashboard_meta_tags() {
+    if (!mobooking_is_dashboard_overview_page()) {
+        return;
+    }
+    
+    ?>
+    <meta name="theme-color" content="#3b82f6">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="MoBooking Dashboard">
+    <?php
+}
+add_action('wp_head', 'mobooking_add_dashboard_meta_tags', 3);
+
+/**
+ * Add schema markup for dashboard data
+ */
+function mobooking_add_dashboard_schema() {
+    if (!mobooking_is_dashboard_overview_page()) {
+        return;
+    }
+    
+    $current_user_id = get_current_user_id();
+    if (!$current_user_id) return;
+    
+    // Get basic business info for schema
+    $settings_manager = new \MoBooking\Classes\Settings();
+    $business_name = $settings_manager->get_setting($current_user_id, 'biz_name', get_bloginfo('name'));
+    
+    $schema = array(
+        '@context' => 'https://schema.org',
+        '@type' => 'WebApplication',
+        'name' => 'MoBooking Dashboard',
+        'applicationCategory' => 'BusinessApplication',
+        'operatingSystem' => 'Web Browser',
+        'description' => 'Business booking management dashboard',
+        'publisher' => array(
+            '@type' => 'Organization',
+            'name' => $business_name
+        )
+    );
+    
+    ?>
+    <script type="application/ld+json">
+    <?php echo wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT); ?>
+    </script>
+    <?php
+}
+add_action('wp_head', 'mobooking_add_dashboard_schema', 4);
+
+/**
+ * Add service worker registration for offline capabilities (optional)
+ */
+function mobooking_add_dashboard_service_worker() {
+    if (!mobooking_is_dashboard_overview_page()) {
+        return;
+    }
+    
+    ?>
+    <script>
+        // Register service worker for offline dashboard capabilities
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/mobooking-sw.js')
+                    .then(function(registration) {
+                        console.log('MoBooking SW registered:', registration.scope);
+                    })
+                    .catch(function(error) {
+                        console.log('MoBooking SW registration failed:', error);
+                    });
+            });
+        }
+    </script>
+    <?php
+}
+// Uncomment the line below if you want to add service worker support
+// add_action('wp_footer', 'mobooking_add_dashboard_service_worker');
+
+/**
+ * Enhanced dashboard widget registration
+ * This allows for modular widget system
+ */
+function mobooking_register_dashboard_widgets() {
+    $widgets = array(
+        'total_revenue' => array(
+            'title' => __('Total Revenue', 'mobooking'),
+            'icon' => 'dollar-sign',
+            'class' => 'MoBooking\\Widgets\\TotalRevenueWidget',
+            'priority' => 10
+        ),
+        'total_bookings' => array(
+            'title' => __('Total Bookings', 'mobooking'),
+            'icon' => 'calendar',
+            'class' => 'MoBooking\\Widgets\\TotalBookingsWidget',
+            'priority' => 20
+        ),
+        'today_revenue' => array(
+            'title' => __('Today\'s Revenue', 'mobooking'),
+            'icon' => 'bar-chart-2',
+            'class' => 'MoBooking\\Widgets\\TodayRevenueWidget',
+            'priority' => 30
+        ),
+        'completion_rate' => array(
+            'title' => __('Completion Rate', 'mobooking'),
+            'icon' => 'check-circle',
+            'class' => 'MoBooking\\Widgets\\CompletionRateWidget',
+            'priority' => 40
+        ),
+        'revenue_chart' => array(
+            'title' => __('Revenue Overview', 'mobooking'),
+            'icon' => 'trending-up',
+            'class' => 'MoBooking\\Widgets\\RevenueChartWidget',
+            'priority' => 50,
+            'span' => 8
+        ),
+        'quick_stats' => array(
+            'title' => __('Quick Stats', 'mobooking'),
+            'icon' => 'activity',
+            'class' => 'MoBooking\\Widgets\\QuickStatsWidget',
+            'priority' => 60,
+            'span' => 4
+        ),
+        'recent_bookings' => array(
+            'title' => __('Recent Bookings', 'mobooking'),
+            'icon' => 'list',
+            'class' => 'MoBooking\\Widgets\\RecentBookingsWidget',
+            'priority' => 70,
+            'span' => 8
+        ),
+        'setup_progress' => array(
+            'title' => __('Setup Progress', 'mobooking'),
+            'icon' => 'check-square',
+            'class' => 'MoBooking\\Widgets\\SetupProgressWidget',
+            'priority' => 80,
+            'span' => 4
+        )
+    );
+    
+    // Allow filtering of widgets
+    $widgets = apply_filters('mobooking_dashboard_widgets', $widgets);
+    
+    // Store in global for access
+    $GLOBALS['mobooking_dashboard_widgets'] = $widgets;
+    
+    return $widgets;
+}
+
+/**
+ * Get dashboard widgets
+ */
+function mobooking_get_dashboard_widgets() {
+    if (!isset($GLOBALS['mobooking_dashboard_widgets'])) {
+        mobooking_register_dashboard_widgets();
+    }
+    
+    return $GLOBALS['mobooking_dashboard_widgets'];
+}
+
+/**
+ * Render dashboard widget
+ */
+function mobooking_render_dashboard_widget($widget_id, $widget_config) {
+    $span_class = 'grid-span-' . ($widget_config['span'] ?? 3);
+    $widget_data = mobooking_get_widget_data($widget_id);
+    
+    ?>
+    <div class="<?php echo esc_attr($span_class); ?>">
+        <div class="card" data-widget="<?php echo esc_attr($widget_id); ?>">
+            <div class="card-header">
+                <h3 class="card-title"><?php echo esc_html($widget_config['title']); ?></h3>
+                <?php if (isset($widget_config['icon'])): ?>
+                    <i data-feather="<?php echo esc_attr($widget_config['icon']); ?>" class="card-icon"></i>
+                <?php endif; ?>
+            </div>
+            <div class="card-content">
+                <?php
+                // Render widget content based on type
+                if (class_exists($widget_config['class'])) {
+                    $widget_instance = new $widget_config['class']();
+                    $widget_instance->render($widget_data);
+                } else {
+                    // Fallback rendering
+                    mobooking_render_fallback_widget($widget_id, $widget_data);
+                }
+                ?>
+            </div>
+        </div>
+    </div>
+    <?php
+}
+
+/**
+ * Get widget data
+ */
+function mobooking_get_widget_data($widget_id) {
+    // This would typically fetch data specific to each widget
+    // For now, return the global stats
+    return mobooking_overview_params['stats'] ?? array();
+}
+
+/**
+ * Fallback widget rendering
+ */
+function mobooking_render_fallback_widget($widget_id, $data) {
+    switch ($widget_id) {
+        case 'total_revenue':
+            ?>
+            <div class="kpi-value" id="total-revenue-value">
+                <?php echo esc_html(mobooking_overview_params['currency_symbol'] . number_format($data['total_revenue'] ?? 0, 2)); ?>
+            </div>
+            <div class="kpi-trend positive">
+                <i data-feather="trending-up"></i>
+                <span>+20.1% from last month</span>
+            </div>
+            <?php
+            break;
+            
+        case 'total_bookings':
+            ?>
+            <div class="kpi-value" id="total-bookings-value">
+                <?php echo esc_html($data['total_bookings'] ?? 0); ?>
+            </div>
+            <div class="kpi-trend positive">
+                <i data-feather="trending-up"></i>
+                <span>+12.5% from last month</span>
+            </div>
+            <?php
+            break;
+            
+        default:
+            echo '<p>' . esc_html__('Widget content not available', 'mobooking') . '</p>';
+    }
+}
+
+/**
+ * Dashboard performance optimization
+ */
+function mobooking_optimize_dashboard_performance() {
+    if (!mobooking_is_dashboard_overview_page()) {
+        return;
+    }
+    
+    // Disable unnecessary WordPress features on dashboard
+    remove_action('wp_head', 'wp_generator');
+    remove_action('wp_head', 'wlwmanifest_link');
+    remove_action('wp_head', 'rsd_link');
+    remove_action('wp_head', 'wp_shortlink_wp_head');
+    
+    // Add performance hints
+    ?>
+    <style>
+        /* Preload critical fonts */
+        @font-face {
+            font-family: 'System UI';
+            src: local('system-ui'), local('-apple-system'), local('BlinkMacSystemFont');
+            font-display: swap;
+        }
+    </style>
+    <?php
+}
+add_action('wp_head', 'mobooking_optimize_dashboard_performance', 1);
+
+/**
+ * Add dashboard-specific body classes
+ */
+function mobooking_add_dashboard_body_classes($classes) {
+    if (mobooking_is_dashboard_overview_page()) {
+        $classes[] = 'mobooking-dashboard';
+        $classes[] = 'mobooking-overview-page';
+        
+        // Add device-specific classes
+        if (wp_is_mobile()) {
+            $classes[] = 'mobooking-mobile';
+        }
+        
+        // Add theme preference class
+        $classes[] = 'mobooking-light-theme'; // Could be dynamic based on user preference
+    }
+    
+    return $classes;
+}
+add_filter('body_class', 'mobooking_add_dashboard_body_classes');
+
+/**
+ * Dashboard security enhancements
+ */
+function mobooking_dashboard_security_headers() {
+    if (!mobooking_is_dashboard_overview_page()) {
+        return;
+    }
+    
+    // Add security headers
+    header('X-Content-Type-Options: nosniff');
+    header('X-Frame-Options: SAMEORIGIN');
+    header('Referrer-Policy: strict-origin-when-cross-origin');
+}
+add_action('template_redirect', 'mobooking_dashboard_security_headers');
+
+/**
+ * Dashboard cache control
+ */
+function mobooking_dashboard_cache_control() {
+    if (!mobooking_is_dashboard_overview_page()) {
+        return;
+    }
+    
+    // Set appropriate cache headers for dashboard
+    header('Cache-Control: no-cache, no-store, must-revalidate');
+    header('Pragma: no-cache');
+    header('Expires: 0');
+}
+add_action('template_redirect', 'mobooking_dashboard_cache_control');
+
+/**
+ * Usage example in your dashboard page template:
+ * 
+ * // In your dashboard/page-overview.php file:
+ * mobooking_enqueue_enhanced_dashboard_assets();
+ * 
+ * // Then include the enhanced overview page content
+ * include 'enhanced-overview-content.php';
+ */
