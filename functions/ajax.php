@@ -759,3 +759,657 @@ function mobooking_ajax_get_service_coverage() {
     wp_send_json_success($result);
 }
 ?>
+
+
+<?php
+/**
+ * Enhanced Dashboard AJAX Handlers
+ * Add these functions to your functions/ajax.php file
+ * @package MoBooking
+ */
+
+// AJAX handler for dashboard statistics
+add_action('wp_ajax_mobooking_get_dashboard_stats', 'mobooking_ajax_get_dashboard_stats');
+if (!function_exists('mobooking_ajax_get_dashboard_stats')) {
+    function mobooking_ajax_get_dashboard_stats() {
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'mobooking_dashboard_nonce')) {
+            wp_send_json_error(array('message' => 'Security check failed: Invalid nonce.'), 403);
+            return;
+        }
+        
+        $current_user_id = get_current_user_id();
+        if (!$current_user_id) {
+            wp_send_json_error(array('message' => 'User not authenticated.'), 401);
+            return;
+        }
+        
+        try {
+            // Initialize managers
+            $services_manager = new \MoBooking\Classes\Services();
+            $discounts_manager = new \MoBooking\Classes\Discounts($current_user_id);
+            $notifications_manager = new \MoBooking\Classes\Notifications();
+            $bookings_manager = new \MoBooking\Classes\Bookings($discounts_manager, $notifications_manager, $services_manager);
+            
+            // Determine user for data fetching (handle workers)
+            $data_user_id = $current_user_id;
+            if (class_exists('MoBooking\Classes\Auth') && \MoBooking\Classes\Auth::is_user_worker($current_user_id)) {
+                $owner_id = \MoBooking\Classes\Auth::get_business_owner_id_for_worker($current_user_id);
+                if ($owner_id) {
+                    $data_user_id = $owner_id;
+                }
+            }
+            
+            // Get fresh statistics
+            $stats = $bookings_manager->get_booking_statistics($data_user_id);
+            
+            global $wpdb;
+            $bookings_table = \MoBooking\Classes\Database::get_table_name('bookings');
+            
+            // Today's revenue
+            $today_revenue = $wpdb->get_var($wpdb->prepare(
+                "SELECT SUM(total_price) FROM $bookings_table WHERE user_id = %d AND status IN ('completed', 'confirmed') AND DATE(booking_date) = CURDATE()",
+                $data_user_id
+            ));
+            
+            // This week's bookings
+            $week_bookings = $wpdb->get_var($wpdb->prepare(
+                "SELECT COUNT(*) FROM $bookings_table WHERE user_id = %d AND YEARWEEK(booking_date, 1) = YEARWEEK(CURDATE(), 1)",
+                $data_user_id
+            ));
+            
+            // Completion rate
+            $completed_bookings = $stats['by_status']['completed'] ?? 0;
+            $total_bookings = $stats['total'];
+            $completion_rate = ($total_bookings > 0) ? ($completed_bookings / $total_bookings) * 100 : 0;
+            
+            // Average booking value
+            $avg_booking_value = ($total_bookings > 0) ? ($stats['total_revenue'] / $total_bookings) : 0;
+            
+            // Active services count
+            $services_result = $services_manager->get_services_by_user($data_user_id, ['status' => 'active']);
+            $active_services = $services_result['total_count'] ?? 0;
+            
+            // Get setup progress
+            $setup_progress = $settings_manager->get_setup_progress($data_user_id);
+            $setup_percentage = 0;
+            if (!empty($setup_progress['total_count']) && $setup_progress['total_count'] > 0) {
+                $setup_percentage = round(($setup_progress['completed_count'] / $setup_progress['total_count']) * 100);
+            }
+            
+            wp_send_json_success(array(
+                'total_revenue' => floatval($stats['total_revenue'] ?? 0),
+                'total_bookings' => intval($stats['total'] ?? 0),
+                'today_revenue' => floatval($today_revenue ?? 0),
+                'completion_rate' => floatval($completion_rate),
+                'week_bookings' => intval($week_bookings ?? 0),
+                'avg_booking_value' => floatval($avg_booking_value),
+                'active_services' => intval($active_services),
+                'setup_percentage' => intval($setup_percentage)
+            ));
+            
+        } catch (Exception $e) {
+            wp_send_json_error(array('message' => 'Failed to load dashboard stats: ' . $e->getMessage()), 500);
+        }
+    }
+}
+
+// AJAX handler for recent bookings
+add_action('wp_ajax_mobooking_get_recent_bookings', 'mobooking_ajax_get_recent_bookings');
+if (!function_exists('mobooking_ajax_get_recent_bookings')) {
+    function mobooking_ajax_get_recent_bookings() {
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'mobooking_dashboard_nonce')) {
+            wp_send_json_error(array('message' => 'Security check failed: Invalid nonce.'), 403);
+            return;
+        }
+        
+        $current_user_id = get_current_user_id();
+        if (!$current_user_id) {
+            wp_send_json_error(array('message' => 'User not authenticated.'), 401);
+            return;
+        }
+        
+        try {
+            // Initialize managers
+            $services_manager = new \MoBooking\Classes\Services();
+            $discounts_manager = new \MoBooking\Classes\Discounts($current_user_id);
+            $notifications_manager = new \MoBooking\Classes\Notifications();
+            $bookings_manager = new \MoBooking\Classes\Bookings($discounts_manager, $notifications_manager, $services_manager);
+            
+            // Determine user for data fetching (handle workers)
+            $data_user_id = $current_user_id;
+            if (class_exists('MoBooking\Classes\Auth') && \MoBooking\Classes\Auth::is_user_worker($current_user_id)) {
+                $owner_id = \MoBooking\Classes\Auth::get_business_owner_id_for_worker($current_user_id);
+                if ($owner_id) {
+                    $data_user_id = $owner_id;
+                }
+            }
+            
+            $limit = isset($_POST['limit']) ? intval($_POST['limit']) : 8;
+            $recent_bookings = $bookings_manager->get_bookings_by_tenant($data_user_id, ['limit' => $limit]);
+            
+            wp_send_json_success($recent_bookings);
+            
+        } catch (Exception $e) {
+            wp_send_json_error(array('message' => 'Failed to load recent bookings: ' . $e->getMessage()), 500);
+        }
+    }
+}
+
+// AJAX handler for recent activity
+add_action('wp_ajax_mobooking_get_recent_activity', 'mobooking_ajax_get_recent_activity');
+if (!function_exists('mobooking_ajax_get_recent_activity')) {
+    function mobooking_ajax_get_recent_activity() {
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'mobooking_dashboard_nonce')) {
+            wp_send_json_error(array('message' => 'Security check failed: Invalid nonce.'), 403);
+            return;
+        }
+        
+        $current_user_id = get_current_user_id();
+        if (!$current_user_id) {
+            wp_send_json_error(array('message' => 'User not authenticated.'), 401);
+            return;
+        }
+        
+        try {
+            // Determine user for data fetching (handle workers)
+            $data_user_id = $current_user_id;
+            if (class_exists('MoBooking\Classes\Auth') && \MoBooking\Classes\Auth::is_user_worker($current_user_id)) {
+                $owner_id = \MoBooking\Classes\Auth::get_business_owner_id_for_worker($current_user_id);
+                if ($owner_id) {
+                    $data_user_id = $owner_id;
+                }
+            }
+            
+            $limit = isset($_POST['limit']) ? intval($_POST['limit']) : 10;
+            $activities = mobooking_get_recent_activity($data_user_id, $limit);
+            
+            wp_send_json_success($activities);
+            
+        } catch (Exception $e) {
+            wp_send_json_error(array('message' => 'Failed to load recent activity: ' . $e->getMessage()), 500);
+        }
+    }
+}
+
+// AJAX handler for today's revenue (for real-time updates)
+add_action('wp_ajax_mobooking_get_today_revenue', 'mobooking_ajax_get_today_revenue');
+if (!function_exists('mobooking_ajax_get_today_revenue')) {
+    function mobooking_ajax_get_today_revenue() {
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'mobooking_dashboard_nonce')) {
+            wp_send_json_error(array('message' => 'Security check failed: Invalid nonce.'), 403);
+            return;
+        }
+        
+        $current_user_id = get_current_user_id();
+        if (!$current_user_id) {
+            wp_send_json_error(array('message' => 'User not authenticated.'), 401);
+            return;
+        }
+        
+        try {
+            // Determine user for data fetching (handle workers)
+            $data_user_id = $current_user_id;
+            if (class_exists('MoBooking\Classes\Auth') && \MoBooking\Classes\Auth::is_user_worker($current_user_id)) {
+                $owner_id = \MoBooking\Classes\Auth::get_business_owner_id_for_worker($current_user_id);
+                if ($owner_id) {
+                    $data_user_id = $owner_id;
+                }
+            }
+            
+            global $wpdb;
+            $bookings_table = \MoBooking\Classes\Database::get_table_name('bookings');
+            $today_revenue = $wpdb->get_var($wpdb->prepare(
+                "SELECT SUM(total_price) FROM $bookings_table WHERE user_id = %d AND status IN ('completed', 'confirmed') AND DATE(booking_date) = CURDATE()",
+                $data_user_id
+            ));
+            
+            wp_send_json_success(array(
+                'today_revenue' => floatval($today_revenue ?? 0)
+            ));
+            
+        } catch (Exception $e) {
+            wp_send_json_error(array('message' => 'Failed to load today revenue: ' . $e->getMessage()), 500);
+        }
+    }
+}
+
+// Helper function to get recent activity (add this to your utility functions)
+if (!function_exists('mobooking_get_recent_activity')) {
+    function mobooking_get_recent_activity($user_id, $limit = 10) {
+        global $wpdb;
+        
+        $activities = array();
+        $bookings_table = \MoBooking\Classes\Database::get_table_name('bookings');
+        
+        // Get recent bookings as activity
+        $recent_bookings = $wpdb->get_results($wpdb->prepare(
+            "SELECT id, customer_name, status, created_at, total_price 
+             FROM $bookings_table 
+             WHERE user_id = %d 
+             ORDER BY created_at DESC 
+             LIMIT %d",
+            $user_id,
+            $limit
+        ));
+        
+        foreach ($recent_bookings as $booking) {
+            $icon = 'calendar-plus';
+            $title = __('New booking received', 'mobooking');
+            $description = sprintf(__('%s booked a service', 'mobooking'), $booking->customer_name);
+            
+            if ($booking->status === 'completed') {
+                $icon = 'check-circle';
+                $title = __('Booking completed', 'mobooking');
+                $description = sprintf(__('Booking #%d completed', 'mobooking'), $booking->id);
+            } elseif ($booking->status === 'cancelled') {
+                $icon = 'x-circle';
+                $title = __('Booking cancelled', 'mobooking');
+                $description = sprintf(__('Booking #%d cancelled', 'mobooking'), $booking->id);
+            }
+            
+            $activities[] = array(
+                'icon' => $icon,
+                'title' => $title,
+                'description' => $description,
+                'timestamp' => $booking->created_at,
+                'type' => 'booking'
+            );
+        }
+        
+        // Sort by timestamp (newest first)
+        usort($activities, function($a, $b) {
+            return strtotime($b['timestamp']) - strtotime($a['timestamp']);
+        });
+        
+        return array_slice($activities, 0, $limit);
+    }
+}
+
+// Enhanced chart data handler (extends existing)
+add_action('wp_ajax_mobooking_get_chart_data_enhanced', 'mobooking_ajax_get_chart_data_enhanced');
+if (!function_exists('mobooking_ajax_get_chart_data_enhanced')) {
+    function mobooking_ajax_get_chart_data_enhanced() {
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'mobooking_dashboard_nonce')) {
+            wp_send_json_error(array('message' => 'Security check failed: Invalid nonce.'), 403);
+            return;
+        }
+        
+        $current_user_id = get_current_user_id();
+        if (!$current_user_id) {
+            wp_send_json_error(array('message' => 'User not authenticated.'), 401);
+            return;
+        }
+        
+        try {
+            // Determine user for data fetching (handle workers)
+            $data_user_id = $current_user_id;
+            if (class_exists('MoBooking\Classes\Auth') && \MoBooking\Classes\Auth::is_user_worker($current_user_id)) {
+                $owner_id = \MoBooking\Classes\Auth::get_business_owner_id_for_worker($current_user_id);
+                if ($owner_id) {
+                    $data_user_id = $owner_id;
+                }
+            }
+            
+            $period = isset($_POST['period']) ? sanitize_text_field($_POST['period']) : 'week';
+            
+            global $wpdb;
+            $bookings_table = \MoBooking\Classes\Database::get_table_name('bookings');
+            
+            $labels = array();
+            $revenue_data = array();
+            $bookings_data = array();
+            
+            switch ($period) {
+                case 'week':
+                    // Last 7 days
+                    for ($i = 6; $i >= 0; $i--) {
+                        $date = date('Y-m-d', strtotime("-$i days"));
+                        $labels[] = date('M j', strtotime($date));
+                        
+                        $daily_revenue = $wpdb->get_var($wpdb->prepare(
+                            "SELECT SUM(total_price) FROM $bookings_table 
+                             WHERE user_id = %d AND status IN ('completed', 'confirmed') 
+                             AND DATE(booking_date) = %s",
+                            $data_user_id,
+                            $date
+                        ));
+                        
+                        $daily_bookings = $wpdb->get_var($wpdb->prepare(
+                            "SELECT COUNT(*) FROM $bookings_table 
+                             WHERE user_id = %d 
+                             AND DATE(booking_date) = %s",
+                            $data_user_id,
+                            $date
+                        ));
+                        
+                        $revenue_data[] = floatval($daily_revenue ?? 0);
+                        $bookings_data[] = intval($daily_bookings ?? 0);
+                    }
+                    break;
+                    
+                case 'month':
+                    // Last 30 days, grouped by week
+                    for ($i = 3; $i >= 0; $i--) {
+                        $start_date = date('Y-m-d', strtotime("-" . (($i + 1) * 7) . " days"));
+                        $end_date = date('Y-m-d', strtotime("-" . ($i * 7) . " days"));
+                        $labels[] = date('M j', strtotime($start_date)) . ' - ' . date('M j', strtotime($end_date));
+                        
+                        $weekly_revenue = $wpdb->get_var($wpdb->prepare(
+                            "SELECT SUM(total_price) FROM $bookings_table 
+                             WHERE user_id = %d AND status IN ('completed', 'confirmed') 
+                             AND DATE(booking_date) >= %s AND DATE(booking_date) <= %s",
+                            $data_user_id,
+                            $start_date,
+                            $end_date
+                        ));
+                        
+                        $weekly_bookings = $wpdb->get_var($wpdb->prepare(
+                            "SELECT COUNT(*) FROM $bookings_table 
+                             WHERE user_id = %d 
+                             AND DATE(booking_date) >= %s AND DATE(booking_date) <= %s",
+                            $data_user_id,
+                            $start_date,
+                            $end_date
+                        ));
+                        
+                        $revenue_data[] = floatval($weekly_revenue ?? 0);
+                        $bookings_data[] = intval($weekly_bookings ?? 0);
+                    }
+                    break;
+                    
+                case 'year':
+                    // Last 12 months
+                    for ($i = 11; $i >= 0; $i--) {
+                        $month_start = date('Y-m-01', strtotime("-$i months"));
+                        $month_end = date('Y-m-t', strtotime("-$i months"));
+                        $labels[] = date('M Y', strtotime($month_start));
+                        
+                        $monthly_revenue = $wpdb->get_var($wpdb->prepare(
+                            "SELECT SUM(total_price) FROM $bookings_table 
+                             WHERE user_id = %d AND status IN ('completed', 'confirmed') 
+                             AND DATE(booking_date) >= %s AND DATE(booking_date) <= %s",
+                            $data_user_id,
+                            $month_start,
+                            $month_end
+                        ));
+                        
+                        $monthly_bookings = $wpdb->get_var($wpdb->prepare(
+                            "SELECT COUNT(*) FROM $bookings_table 
+                             WHERE user_id = %d 
+                             AND DATE(booking_date) >= %s AND DATE(booking_date) <= %s",
+                            $data_user_id,
+                            $month_start,
+                            $month_end
+                        ));
+                        
+                        $revenue_data[] = floatval($monthly_revenue ?? 0);
+                        $bookings_data[] = intval($monthly_bookings ?? 0);
+                    }
+                    break;
+            }
+            
+            wp_send_json_success(array(
+                'labels' => $labels,
+                'revenue' => $revenue_data,
+                'bookings' => $bookings_data,
+                'period' => $period
+            ));
+            
+        } catch (Exception $e) {
+            wp_send_json_error(array('message' => 'Failed to load chart data: ' . $e->getMessage()), 500);
+        }
+    }
+}
+
+// AJAX handler for setup progress updates
+add_action('wp_ajax_mobooking_update_setup_step', 'mobooking_ajax_update_setup_step');
+if (!function_exists('mobooking_ajax_update_setup_step')) {
+    function mobooking_ajax_update_setup_step() {
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'mobooking_dashboard_nonce')) {
+            wp_send_json_error(array('message' => 'Security check failed: Invalid nonce.'), 403);
+            return;
+        }
+        
+        $current_user_id = get_current_user_id();
+        if (!$current_user_id) {
+            wp_send_json_error(array('message' => 'User not authenticated.'), 401);
+            return;
+        }
+        
+        try {
+            $step_key = isset($_POST['step_key']) ? sanitize_text_field($_POST['step_key']) : '';
+            $completed = isset($_POST['completed']) ? (bool) $_POST['completed'] : false;
+            
+            if (empty($step_key)) {
+                wp_send_json_error(array('message' => 'Step key is required.'), 400);
+                return;
+            }
+            
+            // Determine user for data fetching (handle workers)
+            $data_user_id = $current_user_id;
+            if (class_exists('MoBooking\Classes\Auth') && \MoBooking\Classes\Auth::is_user_worker($current_user_id)) {
+                $owner_id = \MoBooking\Classes\Auth::get_business_owner_id_for_worker($current_user_id);
+                if ($owner_id) {
+                    $data_user_id = $owner_id;
+                }
+            }
+            
+            $settings_manager = new \MoBooking\Classes\Settings();
+            $result = $settings_manager->update_setup_step($data_user_id, $step_key, $completed);
+            
+            if ($result) {
+                $updated_progress = $settings_manager->get_setup_progress($data_user_id);
+                wp_send_json_success($updated_progress);
+            } else {
+                wp_send_json_error(array('message' => 'Failed to update setup step.'), 500);
+            }
+            
+        } catch (Exception $e) {
+            wp_send_json_error(array('message' => 'Failed to update setup step: ' . $e->getMessage()), 500);
+        }
+    }
+}
+
+// AJAX handler for live dashboard updates (WebSocket alternative)
+add_action('wp_ajax_mobooking_get_live_updates', 'mobooking_ajax_get_live_updates');
+if (!function_exists('mobooking_ajax_get_live_updates')) {
+    function mobooking_ajax_get_live_updates() {
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'mobooking_dashboard_nonce')) {
+            wp_send_json_error(array('message' => 'Security check failed: Invalid nonce.'), 403);
+            return;
+        }
+        
+        $current_user_id = get_current_user_id();
+        if (!$current_user_id) {
+            wp_send_json_error(array('message' => 'User not authenticated.'), 401);
+            return;
+        }
+        
+        try {
+            // Determine user for data fetching (handle workers)
+            $data_user_id = $current_user_id;
+            if (class_exists('MoBooking\Classes\Auth') && \MoBooking\Classes\Auth::is_user_worker($current_user_id)) {
+                $owner_id = \MoBooking\Classes\Auth::get_business_owner_id_for_worker($current_user_id);
+                if ($owner_id) {
+                    $data_user_id = $owner_id;
+                }
+            }
+            
+            $last_update = isset($_POST['last_update']) ? sanitize_text_field($_POST['last_update']) : '';
+            
+            // Get updates since last check
+            $updates = mobooking_get_dashboard_updates($data_user_id, $last_update);
+            
+            wp_send_json_success($updates);
+            
+        } catch (Exception $e) {
+            wp_send_json_error(array('message' => 'Failed to get live updates: ' . $e->getMessage()), 500);
+        }
+    }
+}
+
+// Helper function to get dashboard updates
+if (!function_exists('mobooking_get_dashboard_updates')) {
+    function mobooking_get_dashboard_updates($user_id, $since = '') {
+        global $wpdb;
+        
+        $updates = array(
+            'timestamp' => current_time('mysql'),
+            'has_updates' => false,
+            'new_bookings' => 0,
+            'status_changes' => 0,
+            'notifications' => array()
+        );
+        
+        if (empty($since)) {
+            $since = date('Y-m-d H:i:s', strtotime('-5 minutes'));
+        }
+        
+        $bookings_table = \MoBooking\Classes\Database::get_table_name('bookings');
+        
+        // Check for new bookings
+        $new_bookings = $wpdb->get_var($wpdb->prepare(
+            "SELECT COUNT(*) FROM $bookings_table 
+             WHERE user_id = %d AND created_at > %s",
+            $user_id,
+            $since
+        ));
+        
+        if ($new_bookings > 0) {
+            $updates['has_updates'] = true;
+            $updates['new_bookings'] = intval($new_bookings);
+            $updates['notifications'][] = array(
+                'type' => 'success',
+                'title' => __('New Bookings', 'mobooking'),
+                'message' => sprintf(__('%d new booking(s) received', 'mobooking'), $new_bookings),
+                'timestamp' => current_time('mysql')
+            );
+        }
+        
+        // Check for status changes
+        $status_changes = $wpdb->get_var($wpdb->prepare(
+            "SELECT COUNT(*) FROM $bookings_table 
+             WHERE user_id = %d AND updated_at > %s AND updated_at != created_at",
+            $user_id,
+            $since
+        ));
+        
+        if ($status_changes > 0) {
+            $updates['has_updates'] = true;
+            $updates['status_changes'] = intval($status_changes);
+        }
+        
+        return $updates;
+    }
+}
+
+// AJAX handler for exporting dashboard data
+add_action('wp_ajax_mobooking_export_dashboard_data', 'mobooking_ajax_export_dashboard_data');
+if (!function_exists('mobooking_ajax_export_dashboard_data')) {
+    function mobooking_ajax_export_dashboard_data() {
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'mobooking_dashboard_nonce')) {
+            wp_send_json_error(array('message' => 'Security check failed: Invalid nonce.'), 403);
+            return;
+        }
+        
+        $current_user_id = get_current_user_id();
+        if (!$current_user_id) {
+            wp_send_json_error(array('message' => 'User not authenticated.'), 401);
+            return;
+        }
+        
+        try {
+            // Determine user for data fetching (handle workers)
+            $data_user_id = $current_user_id;
+            if (class_exists('MoBooking\Classes\Auth') && \MoBooking\Classes\Auth::is_user_worker($current_user_id)) {
+                $owner_id = \MoBooking\Classes\Auth::get_business_owner_id_for_worker($current_user_id);
+                if ($owner_id) {
+                    $data_user_id = $owner_id;
+                }
+            }
+            
+            $format = isset($_POST['format']) ? sanitize_text_field($_POST['format']) : 'csv';
+            $period = isset($_POST['period']) ? sanitize_text_field($_POST['period']) : 'month';
+            
+            // Initialize managers
+            $services_manager = new \MoBooking\Classes\Services();
+            $discounts_manager = new \MoBooking\Classes\Discounts($current_user_id);
+            $notifications_manager = new \MoBooking\Classes\Notifications();
+            $bookings_manager = new \MoBooking\Classes\Bookings($discounts_manager, $notifications_manager, $services_manager);
+            
+            // Get export data
+            $export_data = mobooking_prepare_dashboard_export($data_user_id, $period, $bookings_manager);
+            
+            if ($format === 'json') {
+                wp_send_json_success(array(
+                    'data' => $export_data,
+                    'filename' => 'mobooking-dashboard-' . date('Y-m-d') . '.json'
+                ));
+            } else {
+                // CSV format
+                $csv_data = mobooking_convert_to_csv($export_data);
+                wp_send_json_success(array(
+                    'csv' => $csv_data,
+                    'filename' => 'mobooking-dashboard-' . date('Y-m-d') . '.csv'
+                ));
+            }
+            
+        } catch (Exception $e) {
+            wp_send_json_error(array('message' => 'Failed to export dashboard data: ' . $e->getMessage()), 500);
+        }
+    }
+}
+
+// Helper function to prepare dashboard export data
+if (!function_exists('mobooking_prepare_dashboard_export')) {
+    function mobooking_prepare_dashboard_export($user_id, $period, $bookings_manager) {
+        $stats = $bookings_manager->get_booking_statistics($user_id);
+        $bookings = $bookings_manager->get_bookings_by_tenant($user_id, array('limit' => 1000));
+        
+        return array(
+            'summary' => array(
+                'total_revenue' => $stats['total_revenue'] ?? 0,
+                'total_bookings' => $stats['total'] ?? 0,
+                'completion_rate' => $stats['by_status']['completed'] ?? 0,
+                'export_date' => current_time('mysql'),
+                'period' => $period
+            ),
+            'bookings' => $bookings['bookings'] ?? array(),
+            'stats_by_status' => $stats['by_status'] ?? array()
+        );
+    }
+}
+
+// Helper function to convert data to CSV
+if (!function_exists('mobooking_convert_to_csv')) {
+    function mobooking_convert_to_csv($data) {
+        $csv_lines = array();
+        
+        // Add summary header
+        $csv_lines[] = 'Dashboard Summary';
+        $csv_lines[] = 'Total Revenue,' . ($data['summary']['total_revenue'] ?? 0);
+        $csv_lines[] = 'Total Bookings,' . ($data['summary']['total_bookings'] ?? 0);
+        $csv_lines[] = 'Completion Rate,' . ($data['summary']['completion_rate'] ?? 0);
+        $csv_lines[] = 'Export Date,' . ($data['summary']['export_date'] ?? '');
+        $csv_lines[] = '';
+        
+        // Add bookings header
+        $csv_lines[] = 'Recent Bookings';
+        $csv_lines[] = 'ID,Customer Name,Email,Service,Date,Status,Price';
+        
+        // Add booking data
+        foreach ($data['bookings'] as $booking) {
+            $csv_lines[] = implode(',', array(
+                $booking['id'] ?? '',
+                '"' . str_replace('"', '""', $booking['customer_name'] ?? '') . '"',
+                '"' . str_replace('"', '""', $booking['customer_email'] ?? '') . '"',
+                '"' . str_replace('"', '""', $booking['service_name'] ?? '') . '"',
+                $booking['booking_date'] ?? '',
+                $booking['status'] ?? '',
+                $booking['total_price'] ?? 0
+            ));
+        }
+        
+        return implode("\n", $csv_lines);
+    }
+}
