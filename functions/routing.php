@@ -316,6 +316,7 @@ function mobooking_enqueue_dashboard_scripts($current_page_slug = '') {
 
         $plus_icon_path = MOBOOKING_THEME_DIR . 'assets/svg-icons/plus.svg';
         $trash_icon_path = MOBOOKING_THEME_DIR . 'assets/svg-icons/trash.svg';
+        $copy_icon_path = MOBOOKING_THEME_DIR . 'assets/svg-icons/copy.svg';
 
         if (file_exists($plus_icon_path)) {
             $availability_params['icons']['plus'] = file_get_contents($plus_icon_path);
@@ -323,6 +324,10 @@ function mobooking_enqueue_dashboard_scripts($current_page_slug = '') {
 
         if (file_exists($trash_icon_path)) {
             $availability_params['icons']['trash'] = file_get_contents($trash_icon_path);
+        }
+
+        if (file_exists($copy_icon_path)) {
+            $availability_params['icons']['copy'] = file_get_contents($copy_icon_path);
         }
 
         wp_localize_script('mobooking-dashboard-availability', 'mobooking_availability_params', $availability_params);
