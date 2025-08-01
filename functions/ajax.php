@@ -722,7 +722,7 @@ function mobooking_ajax_get_public_services() {
 
 add_action('wp_ajax_mobooking_get_service_coverage_grouped', 'mobooking_ajax_get_service_coverage_grouped');
 function mobooking_ajax_get_service_coverage_grouped() {
-    if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'mobooking_areas_nonce')) {
+    if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'mobooking_dashboard_nonce')) {
         wp_send_json_error(array('message' => 'Security check failed: Invalid nonce.'), 403);
         return;
     }
@@ -741,7 +741,7 @@ function mobooking_ajax_get_service_coverage_grouped() {
 
 add_action('wp_ajax_mobooking_get_service_coverage', 'mobooking_ajax_get_service_coverage');
 function mobooking_ajax_get_service_coverage() {
-    if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'mobooking_areas_nonce')) {
+    if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'mobooking_dashboard_nonce')) {
         wp_send_json_error(array('message' => 'Security check failed: Invalid nonce.'), 403);
         return;
     }
