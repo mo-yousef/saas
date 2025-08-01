@@ -14,13 +14,7 @@ $services_manager = new \MoBooking\Classes\Services();
 $discounts_manager = new \MoBooking\Classes\Discounts($current_user_id);
 $notifications_manager = new \MoBooking\Classes\Notifications();
 $bookings_manager = new \MoBooking\Classes\Bookings($discounts_manager, $notifications_manager, $services_manager);
-
-// Get currency symbol
-$currency_symbol = \MoBooking\Classes\Utils::get_currency_symbol('USD');
-if ($current_user_id && isset($GLOBALS['mobooking_settings_manager'])) {
-    $currency_code_setting = $GLOBALS['mobooking_settings_manager']->get_setting($current_user_id, 'biz_currency_code', 'USD');
-    $currency_symbol = \MoBooking\Classes\Utils::get_currency_symbol($currency_code_setting);
-}
+$settings_manager = new \MoBooking\Classes\Settings();
 
 // Determine user for data fetching (handle workers)
 $data_user_id = $current_user_id;
@@ -32,6 +26,14 @@ if (class_exists('MoBooking\Classes\Auth') && \MoBooking\Classes\Auth::is_user_w
         $is_worker = true;
     }
 }
+
+// Fetch data
+$stats = $bookings_manager->get_dashboard_stats($data_user_id);
+$recent_bookings = $bookings_manager->get_bookings_by_user($data_user_id, ['posts_per_page' => 5]);
+$setup_progress = $settings_manager->get_setup_progress($data_user_id);
+
+// Get currency symbol
+$currency_symbol = \MoBooking\Classes\Utils::get_currency_symbol($settings_manager->get_setting($data_user_id, 'biz_currency_code', 'USD'));
 
 // Get dashboard URLs
 $dashboard_base_url = home_url('/dashboard/');
@@ -47,7 +49,7 @@ $dashboard_base_url = home_url('/dashboard/');
                 <i data-feather="dollar-sign" class="text-muted-foreground"></i>
             </div>
             <div class="card-content">
-                <div class="text-2xl font-bold">$45,231.89</div>
+                <div class="text-2xl font-bold"><?php echo esc_html($currency_symbol . number_format($stats['total_revenue'], 2)); ?></div>
                 <p class="text-xs text-muted-foreground">+20.1% from last month</p>
             </div>
         </div>
@@ -55,11 +57,11 @@ $dashboard_base_url = home_url('/dashboard/');
     <div class="widget-span-3">
         <div class="card dashboard-kpi-card">
             <div class="card-header">
-                <h3 class="card-title">Subscriptions</h3>
-                <i data-feather="users" class="text-muted-foreground"></i>
+                <h3 class="card-title">Total Bookings</h3>
+                <i data-feather="book-open" class="text-muted-foreground"></i>
             </div>
             <div class="card-content">
-                <div class="text-2xl font-bold">+2350</div>
+                <div class="text-2xl font-bold"><?php echo esc_html($stats['total_bookings']); ?></div>
                 <p class="text-xs text-muted-foreground">+180.1% from last month</p>
             </div>
         </div>
@@ -67,11 +69,11 @@ $dashboard_base_url = home_url('/dashboard/');
     <div class="widget-span-3">
         <div class="card dashboard-kpi-card">
             <div class="card-header">
-                <h3 class="card-title">Sales</h3>
-                <i data-feather="credit-card" class="text-muted-foreground"></i>
+                <h3 class="card-title">Today's Revenue</h3>
+                <i data-feather="bar-chart-2" class="text-muted-foreground"></i>
             </div>
             <div class="card-content">
-                <div class="text-2xl font-bold">+12,234</div>
+                <div class="text-2xl font-bold"><?php echo esc_html($currency_symbol . number_format($stats['today_revenue'], 2)); ?></div>
                 <p class="text-xs text-muted-foreground">+19% from last month</p>
             </div>
         </div>
@@ -79,139 +81,69 @@ $dashboard_base_url = home_url('/dashboard/');
     <div class="widget-span-3">
         <div class="card dashboard-kpi-card">
             <div class="card-header">
-                <h3 class="card-title">Active Now</h3>
-                <i data-feather="activity" class="text-muted-foreground"></i>
+                <h3 class="card-title">Completion Rate</h3>
+                <i data-feather="check-circle" class="text-muted-foreground"></i>
             </div>
             <div class="card-content">
-                <div class="text-2xl font-bold">+573</div>
+                <div class="text-2xl font-bold"><?php echo esc_html(number_format($stats['completion_rate'], 1)); ?>%</div>
                 <p class="text-xs text-muted-foreground">+201 since last hour</p>
             </div>
         </div>
     </div>
 
     <!-- Middle Section -->
-    <div class="widget-span-4">
-        <div class="card">
-            <div class="card-header">
-                <h3 class="card-title">Overview</h3>
-            </div>
-            <div class="card-content">
-                <div class="chart-placeholder" style="height: 200px; background: #f0f0f0;"></div>
-            </div>
-        </div>
-    </div>
-    <div class="widget-span-4">
-        <div class="card">
-            <div class="card-header">
-                <h3 class="card-title">Overview</h3>
-            </div>
-            <div class="card-content">
-                <div class="chart-placeholder" style="height: 200px; background: #f0f0f0;"></div>
-            </div>
-        </div>
-    </div>
-    <div class="widget-span-4">
-        <div class="card">
-            <div class="card-header">
-                <div class="tabs">
-                    <button class="tab-item active">Overview</button>
-                    <button class="tab-item">Analytics</button>
-                    <button class="tab-item">Reports</button>
-                    <button class="tab-item">Notifications</button>
-                </div>
-            </div>
-            <div class="card-content">
-                <div class="sub-card">
-                    <p>Total Subscriptions</p>
-                    <p>2,350</p>
-                </div>
-                <div class="sub-card">
-                    <p>Total Revenue</p>
-                    <p>$45,231.89</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Bottom Section -->
     <div class="widget-span-8">
         <div class="card">
             <div class="card-header">
-                <h3 class="card-title">Overview</h3>
+                <h3 class="card-title">Recent Bookings</h3>
             </div>
             <div class="card-content">
-                <div class="chart-placeholder" style="height: 300px; background: #f0f0f0;"></div>
-            </div>
-        </div>
-        <div class="card">
-            <div class="card-header">
-                <h3 class="card-title">Recent Sales</h3>
-                <p class="text-muted-foreground">You made 265 sales this month.</p>
-            </div>
-            <div class="card-content">
-                <div class="recent-sales-table">
-                    <div class="table-row">
-                        <div class="table-cell">
-                            <div class="avatar">
-                                <img src="https://i.pravatar.cc/40?u=a" alt="Avatar">
+                <?php if (!empty($recent_bookings->posts)) : ?>
+                    <div class="recent-sales-table">
+                        <?php foreach ($recent_bookings->posts as $booking) :
+                            $customer_name = get_post_meta($booking->ID, '_customer_name', true);
+                            $customer_email = get_post_meta($booking->ID, '_customer_email', true);
+                            $total_price = get_post_meta($booking->ID, '_total_price', true);
+                        ?>
+                            <div class="table-row">
+                                <div class="table-cell">
+                                    <div class="avatar">
+                                        <img src="https://i.pravatar.cc/40?u=<?php echo esc_attr($customer_email); ?>" alt="Avatar">
+                                    </div>
+                                    <div>
+                                        <p><?php echo esc_html($customer_name); ?></p>
+                                        <p class="text-muted-foreground"><?php echo esc_html($customer_email); ?></p>
+                                    </div>
+                                </div>
+                                <div class="table-cell text-right"><?php echo esc_html($currency_symbol . number_format($total_price, 2)); ?></div>
                             </div>
-                            <div>
-                                <p>Olivia Martin</p>
-                                <p class="text-muted-foreground">olivia.martin@email.com</p>
-                            </div>
-                        </div>
-                        <div class="table-cell text-right">+$1,999.00</div>
+                        <?php endforeach; ?>
                     </div>
-                    <div class="table-row">
-                        <div class="table-cell">
-                            <div class="avatar">
-                                <img src="https://i.pravatar.cc/40?u=b" alt="Avatar">
-                            </div>
-                            <div>
-                                <p>Jackson Lee</p>
-                                <p class="text-muted-foreground">jackson.lee@email.com</p>
-                            </div>
-                        </div>
-                        <div class="table-cell text-right">+$39.00</div>
-                    </div>
-                    <!-- Add more rows as needed -->
-                </div>
+                <?php else : ?>
+                    <p>No recent bookings.</p>
+                <?php endif; ?>
             </div>
         </div>
     </div>
     <div class="widget-span-4">
         <div class="card">
             <div class="card-header">
-                <h3 class="card-title">Overview</h3>
+                <h3 class="card-title">Setup Progress</h3>
             </div>
             <div class="card-content">
-                <div class="chart-placeholder" style="height: 200px; background: #f0f0f0;"></div>
-            </div>
-        </div>
-        <div class="card">
-            <div class="card-header">
-                <h3 class="card-title">Recent Activities</h3>
-            </div>
-            <div class="card-content">
-                <div class="recent-activities-list">
-                    <div class="activity-item">
-                        <div class="avatar">
-                            <img src="https://i.pravatar.cc/40?u=c" alt="Avatar">
-                        </div>
-                        <p><strong>Olivia Martin</strong> subscribed to your service.</p>
-                    </div>
-                    <div class="activity-item">
-                        <div class="avatar">
-                            <img src="https://i.pravatar.cc/40?u=d" alt="Avatar">
-                        </div>
-                        <p><strong>Jackson Lee</strong> created a new booking.</p>
-                    </div>
-                    <!-- Add more activities as needed -->
-                </div>
+                <ul class="setup-progress-list">
+                    <?php foreach ($setup_progress['steps'] as $step) : ?>
+                        <li class="setup-progress-item <?php echo $step['completed'] ? 'completed' : ''; ?>">
+                            <div class="icon">
+                                <i data-feather="<?php echo $step['completed'] ? 'check' : 'circle'; ?>"></i>
+                            </div>
+                            <span><?php echo esc_html($step['label']); ?></span>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
             </div>
         </div>
     </div>
-
 </div>
 
 <!-- Scripts for localization -->
