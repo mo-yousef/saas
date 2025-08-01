@@ -29,7 +29,7 @@ if (class_exists('MoBooking\Classes\Auth') && \MoBooking\Classes\Auth::is_user_w
 
 // Fetch data
 $stats = $bookings_manager->get_booking_statistics($data_user_id);
-$recent_bookings = $bookings_manager->get_bookings_by_user($data_user_id, ['posts_per_page' => 5]);
+$recent_bookings = $bookings_manager->get_bookings_by_tenant($data_user_id, ['limit' => 5]);
 $setup_progress = $settings_manager->get_setup_progress($data_user_id);
 
 // Calculate today's revenue
@@ -112,24 +112,20 @@ $dashboard_base_url = home_url('/dashboard/');
                 <h3 class="card-title">Recent Bookings</h3>
             </div>
             <div class="card-content">
-                <?php if (!empty($recent_bookings->posts)) : ?>
+                <?php if (!empty($recent_bookings['bookings'])) : ?>
                     <div class="recent-sales-table">
-                        <?php foreach ($recent_bookings->posts as $booking) :
-                            $customer_name = get_post_meta($booking->ID, '_customer_name', true);
-                            $customer_email = get_post_meta($booking->ID, '_customer_email', true);
-                            $total_price = get_post_meta($booking->ID, '_total_price', true);
-                        ?>
+                        <?php foreach ($recent_bookings['bookings'] as $booking) : ?>
                             <div class="table-row">
                                 <div class="table-cell">
                                     <div class="avatar">
-                                        <img src="https://i.pravatar.cc/40?u=<?php echo esc_attr($customer_email); ?>" alt="Avatar">
+                                        <img src="https://i.pravatar.cc/40?u=<?php echo esc_attr($booking['customer_email']); ?>" alt="Avatar">
                                     </div>
                                     <div>
-                                        <p><?php echo esc_html($customer_name); ?></p>
-                                        <p class="text-muted-foreground"><?php echo esc_html($customer_email); ?></p>
+                                        <p><?php echo esc_html($booking['customer_name']); ?></p>
+                                        <p class="text-muted-foreground"><?php echo esc_html($booking['customer_email']); ?></p>
                                     </div>
                                 </div>
-                                <div class="table-cell text-right"><?php echo esc_html($currency_symbol . number_format($total_price, 2)); ?></div>
+                                <div class="table-cell text-right"><?php echo esc_html($currency_symbol . number_format($booking['total_price'], 2)); ?></div>
                             </div>
                         <?php endforeach; ?>
                     </div>
