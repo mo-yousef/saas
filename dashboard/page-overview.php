@@ -28,9 +28,23 @@ if (class_exists('MoBooking\Classes\Auth') && \MoBooking\Classes\Auth::is_user_w
 }
 
 // Fetch data
-$stats = $bookings_manager->get_dashboard_stats($data_user_id);
+$stats = $bookings_manager->get_booking_statistics($data_user_id);
 $recent_bookings = $bookings_manager->get_bookings_by_user($data_user_id, ['posts_per_page' => 5]);
 $setup_progress = $settings_manager->get_setup_progress($data_user_id);
+
+// Calculate today's revenue
+global $wpdb;
+$bookings_table = \MoBooking\Classes\Database::get_table_name('bookings');
+$today_revenue = $wpdb->get_var($wpdb->prepare(
+    "SELECT SUM(total_price) FROM $bookings_table WHERE user_id = %d AND status IN ('completed', 'confirmed') AND DATE(booking_date) = CURDATE()",
+    $data_user_id
+));
+
+// Calculate completion rate
+$completed_bookings = $stats['by_status']['completed'] ?? 0;
+$total_bookings = $stats['total'];
+$completion_rate = ($total_bookings > 0) ? ($completed_bookings / $total_bookings) * 100 : 0;
+
 
 // Get currency symbol
 $currency_symbol = \MoBooking\Classes\Utils::get_currency_symbol($settings_manager->get_setting($data_user_id, 'biz_currency_code', 'USD'));
@@ -49,7 +63,7 @@ $dashboard_base_url = home_url('/dashboard/');
                 <i data-feather="dollar-sign" class="text-muted-foreground"></i>
             </div>
             <div class="card-content">
-                <div class="text-2xl font-bold"><?php echo esc_html($currency_symbol . number_format($stats['total_revenue'], 2)); ?></div>
+                <div class="text-2xl font-bold"><?php echo esc_html($currency_symbol . number_format($stats['total_revenue'] ?? 0, 2)); ?></div>
                 <p class="text-xs text-muted-foreground">+20.1% from last month</p>
             </div>
         </div>
@@ -61,7 +75,7 @@ $dashboard_base_url = home_url('/dashboard/');
                 <i data-feather="book-open" class="text-muted-foreground"></i>
             </div>
             <div class="card-content">
-                <div class="text-2xl font-bold"><?php echo esc_html($stats['total_bookings']); ?></div>
+                <div class="text-2xl font-bold"><?php echo esc_html($stats['total'] ?? 0); ?></div>
                 <p class="text-xs text-muted-foreground">+180.1% from last month</p>
             </div>
         </div>
@@ -73,7 +87,7 @@ $dashboard_base_url = home_url('/dashboard/');
                 <i data-feather="bar-chart-2" class="text-muted-foreground"></i>
             </div>
             <div class="card-content">
-                <div class="text-2xl font-bold"><?php echo esc_html($currency_symbol . number_format($stats['today_revenue'], 2)); ?></div>
+                <div class="text-2xl font-bold"><?php echo esc_html($currency_symbol . number_format($today_revenue ?? 0, 2)); ?></div>
                 <p class="text-xs text-muted-foreground">+19% from last month</p>
             </div>
         </div>
@@ -85,7 +99,7 @@ $dashboard_base_url = home_url('/dashboard/');
                 <i data-feather="check-circle" class="text-muted-foreground"></i>
             </div>
             <div class="card-content">
-                <div class="text-2xl font-bold"><?php echo esc_html(number_format($stats['completion_rate'], 1)); ?>%</div>
+                <div class="text-2xl font-bold"><?php echo esc_html(number_format($completion_rate, 1)); ?>%</div>
                 <p class="text-xs text-muted-foreground">+201 since last hour</p>
             </div>
         </div>
