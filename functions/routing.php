@@ -189,6 +189,7 @@ function mobooking_enqueue_dashboard_scripts($current_page_slug = '') {
                 'saving' => __('Saving...', 'mobooking'),
             ]
         ]);
+        $areas_params['nonce'] = wp_create_nonce('mobooking_areas_nonce');
         wp_localize_script('mobooking-dashboard-areas', 'mobooking_areas_params', $areas_params);
     }
 
