@@ -37,112 +37,181 @@ if (class_exists('MoBooking\Classes\Auth') && \MoBooking\Classes\Auth::is_user_w
 $dashboard_base_url = home_url('/dashboard/');
 ?>
 
-<div class="mobooking-overview">
-    <div class="overview-header">
-        <h1 class="overview-title">
-            <?php printf(esc_html__('Welcome back, %s!', 'mobooking'), esc_html($user->display_name)); ?>
-        </h1>
-        <p class="overview-subtitle">
-            <?php esc_html_e('Here\'s what\'s happening with your business today.', 'mobooking'); ?>
-        </p>
-    </div>
+<div class="mobooking-overview-refactored">
 
-    <div class="overview-grid">
-        <!-- KPI Cards -->
-        <div class="card kpi-card">
-            <div class="card-header">
-                <h3 class="card-title">Total Bookings</h3>
-                <div class="card-icon"><i data-feather="book-open"></i></div>
-            </div>
-            <div class="card-content">
-                <p class="card-value" id="total-bookings-value">--</p>
-                <p class="card-description">All pending & confirmed</p>
-            </div>
-        </div>
-
-        <div class="card kpi-card">
+    <!-- Top Section -->
+    <div class="widget-span-3">
+        <div class="card dashboard-kpi-card">
             <div class="card-header">
                 <h3 class="card-title">Total Revenue</h3>
-                <div class="card-icon"><i data-feather="dollar-sign"></i></div>
+                <i data-feather="dollar-sign" class="text-muted-foreground"></i>
             </div>
             <div class="card-content">
-                <p class="card-value" id="total-revenue-value">--</p>
-                <p class="card-description">This month</p>
+                <div class="text-2xl font-bold">$45,231.89</div>
+                <p class="text-xs text-muted-foreground">+20.1% from last month</p>
             </div>
         </div>
-
-        <div class="card kpi-card">
+    </div>
+    <div class="widget-span-3">
+        <div class="card dashboard-kpi-card">
             <div class="card-header">
-                <h3 class="card-title">Today's Revenue</h3>
-                <div class="card-icon"><i data-feather="bar-chart-2"></i></div>
+                <h3 class="card-title">Subscriptions</h3>
+                <i data-feather="users" class="text-muted-foreground"></i>
             </div>
             <div class="card-content">
-                <p class="card-value" id="revenue-breakdown-value">--</p>
-                <p class="card-description">Revenue for today</p>
+                <div class="text-2xl font-bold">+2350</div>
+                <p class="text-xs text-muted-foreground">+180.1% from last month</p>
             </div>
         </div>
-
-        <div class="card kpi-card">
+    </div>
+    <div class="widget-span-3">
+        <div class="card dashboard-kpi-card">
             <div class="card-header">
-                <h3 class="card-title">Completion Rate</h3>
-                <div class="card-icon"><i data-feather="check-circle"></i></div>
+                <h3 class="card-title">Sales</h3>
+                <i data-feather="credit-card" class="text-muted-foreground"></i>
             </div>
             <div class="card-content">
-                <p class="card-value" id="completion-rate-value">--</p>
-                <p class="card-description">Of all bookings</p>
+                <div class="text-2xl font-bold">+12,234</div>
+                <p class="text-xs text-muted-foreground">+19% from last month</p>
             </div>
         </div>
-
-        <!-- Recent Bookings -->
-        <div class="card recent-bookings-card">
+    </div>
+    <div class="widget-span-3">
+        <div class="card dashboard-kpi-card">
             <div class="card-header">
-                <h3 class="card-title">Recent Bookings</h3>
-            </div>
-            <div class="card-content" id="recent-bookings-list">
-                <!-- Recent bookings will be loaded here -->
-            </div>
-            <div class="card-footer">
-                <a href="<?php echo esc_url($dashboard_base_url . 'bookings/'); ?>" class="btn btn-ghost">View All</a>
-            </div>
-        </div>
-
-        <!-- Quick Actions -->
-        <div class="card quick-actions-card">
-            <div class="card-header">
-                <h3 class="card-title">Quick Actions</h3>
+                <h3 class="card-title">Active Now</h3>
+                <i data-feather="activity" class="text-muted-foreground"></i>
             </div>
             <div class="card-content">
-                <a href="<?php echo esc_url($dashboard_base_url . 'services/'); ?>" class="btn btn-secondary"><i data-feather="plus"></i> Add Service</a>
-                <a href="<?php echo esc_url($dashboard_base_url . 'discounts/'); ?>" class="btn btn-secondary"><i data-feather="percent"></i> Create Discount</a>
-                <a href="<?php echo esc_url($dashboard_base_url . 'areas/'); ?>" class="btn btn-secondary"><i data-feather="map"></i> Service Areas</a>
-                <a href="<?php echo esc_url($dashboard_base_url . 'settings/'); ?>" class="btn btn-secondary"><i data-feather="settings"></i> Settings</a>
+                <div class="text-2xl font-bold">+573</div>
+                <p class="text-xs text-muted-foreground">+201 since last hour</p>
             </div>
         </div>
+    </div>
 
-        <!-- Setup Progress -->
-        <div class="card setup-progress-card">
+    <!-- Middle Section -->
+    <div class="widget-span-4">
+        <div class="card">
             <div class="card-header">
-                <h3 class="card-title">Setup Progress</h3>
-            </div>
-            <div class="card-content" id="setup-progress-list">
-                <!-- Progress steps will be loaded here -->
-            </div>
-        </div>
-
-        <!-- Share Link -->
-        <div class="card share-link-card">
-            <div class="card-header">
-                <h3 class="card-title">Share Your Booking Link</h3>
+                <h3 class="card-title">Overview</h3>
             </div>
             <div class="card-content">
-                <p class="card-description">Add your booking form link to your website and social media.</p>
-                <div class="share-link-input-wrapper">
-                    <input type="text" readonly value="<?php echo esc_url(home_url('/booking/')); // This is a placeholder, will need to be made dynamic ?>" class="share-link-input">
-                    <button class="btn btn-primary" id="copy-share-link-button"><i data-feather="copy"></i></button>
+                <div class="chart-placeholder" style="height: 200px; background: #f0f0f0;"></div>
+            </div>
+        </div>
+    </div>
+    <div class="widget-span-4">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Overview</h3>
+            </div>
+            <div class="card-content">
+                <div class="chart-placeholder" style="height: 200px; background: #f0f0f0;"></div>
+            </div>
+        </div>
+    </div>
+    <div class="widget-span-4">
+        <div class="card">
+            <div class="card-header">
+                <div class="tabs">
+                    <button class="tab-item active">Overview</button>
+                    <button class="tab-item">Analytics</button>
+                    <button class="tab-item">Reports</button>
+                    <button class="tab-item">Notifications</button>
+                </div>
+            </div>
+            <div class="card-content">
+                <div class="sub-card">
+                    <p>Total Subscriptions</p>
+                    <p>2,350</p>
+                </div>
+                <div class="sub-card">
+                    <p>Total Revenue</p>
+                    <p>$45,231.89</p>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Bottom Section -->
+    <div class="widget-span-8">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Overview</h3>
+            </div>
+            <div class="card-content">
+                <div class="chart-placeholder" style="height: 300px; background: #f0f0f0;"></div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Recent Sales</h3>
+                <p class="text-muted-foreground">You made 265 sales this month.</p>
+            </div>
+            <div class="card-content">
+                <div class="recent-sales-table">
+                    <div class="table-row">
+                        <div class="table-cell">
+                            <div class="avatar">
+                                <img src="https://i.pravatar.cc/40?u=a" alt="Avatar">
+                            </div>
+                            <div>
+                                <p>Olivia Martin</p>
+                                <p class="text-muted-foreground">olivia.martin@email.com</p>
+                            </div>
+                        </div>
+                        <div class="table-cell text-right">+$1,999.00</div>
+                    </div>
+                    <div class="table-row">
+                        <div class="table-cell">
+                            <div class="avatar">
+                                <img src="https://i.pravatar.cc/40?u=b" alt="Avatar">
+                            </div>
+                            <div>
+                                <p>Jackson Lee</p>
+                                <p class="text-muted-foreground">jackson.lee@email.com</p>
+                            </div>
+                        </div>
+                        <div class="table-cell text-right">+$39.00</div>
+                    </div>
+                    <!-- Add more rows as needed -->
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="widget-span-4">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Overview</h3>
+            </div>
+            <div class="card-content">
+                <div class="chart-placeholder" style="height: 200px; background: #f0f0f0;"></div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Recent Activities</h3>
+            </div>
+            <div class="card-content">
+                <div class="recent-activities-list">
+                    <div class="activity-item">
+                        <div class="avatar">
+                            <img src="https://i.pravatar.cc/40?u=c" alt="Avatar">
+                        </div>
+                        <p><strong>Olivia Martin</strong> subscribed to your service.</p>
+                    </div>
+                    <div class="activity-item">
+                        <div class="avatar">
+                            <img src="https://i.pravatar.cc/40?u=d" alt="Avatar">
+                        </div>
+                        <p><strong>Jackson Lee</strong> created a new booking.</p>
+                    </div>
+                    <!-- Add more activities as needed -->
+                </div>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 <!-- Scripts for localization -->
