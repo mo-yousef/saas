@@ -536,60 +536,6 @@ public function get_areas_for_city($country_code, $city_code) {
         wp_send_json_success(['areas' => $areas]);
     }
 
-    public function get_service_coverage_grouped($filters = []) {
-        $user_id = get_current_user_id();
-        if (empty($user_id)) {
-            return new \WP_Error('invalid_user', __('Invalid user.', 'mobooking'));
-        }
-
-        $table_name = Database::get_table_name('service_areas');
-        $where_conditions = ['user_id = %d'];
-        $where_values = [$user_id];
-
-        if (!empty($filters['city'])) {
-            $where_conditions[] = 'area_name = %s';
-            $where_values[] = sanitize_text_field($filters['city']);
-        }
-
-        if (!empty($filters['status'])) {
-            $where_conditions[] = 'status = %s';
-            $where_values[] = sanitize_text_field($filters['status']);
-        }
-
-        $where_clause = 'WHERE ' . implode(' AND ', $where_conditions);
-        $sql = "SELECT area_name as city_name, COUNT(area_id) as area_count, status, country_code as city_code FROM $table_name $where_clause GROUP BY area_name, status, country_code ORDER BY area_name ASC";
-        $results = $this->wpdb->get_results($this->wpdb->prepare($sql, $where_values), ARRAY_A);
-
-        return ['cities' => $results];
-    }
-
-    public function get_service_coverage($city, $limit) {
-        $user_id = get_current_user_id();
-        if (empty($user_id)) {
-            return new \WP_Error('invalid_user', __('Invalid user.', 'mobooking'));
-        }
-
-        $table_name = Database::get_table_name('service_areas');
-        $where_conditions = ['user_id = %d'];
-        $where_values = [$user_id];
-
-        if (!empty($city)) {
-            $where_conditions[] = 'area_name = %s';
-            $where_values[] = sanitize_text_field($city);
-        }
-
-        $where_clause = 'WHERE ' . implode(' AND ', $where_conditions);
-
-        $limit_clause = '';
-        if ($limit > 0) {
-            $limit_clause = $this->wpdb->prepare('LIMIT %d', $limit);
-        }
-
-        $sql = "SELECT * FROM $table_name $where_clause ORDER BY area_value ASC $limit_clause";
-        $results = $this->wpdb->get_results($this->wpdb->prepare($sql, $where_values), ARRAY_A);
-
-        return ['areas' => $results];
-    }
 
     /**
      * Handle public ZIP code availability check
