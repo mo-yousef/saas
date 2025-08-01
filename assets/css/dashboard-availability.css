@@ -118,13 +118,27 @@
     background-color: hsl(var(--accent));
 }
 
+.slot-actions .button {
+    width: 35px;
+    background: rgb(181, 181, 181);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 .day-slots {
     padding-top: 1rem;
-    padding-left: 3.25rem; /* Indent under the toggle */
+    padding-left: 3.25rem;
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     flex-wrap: wrap;
     gap: 0.75rem;
+}
+
+.time-inputs {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
 }
 
 .time-slot {
@@ -144,6 +158,9 @@
     padding: 0.5rem 0.75rem;
     font-size: 0.875rem;
     width: 130px;
+    font-weight: 500;
+    margin: 0px !important;
+    font-family: inherit !important;
     transition: border-color 0.2s, box-shadow 0.2s;
 }
 
@@ -178,7 +195,8 @@
     background-color: hsl(var(--accent));
 }
 
-.day-off-text, .no-slots-text {
+.day-off-text,
+.no-slots-text {
     color: hsl(var(--muted-foreground));
     font-style: italic;
     font-size: 0.875rem;
@@ -221,14 +239,14 @@
     background-color: white;
     transition: .4s;
     border-radius: 50%;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-input:checked + .slider {
+input:checked+.slider {
     background-color: hsl(var(--primary));
 }
 
-input:checked + .slider:before {
+input:checked+.slider:before {
     transform: translateX(20px);
 }
 
@@ -245,6 +263,7 @@ input:checked + .slider:before {
     opacity: 0.5;
     pointer-events: none;
 }
+
 .day-disabled .day-slots {
     display: none;
 }
@@ -296,7 +315,7 @@ input:checked + .slider:before {
     max-width: 420px;
     background-color: hsl(var(--card));
     border-radius: var(--radius);
-    box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
     border: 1px solid hsl(var(--border));
     display: none;
 }
@@ -342,7 +361,7 @@ input:checked + .slider:before {
     background-color: hsl(var(--accent));
 }
 
-.copy-day-label input:checked + span {
+.copy-day-label input:checked+span {
     font-weight: 600;
     color: hsl(var(--primary));
 }
@@ -400,7 +419,7 @@ input:checked + .slider:before {
     border-radius: var(--radius);
     background-color: hsl(var(--primary));
     color: hsl(var(--primary-foreground));
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -421,19 +440,24 @@ input:checked + .slider:before {
         left: 1rem;
         transform: translateY(-100%);
     }
+
     .mobooking-availability-page h1 {
         font-size: 1.75rem;
     }
+
     .mobooking-availability-page h2 {
         font-size: 1.25rem;
     }
+
     .day-schedule {
         padding: 1rem;
     }
+
     .day-slots {
         padding-left: 0;
         padding-top: 1.5rem;
     }
+
     .time-slot input[type="time"] {
         width: 120px;
     }
