@@ -85,7 +85,6 @@
     function loadCities() {
         $citiesGridContainer.html(`<div class="mobooking-loading-state"><div class="mobooking-spinner"></div><p>${i18n.loading_cities}</p></div>`);
 
-        console.log("Loading service coverage with filters:", filters);
         $.ajax({
             url: mobooking_areas_params.ajax_url,
             type: "POST",
