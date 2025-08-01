@@ -719,4 +719,43 @@ function mobooking_ajax_get_public_services() {
 
     wp_send_json_success($services);
 }
+
+add_action('wp_ajax_mobooking_get_service_coverage_grouped', 'mobooking_ajax_get_service_coverage_grouped');
+function mobooking_ajax_get_service_coverage_grouped() {
+    if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'mobooking_areas_nonce')) {
+        wp_send_json_error(array('message' => 'Security check failed: Invalid nonce.'), 403);
+        return;
+    }
+
+    $areas_manager = new \MoBooking\Classes\Areas();
+    $filters = isset($_POST['filters']) ? $_POST['filters'] : [];
+    $result = $areas_manager->get_service_coverage_grouped($filters);
+
+    if (is_wp_error($result)) {
+        wp_send_json_error(array('message' => $result->get_error_message()), 500);
+        return;
+    }
+
+    wp_send_json_success($result);
+}
+
+add_action('wp_ajax_mobooking_get_service_coverage', 'mobooking_ajax_get_service_coverage');
+function mobooking_ajax_get_service_coverage() {
+    if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'mobooking_areas_nonce')) {
+        wp_send_json_error(array('message' => 'Security check failed: Invalid nonce.'), 403);
+        return;
+    }
+
+    $areas_manager = new \MoBooking\Classes\Areas();
+    $city = isset($_POST['city']) ? sanitize_text_field($_POST['city']) : '';
+    $limit = isset($_POST['limit']) ? intval($_POST['limit']) : -1;
+    $result = $areas_manager->get_service_coverage($city, $limit);
+
+    if (is_wp_error($result)) {
+        wp_send_json_error(array('message' => $result->get_error_message()), 500);
+        return;
+    }
+
+    wp_send_json_success($result);
+}
 ?>

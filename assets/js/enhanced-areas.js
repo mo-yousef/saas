@@ -85,6 +85,7 @@
     function loadCities() {
         $citiesGridContainer.html(`<div class="mobooking-loading-state"><div class="mobooking-spinner"></div><p>${i18n.loading_cities}</p></div>`);
 
+        console.log("Loading service coverage with filters:", filters);
         $.ajax({
             url: mobooking_areas_params.ajax_url,
             type: "POST",
@@ -193,6 +194,7 @@
      * Get already saved/enabled areas for a city
      */
     function getSavedAreasForCity(cityCode) {
+        console.log("Getting saved areas for city:", cityCode);
         return $.ajax({
             url: mobooking_areas_params.ajax_url,
             type: "POST",
@@ -202,6 +204,12 @@
                 city: cityCode,
                 limit: -1, // Get all
             },
+            success: function(response) {
+                console.log("Saved areas response:", response);
+            },
+            error: function(xhr) {
+                console.error("Error getting saved areas:", xhr.responseText);
+            }
         });
     }
 
@@ -316,13 +324,15 @@
                 filters: filters,
             },
             success: function (response) {
+                console.log("Service coverage response:", response);
                 if (response.success && response.data?.cities) {
                     renderCoverage(response.data.cities);
                 } else {
                     $coverageList.html(`<div class="mobooking-empty-state"><p>${i18n.no_coverage || 'No service coverage found.'}</p></div>`);
                 }
             },
-            error: function () {
+            error: function (xhr) {
+                console.error("Error loading service coverage:", xhr.responseText);
                 $coverageList.html(`<div class="mobooking-error-state"><p>${i18n.error}</p></div>`);
             },
         });
