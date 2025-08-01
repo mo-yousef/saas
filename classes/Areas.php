@@ -965,8 +965,3 @@ public function add_status_column_to_service_areas() {
         return (int) $count;
     }
 }
-
-
-
-
-}
