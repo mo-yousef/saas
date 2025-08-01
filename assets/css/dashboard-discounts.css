@@ -134,11 +134,3 @@
 .hidden {
     display: none;
 }
-
-.mobooking-discounts-page .status-inactive {
-    background-color: hsl(var(--muted));
-    color: hsl(var(--muted-foreground));
-    padding: 0.25rem 0.5rem;
-    border-radius: var(--radius);
-    font-weight: 500;
-}
