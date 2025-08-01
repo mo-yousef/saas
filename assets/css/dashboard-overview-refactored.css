@@ -68,6 +68,7 @@ body {
     border-radius: var(--radius);
     box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
     padding: 1.5rem;
+    margin-bottom: 1.5rem;
 }
 
 .card-header {
@@ -174,20 +175,6 @@ body {
 }
 
 /* Standardized KPI Grid and Card styles */
-.dashboard-kpi-card {
-  background: hsl(var(--card));
-  border: 1px solid hsl(var(--border));
-  border-radius: var(--radius);
-  padding: 1rem;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  transition: box-shadow 0.2s ease-in-out, transform 0.2s ease-in-out;
-}
-
-.dashboard-kpi-card:hover {
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
-    0 2px 4px -2px rgba(0, 0, 0, 0.1);
-}
-
 .dashboard-kpi-card .card-header {
   display: flex;
   align-items: center;
@@ -199,20 +186,12 @@ body {
   font-size: 0.875rem;
   font-weight: 500;
   color: hsl(var(--muted-foreground));
-  text-transform: uppercase;
-  letter-spacing: 0.025em;
 }
 
 .dashboard-kpi-card .card-content {
     display: flex;
-    align-items: center;
-    gap: 1rem;
-}
-
-.dashboard-kpi-card .feather {
-  width: 2rem;
-  height: 2rem;
-  color: hsl(var(--primary));
+    flex-direction: column;
+    gap: 0.25rem;
 }
 
 .dashboard-kpi-card .text-2xl {
@@ -223,106 +202,89 @@ body {
   line-height: 1.2;
 }
 
-/* Specific widget styles */
-.text-2xl {
-    font-size: 1.5rem;
-    line-height: 2rem;
+.text-xs {
+    font-size: 0.75rem;
+}
+
+.text-muted-foreground {
+    color: hsl(var(--muted-foreground));
 }
 
 .font-bold {
     font-weight: 700;
 }
 
-/* Quick Actions Widget */
-.quick-actions-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.75rem;
-}
-
-/* Recent Bookings Widget */
-.recent-bookings-list {
+.tabs {
     display: flex;
-    flex-direction: column;
     gap: 1rem;
-}
-
-.booking-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-bottom: 1rem;
     border-bottom: 1px solid hsl(var(--border));
 }
 
-.booking-item:last-child {
-    border-bottom: none;
-    padding-bottom: 0;
-}
-
-.booking-item-details {
-    display: flex;
-    flex-direction: column;
-}
-
-.booking-item-customer {
-    font-weight: 600;
-}
-
-.booking-item-service {
+.tab-item {
+    padding: 0.5rem 1rem;
+    border: none;
+    background: none;
+    cursor: pointer;
     color: hsl(var(--muted-foreground));
-    font-size: 0.875rem;
-}
-
-.booking-item-price {
-    font-weight: 600;
-}
-
-/* Setup Progress Widget */
-.setup-progress-list {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-}
-
-.setup-progress-item {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-}
-
-.setup-progress-item .icon {
-    width: 1.25rem;
-    height: 1.25rem;
-    border-radius: 50%;
-    background-color: hsl(var(--muted));
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: hsl(var(--muted-foreground));
-}
-
-.setup-progress-item.completed .icon {
-    background-color: hsl(var(--primary));
-    color: hsl(var(--primary-foreground));
-}
-
-/* Tips & Resources Widget */
-.tips-resources-list {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-}
-
-.tip-item {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    color: hsl(var(--primary));
-    text-decoration: none;
     font-weight: 500;
+    border-bottom: 2px solid transparent;
 }
 
-.tip-item:hover {
-    text-decoration: underline;
+.tab-item.active {
+    color: hsl(var(--primary));
+    border-bottom-color: hsl(var(--primary));
+}
+
+.sub-card {
+    padding: 1rem;
+    background: hsl(var(--secondary));
+    border-radius: var(--radius);
+    margin-bottom: 1rem;
+}
+
+.recent-sales-table {
+    display: table;
+    width: 100%;
+}
+
+.table-row {
+    display: table-row;
+}
+
+.table-cell {
+    display: table-cell;
+    padding: 0.75rem;
+    vertical-align: middle;
+    border-bottom: 1px solid hsl(var(--border));
+}
+
+.avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin-right: 1rem;
+    float: left;
+}
+
+.avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.text-right {
+    text-align: right;
+}
+
+.recent-activities-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.activity-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
 }
