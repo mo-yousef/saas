@@ -91,13 +91,13 @@ jQuery(document).ready(function($) {
         form[0].reset();
         discountIdField.val('');
         formTitle.text(mobooking_discounts_params.i18n.add_new_title || 'Add New Discount Code');
-        modal.removeClass('hidden');
+        modal.addClass('active');
     });
 
     // Cancel Form
     modal.on('click', '.mobooking-modal-close, .mobooking-modal-backdrop', function(e) {
         if ($(e.target).is('.mobooking-modal-close') || $(e.target).is('.mobooking-modal-backdrop')) {
-            modal.addClass('hidden');
+            modal.removeClass('active');
         }
     });
 
@@ -116,12 +116,12 @@ jQuery(document).ready(function($) {
                     formTitle.text(mobooking_discounts_params.i18n.edit_title || 'Edit Discount Code');
                     discountIdField.val(d.discount_id);
                     $('#mobooking-discount-code').val(d.code);
-                    $('#mobooking-discount-type').val(d.type);
+                    $(`input[name="type"][value="${d.type}"]`).prop('checked', true);
                     $('#mobooking-discount-value').val(d.value);
                     $('#mobooking-discount-expiry').val(d.expiry_date || '');
                     $('#mobooking-discount-limit').val(d.usage_limit || '');
                     $('#mobooking-discount-status').prop('checked', d.status === 'active');
-                    modal.removeClass('hidden');
+                    modal.addClass('active');
                 } else {
                     alert(response.data.message || 'Error fetching details.');
                 }
@@ -173,7 +173,7 @@ jQuery(document).ready(function($) {
             success: function(response) {
                 if (response.success) {
                     window.showAlert(response.data.message, 'success');
-                    modal.addClass('hidden');
+                    modal.removeClass('active');
                     loadDiscounts(discountIdField.val() ? currentFilters.paged : 1); // Refresh current page on edit, or go to page 1 on add
                 } else {
                     window.showAlert(response.data.message || 'Error saving.', 'error');
@@ -186,6 +186,12 @@ jQuery(document).ready(function($) {
                 submitButton.prop('disabled', false).text(originalButtonText);
             }
         });
+    });
+
+    // Generate Random Code
+    $('#mobooking-generate-code-btn').on('click', function() {
+        const randomCode = Math.random().toString(36).substring(2, 10).toUpperCase();
+        $('#mobooking-discount-code').val(randomCode);
     });
 
     // Initialize Datepicker

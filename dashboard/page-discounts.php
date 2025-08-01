@@ -109,7 +109,7 @@ wp_nonce_field('mobooking_dashboard_nonce', 'mobooking_dashboard_nonce_field');
     </tr>
 </script>
 
-<div id="mobooking-discount-modal" class="mobooking-modal-backdrop hidden">
+<div id="mobooking-discount-modal" class="mobooking-modal-backdrop">
     <div class="mobooking-modal">
         <div class="mobooking-modal-content">
             <h2 id="mobooking-discount-form-title" class="text-lg font-semibold"></h2>
@@ -118,14 +118,23 @@ wp_nonce_field('mobooking_dashboard_nonce', 'mobooking_dashboard_nonce_field');
                 <div class="form-grid">
                     <div class="form-group">
                         <label for="mobooking-discount-code"><?php esc_html_e('Discount Code', 'mobooking'); ?></label>
-                        <input type="text" id="mobooking-discount-code" name="code" required>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <input type="text" id="mobooking-discount-code" name="code" required style="flex: 1;">
+                            <button type="button" id="mobooking-generate-code-btn" class="button"><?php esc_html_e('Generate', 'mobooking'); ?></button>
+                        </div>
                     </div>
                     <div class="form-group">
-                        <label for="mobooking-discount-type"><?php esc_html_e('Type', 'mobooking'); ?></label>
-                        <select id="mobooking-discount-type" name="type">
-                            <option value="percentage"><?php esc_html_e('Percentage', 'mobooking'); ?></option>
-                            <option value="fixed_amount"><?php esc_html_e('Fixed Amount', 'mobooking'); ?></option>
-                        </select>
+                        <label><?php esc_html_e('Type', 'mobooking'); ?></label>
+                        <div class="radio-pills">
+                            <label>
+                                <input type="radio" name="type" value="percentage" checked>
+                                <span><?php esc_html_e('Percentage', 'mobooking'); ?></span>
+                            </label>
+                            <label>
+                                <input type="radio" name="type" value="fixed_amount">
+                                <span><?php esc_html_e('Fixed Amount', 'mobooking'); ?></span>
+                            </label>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label for="mobooking-discount-value"><?php esc_html_e('Value', 'mobooking'); ?></label>
