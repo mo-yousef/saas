@@ -119,11 +119,30 @@
 }
 
 .slot-actions .button {
-    width: 35px;
-    background: rgb(181, 181, 181);
-    display: flex;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: var(--radius);
+    display: inline-flex;
     align-items: center;
     justify-content: center;
+    transition: color 0.2s, background-color 0.2s;
+}
+
+.slot-actions .button svg {
+    width: 16px;
+    height: 16px;
+}
+
+.slot-actions .add-slot-btn:hover {
+    color: hsl(var(--primary));
+    background-color: hsl(var(--accent));
+}
+
+.slot-actions .delete-slot-btn:hover {
+    color: hsl(var(--destructive));
+    background-color: hsla(var(--destructive), 0.1);
 }
 
 .day-slots {
