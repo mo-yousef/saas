@@ -246,44 +246,140 @@ function mobooking_enqueue_dashboard_scripts($current_page_slug = '') {
 
     // Specific to Overview page (Dashboard)
     if ($current_page_slug === 'overview') {
-        // Enqueue FullCalendar (using CDN links for v5)
-        wp_enqueue_style('fullcalendar-main-css', 'https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css', array(), '5.11.3');
-        wp_enqueue_script('fullcalendar-main-js', 'https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js', array('jquery'), '5.11.3', true);
-        wp_enqueue_script('chart.js', 'https://cdn.jsdelivr.net/npm/chart.js', array(), null, true);
+        $version = defined('MOBOOKING_VERSION') ? MOBOOKING_VERSION : '1.0.0';
 
-        wp_enqueue_style('mobooking-dashboard-bookings-responsive', MOBOOKING_THEME_URI . 'assets/css/dashboard-bookings-responsive.css', array('mobooking-style'), MOBOOKING_VERSION);
-
-        wp_enqueue_script('mobooking-dashboard-overview', MOBOOKING_THEME_URI . 'assets/js/dashboard-overview.js', array('jquery', 'fullcalendar-main-js'), MOBOOKING_VERSION, true);
-
-        wp_enqueue_style(
-            'mobooking-overview-css',
-            get_template_directory_uri() . '/assets/css/dashboard-overview-refactored.css',
+        // Enqueue Feather Icons first (highest priority)
+        wp_enqueue_script(
+            'feather-icons',
+            'https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.29.0/feather.min.js',
             array(),
-            MOBOOKING_VERSION
+            '4.29.0',
+            true
         );
 
-        $current_user_id_for_scripts = get_current_user_id();
-        $is_worker_status = false;
-        if (class_exists('MoBooking\Classes\Auth') && \MoBooking\Classes\Auth::is_user_worker($current_user_id_for_scripts)) {
-            $is_worker_status = true;
-        }
+        // Enqueue Chart.js
+        wp_enqueue_script(
+            'chart-js',
+            'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js',
+            array(),
+            '3.9.1',
+            true
+        );
 
-        $overview_params = array_merge($dashboard_params, [
-            'is_worker' => $is_worker_status,
-            // dashboard_nonce is already in $dashboard_params and will be part of mobooking_overview_params
-            // currency_symbol is already in $dashboard_params
-            'i18n' => [
-                'loading_data' => __('Loading dashboard data...', 'mobooking'),
-                'error_loading_data' => __('Error loading overview data.', 'mobooking'),
-                'error_ajax' => __('An AJAX error occurred.', 'mobooking'),
-                'time_ago_just_now' => __('Just now', 'mobooking'),
-                'time_ago_seconds_suffix' => __('s ago', 'mobooking'),
-                'time_ago_minutes_suffix' => __('m ago', 'mobooking'),
-                'time_ago_hours_suffix' => __('h ago', 'mobooking'),
-                'time_ago_days_suffix' => __('d ago', 'mobooking'),
-            ]
-        ]);
-        wp_localize_script('mobooking-dashboard-overview', 'mobooking_overview_params', $overview_params);
+        // Enqueue enhanced dashboard CSS
+        wp_enqueue_style(
+            'mobooking-dashboard-enhanced-css',
+            MOBOOKING_THEME_URI . 'assets/css/dashboard-overview-enhanced.css',
+            array(),
+            $version
+        );
+
+        // Enqueue enhanced dashboard JavaScript (depends on feather and chart)
+        wp_enqueue_script(
+            'mobooking-dashboard-enhanced-js',
+            MOBOOKING_THEME_URI . 'assets/js/dashboard-overview-enhanced.js',
+            array('jquery', 'feather-icons', 'chart-js'),
+            $version,
+            true
+        );
+
+        // Localize script with dashboard data
+	    $current_user_id = get_current_user_id();
+	    $data_user_id = $current_user_id;
+	    $is_worker = false;
+
+	    // Handle workers
+	    if (class_exists('MoBooking\Classes\Auth') && \MoBooking\Classes\Auth::is_user_worker($current_user_id)) {
+	        $owner_id = \MoBooking\Classes\Auth::get_business_owner_id_for_worker($current_user_id);
+	        if ($owner_id) {
+	            $data_user_id = $owner_id;
+	            $is_worker = true;
+	        }
+	    }
+
+	    // Get managers and data
+	    $services_manager = new \MoBooking\Classes\Services();
+	    $discounts_manager = new \MoBooking\Classes\Discounts($current_user_id);
+	    $notifications_manager = new \MoBooking\Classes\Notifications();
+	    $bookings_manager = new \MoBooking\Classes\Bookings($discounts_manager, $notifications_manager, $services_manager);
+	    $settings_manager = new \MoBooking\Classes\Settings();
+
+	    // Get statistics
+	    $stats = $bookings_manager->get_booking_statistics($data_user_id);
+
+	    // Calculate metrics
+	    global $wpdb;
+	    $bookings_table = \MoBooking\Classes\Database::get_table_name('bookings');
+
+	    $today_revenue = $wpdb->get_var($wpdb->prepare(
+	        "SELECT SUM(total_price) FROM $bookings_table WHERE user_id = %d AND status IN ('completed', 'confirmed') AND DATE(booking_date) = CURDATE()",
+	        $data_user_id
+	    ));
+
+	    $week_bookings = $wpdb->get_var($wpdb->prepare(
+	        "SELECT COUNT(*) FROM $bookings_table WHERE user_id = %d AND YEARWEEK(booking_date, 1) = YEARWEEK(CURDATE(), 1)",
+	        $data_user_id
+	    ));
+
+	    $completed_bookings = $stats['by_status']['completed'] ?? 0;
+	    $total_bookings = $stats['total'];
+	    $completion_rate = ($total_bookings > 0) ? ($completed_bookings / $total_bookings) * 100 : 0;
+	    $avg_booking_value = ($total_bookings > 0) ? ($stats['total_revenue'] / $total_bookings) : 0;
+	    // Get setup progress
+	    $setup_progress = $settings_manager->get_setup_progress($data_user_id);
+	    $setup_percentage = 0;
+	    if (!empty($setup_progress['total_count']) && $setup_progress['total_count'] > 0) {
+	        $setup_percentage = round(($setup_progress['completed_count'] / $setup_progress['total_count']) * 100);
+	    }
+
+	    // Get services count
+	    $services_result = $services_manager->get_services_by_user($data_user_id, ['status' => 'active']);
+	    $active_services = $services_result['total_count'] ?? 0;
+
+	    // Get currency symbol
+	    $currency_symbol = \MoBooking\Classes\Utils::get_currency_symbol($settings_manager->get_setting($data_user_id, 'biz_currency_code', 'USD'));
+
+	    wp_localize_script('mobooking-dashboard-enhanced-js', 'mobooking_overview_params', array(
+	        'ajax_url' => admin_url('admin-ajax.php'),
+	        'nonce' => wp_create_nonce('mobooking_dashboard_nonce'),
+	        'currency_symbol' => $currency_symbol,
+	        'is_worker' => $is_worker,
+	        'dashboard_base_url' => home_url('/dashboard/'),
+	        'user_id' => $data_user_id,
+	        'current_time' => current_time('mysql'),
+	        'stats' => array(
+	            'total_revenue' => floatval($stats['total_revenue'] ?? 0),
+	            'total_bookings' => intval($stats['total'] ?? 0),
+	            'today_revenue' => floatval($today_revenue ?? 0),
+	            'completion_rate' => floatval($completion_rate),
+	            'week_bookings' => intval($week_bookings ?? 0),
+	            'avg_booking_value' => floatval($avg_booking_value),
+	            'active_services' => intval($active_services),
+	            'setup_percentage' => intval($setup_percentage)
+	        ),
+	        'i18n' => array(
+	            'time_ago_just_now' => __('Just now', 'mobooking'),
+	            'time_ago_seconds_suffix' => __('s ago', 'mobooking'),
+	            'time_ago_minutes_suffix' => __('m ago', 'mobooking'),
+	            'time_ago_hours_suffix' => __('h ago', 'mobooking'),
+	            'time_ago_days_suffix' => __('d ago', 'mobooking'),
+	            'loading' => __('Loading...', 'mobooking'),
+	            'no_data' => __('No data available', 'mobooking'),
+	            'error' => __('Error loading data', 'mobooking'),
+	            'copied' => __('Copied!', 'mobooking'),
+	            'new_booking' => __('New booking received', 'mobooking'),
+	            'booking_updated' => __('Booking status updated', 'mobooking'),
+	            'service_created' => __('New service created', 'mobooking'),
+	            'worker_added' => __('New worker added', 'mobooking'),
+	            'settings_updated' => __('Settings updated', 'mobooking'),
+	            'refresh_success' => __('Data refreshed successfully', 'mobooking'),
+	            'refresh_error' => __('Failed to refresh data', 'mobooking'),
+	            'export_success' => __('Data exported successfully', 'mobooking'),
+	            'export_error' => __('Failed to export data', 'mobooking'),
+	            'network_error' => __('Network connection error', 'mobooking'),
+	            'unauthorized' => __('You are not authorized to perform this action', 'mobooking')
+	        )
+	    ));
     }
 
     // Specific to Availability page

@@ -1065,32 +1065,9 @@
 
   // Initialize when document is ready
   $(document).ready(function () {
-    // Check if feather is available and initialize icons
-    function initializeFeatherIcons() {
-      if (typeof feather !== "undefined") {
-        feather.replace();
-        return true;
-      } else {
-        console.warn("Feather icons not available, using fallback");
-        // Hide feather icons to prevent errors
-        $("[data-feather]").hide();
-        return false;
-      }
-    }
-
-    // Try to initialize Feather icons
-    if (!initializeFeatherIcons()) {
-      // If feather is not available, try to load it dynamically
-      $.getScript(
-        "https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.29.0/feather.min.js"
-      )
-        .done(function () {
-          console.log("Feather icons loaded dynamically");
-          initializeFeatherIcons();
-        })
-        .fail(function () {
-          console.error("Failed to load Feather icons dynamically");
-        });
+    // Initialize Feather Icons
+    if (typeof feather !== 'undefined') {
+      feather.replace();
     }
 
     // Initialize dashboard
