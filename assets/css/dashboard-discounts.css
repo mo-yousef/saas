@@ -141,28 +141,45 @@
 
 /* Radio Pills */
 .radio-pills {
-    display: flex;
-    border: 1px solid hsl(var(--border));
+    display: inline-flex;
     border-radius: var(--radius);
     overflow: hidden;
+    border: 1px solid hsl(var(--border));
 }
 
 .radio-pills label {
-    flex: 1;
-    text-align: center;
-    padding: 0.5rem;
-    cursor: pointer;
-    background-color: hsl(var(--muted));
-    color: hsl(var(--muted-foreground));
-    transition: background-color 0.2s;
+    position: relative;
 }
 
 .radio-pills input[type="radio"] {
-    display: none;
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.radio-pills span {
+    display: block;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    background-color: hsl(var(--muted));
+    color: hsl(var(--muted-foreground));
+    transition: background-color 0.2s, color 0.2s;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 
 .radio-pills input[type="radio"]:checked + span {
     background-color: hsl(var(--primary));
     color: hsl(var(--primary-foreground));
-    border-radius: var(--radius);
+}
+
+.radio-pills label:not(:last-child) span {
+    border-right: 1px solid hsl(var(--border));
+}
+
+.form-group.full-width {
+    grid-column: span 2;
 }
