@@ -950,6 +950,20 @@ public function add_status_column_to_service_areas() {
         // Add index for better performance
         $this->wpdb->query("ALTER TABLE $table_name ADD INDEX idx_user_status (user_id, status)");
     }
+
+    public function get_areas_count_by_user(int $user_id): int {
+        if (empty($user_id)) {
+            return 0;
+        }
+
+        $table_name = Database::get_table_name('service_areas');
+        $count = $this->wpdb->get_var($this->wpdb->prepare(
+            "SELECT COUNT(area_id) FROM $table_name WHERE user_id = %d",
+            $user_id
+        ));
+
+        return (int) $count;
+    }
 }
 
 

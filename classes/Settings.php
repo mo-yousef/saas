@@ -850,4 +850,48 @@ public function save_booking_form_settings(int $user_id, array $settings_data): 
     public static function get_all_default_settings(): array {
         return self::$default_tenant_settings;
     }
+
+    public function get_setup_progress(int $user_id): array {
+        $progress = [
+            'steps' => [],
+            'completed_count' => 0,
+            'total_count' => 0,
+            'is_complete' => false,
+        ];
+
+        // Step 1: Business Name
+        $biz_name = $this->get_setting($user_id, 'biz_name', '');
+        $step1_complete = !empty($biz_name);
+        $progress['steps'][] = [
+            'id' => 'business_name',
+            'label' => __('Set Business Name', 'mobooking'),
+            'completed' => $step1_complete,
+        ];
+
+        // Step 2: Add a Service
+        $services_manager = new \MoBooking\Classes\Services();
+        $services_count = $services_manager->get_services_count($user_id);
+        $step2_complete = $services_count > 0;
+        $progress['steps'][] = [
+            'id' => 'add_service',
+            'label' => __('Add Your First Service', 'mobooking'),
+            'completed' => $step2_complete,
+        ];
+
+        // Step 3: Define Service Area
+        $areas_manager = new \MoBooking\Classes\Areas();
+        $areas_count = $areas_manager->get_areas_count_by_user($user_id);
+        $step3_complete = $areas_count > 0;
+        $progress['steps'][] = [
+            'id' => 'define_area',
+            'label' => __('Define Service Area', 'mobooking'),
+            'completed' => $step3_complete,
+        ];
+
+        $progress['total_count'] = count($progress['steps']);
+        $progress['completed_count'] = count(array_filter($progress['steps'], fn($step) => $step['completed']));
+        $progress['is_complete'] = $progress['completed_count'] === $progress['total_count'];
+
+        return $progress;
+    }
 }
