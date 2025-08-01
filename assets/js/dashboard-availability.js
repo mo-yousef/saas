@@ -58,9 +58,11 @@ jQuery(document).ready(function ($) {
               <strong>${dayName}</strong>
             </div>
             <div class="day-actions">
-              <button type="button" class="button button-small copy-schedule-btn dashicons dashicons-admin-page" title="${
+              <button type="button" class="button button-small copy-schedule-btn" title="${
                 i18n.copy_schedule || "Copy Schedule"
-              }" data-day-index="${dayIndex}"></button>
+              }" data-day-index="${dayIndex}">
+                ${icons.copy || ""}
+              </button>
             </div>
           </div>
           <div class="day-slots">
