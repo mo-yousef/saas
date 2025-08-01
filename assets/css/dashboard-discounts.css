@@ -131,6 +131,10 @@
     gap: 0.5rem;
 }
 
+.hidden {
+    display: none;
+}
+
 .mobooking-discounts-page .status-inactive {
     background-color: hsl(var(--muted));
     color: hsl(var(--muted-foreground));

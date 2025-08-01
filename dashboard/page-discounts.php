@@ -109,7 +109,7 @@ wp_nonce_field('mobooking_dashboard_nonce', 'mobooking_dashboard_nonce_field');
     </tr>
 </script>
 
-<div id="mobooking-discount-modal" class="mobooking-modal-backdrop" style="display: none;">
+<div id="mobooking-discount-modal" class="mobooking-modal-backdrop hidden">
     <div class="mobooking-modal">
         <div class="mobooking-modal-content">
             <h2 id="mobooking-discount-form-title" class="text-lg font-semibold"></h2>
@@ -141,10 +141,10 @@ wp_nonce_field('mobooking_dashboard_nonce', 'mobooking_dashboard_nonce_field');
                     </div>
                     <div class="form-group">
                         <label for="mobooking-discount-status"><?php esc_html_e('Status', 'mobooking'); ?></label>
-                        <select id="mobooking-discount-status" name="status">
-                            <option value="active"><?php esc_html_e('Active', 'mobooking'); ?></option>
-                            <option value="inactive"><?php esc_html_e('Inactive', 'mobooking'); ?></option>
-                        </select>
+                        <label class="mobooking-toggle-switch">
+                            <input type="checkbox" id="mobooking-discount-status" name="status" value="active">
+                            <span class="slider"></span>
+                        </label>
                     </div>
                 </div>
                 <div class="form-actions">
