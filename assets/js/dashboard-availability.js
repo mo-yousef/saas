@@ -4,6 +4,7 @@ jQuery(document).ready(function ($) {
   const ajaxUrl = mobooking_availability_params.ajax_url;
   const availabilityNonce = mobooking_availability_params.availability_nonce;
   const i18n = mobooking_availability_params.i18n || {};
+  const icons = mobooking_availability_params.icons || {};
   const daysOfWeek = [
     i18n.sunday || "Sunday",
     i18n.monday || "Monday",
@@ -105,15 +106,19 @@ jQuery(document).ready(function ($) {
           <input type="time" class="end-time" value="${slot.end_time}">
         </div>
         <div class="slot-actions">
-          <button type="button" class="button button-small add-slot-btn dashicons dashicons-plus" title="${
+          <button type="button" class="button button-small add-slot-btn" title="${
             i18n.add_slot || "Add Slot"
-          }" data-day-index="${dayIndex}" data-slot-index="${slotIndex}"></button>
+          }" data-day-index="${dayIndex}" data-slot-index="${slotIndex}">
+            ${icons.plus || ""}
+          </button>
           ${
             showDelete
               ? `
-          <button type="button" class="button button-link-delete delete-slot-btn dashicons dashicons-trash" title="${
+          <button type="button" class="button button-link-delete delete-slot-btn" title="${
             i18n.delete_slot || "Delete Slot"
-          }" data-day-index="${dayIndex}" data-slot-index="${slotIndex}"></button>
+          }" data-day-index="${dayIndex}" data-slot-index="${slotIndex}">
+            ${icons.trash || ""}
+          </button>
           `
               : ""
           }
