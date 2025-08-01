@@ -457,7 +457,8 @@
      * Form validation
      */
     validateInviteForm: function ($form) {
-      var email = $form.find("#invite_email").val().trim();
+      var emailValue = $form.find("#invite_email").val();
+      var email = emailValue ? emailValue.trim() : "";
       var role = $form.find("#invite_role").val();
 
       if (!email) {
