@@ -431,4 +431,63 @@ class Notifications {
         }
         return $email_sent;
     }
+
+    /**
+     * Sends a welcome email to a new business owner.
+     * @param int $user_id The ID of the new user.
+     * @param string $display_name The display name of the new user.
+     * @return bool
+     */
+    public function send_welcome_email(int $user_id, string $display_name): bool {
+        $user_info = get_userdata($user_id);
+        if (!$user_info) {
+            return false;
+        }
+        $user_email = $user_info->user_email;
+
+        $subject = sprintf(__('Welcome to %s, %s!', 'mobooking'), get_bloginfo('name'), $display_name);
+
+        $body_content = '<h2>' . sprintf(__('Welcome, %s!', 'mobooking'), $display_name) . '</h2>';
+        $body_content .= '<p>' . sprintf(__('Thank you for registering with %s. We are excited to have you on board!', 'mobooking'), get_bloginfo('name')) . '</p>';
+        $body_content .= '<p>' . __('You can access your dashboard to get started managing your business and bookings.', 'mobooking') . '</p>';
+        $body_content .= '<p style="text-align:center; margin-top: 24px;"><a href="' . esc_url(home_url('/dashboard/')) . '" class="button">' . __('Go to Your Dashboard', 'mobooking') . '</a></p>';
+        $body_content .= '<p>' . __('If you have any questions, feel free to contact our support team.', 'mobooking') . '</p>';
+
+        $full_email_html = $this->get_styled_email_html($subject, get_bloginfo('name'), $body_content);
+
+        $headers = $this->get_email_headers();
+        $email_sent = wp_mail($user_email, $subject, $full_email_html, $headers);
+
+        if (!$email_sent) {
+            error_log('MoBooking: Failed to send welcome email to ' . $user_email);
+        }
+
+        return $email_sent;
+    }
+
+    /**
+     * Sends an invitation email to a new worker.
+     * @param string $worker_email The email of the worker to invite.
+     * @param string $assigned_role The role assigned to the worker.
+     * @param string $inviter_name The name of the person inviting the worker.
+     * @param string $registration_link The link to the registration page.
+     * @return bool
+     */
+    public function send_invitation_email(string $worker_email, string $assigned_role, string $inviter_name, string $registration_link): bool {
+        $subject = sprintf(__('You have been invited to %s', 'mobooking'), get_bloginfo('name'));
+
+        $role_display_name = ucfirst(str_replace('mobooking_worker_', '', $assigned_role));
+
+        $body_content = '<h2>' . __('You\'re Invited!', 'mobooking') . '</h2>';
+        $body_content .= '<p>' . sprintf(__('Hi %s,', 'mobooking'), $worker_email) . '</p>';
+        $body_content .= '<p>' . sprintf(__('You have been invited to join %s as a %s by %s.', 'mobooking'), '<strong>' . get_bloginfo('name') . '</strong>', '<strong>' . $role_display_name . '</strong>', '<strong>' . $inviter_name . '</strong>') . '</p>';
+        $body_content .= '<p>' . __('To accept this invitation and complete your registration, please click the button below. This link is valid for 7 days.', 'mobooking') . '</p>';
+        $body_content .= '<p style="text-align:center; margin-top: 24px;"><a href="' . esc_url($registration_link) . '" class="button">' . __('Accept Invitation & Register', 'mobooking') . '</a></p>';
+        $body_content .= '<p style="font-size: 12px; color: #718096;">' . __('If you were not expecting this invitation, please ignore this email.', 'mobooking') . '</p>';
+
+        $full_email_html = $this->get_styled_email_html($subject, get_bloginfo('name'), $body_content);
+
+        $headers = $this->get_email_headers();
+        return wp_mail($worker_email, $subject, $full_email_html, $headers);
+    }
 }

@@ -467,22 +467,8 @@ class Auth {
         $inviter_user_data = get_userdata($current_user_id);
         $inviter_name = $inviter_user_data ? $inviter_user_data->display_name : get_bloginfo('name');
 
-        $subject = sprintf( __( 'You have been invited to %s', 'mobooking' ), get_bloginfo( 'name' ) );
-
-        $role_display_name = ucfirst( str_replace( 'mobooking_worker_', '', $assigned_role ) );
-
-        $body_content = '<h2>' . __( 'You\'re Invited!', 'mobooking' ) . '</h2>';
-        $body_content .= '<p>' . sprintf( __( 'Hi %s,', 'mobooking' ), $worker_email ) . '</p>';
-        $body_content .= '<p>' . sprintf( __( 'You have been invited to join %s as a %s by %s.', 'mobooking' ), '<strong>' . get_bloginfo( 'name' ) . '</strong>', '<strong>' . $role_display_name . '</strong>', '<strong>' . $inviter_name . '</strong>' ) . '</p>';
-        $body_content .= '<p>' . __( 'To accept this invitation and complete your registration, please click the button below. This link is valid for 7 days.', 'mobooking' ) . '</p>';
-        $body_content .= '<p style="text-align:center; margin-top: 24px;"><a href="' . esc_url( $registration_link ) . '" class="button">' . __( 'Accept Invitation & Register', 'mobooking' ) . '</a></p>';
-        $body_content .= '<p style="font-size: 12px; color: #718096;">' . __( 'If you were not expecting this invitation, please ignore this email.', 'mobooking' ) . '</p>';
-
         $notifications = new Notifications();
-        $full_email_html = $notifications->get_styled_email_html($subject, get_bloginfo('name'), $body_content);
-
-        $headers = ['Content-Type: text/html; charset=UTF-8'];
-        $sent = wp_mail( $worker_email, $subject, $full_email_html, $headers );
+        $sent = $notifications->send_invitation_email($worker_email, $assigned_role, $inviter_name, $registration_link);
 
         if ( $sent ) {
             wp_send_json_success( array( 'message' => __( 'Invitation sent successfully to ', 'mobooking' ) . $worker_email ) );
@@ -803,31 +789,8 @@ public function handle_ajax_registration() {
      */
     private function send_welcome_email( $user_id, $display_name ) {
         try {
-            $user_info = get_userdata( $user_id );
-            $user_email = $user_info->user_email;
-
-            $subject = sprintf( 
-                __( 'Welcome to %s, %s!', 'mobooking' ), 
-                get_bloginfo( 'name' ), 
-                $display_name 
-            );
-
-            $body_content = '<h2>' . sprintf(__( 'Welcome, %s!', 'mobooking' ), $display_name) . '</h2>';
-            $body_content .= '<p>' . sprintf( __( 'Thank you for registering with %s. We are excited to have you on board!', 'mobooking' ), get_bloginfo( 'name' ) ) . '</p>';
-            $body_content .= '<p>' . __( 'You can access your dashboard to get started managing your business and bookings.', 'mobooking' ) . '</p>';
-            $body_content .= '<p style="text-align:center; margin-top: 24px;"><a href="' . esc_url( home_url( '/dashboard/' ) ) . '" class="button">' . __( 'Go to Your Dashboard', 'mobooking' ) . '</a></p>';
-            $body_content .= '<p>' . __( 'If you have any questions, feel free to contact our support team.', 'mobooking' ) . '</p>';
-
             $notifications = new Notifications();
-            $full_email_html = $notifications->get_styled_email_html($subject, get_bloginfo('name'), $body_content);
-
-            $headers = ['Content-Type: text/html; charset=UTF-8'];
-            $email_sent = wp_mail( $user_email, $subject, $full_email_html, $headers );
-            
-            if ( !$email_sent ) {
-                error_log( 'MoBooking: Failed to send welcome email to ' . $user_email );
-            }
-
+            $notifications->send_welcome_email($user_id, $display_name);
         } catch ( Exception $e ) {
             error_log( 'MoBooking: Welcome email error - ' . $e->getMessage() );
         }
