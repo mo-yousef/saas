@@ -190,7 +190,10 @@ jQuery(document).ready(function($) {
 
     // Generate Random Code
     $('#mobooking-generate-code-btn').on('click', function() {
-        const randomCode = Math.random().toString(36).substring(2, 10).toUpperCase();
+        const names = ['SUMMER', 'WINTER', 'SPRING', 'AUTUMN', 'HOLIDAY', 'SPECIAL', 'SALE'];
+        const randomName = names[Math.floor(Math.random() * names.length)];
+        const randomNumber = Math.floor(Math.random() * 1000);
+        const randomCode = `${randomName}${randomNumber}`;
         $('#mobooking-discount-code').val(randomCode);
     });
 

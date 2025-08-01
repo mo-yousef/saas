@@ -116,7 +116,7 @@ wp_nonce_field('mobooking_dashboard_nonce', 'mobooking_dashboard_nonce_field');
             <form id="mobooking-discount-form">
                 <input type="hidden" id="mobooking-discount-id" name="discount_id" value="">
                 <div class="form-grid">
-                    <div class="form-group">
+                    <div class="form-group full-width">
                         <label for="mobooking-discount-code"><?php esc_html_e('Discount Code', 'mobooking'); ?></label>
                         <div style="display: flex; gap: 0.5rem;">
                             <input type="text" id="mobooking-discount-code" name="code" required style="flex: 1;">
