@@ -183,3 +183,43 @@
 .form-group.full-width {
     grid-column: span 2;
 }
+
+@media screen and (max-width: 768px) {
+    .mobooking-table-container {
+        overflow-x: auto;
+    }
+
+    .wp-list-table thead,
+    .wp-list-table tfoot {
+        display: none;
+    }
+
+    .wp-list-table tbody tr {
+        display: block;
+        margin-bottom: 1rem;
+        border: 1px solid hsl(var(--border));
+        border-radius: var(--radius);
+    }
+
+    .wp-list-table tbody td {
+        display: block;
+        text-align: right;
+        border-bottom: 1px solid hsl(var(--border));
+        position: relative;
+        padding-left: 50%;
+    }
+
+    .wp-list-table tbody td:before {
+        content: attr(data-label);
+        position: absolute;
+        left: 0;
+        width: 45%;
+        padding-left: 1rem;
+        font-weight: 600;
+        text-align: left;
+    }
+
+    .wp-list-table tbody td:last-child {
+        border-bottom: none;
+    }
+}
