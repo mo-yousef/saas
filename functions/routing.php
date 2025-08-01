@@ -144,6 +144,7 @@ function mobooking_enqueue_dashboard_scripts($current_page_slug = '') {
 
     // Specific to Discounts page
     if ($current_page_slug === 'discounts') {
+        wp_enqueue_style('mobooking-dashboard-discounts', MOBOOKING_THEME_URI . 'assets/css/dashboard-discounts.css', array(), MOBOOKING_VERSION);
         wp_enqueue_script('mobooking-dashboard-discounts', MOBOOKING_THEME_URI . 'assets/js/dashboard-discounts.js', array('jquery'), MOBOOKING_VERSION, true);
         $discounts_params = array_merge($dashboard_params, [
             'i18n' => [
