@@ -82,7 +82,7 @@ jQuery(document).ready(function ($) {
           });
         } else {
           // This case should not be reached if we always ensure at least one slot
-          const newSlot = { start_time: "09:00", end_time: "17:00" };
+          const newSlot = { start_time: "08:00", end_time: "13:00" };
           dayData.slots.push(newSlot);
           $slotsContainer.append(renderSlotInput(dayIndex, 0, newSlot, 1));
         }
@@ -155,30 +155,55 @@ jQuery(document).ready(function ($) {
     });
   }
 
+  function validateTimeSlots(schedule) {
+    let allErrors = [];
+
+    schedule.forEach((dayData, dayIndex) => {
+        if (!dayData.is_enabled || dayData.slots.length <= 1) {
+            return; // No need to validate if the day is off or has only one slot
+        }
+
+        const dayName = daysOfWeek[dayIndex];
+        let sortedSlots = [...dayData.slots]
+            .map((slot, originalIndex) => ({ ...slot, originalIndex }))
+            .sort((a, b) => a.start_time.localeCompare(b.start_time));
+
+        for (let i = 0; i < sortedSlots.length; i++) {
+            let currentSlot = sortedSlots[i];
+
+            // Check for invalid or equal start/end times
+            if (currentSlot.start_time >= currentSlot.end_time) {
+                allErrors.push(
+                    `On ${dayName}, slot ${i + 1} has an invalid time range (start time must be before end time).`
+                );
+            }
+
+            // Check for overlap with the next slot
+            if (i < sortedSlots.length - 1) {
+                let nextSlot = sortedSlots[i + 1];
+                if (currentSlot.end_time > nextSlot.start_time) {
+                    allErrors.push(
+                        `On ${dayName}, slot ${i + 1} (${currentSlot.start_time} - ${currentSlot.end_time}) overlaps with slot ${i + 2} (${nextSlot.start_time} - ${nextSlot.end_time}).`
+                    );
+                }
+            }
+        }
+    });
+
+    return allErrors;
+}
+
   function saveSchedule() {
     // Before saving, update scheduleData from the DOM
     updateScheduleDataFromDOM();
 
-    // Validation for duplicate time slots
-    let hasDuplicates = false;
-    scheduleData.forEach((dayData) => {
-      if (dayData.is_enabled && dayData.slots.length > 1) {
-        const slots = dayData.slots.map(
-          (slot) => `${slot.start_time}-${slot.end_time}`
-        );
-        const uniqueSlots = new Set(slots);
-        if (slots.length !== uniqueSlots.size) {
-          hasDuplicates = true;
-        }
-      }
-    });
-
-    if (hasDuplicates) {
-      showFeedback(
-        "You have duplicate time slots in one or more days. Please remove them before saving.",
-        "error"
-      );
-      return;
+    // Perform validation
+    const validationErrors = validateTimeSlots(scheduleData);
+    if (validationErrors.length > 0) {
+        validationErrors.forEach(error => {
+            showFloatingAlert(error, 'error');
+        });
+        return; // Stop the save process
     }
 
     $.ajax({
@@ -259,7 +284,7 @@ jQuery(document).ready(function ($) {
       $slotsContainer.html("");
       if (dayData.slots.length === 0) {
         // Add a default slot
-        const newSlot = { start_time: "09:00", end_time: "17:00" };
+        const newSlot = { start_time: "08:00", end_time: "13:00" };
         dayData.slots.push(newSlot);
       }
       const totalSlots = dayData.slots.length;
