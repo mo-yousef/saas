@@ -158,7 +158,15 @@ function mobooking_enqueue_dashboard_scripts($current_page_slug = '') {
                 'discount_saved' => __('Discount saved.', 'mobooking'),
                 'error_saving_discount' => __('Error saving discount.', 'mobooking'),
                 'saving' => __('Saving...', 'mobooking'),
-            ]
+            ],
+            'types' => [
+                'percentage' => __('Percentage', 'mobooking'),
+                'fixed_amount' => __('Fixed Amount', 'mobooking'),
+            ],
+            'statuses' => [
+                'active' => __('Active', 'mobooking'),
+                'inactive' => __('Inactive', 'mobooking'),
+            ],
         ]);
         wp_localize_script('mobooking-dashboard-discounts', 'mobooking_discounts_params', $discounts_params);
     }
