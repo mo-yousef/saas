@@ -1146,6 +1146,37 @@ public function handle_get_public_services_ajax() {
     }
 
     /**
+    public function get_popular_services($tenant_id, $limit = 4) {
+        $services_table = Database::get_table_name('services');
+        $booking_items_table = Database::get_table_name('booking_items');
+        $bookings_table = Database::get_table_name('bookings');
+
+        // This query joins services with booking items and bookings to count how many times each service has been booked.
+        $sql = "
+            SELECT
+                s.service_id,
+                s.name,
+                s.duration,
+                s.price,
+                COUNT(bi.item_id) as bookings_count
+            FROM {$services_table} s
+            LEFT JOIN {$booking_items_table} bi ON s.service_id = bi.service_id
+            JOIN {$bookings_table} b ON bi.booking_id = b.booking_id
+            WHERE b.user_id = %d AND s.status = 'active'
+            GROUP BY s.service_id, s.name, s.duration, s.price
+            ORDER BY bookings_count DESC
+            LIMIT %d
+        ";
+
+        $results = $this->wpdb->get_results(
+            $this->wpdb->prepare($sql, $tenant_id, $limit),
+            ARRAY_A
+        );
+
+        return $results ?: [];
+    }
+
+    /**
      * Get top services by booking count and revenue
      * Add this method to the Services class
      */
