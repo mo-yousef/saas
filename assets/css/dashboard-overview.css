@@ -316,3 +316,107 @@
         grid-column: span 12;
     }
 }
+
+/* New KPI Card Styles */
+.kpi-value {
+    font-size: 2.25rem;
+    font-weight: 700;
+    color: #111827;
+    line-height: 1.1;
+}
+
+.kpi-trend {
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+
+.kpi-trend.positive {
+    color: #10b981;
+}
+
+.kpi-trend.negative {
+    color: #ef4444;
+}
+
+/* Calendar Widget Styles */
+.mobooking-calendar .calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.mobooking-calendar .calendar-header h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.mobooking-calendar .calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0.5rem;
+}
+
+.mobooking-calendar .day-name {
+    text-align: center;
+    font-weight: 600;
+    color: #6b7280;
+    padding-bottom: 0.5rem;
+}
+
+.mobooking-calendar .day {
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    padding: 0.5rem;
+    min-height: 80px;
+}
+
+.mobooking-calendar .day.empty {
+    border: 1px solid transparent;
+}
+
+.mobooking-calendar .day.today {
+    background-color: #eff6ff;
+    border-color: #2563eb;
+}
+
+.mobooking-calendar .day-number {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.mobooking-calendar .booking-event {
+    background-color: #dbeafe;
+    color: #1e40af;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    margin-bottom: 0.25rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Badge Styles */
+.mobooking-badge {
+    display: inline-block;
+    padding: 0.25em 0.6em;
+    font-size: 75%;
+    font-weight: 700;
+    line-height: 1;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: baseline;
+    border-radius: 0.25rem;
+}
+
+.mobooking-badge.confirmed {
+    color: #fff;
+    background-color: #28a745;
+}
+
+.mobooking-badge.pending {
+    color: #212529;
+    background-color: #ffc107;
+}
