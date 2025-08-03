@@ -1145,7 +1145,6 @@ public function handle_get_public_services_ajax() {
         wp_send_json_success(['icons' => $preset_icons]);
     }
 
-    /**
     public function get_popular_services($tenant_id, $limit = 4) {
         $services_table = Database::get_table_name('services');
         $booking_items_table = Database::get_table_name('booking_items');
