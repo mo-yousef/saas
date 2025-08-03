@@ -1624,18 +1624,38 @@ foreach ($calculated_service_items as $service_item) {
      * Get upcoming bookings for reminders
      */
     public function get_upcoming_bookings(int $tenant_user_id, int $days_ahead = 7) {
-        $bookings_table = Database::get_table_name('bookings');
         $start_date = current_time('Y-m-d');
         $end_date = date('Y-m-d', strtotime("+{$days_ahead} days"));
-        
-        return $this->wpdb->get_results($this->wpdb->prepare(
-            "SELECT * FROM $bookings_table 
-             WHERE user_id = %d 
-             AND status IN ('confirmed', 'pending') 
-             AND booking_date BETWEEN %s AND %s 
-             ORDER BY booking_date ASC, booking_time ASC",
-            $tenant_user_id, $start_date, $end_date
-        ), ARRAY_A) ?: [];
+
+        $args = [
+            'limit' => 100, // a high limit to get all upcoming bookings
+            'paged' => 1,
+            'orderby' => 'booking_date',
+            'order' => 'ASC',
+            'date_from' => $start_date,
+            'date_to' => $end_date,
+        ];
+
+        // The user wants both confirmed and pending bookings.
+        // get_bookings_by_tenant only supports one status, so we get them separately and merge.
+        $args['status'] = 'confirmed';
+        $confirmed_bookings_result = $this->get_bookings_by_tenant($tenant_user_id, $args);
+        $confirmed_bookings = $confirmed_bookings_result['bookings'];
+
+        $args['status'] = 'pending';
+        $pending_bookings_result = $this->get_bookings_by_tenant($tenant_user_id, $args);
+        $pending_bookings = $pending_bookings_result['bookings'];
+
+        $all_bookings = array_merge($confirmed_bookings, $pending_bookings);
+
+        // Sort them by date and time
+        usort($all_bookings, function($a, $b) {
+            $time_a = strtotime($a['booking_date'] . ' ' . $a['booking_time']);
+            $time_b = strtotime($b['booking_date'] . ' ' . $b['booking_time']);
+            return $time_a - $time_b;
+        });
+
+        return $all_bookings;
     }
 
     /**
@@ -2150,5 +2170,46 @@ public function get_chart_data($tenant_id, $period = 'week') {
         ];
     }
 
+    public function get_monthly_revenue(int $tenant_user_id) {
+        if (empty($tenant_user_id)) {
+            return 0;
+        }
+        $bookings_table = Database::get_table_name('bookings');
+        $current_month_start = current_time('Y-m-01');
+        $current_month_end = current_time('Y-m-t');
+
+        $revenue_month = $this->wpdb->get_var($this->wpdb->prepare(
+            "SELECT SUM(total_price) FROM $bookings_table
+             WHERE user_id = %d AND status IN ('completed', 'confirmed')
+             AND booking_date BETWEEN %s AND %s",
+            $tenant_user_id, $current_month_start, $current_month_end
+        ));
+
+        return floatval($revenue_month);
+    }
+
+    public function get_booking_counts_by_staff(int $tenant_user_id) {
+        if (empty($tenant_user_id)) {
+            return [];
+        }
+        $bookings_table = Database::get_table_name('bookings');
+
+        $results = $this->wpdb->get_results($this->wpdb->prepare(
+            "SELECT assigned_staff_id, COUNT(booking_id) as booking_count
+             FROM $bookings_table
+             WHERE user_id = %d AND assigned_staff_id IS NOT NULL
+             GROUP BY assigned_staff_id",
+            $tenant_user_id
+        ), ARRAY_A);
+
+        $counts = [];
+        if ($results) {
+            foreach ($results as $row) {
+                $counts[$row['assigned_staff_id']] = (int) $row['booking_count'];
+            }
+        }
+
+        return $counts;
+    }
 }
 ?>
