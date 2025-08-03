@@ -86,7 +86,7 @@ $currency = [
 $preloaded_services = [];
 if (!$form_config['enable_location_check']) {
     // This assumes get_public_services() is a method in the services manager
-    $preloaded_services = $mobooking_services_manager->get_public_services($tenant_user_id);
+    $preloaded_services = $mobooking_services_manager->get_services_by_tenant_id($tenant_user_id);
 }
 
 // Pass data to JavaScript. The JS file expects 'mobooking_booking_form_params'.
