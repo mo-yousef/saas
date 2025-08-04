@@ -16,6 +16,7 @@ if ( ! defined( 'MOBOOKING_THEME_URI' ) ) {
 }
 
 // Include the separated functional files
+require_once MOBOOKING_THEME_DIR . 'classes/Database.php';
 require_once MOBOOKING_THEME_DIR . 'classes/Services.php';
 require_once MOBOOKING_THEME_DIR . 'classes/Bookings.php';
 require_once MOBOOKING_THEME_DIR . 'classes/Customers.php';
