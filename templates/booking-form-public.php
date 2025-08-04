@@ -194,25 +194,93 @@ if (!empty($preloaded_services)) {
             <div id="mobooking-service-options"></div>
         </div>
 
-        <!-- Step 4: Customer Details & Date/Time -->
+        <!-- Step 4: Pet Information -->
         <div id="mobooking-step-4" class="mobooking-step" data-step="4" style="display: none;">
             <div class="mobooking-step-header">
-                <h3><?php esc_html_e('Your Information', 'mobooking'); ?></h3>
-                <p><?php esc_html_e('Tell us about you and when you\'d like service.', 'mobooking'); ?></p>
+                <h3><?php esc_html_e('Pet Information', 'mobooking'); ?></h3>
+                <p><?php esc_html_e('Let us know if you have any pets.', 'mobooking'); ?></p>
+            </div>
+            <div id="mobooking-pet-info-form">
+                <div class="mobooking-form-group">
+                    <label><?php esc_html_e('Do you have any pets?', 'mobooking'); ?></label>
+                    <div class="mobooking-radio-group">
+                        <label><input type="radio" name="has_pets" value="yes"> <?php esc_html_e('Yes', 'mobooking'); ?></label>
+                        <label><input type="radio" name="has_pets" value="no" checked> <?php esc_html_e('No', 'mobooking'); ?></label>
+                    </div>
+                </div>
+                <div id="pet-details-section" style="display: none;">
+                    <div class="mobooking-form-group">
+                        <label for="pet-details"><?php esc_html_e('Please provide details about your pets (type, breed, size, etc.).', 'mobooking'); ?></label>
+                        <textarea id="pet-details" class="mobooking-textarea"></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 5: Service Frequency -->
+        <div id="mobooking-step-5" class="mobooking-step" data-step="5" style="display: none;">
+            <div class="mobooking-step-header">
+                <h3><?php esc_html_e('Service Frequency', 'mobooking'); ?></h3>
+                <p><?php esc_html_e('How often would you like this service?', 'mobooking'); ?></p>
+            </div>
+            <div id="mobooking-frequency-form">
+                <div class="mobooking-form-group">
+                    <div class="mobooking-radio-group">
+                        <label><input type="radio" name="service_frequency" value="one-time" checked> <?php esc_html_e('One-Time', 'mobooking'); ?></label>
+                        <label><input type="radio" name="service_frequency" value="daily"> <?php esc_html_e('Daily', 'mobooking'); ?></label>
+                        <label><input type="radio" name="service_frequency" value="weekly"> <?php esc_html_e('Weekly', 'mobooking'); ?></label>
+                        <label><input type="radio" name="service_frequency" value="monthly"> <?php esc_html_e('Monthly', 'mobooking'); ?></label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 6: Date & Time -->
+        <div id="mobooking-step-6" class="mobooking-step" data-step="6" style="display: none;">
+            <div class="mobooking-step-header">
+                <h3><?php esc_html_e('Date & Time', 'mobooking'); ?></h3>
+                <p><?php esc_html_e('Select your preferred date and time.', 'mobooking'); ?></p>
+            </div>
+            <div id="mobooking-datetime-form">
+                <input type="text" id="preferred-datetime" placeholder="Select Date & Time" class="mobooking-input" required>
+            </div>
+        </div>
+
+        <!-- Step 7: Customer Details & Property Access -->
+        <div id="mobooking-step-7" class="mobooking-step" data-step="7" style="display: none;">
+            <div class="mobooking-step-header">
+                <h3><?php esc_html_e('Your Information & Access', 'mobooking'); ?></h3>
+                <p><?php esc_html_e('Tell us about you and how to access the property.', 'mobooking'); ?></p>
             </div>
             <div id="mobooking-details-form">
                 <input type="text" id="customer-name" placeholder="Full Name" class="mobooking-input" required>
                 <input type="email" id="customer-email" placeholder="Email Address" class="mobooking-input" required>
                 <input type="tel" id="customer-phone" placeholder="Phone Number" class="mobooking-input" required>
                 <input type="text" id="service-address" placeholder="Full Service Address" class="mobooking-input" required>
-                <input type="text" id="preferred-datetime" placeholder="Select Date & Time" class="mobooking-input" required>
                 <textarea id="special-instructions" placeholder="Any special instructions?" class="mobooking-textarea"></textarea>
+            </div>
+            <div id="mobooking-access-form">
+                <div class="mobooking-form-group">
+                    <label><?php esc_html_e('How will our team access your property?', 'mobooking'); ?></label>
+                    <div class="mobooking-radio-group">
+                        <label><input type="radio" name="property_access" value="will-be-home" checked> <?php esc_html_e('I will be home', 'mobooking'); ?></label>
+                        <label><input type="radio" name="property_access" value="hidden-key"> <?php esc_html_e('Hidden key', 'mobooking'); ?></label>
+                        <label><input type="radio" name="property_access" value="lockbox"> <?php esc_html_e('Lockbox', 'mobooking'); ?></label>
+                        <label><input type="radio" name="property_access" value="other"> <?php esc_html_e('Other', 'mobooking'); ?></label>
+                    </div>
+                </div>
+                <div id="custom-access-details" style="display: none;">
+                    <div class="mobooking-form-group">
+                        <label for="access-details"><?php esc_html_e('Please provide details:', 'mobooking'); ?></label>
+                        <textarea id="access-details" class="mobooking-textarea"></textarea>
+                    </div>
+                </div>
             </div>
             <div id="mobooking-details-feedback" class="mobooking-feedback"></div>
         </div>
 
-        <!-- Step 5: Review & Confirm -->
-        <div id="mobooking-step-5" class="mobooking-step" data-step="5" style="display: none;">
+        <!-- Step 8: Review & Confirm -->
+        <div id="mobooking-step-8" class="mobooking-step" data-step="8" style="display: none;">
             <div class="mobooking-step-header">
                 <h3><?php esc_html_e('Review & Confirm', 'mobooking'); ?></h3>
             </div>
@@ -227,8 +295,8 @@ if (!empty($preloaded_services)) {
             <div id="mobooking-review-feedback" class="mobooking-feedback"></div>
         </div>
 
-        <!-- Step 6: Success -->
-        <div id="mobooking-step-6" class="mobooking-step" data-step="6" style="display: none;">
+        <!-- Step 9: Success -->
+        <div id="mobooking-step-9" class="mobooking-step" data-step="9" style="display: none;">
             <div class="mobooking-success-message">
                 <h3><?php esc_html_e('Booking Complete!', 'mobooking'); ?></h3>
                 <p><?php esc_html_e('Thank you for your booking. A confirmation has been sent to your email.', 'mobooking'); ?></p>
