@@ -32,6 +32,19 @@ if (!$mobooking_form_user) {
 $booking_form_manager = new \MoBooking\BookingForm\Manager();
 $settings = $booking_form_manager->get_settings($mobooking_form_user->ID);
 
+if (!$settings->enable_booking_form) {
+    get_header();
+    ?>
+    <div class="mobooking-error-container" style="padding: 2rem; text-align: center;">
+        <h2><?php _e('Booking Form Not Available', 'mobooking'); ?></h2>
+        <p><?php _e('This booking form is not available or has been disabled.', 'mobooking'); ?></p>
+        <a href="<?php echo home_url(); ?>" class="btn-primary"><?php _e('Go Home', 'mobooking'); ?></a>
+    </div>
+    <?php
+    get_footer();
+    return;
+}
+
 
 // Get user's services and areas
 $services_manager = new \MoBooking\Services\ServicesManager();

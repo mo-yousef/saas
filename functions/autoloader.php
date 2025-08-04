@@ -16,6 +16,11 @@ spl_autoload_register(function ($class_name) {
     if (count($parts) > 0 && $parts[0] === 'Classes') { // Check count > 0 before accessing $parts[0]
         $parts[0] = 'classes';
     }
+
+    // Add a rule for the BookingForm namespace
+    if (count($parts) > 0 && $parts[0] === 'BookingForm') {
+        $parts[0] = 'classes/BookingForm';
+    }
     // Potentially add more rules here if other top-level namespace directories (like Payments) are also lowercase
     // For now, only 'Classes' -> 'classes' is confirmed as an issue.
 
