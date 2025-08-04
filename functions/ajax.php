@@ -687,7 +687,14 @@ function mobooking_ajax_get_available_slots() {
         }
     }
 
-    wp_send_json_success($slots);
+    $formatted_slots = array_map(function($slot) {
+        return [
+            'time' => $slot['start_time'],
+            'display' => date('g:i A', strtotime($slot['start_time']))
+        ];
+    }, $slots);
+
+    wp_send_json_success($formatted_slots);
 }
 
 add_action('wp_ajax_mobooking_get_public_services', 'mobooking_ajax_get_public_services');

@@ -96,7 +96,7 @@ try {
     // Script localization data
     $script_data = [
         'ajax_url' => admin_url('admin-ajax.php'),
-        'nonce' => wp_create_nonce('mobooking_booking_form_nonce'),
+        'nonce' => wp_create_nonce('mobooking_booking_nonce'),
         'tenant_id' => $tenant_user_id,
         'form_config' => $form_config,
         'currency' => ['symbol' => $biz_settings['biz_currency_symbol'] ?? '$'],
