@@ -1237,6 +1237,21 @@ public function handle_get_public_services_ajax() {
             return new \WP_Error('db_error', __('Could not get services from the database.', 'mobooking'));
         }
 
+        if ($services) {
+            foreach ($services as $key => $service) {
+                if (is_array($service)) { // Ensure it's an array before trying to access by key
+                    $options_raw = $this->service_options_manager->get_service_options($service['service_id'], $tenant_id);
+                    $options = [];
+                    if (is_array($options_raw)) {
+                        foreach ($options_raw as $opt) {
+                            $options[] = (array) $opt;
+                        }
+                    }
+                    $services[$key]['options'] = $options;
+                }
+            }
+        }
+
         error_log('[MoBooking Services Debug] Found ' . count($services) . ' services for tenant_id: ' . $tenant_id);
 
         return $services;
