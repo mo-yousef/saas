@@ -100,74 +100,47 @@ if ( ! function_exists( 'mobooking_ajax_get_all_bookings_for_calendar' ) ) {
         $end_date_str = isset($_POST['end']) ? sanitize_text_field($_POST['end']) : null;
 
         try {
-            // TEMPORARY TEST: Return a simple dummy event to check if the AJAX handler itself is working.
-            $dummy_events = array(
-                array(
-                    'id'    => 'dummy1',
-                    'title' => 'Test Booking @ ' . date('H:i'),
-                    'start' => date('Y-m-d') . 'T10:00:00', // Today at 10 AM
-                    'end'   => date('Y-m-d') . 'T11:00:00', // Today at 11 AM
+            $all_bookings_result = $bookings_manager->get_bookings_by_tenant($data_user_id, ['limit' => -1, 'status' => null]);
+
+            if (is_wp_error($all_bookings_result)) {
+                wp_send_json_error(array('message' => $all_bookings_result->get_error_message()), 400);
+                return;
+            }
+
+            $bookings = $all_bookings_result['bookings'] ?? array();
+            $calendar_events = array();
+
+            foreach ($bookings as $booking) {
+                if (empty($booking['booking_date']) || empty($booking['booking_time'])) {
+                    continue;
+                }
+
+                $start_datetime_str = $booking['booking_date'] . ' ' . $booking['booking_time'];
+                $start_datetime = new DateTime($start_datetime_str);
+                $end_datetime = clone $start_datetime;
+                $service_duration_minutes = $booking['total_duration'] ?? 60;
+                $end_datetime->add(new DateInterval('PT' . $service_duration_minutes . 'M'));
+
+                $event_color = '#3a87ad';
+                switch ($booking['status']) {
+                    case 'confirmed': $event_color = '#468847'; break;
+                    case 'pending': $event_color = '#f89406'; break;
+                    case 'cancelled': $event_color = '#b94a48'; break;
+                    case 'completed': $event_color = '#3a58ad'; break;
+                }
+
+                $calendar_events[] = array(
+                    'id' => $booking['booking_id'],
+                    'title' => $booking['customer_name'] . ' - ' . ($booking['service_name'] ?? 'Booking'),
+                    'start' => $start_datetime->format(DateTime::ATOM),
+                    'end' => $end_datetime->format(DateTime::ATOM),
                     'allDay' => false,
-                    'backgroundColor' => '#3a87ad',
-                    'borderColor' => '#3a87ad',
-                    'url' => '#'
-                ),
-                array(
-                    'id'    => 'dummy2',
-                    'title' => 'Another Test @ ' . date('H:i', strtotime('+2 hours')),
-                    'start' => date('Y-m-d', strtotime('+1 day')) . 'T14:00:00', // Tomorrow at 2 PM
-                    'end'   => date('Y-m-d', strtotime('+1 day')) . 'T15:00:00', // Tomorrow at 3 PM
-                    'allDay' => false,
-                    'backgroundColor' => '#468847',
-                    'borderColor' => '#468847',
-                    'url' => '#'
-                )
-            );
-            wp_send_json_success($dummy_events);
-            return; // Exit after sending dummy data
-
-            // TODO: Restore actual data fetching logic below and remove dummy data above.
-            // $all_bookings_result = $bookings_manager->get_bookings_by_tenant($data_user_id, ['limit' => -1, 'status' => null]);
-
-            // if (is_wp_error($all_bookings_result)) {
-            //     wp_send_json_error(array('message' => $all_bookings_result->get_error_message()), 400);
-            //     return;
-            // }
-
-            // $bookings = $all_bookings_result['bookings'] ?? array();
-            // $calendar_events = array();
-
-            // foreach ($bookings as $booking) {
-            //     if (empty($booking['booking_date']) || empty($booking['booking_time'])) {
-            //         continue;
-            //     }
-
-            //     $start_datetime_str = $booking['booking_date'] . ' ' . $booking['booking_time'];
-            //     $start_datetime = new DateTime($start_datetime_str);
-            //     $end_datetime = clone $start_datetime;
-            //     // $service_duration_minutes = $booking['service_duration'] ?? 60;
-            //     // $end_datetime->add(new DateInterval('PT' . $service_duration_minutes . 'M'));
-
-            //     $event_color = '#3a87ad';
-            //     switch ($booking['status']) {
-            //         case 'confirmed': $event_color = '#468847'; break;
-            //         case 'pending': $event_color = '#f89406'; break;
-            //         case 'cancelled': $event_color = '#b94a48'; break;
-            //         case 'completed': $event_color = '#3a58ad'; break;
-            //     }
-
-            //     $calendar_events[] = array(
-            //         'id' => $booking['booking_id'],
-            //         'title' => $booking['customer_name'] . ' - ' . ($booking['service_name'] ?? 'Booking'),
-            //         'start' => $start_datetime->format(DateTime::ATOM),
-            //         // 'end' => $end_datetime->format(DateTime::ATOM),
-            //         'allDay' => false,
-            //         'url' => esc_url($dashboard_base_url . $booking['booking_id']),
-            //         'backgroundColor' => $event_color,
-            //         'borderColor' => $event_color,
-            //     );
-            // }
-            // wp_send_json_success($calendar_events);
+                    'url' => esc_url($dashboard_base_url . $booking['booking_id']),
+                    'backgroundColor' => $event_color,
+                    'borderColor' => $event_color,
+                );
+            }
+            wp_send_json_success($calendar_events);
 
         } catch (Exception $e) {
             wp_send_json_error(array('message' => 'Failed to load bookings for calendar: ' . $e->getMessage()), 500);
@@ -378,6 +351,50 @@ if (!function_exists('mobooking_ajax_get_subscription_usage')) {
 
 // Fix the KPI data handler - the JS expects 'mobooking_get_dashboard_kpi_data' but we have 'mobooking_get_dashboard_overview_data'
 add_action('wp_ajax_mobooking_get_dashboard_kpi_data', 'mobooking_ajax_get_dashboard_overview_data');
+
+function mobooking_enqueue_public_booking_form_assets() {
+    if (is_page_template('templates/booking-form-public.php') || is_singular('booking')) {
+        wp_enqueue_script('jquery');
+        wp_enqueue_script('jquery-ui-core');
+        wp_enqueue_script('jquery-ui-datepicker');
+        wp_enqueue_style('jquery-ui-datepicker', 'https://code.jquery.com/ui/1.12.1/themes/ui-lightness/jquery-ui.css');
+
+        wp_enqueue_script('mobooking-booking-form', get_template_directory_uri() . '/assets/js/booking-form-public.js', ['jquery', 'jquery-ui-datepicker'], MOBOOKING_VERSION, true);
+        wp_enqueue_style('mobooking-booking-form', get_template_directory_uri() . '/assets/css/booking-form.css', [], MOBOOKING_VERSION);
+    }
+}
+add_action('wp_enqueue_scripts', 'mobooking_enqueue_public_booking_form_assets');
+
+// Add these AJAX hooks
+add_action('wp_ajax_mobooking_submit_booking', [$mobooking_bookings_manager, 'handle_enhanced_booking_submission']);
+add_action('wp_ajax_nopriv_mobooking_submit_booking', [$mobooking_bookings_manager, 'handle_enhanced_booking_submission']);
+
+add_action('wp_ajax_mobooking_get_available_times', [$mobooking_availability_manager, 'get_available_time_slots']);
+add_action('wp_ajax_nopriv_mobooking_get_available_times', [$mobooking_availability_manager, 'get_available_time_slots']);
+
+add_action('wp_ajax_mobooking_system_health', 'mobooking_ajax_system_health');
+function mobooking_ajax_system_health() {
+    $health_check = [
+        'database_tables' => mobooking_check_database_tables(),
+        'classes_loaded' => [
+            'Services' => class_exists('MoBooking\Classes\Services'),
+            'Bookings' => class_exists('MoBooking\Classes\Bookings'),
+            'Customers' => class_exists('MoBooking\Classes\Customers'),
+            'Auth' => class_exists('MoBooking\Classes\Auth'),
+            'Database' => class_exists('MoBooking\Classes\Database'),
+        ],
+        'globals_initialized' => [
+            'services_manager' => isset($GLOBALS['mobooking_services_manager']),
+            'bookings_manager' => isset($GLOBALS['mobooking_bookings_manager']),
+            'customers_manager' => isset($GLOBALS['mobooking_customers_manager']),
+        ],
+        'user_authenticated' => get_current_user_id() > 0,
+        'wp_debug' => WP_DEBUG,
+        'wp_debug_log' => WP_DEBUG_LOG,
+    ];
+
+    wp_send_json_success($health_check);
+}
 
 
 
