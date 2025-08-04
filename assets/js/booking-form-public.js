@@ -1032,46 +1032,28 @@ jQuery(document).ready(function ($) {
     storeCustomerDetails();
 
     // Prepare submission data
-    const selectedServicesPayload = [
-      {
-        service_id: selectedService.service_id,
-        name: selectedService.name,
-        price: selectedService.price,
-        configured_options: selectedOptions,
-      },
-    ];
-
-    const customerDetailsJson = safeJsonEncode(customerDetails);
-    const selectedServicesJson = safeJsonEncode(selectedServicesPayload);
-    const discountInfoJson = discountInfo ? safeJsonEncode(discountInfo) : null;
-    const pricingJson = safeJsonEncode({
-      subtotal: calculateSubtotal(),
-      discount: discountInfo ? calculateSubtotal() - totalPrice : 0,
-      total: totalPrice,
-    });
-
-    if (!customerDetailsJson || !selectedServicesJson || !pricingJson) {
-      showFeedback(
-        $feedback,
-        "error",
-        I18N.encoding_error || "Error processing form data. Please try again.",
-        false
-      );
-      $button.prop("disabled", false).html(originalBtnHtml);
-      return;
-    }
+    const bookingData = {
+        tenant_user_id: TENANT_ID,
+        services: [{
+            service_id: selectedService.service_id,
+            name: selectedService.name,
+            price: selectedService.price,
+            duration: selectedService.duration,
+            configured_options: selectedOptions
+        }],
+        customer: customerDetails,
+        pricing: {
+            subtotal: calculateSubtotal(),
+            discount_amount: 0,
+            total: totalPrice
+        },
+        discount: discountInfo,
+    };
 
     const submissionData = {
       action: "mobooking_create_booking",
       nonce: FORM_NONCE,
-      tenant_id: TENANT_ID,
-      selected_services: selectedServicesJson,
-      customer_details: customerDetailsJson,
-      discount_info: discountInfoJson,
-      zip_code: $("#mobooking-zip").val() || "",
-      country_code: $("#mobooking-country").val() || "",
-      pricing: pricingJson,
-      time_slot: customerDetails.time,
+      booking_data: safeJsonEncode(bookingData),
     };
 
     debugLog("Submitting booking data", submissionData);
