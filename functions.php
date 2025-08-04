@@ -19,7 +19,7 @@ if ( ! defined( 'MOBOOKING_THEME_URI' ) ) {
 require_once MOBOOKING_THEME_DIR . 'classes/Services.php';
 require_once MOBOOKING_THEME_DIR . 'classes/Bookings.php';
 require_once MOBOOKING_THEME_DIR . 'classes/Customers.php';
-require_once MOBOOKING_THEME_DIR . 'classes/BookingForm/Manager.php';
+require_once MOBOOKING_THEME_DIR . 'classes/Payments/Manager.php';
 require_once MOBOOKING_THEME_DIR . 'functions/ajax.php';
 require_once MOBOOKING_THEME_DIR . 'functions/theme-setup.php';
 require_once MOBOOKING_THEME_DIR . 'functions/autoloader.php';
