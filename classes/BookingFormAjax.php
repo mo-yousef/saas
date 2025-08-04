@@ -68,7 +68,7 @@ class BookingFormAjax {
      * Check if service is available in the specified area
      */
     public function handle_check_service_area() {
-        if (!check_ajax_referer('mobooking_booking_nonce', 'nonce', false)) {
+        if (!check_ajax_referer('mobooking_booking_form_nonce', 'nonce', false)) {
             wp_send_json_error(['message' => __('Security check failed.', 'mobooking')], 403);
             return;
         }
@@ -141,7 +141,7 @@ class BookingFormAjax {
      * Get public services for a tenant
      */
     public function handle_get_public_services() {
-        if (!check_ajax_referer('mobooking_booking_nonce', 'nonce', false)) {
+        if (!check_ajax_referer('mobooking_booking_form_nonce', 'nonce', false)) {
             wp_send_json_error(['message' => __('Security check failed.', 'mobooking')], 403);
             return;
         }
@@ -197,7 +197,7 @@ class BookingFormAjax {
      * Get service options for selected services
      */
     public function handle_get_service_options() {
-        if (!check_ajax_referer('mobooking_booking_nonce', 'nonce', false)) {
+        if (!check_ajax_referer('mobooking_booking_form_nonce', 'nonce', false)) {
             wp_send_json_error(['message' => __('Security check failed.', 'mobooking')], 403);
             return;
         }
@@ -268,7 +268,7 @@ class BookingFormAjax {
      * Get available time slots for a specific date
      */
     public function handle_get_available_time_slots() {
-        if (!check_ajax_referer('mobooking_booking_nonce', 'nonce', false)) {
+        if (!check_ajax_referer('mobooking_booking_form_nonce', 'nonce', false)) {
             wp_send_json_error(['message' => __('Security check failed.', 'mobooking')], 403);
             return;
         }
@@ -315,7 +315,7 @@ class BookingFormAjax {
      * Apply discount code to booking
      */
     public function handle_apply_discount() {
-        if (!check_ajax_referer('mobooking_booking_nonce', 'nonce', false)) {
+        if (!check_ajax_referer('mobooking_booking_form_nonce', 'nonce', false)) {
             wp_send_json_error(['message' => __('Security check failed.', 'mobooking')], 403);
             return;
         }
@@ -375,7 +375,7 @@ class BookingFormAjax {
      * Create a new booking
      */
     public function handle_create_booking() {
-        if (!check_ajax_referer('mobooking_booking_nonce', 'nonce', false)) {
+        if (!check_ajax_referer('mobooking_booking_form_nonce', 'nonce', false)) {
             wp_send_json_error(['message' => __('Security check failed.', 'mobooking')], 403);
             return;
         }
