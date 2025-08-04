@@ -487,6 +487,7 @@ jQuery(document).ready(function ($) {
     $('[data-step-next="3"]').prop("disabled", false);
     showFeedback($("#mobooking-services-feedback"), "", "", true);
     updateLiveSummary();
+    handleNextStep();
   }
 
   // --- STEP 3: SERVICE OPTIONS ---
@@ -510,6 +511,7 @@ jQuery(document).ready(function ($) {
           I18N.no_options || "No additional options available."
         }</p></div>`
       );
+      handleNextStep();
       return;
     }
 
