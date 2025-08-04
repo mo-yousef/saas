@@ -13,9 +13,11 @@ jQuery(document).ready(function ($) {
   // Correctly initialize FORM_CONFIG from the localized settings
   const FORM_CONFIG = MOB_PARAMS.form_config || {};
   const CURRENCY = MOB_PARAMS.currency || { symbol: "$", code: "USD" };
-  FORM_CONFIG.enable_pet_information = MOB_PARAMS.form_config.enable_pet_information !== '0';
-  FORM_CONFIG.enable_service_frequency = MOB_PARAMS.form_config.enable_service_frequency !== '0';
-  FORM_CONFIG.enable_property_access = MOB_PARAMS.form_config.enable_property_access !== '0';
+  if (MOB_PARAMS.form_config) {
+    FORM_CONFIG.enable_pet_information = MOB_PARAMS.form_config.enable_pet_information !== '0';
+    FORM_CONFIG.enable_service_frequency = MOB_PARAMS.form_config.enable_service_frequency !== '0';
+    FORM_CONFIG.enable_property_access = MOB_PARAMS.form_config.enable_property_access !== '0';
+  }
   const TENANT_ID = MOB_PARAMS.tenant_id || null;
   const FORM_NONCE = MOB_PARAMS.nonce || null; // Use MOB_PARAMS
   const AJAX_URL = MOB_PARAMS.ajax_url || "/wp-admin/admin-ajax.php"; // Use MOB_PARAMS
