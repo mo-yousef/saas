@@ -13,6 +13,9 @@ jQuery(document).ready(function ($) {
   // Correctly initialize FORM_CONFIG from the localized settings
   const FORM_CONFIG = MOB_PARAMS.form_config || {};
   const CURRENCY = MOB_PARAMS.currency || { symbol: "$", code: "USD" };
+  FORM_CONFIG.enable_pet_information = MOB_PARAMS.form_config.enable_pet_information !== '0';
+  FORM_CONFIG.enable_service_frequency = MOB_PARAMS.form_config.enable_service_frequency !== '0';
+  FORM_CONFIG.enable_property_access = MOB_PARAMS.form_config.enable_property_access !== '0';
   const TENANT_ID = MOB_PARAMS.tenant_id || null;
   const FORM_NONCE = MOB_PARAMS.nonce || null; // Use MOB_PARAMS
   const AJAX_URL = MOB_PARAMS.ajax_url || "/wp-admin/admin-ajax.php"; // Use MOB_PARAMS
@@ -161,7 +164,7 @@ jQuery(document).ready(function ($) {
   function updateProgressBar(step) {
     if (!FORM_CONFIG.show_progress_bar) return;
 
-    const totalSteps = 8;
+    const totalSteps = 9;
     const progressPercentage = ((step - 1) / (totalSteps - 1)) * 100;
 
     $(".mobooking-progress-bar").css(
@@ -209,17 +212,14 @@ jQuery(document).ready(function ($) {
         });
         break;
       case 6:
-        flatpickr("#preferred-date", {
+        flatpickr("#preferred-datetime", {
+            enableTime: true,
+            dateFormat: "Y-m-d H:i",
             minDate: "today",
             onChange: function(selectedDates, dateStr, instance) {
-                customerDetails.date = dateStr;
-                debugLog("Date selected", customerDetails.date);
-                // TODO: Add logic to fetch available time slots
+                const date = dateStr.split(' ')[0];
+                generateTimeSlots(date, instance);
             }
-        });
-        $("#preferred-time").on('change', function() {
-            customerDetails.time = this.value;
-            debugLog("Time selected", customerDetails.time);
         });
         break;
       case 7:
@@ -234,24 +234,11 @@ jQuery(document).ready(function ($) {
         break;
       case 8:
         // Populate final booking details
-        let finalDetailsHtml = `
-            <p><strong>${I18N.booking_reference || "Booking Reference"}:</strong> ${escapeHtml(
-          customerDetails.booking_reference || "N/A"
-        )}</p>
-            <p><strong>${I18N.service || "Service"}:</strong> ${escapeHtml(
-          selectedService.name
-        )}</p>
-            <p><strong>${I18N.customer || "Customer"}:</strong> ${escapeHtml(
-          customerDetails.name
-        )}</p>
-            <p><strong>${I18N.email || "Email"}:</strong> ${escapeHtml(
-          customerDetails.email
-        )}</p>
-            <p><strong>${I18N.total || "Total"}:</strong> ${
-          CURRENCY.symbol
-        }${formatPrice(totalPrice)}</p>
-        `;
-        $("#mobooking-final-booking-details").html(finalDetailsHtml);
+        // This is now the review step, so we just need to update the summary
+        updateLiveSummary();
+        break;
+      case 9:
+        // Success step, handled by handleFinalSubmission
         break;
     }
     updateLiveSummary();
@@ -941,7 +928,7 @@ jQuery(document).ready(function ($) {
 
   function handleNextStep(e) {
     const $button = $(e.target);
-    const targetStep = parseInt($button.data("step-next"));
+    let targetStep = currentStep + 1;
 
     debugLog("Next step requested", {
       current: currentStep,
@@ -962,8 +949,30 @@ jQuery(document).ready(function ($) {
       // TODO: Add validation for service options
     }
 
+    if (currentStep === 4 && FORM_CONFIG.enable_pet_information) {
+        if ($('input[name="has_pets"]:checked').val() === 'yes' && !$('#pet-details').val().trim()) {
+            showFeedback(
+                $("#mobooking-details-feedback"),
+                "error",
+                "Please provide details about your pets."
+            );
+            return;
+        }
+    }
+
     if (currentStep === 7 && !validateCustomerDetails()) {
       return;
+    }
+
+    // Skip steps if they are disabled
+    if (targetStep === 4 && !FORM_CONFIG.enable_pet_information) {
+        targetStep++;
+    }
+    if (targetStep === 5 && !FORM_CONFIG.enable_service_frequency) {
+        targetStep++;
+    }
+    if (targetStep === 7 && !FORM_CONFIG.enable_property_access) {
+        targetStep++;
     }
 
     showStep(targetStep);
@@ -1073,7 +1082,7 @@ jQuery(document).ready(function ($) {
         debugLog("Booking submission response", response);
 
         if (response && response.success && response.data) {
-          showStep(8); // Success step
+          showStep(9); // Success step
 
           // Update success details
           $("#success-details").html(`
@@ -1209,7 +1218,8 @@ jQuery(document).ready(function ($) {
         PRELOADED_SERVICES,
         TENANT_ID,
         AJAX_URL,
-        IS_DEBUG
+        IS_DEBUG,
+        FORM_CONFIG
     });
 
     // Validate required data
