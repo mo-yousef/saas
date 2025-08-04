@@ -44,9 +44,29 @@ function mobooking_initialize_managers() {
         }
     }
     
+    if (!isset($GLOBALS['mobooking_discounts_manager'])) {
+        try {
+            $GLOBALS['mobooking_discounts_manager'] = new \MoBooking\Classes\Discounts(get_current_user_id());
+        } catch (Exception $e) {
+            error_log('MoBooking: Failed to initialize Discounts manager: ' . $e->getMessage());
+        }
+    }
+
+    if (!isset($GLOBALS['mobooking_notifications_manager'])) {
+        try {
+            $GLOBALS['mobooking_notifications_manager'] = new \MoBooking\Classes\Notifications();
+        } catch (Exception $e) {
+            error_log('MoBooking: Failed to initialize Notifications manager: ' . $e->getMessage());
+        }
+    }
+
     if (!isset($GLOBALS['mobooking_bookings_manager'])) {
         try {
-            $GLOBALS['mobooking_bookings_manager'] = new \MoBooking\Classes\Bookings();
+            $GLOBALS['mobooking_bookings_manager'] = new \MoBooking\Classes\Bookings(
+                $GLOBALS['mobooking_discounts_manager'],
+                $GLOBALS['mobooking_notifications_manager'],
+                $GLOBALS['mobooking_services_manager']
+            );
         } catch (Exception $e) {
             error_log('MoBooking: Failed to initialize Bookings manager: ' . $e->getMessage());
         }
