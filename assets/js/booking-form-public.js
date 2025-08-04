@@ -9,7 +9,7 @@ jQuery(document).ready(function ($) {
 
   // Global parameters from PHP localization
   const MOB_PARAMS = window.mobooking_booking_form_params || {};
-  const PRELOADED_SERVICES = window.MOB_PRELOADED_SERVICES || [];
+  let PRELOADED_SERVICES = window.MOB_PRELOADED_SERVICES || [];
   // Correctly initialize FORM_CONFIG from the localized settings
   const FORM_CONFIG = MOB_PARAMS.form_config || {};
   const CURRENCY = MOB_PARAMS.currency || { symbol: "$", code: "USD" };
@@ -381,6 +381,7 @@ jQuery(document).ready(function ($) {
         debugLog("Services loaded from server", response);
 
         if (response.success && response.data) {
+          PRELOADED_SERVICES = response.data;
           renderServiceCards(response.data);
           debugLog("Rendered services", response.data);
         } else {
