@@ -1105,19 +1105,40 @@
       .prop("disabled", true)
       .html('<div class="mobooking-spinner"></div> Submitting...');
 
-    const bookingData = {
-      action: 'mobooking_submit_booking',
-      nonce: CONFIG.nonce,
+    // Construct the data structure expected by the backend
+    const bookingPayload = {
       tenant_id: CONFIG.tenant_id,
-      form_data: formData
+      customer: {
+        ...formData.customer,
+        date: formData.datetime.date,
+        time: formData.datetime.time,
+        service_frequency: formData.frequency,
+        has_pets: formData.pets.has_pets ? 'yes' : 'no',
+        pet_details: formData.pets.details,
+        property_access: formData.access.method,
+        access_details: formData.access.details
+      },
+      services: formData.services.map(id => ({ service_id: id, configured_options: formData.options })),
+      pricing: {
+        subtotal: 0, // These would be calculated and added if pricing logic were implemented
+        discount_amount: 0,
+        total: 0
+      },
+      discount: null
     };
 
-    DebugTree.info("Submitting booking data", bookingData);
+    const ajaxData = {
+      action: 'mobooking_create_booking',
+      nonce: CONFIG.nonce,
+      booking_data: JSON.stringify(bookingPayload)
+    };
+
+    DebugTree.info("Submitting booking data", ajaxData);
 
     $.ajax({
       url: CONFIG.ajax_url,
       type: 'POST',
-      data: bookingData,
+      data: ajaxData,
       success: function(response) {
         DebugTree.success("Booking submission successful", response);
         if (response.success) {
