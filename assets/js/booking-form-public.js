@@ -847,7 +847,7 @@
       );
 
       slots.push({
-        time: time24,
+        start_time: time24,
         display: time12,
       });
     }
