@@ -534,7 +534,7 @@
 
     // Try the BookingFormAjax handler first with correct parameters
     const ajaxData = {
-      action: "mobooking_get_service_options",
+      action: "mobooking_get_public_service_options",
       nonce: MOBOOKING_CONFIG.nonce, // ✅ Correct
       tenant_id: MOBOOKING_CONFIG.tenant_id, // ✅ Correct
       service_ids: selectedServices,
@@ -569,58 +569,6 @@
           responseText: xhr.responseText,
           error: error,
           ajaxData: ajaxData,
-        });
-
-        // Try fallback: load service options directly using services nonce
-        DebugTree.warning("Trying fallback service options handler");
-        loadServiceOptionsFallback(selectedServices[0]); // Use first service
-      },
-      complete: function () {
-        updateDebugInfo();
-      },
-    });
-
-    DebugTree.groupEnd();
-  }
-
-  function loadServiceOptionsFallback(serviceId) {
-    DebugTree.group("⚙️ Loading Service Options (Fallback)");
-
-    const $container = $("#mobooking-service-options-container");
-
-    // Create a services nonce (this might not work, but worth trying)
-    const fallbackData = {
-      action: "mobooking_get_service_options", // Services.php handler
-      nonce: CONFIG.nonce, // Try same nonce
-      service_id: serviceId, // Single service ID as expected by Services.php
-    };
-
-    DebugTree.info("Fallback service options request:", fallbackData);
-
-    $.ajax({
-      url: CONFIG.ajax_url,
-      type: "POST",
-      data: fallbackData,
-      success: function (response) {
-        DebugTree.success("Fallback service options loaded", response);
-        debugResponses.push({
-          action: "get_service_options_fallback",
-          response: response,
-        });
-
-        if (response.success && response.data) {
-          renderServiceOptions(response.data);
-        } else {
-          $container.html(
-            '<p style="color: #6b7280;">No additional options available for this service.</p>'
-          );
-        }
-      },
-      error: function (xhr, status, error) {
-        DebugTree.error("Fallback service options also failed", {
-          xhr: xhr.responseText,
-          status,
-          error,
         });
         $container.html(
           '<p style="color: #6b7280;">Service options are not available at this time. You can continue to the next step.</p>'
