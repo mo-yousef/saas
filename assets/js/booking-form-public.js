@@ -536,7 +536,7 @@
     const ajaxData = {
       action: "mobooking_get_service_options",
       nonce: CONFIG.nonce,
-      tenant_user_id: CONFIG.tenant_id, // Changed from tenant_id
+      tenant_id: CONFIG.tenant_id,
       service_ids: selectedServices,
     };
 
@@ -712,7 +712,7 @@
     const ajaxData = {
       action: "mobooking_get_available_time_slots",
       nonce: CONFIG.nonce,
-      tenant_user_id: CONFIG.tenant_id, // Changed from tenant_id
+      tenant_id: CONFIG.tenant_id,
       date: date,
       services: JSON.stringify(formData.services), // Add services data
     };

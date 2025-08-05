@@ -173,8 +173,8 @@ function mobooking_enqueue_public_booking_form_assets() {
         wp_enqueue_script('jquery-ui-datepicker');
         wp_enqueue_style('jquery-ui-datepicker', 'https://code.jquery.com/ui/1.12.1/themes/ui-lightness/jquery-ui.css');
 
-        wp_enqueue_script('mobooking-booking-form', get_template_directory_uri() . '/assets/js/booking-form-public.js', ['jquery', 'jquery-ui-datepicker'], MOBOOKING_VERSION, true);
-        wp_enqueue_style('mobooking-booking-form', get_template_directory_uri() . '/assets/css/booking-form.css', [], MOBOOKING_VERSION);
+        wp_enqueue_script('mobooking-booking-form-public', get_template_directory_uri() . '/assets/js/booking-form-public.js', ['jquery', 'jquery-ui-datepicker'], MOBOOKING_VERSION, true);
+        wp_enqueue_style('mobooking-booking-form-public', get_template_directory_uri() . '/assets/css/booking-form.css', [], MOBOOKING_VERSION);
     }
 }
 add_action('wp_enqueue_scripts', 'mobooking_enqueue_public_booking_form_assets');
