@@ -3,25 +3,25 @@
 spl_autoload_register(function ($class_name) {
     // Check if the class belongs to our theme's namespace
     if (strpos($class_name, 'MoBooking\\') !== 0) {
-        return false; // Not our class, skip
+        return; // Not our class, skip
     }
 
     // Remove the root namespace prefix 'MoBooking\'
     $relative_class_name = substr($class_name, strlen('MoBooking\\'));
 
     // Convert namespace separators to directory separators
-    $file_path = str_replace('\\', '/', $relative_class_name);
+    $file_path = str_replace('\\', DIRECTORY_SEPARATOR, $relative_class_name);
 
-    // Prepend 'classes/' to the path
-    $file_path = 'classes/' . $file_path;
+    // Build the full file path
+    $file = MOBOOKING_THEME_DIR . 'classes' . DIRECTORY_SEPARATOR . $file_path . '.php';
 
-    $file = MOBOOKING_THEME_DIR . $file_path . '.php';
+    // for debugging:
+    // error_log("Trying to load class: $class_name");
+    // error_log("Looking for file: $file");
 
-    // Check if the file exists
+    // Check if the file exists and require it
     if (file_exists($file)) {
         require_once $file;
-        return true;
     }
-    return false;
 });
 ?>
