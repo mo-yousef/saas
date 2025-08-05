@@ -73,10 +73,10 @@ class BookingFormAjax {
             return;
         }
 
-        $tenant_user_id = isset($_POST['tenant_user_id']) ? intval($_POST['tenant_user_id']) : 0;
+        $tenant_id = isset($_POST['tenant_id']) ? intval($_POST['tenant_id']) : 0;
         $location = isset($_POST['location']) ? sanitize_text_field($_POST['location']) : '';
 
-        if (empty($tenant_user_id) || empty($location)) {
+        if (empty($tenant_id) || empty($location)) {
             wp_send_json_error(['message' => __('Invalid parameters.', 'mobooking')], 400);
             return;
         }
@@ -86,7 +86,7 @@ class BookingFormAjax {
             $areas_table = Database::get_table_name('areas');
             $service_areas = $this->wpdb->get_results($this->wpdb->prepare(
                 "SELECT area_type, area_value, country_code FROM $areas_table WHERE user_id = %d",
-                $tenant_user_id
+                $tenant_id
             ), ARRAY_A);
 
             if (empty($service_areas)) {
@@ -146,9 +146,9 @@ class BookingFormAjax {
             return;
         }
 
-        $tenant_user_id = isset($_POST['tenant_user_id']) ? intval($_POST['tenant_user_id']) : 0;
+        $tenant_id = isset($_POST['tenant_id']) ? intval($_POST['tenant_id']) : 0;
 
-        if (empty($tenant_user_id)) {
+        if (empty($tenant_id)) {
             wp_send_json_error(['message' => __('Invalid tenant ID.', 'mobooking')], 400);
             return;
         }
@@ -161,7 +161,7 @@ class BookingFormAjax {
                  FROM $services_table 
                  WHERE user_id = %d AND status = 'active' 
                  ORDER BY name ASC",
-                $tenant_user_id
+                $tenant_id
             ), ARRAY_A);
 
             if (empty($services)) {
@@ -202,10 +202,10 @@ class BookingFormAjax {
             return;
         }
 
-        $tenant_user_id = isset($_POST['tenant_user_id']) ? intval($_POST['tenant_user_id']) : 0;
+        $tenant_id = isset($_POST['tenant_id']) ? intval($_POST['tenant_id']) : 0;
         $service_ids = isset($_POST['service_ids']) ? array_map('intval', $_POST['service_ids']) : [];
 
-        if (empty($tenant_user_id) || empty($service_ids)) {
+        if (empty($tenant_id) || empty($service_ids)) {
             wp_send_json_error(['message' => __('Invalid parameters.', 'mobooking')], 400);
             return;
         }
@@ -219,7 +219,7 @@ class BookingFormAjax {
                 $services_table = Database::get_table_name('services');
                 $service_exists = $this->wpdb->get_var($this->wpdb->prepare(
                     "SELECT COUNT(*) FROM $services_table WHERE service_id = %d AND user_id = %d",
-                    $service_id, $tenant_user_id
+                    $service_id, $tenant_id
                 ));
 
                 if (!$service_exists) {
@@ -233,7 +233,7 @@ class BookingFormAjax {
                      FROM $service_options_table 
                      WHERE service_id = %d AND user_id = %d 
                      ORDER BY sort_order ASC, name ASC",
-                    $service_id, $tenant_user_id
+                    $service_id, $tenant_id
                 ), ARRAY_A);
 
                 if (!empty($service_options)) {
@@ -273,11 +273,11 @@ class BookingFormAjax {
             return;
         }
 
-        $tenant_user_id = isset($_POST['tenant_user_id']) ? intval($_POST['tenant_user_id']) : 0;
+        $tenant_id = isset($_POST['tenant_id']) ? intval($_POST['tenant_id']) : 0;
         $date = isset($_POST['date']) ? sanitize_text_field($_POST['date']) : '';
         $services_json = isset($_POST['services']) ? stripslashes($_POST['services']) : '';
 
-        if (empty($tenant_user_id) || empty($date)) {
+        if (empty($tenant_id) || empty($date)) {
             wp_send_json_error(['message' => __('Invalid parameters.', 'mobooking')], 400);
             return;
         }
@@ -297,7 +297,7 @@ class BookingFormAjax {
         }
 
         try {
-            $time_slots = $this->get_available_time_slots($tenant_user_id, $date, $selected_services);
+            $time_slots = $this->get_available_time_slots($tenant_id, $date, $selected_services);
 
             wp_send_json_success([
                 'time_slots' => $time_slots,
@@ -320,11 +320,11 @@ class BookingFormAjax {
             return;
         }
 
-        $tenant_user_id = isset($_POST['tenant_user_id']) ? intval($_POST['tenant_user_id']) : 0;
+        $tenant_id = isset($_POST['tenant_id']) ? intval($_POST['tenant_id']) : 0;
         $discount_code = isset($_POST['discount_code']) ? sanitize_text_field($_POST['discount_code']) : '';
         $subtotal = isset($_POST['subtotal']) ? floatval($_POST['subtotal']) : 0;
 
-        if (empty($tenant_user_id) || empty($discount_code) || $subtotal <= 0) {
+        if (empty($tenant_id) || empty($discount_code) || $subtotal <= 0) {
             wp_send_json_error(['message' => __('Invalid parameters.', 'mobooking')], 400);
             return;
         }
@@ -336,7 +336,7 @@ class BookingFormAjax {
                 "SELECT discount_id, code, type, value, expiry_date, usage_limit, times_used, status
                  FROM $discounts_table 
                  WHERE user_id = %d AND code = %s AND status = 'active'",
-                $tenant_user_id, $discount_code
+                $tenant_id, $discount_code
             ), ARRAY_A);
 
             if (!$discount) {
@@ -426,7 +426,7 @@ class BookingFormAjax {
             $booking_inserted = $this->wpdb->insert(
                 $bookings_table,
                 [
-                    'user_id' => intval($booking_data['tenant_user_id']),
+                    'user_id' => intval($booking_data['tenant_id']),
                     'customer_id' => $customer_result['customer_id'],
                     'booking_reference' => $booking_reference,
                     'customer_name' => sanitize_text_field($booking_data['customer']['name']),
@@ -511,7 +511,7 @@ class BookingFormAjax {
     /**
      * Get available time slots for a specific date
      */
-    private function get_available_time_slots($tenant_user_id, $date, $selected_services = []) {
+    private function get_available_time_slots($tenant_id, $date, $selected_services = []) {
         // Get day of week (0 = Sunday, 1 = Monday, etc.)
         $day_of_week = date('w', strtotime($date));
 
@@ -522,7 +522,7 @@ class BookingFormAjax {
              FROM $availability_rules_table 
              WHERE user_id = %d AND day_of_week = %d AND is_active = 1 
              ORDER BY start_time ASC",
-            $tenant_user_id, $day_of_week
+            $tenant_id, $day_of_week
         ), ARRAY_A);
 
         // Get availability exceptions for this specific date
@@ -531,7 +531,7 @@ class BookingFormAjax {
             "SELECT start_time, end_time, capacity, is_unavailable 
              FROM $availability_exceptions_table 
              WHERE user_id = %d AND exception_date = %s",
-            $tenant_user_id, $date
+            $tenant_id, $date
         ), ARRAY_A);
 
         // Check if entire day is unavailable
@@ -564,7 +564,7 @@ class BookingFormAjax {
                 // Check if there's enough time for all services
                 if (($current_time + ($total_duration * 60)) <= $end_timestamp) {
                     // Check if slot is not already booked
-                    if ($this->is_time_slot_available($tenant_user_id, $date, date('H:i', $current_time), $total_duration)) {
+                    if ($this->is_time_slot_available($tenant_id, $date, date('H:i', $current_time), $total_duration)) {
                         $time_slots[] = [
                             'time' => date('H:i', $current_time),
                             'display_time' => date('g:i A', $current_time)
@@ -593,7 +593,7 @@ class BookingFormAjax {
     /**
      * Check if a time slot is available (not already booked)
      */
-    private function is_time_slot_available($tenant_user_id, $date, $time, $duration_minutes) {
+    private function is_time_slot_available($tenant_id, $date, $time, $duration_minutes) {
         $bookings_table = Database::get_table_name('bookings');
         
         // Get booking end time
@@ -607,7 +607,7 @@ class BookingFormAjax {
              WHERE user_id = %d AND booking_date = %s 
              AND status IN ('pending', 'confirmed') 
              AND booking_time IS NOT NULL AND total_duration IS NOT NULL",
-            $tenant_user_id, $date
+            $tenant_id, $date
         ), ARRAY_A);
 
         foreach ($existing_bookings as $booking) {
@@ -664,7 +664,7 @@ class BookingFormAjax {
      */
     private function validate_booking_data($booking_data) {
         $required_fields = [
-            'tenant_user_id', 'customer', 'services', 'pricing'
+            'tenant_id', 'customer', 'services', 'pricing'
         ];
 
         foreach ($required_fields as $field) {
@@ -829,7 +829,7 @@ class BookingFormAjax {
         try {
             // Get business settings for email templates
             global $mobooking_settings_manager;
-            $business_settings = $mobooking_settings_manager->get_business_settings($booking_data['tenant_user_id']);
+            $business_settings = $mobooking_settings_manager->get_business_settings($booking_data['tenant_id']);
 
             // Prepare email variables
             $email_vars = [
@@ -976,9 +976,9 @@ class ServiceOptionsAjax {
 
         $option_id = isset($_POST['option_id']) ? intval($_POST['option_id']) : 0;
         $sqm_value = isset($_POST['sqm_value']) ? floatval($_POST['sqm_value']) : 0;
-        $tenant_user_id = isset($_POST['tenant_user_id']) ? intval($_POST['tenant_user_id']) : 0;
+        $tenant_id = isset($_POST['tenant_id']) ? intval($_POST['tenant_id']) : 0;
 
-        if (empty($option_id) || $sqm_value <= 0 || empty($tenant_user_id)) {
+        if (empty($option_id) || $sqm_value <= 0 || empty($tenant_id)) {
             wp_send_json_error(['message' => __('Invalid parameters.', 'mobooking')], 400);
             return;
         }
@@ -989,7 +989,7 @@ class ServiceOptionsAjax {
             $option = $this->wpdb->get_row($this->wpdb->prepare(
                 "SELECT option_values FROM $service_options_table 
                  WHERE option_id = %d AND user_id = %d AND type = 'sqm'",
-                $option_id, $tenant_user_id
+                $option_id, $tenant_id
             ), ARRAY_A);
 
             if (!$option) {
@@ -1027,10 +1027,10 @@ class ServiceOptionsAjax {
             return;
         }
 
-        $tenant_user_id = isset($_POST['tenant_user_id']) ? intval($_POST['tenant_user_id']) : 0;
+        $tenant_id = isset($_POST['tenant_id']) ? intval($_POST['tenant_id']) : 0;
         $service_options_json = isset($_POST['service_options']) ? stripslashes($_POST['service_options']) : '';
 
-        if (empty($tenant_user_id) || empty($service_options_json)) {
+        if (empty($tenant_id) || empty($service_options_json)) {
             wp_send_json_error(['message' => __('Invalid parameters.', 'mobooking')], 400);
             return;
         }
@@ -1051,7 +1051,7 @@ class ServiceOptionsAjax {
                     $option_config = $this->wpdb->get_row($this->wpdb->prepare(
                         "SELECT name, type, is_required FROM $service_options_table 
                          WHERE option_id = %d AND service_id = %d AND user_id = %d",
-                        $option_id, $service_id, $tenant_user_id
+                        $option_id, $service_id, $tenant_id
                     ), ARRAY_A);
 
                     if (!$option_config) {
@@ -1184,16 +1184,16 @@ class AvailabilityAjax {
             return;
         }
 
-        $tenant_user_id = isset($_POST['tenant_user_id']) ? intval($_POST['tenant_user_id']) : 0;
+        $tenant_id = isset($_POST['tenant_id']) ? intval($_POST['tenant_id']) : 0;
         $date = isset($_POST['date']) ? sanitize_text_field($_POST['date']) : '';
 
-        if (empty($tenant_user_id) || empty($date)) {
+        if (empty($tenant_id) || empty($date)) {
             wp_send_json_error(['message' => __('Invalid parameters.', 'mobooking')], 400);
             return;
         }
 
         try {
-            $is_available = $this->check_date_availability($tenant_user_id, $date);
+            $is_available = $this->check_date_availability($tenant_id, $date);
             
             wp_send_json_success([
                 'date' => $date,
@@ -1218,11 +1218,11 @@ class AvailabilityAjax {
             return;
         }
 
-        $tenant_user_id = isset($_POST['tenant_user_id']) ? intval($_POST['tenant_user_id']) : 0;
+        $tenant_id = isset($_POST['tenant_id']) ? intval($_POST['tenant_id']) : 0;
         $start_date = isset($_POST['start_date']) ? sanitize_text_field($_POST['start_date']) : date('Y-m-d');
         $end_date = isset($_POST['end_date']) ? sanitize_text_field($_POST['end_date']) : date('Y-m-d', strtotime('+3 months'));
 
-        if (empty($tenant_user_id)) {
+        if (empty($tenant_id)) {
             wp_send_json_error(['message' => __('Invalid tenant ID.', 'mobooking')], 400);
             return;
         }
@@ -1235,7 +1235,7 @@ class AvailabilityAjax {
             while ($current_date <= $end_timestamp) {
                 $date_string = date('Y-m-d', $current_date);
                 
-                if ($this->check_date_availability($tenant_user_id, $date_string)) {
+                if ($this->check_date_availability($tenant_id, $date_string)) {
                     $available_dates[] = [
                         'date' => $date_string,
                         'display_date' => date('F j, Y', $current_date),
@@ -1264,7 +1264,7 @@ class AvailabilityAjax {
     /**
      * Check if a specific date is available
      */
-    private function check_date_availability($tenant_user_id, $date) {
+    private function check_date_availability($tenant_id, $date) {
         $day_of_week = date('w', strtotime($date));
 
         // Check for availability exceptions first
@@ -1272,7 +1272,7 @@ class AvailabilityAjax {
         $exception = $this->wpdb->get_row($this->wpdb->prepare(
             "SELECT is_unavailable FROM $availability_exceptions_table 
              WHERE user_id = %d AND exception_date = %s",
-            $tenant_user_id, $date
+            $tenant_id, $date
         ), ARRAY_A);
 
         if ($exception) {
@@ -1284,7 +1284,7 @@ class AvailabilityAjax {
         $rules = $this->wpdb->get_results($this->wpdb->prepare(
             "SELECT COUNT(*) as rule_count FROM $availability_rules_table 
              WHERE user_id = %d AND day_of_week = %d AND is_active = 1",
-            $tenant_user_id, $day_of_week
+            $tenant_id, $day_of_week
         ), ARRAY_A);
 
         return !empty($rules) && intval($rules[0]['rule_count']) > 0;
