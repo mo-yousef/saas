@@ -616,9 +616,27 @@
           option.required ? "required" : ""
         }>`;
         if (option.option_values) {
-          option.option_values.forEach(function (value) {
-            html += `<option value="${value}">${value}</option>`;
-          });
+          let values = option.option_values;
+          // Robustness: check if it's a string and try to parse it.
+          if (typeof values === 'string') {
+            try {
+              values = JSON.parse(values);
+            } catch (e) {
+              DebugTree.error('Failed to parse option_values for select', { optionId: option.id, values: option.option_values });
+              values = [];
+            }
+          }
+
+          if (Array.isArray(values)) {
+            values.forEach(function (item) {
+              // Handle both object {label, value} and simple string values
+              if (typeof item === 'object' && item !== null && item.hasOwnProperty('label') && item.hasOwnProperty('value')) {
+                html += `<option value="${item.value}">${item.label}</option>`;
+              } else {
+                html += `<option value="${item}">${item}</option>`;
+              }
+            });
+          }
         }
         html += "</select>";
       } else if (option.type === "checkbox") {

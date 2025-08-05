@@ -198,8 +198,20 @@ class ServiceOptions {
         $table_name = Database::get_table_name('service_options');
         $options = $this->wpdb->get_results( $this->wpdb->prepare( "SELECT * FROM $table_name WHERE service_id = %d AND user_id = %d ORDER BY sort_order ASC", $service_id, $user_id ), ARRAY_A );
 
-        // As with get_service_option, no automatic decoding of option_values.
-        return $options; // Returns array of arrays, option_values is JSON string.
+        // Decode option_values from JSON string to array
+        foreach ($options as $key => $option) {
+            if (!empty($option['option_values']) && is_string($option['option_values'])) {
+                $decoded_values = json_decode($option['option_values'], true);
+                if (json_last_error() === JSON_ERROR_NONE) {
+                    $options[$key]['option_values'] = $decoded_values;
+                } else {
+                    // Handle broken JSON, maybe default to empty array
+                    $options[$key]['option_values'] = [];
+                }
+            }
+        }
+
+        return $options;
     }
 
     public function update_service_option(int $option_id, int $user_id, array $data) {
