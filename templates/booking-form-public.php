@@ -678,7 +678,7 @@ $script_data = [
                 <input type="text" id="mobooking-service-date" class="mobooking-input" placeholder="<?php esc_attr_e('Select a date', 'mobooking'); ?>" readonly>
             </div>
             <div class="mobooking-form-group hidden" id="mobooking-time-slots-container">
-                <label class="mobooking-label"><?php _e('Available Time Slots', 'mobooking'); ?> *</label>
+                <label for="mobooking-service-date" class="mobooking-label"><?php _e('Available Time Slots', 'mobooking'); ?> *</label>
                 <div id="mobooking-time-slots" class="mobooking-time-slots">
                     <!-- Time slots will be populated here -->
                 </div>

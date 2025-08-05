@@ -1022,6 +1022,13 @@
 
   window.selectTimeSlot = function (time) {
     DebugTree.info(`Time slot selected: ${time}`);
+
+    // Robustness check: Ensure time is a non-empty string
+    if (typeof time !== 'string' || time.trim() === '') {
+      DebugTree.warning('Invalid time value passed to selectTimeSlot', time);
+      return; // Exit if time is not valid
+    }
+
     $(".mobooking-time-slot").removeClass("selected");
     $(`.mobooking-time-slot[data-time="${time}"]`).addClass("selected");
     formData.datetime.time = time;
