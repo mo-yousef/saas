@@ -864,12 +864,24 @@
     let html = "";
 
     slots.forEach(function (slot) {
-      html += `
-                <div class="mobooking-time-slot" data-time="${slot.start_time}" onclick="selectTimeSlot('${slot.start_time}')">
-                    ${slot.display}
-                </div>
-            `;
+      const time = slot.start_time || slot.time; // Handle both response structures
+      const display = slot.display || time; // Fallback display to time itself
+
+      if (time) {
+        html += `
+          <div class="mobooking-time-slot" data-time="${time}" onclick="selectTimeSlot('${time}')">
+              ${display}
+          </div>
+        `;
+      } else {
+        DebugTree.warning("Slot object is missing time information", slot);
+      }
     });
+
+    if (html === "") {
+        html = '<p style="text-align: center; color: #6b7280;">No available time slots for this date.</p>';
+        DebugTree.warning("Rendered no time slots as all were invalid.");
+    }
 
     $slotsGrid.html(html);
     DebugTree.success("Time slots rendered");
@@ -1023,8 +1035,8 @@
   window.selectTimeSlot = function (time) {
     DebugTree.info(`Time slot selected: ${time}`);
 
-    // Robustness check: Ensure time is a non-empty string
-    if (typeof time !== 'string' || time.trim() === '') {
+    // Robustness check: Ensure time is a non-empty string and not the string "undefined"
+    if (typeof time !== 'string' || time.trim() === '' || time === 'undefined') {
       DebugTree.warning('Invalid time value passed to selectTimeSlot', time);
       return; // Exit if time is not valid
     }
