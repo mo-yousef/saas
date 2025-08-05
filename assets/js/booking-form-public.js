@@ -535,8 +535,8 @@
     // Try the BookingFormAjax handler first with correct parameters
     const ajaxData = {
       action: "mobooking_get_service_options",
-      nonce: CONFIG.nonce,
-      tenant_id: CONFIG.tenant_id,
+      nonce: MOBOOKING_CONFIG.nonce, // ✅ Correct
+      tenant_id: MOBOOKING_CONFIG.tenant_id, // ✅ Correct
       service_ids: selectedServices,
     };
 
