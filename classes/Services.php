@@ -337,6 +337,8 @@ class Services {
         // For public booking form
         add_action('wp_ajax_nopriv_mobooking_get_public_services', [$this, 'handle_get_public_services_ajax']);
         add_action('wp_ajax_mobooking_get_public_services', [$this, 'handle_get_public_services_ajax']);
+        add_action('wp_ajax_nopriv_mobooking_get_public_service_options', [$this, 'handle_get_public_service_options_ajax']);
+        add_action('wp_ajax_mobooking_get_public_service_options', [$this, 'handle_get_public_service_options_ajax']);
 
         // Icon AJAX Handlers
         add_action('wp_ajax_mobooking_get_preset_icons', [$this, 'handle_get_preset_icons_ajax']); // New handler
@@ -750,6 +752,40 @@ public function handle_get_public_services_ajax() {
     }
 
     // AJAX handler for service OPTIONS
+    public function handle_get_public_service_options_ajax() {
+        if (!check_ajax_referer('mobooking_booking_form_nonce', 'nonce', false)) {
+            wp_send_json_error(['message' => __('Error: Nonce verification failed.', 'mobooking')], 403);
+            return;
+        }
+
+        $service_ids_raw = isset($_POST['service_ids']) ? $_POST['service_ids'] : [];
+        if (!is_array($service_ids_raw)) {
+            $service_ids_raw = [$service_ids_raw];
+        }
+        $service_ids = array_map('intval', $service_ids_raw);
+
+        if (empty($service_ids)) {
+            wp_send_json_error(['message' => __('Service ID(s) are required.', 'mobooking')], 400);
+            return;
+        }
+
+        $tenant_id = isset($_POST['tenant_id']) ? intval($_POST['tenant_id']) : 0;
+        if (empty($tenant_id)) {
+            wp_send_json_error(['message' => __('Tenant ID is required.', 'mobooking')], 400);
+            return;
+        }
+
+        $all_options = [];
+        foreach ($service_ids as $service_id) {
+            $options = $this->service_options_manager->get_service_options($service_id, $tenant_id);
+            if (is_array($options)) {
+                $all_options = array_merge($all_options, $options);
+            }
+        }
+
+        wp_send_json_success($all_options);
+    }
+
     public function handle_get_service_options_ajax() {
         if (!check_ajax_referer('mobooking_services_nonce', 'nonce', false)) {
             wp_send_json_error(['message' => __('Error: Nonce verification failed.', 'mobooking')], 403);
