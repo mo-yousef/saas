@@ -301,9 +301,16 @@
         dateFormat: "Y-m-d",
         onChange: function (selectedDates, dateStr) {
           DebugTree.info(`Date selected: ${dateStr}`);
+          formData.datetime.date = dateStr; // Store the date immediately
           if (dateStr) {
             loadTimeSlots(dateStr);
+          } else {
+            // Clear time slots if date is cleared
+            $("#mobooking-time-slots-container").addClass("hidden");
+            formData.datetime.time = null;
           }
+          updateLiveSummary();
+          updateDebugInfo();
         },
       });
       DebugTree.success("Flatpickr initialized");
@@ -836,24 +843,29 @@
     const endHour = 17;
 
     for (let hour = startHour; hour < endHour; hour++) {
-      const time24 = String(hour).padStart(2, "0") + ":00:00";
-      const time12 = new Date(`2000-01-01 ${time24}`).toLocaleTimeString(
-        "en-US",
-        {
-          hour: "numeric",
-          minute: "2-digit",
-          hour12: true,
-        }
-      );
+      const startTime24 = String(hour).padStart(2, "0") + ":00:00";
+      const endTime24 = String(hour + 1).padStart(2, "0") + ":00:00";
 
       slots.push({
-        start_time: time24,
-        display: time12,
+        start_time: startTime24,
+        end_time: endTime24,
       });
     }
 
     DebugTree.success(`Generated ${slots.length} default time slots`);
     return slots;
+  }
+
+  function formatTime(timeStr) {
+    if (!timeStr) return '';
+    // Check if the time string includes seconds
+    const hasSeconds = timeStr.split(':').length === 3;
+    const date = new Date(`1970-01-01T${timeStr}`);
+    return date.toLocaleTimeString(navigator.language, {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
   }
 
   function renderTimeSlots(slots) {
@@ -864,12 +876,21 @@
     let html = "";
 
     slots.forEach(function (slot) {
-      const time = slot.start_time || slot.time; // Handle both response structures
-      const display = slot.display || time; // Fallback display to time itself
+      const startTime = slot.start_time || slot.time; // Handle both response structures
+      const endTime = slot.end_time;
 
-      if (time) {
+      if (startTime) {
+        let display;
+        if (endTime) {
+          // Format both start and end times
+          display = `${formatTime(startTime)} - ${formatTime(endTime)}`;
+        } else {
+          // Fallback for older structures or if end_time is missing
+          display = formatTime(startTime);
+        }
+
         html += `
-          <div class="mobooking-time-slot" data-time="${time}" onclick="selectTimeSlot('${time}')">
+          <div class="mobooking-time-slot" data-time="${startTime}" onclick="selectTimeSlot('${startTime}')">
               ${display}
           </div>
         `;
