@@ -1,1261 +1,1580 @@
 <?php
 /**
- * Clean MoBooking Public Booking Form Template
- * File: templates/booking-form-public.php
+ * MoBooking Public Booking Form
+ * @package MoBooking
  */
 
-// Prevent direct access
 if (!defined('ABSPATH')) {
-    exit;
+    exit; // Exit if accessed directly
 }
 
-// Debug data collection
-$debug_data = [
-    'timestamp' => current_time('mysql'),
-    'request_method' => $_SERVER['REQUEST_METHOD'],
-    'request_uri' => $_SERVER['REQUEST_URI'],
-    'database_tables' => [],
-    'loaded_data' => [],
-    'user_data' => [],
-    'errors' => []
+// Load WordPress header
+get_header('booking');
+
+// Get tenant ID from URL or current user
+$tenant_id = get_current_user_id() ?: 1; // Fallback for demo
+
+// Check if we have a tenant slug in the URL
+$tenant_slug = get_query_var('tenant_id', '');
+if (empty($tenant_slug) && isset($_GET['tenant'])) {
+    $tenant_slug = sanitize_text_field($_GET['tenant']);
+}
+
+// If we have a tenant slug, find the corresponding user ID
+if (!empty($tenant_slug)) {
+    global $wpdb;
+    $settings_table = \MoBooking\Classes\Database::get_table_name('tenant_settings');
+    $tenant_from_slug = $wpdb->get_var($wpdb->prepare(
+        "SELECT user_id FROM $settings_table WHERE setting_name = 'bf_business_slug' AND setting_value = %s",
+        $tenant_slug
+    ));
+    
+    if ($tenant_from_slug) {
+        $tenant_id = intval($tenant_from_slug);
+    } else {
+        // Fallback: try to find user by slug
+        $user = get_user_by('slug', $tenant_slug);
+        if ($user) {
+            $tenant_id = $user->ID;
+        }
+    }
+}
+
+// Initialize settings manager
+$settings = new \MoBooking\Classes\Settings();
+$bf_settings = $settings->get_booking_form_settings($tenant_id);
+$biz_settings = $settings->get_business_settings($tenant_id);
+
+// Form configuration from settings
+$form_config = [
+    'enable_area_check' => ($bf_settings['bf_enable_location_check'] ?? '1') === '1',
+    'enable_pet_information' => ($bf_settings['bf_enable_pet_information'] ?? '1') === '1',
+    'enable_service_frequency' => ($bf_settings['bf_enable_service_frequency'] ?? '1') === '1',
+    'enable_datetime_selection' => ($bf_settings['bf_enable_datetime_selection'] ?? '1') === '1',
+    'enable_property_access' => ($bf_settings['bf_enable_property_access'] ?? '1') === '1',
+    'form_enabled' => ($bf_settings['bf_form_enabled'] ?? '1') === '1',
+    'theme_color' => $bf_settings['bf_theme_color'] ?? '#1abc9c',
+    'header_text' => $bf_settings['bf_header_text'] ?? 'Book Our Services Online',
+    'show_progress_bar' => ($bf_settings['bf_show_progress_bar'] ?? '1') === '1',
+    'success_message' => $bf_settings['bf_success_message'] ?? 'Thank you for your booking! We will contact you soon to confirm the details.',
 ];
 
-try {
-    // Get tenant ID from URL
-    $tenant_id_slug = get_query_var('tenant_id', '');
-    if (empty($tenant_id_slug) && isset($_GET['tenant'])) {
-        $tenant_id_slug = sanitize_text_field($_GET['tenant']);
-    }
-    if (empty($tenant_id_slug)) {
-        $request_uri = $_SERVER['REQUEST_URI'] ?? '';
-        if (preg_match('/\/booking\/([^\/\?]+)/', $request_uri, $matches)) {
-            $tenant_id_slug = sanitize_text_field($matches[1]);
-        }
-    }
-
-    $debug_data['loaded_data']['tenant_slug'] = $tenant_id_slug;
-
-    if (empty($tenant_id_slug)) {
-        $debug_data['errors'][] = 'No business specified in URL';
-        throw new Exception('No business specified');
-    }
-
-    // Find tenant user ID
-    global $wpdb;
-    $settings_table = MoBooking\Classes\Database::get_table_name('tenant_settings');
-    $debug_data['database_tables'][] = $settings_table;
-
-    $tenant_user_id = $wpdb->get_var($wpdb->prepare(
-        "SELECT user_id FROM $settings_table WHERE setting_name = 'bf_business_slug' AND setting_value = %s",
-        $tenant_id_slug
-    ));
-
-    if (empty($tenant_user_id)) {
-        $user = get_user_by('slug', $tenant_id_slug);
-        if ($user) {
-            $tenant_user_id = $user->ID;
-            $debug_data['loaded_data']['lookup_method'] = 'WordPress user slug';
-        }
-    } else {
-        $debug_data['loaded_data']['lookup_method'] = 'Business slug in settings';
-    }
-
-    $tenant_user_id = intval($tenant_user_id);
-    $debug_data['user_data']['tenant_user_id'] = $tenant_user_id;
-
-    if (!$tenant_user_id) {
-        $debug_data['errors'][] = 'Business not found in database';
-        throw new Exception('Business not found');
-    }
-
-    // Load settings
-    global $mobooking_settings_manager;
-    $bf_settings = $mobooking_settings_manager->get_booking_form_settings($tenant_user_id);
-    $biz_settings = $mobooking_settings_manager->get_business_settings($tenant_user_id);
-
-    $debug_data['loaded_data']['settings_loaded'] = true;
-    $debug_data['database_tables'][] = MoBooking\Classes\Database::get_table_name('services');
-    $debug_data['database_tables'][] = MoBooking\Classes\Database::get_table_name('service_options');
-
-    // Form configuration
-    $form_config = [
-        'enable_location_check' => ($bf_settings['bf_enable_location_check'] ?? '1') === '1',
-        'show_progress_bar' => ($bf_settings['bf_show_progress_bar'] ?? '1') === '1',
-        'header_text' => $bf_settings['bf_header_text'] ?? 'Book Our Services',
-        'theme_color' => $bf_settings['bf_theme_color'] ?? '#1abc9c',
-    ];
-
-    // Load preloaded services if location check is disabled
-    $preloaded_services = [];
-    if (!$form_config['enable_location_check']) {
-        global $mobooking_services_manager;
-        $preloaded_services = $mobooking_services_manager->get_services_by_tenant_id($tenant_user_id);
-        $debug_data['loaded_data']['preloaded_services_count'] = count($preloaded_services);
-    }
-
-    // Script localization data
-    $script_data = [
-        'ajax_url' => admin_url('admin-ajax.php'),
-        'nonce' => wp_create_nonce('mobooking_booking_form_nonce'),
-        'tenant_id' => $tenant_user_id,
-        'form_config' => $form_config,
-        'currency' => ['symbol' => $biz_settings['biz_currency_symbol'] ?? '$'],
-        'is_debug_mode' => defined('WP_DEBUG') && WP_DEBUG,
-        'i18n' => [
-            'loading_services' => __('Loading services...', 'mobooking'),
-            'select_service' => __('Please select a service to continue.', 'mobooking'),
-            'loading_options' => __('Loading service options...', 'mobooking'),
-            'booking_submitted' => __('Your booking has been submitted successfully!', 'mobooking'),
-        ],
-    ];
-
-} catch (Exception $e) {
-    $debug_data['errors'][] = 'Exception: ' . $e->getMessage();
-    error_log('MoBooking Public Form Error: ' . $e->getMessage());
+// Check if form is disabled
+if (!$form_config['form_enabled']) {
+    $maintenance_message = $bf_settings['bf_maintenance_message'] ?? 'We are temporarily not accepting new bookings. Please check back later.';
+    echo '<div class="mobooking-maintenance-notice">' . esc_html($maintenance_message) . '</div>';
+    get_footer();
+    return;
 }
 
-// Enqueue assets
+// Enqueue necessary styles and scripts
 wp_enqueue_script('jquery');
-wp_enqueue_script('jquery-ui-core');
-wp_enqueue_script('jquery-ui-datepicker');
-wp_enqueue_style('jquery-ui-datepicker', 'https://code.jquery.com/ui/1.12.1/themes/ui-lightness/jquery-ui.css');
+wp_enqueue_script('flatpickr', 'https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js', ['jquery'], '4.6.13', true);
+wp_enqueue_style('flatpickr', 'https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.css', [], '4.6.13');
 
-get_header('booking');
+// Prepare localized script data
+$script_data = [
+    'ajax_url' => admin_url('admin-ajax.php'),
+    'nonce' => wp_create_nonce('mobooking_booking_form_nonce'),
+    'tenant_id' => $tenant_id,
+    'form_config' => $form_config,
+    'i18n' => [
+        'zip_required' => __('Please enter your ZIP code.', 'mobooking'),
+        'country_required' => __('Please select your country.', 'mobooking'),
+        'checking_availability' => __('Checking availability...', 'mobooking'),
+        'service_available' => __('Service is available in your area!', 'mobooking'),
+        'service_not_available' => __('Service is not available in your area.', 'mobooking'),
+        'loading_services' => __('Loading services...', 'mobooking'),
+        'select_service' => __('Please select at least one service.', 'mobooking'),
+        'pet_details_required' => __('Please provide details about your pets.', 'mobooking'),
+        'select_date' => __('Please select a date.', 'mobooking'),
+        'select_time' => __('Please select a time slot.', 'mobooking'),
+        'name_required' => __('Please enter your name.', 'mobooking'),
+        'email_required' => __('Please enter a valid email address.', 'mobooking'),
+        'phone_required' => __('Please enter your phone number.', 'mobooking'),
+        'address_required' => __('Please enter the service address.', 'mobooking'),
+        'access_details_required' => __('Please provide access details.', 'mobooking'),
+        'submitting_booking' => __('Submitting booking...', 'mobooking'),
+        'booking_success' => __('Booking submitted successfully!', 'mobooking'),
+        'booking_error' => __('There was an error submitting your booking. Please try again.', 'mobooking'),
+    ]
+];
+
+// Localize the script
+wp_localize_script('mobooking-booking-form-public', 'MOBOOKING_CONFIG', $script_data);
 ?>
 
-<!DOCTYPE html>
-<html <?php language_attributes(); ?>>
-<head>
-    <meta charset="<?php bloginfo('charset'); ?>">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo esc_html($form_config['header_text'] ?? 'Book Our Services'); ?></title>
-    
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '<?php echo esc_js($form_config['theme_color'] ?? '#1abc9c'); ?>',
-                        'primary-dark': '#16a085',
-                        secondary: '#3498db',
-                        success: '#27ae60',
-                        warning: '#f39c12',
-                        danger: '#e74c3c'
-                    }
-                }
-            }
-        }
-    </script>
-    
+<div class="mobooking-public-form-container">
     <style>
-        .step-indicator {
-            transition: all 0.3s ease-in-out;
+        .mobooking-public-form-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         }
-        .step-indicator.active {
-            background-color: <?php echo esc_attr($form_config['theme_color'] ?? '#1abc9c'); ?>;
-            border-color: <?php echo esc_attr($form_config['theme_color'] ?? '#1abc9c'); ?>;
-            color: white;
+
+        .mobooking-header {
+            text-align: center;
+            margin-bottom: 30px;
         }
-        .step-indicator.completed {
-            background-color: #27ae60;
-            border-color: #27ae60;
-            color: white;
+
+        .mobooking-header h1 {
+            color: <?php echo esc_attr($form_config['theme_color']); ?>;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
         }
-        .form-step {
-            display: none;
+
+        .mobooking-progress-container {
+            margin-bottom: 30px;
         }
-        .form-step.active {
-            display: block;
-            animation: fadeIn 0.3s ease-in-out;
+
+        .mobooking-progress-steps {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
         }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .service-card {
+
+        .mobooking-step-indicator {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #e5e7eb;
+            color: #6b7280;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
             transition: all 0.3s ease;
         }
-        .service-card:hover {
+
+        .mobooking-step-indicator.active {
+            background: <?php echo esc_attr($form_config['theme_color']); ?>;
+            color: white;
+        }
+
+        .mobooking-step-indicator.completed {
+            background: #10b981;
+            color: white;
+        }
+
+        .mobooking-progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e5e7eb;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .mobooking-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, <?php echo esc_attr($form_config['theme_color']); ?>, #10b981);
+            transition: width 0.3s ease;
+            width: 12.5%;
+        }
+
+        .mobooking-form-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            margin-bottom: 20px;
+        }
+
+        .mobooking-step-content {
+            display: none;
+        }
+
+        .mobooking-step-content.active {
+            display: block;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .mobooking-step-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 20px;
+        }
+
+        .mobooking-form-group {
+            margin-bottom: 20px;
+        }
+
+        .mobooking-label {
+            display: block;
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+
+        .mobooking-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .mobooking-input:focus {
+            outline: none;
+            border-color: <?php echo esc_attr($form_config['theme_color']); ?>;
+        }
+
+        .mobooking-select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 16px;
+            background: white;
+        }
+
+        .mobooking-textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 16px;
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .mobooking-grid {
+            display: grid;
+            gap: 20px;
+        }
+
+        .mobooking-grid-2 {
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        }
+
+        .mobooking-service-card {
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .mobooking-service-card:hover {
+            border-color: <?php echo esc_attr($form_config['theme_color']); ?>;
             transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
         }
-        .service-card.selected {
-            border-color: <?php echo esc_attr($form_config['theme_color'] ?? '#1abc9c'); ?>;
-            background-color: rgba(26, 188, 156, 0.05);
+
+        .mobooking-service-card.selected {
+            border-color: <?php echo esc_attr($form_config['theme_color']); ?>;
+            background: rgba(26, 188, 156, 0.05);
         }
-        .loading-spinner {
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid <?php echo esc_attr($form_config['theme_color'] ?? '#1abc9c'); ?>;
+
+        .mobooking-service-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+
+        .mobooking-service-description {
+            color: #6b7280;
+            margin-bottom: 12px;
+        }
+
+        .mobooking-service-price {
+            font-weight: 600;
+            color: <?php echo esc_attr($form_config['theme_color']); ?>;
+        }
+
+        .mobooking-radio-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .mobooking-radio-option {
+            display: flex;
+            align-items: center;
+            padding: 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .mobooking-radio-option:hover {
+            border-color: <?php echo esc_attr($form_config['theme_color']); ?>;
+            background: rgba(26, 188, 156, 0.05);
+        }
+
+        .mobooking-radio-option input[type="radio"] {
+            margin-right: 12px;
+        }
+
+        .mobooking-time-slots {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 12px;
+            margin-top: 15px;
+        }
+
+        .mobooking-time-slot {
+            padding: 12px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .mobooking-time-slot:hover {
+            border-color: <?php echo esc_attr($form_config['theme_color']); ?>;
+            background: rgba(26, 188, 156, 0.05);
+        }
+
+        .mobooking-time-slot.selected {
+            border-color: <?php echo esc_attr($form_config['theme_color']); ?>;
+            background: <?php echo esc_attr($form_config['theme_color']); ?>;
+            color: white;
+        }
+
+        .mobooking-button-group {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+            gap: 15px;
+        }
+
+        .mobooking-btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .mobooking-btn-primary {
+            background: <?php echo esc_attr($form_config['theme_color']); ?>;
+            color: white;
+        }
+
+        .mobooking-btn-primary:hover {
+            background: #16a085;
+        }
+
+        .mobooking-btn-secondary {
+            background: #6b7280;
+            color: white;
+        }
+
+        .mobooking-btn-secondary:hover {
+            background: #4b5563;
+        }
+
+        .mobooking-feedback {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .mobooking-feedback.success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+        }
+
+        .mobooking-feedback.error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fca5a5;
+        }
+
+        .mobooking-feedback.info {
+            background: #dbeafe;
+            color: #1e40af;
+            border: 1px solid #93c5fd;
+        }
+
+        .mobooking-spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid <?php echo esc_attr($form_config['theme_color']); ?>;
             border-radius: 50%;
-            width: 24px;
-            height: 24px;
             animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-right: 8px;
         }
+
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        .debug-section {
+
+        .mobooking-summary-card {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .mobooking-success-icon {
+            width: 60px;
+            height: 60px;
+            background: #d1fae5;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+        }
+
+        .mobooking-debug {
             background: #f8f9fa;
             border: 1px solid #dee2e6;
             border-radius: 8px;
-            padding: 20px;
-            margin: 20px 0;
+            padding: 15px;
+            margin-top: 30px;
             font-family: 'Courier New', monospace;
             font-size: 12px;
         }
-        .debug-section h3 {
-            margin: 0 0 15px 0;
-            color: #495057;
-            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-            font-size: 16px;
-            font-weight: 600;
+
+        .hidden {
+            display: none !important;
         }
-        .debug-section pre {
-            background: white;
-            border: 1px solid #e9ecef;
-            border-radius: 4px;
-            padding: 12px;
-            margin: 0;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-            max-height: 400px;
-            overflow-y: auto;
+
+        @media (max-width: 768px) {
+            .mobooking-progress-steps {
+                justify-content: center;
+            }
+            
+            .mobooking-step-indicator {
+                width: 35px;
+                height: 35px;
+                font-size: 12px;
+            }
+            
+            .mobooking-grid-2 {
+                grid-template-columns: 1fr;
+            }
+            
+            .mobooking-button-group {
+                flex-direction: column;
+            }
         }
     </style>
-    
-    <?php wp_head(); ?>
-</head>
-
-<body class="bg-gray-50">
-
-<?php if (!empty($debug_data['errors'])): ?>
-    <!-- Error State -->
-    <div class="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div class="bg-white rounded-lg shadow-lg p-8 max-w-md w-full mx-4">
-            <div class="text-center">
-                <div class="text-red-500 text-4xl mb-4">⚠️</div>
-                <h1 class="text-xl font-semibold text-gray-900 mb-2">
-                    <?php echo count($debug_data['errors']) > 1 ? 'Multiple Issues Found' : 'Issue Found'; ?>
-                </h1>
-                <div class="text-gray-600 mb-6 text-left">
-                    <?php foreach ($debug_data['errors'] as $error): ?>
-                        <p class="mb-2">• <?php echo esc_html($error); ?></p>
-                    <?php endforeach; ?>
-                </div>
-                <a href="<?php echo home_url(); ?>" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
-                    Go Home
-                </a>
-            </div>
-        </div>
-    </div>
-    
-    <?php if (defined('WP_DEBUG') && WP_DEBUG): ?>
-        <div class="max-w-4xl mx-auto px-4 py-8">
-            <div class="debug-section">
-                <h3>🔧 MoBooking Debug Information</h3>
-                <pre><?php echo esc_html(print_r($debug_data, true)); ?></pre>
-            </div>
-        </div>
-    <?php endif; ?>
-    
-<?php else: ?>
 
     <!-- Header -->
-    <header class="bg-white shadow-sm border-b sticky top-0 z-50">
-        <div class="max-w-4xl mx-auto px-4 py-4">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h1 class="text-2xl font-bold text-gray-900">
-                        <?php echo esc_html($biz_settings['biz_name'] ?? $form_config['header_text']); ?>
-                    </h1>
-                    <p class="text-gray-600 text-sm">
-                        <?php echo esc_html($bf_settings['bf_subtitle'] ?? 'Select your service and schedule your appointment'); ?>
-                    </p>
-                </div>
-                <div class="text-right">
-                    <div class="text-sm text-gray-500">Powered by</div>
-                    <div class="font-semibold" style="color: <?php echo esc_attr($form_config['theme_color']); ?>">
-                        MoBooking
-                    </div>
-                </div>
-            </div>
-        </div>
-    </header>
+    <div class="mobooking-header">
+        <h1><?php echo esc_html($form_config['header_text']); ?></h1>
+        <p><?php _e('Complete the steps below to schedule your service', 'mobooking'); ?></p>
+    </div>
 
     <!-- Progress Bar -->
     <?php if ($form_config['show_progress_bar']): ?>
-    <div class="bg-white border-b">
-        <div class="max-w-4xl mx-auto px-4 py-4">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-4">
-                    <div class="step-indicator active flex items-center justify-center w-8 h-8 rounded-full border-2 text-sm font-semibold">1</div>
-                    <div class="h-0.5 w-16 bg-gray-300 step-connector"></div>
-                    <div class="step-indicator flex items-center justify-center w-8 h-8 rounded-full border-2 border-gray-300 text-gray-500 text-sm font-semibold">2</div>
-                    <div class="h-0.5 w-16 bg-gray-300 step-connector"></div>
-                    <div class="step-indicator flex items-center justify-center w-8 h-8 rounded-full border-2 border-gray-300 text-gray-500 text-sm font-semibold">3</div>
-                    <div class="h-0.5 w-16 bg-gray-300 step-connector"></div>
-                    <div class="step-indicator flex items-center justify-center w-8 h-8 rounded-full border-2 border-gray-300 text-gray-500 text-sm font-semibold">4</div>
-                </div>
-                <div class="text-sm text-gray-600">
-                    Step <span id="current-step">1</span> of 4
-                </div>
+    <div class="mobooking-progress-container" id="mobooking-progress-container">
+        <div class="mobooking-progress-steps">
+            <?php
+            $total_steps = 8;
+            $visible_steps = [];
+            
+            // Calculate visible steps based on enabled features
+            $step_counter = 1;
+            if ($form_config['enable_area_check']) $visible_steps[] = $step_counter++;
+            $visible_steps[] = $step_counter++; // Service selection (always enabled)
+            $visible_steps[] = $step_counter++; // Service options (always enabled)
+            if ($form_config['enable_pet_information']) $visible_steps[] = $step_counter++;
+            if ($form_config['enable_service_frequency']) $visible_steps[] = $step_counter++;
+            if ($form_config['enable_datetime_selection']) $visible_steps[] = $step_counter++;
+            if ($form_config['enable_property_access']) $visible_steps[] = $step_counter++;
+            $visible_steps[] = $step_counter++; // Success (always enabled)
+            
+            foreach ($visible_steps as $i => $step):
+            ?>
+            <div class="mobooking-step-indicator <?php echo $i === 0 ? 'active' : ''; ?>" data-step="<?php echo $step; ?>">
+                <?php echo $step; ?>
             </div>
-            <div class="mt-2">
-                <div class="text-xs text-gray-500 flex justify-between">
-                    <span>Select Service</span>
-                    <span>Service Options</span>
-                    <span>Date & Time</span>
-                    <span>Contact Info</span>
-                </div>
-            </div>
+            <?php endforeach; ?>
+        </div>
+        <div class="mobooking-progress-bar">
+            <div class="mobooking-progress-fill" id="mobooking-progress-fill"></div>
         </div>
     </div>
     <?php endif; ?>
 
-    <!-- Main Content -->
-    <main class="max-w-4xl mx-auto px-4 py-8">
-        
-        <!-- Loading State -->
-        <div id="loading-state" class="text-center py-12">
-            <div class="loading-spinner mx-auto mb-4"></div>
-            <p class="text-gray-600"><?php _e('Loading services...', 'mobooking'); ?></p>
-        </div>
-
-        <!-- Error State -->
-        <div id="error-state" class="hidden bg-red-50 border border-red-200 rounded-lg p-6 text-center">
-            <div class="text-red-600 text-4xl mb-2">⚠️</div>
-            <h3 class="text-red-800 font-semibold mb-2"><?php _e('Something went wrong', 'mobooking'); ?></h3>
-            <p class="text-red-600 mb-4" id="error-message">
-                <?php _e('Unable to load services. Please try again.', 'mobooking'); ?>
-            </p>
-            <button onclick="location.reload()" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors">
-                <?php _e('Retry', 'mobooking'); ?>
-            </button>
-        </div>
-
-        <!-- Success State -->
-        <div id="success-state" class="hidden bg-green-50 border border-green-200 rounded-lg p-6 text-center">
-            <div class="text-green-600 text-4xl mb-2">✅</div>
-            <h3 class="text-green-800 font-semibold mb-2"><?php _e('Booking Submitted!', 'mobooking'); ?></h3>
-            <p class="text-green-600 mb-4">
-                <?php _e('Your booking request has been submitted successfully. We will contact you soon to confirm.', 'mobooking'); ?>
-            </p>
-            <button onclick="location.reload()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
-                <?php _e('Book Another Service', 'mobooking'); ?>
-            </button>
-        </div>
-
-        <!-- Booking Form -->
-        <form id="booking-form" class="hidden space-y-8">
-            
-            <!-- Step 1: Service Selection -->
-            <div class="form-step active bg-white rounded-lg shadow-sm p-6" id="step-1">
-                <h2 class="text-xl font-semibold text-gray-900 mb-6">
-                    <?php _e('Select Your Service', 'mobooking'); ?>
-                </h2>
-                <div id="services-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <!-- Services loaded via JavaScript -->
-                </div>
-                <div class="mt-8 flex justify-end">
-                    <button type="button" id="step-1-next" class="bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>
-                        <?php _e('Continue', 'mobooking'); ?>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Step 2: Service Options -->
-            <div class="form-step bg-white rounded-lg shadow-sm p-6" id="step-2">
-                <h2 class="text-xl font-semibold text-gray-900 mb-6">
-                    <?php _e('Service Options', 'mobooking'); ?>
-                </h2>
-                <div id="service-options-container">
-                    <!-- Service options loaded via JavaScript -->
-                </div>
-                <div class="mt-8 flex justify-between">
-                    <button type="button" id="step-2-back" class="bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600 transition-colors">
-                        <?php _e('Back', 'mobooking'); ?>
-                    </button>
-                    <button type="button" id="step-2-next" class="bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary-dark transition-colors">
-                        <?php _e('Continue', 'mobooking'); ?>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Step 3: Date & Time -->
-            <div class="form-step bg-white rounded-lg shadow-sm p-6" id="step-3">
-                <h2 class="text-xl font-semibold text-gray-900 mb-6">
-                    <?php _e('Select Date & Time', 'mobooking'); ?>
-                </h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                            <?php _e('Preferred Date', 'mobooking'); ?>
-                        </label>
-                        <input type="date" id="booking-date" name="booking_date" 
-                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary"
-                               min="<?php echo date('Y-m-d'); ?>" required>
+    <!-- Form Container -->
+    <div class="mobooking-form-card">
+        <!-- Step 1: Area Check -->
+        <?php if ($form_config['enable_area_check']): ?>
+        <div class="mobooking-step-content active" id="mobooking-step-1">
+            <h2 class="mobooking-step-title"><?php echo esc_html($bf_settings['bf_step_1_title'] ?? 'Step 1: Check Service Area'); ?></h2>
+            <form id="mobooking-area-check-form">
+                <div class="mobooking-grid mobooking-grid-2">
+                    <div class="mobooking-form-group">
+                        <label for="mobooking-zip" class="mobooking-label"><?php _e('ZIP/Postal Code', 'mobooking'); ?> *</label>
+                        <input type="text" id="mobooking-zip" class="mobooking-input" placeholder="<?php esc_attr_e('Enter your ZIP code', 'mobooking'); ?>" required>
                     </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                            <?php _e('Preferred Time', 'mobooking'); ?>
-                        </label>
-                        <select id="booking-time" name="booking_time" 
-                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary" required>
-                            <option value=""><?php _e('Select time...', 'mobooking'); ?></option>
+                    <div class="mobooking-form-group">
+                        <label for="mobooking-country" class="mobooking-label"><?php _e('Country', 'mobooking'); ?> *</label>
+                        <select id="mobooking-country" class="mobooking-select" required>
+                            <option value=""><?php _e('Select Country', 'mobooking'); ?></option>
+                            <option value="US"><?php _e('United States', 'mobooking'); ?></option>
+                            <option value="CA"><?php _e('Canada', 'mobooking'); ?></option>
+                            <option value="UK"><?php _e('United Kingdom', 'mobooking'); ?></option>
                         </select>
                     </div>
                 </div>
-                <div class="mt-8 flex justify-between">
-                    <button type="button" id="step-3-back" class="bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600 transition-colors">
-                        <?php _e('Back', 'mobooking'); ?>
+                <div id="mobooking-location-feedback" class="mobooking-feedback"></div>
+                <div class="mobooking-button-group">
+                    <div></div>
+                    <button type="submit" class="mobooking-btn mobooking-btn-primary">
+                        <?php _e('Check Availability', 'mobooking'); ?>
                     </button>
-                    <button type="button" id="step-3-next" class="bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary-dark transition-colors">
-                        <?php _e('Continue', 'mobooking'); ?>
-                    </button>
+                </div>
+            </form>
+        </div>
+        <?php endif; ?>
+
+        <!-- Step 2: Service Selection -->
+        <div class="mobooking-step-content <?php echo !$form_config['enable_area_check'] ? 'active' : ''; ?>" id="mobooking-step-2">
+            <h2 class="mobooking-step-title"><?php echo esc_html($bf_settings['bf_step_2_title'] ?? 'Step 2: Choose Services'); ?></h2>
+            <div id="mobooking-services-container">
+                <div style="text-align: center; padding: 40px 0;">
+                    <div class="mobooking-spinner"></div>
+                    <span><?php _e('Loading available services...', 'mobooking'); ?></span>
                 </div>
             </div>
+            <div id="mobooking-service-feedback" class="mobooking-feedback"></div>
+            <div class="mobooking-button-group">
+                <button type="button" class="mobooking-btn mobooking-btn-secondary" onclick="moBookingPreviousStep()">
+                    <?php _e('Back', 'mobooking'); ?>
+                </button>
+                <button type="button" class="mobooking-btn mobooking-btn-primary" onclick="moBookingNextStep()">
+                    <?php _e('Continue', 'mobooking'); ?>
+                </button>
+            </div>
+        </div>
 
-            <!-- Step 4: Contact Information -->
-            <div class="form-step bg-white rounded-lg shadow-sm p-6" id="step-4">
-                <h2 class="text-xl font-semibold text-gray-900 mb-6">
-                    <?php _e('Contact Information', 'mobooking'); ?>
-                </h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                            <?php _e('First Name', 'mobooking'); ?> <span class="text-red-500">*</span>
-                        </label>
-                        <input type="text" id="customer-first-name" name="customer_first_name" 
-                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary" required>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                            <?php _e('Last Name', 'mobooking'); ?> <span class="text-red-500">*</span>
-                        </label>
-                        <input type="text" id="customer-last-name" name="customer_last_name" 
-                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary" required>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                            <?php _e('Email', 'mobooking'); ?> <span class="text-red-500">*</span>
-                        </label>
-                        <input type="email" id="customer-email" name="customer_email" 
-                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary" required>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                            <?php _e('Phone', 'mobooking'); ?> <span class="text-red-500">*</span>
-                        </label>
-                        <input type="tel" id="customer-phone" name="customer_phone" 
-                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary" required>
-                    </div>
-                    <div class="md:col-span-2">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                            <?php _e('Address', 'mobooking'); ?>
-                        </label>
-                        <input type="text" id="customer-address" name="customer_address" 
-                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary"
-                               placeholder="<?php esc_attr_e('Street address, city, postal code', 'mobooking'); ?>">
-                    </div>
-                    <div class="md:col-span-2">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                            <?php _e('Special Notes', 'mobooking'); ?>
-                        </label>
-                        <textarea id="customer-notes" name="customer_notes" rows="3"
-                                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary"
-                                  placeholder="<?php esc_attr_e('Any special instructions or requests...', 'mobooking'); ?>"></textarea>
-                    </div>
-                </div>
+        <!-- Step 3: Service Options -->
+        <div class="mobooking-step-content" id="mobooking-step-3">
+            <h2 class="mobooking-step-title"><?php echo esc_html($bf_settings['bf_step_3_title'] ?? 'Step 3: Service Options'); ?></h2>
+            <div id="mobooking-service-options-container">
+                <p class="text-gray-600"><?php _e('Select your service first to see available options.', 'mobooking'); ?></p>
+            </div>
+            <div id="mobooking-options-feedback" class="mobooking-feedback"></div>
+            <div class="mobooking-button-group">
+                <button type="button" class="mobooking-btn mobooking-btn-secondary" onclick="moBookingPreviousStep()">
+                    <?php _e('Back', 'mobooking'); ?>
+                </button>
+                <button type="button" class="mobooking-btn mobooking-btn-primary" onclick="moBookingNextStep()">
+                    <?php _e('Continue', 'mobooking'); ?>
+                </button>
+            </div>
+        </div>
 
-                <!-- Booking Summary -->
-                <div class="mt-8 bg-gray-50 rounded-lg p-4">
-                    <h3 class="font-semibold text-gray-900 mb-3"><?php _e('Booking Summary', 'mobooking'); ?></h3>
-                    <div id="booking-summary">
-                        <!-- Summary populated via JavaScript -->
-                    </div>
-                </div>
-
-                <div class="mt-8 flex justify-between">
-                    <button type="button" id="step-4-back" class="bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600 transition-colors">
-                        <?php _e('Back', 'mobooking'); ?>
-                    </button>
-                    <button type="submit" id="submit-booking" class="bg-success text-white px-8 py-2 rounded-lg hover:bg-green-600 transition-colors">
-                        <span class="submit-text"><?php _e('Submit Booking', 'mobooking'); ?></span>
-                        <span class="submit-loading hidden">
-                            <div class="loading-spinner inline-block mr-2"></div>
-                            <?php _e('Submitting...', 'mobooking'); ?>
-                        </span>
-                    </button>
+        <!-- Step 4: Pet Information -->
+        <?php if ($form_config['enable_pet_information']): ?>
+        <div class="mobooking-step-content" id="mobooking-step-4">
+            <h2 class="mobooking-step-title"><?php echo esc_html($bf_settings['bf_step_4_title'] ?? 'Step 4: Pet Information'); ?></h2>
+            <div class="mobooking-form-group">
+                <p class="mobooking-label"><?php _e('Do you have pets at the service location?', 'mobooking'); ?></p>
+                <div class="mobooking-radio-group">
+                    <label class="mobooking-radio-option">
+                        <input type="radio" name="has_pets" value="no" checked>
+                        <span><?php _e('No, I don\'t have pets', 'mobooking'); ?></span>
+                    </label>
+                    <label class="mobooking-radio-option">
+                        <input type="radio" name="has_pets" value="yes">
+                        <span><?php _e('Yes, I have pets', 'mobooking'); ?></span>
+                    </label>
                 </div>
             </div>
+            <div class="mobooking-form-group hidden" id="mobooking-pet-details-container">
+                <label for="mobooking-pet-details" class="mobooking-label"><?php _e('Pet Details', 'mobooking'); ?> *</label>
+                <textarea id="mobooking-pet-details" class="mobooking-textarea" placeholder="<?php esc_attr_e('Please describe your pets (type, size, temperament, special instructions)', 'mobooking'); ?>"></textarea>
+            </div>
+            <div id="mobooking-pet-feedback" class="mobooking-feedback"></div>
+            <div class="mobooking-button-group">
+                <button type="button" class="mobooking-btn mobooking-btn-secondary" onclick="moBookingPreviousStep()">
+                    <?php _e('Back', 'mobooking'); ?>
+                </button>
+                <button type="button" class="mobooking-btn mobooking-btn-primary" onclick="moBookingNextStep()">
+                    <?php _e('Continue', 'mobooking'); ?>
+                </button>
+            </div>
+        </div>
+        <?php endif; ?>
 
-        </form>
+        <!-- Step 5: Service Frequency -->
+        <?php if ($form_config['enable_service_frequency']): ?>
+        <div class="mobooking-step-content" id="mobooking-step-5">
+            <h2 class="mobooking-step-title"><?php echo esc_html($bf_settings['bf_step_5_title'] ?? 'Step 5: Service Frequency'); ?></h2>
+            <div class="mobooking-form-group">
+                <p class="mobooking-label"><?php _e('How often would you like this service?', 'mobooking'); ?></p>
+                <div class="mobooking-grid mobooking-grid-2">
+                    <label class="mobooking-radio-option">
+                        <input type="radio" name="frequency" value="one-time" checked>
+                        <div>
+                            <div style="font-weight: 600; margin-bottom: 4px;"><?php _e('One-time', 'mobooking'); ?></div>
+                            <div style="font-size: 14px; color: #6b7280;"><?php _e('Schedule a single service', 'mobooking'); ?></div>
+                        </div>
+                    </label>
+                    <label class="mobooking-radio-option">
+                        <input type="radio" name="frequency" value="weekly">
+                        <div>
+                            <div style="font-weight: 600; margin-bottom: 4px;"><?php _e('Weekly', 'mobooking'); ?></div>
+                            <div style="font-size: 14px; color: #6b7280;"><?php _e('Recurring weekly service', 'mobooking'); ?></div>
+                        </div>
+                    </label>
+                    <label class="mobooking-radio-option">
+                        <input type="radio" name="frequency" value="monthly">
+                        <div>
+                            <div style="font-weight: 600; margin-bottom: 4px;"><?php _e('Monthly', 'mobooking'); ?></div>
+                            <div style="font-size: 14px; color: #6b7280;"><?php _e('Recurring monthly service', 'mobooking'); ?></div>
+                        </div>
+                    </label>
+                    <label class="mobooking-radio-option">
+                        <input type="radio" name="frequency" value="daily">
+                        <div>
+                            <div style="font-weight: 600; margin-bottom: 4px;"><?php _e('Daily', 'mobooking'); ?></div>
+                            <div style="font-size: 14px; color: #6b7280;"><?php _e('Daily recurring service', 'mobooking'); ?></div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+            <div class="mobooking-button-group">
+                <button type="button" class="mobooking-btn mobooking-btn-secondary" onclick="moBookingPreviousStep()">
+                    <?php _e('Back', 'mobooking'); ?>
+                </button>
+                <button type="button" class="mobooking-btn mobooking-btn-primary" onclick="moBookingNextStep()">
+                    <?php _e('Continue', 'mobooking'); ?>
+                </button>
+            </div>
+        </div>
+        <?php endif; ?>
 
-    </main>
+        <!-- Step 6: Date & Time Selection -->
+        <?php if ($form_config['enable_datetime_selection']): ?>
+        <div class="mobooking-step-content" id="mobooking-step-6">
+            <h2 class="mobooking-step-title"><?php echo esc_html($bf_settings['bf_step_6_title'] ?? 'Step 6: Select Date & Time'); ?></h2>
+            <div class="mobooking-form-group">
+                <label for="mobooking-service-date" class="mobooking-label"><?php _e('Preferred Date', 'mobooking'); ?> *</label>
+                <input type="text" id="mobooking-service-date" class="mobooking-input" placeholder="<?php esc_attr_e('Select a date', 'mobooking'); ?>" readonly>
+            </div>
+            <div class="mobooking-form-group hidden" id="mobooking-time-slots-container">
+                <label class="mobooking-label"><?php _e('Available Time Slots', 'mobooking'); ?> *</label>
+                <div id="mobooking-time-slots" class="mobooking-time-slots">
+                    <!-- Time slots will be populated here -->
+                </div>
+            </div>
+            <div id="mobooking-datetime-feedback" class="mobooking-feedback"></div>
+            <div class="mobooking-button-group">
+                <button type="button" class="mobooking-btn mobooking-btn-secondary" onclick="moBookingPreviousStep()">
+                    <?php _e('Back', 'mobooking'); ?>
+                </button>
+                <button type="button" class="mobooking-btn mobooking-btn-primary" onclick="moBookingNextStep()">
+                    <?php _e('Continue', 'mobooking'); ?>
+                </button>
+            </div>
+        </div>
+        <?php endif; ?>
 
-    <!-- Debug Section -->
-    <?php if (defined('WP_DEBUG') && WP_DEBUG): ?>
-    <div class="max-w-4xl mx-auto px-4 py-8">
-        <div class="debug-section">
-            <h3>🔧 MoBooking Debug Information</h3>
+        <!-- Step 7: Contact & Property Access -->
+        <?php if ($form_config['enable_property_access']): ?>
+        <div class="mobooking-step-content" id="mobooking-step-7">
+            <h2 class="mobooking-step-title"><?php echo esc_html($bf_settings['bf_step_7_title'] ?? 'Step 7: Contact & Property Access'); ?></h2>
             
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                <div class="bg-white p-4 rounded border">
-                    <h4 class="font-semibold mb-2" style="font-family: -apple-system, BlinkMacSystemFont, sans-serif;">Database Tables Accessed:</h4>
-                    <ul class="text-sm">
-                        <?php foreach ($debug_data['database_tables'] as $table): ?>
-                            <li>• <?php echo esc_html($table); ?></li>
-                        <?php endforeach; ?>
-                    </ul>
+            <!-- Customer Details -->
+            <div class="mobooking-grid mobooking-grid-2">
+                <div class="mobooking-form-group">
+                    <label for="mobooking-customer-name" class="mobooking-label"><?php _e('Full Name', 'mobooking'); ?> *</label>
+                    <input type="text" id="mobooking-customer-name" class="mobooking-input" required>
                 </div>
-                
-                <div class="bg-white p-4 rounded border">
-                    <h4 class="font-semibold mb-2" style="font-family: -apple-system, BlinkMacSystemFont, sans-serif;">User Data Retrieved:</h4>
-                    <ul class="text-sm">
-                        <li>• Tenant User ID: <?php echo esc_html($debug_data['user_data']['tenant_user_id'] ?? 'N/A'); ?></li>
-                        <li>• Lookup Method: <?php echo esc_html($debug_data['loaded_data']['lookup_method'] ?? 'N/A'); ?></li>
-                        <li>• Services Count: <?php echo esc_html($debug_data['loaded_data']['preloaded_services_count'] ?? '0'); ?></li>
-                    </ul>
+                <div class="mobooking-form-group">
+                    <label for="mobooking-customer-email" class="mobooking-label"><?php _e('Email Address', 'mobooking'); ?> *</label>
+                    <input type="email" id="mobooking-customer-email" class="mobooking-input" required>
+                </div>
+                <div class="mobooking-form-group">
+                    <label for="mobooking-customer-phone" class="mobooking-label"><?php _e('Phone Number', 'mobooking'); ?> *</label>
+                    <input type="tel" id="mobooking-customer-phone" class="mobooking-input" required>
+                </div>
+                <div class="mobooking-form-group">
+                    <label for="mobooking-service-address" class="mobooking-label"><?php _e('Service Address', 'mobooking'); ?> *</label>
+                    <input type="text" id="mobooking-service-address" class="mobooking-input" required>
                 </div>
             </div>
 
-            <details>
-                <summary class="cursor-pointer font-medium text-gray-700 hover:text-gray-900" style="font-family: -apple-system, BlinkMacSystemFont, sans-serif;">
-                    Click to view full debug data
-                </summary>
-                <pre><?php echo esc_html(print_r($debug_data, true)); ?></pre>
-            </details>
+            <!-- Property Access -->
+            <div class="mobooking-form-group">
+                <p class="mobooking-label"><?php _e('How can our service provider access your property?', 'mobooking'); ?></p>
+                <div class="mobooking-radio-group">
+                    <label class="mobooking-radio-option">
+                        <input type="radio" name="property_access" value="home" checked>
+                        <span><?php _e('I\'ll be home during service', 'mobooking'); ?></span>
+                    </label>
+                    <label class="mobooking-radio-option">
+                        <input type="radio" name="property_access" value="key">
+                        <span><?php _e('Key will be provided', 'mobooking'); ?></span>
+                    </label>
+                    <label class="mobooking-radio-option">
+                        <input type="radio" name="property_access" value="lockbox">
+                        <span><?php _e('Key lockbox available', 'mobooking'); ?></span>
+                    </label>
+                    <label class="mobooking-radio-option">
+                        <input type="radio" name="property_access" value="other">
+                        <span><?php _e('Other (please specify)', 'mobooking'); ?></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="mobooking-form-group hidden" id="mobooking-custom-access-details">
+                <label for="mobooking-access-instructions" class="mobooking-label"><?php _e('Access Instructions', 'mobooking'); ?> *</label>
+                <textarea id="mobooking-access-instructions" class="mobooking-textarea" placeholder="<?php esc_attr_e('Please provide detailed access instructions', 'mobooking'); ?>"></textarea>
+            </div>
+
+            <!-- Special Instructions -->
+            <div class="mobooking-form-group">
+                <label for="mobooking-special-instructions" class="mobooking-label"><?php _e('Special Instructions', 'mobooking'); ?> (<?php _e('Optional', 'mobooking'); ?>)</label>
+                <textarea id="mobooking-special-instructions" class="mobooking-textarea" placeholder="<?php esc_attr_e('Any special instructions or notes for our team', 'mobooking'); ?>"></textarea>
+            </div>
+
+            <div id="mobooking-contact-feedback" class="mobooking-feedback"></div>
+            <div class="mobooking-button-group">
+                <button type="button" class="mobooking-btn mobooking-btn-secondary" onclick="moBookingPreviousStep()">
+                    <?php _e('Back', 'mobooking'); ?>
+                </button>
+                <button type="button" class="mobooking-btn mobooking-btn-primary" onclick="moBookingSubmitForm()">
+                    <?php _e('Submit Booking', 'mobooking'); ?>
+                </button>
+            </div>
+        </div>
+        <?php endif; ?>
+
+        <!-- Step 8: Success Message -->
+        <div class="mobooking-step-content" id="mobooking-step-8">
+            <div style="text-align: center; padding: 40px 0;">
+                <div class="mobooking-success-icon">
+                    <svg width="30" height="30" fill="none" stroke="#10b981" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                </div>
+                <h2 class="mobooking-step-title" style="text-align: center; color: #10b981;">
+                    <?php echo esc_html($bf_settings['bf_step_8_title'] ?? 'Booking Confirmed!'); ?>
+                </h2>
+                <p style="color: #6b7280; margin-bottom: 30px;" id="mobooking-success-message">
+                    <?php echo esc_html($form_config['success_message']); ?>
+                </p>
+                
+                <!-- Booking Summary -->
+                <div class="mobooking-summary-card" style="text-align: left;">
+                    <h3 style="font-size: 1.2rem; font-weight: 600; margin-bottom: 15px; color: #374151;">
+                        <?php _e('Booking Summary', 'mobooking'); ?>
+                    </h3>
+                    <div id="mobooking-booking-summary" style="font-size: 14px; color: #6b7280;">
+                        <!-- Summary will be populated here -->
+                    </div>
+                </div>
+
+                <button type="button" class="mobooking-btn mobooking-btn-primary" onclick="moBookingResetForm()">
+                    <?php _e('Book Another Service', 'mobooking'); ?>
+                </button>
+            </div>
         </div>
     </div>
+
+    <!-- Live Summary -->
+    <div class="mobooking-summary-card" id="mobooking-live-summary">
+        <h3 style="font-size: 1.2rem; font-weight: 600; margin-bottom: 15px; color: #374151;">
+            <?php _e('Booking Summary', 'mobooking'); ?>
+        </h3>
+        <div id="mobooking-summary-content" style="font-size: 14px; color: #6b7280;">
+            <p><?php _e('Complete the form to see your booking summary', 'mobooking'); ?></p>
+        </div>
+    </div>
+
+    <!-- Debug Section (Development Only) -->
+    <?php if (defined('WP_DEBUG') && WP_DEBUG): ?>
+    <div class="mobooking-debug" id="mobooking-debug-section">
+        <details>
+            <summary style="cursor: pointer; font-weight: bold; margin-bottom: 10px;">
+                🔧 <?php _e('Debug Information (Development)', 'mobooking'); ?>
+            </summary>
+            <div style="display: grid; gap: 15px;">
+                <div>
+                    <h4 style="font-weight: bold;"><?php _e('Form Configuration:', 'mobooking'); ?></h4>
+                    <pre id="mobooking-debug-config" style="font-size: 11px; background: white; padding: 10px; border-radius: 4px; border: 1px solid #ccc; overflow: auto; max-height: 200px;"></pre>
+                </div>
+                <div>
+                    <h4 style="font-weight: bold;"><?php _e('Form Data:', 'mobooking'); ?></h4>
+                    <pre id="mobooking-debug-data" style="font-size: 11px; background: white; padding: 10px; border-radius: 4px; border: 1px solid #ccc; overflow: auto; max-height: 200px;"></pre>
+                </div>
+                <div>
+                    <h4 style="font-weight: bold;"><?php _e('API Responses:', 'mobooking'); ?></h4>
+                    <pre id="mobooking-debug-responses" style="font-size: 11px; background: white; padding: 10px; border-radius: 4px; border: 1px solid #ccc; overflow: auto; max-height: 200px;"></pre>
+                </div>
+            </div>
+        </details>
+    </div>
     <?php endif; ?>
+</div>
 
-<?php endif; ?>
-
-<!-- JavaScript -->
-<script type="text/javascript">
-// Localize script data
-window.mobooking_booking_form_params = <?php echo wp_json_encode($script_data ?? []); ?>;
-
-// Preloaded services data
-<?php if (!empty($preloaded_services)): ?>
-window.MOB_PRELOADED_SERVICES = <?php echo wp_json_encode($preloaded_services); ?>;
-<?php endif; ?>
-
+<script>
 jQuery(document).ready(function($) {
-    console.log('MoBooking Public Form: Initializing...');
-    
-    // Configuration
-    const config = window.mobooking_booking_form_params || {};
-    const preloadedServices = window.MOB_PRELOADED_SERVICES || null;
-    
-    // Form state
-    let currentStep = 1;
-    let selectedService = null;
-    let selectedOptions = {};
-    let availableTimeSlots = [];
-    
-    // Debug logging
-    function debugLog(message, data = null) {
-        if (config.is_debug_mode) {
-            console.log(`[MoBooking Debug] ${message}`, data || '');
-        }
-    }
-    
-    debugLog('Form initialized', { config, preloadedServices });
-    
-    // Initialize
-    initializeForm();
-    
-    function initializeForm() {
-        if (preloadedServices && preloadedServices.length > 0) {
-            debugLog('Using preloaded services', preloadedServices);
-            displayServices(preloadedServices);
-            hideLoading();
-            showForm();
+    // Global variables
+    let currentStep = MOBOOKING_CONFIG.form_config.enable_area_check ? 1 : 2;
+    let maxCompletedStep = currentStep;
+    let formData = {
+        location: {},
+        services: [],
+        options: {},
+        pets: {},
+        frequency: 'one-time',
+        datetime: {},
+        customer: {},
+        access: {}
+    };
+    let debugResponses = [];
+
+    console.log('Form initialized with config:', MOBOOKING_CONFIG);
+    console.log('Starting step:', currentStep);
+
+    // Initialize form
+    moBookingInitializeForm();
+
+    // Form event handlers
+    $('#mobooking-area-check-form').on('submit', function(e) {
+        e.preventDefault();
+        moBookingCheckServiceArea();
+    });
+
+    // Pet question toggle
+    $('input[name="has_pets"]').on('change', function() {
+        if (this.value === 'yes') {
+            $('#mobooking-pet-details-container').removeClass('hidden');
         } else {
-            debugLog('Loading services via AJAX');
-            loadServices();
+            $('#mobooking-pet-details-container').addClass('hidden');
         }
-        
-        bindEventHandlers();
+    });
+
+    // Property access toggle
+    $('input[name="property_access"]').on('change', function() {
+        if (this.value === 'other') {
+            $('#mobooking-custom-access-details').removeClass('hidden');
+        } else {
+            $('#mobooking-custom-access-details').addClass('hidden');
+        }
+    });
+
+    // Date picker initialization
+    if (typeof flatpickr !== 'undefined') {
+        flatpickr("#mobooking-service-date", {
+            minDate: "today",
+            dateFormat: "Y-m-d",
+            onChange: function(selectedDates, dateStr) {
+                if (dateStr) {
+                    moBookingLoadTimeSlots(dateStr);
+                }
+            }
+        });
     }
-    
-    function loadServices() {
+
+    // Functions
+    function moBookingInitializeForm() {
+        console.log('Initializing form...');
+        moBookingUpdateProgressBar();
+        moBookingUpdateLiveSummary();
+        moBookingUpdateDebugInfo();
+        
+        // Load services if we're starting on step 2
+        if (currentStep === 2) {
+            console.log('Loading services for step 2');
+            moBookingLoadServices();
+        }
+    }
+
+    function moBookingShowStep(step) {
+        // Skip disabled steps
+        if (step === 4 && !MOBOOKING_CONFIG.form_config.enable_pet_information) step++;
+        if (step === 5 && !MOBOOKING_CONFIG.form_config.enable_service_frequency) step++;
+        if (step === 6 && !MOBOOKING_CONFIG.form_config.enable_datetime_selection) step++;
+        if (step === 7 && !MOBOOKING_CONFIG.form_config.enable_property_access) step++;
+
+        // Hide all steps
+        $('.mobooking-step-content').removeClass('active');
+        
+        // Show target step
+        $('#mobooking-step-' + step).addClass('active');
+        
+        currentStep = step;
+        maxCompletedStep = Math.max(maxCompletedStep, step);
+        
+        moBookingUpdateProgressBar();
+        moBookingUpdateLiveSummary();
+        moBookingUpdateDebugInfo();
+
+        // Load step-specific data
+        if (step === 2) {
+            moBookingLoadServices();
+        } else if (step === 3) {
+            moBookingLoadServiceOptions();
+        }
+    }
+
+    function moBookingUpdateProgressBar() {
+        if (!MOBOOKING_CONFIG.form_config.show_progress_bar) return;
+        
+        const totalSteps = 8;
+        const progress = (currentStep / totalSteps) * 100;
+        $('#mobooking-progress-fill').css('width', progress + '%');
+
+        // Update step indicators
+        $('.mobooking-step-indicator').each(function() {
+            const stepNum = parseInt($(this).data('step'));
+            $(this).removeClass('active completed');
+            
+            if (stepNum === currentStep) {
+                $(this).addClass('active');
+            } else if (stepNum < currentStep) {
+                $(this).addClass('completed');
+            }
+        });
+    }
+
+    function moBookingCheckServiceArea() {
+        const zipCode = $('#mobooking-zip').val().trim();
+        const countryCode = $('#mobooking-country').val();
+        const $feedback = $('#mobooking-location-feedback');
+        const $submitBtn = $('#mobooking-area-check-form button[type="submit"]');
+        const originalBtnHtml = $submitBtn.html();
+
+        if (!zipCode) {
+            moBookingShowFeedback($feedback, 'error', MOBOOKING_CONFIG.i18n.zip_required);
+            return;
+        }
+
+        if (!countryCode) {
+            moBookingShowFeedback($feedback, 'error', MOBOOKING_CONFIG.i18n.country_required);
+            return;
+        }
+
+        $submitBtn.prop('disabled', true).html('<div class="mobooking-spinner"></div> ' + MOBOOKING_CONFIG.i18n.checking_availability);
+        moBookingShowFeedback($feedback, 'info', MOBOOKING_CONFIG.i18n.checking_availability);
+
         $.ajax({
-            url: config.ajax_url,
+            url: MOBOOKING_CONFIG.ajax_url,
+            type: 'POST',
+            data: {
+                action: 'mobooking_check_service_area',
+                nonce: MOBOOKING_CONFIG.nonce,
+                zip_code: zipCode,
+                country_code: countryCode,
+                tenant_id: MOBOOKING_CONFIG.tenant_id,
+            },
+            success: function(response) {
+                debugResponses.push({action: 'check_service_area', response: response});
+                moBookingUpdateDebugInfo();
+
+                if (response.success && response.data && response.data.serviced) {
+                    formData.location = {zip_code: zipCode, country_code: countryCode};
+                    moBookingShowFeedback($feedback, 'success', response.data.message || MOBOOKING_CONFIG.i18n.service_available);
+                    setTimeout(function() {
+                        moBookingShowStep(2);
+                    }, 1500);
+                } else {
+                    moBookingShowFeedback($feedback, 'error', response.data?.message || MOBOOKING_CONFIG.i18n.service_not_available);
+                }
+            },
+            error: function() {
+                moBookingShowFeedback($feedback, 'error', MOBOOKING_CONFIG.i18n.booking_error);
+            },
+            complete: function() {
+                $submitBtn.prop('disabled', false).html(originalBtnHtml);
+            }
+        });
+    }
+
+    function moBookingLoadServices() {
+        const $container = $('#mobooking-services-container');
+        $container.html('<div style="text-align: center; padding: 40px 0;"><div class="mobooking-spinner"></div><span>' + MOBOOKING_CONFIG.i18n.loading_services + '</span></div>');
+
+        // Debug: Log the AJAX request
+        console.log('Loading services with config:', {
+            url: MOBOOKING_CONFIG.ajax_url,
+            action: 'mobooking_get_public_services',
+            nonce: MOBOOKING_CONFIG.nonce,
+            tenant_id: MOBOOKING_CONFIG.tenant_id
+        });
+
+        $.ajax({
+            url: MOBOOKING_CONFIG.ajax_url,
             type: 'POST',
             data: {
                 action: 'mobooking_get_public_services',
-                nonce: config.nonce,
-                tenant_id: config.tenant_id
+                nonce: MOBOOKING_CONFIG.nonce,
+                tenant_id: MOBOOKING_CONFIG.tenant_id,
             },
             success: function(response) {
-                debugLog('Services AJAX response', response);
-                
-                if (response.success && response.data) {
-                    displayServices(response.data);
-                    hideLoading();
-                    showForm();
+                console.log('Services AJAX Response:', response);
+                debugResponses.push({action: 'get_public_services', response: response});
+                moBookingUpdateDebugInfo();
+
+                if (response.success && response.data && Array.isArray(response.data)) {
+                    moBookingRenderServices(response.data);
                 } else {
-                    const errorMsg = response.data?.message || 'Failed to load services';
-                    debugLog('Services loading failed', response);
-                    showError('Failed to load services: ' + errorMsg);
+                    console.error('Invalid service response:', response);
+                    $container.html('<p style="text-align: center; color: #6b7280;">No services available at the moment.</p>');
                 }
             },
             error: function(xhr, status, error) {
-                debugLog('AJAX error loading services', { xhr, status, error, responseText: xhr.responseText });
-                
-                let errorMessage = 'Network error loading services. Please check your connection.';
-                
-                // Try to extract more specific error info
-                if (xhr.responseText) {
-                    try {
-                        const errorResponse = JSON.parse(xhr.responseText);
-                        if (errorResponse.data && errorResponse.data.message) {
-                            errorMessage = errorResponse.data.message;
-                        }
-                    } catch (e) {
-                        // responseText is not JSON, use default message
-                    }
-                }
-                
-                showError(errorMessage);
+                console.error('Services AJAX Error:', {xhr, status, error, responseText: xhr.responseText});
+                debugResponses.push({action: 'get_public_services_error', error: {xhr: xhr.responseText, status, error}});
+                moBookingUpdateDebugInfo();
+                $container.html('<p style="text-align: center; color: #ef4444;">Error loading services. Please try again. Check console for details.</p>');
             }
         });
     }
-    
-    function displayServices(services) {
-        const grid = $('#services-grid');
-        grid.empty();
-        
-        if (!services || services.length === 0) {
-            grid.html(`
-                <div class="col-span-full text-center py-8">
-                    <div class="text-gray-400 text-4xl mb-4">📋</div>
-                    <h3 class="text-lg font-medium text-gray-900 mb-2">No Services Available</h3>
-                    <p class="text-gray-600">Please contact us directly to make a booking.</p>
+
+    function moBookingRenderServices(services) {
+        const $container = $('#mobooking-services-container');
+        let html = '<div class="mobooking-grid mobooking-grid-2">';
+
+        services.forEach(function(service) {
+            html += `
+                <div class="mobooking-service-card" data-service-id="${service.id}" onclick="moBookingToggleService(${service.id})">
+                    <input type="checkbox" name="selected_services[]" value="${service.id}" style="display: none;">
+                    <div class="mobooking-service-title">${service.name}</div>
+                    <div class="mobooking-service-description">${service.description || ''}</div>
+                    <div class="mobooking-service-price">${service.price || '0'}</div>
                 </div>
-            `);
+            `;
+        });
+
+        html += '</div>';
+        $container.html(html);
+    }
+
+    function moBookingLoadServiceOptions() {
+        const selectedServices = formData.services;
+        const $container = $('#mobooking-service-options-container');
+
+        if (selectedServices.length === 0) {
+            $container.html('<p style="color: #6b7280;">' + MOBOOKING_CONFIG.i18n.select_service + '</p>');
             return;
         }
-        
-        services.forEach(service => {
-            const serviceCard = createServiceCard(service);
-            grid.append(serviceCard);
-        });
-        
-        debugLog(`Displayed ${services.length} services`);
-    }
-    
-    function createServiceCard(service) {
-        // Fix price display
-        let price = 'Contact for pricing';
-        if (service.price && service.price > 0) {
-            if (service.price_formatted) {
-                price = `${config.currency.symbol}${service.price_formatted}`;
-            } else {
-                price = `${config.currency.symbol}${parseFloat(service.price).toFixed(2)}`;
-            }
-        }
-        
-        // Fix duration display
-        let duration = 'Duration varies';
-        if (service.duration && service.duration > 0) {
-            duration = `${service.duration} min`;
-        }
-        
-        // Safely get service name and description
-        const name = service.name || 'Unnamed Service';
-        const description = service.description || '';
-        
-        return $(`
-            <div class="service-card border border-gray-200 rounded-lg p-4 cursor-pointer hover:shadow-lg transition-all" 
-                 data-service-id="${service.service_id}">
-                <div class="flex items-start justify-between mb-3">
-                    <div class="flex-1">
-                        <h3 class="font-semibold text-gray-900 mb-1">${escapeHtml(name)}</h3>
-                        <p class="text-sm text-gray-600 mb-2">${escapeHtml(description)}</p>
-                    </div>
-                    ${service.icon_url ? `<img src="${service.icon_url}" alt="" class="w-8 h-8 ml-2">` : ''}
-                </div>
-                <div class="flex items-center justify-between text-sm">
-                    <span class="text-primary font-semibold">${price}</span>
-                    <span class="text-gray-500">${duration}</span>
-                </div>
-                ${service.options && service.options.length > 0 ? 
-                    `<div class="mt-2 text-xs text-gray-500">${service.options.length} options available</div>` : 
-                    ''
-                }
-            </div>
-        `);
-    }
-    
-    function bindEventHandlers() {
-        // Service selection
-        $(document).on('click', '.service-card', function() {
-            $('.service-card').removeClass('selected');
-            $(this).addClass('selected');
-            
-            const serviceId = $(this).data('service-id');
-            selectedService = preloadedServices ? 
-                preloadedServices.find(s => s.service_id == serviceId) : 
-                { service_id: serviceId };
-                
-            debugLog('Service selected', selectedService);
-            $('#step-1-next').prop('disabled', false);
-        });
-        
-        // Step navigation
-        $('#step-1-next').click(() => goToStep(2));
-        $('#step-2-back').click(() => goToStep(1));
-        $('#step-2-next').click(() => goToStep(3));
-        $('#step-3-back').click(() => goToStep(2));
-        $('#step-3-next').click(() => goToStep(4));
-        $('#step-4-back').click(() => goToStep(3));
-        
-        // Date change handler
-        $('#booking-date').change(function() {
-            const selectedDate = $(this).val();
-            if (selectedDate) {
-                loadAvailableTimeSlots(selectedDate);
-            }
-        });
-        
-        // Form submission
-        $('#booking-form').submit(function(e) {
-            e.preventDefault();
-            submitBooking();
-        });
-        
-        // Store options selections
-        $(document).on('change', '.service-option-input', function() {
-            const optionId = $(this).data('option-id');
-            let value = $(this).val();
-            
-            if ($(this).is(':checkbox')) {
-                if ($(this).is(':checked')) {
-                    selectedOptions[optionId] = true;
+
+        $container.html('<div style="text-align: center; padding: 20px 0;"><div class="mobooking-spinner"></div><span>Loading service options...</span></div>');
+
+        $.ajax({
+            url: MOBOOKING_CONFIG.ajax_url,
+            type: 'POST',
+            data: {
+                action: 'mobooking_get_service_options',
+                nonce: MOBOOKING_CONFIG.nonce,
+                service_ids: selectedServices,
+                tenant_id: MOBOOKING_CONFIG.tenant_id,
+            },
+            success: function(response) {
+                debugResponses.push({action: 'get_service_options', response: response});
+                moBookingUpdateDebugInfo();
+
+                if (response.success && response.data) {
+                    moBookingRenderServiceOptions(response.data);
                 } else {
-                    delete selectedOptions[optionId];
+                    $container.html('<p style="color: #6b7280;">No additional options available for selected services.</p>');
                 }
-            } else if ($(this).is(':radio')) {
-                if ($(this).is(':checked')) {
-                    selectedOptions[optionId] = value;
-                } else if (selectedOptions[optionId] === value) {
-                    delete selectedOptions[optionId];
-                }
-            } else if (value && value.trim() !== '') {
-                selectedOptions[optionId] = value;
-            } else {
-                delete selectedOptions[optionId];
+            },
+            error: function() {
+                $container.html('<p style="color: #ef4444;">Error loading service options. Please try again.</p>');
             }
-            
-            debugLog('Option selection updated', { optionId, value, selectedOptions });
         });
     }
-    
-    function goToStep(stepNumber) {
-        debugLog(`Going to step ${stepNumber}`);
-        
-        // Validate current step
-        if (!validateCurrentStep(currentStep)) {
+
+    function moBookingRenderServiceOptions(options) {
+        const $container = $('#mobooking-service-options-container');
+        let html = '';
+
+        options.forEach(function(option) {
+            html += '<div class="mobooking-form-group">';
+            html += `<label for="option-${option.id}" class="mobooking-label">${option.name}${option.required ? ' *' : ''}</label>`;
+
+            if (option.type === 'text') {
+                html += `<input type="text" id="option-${option.id}" class="mobooking-input" name="service_options[${option.id}]" ${option.required ? 'required' : ''}>`;
+            } else if (option.type === 'number') {
+                html += `<input type="number" id="option-${option.id}" class="mobooking-input" name="service_options[${option.id}]" ${option.required ? 'required' : ''}>`;
+            } else if (option.type === 'select') {
+                html += `<select id="option-${option.id}" class="mobooking-select" name="service_options[${option.id}]" ${option.required ? 'required' : ''}>`;
+                if (option.option_values) {
+                    option.option_values.forEach(function(value) {
+                        html += `<option value="${value}">${value}</option>`;
+                    });
+                }
+                html += '</select>';
+            } else if (option.type === 'checkbox') {
+                html += `<label><input type="checkbox" id="option-${option.id}" name="service_options[${option.id}]" value="1"> ${option.description || option.name}</label>`;
+            }
+
+            if (option.description && option.type !== 'checkbox') {
+                html += `<p style="font-size: 14px; color: #6b7280; margin-top: 5px;">${option.description}</p>`;
+            }
+
+            html += '</div>';
+        });
+
+        $container.html(html || '<p style="color: #6b7280;">No additional options available for selected services.</p>');
+    }
+
+    function moBookingLoadTimeSlots(date) {
+        const $container = $('#mobooking-time-slots-container');
+        const $slotsGrid = $('#mobooking-time-slots');
+
+        $container.removeClass('hidden');
+        $slotsGrid.html('<div style="text-align: center; padding: 20px;"><div class="mobooking-spinner"></div><span>Loading available times...</span></div>');
+
+        $.ajax({
+            url: MOBOOKING_CONFIG.ajax_url,
+            type: 'POST',
+            data: {
+                action: 'mobooking_get_available_time_slots',
+                nonce: MOBOOKING_CONFIG.nonce,
+                date: date,
+                tenant_id: MOBOOKING_CONFIG.tenant_id,
+            },
+            success: function(response) {
+                debugResponses.push({action: 'get_available_time_slots', response: response});
+                moBookingUpdateDebugInfo();
+
+                if (response.success && response.data) {
+                    moBookingRenderTimeSlots(response.data);
+                } else {
+                    $slotsGrid.html('<p style="text-align: center; color: #6b7280;">No available time slots for this date.</p>');
+                }
+            },
+            error: function() {
+                $slotsGrid.html('<p style="text-align: center; color: #ef4444;">Error loading time slots. Please try again.</p>');
+            }
+        });
+    }
+
+    function moBookingRenderTimeSlots(slots) {
+        const $slotsGrid = $('#mobooking-time-slots');
+        let html = '';
+
+        slots.forEach(function(slot) {
+            html += `
+                <div class="mobooking-time-slot" data-time="${slot.time}" onclick="moBookingSelectTimeSlot('${slot.time}')">
+                    ${slot.display}
+                </div>
+            `;
+        });
+
+        $slotsGrid.html(html);
+    }
+
+    function moBookingSubmitForm() {
+        if (!moBookingValidateCurrentStep()) {
             return;
         }
-        
-        // Load step-specific data
-        if (stepNumber === 2) {
-            loadServiceOptions();
-        } else if (stepNumber === 3) {
-            const today = new Date().toISOString().split('T')[0];
-            $('#booking-date').attr('min', today);
-        } else if (stepNumber === 4) {
-            updateBookingSummary();
-        }
-        
-        // Hide current step
-        $('.form-step').removeClass('active');
-        
-        // Show new step
-        $(`#step-${stepNumber}`).addClass('active');
-        
-        // Update progress indicators
-        updateProgressIndicators(stepNumber);
-        
-        currentStep = stepNumber;
-        $('#current-step').text(stepNumber);
-        
-        // Scroll to top
-        $('html, body').animate({ scrollTop: 0 }, 300);
+
+        // Collect all form data
+        const submitData = {
+            action: 'mobooking_submit_booking',
+            nonce: MOBOOKING_CONFIG.nonce,
+            tenant_id: MOBOOKING_CONFIG.tenant_id,
+            customer_details: JSON.stringify({
+                name: $('#mobooking-customer-name').val(),
+                email: $('#mobooking-customer-email').val(),
+                phone: $('#mobooking-customer-phone').val(),
+                address: $('#mobooking-service-address').val(),
+                instructions: $('#mobooking-special-instructions').val(),
+                date: formData.datetime.date,
+                time: formData.datetime.time
+            }),
+            selected_services: JSON.stringify(formData.services),
+            service_options: JSON.stringify(formData.options),
+            pet_information: JSON.stringify(formData.pets),
+            service_frequency: formData.frequency,
+            property_access: JSON.stringify(formData.access),
+            location_data: JSON.stringify(formData.location),
+            pricing_data: JSON.stringify({})
+        };
+
+        const $feedback = $('#mobooking-contact-feedback');
+        const $submitBtn = $('.mobooking-btn-primary:contains("Submit")');
+        const originalBtnHtml = $submitBtn.html();
+
+        $submitBtn.prop('disabled', true).html('<div class="mobooking-spinner"></div> ' + MOBOOKING_CONFIG.i18n.submitting_booking);
+
+        $.ajax({
+            url: MOBOOKING_CONFIG.ajax_url,
+            type: 'POST',
+            data: submitData,
+            success: function(response) {
+                debugResponses.push({action: 'submit_booking', response: response});
+                moBookingUpdateDebugInfo();
+
+                if (response.success) {
+                    // Populate success message and summary
+                    moBookingPopulateBookingSummary(response.data);
+                    moBookingShowStep(8);
+                } else {
+                    moBookingShowFeedback($feedback, 'error', response.data?.message || MOBOOKING_CONFIG.i18n.booking_error);
+                }
+            },
+            error: function() {
+                moBookingShowFeedback($feedback, 'error', MOBOOKING_CONFIG.i18n.booking_error);
+            },
+            complete: function() {
+                $submitBtn.prop('disabled', false).html(originalBtnHtml);
+            }
+        });
     }
-    
-    function validateCurrentStep(step) {
-        switch (step) {
-            case 1:
-                if (!selectedService) {
-                    alert(config.i18n.select_service);
-                    return false;
-                }
-                break;
+
+    function moBookingValidateCurrentStep() {
+        const $feedback = $('#mobooking-' + 
+            (currentStep === 1 ? 'location' :
+             currentStep === 2 ? 'service' :
+             currentStep === 3 ? 'options' :
+             currentStep === 4 ? 'pet' :
+             currentStep === 6 ? 'datetime' :
+             currentStep === 7 ? 'contact' : 'general') + '-feedback');
+
+        switch (currentStep) {
             case 2:
-                const requiredOptions = $('.service-option[data-required="true"]');
-                for (let option of requiredOptions) {
-                    const optionId = $(option).data('option-id');
-                    if (!selectedOptions[optionId]) {
-                        alert('Please select all required options.');
-                        return false;
-                    }
-                }
-                break;
-            case 3:
-                if (!$('#booking-date').val() || !$('#booking-time').val()) {
-                    alert('Please select both date and time.');
+                if (formData.services.length === 0) {
+                    moBookingShowFeedback($feedback, 'error', MOBOOKING_CONFIG.i18n.select_service);
                     return false;
                 }
                 break;
             case 4:
-                const requiredFields = ['#customer-first-name', '#customer-last-name', '#customer-email', '#customer-phone'];
-                for (let field of requiredFields) {
-                    if (!$(field).val().trim()) {
-                        alert('Please fill in all required fields.');
-                        $(field).focus();
-                        return false;
-                    }
+                if ($('input[name="has_pets"]:checked').val() === 'yes' && !$('#mobooking-pet-details').val().trim()) {
+                    moBookingShowFeedback($feedback, 'error', MOBOOKING_CONFIG.i18n.pet_details_required);
+                    return false;
+                }
+                break;
+            case 6:
+                if (!formData.datetime.date) {
+                    moBookingShowFeedback($feedback, 'error', MOBOOKING_CONFIG.i18n.select_date);
+                    return false;
+                }
+                if (!formData.datetime.time) {
+                    moBookingShowFeedback($feedback, 'error', MOBOOKING_CONFIG.i18n.select_time);
+                    return false;
+                }
+                break;
+            case 7:
+                if (!$('#mobooking-customer-name').val().trim()) {
+                    moBookingShowFeedback($feedback, 'error', MOBOOKING_CONFIG.i18n.name_required);
+                    return false;
+                }
+                if (!$('#mobooking-customer-email').val().trim() || !moBookingValidateEmail($('#mobooking-customer-email').val())) {
+                    moBookingShowFeedback($feedback, 'error', MOBOOKING_CONFIG.i18n.email_required);
+                    return false;
+                }
+                if (!$('#mobooking-customer-phone').val().trim()) {
+                    moBookingShowFeedback($feedback, 'error', MOBOOKING_CONFIG.i18n.phone_required);
+                    return false;
+                }
+                if (!$('#mobooking-service-address').val().trim()) {
+                    moBookingShowFeedback($feedback, 'error', MOBOOKING_CONFIG.i18n.address_required);
+                    return false;
+                }
+                if ($('input[name="property_access"]:checked').val() === 'other' && !$('#mobooking-access-instructions').val().trim()) {
+                    moBookingShowFeedback($feedback, 'error', MOBOOKING_CONFIG.i18n.access_details_required);
+                    return false;
                 }
                 break;
         }
         return true;
     }
-    
-    function loadServiceOptions() {
-        const container = $('#service-options-container');
-        container.html('<div class="text-center py-8"><div class="loading-spinner mx-auto mb-4"></div><p class="text-gray-600">Loading service options...</p></div>');
-        
-        debugLog('Selected service for options', selectedService);
-        
-        if (!selectedService || !selectedService.options || selectedService.options.length === 0) {
-            container.html(`
-                <div class="text-center py-8">
-                    <div class="text-gray-400 text-4xl mb-4">✓</div>
-                    <p class="text-gray-600">No additional options for this service.</p>
-                </div>
-            `);
-            return;
-        }
-        
-        let optionsHtml = '';
-        selectedService.options.forEach(option => {
-            optionsHtml += createOptionHtml(option);
-        });
-        
-        container.html(optionsHtml);
-        debugLog('Service options rendered', selectedService.options);
+
+    function moBookingValidateEmail(email) {
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
     }
-    
-    function createOptionHtml(option) {
-        const required = option.required || option.is_required;
-        const requiredLabel = required ? '<span class="text-red-500">*</span>' : '';
-        
-        let optionInput = '';
-        
-        debugLog('Creating option HTML for', option);
-        
-        switch (option.type) {
-            case 'checkbox':
-                const priceImpact = option.price_impact_value || option.price_impact || 0;
-                optionInput = `
-                    <label class="flex items-center space-x-2">
-                        <input type="checkbox" class="service-option-input" 
-                               data-option-id="${option.option_id}" 
-                               data-price-impact="${priceImpact}"
-                               ${required ? 'required' : ''}>
-                        <span>${escapeHtml(option.name)} ${requiredLabel}</span>
-                        ${priceImpact > 0 ? `<span class="text-sm text-gray-500">(+${config.currency.symbol}${priceImpact})</span>` : ''}
-                    </label>
-                `;
-                break;
-                
-            case 'select':
-                let optionValues = [];
-                try {
-                    if (option.option_values) {
-                        if (typeof option.option_values === 'string') {
-                            optionValues = JSON.parse(option.option_values);
-                        } else if (Array.isArray(option.option_values)) {
-                            optionValues = option.option_values;
-                        }
-                    }
-                } catch (e) {
-                    debugLog('Error parsing option values', e);
-                    optionValues = [];
-                }
-                
-                optionInput = `
-                    <label class="block">
-                        <span class="text-sm font-medium text-gray-700">${escapeHtml(option.name)} ${requiredLabel}</span>
-                        <select class="service-option-input mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg" 
-                                data-option-id="${option.option_id}" ${required ? 'required' : ''}>
-                            <option value="">Choose...</option>
-                            ${optionValues.map(v => {
-                                const value = v.value || v;
-                                const label = v.label || v.name || v;
-                                const price = v.price || 0;
-                                return `<option value="${escapeHtml(value)}" data-price="${price}">${escapeHtml(label)}</option>`;
-                            }).join('')}
-                        </select>
-                    </label>
-                `;
-                break;
-                
-            case 'radio':
-                let radioValues = [];
-                try {
-                    if (option.option_values) {
-                        if (typeof option.option_values === 'string') {
-                            radioValues = JSON.parse(option.option_values);
-                        } else if (Array.isArray(option.option_values)) {
-                            radioValues = option.option_values;
-                        }
-                    }
-                } catch (e) {
-                    debugLog('Error parsing radio values', e);
-                    radioValues = [];
-                }
-                
-                optionInput = `
-                    <div class="block">
-                        <span class="text-sm font-medium text-gray-700">${escapeHtml(option.name)} ${requiredLabel}</span>
-                        <div class="mt-1 space-y-2">
-                            ${radioValues.map((v, index) => {
-                                const value = v.value || v;
-                                const label = v.label || v.name || v;
-                                const price = v.price || 0;
-                                return `
-                                    <label class="flex items-center space-x-2">
-                                        <input type="radio" name="option_${option.option_id}" 
-                                               class="service-option-input" 
-                                               data-option-id="${option.option_id}" 
-                                               value="${escapeHtml(value)}" 
-                                               data-price="${price}"
-                                               ${required ? 'required' : ''}>
-                                        <span>${escapeHtml(label)}</span>
-                                        ${price > 0 ? `<span class="text-sm text-gray-500">(+${config.currency.symbol}${price})</span>` : ''}
-                                    </label>
-                                `;
-                            }).join('')}
-                        </div>
-                    </div>
-                `;
-                break;
-                
-            case 'text':
-                optionInput = `
-                    <label class="block">
-                        <span class="text-sm font-medium text-gray-700">${escapeHtml(option.name)} ${requiredLabel}</span>
-                        <input type="text" class="service-option-input mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg" 
-                               data-option-id="${option.option_id}" 
-                               placeholder="${escapeHtml(option.description || '')}"
-                               ${required ? 'required' : ''}>
-                    </label>
-                `;
-                break;
-                
-            case 'number':
-            case 'quantity':
-                optionInput = `
-                    <label class="block">
-                        <span class="text-sm font-medium text-gray-700">${escapeHtml(option.name)} ${requiredLabel}</span>
-                        <input type="number" class="service-option-input mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg" 
-                               data-option-id="${option.option_id}" 
-                               placeholder="${escapeHtml(option.description || '')}"
-                               ${required ? 'required' : ''}
-                               min="0" step="1">
-                    </label>
-                `;
-                break;
-                
-            case 'textarea':
-                optionInput = `
-                    <label class="block">
-                        <span class="text-sm font-medium text-gray-700">${escapeHtml(option.name)} ${requiredLabel}</span>
-                        <textarea class="service-option-input mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg" 
-                                  data-option-id="${option.option_id}" 
-                                  placeholder="${escapeHtml(option.description || '')}"
-                                  rows="3"
-                                  ${required ? 'required' : ''}></textarea>
-                    </label>
-                `;
-                break;
-                
-            case 'sqm':
-                optionInput = `
-                    <label class="block">
-                        <span class="text-sm font-medium text-gray-700">${escapeHtml(option.name)} ${requiredLabel}</span>
-                        <input type="number" class="service-option-input mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg" 
-                               data-option-id="${option.option_id}" 
-                               placeholder="Enter square meters"
-                               ${required ? 'required' : ''}
-                               min="0" step="0.1">
-                        <p class="text-xs text-gray-500 mt-1">Price will be calculated based on square meter ranges</p>
-                    </label>
-                `;
-                break;
-                
-            default:
-                optionInput = `
-                    <div class="bg-yellow-50 border border-yellow-200 rounded p-3">
-                        <p class="text-yellow-800">Option type "${option.type}" not fully supported yet.</p>
-                        <p class="text-sm text-gray-600 mt-1">${escapeHtml(option.name)}</p>
-                    </div>
-                `;
-        }
-        
-        return `
-            <div class="service-option border border-gray-200 rounded-lg p-4 mb-4" 
-                 data-option-id="${option.option_id}" 
-                 data-required="${required}">
-                ${optionInput}
-                ${option.description ? `<p class="text-sm text-gray-600 mt-1">${escapeHtml(option.description)}</p>` : ''}
-            </div>
-        `;
+
+    function moBookingShowFeedback($element, type, message) {
+        $element.removeClass('success error info').addClass(type).html(message).show();
+        setTimeout(function() {
+            $element.hide();
+        }, 5000);
     }
-    
-    function loadAvailableTimeSlots(date) {
-        const timeSelect = $('#booking-time');
-        timeSelect.html('<option value="">Loading...</option>').prop('disabled', true);
-        
+
+    function moBookingUpdateLiveSummary() {
+        const $content = $('#mobooking-summary-content');
+        let summary = [];
+
+        if (formData.location.zip_code) {
+            summary.push(`<strong>Location:</strong> ${formData.location.zip_code}, ${formData.location.country_code}`);
+        }
+
+        if (formData.services.length > 0) {
+            summary.push(`<strong>Services:</strong> ${formData.services.length} selected`);
+        }
+
+        if (formData.frequency) {
+            summary.push(`<strong>Frequency:</strong> ${formData.frequency}`);
+        }
+
+        if (formData.datetime.date) {
+            summary.push(`<strong>Date:</strong> ${formData.datetime.date}`);
+        }
+
+        if (formData.datetime.time) {
+            summary.push(`<strong>Time:</strong> ${formData.datetime.time}`);
+        }
+
+        if (summary.length > 0) {
+            $content.html(summary.join('<br>'));
+        } else {
+            $content.html('<p>Complete the form to see your booking summary</p>');
+        }
+    }
+
+    function moBookingUpdateDebugInfo() {
+        if ($('#mobooking-debug-section').length) {
+            $('#mobooking-debug-config').text(JSON.stringify(MOBOOKING_CONFIG, null, 2));
+            $('#mobooking-debug-data').text(JSON.stringify(formData, null, 2));
+            $('#mobooking-debug-responses').text(JSON.stringify(debugResponses, null, 2));
+        }
+    }
+
+    function moBookingPopulateBookingSummary(bookingData) {
+        const $summary = $('#mobooking-booking-summary');
+        let summaryHtml = '';
+
+        if (bookingData.booking_reference) {
+            summaryHtml += `<p><strong>Booking Reference:</strong> ${bookingData.booking_reference}</p>`;
+        }
+
+        if (formData.location.zip_code) {
+            summaryHtml += `<p><strong>Service Area:</strong> ${formData.location.zip_code}, ${formData.location.country_code}</p>`;
+        }
+
+        if (formData.services.length > 0) {
+            summaryHtml += `<p><strong>Services:</strong> ${formData.services.length} service(s) selected</p>`;
+        }
+
+        if (formData.datetime.date && formData.datetime.time) {
+            summaryHtml += `<p><strong>Scheduled:</strong> ${formData.datetime.date} at ${formData.datetime.time}</p>`;
+        }
+
+        if (formData.frequency) {
+            summaryHtml += `<p><strong>Frequency:</strong> ${formData.frequency}</p>`;
+        }
+
+        if ($('#mobooking-customer-name').val()) {
+            summaryHtml += `<p><strong>Contact:</strong> ${$('#mobooking-customer-name').val()} (${$('#mobooking-customer-email').val()})</p>`;
+        }
+
+        if (bookingData.total_amount) {
+            summaryHtml += `<p><strong>Total Amount:</strong> ${bookingData.total_amount}</p>`;
+        }
+
+        $summary.html(summaryHtml);
+    }
+
+    // Debug: Test AJAX endpoint directly
+    window.testServicesAjax = function() {
+        console.log('Testing services AJAX endpoint...');
         $.ajax({
-            url: config.ajax_url,
+            url: MOBOOKING_CONFIG.ajax_url,
             type: 'POST',
             data: {
-                action: 'mobooking_get_available_slots',
-                nonce: config.nonce,
-                tenant_id: config.tenant_id,
-                service_id: selectedService.service_id,
-                date: date
+                action: 'mobooking_get_public_services',
+                nonce: MOBOOKING_CONFIG.nonce,
+                tenant_id: MOBOOKING_CONFIG.tenant_id,
             },
             success: function(response) {
-                debugLog('Time slots loaded', response);
-                
-                timeSelect.prop('disabled', false);
-                
-                if (response.success && response.data && response.data.length > 0) {
-                    timeSelect.html('<option value="">Select time...</option>');
-                    response.data.forEach(slot => {
-                        timeSelect.append(`<option value="${slot.time}">${slot.display}</option>`);
-                    });
-                    availableTimeSlots = response.data;
-                } else {
-                    timeSelect.html('<option value="">No times available</option>');
-                    availableTimeSlots = [];
-                }
-            },
-            error: function() {
-                timeSelect.html('<option value="">Error loading times</option>').prop('disabled', false);
-            }
-        });
-    }
-    
-    function updateProgressIndicators(step) {
-        $('.step-indicator').each(function(index) {
-            const stepNum = index + 1;
-            $(this).removeClass('active completed');
-            
-            if (stepNum < step) {
-                $(this).addClass('completed');
-            } else if (stepNum === step) {
-                $(this).addClass('active');
-            }
-        });
-    }
-    
-    function updateBookingSummary() {
-        let summary = `
-            <div class="space-y-2">
-                <div class="flex justify-between">
-                    <span class="font-medium">Service:</span>
-                    <span>${escapeHtml(selectedService.name)}</span>
-                </div>
-                <div class="flex justify-between">
-                    <span class="font-medium">Date:</span>
-                    <span>${$('#booking-date').val()}</span>
-                </div>
-                <div class="flex justify-between">
-                    <span class="font-medium">Time:</span>
-                    <span>${$('#booking-time option:selected').text()}</span>
-                </div>
-        `;
-        
-        // Add selected options
-        $('.service-option-input').each(function() {
-            const $input = $(this);
-            const optionId = $input.data('option-id');
-            const optionName = $input.closest('.service-option').find('label').first().text().replace('*', '').trim();
-            
-            if ($input.is(':checked') || ($input.is('select') && $input.val()) || ($input.is('input[type="text"], input[type="number"]') && $input.val())) {
-                let value = $input.val();
-                if ($input.is(':checkbox')) {
-                    value = 'Yes';
-                }
-                
-                summary += `
-                    <div class="flex justify-between text-sm">
-                        <span>${escapeHtml(optionName)}:</span>
-                        <span>${escapeHtml(value)}</span>
-                    </div>
-                `;
-            }
-        });
-        
-        // Calculate total price
-        let totalPrice = parseFloat(selectedService.price || 0);
-        $('.service-option-input').each(function() {
-            const $input = $(this);
-            const priceImpact = parseFloat($input.data('price-impact') || 0);
-            
-            if ($input.is(':checked') || ($input.is('select') && $input.val())) {
-                if ($input.is('select')) {
-                    const selectedOption = $input.find('option:selected');
-                    const optionPrice = parseFloat(selectedOption.data('price') || 0);
-                    totalPrice += optionPrice;
-                } else {
-                    totalPrice += priceImpact;
-                }
-            }
-        });
-        
-        summary += `
-                <hr class="my-3">
-                <div class="flex justify-between font-semibold text-lg">
-                    <span>Total:</span>
-                    <span>${config.currency.symbol}${totalPrice.toFixed(2)}</span>
-                </div>
-            </div>
-        `;
-        
-        $('#booking-summary').html(summary);
-    }
-    
-    function submitBooking() {
-        const submitButton = $('#submit-booking');
-        const submitText = submitButton.find('.submit-text');
-        const submitLoading = submitButton.find('.submit-loading');
-        
-        // Show loading state
-        submitText.addClass('hidden');
-        submitLoading.removeClass('hidden');
-        submitButton.prop('disabled', true);
-        
-        // Collect all form data
-        const formData = {
-            action: 'mobooking_submit_booking',
-            nonce: config.nonce,
-            tenant_id: config.tenant_id,
-            service_id: selectedService.service_id,
-            booking_date: $('#booking-date').val(),
-            booking_time: $('#booking-time').val(),
-            customer_first_name: $('#customer-first-name').val(),
-            customer_last_name: $('#customer-last-name').val(),
-            customer_email: $('#customer-email').val(),
-            customer_phone: $('#customer-phone').val(),
-            customer_address: $('#customer-address').val(),
-            customer_notes: $('#customer-notes').val(),
-            service_options: {}
-        };
-        
-        // Collect service options
-        $('.service-option-input').each(function() {
-            const $input = $(this);
-            const optionId = $input.data('option-id');
-            
-            if ($input.is(':checkbox')) {
-                if ($input.is(':checked')) {
-                    formData.service_options[optionId] = true;
-                }
-            } else if ($input.val()) {
-                formData.service_options[optionId] = $input.val();
-            }
-        });
-        
-        debugLog('Submitting booking', formData);
-        
-        $.ajax({
-            url: config.ajax_url,
-            type: 'POST',
-            data: formData,
-            success: function(response) {
-                debugLog('Booking submission response', response);
-                
-                if (response.success) {
-                    showSuccess();
-                } else {
-                    const errorMsg = response.data?.message || 'Unknown error occurred';
-                    showError('Booking submission failed: ' + errorMsg);
-                    resetSubmitButton();
-                }
+                console.log('Test AJAX Success:', response);
             },
             error: function(xhr, status, error) {
-                debugLog('Booking submission error', { xhr, status, error, responseText: xhr.responseText });
-                let errorMessage = 'Network error submitting booking. Please try again.';
-                
-                // Try to extract more specific error info
-                if (xhr.responseText) {
-                    try {
-                        const errorResponse = JSON.parse(xhr.responseText);
-                        if (errorResponse.data && errorResponse.data.message) {
-                            errorMessage = 'Error: ' + errorResponse.data.message;
-                        }
-                    } catch (e) {
-                        // responseText is not JSON, use default message
-                    }
-                }
-                
-                showError(errorMessage);
-                resetSubmitButton();
+                console.error('Test AJAX Error:', {
+                    status: xhr.status,
+                    statusText: xhr.statusText,
+                    responseText: xhr.responseText,
+                    error: error
+                });
             }
         });
+    };
+
+    // Auto-run the test if in debug mode
+    if (typeof MOBOOKING_CONFIG.form_config !== 'undefined' && MOBOOKING_CONFIG.form_config.debug_mode) {
+        setTimeout(testServicesAjax, 1000);
     }
-    
-    function resetSubmitButton() {
-        const submitButton = $('#submit-booking');
-        const submitText = submitButton.find('.submit-text');
-        const submitLoading = submitButton.find('.submit-loading');
+
+    // Global function declarations for onclick handlers
+    window.moBookingToggleService = function(serviceId) {
+        const $card = $(`.mobooking-service-card[data-service-id="${serviceId}"]`);
+        const $checkbox = $card.find('input[type="checkbox"]');
         
-        submitText.removeClass('hidden');
-        submitLoading.addClass('hidden');
-        submitButton.prop('disabled', false);
+        if ($card.hasClass('selected')) {
+            $card.removeClass('selected');
+            $checkbox.prop('checked', false);
+            formData.services = formData.services.filter(id => id !== serviceId);
+        } else {
+            $card.addClass('selected');
+            $checkbox.prop('checked', true);
+            if (!formData.services.includes(serviceId)) {
+                formData.services.push(serviceId);
+            }
+        }
+        
+        moBookingUpdateLiveSummary();
+        moBookingUpdateDebugInfo();
+    };
+
+    window.moBookingSelectTimeSlot = function(time) {
+        $('.mobooking-time-slot').removeClass('selected');
+        $(`.mobooking-time-slot[data-time="${time}"]`).addClass('selected');
+        formData.datetime.time = time;
+        moBookingUpdateLiveSummary();
+        moBookingUpdateDebugInfo();
+    };
+
+    window.moBookingNextStep = function() {
+        if (moBookingValidateCurrentStep()) {
+            // Collect data from current step before moving
+            moBookingCollectStepData();
+            moBookingShowStep(currentStep + 1);
+        }
+    };
+
+    window.moBookingPreviousStep = function() {
+        if (currentStep > 1) {
+            moBookingShowStep(currentStep - 1);
+        }
+    };
+
+    window.moBookingSubmitForm = function() {
+        moBookingCollectStepData();
+        moBookingSubmitForm();
+    };
+
+    window.moBookingResetForm = function() {
+        // Reset form data
+        formData = {
+            location: {},
+            services: [],
+            options: {},
+            pets: {},
+            frequency: 'one-time',
+            datetime: {},
+            customer: {},
+            access: {}
+        };
+        
+        // Reset form fields
+        $('#mobooking-zip, #mobooking-customer-name, #mobooking-customer-email, #mobooking-customer-phone, #mobooking-service-address, #mobooking-pet-details, #mobooking-access-instructions, #mobooking-special-instructions').val('');
+        $('#mobooking-country').val('');
+        $('#mobooking-service-date').val('');
+        $('input[name="has_pets"][value="no"]').prop('checked', true);
+        $('input[name="frequency"][value="one-time"]').prop('checked', true);
+        $('input[name="property_access"][value="home"]').prop('checked', true);
+        $('.mobooking-service-card').removeClass('selected');
+        $('.mobooking-time-slot').removeClass('selected');
+        $('#mobooking-pet-details-container, #mobooking-custom-access-details, #mobooking-time-slots-container').addClass('hidden');
+        
+        // Reset to first step
+        currentStep = MOBOOKING_CONFIG.form_config.enable_area_check ? 1 : 2;
+        maxCompletedStep = currentStep;
+        moBookingShowStep(currentStep);
+    };
+
+    function moBookingCollectStepData() {
+        switch (currentStep) {
+            case 1:
+                formData.location = {
+                    zip_code: $('#mobooking-zip').val(),
+                    country_code: $('#mobooking-country').val()
+                };
+                break;
+            case 3:
+                // Collect service options
+                const options = {};
+                $('[name^="service_options"]').each(function() {
+                    const name = $(this).attr('name');
+                    const match = name.match(/service_options\[(\d+)\]/);
+                    if (match) {
+                        const optionId = match[1];
+                        if ($(this).attr('type') === 'checkbox') {
+                            options[optionId] = $(this).is(':checked') ? 1 : 0;
+                        } else {
+                            options[optionId] = $(this).val();
+                        }
+                    }
+                });
+                formData.options = options;
+                break;
+            case 4:
+                formData.pets = {
+                    has_pets: $('input[name="has_pets"]:checked').val() === 'yes',
+                    details: $('#mobooking-pet-details').val()
+                };
+                break;
+            case 5:
+                formData.frequency = $('input[name="frequency"]:checked').val();
+                break;
+            case 6:
+                formData.datetime = {
+                    date: $('#mobooking-service-date').val(),
+                    time: formData.datetime.time || null
+                };
+                break;
+            case 7:
+                formData.customer = {
+                    name: $('#mobooking-customer-name').val(),
+                    email: $('#mobooking-customer-email').val(),
+                    phone: $('#mobooking-customer-phone').val(),
+                    address: $('#mobooking-service-address').val(),
+                    instructions: $('#mobooking-special-instructions').val()
+                };
+                formData.access = {
+                    method: $('input[name="property_access"]:checked').val(),
+                    details: $('#mobooking-access-instructions').val()
+                };
+                break;
+        }
+        
+        moBookingUpdateLiveSummary();
+        moBookingUpdateDebugInfo();
     }
-    
-    function showError(message) {
-        $('#loading-state, #booking-form').hide();
-        $('#error-message').text(message);
-        $('#error-state').removeClass('hidden');
-        debugLog('Error shown', message);
-    }
-    
-    function showSuccess() {
-        $('#booking-form').hide();
-        $('#success-state').removeClass('hidden');
-        debugLog('Success shown');
-    }
-    
-    function hideLoading() {
-        $('#loading-state').hide();
-    }
-    
-    function showForm() {
-        $('#booking-form').removeClass('hidden');
-    }
-    
-    function escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
+
+    // Initialize the form
+    moBookingInitializeForm();
 });
 </script>
 
-<?php wp_footer(); ?>
-</body>
-</html>
+<?php
+/**
+ * Output any additional PHP processing or hooks here
+ */
+
+// Hook for additional form customization
+do_action('mobooking_after_public_form_render', $tenant_id, $form_config);
+
+// Add any custom CSS from settings
+if (!empty($bf_settings['bf_custom_css'])) {
+    echo '<style>' . wp_kses_post($bf_settings['bf_custom_css']) . '</style>';
+}
+
+// Load WordPress footer
+get_footer();
+?>
