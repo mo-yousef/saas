@@ -723,7 +723,7 @@
       nonce: CONFIG.nonce,
       tenant_id: CONFIG.tenant_id,
       date: date,
-      services: JSON.stringify(formData.services), // Add services data
+      services: formData.services, // Send as an array
     };
 
     DebugTree.info("Time slots AJAX request:", ajaxData);
