@@ -1107,7 +1107,6 @@
 
     // Construct the data structure expected by the backend
     const bookingPayload = {
-      tenant_id: CONFIG.tenant_id,
       customer: {
         ...formData.customer,
         date: formData.datetime.date,
@@ -1130,6 +1129,7 @@
     const ajaxData = {
       action: 'mobooking_create_booking',
       nonce: CONFIG.nonce,
+      tenant_id: CONFIG.tenant_id, // Send tenant_id at the top level
       booking_data: JSON.stringify(bookingPayload)
     };
 
