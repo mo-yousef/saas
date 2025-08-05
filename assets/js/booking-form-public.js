@@ -603,12 +603,18 @@
         }" class="mobooking-input" name="service_options[${option.id}]" ${
           option.required ? "required" : ""
         }>`;
-      } else if (option.type === "number") {
+      } else if (option.type === "number" || option.type === "quantity" || option.type === "sqm") {
         html += `<input type="number" id="option-${
           option.id
         }" class="mobooking-input" name="service_options[${option.id}]" ${
           option.required ? "required" : ""
         }>`;
+      } else if (option.type === 'textarea') {
+        html += `<textarea id="option-${
+          option.id
+        }" class="mobooking-textarea" name="service_options[${option.id}]" ${
+          option.required ? "required" : ""
+        }></textarea>`;
       } else if (option.type === "select") {
         html += `<select id="option-${
           option.id
@@ -639,6 +645,25 @@
           }
         }
         html += "</select>";
+      } else if (option.type === "radio") {
+        if (option.option_values) {
+            let values = option.option_values;
+            if (typeof values === 'string') {
+                try {
+                    values = JSON.parse(values);
+                } catch (e) {
+                    DebugTree.error('Failed to parse option_values for radio', { optionId: option.id, values: option.option_values });
+                    values = [];
+                }
+            }
+
+            if (Array.isArray(values)) {
+                values.forEach(function (item) {
+                    const radioId = `option-${option.id}-${item.value}`;
+                    html += `<div class="mobooking-radio-option"><input type="radio" id="${radioId}" name="service_options[${option.id}]" value="${item.value}" ${option.required ? "required" : ""}> <label for="${radioId}">${item.label}</label></div>`;
+                });
+            }
+        }
       } else if (option.type === "checkbox") {
         html += `<label><input type="checkbox" id="option-${
           option.id
