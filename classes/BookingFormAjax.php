@@ -279,26 +279,20 @@ class BookingFormAjax {
 
         $tenant_id = isset($_POST['tenant_id']) ? intval($_POST['tenant_id']) : 0;
         $date = isset($_POST['date']) ? sanitize_text_field($_POST['date']) : '';
-        $services_json = isset($_POST['services']) ? stripslashes($_POST['services']) : '';
-
         if (empty($tenant_id) || empty($date)) {
             wp_send_json_error(['message' => __('Invalid parameters.', 'mobooking')], 400);
             return;
         }
 
-        // Validate date format
-        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
-            wp_send_json_error(['message' => __('Invalid date format.', 'mobooking')], 400);
+        // More robust date validation
+        $d = \DateTime::createFromFormat('Y-m-d', $date);
+        if (!$d || $d->format('Y-m-d') !== $date) {
+            wp_send_json_error(['message' => __('Invalid date format. Please use YYYY-MM-DD.', 'mobooking')], 400);
             return;
         }
 
-        $selected_services = [];
-        if (!empty($services_json)) {
-            $selected_services = json_decode($services_json, true);
-            if (json_last_error() !== JSON_ERROR_NONE) {
-                $selected_services = [];
-            }
-        }
+        // Handle services as an array
+        $selected_services = isset($_POST['services']) && is_array($_POST['services']) ? array_map('intval', $_POST['services']) : [];
 
         try {
             $time_slots = $this->get_available_time_slots($tenant_id, $date, $selected_services);
