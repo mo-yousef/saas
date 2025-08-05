@@ -8,6 +8,31 @@
 add_action('wp_ajax_mobooking_get_available_slots', 'mobooking_handle_get_available_slots');
 add_action('wp_ajax_nopriv_mobooking_get_available_slots', 'mobooking_handle_get_available_slots');
 
+function mobooking_get_service_duration_fallback($service_ids) {
+    if (empty($service_ids)) {
+        return 60; // Default duration if no services are selected
+    }
+    global $wpdb;
+    // Ensure all IDs are integers
+    $service_ids_int = array_map('intval', $service_ids);
+    $ids_string = implode(',', $service_ids_int);
+
+    if (empty($ids_string)) {
+        return 60; // Return default if array was empty or contained non-numeric values
+    }
+
+    $services_table = $wpdb->prefix . 'mobooking_services';
+    if ($wpdb->get_var("SHOW TABLES LIKE '$services_table'") != $services_table) {
+        return 60; // Return default if table doesn't exist
+    }
+
+    $sql = "SELECT SUM(duration) FROM $services_table WHERE service_id IN ($ids_string)";
+
+    $total_duration = $wpdb->get_var($sql);
+
+    return $total_duration > 0 ? intval($total_duration) : 60; // Return default if total is 0
+}
+
 function mobooking_handle_get_available_slots() {
     // Verify nonce
     if (!check_ajax_referer('mobooking_booking_form_nonce', 'nonce', false)) {
@@ -17,6 +42,7 @@ function mobooking_handle_get_available_slots() {
 
     $tenant_id = isset($_POST['tenant_id']) ? intval($_POST['tenant_id']) : 0;
     $date = isset($_POST['date']) ? sanitize_text_field($_POST['date']) : '';
+    $service_ids = isset($_POST['services']) && is_array($_POST['services']) ? $_POST['services'] : [];
 
     if (!$tenant_id || !$date) {
         wp_send_json_error(['message' => 'Missing required parameters.'], 400);
@@ -24,20 +50,21 @@ function mobooking_handle_get_available_slots() {
     }
 
     // Validate date format
-    if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+    $d = \DateTime::createFromFormat('Y-m-d', $date);
+    if (!$d || $d->format('Y-m-d') !== $date) {
         wp_send_json_error(['message' => 'Invalid date format.'], 400);
         return;
     }
 
     try {
-        $day_of_week = date('w', strtotime($date));
+        $day_of_week = $d->format('w');
+        $total_duration = mobooking_get_service_duration_fallback($service_ids);
+        $slot_interval = 30; // 30-minute intervals
 
-        // Check if we have the availability manager
         global $mobooking_availability_manager;
-        if ($mobooking_availability_manager) {
+        if ($mobooking_availability_manager && method_exists($mobooking_availability_manager, 'get_recurring_schedule')) {
             $schedule = $mobooking_availability_manager->get_recurring_schedule($tenant_id);
         } else {
-            // Fallback: Create basic time slots
             $schedule = mobooking_get_default_availability_schedule();
         }
 
@@ -46,18 +73,23 @@ function mobooking_handle_get_available_slots() {
             if ($day['day_of_week'] == $day_of_week && !empty($day['is_enabled'])) {
                 if (isset($day['slots']) && is_array($day['slots'])) {
                     foreach ($day['slots'] as $slot) {
-                        $slots[] = [
-                            'time' => $slot['start_time'],
-                            'display' => date('g:i A', strtotime($slot['start_time']))
-                        ];
+                        $current_time = strtotime($date . ' ' . $slot['start_time']);
+                        $end_timestamp = strtotime($date . ' ' . $slot['end_time']);
+
+                        while($current_time < $end_timestamp) {
+                            $end_slot_time = $current_time + ($total_duration * 60);
+                            if ($end_slot_time <= $end_timestamp) {
+                                $slots[] = [
+                                    'start_time' => date('H:i', $current_time),
+                                    'end_time'   => date('H:i', $end_slot_time),
+                                    'display'    => date('g:i A', $current_time) . ' until ' . date('g:i A', $end_slot_time)
+                                ];
+                            }
+                             $current_time += ($slot_interval * 60);
+                        }
                     }
                 }
             }
-        }
-
-        // If no slots found, provide default hourly slots
-        if (empty($slots)) {
-            $slots = mobooking_generate_default_time_slots();
         }
 
         wp_send_json_success($slots);
