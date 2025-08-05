@@ -865,7 +865,7 @@
 
     slots.forEach(function (slot) {
       html += `
-                <div class="mobooking-time-slot" data-time="${slot.time}" onclick="selectTimeSlot('${slot.time}')">
+                <div class="mobooking-time-slot" data-time="${slot.start_time}" onclick="selectTimeSlot('${slot.start_time}')">
                     ${slot.display}
                 </div>
             `;

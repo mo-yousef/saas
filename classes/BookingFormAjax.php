@@ -559,13 +559,15 @@ class BookingFormAjax {
             $end_timestamp = strtotime($date . ' ' . $end_time);
 
             while ($current_time < $end_timestamp) {
+                $end_slot_time = $current_time + ($total_duration * 60);
                 // Check if there's enough time for all services
-                if (($current_time + ($total_duration * 60)) <= $end_timestamp) {
+                if ($end_slot_time <= $end_timestamp) {
                     // Check if slot is not already booked
                     if ($this->is_time_slot_available($tenant_id, $date, date('H:i', $current_time), $total_duration)) {
                         $time_slots[] = [
-                            'time' => date('H:i', $current_time),
-                            'display_time' => date('g:i A', $current_time)
+                            'start_time' => date('H:i', $current_time),
+                            'end_time'   => date('H:i', $end_slot_time),
+                            'display'    => date('g:i A', $current_time) . ' until ' . date('g:i A', $end_slot_time)
                         ];
                     }
                 }
@@ -580,12 +582,26 @@ class BookingFormAjax {
     /**
      * Calculate total duration of selected services
      */
-    private function calculate_total_service_duration($selected_services) {
-        $total_duration = 0;
-        foreach ($selected_services as $service) {
-            $total_duration += intval($service['duration'] ?? 60);
+    private function calculate_total_service_duration($service_ids) {
+        if (empty($service_ids)) {
+            return 60; // Default duration
         }
-        return $total_duration;
+
+        // Ensure all IDs are integers
+        $service_ids_int = array_map('intval', $service_ids);
+        $ids_string = implode(',', $service_ids_int);
+
+        if (empty($ids_string)) {
+            return 60; // Return default if array was empty or contained non-numeric values
+        }
+
+        $services_table = Database::get_table_name('services');
+
+        $sql = "SELECT SUM(duration) FROM $services_table WHERE service_id IN ($ids_string)";
+
+        $total_duration = $this->wpdb->get_var($sql);
+
+        return $total_duration > 0 ? intval($total_duration) : 60;
     }
 
     /**
