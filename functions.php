@@ -15,6 +15,7 @@ if ( ! defined( 'MOBOOKING_THEME_URI' ) ) {
     define( 'MOBOOKING_THEME_URI', trailingslashit( get_template_directory_uri() ) );
 }
 
+
 // Include the separated functional files
 require_once MOBOOKING_THEME_DIR . 'functions/ajax.php';
 require_once MOBOOKING_THEME_DIR . 'functions/theme-setup.php';
