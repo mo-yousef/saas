@@ -1091,45 +1091,56 @@
   };
 
   function submitBooking() {
-    DebugTree.group("📤 Submitting Booking (Demo Mode)");
+    DebugTree.group("📤 Submitting Booking");
 
     if (!validateCurrentStep()) {
       DebugTree.error("Validation failed, cannot submit");
       return;
     }
 
-    // Show loading state
-    const $feedback = $("#mobooking-contact-feedback");
-    const $submitBtn = $('button:contains("Submit Booking")');
+    const $submitBtn = $("#mobooking-step-7 button[onclick='moBookingSubmitForm()']");
     const originalBtnHtml = $submitBtn.html();
 
     $submitBtn
       .prop("disabled", true)
-      .html('<div class="mobooking-spinner"></div> Submitting booking...');
+      .html('<div class="mobooking-spinner"></div> Submitting...');
 
-    // Simulate successful booking submission
-    DebugTree.info("Simulating booking submission...");
+    const bookingData = {
+      action: 'mobooking_submit_booking',
+      nonce: CONFIG.nonce,
+      tenant_id: CONFIG.tenant_id,
+      form_data: formData
+    };
 
-    setTimeout(() => {
-      const mockBookingData = {
-        booking_reference: "MB-" + Date.now(),
-        booking_id: Math.floor(Math.random() * 1000) + 1,
-        total_amount: 150.0,
-        message: "Booking submitted successfully!",
-      };
+    DebugTree.info("Submitting booking data", bookingData);
 
-      DebugTree.success("Mock booking submitted successfully", mockBookingData);
-      debugResponses.push({
-        action: "submit_booking_demo",
-        response: { success: true, data: mockBookingData },
-      });
-
-      populateBookingSummary(mockBookingData);
-      showStep(8);
-
-      $submitBtn.prop("disabled", false).html(originalBtnHtml);
-      updateDebugInfo();
-    }, 2000); // 2 second delay to simulate processing
+    $.ajax({
+      url: CONFIG.ajax_url,
+      type: 'POST',
+      data: bookingData,
+      success: function(response) {
+        DebugTree.success("Booking submission successful", response);
+        if (response.success) {
+          populateBookingSummary(response.data);
+          showStep(8); // Success step
+        } else {
+          const errorMessage = response.data.message || 'An unknown error occurred.';
+          showFeedback($('#mobooking-contact-feedback'), 'error', errorMessage);
+          DebugTree.error("Booking submission failed", response.data);
+        }
+      },
+      error: function(xhr) {
+        DebugTree.error("Booking submission AJAX error", {
+          status: xhr.status,
+          responseText: xhr.responseText
+        });
+        showFeedback($('#mobooking-contact-feedback'), 'error', 'Could not submit booking. Please try again.');
+      },
+      complete: function() {
+        $submitBtn.prop("disabled", false).html(originalBtnHtml);
+        updateDebugInfo();
+      }
+    });
 
     DebugTree.groupEnd();
   }
