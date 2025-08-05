@@ -207,7 +207,7 @@ if ( is_page_template('templates/booking-form-public.php') || $page_type_for_scr
         wp_add_inline_style('mobooking-booking-form-modern', $tenant_settings['bf_custom_css']);
     }
 
-    wp_localize_script('mobooking-public-booking-form', 'mobooking_booking_form_params', [
+    wp_localize_script('mobooking-public-booking-form', 'MOBOOKING_CONFIG', [
         'ajax_url' => admin_url('admin-ajax.php'),
         'nonce' => wp_create_nonce('mobooking_booking_form_nonce'),
         'tenant_id' => $effective_tenant_id_for_public_form,

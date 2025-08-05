@@ -100,8 +100,6 @@ $script_data = [
     ]
 ];
 
-// Localize the script
-wp_localize_script('mobooking-booking-form-public', 'MOBOOKING_CONFIG', $script_data);
 ?>
 
 <div class="mobooking-public-form-container">
