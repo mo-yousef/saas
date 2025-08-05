@@ -170,6 +170,7 @@ error_log('[MoBooking Shell Debug] dashboard-shell.php execution started. User l
 
 ?>
 <!DOCTYPE html>
+
 <html <?php language_attributes(); ?>>
 <head>
     <meta charset="<?php bloginfo( 'charset' ); ?>">
