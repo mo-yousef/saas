@@ -1809,6 +1809,42 @@ body.mobooking-form-active {
    margin-right: 0.5rem;
 }
 
+/* Modern Radio Button Cards */
+.mobooking-bf__radio-card {
+    display: block;
+    border: 1px solid var(--mobk-color-border);
+    border-radius: var(--mobk-border-radius);
+    padding: 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    position: relative;
+}
+
+.mobooking-bf__radio-card:hover {
+    border-color: var(--mobk-color-primary);
+    box-shadow: 0 0 0 1px var(--mobk-color-primary);
+}
+
+.mobooking-bf__radio-card-input {
+    display: none; /* Equivalent to 'hidden' and 'peer' */
+}
+
+.mobooking-bf__radio-card-input:checked + .mobooking-bf__radio-card-content {
+    border-color: var(--mobk-color-primary);
+    box-shadow: 0 0 0 2px var(--mobk-color-ring);
+    border-radius: var(--mobk-border-radius);
+}
+
+.mobooking-bf__radio-card-title {
+    font-weight: 600;
+    color: var(--mobk-color-card-foreground);
+}
+
+.mobooking-bf__radio-card-subtitle {
+    font-size: 0.875rem;
+    color: var(--mobk-color-muted-foreground);
+}
+
 /* Print Styles for Confirmation */
 @media print {
    .mobooking-success-actions {
