@@ -811,7 +811,7 @@ wp_localize_script('mobooking-booking-form-public', 'MOBOOKING_CONFIG', $script_
     </div>
 
     <!-- Debug Section (Development Only) -->
-    <?php if (defined('WP_DEBUG') && WP_DEBUG): ?>
+    <?php //if (defined('WP_DEBUG') && WP_DEBUG): ?>
     <div class="mobooking-debug" id="mobooking-debug-section">
         <details>
             <summary style="cursor: pointer; font-weight: bold; margin-bottom: 10px;">
@@ -833,7 +833,7 @@ wp_localize_script('mobooking-booking-form-public', 'MOBOOKING_CONFIG', $script_
             </div>
         </details>
     </div>
-    <?php endif; ?>
+    <?php //endif; ?>
 </div>
 
 <script>
