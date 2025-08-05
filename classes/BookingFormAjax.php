@@ -197,8 +197,12 @@ class BookingFormAjax {
      * Get service options for selected services
      */
     public function handle_get_service_options() {
-        if (!check_ajax_referer('mobooking_booking_form_nonce', 'nonce', false)) {
-            wp_send_json_error(['message' => __('Security check failed.', 'mobooking')], 403);
+        error_log('[MoBooking AJAX Debug] Received POST for get_service_options: ' . print_r($_POST, true));
+        $nonce_verified = check_ajax_referer('mobooking_booking_form_nonce', 'nonce', false);
+        error_log('[MoBooking AJAX Debug] Nonce verification result: ' . ($nonce_verified ? 'SUCCESS' : 'FAILURE'));
+
+        if (!$nonce_verified) {
+            wp_send_json_error(['message' => 'Error: Nonce verification failed.'], 403);
             return;
         }
 
