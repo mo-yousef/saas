@@ -272,14 +272,19 @@ class BookingFormAjax {
      * Get available time slots for a specific date
      */
     public function handle_get_available_time_slots() {
+        error_log('[MoBooking AJAX Debug] handle_get_available_time_slots: Start');
         if (!check_ajax_referer('mobooking_booking_form_nonce', 'nonce', false)) {
+            error_log('[MoBooking AJAX Debug] handle_get_available_time_slots: Nonce verification failed.');
             wp_send_json_error(['message' => __('Security check failed.', 'mobooking')], 403);
             return;
         }
 
         $tenant_id = isset($_POST['tenant_id']) ? intval($_POST['tenant_id']) : 0;
         $date = isset($_POST['date']) ? sanitize_text_field($_POST['date']) : '';
+        error_log('[MoBooking AJAX Debug] handle_get_available_time_slots: Received tenant_id=' . $tenant_id . ', date=' . $date);
+
         if (empty($tenant_id) || empty($date)) {
+            error_log('[MoBooking AJAX Debug] handle_get_available_time_slots: Missing tenant_id or date.');
             wp_send_json_error(['message' => __('Invalid parameters.', 'mobooking')], 400);
             return;
         }
@@ -287,15 +292,19 @@ class BookingFormAjax {
         // More robust date validation
         $d = \DateTime::createFromFormat('Y-m-d', $date);
         if (!$d || $d->format('Y-m-d') !== $date) {
+            error_log('[MoBooking AJAX Debug] handle_get_available_time_slots: Invalid date format.');
             wp_send_json_error(['message' => __('Invalid date format. Please use YYYY-MM-DD.', 'mobooking')], 400);
             return;
         }
 
         // Handle services as an array
         $selected_services = isset($_POST['services']) && is_array($_POST['services']) ? array_map('intval', $_POST['services']) : [];
+        error_log('[MoBooking AJAX Debug] handle_get_available_time_slots: Parsed service IDs: ' . print_r($selected_services, true));
 
         try {
+            error_log('[MoBooking AJAX Debug] handle_get_available_time_slots: Calling get_available_time_slots...');
             $time_slots = $this->get_available_time_slots($tenant_id, $date, $selected_services);
+            error_log('[MoBooking AJAX Debug] handle_get_available_time_slots: Got ' . count($time_slots) . ' time slots.');
 
             wp_send_json_success([
                 'time_slots' => $time_slots,
@@ -304,6 +313,7 @@ class BookingFormAjax {
             ]);
 
         } catch (Exception $e) {
+            error_log('[MoBooking AJAX Debug] handle_get_available_time_slots: Exception caught: ' . $e->getMessage());
             error_log('MoBooking - Get time slots error: ' . $e->getMessage());
             wp_send_json_error(['message' => __('Error loading available times.', 'mobooking')], 500);
         }
@@ -583,7 +593,9 @@ class BookingFormAjax {
      * Calculate total duration of selected services
      */
     private function calculate_total_service_duration($service_ids) {
+        error_log('[MoBooking AJAX Debug] calculate_total_service_duration: Received service IDs: ' . print_r($service_ids, true));
         if (empty($service_ids)) {
+            error_log('[MoBooking AJAX Debug] calculate_total_service_duration: No service IDs, returning default 60.');
             return 60; // Default duration
         }
 
@@ -592,14 +604,17 @@ class BookingFormAjax {
         $ids_string = implode(',', $service_ids_int);
 
         if (empty($ids_string)) {
+            error_log('[MoBooking AJAX Debug] calculate_total_service_duration: Empty IDs string after implode, returning default 60.');
             return 60; // Return default if array was empty or contained non-numeric values
         }
 
         $services_table = Database::get_table_name('services');
 
         $sql = "SELECT SUM(duration) FROM $services_table WHERE service_id IN ($ids_string)";
+        error_log('[MoBooking AJAX Debug] calculate_total_service_duration: SQL: ' . $sql);
 
         $total_duration = $this->wpdb->get_var($sql);
+        error_log('[MoBooking AJAX Debug] calculate_total_service_duration: Calculated total duration: ' . $total_duration);
 
         return $total_duration > 0 ? intval($total_duration) : 60;
     }
