@@ -603,12 +603,19 @@
         }" class="mobooking-input" name="service_options[${option.id}]" ${
           option.required ? "required" : ""
         }>`;
-      } else if (option.type === "number" || option.type === "quantity" || option.type === "sqm") {
-        html += `<input type="number" id="option-${
-          option.id
-        }" class="mobooking-input" name="service_options[${option.id}]" ${
-          option.required ? "required" : ""
-        }>`;
+      } else if (option.type === "number" || option.type === "quantity") {
+        html += `<div class="flex items-center gap-2">
+            <button type="button" onclick="this.nextElementSibling.stepDown()" class="px-3 py-1 border rounded">−</button>
+            <input type="number" value="1" min="0" id="option-${option.id}" class="w-20 text-center px-3 py-2 border rounded mobooking-input" name="service_options[${option.id}]" ${option.required ? "required" : ""}>
+            <button type="button" onclick="this.previousElementSibling.stepUp()" class="px-3 py-1 border rounded">+</button>
+        </div>`;
+      } else if (option.type === "sqm") {
+        const sliderId = `sqm-slider-${option.id}`;
+        const inputId = `sqm-input-${option.id}`;
+        html += `<div class="mobooking-bf__sqm-input-group">
+            <input type="range" id="${sliderId}" min="0" max="500" value="50" class="mobooking-bf__slider" oninput="document.getElementById('${inputId}').value = this.value">
+            <input type="number" id="${inputId}" min="0" max="500" value="50" class="w-20 px-2 py-1 border rounded text-center mobooking-bf__input--number" name="service_options[${option.id}]" ${option.required ? "required" : ""} oninput="document.getElementById('${sliderId}').value = this.value">
+        </div>`;
       } else if (option.type === 'textarea') {
         html += `<textarea id="option-${
           option.id
@@ -616,36 +623,39 @@
           option.required ? "required" : ""
         }></textarea>`;
       } else if (option.type === "select") {
-        html += `<select id="option-${
-          option.id
-        }" class="mobooking-select" name="service_options[${option.id}]" ${
-          option.required ? "required" : ""
-        }>`;
-        if (option.option_values) {
-          let values = option.option_values;
-          // Robustness: check if it's a string and try to parse it.
-          if (typeof values === 'string') {
-            try {
-              values = JSON.parse(values);
-            } catch (e) {
-              DebugTree.error('Failed to parse option_values for select', { optionId: option.id, values: option.option_values });
-              values = [];
-            }
-          }
+        const optionId = `option-${option.id}`;
+        const dropdownId = `dropdown-${option.id}`;
+        const toggleId = `dropdown-toggle-${option.id}`;
+        const optionsId = `dropdown-options-${option.id}`;
 
-          if (Array.isArray(values)) {
-            values.forEach(function (item) {
-              // Handle both object {label, value} and simple string values
-              if (typeof item === 'object' && item !== null && item.hasOwnProperty('label') && item.hasOwnProperty('value')) {
-                html += `<option value="${item.value}">${item.label}</option>`;
-              } else {
-                html += `<option value="${item}">${item}</option>`;
-              }
-            });
-          }
+        html += `<div class="relative" id="${dropdownId}">
+            <input type="hidden" name="service_options[${option.id}]" id="${optionId}">
+            <div id="${toggleId}" class="cursor-pointer border px-4 py-2 rounded bg-white hover:bg-gray-50 mobooking-bf__input" onclick="toggleDropdown('${optionsId}')">
+                Choose...
+            </div>
+            <div id="${optionsId}" class="absolute w-full border mt-1 rounded bg-white shadow hidden z-10">`;
+
+        if (option.option_values) {
+            let values = option.option_values;
+            if (typeof values === 'string') {
+                try {
+                    values = JSON.parse(values);
+                } catch (e) {
+                    DebugTree.error('Failed to parse option_values for select', { optionId: option.id, values: option.option_values });
+                    values = [];
+                }
+            }
+
+            if (Array.isArray(values)) {
+                values.forEach(function (item) {
+                    html += `<div class="px-4 py-2 hover:bg-gray-100 cursor-pointer" onclick="selectDropdownOption(this, '${toggleId}', '${optionId}', '${optionsId}')" data-value="${item.value}">${item.label}</div>`;
+                });
+            }
         }
-        html += "</select>";
+
+        html += `</div></div>`;
       } else if (option.type === "radio") {
+        html += '<div class="grid grid-cols-1 gap-3">';
         if (option.option_values) {
             let values = option.option_values;
             if (typeof values === 'string') {
@@ -660,10 +670,18 @@
             if (Array.isArray(values)) {
                 values.forEach(function (item) {
                     const radioId = `option-${option.id}-${item.value}`;
-                    html += `<div class="mobooking-radio-option"><input type="radio" id="${radioId}" name="service_options[${option.id}]" value="${item.value}" ${option.required ? "required" : ""}> <label for="${radioId}">${item.label}</label></div>`;
+                    // Note: The classes like 'grid', 'gap-3', 'peer', 'hidden' are placeholders for the new CSS classes I will add.
+                    html += `<label class="mobooking-bf__radio-card">
+                        <input type="radio" id="${radioId}" name="service_options[${option.id}]" value="${item.value}" class="mobooking-bf__radio-card-input" ${option.required ? "required" : ""}>
+                        <div class="mobooking-bf__radio-card-content">
+                            <div class="mobooking-bf__radio-card-title">${item.label}</div>
+                            ${item.description ? `<div class="mobooking-bf__radio-card-subtitle">${item.description}</div>` : ''}
+                        </div>
+                    </label>`;
                 });
             }
         }
+        html += '</div>';
       } else if (option.type === "checkbox") {
         html += `<label><input type="checkbox" id="option-${
           option.id
@@ -1305,6 +1323,41 @@
 
     $summary.html(summaryHtml);
   }
+
+  window.toggleDropdown = function(optionsId) {
+      const options = document.getElementById(optionsId);
+      if (options) {
+        options.classList.toggle('hidden');
+      }
+  }
+
+  window.selectDropdownOption = function(optionElement, toggleId, hiddenInputId, optionsId) {
+      const toggle = document.getElementById(toggleId);
+      const hiddenInput = document.getElementById(hiddenInputId);
+
+      if (toggle && hiddenInput) {
+        toggle.textContent = optionElement.textContent;
+        hiddenInput.value = optionElement.getAttribute('data-value');
+        // Manually trigger change event for any listeners
+        $(hiddenInput).trigger('change');
+      }
+
+      // Close the dropdown
+      toggleDropdown(optionsId);
+  }
+
+  // Close dropdowns when clicking outside
+  document.addEventListener('click', function(event) {
+      const dropdowns = document.querySelectorAll('.relative[id^="dropdown-"]');
+      dropdowns.forEach(function(dropdown) {
+          if (!dropdown.contains(event.target)) {
+              const options = dropdown.querySelector('[id^="dropdown-options-"]');
+              if (options && !options.classList.contains('hidden')) {
+                  options.classList.add('hidden');
+              }
+          }
+      });
+  });
 
   DebugTree.success("MoBooking Public Form JavaScript loaded successfully");
 })(jQuery);
