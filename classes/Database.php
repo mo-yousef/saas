@@ -146,6 +146,7 @@ class Database {
             user_id BIGINT UNSIGNED NOT NULL, -- Tenant ID (Business Owner)
             customer_id BIGINT UNSIGNED, -- Original field, maybe WordPress user ID of customer if they are registered users.
             mob_customer_id BIGINT UNSIGNED NULL, -- FK to mobooking_customers table (formerly mob_customers)
+            assigned_staff_id BIGINT UNSIGNED NULL, -- ID of the assigned staff member (WP User ID)
             customer_name VARCHAR(255) NOT NULL,
             customer_email VARCHAR(255) NOT NULL,
             customer_phone VARCHAR(50),
@@ -177,7 +178,6 @@ class Database {
             INDEX zip_code_idx (zip_code),
             INDEX status_idx (status),
             INDEX discount_id_idx (discount_id),
-            assigned_staff_id BIGINT UNSIGNED NULL, -- ID of the assigned staff member (WP User ID)
             INDEX assigned_staff_id_idx (assigned_staff_id)
         ) $charset_collate;";
         error_log('[MoBooking DB Debug] SQL for bookings table: ' . preg_replace('/\s+/', ' ', $sql_bookings));

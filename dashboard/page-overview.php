@@ -29,38 +29,61 @@ if (class_exists('MoBooking\Classes\Auth') && \MoBooking\Classes\Auth::is_user_w
 }
 
 // Fetch data for KPI Widgets
-$stats_data = $bookings_manager->get_booking_statistics($data_user_id);
-$monthly_revenue = $bookings_manager->get_monthly_revenue($data_user_id);
-$customer_insights = $customers_manager->get_customer_insights($data_user_id);
+$current_month_start = date('Y-m-01');
+$current_month_end = date('Y-m-t');
+$previous_month_start = date('Y-m-01', strtotime('-1 month'));
+$previous_month_end = date('Y-m-t', strtotime('-1 month'));
 
-$total_bookings = $stats_data['total'] ?? 0;
-$completed_jobs = $stats_data['by_status']['completed'] ?? 0;
-$new_customers = $customer_insights['new_customers'] ?? 0;
+// Get stats for current and previous month
+$current_month_stats = $bookings_manager->get_booking_statistics($data_user_id, $current_month_start, $current_month_end);
+$previous_month_stats = $bookings_manager->get_booking_statistics($data_user_id, $previous_month_start, $previous_month_end);
+$current_month_customers = $customers_manager->get_customer_insights($data_user_id, $current_month_start, $current_month_end);
+$previous_month_customers = $customers_manager->get_customer_insights($data_user_id, $previous_month_start, $previous_month_end);
+
+// Helper function to calculate percentage change
+function calculate_percentage_change($current, $previous) {
+    if ($previous == 0) {
+        return $current > 0 ? '100%' : '0%';
+    }
+    $change = (($current - $previous) / $previous) * 100;
+    return sprintf('%+.0f%%', $change);
+}
+
+// Prepare data for stats widgets
+$total_bookings = $current_month_stats['total'] ?? 0;
+$completed_jobs = $current_month_stats['by_status']['completed'] ?? 0;
+$monthly_revenue = $current_month_stats['total_revenue'] ?? 0;
+$new_customers = $current_month_customers['new_customers'] ?? 0;
+
+$prev_total_bookings = $previous_month_stats['total'] ?? 0;
+$prev_completed_jobs = $previous_month_stats['by_status']['completed'] ?? 0;
+$prev_monthly_revenue = $previous_month_stats['total_revenue'] ?? 0;
+$prev_new_customers = $previous_month_customers['new_customers'] ?? 0;
 
 $stats = [
     [
         'label' => 'Total Bookings',
         'value' => $total_bookings,
-        'change' => '+12%',
-        'isPositive' => true,
+        'change' => calculate_percentage_change($total_bookings, $prev_total_bookings),
+        'isPositive' => $total_bookings >= $prev_total_bookings,
     ],
     [
         'label' => 'Completed Jobs',
         'value' => $completed_jobs,
-        'change' => '+8%',
-        'isPositive' => true,
+        'change' => calculate_percentage_change($completed_jobs, $prev_completed_jobs),
+        'isPositive' => $completed_jobs >= $prev_completed_jobs,
     ],
     [
         'label' => 'Monthly Revenue',
         'value' => '$' . number_format($monthly_revenue, 2),
-        'change' => '+24%',
-        'isPositive' => true,
+        'change' => calculate_percentage_change($monthly_revenue, $prev_monthly_revenue),
+        'isPositive' => $monthly_revenue >= $prev_monthly_revenue,
     ],
     [
         'label' => 'New Customers',
         'value' => $new_customers,
-        'change' => '+18%',
-        'isPositive' => true,
+        'change' => calculate_percentage_change($new_customers, $prev_new_customers),
+        'isPositive' => $new_customers >= $prev_new_customers,
     ],
 ];
 

@@ -21,7 +21,7 @@ class Customers {
     public function __construct() {
         global $wpdb;
         $this->db = $wpdb;
-        $this->table_name = Database::get_table_name('mob_customers');
+        $this->table_name = Database::get_table_name('customers');
         $this->bookings_table_name = Database::get_table_name('bookings'); // Initialize for future use
     }
 
@@ -400,20 +400,35 @@ class Customers {
  * Get customer insights for dashboard
  * Add this method to the Customers class
  */
-public function get_customer_insights($tenant_id) {
-    $customers_table = Database::get_table_name('mob_customers');
+public function get_customer_insights($tenant_id, $start_date = null, $end_date = null) {
+    $customers_table = Database::get_table_name('customers');
     $bookings_table = Database::get_table_name('bookings');
-    
-    // Get new customers this month
-    $new_customers_month = $this->db->get_var(
+
+    // Default to current month if no date range is provided
+    if (!$start_date || !$end_date) {
+        $start_date = date('Y-m-01');
+        $end_date = date('Y-m-t');
+    }
+
+    // Get new customers in the given period (their first booking is in this period)
+    $new_customers = $this->db->get_var(
         $this->db->prepare(
-            "SELECT COUNT(*) FROM {$customers_table} 
-             WHERE tenant_id = %d 
-             AND created_at >= DATE_SUB(CURDATE(), INTERVAL 1 MONTH)",
-            $tenant_id
+            "SELECT COUNT(T.customer_email) FROM (
+                SELECT customer_email, MIN(created_at) as first_booking_date
+                FROM {$bookings_table}
+                WHERE user_id = %d
+                GROUP BY customer_email
+            ) AS T
+            WHERE T.first_booking_date BETWEEN %s AND %s",
+            $tenant_id,
+            $start_date . ' 00:00:00',
+            $end_date . ' 23:59:59'
         )
     );
     
+    // The rest of the stats are all-time, so we leave them for now
+    // as the overview page only needs 'new_customers' for its period comparison.
+
     // Get returning customers (customers with more than 1 booking)
     $returning_customers = $this->db->get_var(
         $this->db->prepare(
@@ -444,7 +459,7 @@ public function get_customer_insights($tenant_id) {
     }
     
     return [
-        'new_customers' => intval($new_customers_month ?: 0),
+        'new_customers' => intval($new_customers ?: 0),
         'returning_customers' => intval($returning_customers ?: 0),
         'total_customers' => intval($total_customers ?: 0),
         'retention_rate' => $retention_rate
