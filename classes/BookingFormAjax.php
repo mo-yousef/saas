@@ -372,123 +372,176 @@ class BookingFormAjax {
     /**
      * Create a new booking
      */
-    public function handle_create_booking() {
-        if (!check_ajax_referer('mobooking_booking_form_nonce', 'nonce', false)) {
-            wp_send_json_error(['message' => __('Security check failed.', 'mobooking')], 403);
+// Updated handle_create_booking method for BookingFormAjax.php
+
+public function handle_create_booking() {
+    if (!check_ajax_referer('mobooking_booking_form_nonce', 'nonce', false)) {
+        wp_send_json_error(['message' => __('Security check failed.', 'mobooking')], 403);
+        return;
+    }
+
+    $booking_data_json = isset($_POST['booking_data']) ? stripslashes($_POST['booking_data']) : '';
+    $tenant_id = isset($_POST['tenant_id']) ? intval($_POST['tenant_id']) : 0;
+
+    if (empty($booking_data_json)) {
+        wp_send_json_error(['message' => __('No booking data received.', 'mobooking')], 400);
+        return;
+    }
+
+    if (!$tenant_id) {
+        wp_send_json_error(['message' => __('Missing tenant information.', 'mobooking')], 400);
+        return;
+    }
+
+    $booking_data = json_decode($booking_data_json, true);
+    if (json_last_error() !== JSON_ERROR_NONE) {
+        wp_send_json_error(['message' => __('Invalid booking data format.', 'mobooking')], 400);
+        return;
+    }
+
+    // Validate required data structure
+    if (!isset($booking_data['customer']) || !isset($booking_data['services'])) {
+        wp_send_json_error(['message' => __('Missing required booking information.', 'mobooking')], 400);
+        return;
+    }
+
+    $customer = $booking_data['customer'];
+    $services = $booking_data['services'];
+
+    // Validate services
+    if (empty($services) || !is_array($services)) {
+        wp_send_json_error(['message' => __('Please select at least one service.', 'mobooking')], 400);
+        return;
+    }
+
+    // Parse customer name into first and last name if it's a single field
+    $customer_name = isset($customer['name']) ? trim($customer['name']) : '';
+    if (!empty($customer_name)) {
+        $name_parts = explode(' ', $customer_name, 2);
+        $customer_first_name = $name_parts[0];
+        $customer_last_name = isset($name_parts[1]) ? $name_parts[1] : '';
+    } else {
+        $customer_first_name = isset($customer['first_name']) ? $customer['first_name'] : '';
+        $customer_last_name = isset($customer['last_name']) ? $customer['last_name'] : '';
+    }
+
+    // Validate required customer fields
+    $required_fields = [
+        'email' => $customer['email'] ?? '',
+        'phone' => $customer['phone'] ?? '',
+        'date' => $customer['date'] ?? '',
+        'time' => $customer['time'] ?? ''
+    ];
+
+    foreach ($required_fields as $field => $value) {
+        if (empty($value)) {
+            wp_send_json_error(['message' => sprintf(__('Missing required field: %s', 'mobooking'), $field)], 400);
             return;
-        }
-
-        $booking_data_json = isset($_POST['booking_data']) ? stripslashes($_POST['booking_data']) : '';
-
-        if (empty($booking_data_json)) {
-            wp_send_json_error(['message' => __('No booking data received.', 'mobooking')], 400);
-            return;
-        }
-
-        $booking_data = json_decode($booking_data_json, true);
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            wp_send_json_error(['message' => __('Invalid booking data format.', 'mobooking')], 400);
-            return;
-        }
-
-        // Validate required fields
-        $validation_result = $this->validate_booking_data($booking_data);
-        if (is_wp_error($validation_result)) {
-            wp_send_json_error(['message' => $validation_result->get_error_message()], 400);
-            return;
-        }
-
-        try {
-            // Start database transaction
-            $this->wpdb->query('START TRANSACTION');
-
-            // Create or get customer
-            $customer_result = $this->create_or_get_customer($booking_data['customer']);
-            if (is_wp_error($customer_result)) {
-                $this->wpdb->query('ROLLBACK');
-                wp_send_json_error(['message' => $customer_result->get_error_message()], 500);
-                return;
-            }
-
-            // Generate booking reference
-            $booking_reference = $this->generate_booking_reference();
-
-            // Calculate total duration
-            $total_duration = 0;
-            foreach ($booking_data['services'] as $service) {
-                $total_duration += intval($service['duration']);
-            }
-
-            // Create booking record
-            $bookings_table = Database::get_table_name('bookings');
-            $booking_inserted = $this->wpdb->insert(
-                $bookings_table,
-                [
-                    'user_id' => intval($booking_data['tenant_id']),
-                    'customer_id' => $customer_result['customer_id'],
-                    'booking_reference' => $booking_reference,
-                    'customer_name' => sanitize_text_field($booking_data['customer']['name']),
-                    'customer_email' => sanitize_email($booking_data['customer']['email']),
-                    'customer_phone' => sanitize_text_field($booking_data['customer']['phone']),
-                    'service_address' => wp_kses_post($booking_data['customer']['address']),
-                    'booking_date' => sanitize_text_field($booking_data['customer']['date']),
-                    'booking_time' => sanitize_text_field($booking_data['customer']['time']),
-                    'special_instructions' => wp_kses_post($booking_data['customer']['instructions'] ?? ''),
-                    'subtotal_price' => floatval($booking_data['pricing']['subtotal']),
-                    'discount_amount' => floatval($booking_data['pricing']['discount_amount']),
-                    'total_price' => number_format($booking_data['pricing']['total'], 2),
-                    'total_duration' => $total_duration,
-                    'status' => 'pending',
-                    'created_at' => current_time('mysql', 1),
-                    'service_frequency' => sanitize_text_field($booking_data['customer']['service_frequency'] ?? 'one-time'),
-                    'has_pets' => sanitize_text_field($booking_data['customer']['has_pets'] ?? 'no'),
-                    'pet_details' => wp_kses_post($booking_data['customer']['pet_details'] ?? ''),
-                    'property_access' => sanitize_text_field($booking_data['customer']['property_access'] ?? ''),
-                    'access_details' => wp_kses_post($booking_data['customer']['access_details'] ?? ''),
-                ],
-                ['%d', '%d', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%f', '%f', '%f', '%d', '%s', '%s', '%s', '%s', '%s', '%s', '%s']
-            );
-
-            if (!$booking_inserted) {
-                $this->wpdb->query('ROLLBACK');
-                error_log('MoBooking - Booking insert failed: ' . $this->wpdb->last_error);
-                wp_send_json_error(['message' => __('Failed to create booking.', 'mobooking')], 500);
-                return;
-            }
-
-            $booking_id = $this->wpdb->insert_id;
-
-            // Create booking items
-            $booking_items_result = $this->create_booking_items($booking_id, $booking_data['services']);
-            if (is_wp_error($booking_items_result)) {
-                $this->wpdb->query('ROLLBACK');
-                wp_send_json_error(['message' => $booking_items_result->get_error_message()], 500);
-                return;
-            }
-
-            // Update discount usage if applicable
-            if (!empty($booking_data['discount'])) {
-                $this->update_discount_usage($booking_data['discount']['discount_id']);
-            }
-
-            // Commit transaction
-            $this->wpdb->query('COMMIT');
-
-            // Send notifications
-            $this->send_booking_notifications($booking_id, $booking_data);
-
-            wp_send_json_success([
-                'message' => __('Your booking has been submitted successfully! We will contact you soon to confirm the details.', 'mobooking'),
-                'booking_id' => $booking_id,
-                'booking_reference' => $booking_reference
-            ]);
-
-        } catch (Exception $e) {
-            $this->wpdb->query('ROLLBACK');
-            error_log('MoBooking - Create booking error: ' . $e->getMessage());
-            wp_send_json_error(['message' => __('An error occurred while creating your booking. Please try again.', 'mobooking')], 500);
         }
     }
+
+    // Validate email format
+    if (!is_email($customer['email'])) {
+        wp_send_json_error(['message' => __('Invalid email address.', 'mobooking')], 400);
+        return;
+    }
+
+    // Validate first name
+    if (empty($customer_first_name)) {
+        wp_send_json_error(['message' => __('Customer name is required.', 'mobooking')], 400);
+        return;
+    }
+
+    try {
+        // Start transaction
+        $this->wpdb->query('START TRANSACTION');
+
+        // Generate booking reference
+        $booking_reference = 'BK' . date('Ymd') . wp_rand(1000, 9999);
+
+        // Get the first service for primary service_id
+        $primary_service_id = intval($services[0]['service_id'] ?? 0);
+        if (!$primary_service_id) {
+            wp_send_json_error(['message' => __('Invalid service selection.', 'mobooking')], 400);
+            return;
+        }
+
+        // Calculate total duration and pricing (simplified)
+        $total_duration = count($services) * 60; // Assume 60 minutes per service
+        $subtotal = floatval($booking_data['pricing']['subtotal'] ?? 0);
+        $discount_amount = floatval($booking_data['pricing']['discount_amount'] ?? 0);
+        $total = floatval($booking_data['pricing']['total'] ?? 0);
+
+        // Insert booking record
+        $booking_inserted = $this->wpdb->insert(
+            $this->bookings_table,
+            [
+                'user_id' => $tenant_id,
+                'service_id' => $primary_service_id,
+                'booking_date' => sanitize_text_field($customer['date']),
+                'booking_time' => sanitize_text_field($customer['time']),
+                'customer_first_name' => sanitize_text_field($customer_first_name),
+                'customer_last_name' => sanitize_text_field($customer_last_name),
+                'customer_email' => sanitize_email($customer['email']),
+                'customer_phone' => sanitize_text_field($customer['phone']),
+                'customer_address' => sanitize_text_field($customer['address'] ?? ''),
+                'customer_notes' => wp_kses_post($customer['instructions'] ?? ''),
+                'booking_reference' => $booking_reference,
+                'subtotal_price' => $subtotal,
+                'discount_amount' => $discount_amount,
+                'total_price' => number_format($total, 2),
+                'total_duration' => $total_duration,
+                'status' => 'pending',
+                'created_at' => current_time('mysql', 1),
+                'service_frequency' => sanitize_text_field($customer['service_frequency'] ?? 'one-time'),
+                'has_pets' => sanitize_text_field($customer['has_pets'] ?? 'no'),
+                'pet_details' => wp_kses_post($customer['pet_details'] ?? ''),
+                'property_access' => sanitize_text_field($customer['property_access'] ?? ''),
+                'access_details' => wp_kses_post($customer['access_details'] ?? ''),
+            ],
+            ['%d', '%d', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%f', '%f', '%f', '%d', '%s', '%s', '%s', '%s', '%s', '%s']
+        );
+
+        if (!$booking_inserted) {
+            $this->wpdb->query('ROLLBACK');
+            error_log('MoBooking - Booking insert failed: ' . $this->wpdb->last_error);
+            wp_send_json_error(['message' => __('Failed to create booking.', 'mobooking')], 500);
+            return;
+        }
+
+        $booking_id = $this->wpdb->insert_id;
+
+        // Create booking items
+        $booking_items_result = $this->create_booking_items($booking_id, $services);
+        if (is_wp_error($booking_items_result)) {
+            $this->wpdb->query('ROLLBACK');
+            wp_send_json_error(['message' => $booking_items_result->get_error_message()], 500);
+            return;
+        }
+
+        // Update discount usage if applicable
+        if (!empty($booking_data['discount'])) {
+            $this->update_discount_usage($booking_data['discount']['discount_id']);
+        }
+
+        // Commit transaction
+        $this->wpdb->query('COMMIT');
+
+        // Send notifications
+        $this->send_booking_notifications($booking_id, $booking_data);
+
+        wp_send_json_success([
+            'message' => __('Your booking has been submitted successfully! We will contact you soon to confirm the details.', 'mobooking'),
+            'booking_id' => $booking_id,
+            'booking_reference' => $booking_reference
+        ]);
+
+    } catch (Exception $e) {
+        $this->wpdb->query('ROLLBACK');
+        error_log('MoBooking - Create booking error: ' . $e->getMessage());
+        wp_send_json_error(['message' => __('An error occurred while creating your booking. Please try again.', 'mobooking')], 500);
+    }
+}
 
     /**
      * Parse option values from JSON string
