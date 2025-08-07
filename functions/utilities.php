@@ -43,16 +43,16 @@ add_action( 'init', 'mobooking_ensure_worker_roles_exist' );
 // Ensure Custom Database Tables exist on admin_init
 function mobooking_ensure_custom_tables_exist() {
     if (is_admin() && class_exists('MoBooking\Classes\Database')) {
-        global $wpdb;
-        $services_table_name = \MoBooking\Classes\Database::get_table_name('services');
+        $current_db_version = get_option('mobooking_db_version', '1.0');
 
-        if ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $services_table_name)) != $services_table_name) {
-            error_log('[MoBooking DB Debug] Key table ' . $services_table_name . ' not found during admin_init check. Forcing table creation.');
+        if (version_compare($current_db_version, MOBOOKING_DB_VERSION, '<')) {
+            error_log('[MoBooking DB Debug] Database version mismatch. Stored: ' . $current_db_version . ', Required: ' . MOBOOKING_DB_VERSION . '. Forcing table creation/update.');
             \MoBooking\Classes\Database::create_tables();
+            update_option('mobooking_db_version', MOBOOKING_DB_VERSION);
 
             add_action('admin_notices', function() {
-                echo '<div class="notice notice-warning is-dismissible"><p>' .
-                     esc_html__('MoBooking: Core database tables were missing and an attempt was made to create them. Please verify their integrity or contact support if issues persist.', 'mobooking') .
+                echo '<div class="notice notice-success is-dismissible"><p>' .
+                     esc_html__('MoBooking: Database updated successfully.', 'mobooking') .
                      '</p></div>';
             });
         }

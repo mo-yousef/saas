@@ -355,7 +355,7 @@ class Customers {
                 SUM(total_price) as total_spent,
                 AVG(total_price) as average_booking_value
              FROM {$bookings_table}
-             WHERE customer_id = %d",
+             WHERE mob_customer_id = %d",
             $customer_id
         );
 
