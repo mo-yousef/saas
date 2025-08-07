@@ -797,6 +797,7 @@ foreach ($calculated_service_items as $service_item) {
 
 
             // Update customer records (if Customers class exists)
+            $mob_customer_id = null;
             if (class_exists('MoBooking\Classes\Customers')) {
                 try {
                     $customers_manager = new \MoBooking\Classes\Customers();
@@ -825,6 +826,7 @@ foreach ($calculated_service_items as $service_item) {
                     error_log("MoBooking: Error updating customer stats: " . $e->getMessage());
                 }
             }
+            $booking_data['mob_customer_id'] = is_wp_error($mob_customer_id) ? null : $mob_customer_id;
 
             // Update discount usage
             if ($validated_discount_info && isset($validated_discount_info['discount_id'])) {
@@ -1850,7 +1852,7 @@ foreach ($calculated_service_items as $service_item) {
                 "SELECT b.*, GROUP_CONCAT(i.service_name SEPARATOR ', ') as service_name
                  FROM {$bookings_table} b
                  LEFT JOIN {$items_table} i ON b.booking_id = i.booking_id
-                 WHERE b.customer_id = %d
+                 WHERE b.mob_customer_id = %d
                  GROUP BY b.booking_id
                  ORDER BY b.booking_date DESC",
                 $customer_id
