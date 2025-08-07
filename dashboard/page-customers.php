@@ -135,71 +135,68 @@ $kpi_data = $customers_manager->get_kpi_data( $tenant_id );
             </form>
         </div>
     </div>
-    <div class="mobooking-table-responsive-wrapper">
-    <table class="mobooking-table wp-list-table widefat fixed striped mobooking-customers-table">
-        <thead>
-            <tr>
-                <?php
-                $columns = [
-                    'full_name' => __( 'Full Name', 'mobooking' ),
-                    'email' => __( 'Email', 'mobooking' ),
-                    'phone_number' => __( 'Phone Number', 'mobooking' ),
-                    'total_bookings' => __( 'Total Bookings', 'mobooking' ),
-                    'last_booking_date' => __( 'Last Booking Date', 'mobooking' ),
-                    'status' => __( 'Status', 'mobooking' ),
-                    'actions' => __( 'Actions', 'mobooking' ),
-                ];
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50 hidden md:table-header-group">
+                <tr>
+                    <?php
+                    $columns = [
+                        'full_name' => __( 'Full Name', 'mobooking' ),
+                        'email' => __( 'Email', 'mobooking' ),
+                        'phone_number' => __( 'Phone Number', 'mobooking' ),
+                        'total_bookings' => __( 'Total Bookings', 'mobooking' ),
+                        'last_booking_date' => __( 'Last Booking Date', 'mobooking' ),
+                        'status' => __( 'Status', 'mobooking' ),
+                        'actions' => __( 'Actions', 'mobooking' ),
+                    ];
 
-                foreach ( $columns as $key => $title ) {
-                    $class = "manage-column column-{$key}";
-                    if ( in_array( $key, [ 'full_name', 'email', 'total_bookings', 'last_booking_date', 'status' ] ) ) {
-                        $order = ( $sort_by === $key && $sort_order === 'ASC' ) ? 'DESC' : 'ASC';
-                        $url = add_query_arg( [ 'orderby' => $key, 'order' => $order ] );
-                        echo "<th scope='col' class='{$class} sortable " . ( $sort_by === $key ? strtolower( $sort_order ) : '' ) . "'>
-                                <a href='" . esc_url( $url ) . "'>
-                                    <span>{$title}</span>
-                                    <span class='sorting-indicator'></span>
-                                </a>
-                              </th>";
-                    } else {
-                        echo "<th scope='col' class='{$class}'>{$title}</th>";
+                    foreach ( $columns as $key => $title ) {
+                        $class = "px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider";
+                        if ( in_array( $key, [ 'full_name', 'email', 'total_bookings', 'last_booking_date', 'status' ] ) ) {
+                            $order = ( $sort_by === $key && $sort_order === 'ASC' ) ? 'DESC' : 'ASC';
+                            $url = add_query_arg( [ 'orderby' => $key, 'order' => $order ] );
+                            echo "<th scope='col' class='{$class}'>
+                                    <a href='" . esc_url( $url ) . "'>
+                                        <span>{$title}</span>
+                                        <span class='sorting-indicator'></span>
+                                    </a>
+                                  </th>";
+                        } else {
+                            echo "<th scope='col' class='{$class}'>{$title}</th>";
+                        }
                     }
-                }
-                ?>
-            </tr>
-        </thead>
-        <tbody id="the-list">
-            <?php if ( ! empty( $customers ) ) : ?>
-                <?php foreach ( $customers as $customer ) : ?>
-                    <tr id="customer-<?php echo $customer->id; ?>">
-                        <td data-label="<?php esc_attr_e( 'Full Name', 'mobooking' ); ?>"><?php echo esc_html( $customer->full_name ); ?></td>
-                        <td data-label="<?php esc_attr_e( 'Email', 'mobooking' ); ?>"><?php echo esc_html( $customer->email ); ?></td>
-                        <td data-label="<?php esc_attr_e( 'Phone Number', 'mobooking' ); ?>"><?php echo esc_html( $customer->phone_number ); ?></td>
-                        <td data-label="<?php esc_attr_e( 'Total Bookings', 'mobooking' ); ?>"><?php echo esc_html( $customer->total_bookings ); ?></td>
-                        <td data-label="<?php esc_attr_e( 'Last Booking Date', 'mobooking' ); ?>"><?php echo esc_html( $customer->last_booking_date ? date_i18n( get_option( 'date_format' ), strtotime( $customer->last_booking_date ) ) : __( 'N/A', 'mobooking' ) ); ?></td>
-                        <td data-label="<?php esc_attr_e( 'Status', 'mobooking' ); ?>">
-                            <span class="status-badge status-<?php echo esc_attr( $customer->status ); ?>">
-                                <?php echo mobooking_get_customer_status_badge_icon_svg( $customer->status ); ?>
-                                <span class="status-text"><?php echo esc_html( ucfirst( $customer->status ) ); ?></span>
-                            </span>
-                        </td>
-                        <td data-label="<?php esc_attr_e( 'Actions', 'mobooking' ); ?>">
-                            <a href="<?php echo esc_url( home_url( '/dashboard/customer-details/?customer_id=' . $customer->id ) ); ?>" class="button">
-                                <?php esc_html_e( 'View Details', 'mobooking' ); ?>
-                            </a>
-                        </td>
-                    </tr>
-                <?php endforeach; ?>
-            <?php else : ?>
-                <tr class="no-items">
-                    <td class="colspanchange" colspan="7"><?php esc_html_e( 'No customers found.', 'mobooking' ); ?></td>
+                    ?>
                 </tr>
-            <?php endif; ?>
-        </tbody>
-    </table>
-
-        </tbody>
-    </table>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                <?php if ( ! empty( $customers ) ) : ?>
+                    <?php foreach ( $customers as $customer ) : ?>
+                        <tr id="customer-<?php echo $customer->id; ?>" class="block md:table-row border-b md:border-none">
+                            <td data-label="<?php esc_attr_e( 'Full Name', 'mobooking' ); ?>" class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 block md:table-cell"><?php echo esc_html( $customer->full_name ); ?></td>
+                            <td data-label="<?php esc_attr_e( 'Email', 'mobooking' ); ?>" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 block md:table-cell"><?php echo esc_html( $customer->email ); ?></td>
+                            <td data-label="<?php esc_attr_e( 'Phone Number', 'mobooking' ); ?>" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 block md:table-cell"><?php echo esc_html( $customer->phone_number ); ?></td>
+                            <td data-label="<?php esc_attr_e( 'Total Bookings', 'mobooking' ); ?>" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 block md:table-cell"><?php echo esc_html( $customer->total_bookings ); ?></td>
+                            <td data-label="<?php esc_attr_e( 'Last Booking Date', 'mobooking' ); ?>" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 block md:table-cell"><?php echo esc_html( $customer->last_booking_date ? date_i18n( get_option( 'date_format' ), strtotime( $customer->last_booking_date ) ) : __( 'N/A', 'mobooking' ) ); ?></td>
+                            <td data-label="<?php esc_attr_e( 'Status', 'mobooking' ); ?>" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 block md:table-cell">
+                                <span class="status-badge status-<?php echo esc_attr( $customer->status ); ?>">
+                                    <?php echo mobooking_get_customer_status_badge_icon_svg( $customer->status ); ?>
+                                    <span class="status-text"><?php echo esc_html( ucfirst( $customer->status ) ); ?></span>
+                                </span>
+                            </td>
+                            <td data-label="<?php esc_attr_e( 'Actions', 'mobooking' ); ?>" class="px-6 py-4 whitespace-nowrap text-sm font-medium block md:table-cell">
+                                <a href="<?php echo esc_url( home_url( '/dashboard/customer-details/?customer_id=' . $customer->id ) ); ?>" class="button">
+                                    <?php esc_html_e( 'View Details', 'mobooking' ); ?>
+                                </a>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                <?php else : ?>
+                    <tr class="no-items">
+                        <td class="colspanchange" colspan="7"><?php esc_html_e( 'No customers found.', 'mobooking' ); ?></td>
+                    </tr>
+                <?php endif; ?>
+            </tbody>
+        </table>
     </div>
     <div id="mobooking-customers-pagination-container" class="tablenav bottom">
         <div class="tablenav-pages">
@@ -223,6 +220,18 @@ $kpi_data = $customers_manager->get_kpi_data( $tenant_id );
 
 </div>
 <style>
+    @media (max-width: 768px) {
+        .mobooking-customers-page-wrapper .divide-y > tr {
+            border-bottom-width: 8px;
+            border-color: #f3f4f6; /* gray-100 */
+        }
+        .mobooking-customers-page-wrapper td[data-label]::before {
+            content: attr(data-label);
+            font-weight: 600;
+            display: inline-block;
+            width: 120px;
+        }
+    }
     .mobooking-table-responsive-wrapper {
         overflow-x: auto;
     }
