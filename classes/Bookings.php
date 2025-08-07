@@ -522,6 +522,14 @@ class Bookings {
             return;
         }
     
+        // Get service frequency
+        $service_frequency = isset($_POST['service_frequency']) ? sanitize_text_field($_POST['service_frequency']) : 'one-time';
+        $valid_frequencies = ['one-time', 'weekly', 'monthly', 'daily']; // Adding 'daily' as a valid option
+        if (!in_array($service_frequency, $valid_frequencies)) {
+            wp_send_json_error(['message' => __('Invalid service frequency.', 'mobooking')], 400);
+            return;
+        }
+
         // Prepare the payload for create_booking method
         $payload = [
             'selected_services' => $selected_services,
@@ -529,7 +537,8 @@ class Bookings {
             'discount_info' => $discount_info,
             'zip_code' => $zip_code,
             'country_code' => $country_code,
-            'pricing' => $pricing_info
+            'pricing' => $pricing_info,
+            'service_frequency' => $service_frequency
         ];
     
         error_log('MoBooking - Final payload prepared: ' . print_r($payload, true));
@@ -757,7 +766,8 @@ private function verify_database_tables() {
                 'status' => 'pending',
                 'created_at' => current_time('mysql'),
                 'updated_at' => current_time('mysql'),
-                'assigned_staff_id' => isset($payload['assigned_staff_id']) && !empty($payload['assigned_staff_id']) ? intval($payload['assigned_staff_id']) : null
+                'assigned_staff_id' => isset($payload['assigned_staff_id']) && !empty($payload['assigned_staff_id']) ? intval($payload['assigned_staff_id']) : null,
+                'service_frequency' => isset($payload['service_frequency']) ? sanitize_text_field($payload['service_frequency']) : 'one-time'
             ];
 
 
