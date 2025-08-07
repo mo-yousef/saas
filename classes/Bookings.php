@@ -1488,39 +1488,57 @@ foreach ($calculated_service_items as $service_item) {
     /**
      * Get booking statistics for dashboard
      */
-    public function get_booking_statistics(int $tenant_user_id) {
+    public function get_booking_statistics(int $tenant_user_id, $start_date = null, $end_date = null) {
         $bookings_table = Database::get_table_name('bookings');
-        
+
         $stats = [];
-        
+        $where_conditions = ['user_id = %d'];
+        $where_values = [$tenant_user_id];
+
+        if ($start_date && $end_date) {
+            $where_conditions[] = "booking_date BETWEEN %s AND %s";
+            $where_values[] = $start_date;
+            $where_values[] = $end_date;
+        }
+
+        $where_clause = 'WHERE ' . implode(' AND ', $where_conditions);
+
         // Total bookings
         $stats['total'] = $this->wpdb->get_var($this->wpdb->prepare(
-            "SELECT COUNT(*) FROM $bookings_table WHERE user_id = %d",
-            $tenant_user_id
+            "SELECT COUNT(*) FROM $bookings_table $where_clause",
+            $where_values
         ));
-        
+
         // Bookings by status
         $status_counts = $this->wpdb->get_results($this->wpdb->prepare(
-            "SELECT status, COUNT(*) as count FROM $bookings_table WHERE user_id = %d GROUP BY status",
-            $tenant_user_id
+            "SELECT status, COUNT(*) as count FROM $bookings_table $where_clause GROUP BY status",
+            $where_values
         ), ARRAY_A);
-        
-        foreach ($status_counts as $row) {
-            $stats['by_status'][$row['status']] = intval($row['count']);
+
+        $stats['by_status'] = [];
+        if ($status_counts) {
+            foreach ($status_counts as $row) {
+                $stats['by_status'][$row['status']] = intval($row['count']);
+            }
         }
-        
+
         // Revenue statistics
+        $revenue_where_conditions = $where_conditions;
+        $revenue_where_conditions[] = "status IN ('completed', 'confirmed')";
+        $revenue_where_clause = 'WHERE ' . implode(' AND ', $revenue_where_conditions);
+        $revenue_where_values = $where_values;
+
         $stats['total_revenue'] = $this->wpdb->get_var($this->wpdb->prepare(
-            "SELECT SUM(total_price) FROM $bookings_table WHERE user_id = %d AND status IN ('completed', 'confirmed')",
-            $tenant_user_id
+            "SELECT SUM(total_price) FROM $bookings_table $revenue_where_clause",
+            $revenue_where_values
         ));
-        
+
         // Average booking value
         $stats['average_booking_value'] = $this->wpdb->get_var($this->wpdb->prepare(
-            "SELECT AVG(total_price) FROM $bookings_table WHERE user_id = %d AND status IN ('completed', 'confirmed')",
-            $tenant_user_id
+            "SELECT AVG(total_price) FROM $bookings_table $revenue_where_clause",
+            $revenue_where_values
         ));
-        
+
         return $stats;
     }
 
@@ -2170,23 +2188,6 @@ public function get_chart_data($tenant_id, $period = 'week') {
         ];
     }
 
-    public function get_monthly_revenue(int $tenant_user_id) {
-        if (empty($tenant_user_id)) {
-            return 0;
-        }
-        $bookings_table = Database::get_table_name('bookings');
-        $current_month_start = current_time('Y-m-01');
-        $current_month_end = current_time('Y-m-t');
-
-        $revenue_month = $this->wpdb->get_var($this->wpdb->prepare(
-            "SELECT SUM(total_price) FROM $bookings_table
-             WHERE user_id = %d AND status IN ('completed', 'confirmed')
-             AND booking_date BETWEEN %s AND %s",
-            $tenant_user_id, $current_month_start, $current_month_end
-        ));
-
-        return floatval($revenue_month);
-    }
 
     public function get_booking_counts_by_staff(int $tenant_user_id) {
         if (empty($tenant_user_id)) {
