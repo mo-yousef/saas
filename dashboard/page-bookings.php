@@ -107,18 +107,18 @@ if ($current_user_id) {
     $bookings_result = $bookings_manager->get_bookings_by_tenant($current_user_id, $default_args);
 
     if (!empty($bookings_result['bookings'])) {
-        $initial_bookings_html .= '<div class="mobooking-table-responsive-wrapper">';
-        $initial_bookings_html .= '<table class="mobooking-table wp-list-table widefat fixed striped">';
-        $initial_bookings_html .= '<thead><tr>';
-        $initial_bookings_html .= '<th>' . esc_html__('Ref', 'mobooking') . '</th>';
-        $initial_bookings_html .= '<th>' . esc_html__('Customer', 'mobooking') . '</th>';
-        $initial_bookings_html .= '<th>' . esc_html__('Booked Date', 'mobooking') . '</th>';
-        $initial_bookings_html .= '<th>' . esc_html__('Assigned Staff', 'mobooking') . '</th>'; // New Column
-        $initial_bookings_html .= '<th>' . esc_html__('Total', 'mobooking') . '</th>';
-        $initial_bookings_html .= '<th>' . esc_html__('Status', 'mobooking') . '</th>';
-        $initial_bookings_html .= '<th>' . esc_html__('Actions', 'mobooking') . '</th>';
+        $initial_bookings_html .= '<div class="overflow-x-auto">';
+        $initial_bookings_html .= '<table class="min-w-full divide-y divide-gray-200">';
+        $initial_bookings_html .= '<thead class="bg-gray-50 hidden md:table-header-group"><tr>';
+        $initial_bookings_html .= '<th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">' . esc_html__('Ref', 'mobooking') . '</th>';
+        $initial_bookings_html .= '<th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">' . esc_html__('Customer', 'mobooking') . '</th>';
+        $initial_bookings_html .= '<th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">' . esc_html__('Booked Date', 'mobooking') . '</th>';
+        $initial_bookings_html .= '<th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">' . esc_html__('Assigned Staff', 'mobooking') . '</th>';
+        $initial_bookings_html .= '<th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">' . esc_html__('Total', 'mobooking') . '</th>';
+        $initial_bookings_html .= '<th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">' . esc_html__('Status', 'mobooking') . '</th>';
+        $initial_bookings_html .= '<th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">' . esc_html__('Actions', 'mobooking') . '</th>';
         $initial_bookings_html .= '</tr></thead>';
-        $initial_bookings_html .= '<tbody>';
+        $initial_bookings_html .= '<tbody class="bg-white divide-y divide-gray-200">';
 
         foreach ($bookings_result['bookings'] as $booking) {
             $status_val = $booking['status'];
@@ -132,17 +132,15 @@ if ($current_user_id) {
 
             $details_page_url = home_url('/dashboard/bookings/?action=view_booking&booking_id=' . $booking['booking_id']);
 
-            $initial_bookings_html .= '<tr data-booking-id="' . esc_attr($booking['booking_id']) . '">';
-            $initial_bookings_html .= '<td data-colname="' . esc_attr__('Ref', 'mobooking') . '">' . esc_html($booking['booking_reference']) . '</td>';
-            $initial_bookings_html .= '<td data-colname="' . esc_attr__('Customer', 'mobooking') . '">' . esc_html($booking['customer_name']) . '<br><small>' . esc_html($booking['customer_email']) . '</small></td>';
-            $initial_bookings_html .= '<td data-colname="' . esc_attr__('Booked Date', 'mobooking') . '">' . esc_html($booking_date_formatted . ' ' . $booking_time_formatted) . '</td>';
-            $initial_bookings_html .= '<td data-colname="' . esc_attr__('Assigned Staff', 'mobooking') . '">' . $assigned_staff_name . '</td>'; // New Column Data
-            $initial_bookings_html .= '<td data-colname="' . esc_attr__('Total', 'mobooking') . '">' . $total_price_formatted . '</td>';
-            // Updated status badge HTML
-            $initial_bookings_html .= '<td data-colname="' . esc_attr__('Status', 'mobooking') . '"><span class="status-badge status-' . esc_attr($status_val) . '">' . $status_icon_html . '<span class="status-text">' . esc_html($status_display) . '</span></span></td>';
-            $initial_bookings_html .= '<td data-colname="' . esc_attr__('Actions', 'mobooking') . '" class="mobooking-table-actions">';
+            $initial_bookings_html .= '<tr data-booking-id="' . esc_attr($booking['booking_id']) . '" class="block md:table-row border-b md:border-none">';
+            $initial_bookings_html .= '<td data-label="' . esc_attr__('Ref', 'mobooking') . '" class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 block md:table-cell">' . esc_html($booking['booking_reference']) . '</td>';
+            $initial_bookings_html .= '<td data-label="' . esc_attr__('Customer', 'mobooking') . '" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 block md:table-cell">' . esc_html($booking['customer_name']) . '<br><small>' . esc_html($booking['customer_email']) . '</small></td>';
+            $initial_bookings_html .= '<td data-label="' . esc_attr__('Booked Date', 'mobooking') . '" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 block md:table-cell">' . esc_html($booking_date_formatted . ' ' . $booking_time_formatted) . '</td>';
+            $initial_bookings_html .= '<td data-label="' . esc_attr__('Assigned Staff', 'mobooking') . '" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 block md:table-cell">' . $assigned_staff_name . '</td>';
+            $initial_bookings_html .= '<td data-label="' . esc_attr__('Total', 'mobooking') . '" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 block md:table-cell">' . $total_price_formatted . '</td>';
+            $initial_bookings_html .= '<td data-label="' . esc_attr__('Status', 'mobooking') . '" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 block md:table-cell"><span class="status-badge status-' . esc_attr($status_val) . '">' . $status_icon_html . '<span class="status-text">' . esc_html($status_display) . '</span></span></td>';
+            $initial_bookings_html .= '<td data-label="' . esc_attr__('Actions', 'mobooking') . '" class="px-6 py-4 whitespace-nowrap text-sm font-medium block md:table-cell">';
             $initial_bookings_html .= '<a href="' . esc_url($details_page_url) . '" class="button button-small">' . __('View Details', 'mobooking') . '</a> ';
-            // Only show delete for owner, not worker
             if (class_exists('MoBooking\Classes\Auth') && !\MoBooking\Classes\Auth::is_user_worker($current_user_id)) {
                 $initial_bookings_html .= '<button class="button button-small mobooking-delete-booking-btn" data-booking-id="' . esc_attr($booking['booking_id']) . '">' . __('Delete', 'mobooking') . '</button>';
             }
@@ -180,6 +178,20 @@ $booking_statuses = [
 ];
 ?>
 <style>
+    /* Responsive table styles */
+    @media (max-width: 768px) {
+        .mobooking-bookings-page-wrapper .divide-y > tr {
+            border-bottom-width: 8px;
+            border-color: #f3f4f6; /* gray-100 */
+        }
+        .mobooking-bookings-page-wrapper td[data-label]::before {
+            content: attr(data-label);
+            font-weight: 600;
+            display: inline-block;
+            width: 120px;
+        }
+    }
+
     /* Status Badge Styles (copied from page-booking-single.php) */
     .status-badge {
         display: inline-flex;
