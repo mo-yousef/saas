@@ -1184,20 +1184,6 @@ View booking: {{admin_booking_link}}';
 }
 
 /**
- * Additional AJAX Handler Registration
- * Add this to functions.php to register the BookingFormAjax class
- */
-function mobooking_register_booking_form_ajax() {
-    global $mobooking_booking_form_ajax;
-    
-    if (!$mobooking_booking_form_ajax) {
-        $mobooking_booking_form_ajax = new MoBooking\Classes\BookingFormAjax();
-        $mobooking_booking_form_ajax->register_ajax_actions();
-    }
-}
-add_action('init', 'mobooking_register_booking_form_ajax', 15);
-
-/**
  * Enhanced Service Options AJAX Handler
  * Additional handler for complex service option interactions
  */
