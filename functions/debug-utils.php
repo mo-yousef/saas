@@ -4,7 +4,7 @@
  * Add this temporarily to your functions.php or create a separate debug page
  */
 
-function debug_mobooking_service_areas_table() {
+function debug_mobooking_areas_table() {
     // Only show to administrators
     if (!current_user_can('manage_options')) {
         return;
@@ -13,17 +13,17 @@ function debug_mobooking_service_areas_table() {
     global $wpdb;
 
     echo '<div style="background: #f1f1f1; padding: 20px; margin: 20px; border: 1px solid #ccc;">';
-    echo '<h3>🔍 MoBooking Service Areas Database Debug</h3>';
+    echo '<h3>🔍 MoBooking Areas Database Debug</h3>';
 
     // Check table name generation
     echo '<h4>Table Name Check:</h4>';
     if (class_exists('MoBooking\Classes\Database')) {
-        $table_name = MoBooking\Classes\Database::get_table_name('service_areas');
+        $table_name = MoBooking\Classes\Database::get_table_name('areas');
         echo '✅ Table name: ' . esc_html($table_name) . '<br>';
     } else {
         echo '❌ Database class not found<br>';
         // Fallback - try direct table name
-        $table_name = $wpdb->prefix . 'mobooking_service_areas';
+        $table_name = $wpdb->prefix . 'mobooking_areas';
         echo '⚠️ Using fallback table name: ' . esc_html($table_name) . '<br>';
     }
 
@@ -134,7 +134,7 @@ function debug_mobooking_service_areas_table() {
                 "SELECT COUNT(*) FROM $table_name WHERE user_id = %d",
                 $user_id
             ));
-            echo "📊 Current user has {$user_areas} service areas<br>";
+            echo "📊 Current user has {$user_areas} areas<br>";
         }
     } else {
         echo '❌ User not logged in<br>';
@@ -144,19 +144,19 @@ function debug_mobooking_service_areas_table() {
 }
 
 // Hook to admin_notices to show in admin area
-add_action('admin_notices', 'debug_mobooking_service_areas_table');
+add_action('admin_notices', 'debug_mobooking_areas_table');
 
 // Also create a shortcode for testing on frontend
-add_shortcode('debug_areas_table', 'debug_mobooking_service_areas_table');
+add_shortcode('debug_areas_table', 'debug_mobooking_areas_table');
 
 // Create a test endpoint to manually check table creation
-add_action('wp_ajax_create_service_areas_table', function() {
+add_action('wp_ajax_create_areas_table', function() {
     if (!current_user_can('manage_options')) {
         wp_die('Unauthorized');
     }
 
     global $wpdb;
-    $table_name = $wpdb->prefix . 'mobooking_service_areas';
+    $table_name = $wpdb->prefix . 'mobooking_areas';
 
     $charset_collate = $wpdb->get_charset_collate();
 
