@@ -370,253 +370,109 @@ class BookingFormAjax {
     }
 
     public function handle_create_booking_public_ajax() {
-        // Enhanced logging for debugging
-        error_log('MoBooking - AJAX Request started');
-        error_log('MoBooking - $_POST data: ' . print_r($_POST, true));
-
-        // Security check - verify nonce
-        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'mobooking_booking_form_nonce')) {
-            error_log('MoBooking - Nonce verification failed. Expected: mobooking_booking_form_nonce, Received: ' . ($_POST['nonce'] ?? 'none'));
-            wp_send_json_error(['message' => __('Security check failed. Please refresh the page and try again.', 'mobooking')], 403);
-            return;
-        }
-
-        // Get and validate tenant ID
-        $tenant_id = isset($_POST['tenant_id']) ? intval($_POST['tenant_id']) : 0;
-        if (!$tenant_id) {
-            error_log('MoBooking - Missing or invalid tenant ID: ' . $tenant_id);
-            wp_send_json_error(['message' => __('Invalid tenant information.', 'mobooking')], 400);
-            return;
-        }
-
-        // Verify tenant exists
-        $tenant_user = get_userdata($tenant_id);
-        if (!$tenant_user) {
-            error_log('MoBooking - Tenant user not found: ' . $tenant_id);
-            wp_send_json_error(['message' => __('Business not found.', 'mobooking')], 400);
-            return;
-        }
-
-        // Get and validate JSON data - use direct access to avoid URL decoding issues
-        $selected_services_json = isset($_POST['selected_services']) ? wp_unslash($_POST['selected_services']) : '';
-        $customer_details_json = isset($_POST['customer_details']) ? wp_unslash($_POST['customer_details']) : '';
-        $service_options_json = isset($_POST['service_options']) ? wp_unslash($_POST['service_options']) : '';
-        $pet_information_json = isset($_POST['pet_information']) ? wp_unslash($_POST['pet_information']) : '';
-        $property_access_json = isset($_POST['property_access']) ? wp_unslash($_POST['property_access']) : '';
-        $discount_info_json = isset($_POST['discount_info']) ? wp_unslash($_POST['discount_info']) : '';
-        $pricing_json = isset($_POST['pricing']) ? wp_unslash($_POST['pricing']) : '';
-
-        error_log('MoBooking - Raw JSON data received:');
-        error_log('Selected Services: ' . $selected_services_json);
-        error_log('Customer Details: ' . $customer_details_json);
-        error_log('Pricing: ' . $pricing_json);
-
-        // Decode JSON data with enhanced error handling
-        $selected_services = $this->safe_json_decode($selected_services_json, 'selected_services');
-        if (is_wp_error($selected_services)) {
-            error_log('MoBooking - Selected services JSON decode error: ' . $selected_services->get_error_message());
-            wp_send_json_error(['message' => __('Invalid services data. Please try again.', 'mobooking')], 400);
-            return;
-        }
-
-        $customer_details = $this->safe_json_decode($customer_details_json, 'customer_details');
-        if (is_wp_error($customer_details)) {
-            error_log('MoBooking - Customer details JSON decode error: ' . $customer_details->get_error_message());
-            wp_send_json_error(['message' => __('Invalid customer information. Please check your form data.', 'mobooking')], 400);
-            return;
-        }
-
-        $service_options = $this->safe_json_decode($service_options_json, 'service_options');
-        if (is_wp_error($service_options)) {
-            error_log('MoBooking - Service options JSON decode error: ' . $service_options->get_error_message());
-            wp_send_json_error(['message' => __('Invalid service options data. Please try again.', 'mobooking')], 400);
-            return;
-        }
-
-        $pet_information = $this->safe_json_decode($pet_information_json, 'pet_information');
-        if (is_wp_error($pet_information)) {
-            error_log('MoBooking - Pet information JSON decode error: ' . $pet_information->get_error_message());
-            wp_send_json_error(['message' => __('Invalid pet information data. Please try again.', 'mobooking')], 400);
-            return;
-        }
-
-        $property_access = $this->safe_json_decode($property_access_json, 'property_access');
-        if (is_wp_error($property_access)) {
-            error_log('MoBooking - Property access JSON decode error: ' . $property_access->get_error_message());
-            wp_send_json_error(['message' => __('Invalid property access data. Please try again.', 'mobooking')], 400);
-            return;
-        }
-
-        // Decode optional data
-        $discount_info = null;
-        if (!empty($discount_info_json)) {
-            $discount_info = $this->safe_json_decode($discount_info_json, 'discount_info');
-            if (is_wp_error($discount_info)) {
-                error_log('MoBooking - Discount info JSON decode error (non-critical): ' . $discount_info->get_error_message());
-                $discount_info = null; // Continue without discount if invalid
-            }
-        }
-
-        $pricing_info = null;
-        if (!empty($pricing_json)) {
-            $pricing_info = $this->safe_json_decode($pricing_json, 'pricing');
-            if (is_wp_error($pricing_info)) {
-                error_log('MoBooking - Pricing info JSON decode error (non-critical): ' . $pricing_info->get_error_message());
-                $pricing_info = null; // Continue without pricing if invalid
-            }
-        }
-
-        // Get optional location data
-        $zip_code = isset($_POST['zip_code']) ? sanitize_text_field($_POST['zip_code']) : '';
-        $country_code = isset($_POST['country_code']) ? sanitize_text_field($_POST['country_code']) : '';
-
-        // Validate required data
-        if (empty($selected_services) || !is_array($selected_services)) {
-            error_log('MoBooking - No services selected or invalid format');
-            wp_send_json_error(['message' => __('Please select at least one service.', 'mobooking')], 400);
-            return;
-        }
-
-        if (empty($customer_details) || !is_array($customer_details)) {
-            error_log('MoBooking - Customer details missing or invalid format');
-            wp_send_json_error(['message' => __('Customer information is required.', 'mobooking')], 400);
-            return;
-        }
-
-        // Validate customer details - check for required fields
-        $required_fields = ['name', 'email', 'phone', 'address', 'date', 'time'];
-        $missing_fields = [];
-
-        foreach ($required_fields as $field) {
-            if (empty($customer_details[$field]) || (is_string($customer_details[$field]) && trim($customer_details[$field]) === '')) {
-                $missing_fields[] = $field;
-            }
-        }
-
-        if (!empty($missing_fields)) {
-            error_log('MoBooking - Missing required customer fields: ' . implode(', ', $missing_fields));
-            wp_send_json_error(['message' => sprintf(__('Missing required information: %s', 'mobooking'), implode(', ', $missing_fields))], 400);
-            return;
-        }
-
-        // Validate email format
-        if (!is_email($customer_details['email'])) {
-            error_log('MoBooking - Invalid email format: ' . $customer_details['email']);
-            wp_send_json_error(['message' => __('Please provide a valid email address.', 'mobooking')], 400);
-            return;
-        }
-
-        // Validate date format
-        $date_obj = \DateTime::createFromFormat('Y-m-d', $customer_details['date']);
-        if (!$date_obj || $date_obj->format('Y-m-d') !== $customer_details['date']) {
-            error_log('MoBooking - Invalid date format: ' . $customer_details['date']);
-            wp_send_json_error(['message' => __('Please provide a valid date.', 'mobooking')], 400);
-            return;
-        }
-
-        // Validate time format
-        $time_obj = \DateTime::createFromFormat('H:i:s', $customer_details['time']);
-        if (!$time_obj || $time_obj->format('H:i:s') !== $customer_details['time']) {
-            error_log('MoBooking - Invalid time format: ' . $customer_details['time']);
-            wp_send_json_error(['message' => __('Please provide a valid time.', 'mobooking')], 400);
-            return;
-        }
-
-        // Check if booking date is not in the past
-        $booking_datetime = \DateTime::createFromFormat('Y-m-d H:i:s', $customer_details['date'] . ' ' . $customer_details['time']);
-        $now = new \DateTime();
-        if ($booking_datetime < $now) {
-            error_log('MoBooking - Booking date is in the past: ' . $customer_details['date'] . ' ' . $customer_details['time']);
-            wp_send_json_error(['message' => __('Booking date and time cannot be in the past.', 'mobooking')], 400);
-            return;
-        }
-
-        // Get service frequency
-        $service_frequency = isset($_POST['service_frequency']) ? sanitize_text_field($_POST['service_frequency']) : 'one-time';
-        $valid_frequencies = ['one-time', 'weekly', 'monthly', 'daily']; // Adding 'daily' as a valid option
-        if (!in_array($service_frequency, $valid_frequencies)) {
-            wp_send_json_error(['message' => __('Invalid service frequency.', 'mobooking')], 400);
-            return;
-        }
-
-        // Prepare the payload for create_booking method
-        $payload = [
-            'selected_services' => $selected_services,
-            'customer' => $customer_details,
-            'service_options' => $service_options,
-            'pet_information' => $pet_information,
-            'property_access' => $property_access,
-            'discount_info' => $discount_info,
-            'zip_code' => $zip_code,
-            'country_code' => $country_code,
-            'pricing' => $pricing_info,
-            'service_frequency' => $service_frequency,
-            'time_slot' => $customer_details['time']
-        ];
-
-        error_log('MoBooking - Final payload prepared: ' . print_r($payload, true));
-
-        // Verify database tables exist before attempting to create booking
-        if (!$this->verify_database_tables()) {
-            error_log('MoBooking - Database tables verification failed');
-            wp_send_json_error(['message' => __('System error: Database not properly configured. Please contact support.', 'mobooking')], 500);
-            return;
-        }
-
-        // Call the main create_booking method
         try {
-            if (!isset($this->bookings_manager) || !method_exists($this->bookings_manager, 'create_booking')) {
-                throw new \Exception('Bookings manager is not available.');
-            }
-
-            $result = $this->bookings_manager->create_booking($tenant_id, $payload);
-
-            if (is_wp_error($result)) {
-                error_log('MoBooking - Booking creation failed (WP_Error): ' . $result->get_error_message());
-                error_log('MoBooking - WP_Error code: ' . $result->get_error_code());
-                error_log('MoBooking - WP_Error data: ' . print_r($result->get_error_data(), true));
-
-                // Map specific error codes to user-friendly messages
-                $error_code = $result->get_error_code();
-                $error_message = $result->get_error_message();
-
-                switch ($error_code) {
-                    case 'db_booking_error':
-                        $user_message = __('Could not save booking to database. Please try again.', 'mobooking');
-                        break;
-                    case 'invalid_service':
-                        $user_message = __('One or more selected services are no longer available.', 'mobooking');
-                        break;
-                    case 'discount_error':
-                        $user_message = __('There was an issue applying the discount code.', 'mobooking');
-                        break;
-                    default:
-                        $user_message = $error_message;
-                        break;
-                }
-
-                wp_send_json_error(['message' => $user_message], 500);
+            // 1. Security and Validation
+            if (!check_ajax_referer('mobooking_booking_form_nonce', 'nonce', false)) {
+                wp_send_json_error(['message' => __('Security check failed.', 'mobooking')], 403);
                 return;
             }
 
-            error_log('MoBooking - Booking created successfully: ' . print_r($result, true));
+            $tenant_id = isset($_POST['tenant_id']) ? intval($_POST['tenant_id']) : 0;
+            if (empty($tenant_id) || !get_userdata($tenant_id)) {
+                wp_send_json_error(['message' => __('Invalid tenant information.', 'mobooking')], 400);
+                return;
+            }
 
-            // Format success response
-            $success_message = !empty($result['message']) ?
-                sprintf($result['message'], $result['booking_reference']) :
-                sprintf(__('Booking confirmed! Your reference is %s.', 'mobooking'), $result['booking_reference']);
+            // 2. Decode and Sanitize All Inputs
+            $customer_details = $this->safe_json_decode(stripslashes($_POST['customer_details'] ?? ''), 'customer_details');
+            $selected_services = $this->safe_json_decode(stripslashes($_POST['selected_services'] ?? ''), 'selected_services');
+            $service_options = $this->safe_json_decode(stripslashes($_POST['service_options'] ?? ''), 'service_options');
+            $service_frequency = sanitize_text_field($_POST['service_frequency'] ?? 'one-time');
 
+            // Basic data integrity check
+            if (is_wp_error($customer_details) || is_wp_error($selected_services) || is_wp_error($service_options)) {
+                wp_send_json_error(['message' => __('Invalid form data submitted.', 'mobooking')], 400);
+                return;
+            }
+            if (empty($selected_services)) {
+                wp_send_json_error(['message' => __('At least one service must be selected.', 'mobooking')], 400);
+                return;
+            }
+
+            // 3. Server-side Price Calculation
+            $subtotal = 0;
+            $total_duration = 0;
+            foreach ($selected_services as $item) {
+                $service = $this->services_manager->get_service(intval($item['service_id']), $tenant_id);
+                if ($service) {
+                    $subtotal += floatval($service['price']);
+                    $total_duration += intval($service['duration']);
+                }
+            }
+            // Note: Add service options price calculation here if needed
+
+            // 4. Database Insertion
+            $bookings_table = Database::get_table_name('bookings');
+            $booking_items_table = Database::get_table_name('booking_items');
+            $booking_reference = 'MB-' . strtoupper(wp_generate_password(8, false));
+
+            $booking_data = [
+                'user_id' => $tenant_id,
+                'customer_name' => sanitize_text_field($customer_details['name']),
+                'customer_email' => sanitize_email($customer_details['email']),
+                'customer_phone' => sanitize_text_field($customer_details['phone']),
+                'service_address' => sanitize_textarea_field($customer_details['address']),
+                'booking_date' => sanitize_text_field($customer_details['date']),
+                'booking_time' => sanitize_text_field($customer_details['time']),
+                'special_instructions' => sanitize_textarea_field($customer_details['instructions'] ?? ''),
+                'total_price' => $subtotal, // Use server-calculated subtotal
+                'total_duration' => $total_duration,
+                'status' => 'pending',
+                'booking_reference' => $booking_reference,
+                'service_frequency' => $service_frequency,
+                'created_at' => current_time('mysql', 1),
+                'updated_at' => current_time('mysql', 1),
+            ];
+
+            $this->wpdb->insert($bookings_table, $booking_data);
+            $booking_id = $this->wpdb->insert_id;
+
+            if (!$booking_id) {
+                wp_send_json_error(['message' => __('Could not save booking. Database error.', 'mobooking')], 500);
+                return;
+            }
+
+            // Insert booking items
+            foreach ($selected_services as $item) {
+                 $service = $this->services_manager->get_service(intval($item['service_id']), $tenant_id);
+                 if($service) {
+                    $this->wpdb->insert($booking_items_table, [
+                        'booking_id' => $booking_id,
+                        'service_id' => intval($item['service_id']),
+                        'service_name' => $service['name'],
+                        'service_price' => floatval($service['price']),
+                        'quantity' => 1,
+                        'selected_options' => wp_json_encode($item['configured_options'] ?? []),
+                        'item_total_price' => floatval($service['price']), // Placeholder
+                    ]);
+                 }
+            }
+
+            // 5. Post-booking actions (e.g., notifications)
+            $this->notifications_manager->send_booking_confirmation_customer($booking_data, $customer_details['email'], $tenant_id);
+            $this->notifications_manager->send_booking_confirmation_admin($booking_data, $tenant_id);
+
+            // 6. Success Response
             wp_send_json_success([
-                'message' => $success_message,
-                'booking_id' => $result['booking_id'],
-                'booking_reference' => $result['booking_reference'],
-                'total_price' => $result['final_total'] ?? 0
+                'message' => 'Booking created successfully!',
+                'booking_id' => $booking_id,
+                'booking_reference' => $booking_reference,
             ]);
 
-        } catch (\Exception $e) {
-            error_log('MoBooking - Exception during booking creation: ' . $e->getMessage());
-            error_log('MoBooking - Exception trace: ' . $e->getTraceAsString());
-            wp_send_json_error(['message' => __('An unexpected error occurred. Please try again or contact support.', 'mobooking')], 500);
+        } catch (\Throwable $e) {
+            error_log('MoBooking Fatal Error in handle_create_booking_public_ajax: ' . $e->getMessage());
+            error_log($e->getTraceAsString());
+            wp_send_json_error(['message' => 'A critical error occurred while creating your booking.'], 500);
         }
     }
 
