@@ -41,7 +41,7 @@ class Discounts {
             'orderby' => isset($_POST['orderby']) ? sanitize_key($_POST['orderby']) : 'created_at',
             'order' => isset($_POST['order']) ? sanitize_key($_POST['order']) : 'DESC',
         ];
-        $result = $this->get_discount_codes_by_user($user_id, $args);
+        $result = $this->get_discounts_by_user($user_id, $args);
         wp_send_json_success($result); // $result already includes pagination data
     }
 
@@ -62,10 +62,10 @@ class Discounts {
         ];
 
         if ($discount_id) {
-            $result = $this->update_discount_code($discount_id, $user_id, $data);
+            $result = $this->update_discount($discount_id, $user_id, $data);
             $message = __('Discount code updated successfully.', 'mobooking');
         } else {
-            $result = $this->add_discount_code($user_id, $data);
+            $result = $this->add_discount($user_id, $data);
             $message = __('Discount code added successfully.', 'mobooking');
             if (!is_wp_error($result)) {
                 $discount_id = $result; // Get new ID
@@ -75,7 +75,7 @@ class Discounts {
         if (is_wp_error($result)) {
             wp_send_json_error(['message' => $result->get_error_message()], 400);
         } else {
-            $discount_details = $this->get_discount_code($discount_id, $user_id); // Fetch the full details
+            $discount_details = $this->get_discount($discount_id, $user_id); // Fetch the full details
             wp_send_json_success(['message' => $message, 'discount' => $discount_details]);
         }
     }
@@ -88,7 +88,7 @@ class Discounts {
         $discount_id = isset($_POST['discount_id']) ? intval($_POST['discount_id']) : 0;
         if (empty($discount_id)) { wp_send_json_error(['message' => __('Invalid discount ID.', 'mobooking')], 400); return; }
 
-        $result = $this->delete_discount_code($discount_id, $user_id);
+        $result = $this->delete_discount($discount_id, $user_id);
         if (is_wp_error($result)) {
             wp_send_json_error(['message' => $result->get_error_message()], 400);
         } else {
@@ -104,7 +104,7 @@ class Discounts {
         $discount_id = isset($_POST['discount_id']) ? intval($_POST['discount_id']) : 0;
         if (empty($discount_id)) { wp_send_json_error(['message' => __('Invalid discount ID.', 'mobooking')], 400); return; }
 
-        $discount = $this->get_discount_code($discount_id, $user_id);
+        $discount = $this->get_discount($discount_id, $user_id);
         if ($discount) {
             wp_send_json_success(['discount' => $discount]);
         } else {
@@ -117,7 +117,7 @@ class Discounts {
         return strtoupper(trim($code));
     }
 
-    public function add_discount_code(int $user_id, array $data) {
+    public function add_discount(int $user_id, array $data) {
         if (empty($user_id)) return new \WP_Error('invalid_user', __('Invalid user ID.', 'mobooking'));
 
         $required_fields = ['code', 'type', 'value'];
@@ -167,12 +167,12 @@ class Discounts {
 
 
         // Check for code uniqueness for this user
-        $existing_code = $this->get_discount_code_by_code($code, $user_id);
+        $existing_code = $this->get_discount_by_code($code, $user_id);
         if ($existing_code) {
             return new \WP_Error('duplicate_code', __('This discount code already exists for your account.', 'mobooking'));
         }
 
-        $table_name = Database::get_table_name('discount_codes');
+        $table_name = Database::get_table_name('discounts');
         $inserted = $this->wpdb->insert(
             $table_name,
             [
@@ -193,28 +193,28 @@ class Discounts {
         return $this->wpdb->insert_id;
     }
 
-    public function get_discount_code(int $discount_id, int $user_id) {
+    public function get_discount(int $discount_id, int $user_id) {
         if (empty($user_id) || empty($discount_id)) return null;
-        $table_name = Database::get_table_name('discount_codes');
+        $table_name = Database::get_table_name('discounts');
         return $this->wpdb->get_row($this->wpdb->prepare(
             "SELECT * FROM $table_name WHERE discount_id = %d AND user_id = %d", $discount_id, $user_id
         ), ARRAY_A);
     }
 
-    public function get_discount_code_by_code(string $code, int $user_id) {
+    public function get_discount_by_code(string $code, int $user_id) {
         if (empty($user_id) || empty($code)) return null;
         $normalized_code = $this->_normalize_code($code);
-        $table_name = Database::get_table_name('discount_codes');
+        $table_name = Database::get_table_name('discounts');
         return $this->wpdb->get_row($this->wpdb->prepare(
             "SELECT * FROM $table_name WHERE code = %s AND user_id = %d", $normalized_code, $user_id
         ), ARRAY_A);
     }
 
-    public function get_discount_codes_by_user(int $user_id, array $args = []) {
+    public function get_discounts_by_user(int $user_id, array $args = []) {
         if (empty($user_id)) {
             return ['discounts' => [], 'total_count' => 0, 'per_page' => 0, 'current_page' => 1];
         }
-        $table_name = Database::get_table_name('discount_codes');
+        $table_name = Database::get_table_name('discounts');
 
         // Ensure 'paged' and 'limit' are correctly set from args, with defaults.
         $paged = isset($args['paged']) ? max(1, intval($args['paged'])) : 1;
@@ -260,8 +260,8 @@ class Discounts {
         ];
     }
 
-    public function update_discount_code(int $discount_id, int $user_id, array $data) {
-        $current_discount = $this->get_discount_code($discount_id, $user_id);
+    public function update_discount(int $discount_id, int $user_id, array $data) {
+        $current_discount = $this->get_discount($discount_id, $user_id);
         if (!$current_discount) {
             return new \WP_Error('not_found_or_owner', __('Discount code not found or you do not own it.', 'mobooking'));
         }
@@ -273,7 +273,7 @@ class Discounts {
             $new_code = $this->_normalize_code($data['code']);
             if (empty($new_code)) return new \WP_Error('missing_field', __('Code cannot be empty.', 'mobooking'));
             if ($new_code !== $current_discount['code']) {
-                $existing_code = $this->get_discount_code_by_code($new_code, $user_id);
+                $existing_code = $this->get_discount_by_code($new_code, $user_id);
                 if ($existing_code) {
                     return new \WP_Error('duplicate_code', __('This discount code already exists for your account.', 'mobooking'));
                 }
@@ -327,7 +327,7 @@ class Discounts {
 
         if (empty($update_data)) return true;
 
-        $table_name = Database::get_table_name('discount_codes');
+        $table_name = Database::get_table_name('discounts');
         $updated = $this->wpdb->update(
             $table_name,
             $update_data,
@@ -340,19 +340,19 @@ class Discounts {
         return true;
     }
 
-    public function delete_discount_code(int $discount_id, int $user_id) {
-        $current_discount = $this->get_discount_code($discount_id, $user_id);
+    public function delete_discount(int $discount_id, int $user_id) {
+        $current_discount = $this->get_discount($discount_id, $user_id);
         if (!$current_discount) {
             return new \WP_Error('not_found_or_owner', __('Discount code not found or you do not own it.', 'mobooking'));
         }
-        $table_name = Database::get_table_name('discount_codes');
+        $table_name = Database::get_table_name('discounts');
         $deleted = $this->wpdb->delete($table_name, ['discount_id' => $discount_id, 'user_id' => $user_id], ['%d', '%d']);
         if (false === $deleted) return new \WP_Error('db_error', __('Could not delete discount code.', 'mobooking'));
         return true;
     }
 
-    public function validate_discount_code(string $code, int $user_id) {
-        $discount = $this->get_discount_code_by_code($code, $user_id);
+    public function validate_discount(string $code, int $user_id) {
+        $discount = $this->get_discount_by_code($code, $user_id);
         if (!$discount) return new \WP_Error('not_found', __('Discount code not found.', 'mobooking'));
 
         if ($discount['status'] !== 'active') return new \WP_Error('inactive', __('This discount code is not active.', 'mobooking'));
@@ -370,7 +370,7 @@ class Discounts {
     }
 
     public function increment_discount_usage(int $discount_id) {
-        $table_name = Database::get_table_name('discount_codes');
+        $table_name = Database::get_table_name('discounts');
         $result = $this->wpdb->query($this->wpdb->prepare(
             "UPDATE $table_name SET times_used = times_used + 1 WHERE discount_id = %d", $discount_id
         ));
@@ -389,7 +389,7 @@ class Discounts {
             return;
         }
 
-        $discount_data = $this->validate_discount_code($code, $tenant_id);
+        $discount_data = $this->validate_discount($code, $tenant_id);
 
         if ($discount_data && !is_wp_error($discount_data)) {
             wp_send_json_success(['valid' => true, 'discount' => $discount_data, 'message' => __('Discount applied successfully!', 'mobooking')]);

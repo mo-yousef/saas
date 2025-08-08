@@ -16,7 +16,7 @@ $default_args = [
     'orderby' => 'created_at',
     'order' => 'DESC',
 ];
-$discounts_result = $discounts_manager->get_discount_codes_by_user($user_id, $default_args);
+$discounts_result = $discounts_manager->get_discounts_by_user($user_id, $default_args);
 
 $discounts_list = $discounts_result['discounts'];
 $total_discounts = $discounts_result['total_count'];

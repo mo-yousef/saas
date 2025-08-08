@@ -164,7 +164,7 @@ class Customers {
 
         // TODO: Future enhancement - Calculate total_bookings and last_booking_date
         // This might involve a JOIN or separate queries for performance.
-        // For now, these fields will be whatever is in the mob_customers table.
+        // For now, these fields will be whatever is in the customers table.
 
         return $results;
     }
@@ -288,7 +288,7 @@ class Customers {
     /**
      * Updates customer's booking stats after a new booking.
      *
-     * @param int $customer_id The ID of the customer in mob_customers table.
+     * @param int $customer_id The ID of the customer in customers table.
      * @param string $booking_date The date of the new booking (Y-m-d H:i:s).
      * @return bool True on success, false on failure.
      */
