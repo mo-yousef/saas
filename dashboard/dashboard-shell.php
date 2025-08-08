@@ -177,6 +177,8 @@ error_log('[MoBooking Shell Debug] dashboard-shell.php execution started. User l
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><?php echo esc_html(ucfirst($requested_page)); ?> - <?php esc_html_e('Dashboard', 'mobooking'); ?> - <?php bloginfo('name'); ?></title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+
     <?php wp_head(); ?>
 </head>
 <body <?php body_class('mobooking-dashboard'); ?>>
