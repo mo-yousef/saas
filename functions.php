@@ -98,7 +98,6 @@ function mobooking_run_database_diagnostic($tenant_id = null) {
     // Define all the tables to check
     $tables_to_check = [
         'customers' => $wpdb->prefix . 'mobooking_customers',
-        'mob_customers' => $wpdb->prefix . 'mobooking_mob_customers', 
         'bookings' => $wpdb->prefix . 'mobooking_bookings',
         'services' => $wpdb->prefix . 'mobooking_services',
         'booking_items' => $wpdb->prefix . 'mobooking_booking_items'
@@ -170,19 +169,16 @@ function mobooking_run_database_diagnostic($tenant_id = null) {
     
     // Generate recommendations
     $customers_table = $diagnostic['tables']['customers'];
-    $mob_customers_table = $diagnostic['tables']['mob_customers'];
     $bookings_table = $diagnostic['tables']['bookings'];
     
-    if (!$customers_table['exists'] && !$mob_customers_table['exists']) {
-        $diagnostic['recommendations'][] = '❌ No customer tables found. You need to create one or extract from bookings.';
-    } elseif ($customers_table['tenant_rows'] == 0 && $mob_customers_table['tenant_rows'] == 0) {
+    if (!$customers_table['exists']) {
+        $diagnostic['recommendations'][] = '❌ No customers table found. You need to create one or extract from bookings.';
+    } elseif ($customers_table['tenant_rows'] == 0) {
         if ($bookings_table['tenant_rows'] > 0) {
-            $diagnostic['recommendations'][] = '⚠️ Customer tables exist but are empty. You have bookings data that can be migrated.';
+            $diagnostic['recommendations'][] = '⚠️ Customers table exists but is empty. You have bookings data that can be migrated.';
         } else {
             $diagnostic['recommendations'][] = 'ℹ️ No customer or booking data found for your tenant ID.';
         }
-    } elseif ($mob_customers_table['tenant_rows'] > $customers_table['tenant_rows']) {
-        $diagnostic['recommendations'][] = '✅ Use mob_customers table - it has more data (' . $mob_customers_table['tenant_rows'] . ' rows).';
     } elseif ($customers_table['tenant_rows'] > 0) {
         $diagnostic['recommendations'][] = '✅ Use customers table - it has ' . $customers_table['tenant_rows'] . ' customer records.';
     }
@@ -290,8 +286,6 @@ function mobooking_diagnostic_page() {
             <code>
                 SELECT 'customers' as table_name, COUNT(*) as count FROM wp_mobooking_customers WHERE tenant_id = <?php echo $diagnostic['tenant_id']; ?>
                 UNION ALL
-                SELECT 'mob_customers' as table_name, COUNT(*) as count FROM wp_mobooking_mob_customers WHERE tenant_id = <?php echo $diagnostic['tenant_id']; ?>
-                UNION ALL  
                 SELECT 'bookings_unique' as table_name, COUNT(DISTINCT customer_email) as count FROM wp_mobooking_bookings WHERE user_id = <?php echo $diagnostic['tenant_id']; ?>;
             </code>
         </div>
