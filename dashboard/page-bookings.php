@@ -177,107 +177,168 @@ $booking_statuses = [
     'processing' => __('Processing', 'mobooking'),
 ];
 ?>
-<div>
-    <h3 class="text-3xl font-medium text-gray-700 dark:text-gray-200">Bookings</h3>
-    <div class="mt-4">
-        <div class="flex flex-wrap -mx-6">
-            <div class="w-full px-6 sm:w-1/2 xl:w-1/3">
-                <div class="flex items-center px-5 py-6 bg-white rounded-md shadow-sm dark:bg-gray-800">
-                    <div class="p-3 bg-indigo-600 bg-opacity-75 rounded-full">
-                        <svg class="w-8 h-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.653-.122-1.28-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.653.122-1.28.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                        </svg>
-                    </div>
-                    <div class="mx-5">
-                        <h4 class="text-2xl font-semibold text-gray-700 dark:text-gray-200"><?php echo esc_html($kpi_data['bookings_month']); ?></h4>
-                        <div class="text-gray-500 dark:text-gray-400">Bookings This Month</div>
-                    </div>
+<!-- ======== main-content start ======== -->
+<section class="p-4 md:p-6 2xl:p-10">
+    <!-- Breadcrumb Start -->
+    <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h2 class="text-title-md2 font-semibold text-black dark:text-white">
+            Bookings
+        </h2>
+        <nav>
+            <ol class="flex items-center gap-2">
+                <li><a href="<?php echo esc_url(home_url('/dashboard/')); ?>">Dashboard /</a></li>
+                <li class="text-primary">Bookings</li>
+            </ol>
+        </nav>
+    </div>
+    <!-- Breadcrumb End -->
+
+    <!-- ====== Stats Grid Start -->
+    <div class="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 xl:grid-cols-3 2xl:gap-7.5">
+        <!-- Card Item -->
+        <div class="rounded-sm border border-stroke bg-white py-6 px-7.5 shadow-default dark:border-strokedark dark:bg-boxdark">
+            <div class="flex h-11.5 w-11.5 items-center justify-center rounded-full bg-meta-2 dark:bg-meta-4">
+                <svg class="w-8 h-8 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.653-.122-1.28-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.653.122-1.28.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+            </div>
+            <div class="mt-4 flex items-end justify-between">
+                <div>
+                    <h4 class="text-title-md font-bold text-black dark:text-white"><?php echo esc_html($kpi_data['bookings_month']); ?></h4>
+                    <span class="text-sm font-medium">Bookings This Month</span>
                 </div>
             </div>
-            <?php if ($kpi_data['revenue_month'] !== null) : ?>
-            <div class="w-full px-6 mt-6 sm:w-1/2 xl:w-1/3 sm:mt-0">
-                <div class="flex items-center px-5 py-6 bg-white rounded-md shadow-sm dark:bg-gray-800">
-                    <div class="p-3 bg-orange-600 bg-opacity-75 rounded-full">
-                        <svg class="w-8 h-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v.01" />
-                        </svg>
-                    </div>
-                    <div class="mx-5">
-                        <h4 class="text-2xl font-semibold text-gray-700 dark:text-gray-200"><?php echo esc_html($currency_symbol . number_format_i18n(floatval($kpi_data['revenue_month']), 2)); ?></h4>
-                        <div class="text-gray-500 dark:text-gray-400">Revenue This Month</div>
-                    </div>
+        </div>
+
+        <?php if ($kpi_data['revenue_month'] !== null) : ?>
+        <!-- Card Item -->
+        <div class="rounded-sm border border-stroke bg-white py-6 px-7.5 shadow-default dark:border-strokedark dark:bg-boxdark">
+            <div class="flex h-11.5 w-11.5 items-center justify-center rounded-full bg-meta-2 dark:bg-meta-4">
+                <svg class="w-8 h-8 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v.01" />
+                </svg>
+            </div>
+            <div class="mt-4 flex items-end justify-between">
+                <div>
+                    <h4 class="text-title-md font-bold text-black dark:text-white"><?php echo esc_html($currency_symbol . number_format_i18n(floatval($kpi_data['revenue_month']), 2)); ?></h4>
+                    <span class="text-sm font-medium">Revenue This Month</span>
                 </div>
             </div>
-            <?php endif; ?>
-            <div class="w-full px-6 mt-6 sm:w-1/2 xl:w-1/3 xl:mt-0">
-                <div class="flex items-center px-5 py-6 bg-white rounded-md shadow-sm dark:bg-gray-800">
-                    <div class="p-3 bg-pink-600 bg-opacity-75 rounded-full">
-                        <svg class="w-8 h-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                    </div>
-                    <div class="mx-5">
-                        <h4 class="text-2xl font-semibold text-gray-700 dark:text-gray-200"><?php echo esc_html($kpi_data['upcoming_count']); ?></h4>
-                        <div class="text-gray-500 dark:text-gray-400">Upcoming Confirmed Bookings</div>
-                    </div>
+        </div>
+        <?php endif; ?>
+
+        <!-- Card Item -->
+        <div class="rounded-sm border border-stroke bg-white py-6 px-7.5 shadow-default dark:border-strokedark dark:bg-boxdark">
+            <div class="flex h-11.5 w-11.5 items-center justify-center rounded-full bg-meta-2 dark:bg-meta-4">
+                 <svg class="w-8 h-8 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </div>
+            <div class="mt-4 flex items-end justify-between">
+                <div>
+                    <h4 class="text-title-md font-bold text-black dark:text-white"><?php echo esc_html($kpi_data['upcoming_count']); ?></h4>
+                    <span class="text-sm font-medium">Upcoming Confirmed</span>
                 </div>
             </div>
         </div>
     </div>
-    <div class="flex flex-col mt-8">
-        <div class="-my-2 py-2 overflow-x-auto sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
-            <div class="align-middle inline-block min-w-full shadow overflow-hidden sm:rounded-lg border-b border-gray-200 dark:border-gray-700">
-                <table class="min-w-full">
+    <!-- ====== Stats Grid End -->
+
+    <!-- ====== Table Section Start -->
+    <div class="mt-8 flex flex-col">
+        <div class="rounded-sm border border-stroke bg-white px-5 pt-6 pb-2.5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-1">
+            <div class="max-w-full overflow-x-auto">
+                <table class="w-full table-auto">
                     <thead>
-                        <tr>
-                            <th class="px-6 py-3 border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-700 text-left text-xs leading-4 font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Ref</th>
-                            <th class="px-6 py-3 border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-700 text-left text-xs leading-4 font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Customer</th>
-                            <th class="px-6 py-3 border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-700 text-left text-xs leading-4 font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Booked Date</th>
-                            <th class="px-6 py-3 border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-700 text-left text-xs leading-4 font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Assigned Staff</th>
-                            <th class="px-6 py-3 border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-700 text-left text-xs leading-4 font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Total</th>
-                            <th class="px-6 py-3 border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-700 text-left text-xs leading-4 font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
-                            <th class="px-6 py-3 border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-700"></th>
+                        <tr class="bg-gray-2 text-left dark:bg-meta-4">
+                            <th class="min-w-[120px] py-4 px-4 font-medium text-black dark:text-white">Ref</th>
+                            <th class="min-w-[220px] py-4 px-4 font-medium text-black dark:text-white">Customer</th>
+                            <th class="min-w-[150px] py-4 px-4 font-medium text-black dark:text-white">Booked Date</th>
+                            <th class="min-w-[150px] py-4 px-4 font-medium text-black dark:text-white">Assigned Staff</th>
+                            <th class="min-w-[120px] py-4 px-4 font-medium text-black dark:text-white">Total</th>
+                            <th class="py-4 px-4 font-medium text-black dark:text-white">Status</th>
+                            <th class="py-4 px-4 font-medium text-black dark:text-white">Actions</th>
                         </tr>
                     </thead>
-                    <tbody class="bg-white dark:bg-gray-800">
-                        <?php foreach ($bookings_result['bookings'] as $booking) : ?>
-                            <?php
-                            $status_val = $booking['status'];
-                            $status_display = !empty($status_val) ? ucfirst(str_replace('-', ' ', $status_val)) : __('N/A', 'mobooking');
-                            $total_price_formatted = esc_html($currency_symbol . number_format_i18n(floatval($booking['total_price']), 2));
-                            $booking_date_formatted = date_i18n(get_option('date_format'), strtotime($booking['booking_date']));
-                            $booking_time_formatted = date_i18n(get_option('time_format'), strtotime($booking['booking_time']));
-                            $assigned_staff_name = isset($booking['assigned_staff_name']) ? esc_html($booking['assigned_staff_name']) : esc_html__('Unassigned', 'mobooking');
-                            $details_page_url = home_url('/dashboard/bookings/?action=view_booking&booking_id=' . $booking['booking_id']);
-                            ?>
+                    <tbody>
+                        <?php if (!empty($bookings_result['bookings'])) : ?>
+                            <?php foreach ($bookings_result['bookings'] as $booking) : ?>
+                                <?php
+                                $status_val = $booking['status'];
+                                $status_display = !empty($status_val) ? ucfirst(str_replace('-', ' ', $status_val)) : __('N/A', 'mobooking');
+                                $total_price_formatted = esc_html($currency_symbol . number_format_i18n(floatval($booking['total_price']), 2));
+                                $booking_date_formatted = date_i18n(get_option('date_format'), strtotime($booking['booking_date']));
+                                $booking_time_formatted = date_i18n(get_option('time_format'), strtotime($booking['booking_time']));
+                                $assigned_staff_name = isset($booking['assigned_staff_name']) ? esc_html($booking['assigned_staff_name']) : esc_html__('Unassigned', 'mobooking');
+                                $details_page_url = home_url('/dashboard/bookings/?action=view_booking&booking_id=' . $booking['booking_id']);
+
+                                $status_classes = '';
+                                switch ($status_val) {
+                                    case 'confirmed': $status_classes = 'bg-success text-white'; break;
+                                    case 'pending': $status_classes = 'bg-warning text-white'; break;
+                                    case 'cancelled': $status_classes = 'bg-danger text-white'; break;
+                                    default: $status_classes = 'bg-gray-400 text-white'; break;
+                                }
+                                ?>
+                                <tr>
+                                    <td class="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
+                                        <p class="text-black dark:text-white"><?php echo esc_html($booking['booking_reference']); ?></p>
+                                    </td>
+                                    <td class="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
+                                        <p class="font-medium text-black dark:text-white"><?php echo esc_html($booking['customer_name']); ?></p>
+                                        <p class="text-sm text-gray-500"><?php echo esc_html($booking['customer_email']); ?></p>
+                                    </td>
+                                    <td class="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
+                                        <p class="text-black dark:text-white"><?php echo esc_html($booking_date_formatted . ' ' . $booking_time_formatted); ?></p>
+                                    </td>
+                                    <td class="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
+                                        <p class="text-black dark:text-white"><?php echo $assigned_staff_name; ?></p>
+                                    </td>
+                                    <td class="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
+                                        <p class="text-black dark:text-white"><?php echo $total_price_formatted; ?></p>
+                                    </td>
+                                    <td class="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
+                                        <p class="inline-flex rounded-full bg-opacity-10 py-1 px-3 text-sm font-medium <?php echo $status_classes; ?>">
+                                            <?php echo esc_html($status_display); ?>
+                                        </p>
+                                    </td>
+                                    <td class="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
+                                        <div class="flex items-center space-x-3.5">
+                                            <a href="<?php echo esc_url($details_page_url); ?>" class="hover:text-primary">
+                                                <svg class="fill-current" width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                    <path d="M8.99981 14.8219C3.43106 14.8219 0.674805 9.50624 0.562305 9.28124C0.47793 9.11249 0.47793 8.88749 0.562305 8.71874C0.674805 8.49374 3.43106 3.17812 8.99981 3.17812C14.5686 3.17812 17.3248 8.49374 17.4373 8.71874C17.5217 8.88749 17.5217 9.11249 17.4373 9.28124C17.3248 9.50624 14.5686 14.8219 8.99981 14.8219ZM1.85605 8.99999C2.4748 10.0406 4.89356 13.5 8.99981 13.5C13.1061 13.5 15.5248 10.0406 16.1436 8.99999C15.5248 7.95936 13.1061 4.5 8.99981 4.5C4.89356 4.5 2.4748 7.95936 1.85605 8.99999Z" fill=""></path>
+                                                    <path d="M9 11.25C7.75736 11.25 6.75 10.2426 6.75 9C6.75 7.75736 7.75736 6.75 9 6.75C10.2426 6.75 11.25 7.75736 11.25 9C11.25 10.2426 10.2426 11.25 9 11.25ZM9 7.875C8.30659 7.875 7.875 8.30659 7.875 9C7.875 9.69341 8.30659 10.125 9 10.125C9.69341 10.125 10.125 9.69341 10.125 9C10.125 8.30659 9.69341 7.875 9 7.875Z" fill=""></path>
+                                                </svg>
+                                            </a>
+                                            <?php if (class_exists('MoBooking\Classes\Auth') && !\MoBooking\Classes\Auth::is_user_worker($current_user_id)) : ?>
+                                            <button class="hover:text-primary mobooking-delete-booking-btn" data-booking-id="<?php echo esc_attr($booking['booking_id']); ?>">
+                                                <svg class="fill-current" width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                    <path d="M13.7535 2.47502H11.5879V1.9969C11.5879 1.15315 10.9129 0.478149 10.0691 0.478149H7.93164C7.08789 0.478149 6.41289 1.15315 6.41289 1.9969V2.47502H4.24727C3.62852 2.47502 3.12227 2.98127 3.12227 3.60002V4.50002C3.12227 4.58439 3.18789 4.65002 3.27227 4.65002H14.7281C14.8125 4.65002 14.8781 4.58439 14.8781 4.50002V3.60002C14.8781 2.98127 14.3719 2.47502 13.7535 2.47502ZM7.66289 1.9969C7.66289 1.82815 7.79102 1.70002 7.93164 1.70002H10.0691C10.2098 1.70002 10.3379 1.82815 10.3379 1.9969V2.47502H7.66289V1.9969Z" fill=""></path>
+                                                    <path d="M14.0348 6.0001H3.96561C3.56286 6.0001 3.23474 6.36573 3.27224 6.76848L4.09724 15.7685C4.15349 16.3688 4.641 16.8469 5.24136 16.8469H12.759C13.3594 16.8469 13.8469 16.3688 13.9031 15.7685L14.7281 6.76848C14.7656 6.36573 14.4375 6.0001 14.0348 6.0001Z" fill=""></path>
+                                                </svg>
+                                            </button>
+                                            <?php endif; ?>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php else : ?>
                             <tr>
-                                <td class="px-6 py-4 whitespace-no-wrap border-b border-gray-200 dark:border-gray-700">
-                                    <div class="text-sm leading-5 text-gray-900 dark:text-gray-200"><?php echo esc_html($booking['booking_reference']); ?></div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-no-wrap border-b border-gray-200 dark:border-gray-700">
-                                    <div class="text-sm leading-5 text-gray-900 dark:text-gray-200"><?php echo esc_html($booking['customer_name']); ?></div>
-                                    <div class="text-sm leading-5 text-gray-500 dark:text-gray-400"><?php echo esc_html($booking['customer_email']); ?></div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-no-wrap border-b border-gray-200 dark:border-gray-700">
-                                    <div class="text-sm leading-5 text-gray-900 dark:text-gray-200"><?php echo esc_html($booking_date_formatted . ' ' . $booking_time_formatted); ?></div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-no-wrap border-b border-gray-200 dark:border-gray-700">
-                                    <div class="text-sm leading-5 text-gray-900 dark:text-gray-200"><?php echo $assigned_staff_name; ?></div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-no-wrap border-b border-gray-200 dark:border-gray-700">
-                                    <div class="text-sm leading-5 text-gray-900 dark:text-gray-200"><?php echo $total_price_formatted; ?></div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-no-wrap border-b border-gray-200 dark:border-gray-700">
-                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full <?php echo $status_val === 'confirmed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'; ?>"><?php echo esc_html($status_display); ?></span>
-                                </td>
-                                <td class="px-6 py-4 whitespace-no-wrap text-right border-b border-gray-200 dark:border-gray-700 text-sm leading-5 font-medium">
-                                    <a href="<?php echo esc_url($details_page_url); ?>" class="text-indigo-600 hover:text-indigo-900 dark:hover:text-indigo-400"><?php esc_html_e('View', 'mobooking'); ?></a>
+                                <td colspan="7" class="text-center py-10">
+                                    <p class="text-lg text-gray-400">No bookings found.</p>
                                 </td>
                             </tr>
-                        <?php endforeach; ?>
+                        <?php endif; ?>
                     </tbody>
                 </table>
             </div>
+
+            <!-- Pagination -->
+            <div class="py-4 px-4">
+                <?php echo $initial_pagination_html; ?>
+            </div>
         </div>
     </div>
-</div>
+    <!-- ====== Table Section End -->
+</section>
+<!-- ======== main-content end ======== -->

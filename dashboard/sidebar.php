@@ -47,30 +47,30 @@ if ( $current_user_id > 0 ) {
 }
 ?>
 <div x-show="sidebarOpen" @click="sidebarOpen = false" class="fixed inset-0 z-10 bg-black bg-opacity-50 lg:hidden" style="display: none;"></div>
-<aside :class="sidebarOpen ? 'translate-x-0 ease-out' : '-translate-x-full ease-in'" class="fixed inset-y-0 left-0 z-20 w-64 overflow-y-auto transition duration-300 transform bg-gray-900 lg:translate-x-0 lg:static lg:inset-0">
+<aside :class="sidebarOpen ? 'translate-x-0 ease-out' : '-translate-x-full ease-in'" class="fixed inset-y-0 left-0 z-20 w-64 overflow-y-auto transition duration-300 transform bg-white shadow-lg dark:bg-gray-800 lg:translate-x-0 lg:static lg:inset-0">
     <div class="flex items-center justify-center mt-8">
-        <a href="<?php echo esc_url($dashboard_base_url); ?>" class="text-2xl font-semibold text-white"><?php echo $display_brand_name; ?></a>
+        <a href="<?php echo esc_url($dashboard_base_url); ?>" class="text-2xl font-semibold text-gray-800 dark:text-white"><?php echo $display_brand_name; ?></a>
     </div>
     <nav class="mt-10">
         <div>
             <h3 class="mx-6 text-xs font-semibold text-gray-400 uppercase"><?php esc_html_e('Main', 'mobooking'); ?></h3>
-            <a class="flex items-center px-6 py-2 mt-4 text-gray-100 hover:bg-gray-700 <?php echo ($current_page === 'overview') ? 'bg-gray-800' : ''; ?>" href="<?php echo esc_url($dashboard_base_url); ?>">
+            <a class="flex items-center px-6 py-2 mt-4 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700 <?php echo ($current_page === 'overview') ? 'bg-gray-200 dark:bg-gray-700' : ''; ?>" href="<?php echo esc_url($dashboard_base_url); ?>">
                 <span class="mr-3"><?php echo mobooking_get_dashboard_menu_icon('overview'); ?></span>
                 <?php esc_html_e('Overview', 'mobooking'); ?>
             </a>
             <?php if (current_user_can(\MoBooking\Classes\Auth::ROLE_WORKER_STAFF)) : ?>
-                <a class="flex items-center px-6 py-2 mt-4 text-gray-100 hover:bg-gray-700 <?php echo ($current_page === 'my-assigned-bookings') ? 'bg-gray-800' : ''; ?>" href="<?php echo esc_url(trailingslashit($dashboard_base_url) . 'my-assigned-bookings/'); ?>">
+                <a class="flex items-center px-6 py-2 mt-4 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700 <?php echo ($current_page === 'my-assigned-bookings') ? 'bg-gray-200 dark:bg-gray-700' : ''; ?>" href="<?php echo esc_url(trailingslashit($dashboard_base_url) . 'my-assigned-bookings/'); ?>">
                     <span class="mr-3"><?php echo mobooking_get_dashboard_menu_icon('bookings'); ?></span>
                     <?php esc_html_e('My Assigned Bookings', 'mobooking'); ?>
                 </a>
             <?php elseif (current_user_can(\MoBooking\Classes\Auth::CAP_VIEW_BOOKINGS) || current_user_can(\MoBooking\Classes\Auth::CAP_MANAGE_BOOKINGS)) : ?>
-                <a class="flex items-center px-6 py-2 mt-4 text-gray-100 hover:bg-gray-700 <?php echo ($current_page === 'bookings') ? 'bg-gray-800' : ''; ?>" href="<?php echo esc_url(trailingslashit($dashboard_base_url) . 'bookings/'); ?>">
+                <a class="flex items-center px-6 py-2 mt-4 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700 <?php echo ($current_page === 'bookings') ? 'bg-gray-200 dark:bg-gray-700' : ''; ?>" href="<?php echo esc_url(trailingslashit($dashboard_base_url) . 'bookings/'); ?>">
                     <span class="mr-3"><?php echo mobooking_get_dashboard_menu_icon('bookings'); ?></span>
                     <?php esc_html_e('Bookings', 'mobooking'); ?>
                 </a>
             <?php endif; ?>
             <?php if (current_user_can(\MoBooking\Classes\Auth::CAP_VIEW_CUSTOMERS) || current_user_can(\MoBooking\Classes\Auth::CAP_MANAGE_CUSTOMERS)) : ?>
-                <a class="flex items-center px-6 py-2 mt-4 text-gray-100 hover:bg-gray-700 <?php echo ($current_page === 'customers') ? 'bg-gray-800' : ''; ?>" href="<?php echo esc_url(trailingslashit($dashboard_base_url) . 'customers/'); ?>">
+                <a class="flex items-center px-6 py-2 mt-4 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700 <?php echo ($current_page === 'customers') ? 'bg-gray-200 dark:bg-gray-700' : ''; ?>" href="<?php echo esc_url(trailingslashit($dashboard_base_url) . 'customers/'); ?>">
                     <span class="mr-3"><?php echo mobooking_get_dashboard_menu_icon('clients'); ?></span>
                     <?php esc_html_e('Customers', 'mobooking'); ?>
                 </a>
@@ -79,31 +79,31 @@ if ( $current_user_id > 0 ) {
         <div class="mt-10">
             <h3 class="mx-6 text-xs font-semibold text-gray-400 uppercase"><?php esc_html_e('Business', 'mobooking'); ?></h3>
             <?php if (current_user_can(\MoBooking\Classes\Auth::CAP_VIEW_SERVICES) || current_user_can(\MoBooking\Classes\Auth::CAP_MANAGE_SERVICES)) : ?>
-                <a class="flex items-center px-6 py-2 mt-4 text-gray-100 hover:bg-gray-700 <?php echo ($current_page === 'services') ? 'bg-gray-800' : ''; ?>" href="<?php echo esc_url(trailingslashit($dashboard_base_url) . 'services/'); ?>">
+                <a class="flex items-center px-6 py-2 mt-4 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700 <?php echo ($current_page === 'services') ? 'bg-gray-200 dark:bg-gray-700' : ''; ?>" href="<?php echo esc_url(trailingslashit($dashboard_base_url) . 'services/'); ?>">
                     <span class="mr-3"><?php echo mobooking_get_dashboard_menu_icon('services'); ?></span>
                     <?php esc_html_e('Services', 'mobooking'); ?>
                 </a>
             <?php endif; ?>
             <?php if (current_user_can(\MoBooking\Classes\Auth::CAP_MANAGE_AVAILABILITY)) : ?>
-                <a class="flex items-center px-6 py-2 mt-4 text-gray-100 hover:bg-gray-700 <?php echo ($current_page === 'availability') ? 'bg-gray-800' : ''; ?>" href="<?php echo esc_url(trailingslashit($dashboard_base_url) . 'availability/'); ?>">
+                <a class="flex items-center px-6 py-2 mt-4 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700 <?php echo ($current_page === 'availability') ? 'bg-gray-200 dark:bg-gray-700' : ''; ?>" href="<?php echo esc_url(trailingslashit($dashboard_base_url) . 'availability/'); ?>">
                     <span class="mr-3"><?php echo mobooking_get_dashboard_menu_icon('availability'); ?></span>
                     <?php esc_html_e('Availability', 'mobooking'); ?>
                 </a>
             <?php endif; ?>
             <?php if (current_user_can(\MoBooking\Classes\Auth::CAP_VIEW_DISCOUNTS) || current_user_can(\MoBooking\Classes\Auth::CAP_MANAGE_DISCOUNTS)) : ?>
-                <a class="flex items-center px-6 py-2 mt-4 text-gray-100 hover:bg-gray-700 <?php echo ($current_page === 'discounts') ? 'bg-gray-800' : ''; ?>" href="<?php echo esc_url(trailingslashit($dashboard_base_url) . 'discounts/'); ?>">
+                <a class="flex items-center px-6 py-2 mt-4 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700 <?php echo ($current_page === 'discounts') ? 'bg-gray-200 dark:bg-gray-700' : ''; ?>" href="<?php echo esc_url(trailingslashit($dashboard_base_url) . 'discounts/'); ?>">
                     <span class="mr-3"><?php echo mobooking_get_dashboard_menu_icon('discounts'); ?></span>
                     <?php esc_html_e('Discounts', 'mobooking'); ?>
                 </a>
             <?php endif; ?>
             <?php if (current_user_can(\MoBooking\Classes\Auth::CAP_VIEW_AREAS) || current_user_can(\MoBooking\Classes\Auth::CAP_MANAGE_AREAS)) : ?>
-                <a class="flex items-center px-6 py-2 mt-4 text-gray-100 hover:bg-gray-700 <?php echo ($current_page === 'areas') ? 'bg-gray-800' : ''; ?>" href="<?php echo esc_url(trailingslashit($dashboard_base_url) . 'areas/'); ?>">
+                <a class="flex items-center px-6 py-2 mt-4 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700 <?php echo ($current_page === 'areas') ? 'bg-gray-200 dark:bg-gray-700' : ''; ?>" href="<?php echo esc_url(trailingslashit($dashboard_base_url) . 'areas/'); ?>">
                     <span class="mr-3"><?php echo mobooking_get_dashboard_menu_icon('areas'); ?></span>
                     <?php esc_html_e('Service Areas', 'mobooking'); ?>
                 </a>
             <?php endif; ?>
             <?php if (current_user_can(\MoBooking\Classes\Auth::CAP_MANAGE_WORKERS)) : ?>
-                <a class="flex items-center px-6 py-2 mt-4 text-gray-100 hover:bg-gray-700 <?php echo ($current_page === 'workers') ? 'bg-gray-800' : ''; ?>" href="<?php echo esc_url(trailingslashit($dashboard_base_url) . 'workers/'); ?>">
+                <a class="flex items-center px-6 py-2 mt-4 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700 <?php echo ($current_page === 'workers') ? 'bg-gray-200 dark:bg-gray-700' : ''; ?>" href="<?php echo esc_url(trailingslashit($dashboard_base_url) . 'workers/'); ?>">
                     <span class="mr-3"><?php echo mobooking_get_dashboard_menu_icon('workers'); ?></span>
                     <?php esc_html_e('Workers', 'mobooking'); ?>
                 </a>
@@ -112,13 +112,13 @@ if ( $current_user_id > 0 ) {
         <div class="mt-10">
             <h3 class="mx-6 text-xs font-semibold text-gray-400 uppercase"><?php esc_html_e('Settings', 'mobooking'); ?></h3>
             <?php if (current_user_can(\MoBooking\Classes\Auth::CAP_MANAGE_BOOKING_FORM)) : ?>
-                <a class="flex items-center px-6 py-2 mt-4 text-gray-100 hover:bg-gray-700 <?php echo ($current_page === 'booking-form') ? 'bg-gray-800' : ''; ?>" href="<?php echo esc_url(trailingslashit($dashboard_base_url) . 'booking-form/'); ?>">
+                <a class="flex items-center px-6 py-2 mt-4 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700 <?php echo ($current_page === 'booking-form') ? 'bg-gray-200 dark:bg-gray-700' : ''; ?>" href="<?php echo esc_url(trailingslashit($dashboard_base_url) . 'booking-form/'); ?>">
                     <span class="mr-3"><?php echo mobooking_get_dashboard_menu_icon('booking_form'); ?></span>
                     <?php esc_html_e('Booking Form', 'mobooking'); ?>
                 </a>
             <?php endif; ?>
             <?php if (current_user_can(\MoBooking\Classes\Auth::CAP_MANAGE_BUSINESS_SETTINGS)) : ?>
-                <a class="flex items-center px-6 py-2 mt-4 text-gray-100 hover:bg-gray-700 <?php echo ($current_page === 'settings') ? 'bg-gray-800' : ''; ?>" href="<?php echo esc_url(trailingslashit($dashboard_base_url) . 'settings/'); ?>">
+                <a class="flex items-center px-6 py-2 mt-4 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700 <?php echo ($current_page === 'settings') ? 'bg-gray-200 dark:bg-gray-700' : ''; ?>" href="<?php echo esc_url(trailingslashit($dashboard_base_url) . 'settings/'); ?>">
                     <span class="mr-3"><?php echo mobooking_get_dashboard_menu_icon('settings'); ?></span>
                     <?php esc_html_e('Settings', 'mobooking'); ?>
                 </a>
