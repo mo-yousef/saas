@@ -84,12 +84,12 @@ class BookingFormAjax {
         try {
             // Get tenant's service areas
             $areas_table = Database::get_table_name('areas');
-            $service_areas = $this->wpdb->get_results($this->wpdb->prepare(
+            $areas = $this->wpdb->get_results($this->wpdb->prepare(
                 "SELECT area_type, area_value, country_code FROM $areas_table WHERE user_id = %d",
                 $tenant_id
             ), ARRAY_A);
 
-            if (empty($service_areas)) {
+            if (empty($areas)) {
                 wp_send_json_error(['message' => __('No service areas configured.', 'mobooking')], 404);
                 return;
             }
@@ -97,7 +97,7 @@ class BookingFormAjax {
             $location_normalized = strtolower(trim($location));
             $is_covered = false;
 
-            foreach ($service_areas as $area) {
+            foreach ($areas as $area) {
                 $area_value_normalized = strtolower(trim($area['area_value']));
                 
                 // Check for exact match or partial match

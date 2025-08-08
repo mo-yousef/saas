@@ -165,7 +165,7 @@ public function get_areas_for_city($country_code, $city_code) {
             return new \WP_Error('invalid_data', __('Invalid areas data.', 'mobooking'));
         }
 
-        $table_name = Database::get_table_name('service_areas');
+        $table_name = Database::get_table_name('areas');
         $added_count = 0;
         $skipped_count = 0;
         $errors = [];
@@ -244,7 +244,7 @@ public function get_areas_for_city($country_code, $city_code) {
             return ['areas' => [], 'total_count' => 0, 'per_page' => 0, 'current_page' => 1];
         }
 
-        $table_name = Database::get_table_name('service_areas');
+        $table_name = Database::get_table_name('areas');
         $area_type = sanitize_text_field($type);
 
         // Pagination parameters
@@ -304,7 +304,7 @@ public function get_areas_for_city($country_code, $city_code) {
             return new \WP_Error('invalid_user', __('Invalid user.', 'mobooking'));
         }
 
-        $table_name = Database::get_table_name('service_areas');
+        $table_name = Database::get_table_name('areas');
 
         // Verify ownership
         $owner_id = $this->wpdb->get_var($this->wpdb->prepare(
@@ -337,7 +337,7 @@ public function get_areas_for_city($country_code, $city_code) {
             return false;
         }
 
-        $table_name = Database::get_table_name('service_areas');
+        $table_name = Database::get_table_name('areas');
         $normalized_zip = sanitize_text_field(str_replace(' ', '', strtoupper($zip_code)));
 
         $sql = $this->wpdb->prepare(
@@ -553,13 +553,13 @@ public function get_areas_for_city($country_code, $city_code) {
 
         try {
             // Get tenant's service areas
-            $table_name = Database::get_table_name('service_areas');
-            $service_areas = $this->wpdb->get_results($this->wpdb->prepare(
+            $table_name = Database::get_table_name('areas');
+            $areas = $this->wpdb->get_results($this->wpdb->prepare(
                 "SELECT area_type, area_value, country_code FROM $table_name WHERE user_id = %d",
                 $tenant_user_id
             ), ARRAY_A);
 
-            if (empty($service_areas)) {
+            if (empty($areas)) {
                 wp_send_json_error(['message' => __('No service areas configured.', 'mobooking')], 404);
                 return;
             }
@@ -567,7 +567,7 @@ public function get_areas_for_city($country_code, $city_code) {
             $location_normalized = strtolower(trim($location));
             $is_covered = false;
 
-            foreach ($service_areas as $area) {
+            foreach ($areas as $area) {
                 $area_value_normalized = strtolower(trim($area['area_value']));
                 
                 // Check for exact match or partial match
@@ -621,7 +621,7 @@ public function get_service_coverage(int $user_id, $args = []) {
         return ['coverage' => [], 'total_count' => 0, 'per_page' => 0, 'current_page' => 1];
     }
 
-    $table_name = Database::get_table_name('service_areas');
+    $table_name = Database::get_table_name('areas');
     $paged = isset($args['paged']) ? max(1, intval($args['paged'])) : 1;
     $limit = isset($args['limit']) ? max(1, intval($args['limit'])) : 20;
     $offset = ($paged - 1) * $limit;
@@ -659,7 +659,7 @@ public function get_service_coverage_grouped(int $user_id, $filters = []) {
         return ['cities' => []];
     }
 
-    $table_name = Database::get_table_name('service_areas');
+    $table_name = Database::get_table_name('areas');
     $where_conditions = ['user_id = %d'];
     $where_values = [$user_id];
 
@@ -692,7 +692,7 @@ public function toggle_area_status(int $area_id, int $user_id, string $status) {
         return new \WP_Error('invalid_status', __('Invalid status value.', 'mobooking'));
     }
 
-    $table_name = Database::get_table_name('service_areas');
+    $table_name = Database::get_table_name('areas');
 
     // Verify ownership
     $owner_id = $this->wpdb->get_var($this->wpdb->prepare(
@@ -728,7 +728,7 @@ public function remove_country_coverage(int $user_id, string $country_code) {
         return new \WP_Error('invalid_params', __('Invalid parameters.', 'mobooking'));
     }
 
-    $table_name = Database::get_table_name('service_areas');
+    $table_name = Database::get_table_name('areas');
     $country_code = sanitize_text_field(strtoupper($country_code));
 
     $deleted = $this->wpdb->delete(
@@ -840,7 +840,7 @@ public function handle_save_city_areas_ajax() {
 
     // First, remove all existing areas for this city
     $this->wpdb->delete(
-        Database::get_table_name('service_areas'),
+        Database::get_table_name('areas'),
         ['user_id' => $user_id, 'area_name' => $city_code],
         ['%d', '%s']
     );
@@ -873,7 +873,7 @@ public function handle_remove_city_coverage_ajax() {
     }
 
     $deleted = $this->wpdb->delete(
-        Database::get_table_name('service_areas'),
+        Database::get_table_name('areas'),
         ['user_id' => $user_id, 'area_name' => $city_code],
         ['%d', '%s']
     );
@@ -927,7 +927,7 @@ public function register_enhanced_ajax_actions() {
     // Add these to your existing register_ajax_actions method
     add_action('wp_ajax_mobooking_get_service_coverage', [$this, 'handle_get_service_coverage_ajax']);
     add_action('wp_ajax_mobooking_toggle_area_status', [$this, 'handle_toggle_area_status_ajax']);
-    add_action('wp_ajax_mobooking_remove_country_coverage', [$this, 'handle_remove_country_coverage_ajax']);
+    add_action('wp_ajax__remove_country_coverage', [$this, 'handle_remove_country_coverage_ajax']);
         add_action('wp_ajax_mobooking_save_city_areas', [$this, 'handle_save_city_areas_ajax']);
         add_action('wp_ajax_mobooking_remove_city_coverage', [$this, 'handle_remove_city_coverage_ajax']);
 }
@@ -935,8 +935,8 @@ public function register_enhanced_ajax_actions() {
 /**
  * Update database schema to support status column (run this once)
  */
-public function add_status_column_to_service_areas() {
-    $table_name = Database::get_table_name('service_areas');
+public function add_status_column_to_areas() {
+    $table_name = Database::get_table_name('areas');
     
     // Check if status column exists
     $column_exists = $this->wpdb->get_results(
@@ -960,7 +960,7 @@ public function get_areas_count_by_user(int $user_id): int {
         return 0;
     }
 
-    $table_name = Database::get_table_name('service_areas');
+    $table_name = Database::get_table_name('areas');
     $count = $this->wpdb->get_var($this->wpdb->prepare(
         "SELECT COUNT(area_id) FROM $table_name WHERE user_id = %d",
         $user_id
