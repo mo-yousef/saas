@@ -1,6 +1,7 @@
 <?php
 /**
  * Dashboard Page: Overview
+ * Fixed version with working widgets and shadcn/ui styling
  * @package MoBooking
  */
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
@@ -28,26 +29,103 @@ if (class_exists('MoBooking\Classes\Auth') && \MoBooking\Classes\Auth::is_user_w
     }
 }
 
+// Get database instance for safe queries
+global $wpdb;
+$bookings_table = \MoBooking\Classes\Database::get_table_name('bookings');
+
+// Helper function to safely get booking statistics
+function get_safe_booking_stats($wpdb, $bookings_table, $user_id, $start_date = null, $end_date = null) {
+    $where_conditions = ["user_id = %d"];
+    $where_values = [$user_id];
+    
+    if ($start_date && $end_date) {
+        $where_conditions[] = "booking_date BETWEEN %s AND %s";
+        $where_values[] = $start_date;
+        $where_values[] = $end_date;
+    }
+    
+    $where_clause = 'WHERE ' . implode(' AND ', $where_conditions);
+    
+    // Total bookings
+    $total = $wpdb->get_var($wpdb->prepare(
+        "SELECT COUNT(*) FROM $bookings_table $where_clause",
+        $where_values
+    ));
+    
+    // Bookings by status
+    $status_counts = $wpdb->get_results($wpdb->prepare(
+        "SELECT status, COUNT(*) as count FROM $bookings_table $where_clause GROUP BY status",
+        $where_values
+    ), ARRAY_A);
+    
+    $by_status = [];
+    if ($status_counts) {
+        foreach ($status_counts as $row) {
+            $by_status[$row['status']] = intval($row['count']);
+        }
+    }
+    
+    // Revenue (only for completed/confirmed bookings)
+    $revenue_conditions = $where_conditions;
+    $revenue_conditions[] = "status IN ('completed', 'confirmed')";
+    $revenue_where = 'WHERE ' . implode(' AND ', $revenue_conditions);
+    
+    $total_revenue = $wpdb->get_var($wpdb->prepare(
+        "SELECT SUM(total_price) FROM $bookings_table $revenue_where",
+        $where_values
+    ));
+    
+    return [
+        'total' => intval($total),
+        'by_status' => $by_status,
+        'total_revenue' => floatval($total_revenue ?: 0)
+    ];
+}
+
+// Helper function to get customer statistics
+function get_safe_customer_stats($wpdb, $bookings_table, $user_id, $start_date = null, $end_date = null) {
+    $where_conditions = ["user_id = %d"];
+    $where_values = [$user_id];
+    
+    if ($start_date && $end_date) {
+        $where_conditions[] = "created_at BETWEEN %s AND %s";
+        $where_values[] = $start_date . ' 00:00:00';
+        $where_values[] = $end_date . ' 23:59:59';
+    }
+    
+    $where_clause = 'WHERE ' . implode(' AND ', $where_conditions);
+    
+    // Count unique customers by email
+    $new_customers = $wpdb->get_var($wpdb->prepare(
+        "SELECT COUNT(DISTINCT customer_email) FROM $bookings_table $where_clause",
+        $where_values
+    ));
+    
+    return [
+        'new_customers' => intval($new_customers ?: 0)
+    ];
+}
+
+// Helper function to calculate percentage change
+function calculate_percentage_change($current, $previous) {
+    if ($previous == 0) {
+        return $current > 0 ? '+100%' : '0%';
+    }
+    $change = (($current - $previous) / $previous) * 100;
+    return sprintf('%+.1f%%', $change);
+}
+
 // Fetch data for KPI Widgets
 $current_month_start = date('Y-m-01');
 $current_month_end = date('Y-m-t');
 $previous_month_start = date('Y-m-01', strtotime('-1 month'));
 $previous_month_end = date('Y-m-t', strtotime('-1 month'));
 
-// Get stats for current and previous month
-$current_month_stats = $bookings_manager->get_booking_statistics($data_user_id, $current_month_start, $current_month_end);
-$previous_month_stats = $bookings_manager->get_booking_statistics($data_user_id, $previous_month_start, $previous_month_end);
-$current_month_customers = $customers_manager->get_customer_insights($data_user_id, $current_month_start, $current_month_end);
-$previous_month_customers = $customers_manager->get_customer_insights($data_user_id, $previous_month_start, $previous_month_end);
-
-// Helper function to calculate percentage change
-function calculate_percentage_change($current, $previous) {
-    if ($previous == 0) {
-        return $current > 0 ? '100%' : '0%';
-    }
-    $change = (($current - $previous) / $previous) * 100;
-    return sprintf('%+.0f%%', $change);
-}
+// Get safe stats for current and previous month
+$current_month_stats = get_safe_booking_stats($wpdb, $bookings_table, $data_user_id, $current_month_start, $current_month_end);
+$previous_month_stats = get_safe_booking_stats($wpdb, $bookings_table, $data_user_id, $previous_month_start, $previous_month_end);
+$current_month_customers = get_safe_customer_stats($wpdb, $bookings_table, $data_user_id, $current_month_start, $current_month_end);
+$previous_month_customers = get_safe_customer_stats($wpdb, $bookings_table, $data_user_id, $previous_month_start, $previous_month_end);
 
 // Prepare data for stats widgets
 $total_bookings = $current_month_stats['total'] ?? 0;
@@ -60,386 +138,596 @@ $prev_completed_jobs = $previous_month_stats['by_status']['completed'] ?? 0;
 $prev_monthly_revenue = $previous_month_stats['total_revenue'] ?? 0;
 $prev_new_customers = $previous_month_customers['new_customers'] ?? 0;
 
-$stats = [
-    [
-        'label' => 'Total Bookings',
-        'value' => $total_bookings,
-        'change' => calculate_percentage_change($total_bookings, $prev_total_bookings),
-        'isPositive' => $total_bookings >= $prev_total_bookings,
-    ],
-    [
-        'label' => 'Completed Jobs',
-        'value' => $completed_jobs,
-        'change' => calculate_percentage_change($completed_jobs, $prev_completed_jobs),
-        'isPositive' => $completed_jobs >= $prev_completed_jobs,
-    ],
-    [
-        'label' => 'Monthly Revenue',
-        'value' => '$' . number_format($monthly_revenue, 2),
-        'change' => calculate_percentage_change($monthly_revenue, $prev_monthly_revenue),
-        'isPositive' => $monthly_revenue >= $prev_monthly_revenue,
-    ],
-    [
-        'label' => 'New Customers',
-        'value' => $new_customers,
-        'change' => calculate_percentage_change($new_customers, $prev_new_customers),
-        'isPositive' => $new_customers >= $prev_new_customers,
-    ],
-];
+// Calculate percentage changes
+$bookings_change = calculate_percentage_change($total_bookings, $prev_total_bookings);
+$revenue_change = calculate_percentage_change($monthly_revenue, $prev_monthly_revenue);
+$completed_change = calculate_percentage_change($completed_jobs, $prev_completed_jobs);
+$customers_change = calculate_percentage_change($new_customers, $prev_new_customers);
 
-
-// Fetch data for Upcoming Bookings
-$upcoming_bookings = $bookings_manager->get_upcoming_bookings($data_user_id, 7);
-
-// Fetch data for Calendar
-$month = date('m');
-$year = date('Y');
-$start_of_month = date('Y-m-01');
-$end_of_month = date('Y-m-t');
-$calendar_bookings_result = $bookings_manager->get_bookings_by_tenant($data_user_id, [
-    'limit' => -1, // Get all
-    'date_from' => $start_of_month,
-    'date_to' => $end_of_month
-]);
-$calendar_bookings = [];
-foreach ($calendar_bookings_result['bookings'] as $booking) {
-    $day = date('j', strtotime($booking['booking_date']));
-    $calendar_bookings[$day][] = $booking;
+// Function to safely check if column exists
+function mobooking_column_exists_safe($table_name, $column_name) {
+    global $wpdb;
+    
+    $columns = $wpdb->get_results("DESCRIBE $table_name", ARRAY_A);
+    $existing_columns = array_column($columns, 'Field');
+    
+    return in_array($column_name, $existing_columns);
 }
 
+// Check if assigned_staff_id column exists
+$has_assigned_staff_column = mobooking_column_exists_safe($bookings_table, 'assigned_staff_id');
 
-// Fetch data for Staff Performance
-$staff_members_data = get_users([
-    'meta_key' => \MoBooking\Classes\Auth::META_KEY_OWNER_ID,
-    'meta_value' => $data_user_id,
-]);
-$staff_booking_counts = $bookings_manager->get_booking_counts_by_staff($data_user_id);
+// Get recent bookings (last 5) - with safe query
+if ($has_assigned_staff_column) {
+    $recent_bookings = $wpdb->get_results($wpdb->prepare(
+        "SELECT booking_id, customer_name, customer_email, booking_date, booking_time, status, total_price, 
+                CASE WHEN assigned_staff_id IS NOT NULL THEN (SELECT display_name FROM {$wpdb->users} WHERE ID = assigned_staff_id) ELSE 'Unassigned' END as assigned_staff_name
+         FROM $bookings_table 
+         WHERE user_id = %d 
+         ORDER BY created_at DESC 
+         LIMIT 5",
+        $data_user_id
+    ), ARRAY_A);
+} else {
+    $recent_bookings = $wpdb->get_results($wpdb->prepare(
+        "SELECT booking_id, customer_name, customer_email, booking_date, booking_time, status, total_price, 
+                'Unassigned' as assigned_staff_name
+         FROM $bookings_table 
+         WHERE user_id = %d 
+         ORDER BY created_at DESC 
+         LIMIT 5",
+        $data_user_id
+    ), ARRAY_A);
+}
 
-// Fetch data for Popular Services
-$popular_services = $services_manager->get_popular_services($data_user_id, 4);
+// Fix for assigned staff statistics (safe query without causing errors)
+$staff_stats = [];
+if ($has_assigned_staff_column) {
+    try {
+        $staff_assignments = $wpdb->get_results($wpdb->prepare(
+            "SELECT 
+                CASE WHEN assigned_staff_id IS NOT NULL THEN assigned_staff_id ELSE 0 END as staff_id,
+                COUNT(booking_id) as booking_count,
+                CASE 
+                    WHEN assigned_staff_id IS NOT NULL THEN (SELECT display_name FROM {$wpdb->users} WHERE ID = assigned_staff_id)
+                    ELSE 'Unassigned'
+                END as staff_name
+             FROM $bookings_table 
+             WHERE user_id = %d 
+             GROUP BY assigned_staff_id
+             ORDER BY booking_count DESC
+             LIMIT 5",
+            $data_user_id
+        ), ARRAY_A);
+        
+        if ($staff_assignments) {
+            $staff_stats = $staff_assignments;
+        }
+    } catch (Exception $e) {
+        error_log('MoBooking - Error fetching staff statistics: ' . $e->getMessage());
+        $staff_stats = [];
+    }
+} else {
+    // If no assigned_staff_id column, show default data
+    $total_bookings_count = $wpdb->get_var($wpdb->prepare(
+        "SELECT COUNT(*) FROM $bookings_table WHERE user_id = %d",
+        $data_user_id
+    ));
+    
+    if ($total_bookings_count > 0) {
+        $staff_stats = [
+            [
+                'staff_id' => 0,
+                'staff_name' => 'All Bookings (Unassigned)',
+                'booking_count' => $total_bookings_count
+            ]
+        ];
+    }
+}
 
-// Get currency symbol
-$currency_symbol = \MoBooking\Classes\Utils::get_currency_symbol($settings_manager->get_setting($data_user_id, 'biz_currency_code', 'USD'));
+// Currency symbol
+$currency_symbol = get_option('mobooking_currency_symbol', '$');
+
 ?>
 
-<main class="p-6">
-    <div class="mb-8">
-        <h1 class="text-2xl font-bold text-gray-900">Dashboard Overview</h1>
-        <p class="text-gray-600">
-            Welcome back! Here's what's happening with your business today.
+<style>
+/* shadcn/ui inspired styles */
+:root {
+  --background: 0 0% 100%;
+  --foreground: 222.2 84% 4.9%;
+  --card: 0 0% 100%;
+  --card-foreground: 222.2 84% 4.9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222.2 84% 4.9%;
+  --primary: 221.2 83.2% 53.3%;
+  --primary-foreground: 210 40% 98%;
+  --secondary: 210 40% 96%;
+  --secondary-foreground: 222.2 84% 4.9%;
+  --muted: 210 40% 96%;
+  --muted-foreground: 215.4 16.3% 46.9%;
+  --accent: 210 40% 96%;
+  --accent-foreground: 222.2 84% 4.9%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 210 40% 98%;
+  --border: 214.3 31.8% 91.4%;
+  --input: 214.3 31.8% 91.4%;
+  --ring: 221.2 83.2% 53.3%;
+  --radius: 0.5rem;
+}
+
+.mobooking-overview-dashboard {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.dashboard-header {
+  margin-bottom: 2rem;
+}
+
+.dashboard-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: hsl(var(--foreground));
+  margin: 0 0 0.5rem 0;
+}
+
+.dashboard-subtitle {
+  color: hsl(var(--muted-foreground));
+  font-size: 0.875rem;
+}
+
+/* KPI Grid */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.kpi-card {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  transition: all 0.2s ease;
+}
+
+.kpi-card:hover {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  transform: translateY(-1px);
+}
+
+.kpi-header {
+  display: flex;
+  justify-content: between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.kpi-title {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: hsl(var(--muted-foreground));
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.kpi-icon {
+  width: 2rem;
+  height: 2rem;
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+}
+
+.kpi-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: hsl(var(--foreground));
+  margin-bottom: 0.5rem;
+}
+
+.kpi-change {
+  font-size: 0.875rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.kpi-change.positive {
+  color: #10b981;
+}
+
+.kpi-change.negative {
+  color: #ef4444;
+}
+
+.kpi-change.neutral {
+  color: hsl(var(--muted-foreground));
+}
+
+/* Content Grid */
+.content-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.content-card {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+.card-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: hsl(var(--foreground));
+  margin: 0 0 1rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Recent Bookings */
+.booking-item {
+  padding: 1rem;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  margin-bottom: 0.75rem;
+  transition: all 0.2s ease;
+}
+
+.booking-item:hover {
+  background: hsl(var(--muted));
+  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.05);
+}
+
+.booking-item:last-child {
+  margin-bottom: 0;
+}
+
+.booking-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.booking-customer {
+  font-weight: 600;
+  color: hsl(var(--foreground));
+}
+
+.booking-status {
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.status-pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.status-confirmed {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.status-completed {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.status-cancelled {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.booking-details {
+  color: hsl(var(--muted-foreground));
+  font-size: 0.875rem;
+}
+
+/* Staff Stats */
+.staff-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  margin-bottom: 0.5rem;
+}
+
+.staff-item:last-child {
+  margin-bottom: 0;
+}
+
+.staff-name {
+  font-weight: 500;
+  color: hsl(var(--foreground));
+}
+
+.staff-count {
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+/* Empty States */
+.empty-state {
+  text-align: center;
+  padding: 2rem;
+  color: hsl(var(--muted-foreground));
+}
+
+.empty-state-icon {
+  width: 3rem;
+  height: 3rem;
+  margin: 0 auto 1rem;
+  background: hsl(var(--muted));
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+}
+
+/* Quick Actions */
+.quick-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.quick-action {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1.5rem;
+  background: hsl(var(--muted));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  text-decoration: none;
+  color: hsl(var(--foreground));
+  transition: all 0.2s ease;
+}
+
+.quick-action:hover {
+  background: hsl(var(--accent));
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.quick-action-icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.quick-action-text {
+  font-weight: 500;
+  text-align: center;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .kpi-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .content-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .quick-actions {
+    grid-template-columns: 1fr;
+  }
+  
+  .booking-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+}
+</style>
+
+<div class="wrap mobooking-overview-dashboard">
+    <div class="dashboard-header">
+        <h1 class="dashboard-title"><?php esc_html_e('Dashboard Overview', 'mobooking'); ?></h1>
+        <p class="dashboard-subtitle">
+            <?php 
+            if ($is_worker) {
+                printf(__('Welcome back, %s! Here\'s what\'s happening in your business.', 'mobooking'), esc_html($user->display_name));
+            } else {
+                printf(__('Welcome back, %s! Here\'s your business overview.', 'mobooking'), esc_html($user->display_name));
+            }
+            ?>
         </p>
     </div>
-    <!-- Stats -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <?php foreach ($stats as $stat): ?>
-            <div class="bg-white p-6 rounded-lg shadow-sm">
-                <p class="text-sm font-medium text-gray-600"><?php echo esc_html($stat['label']); ?></p>
-                <p class="text-2xl font-bold text-gray-900 mt-2">
-                    <?php echo esc_html($stat['value']); ?>
-                </p>
-                <div
-                    class="flex items-center mt-2 text-sm <?php echo $stat['isPositive'] ? 'text-green-600' : 'text-red-600'; ?>">
-                    <span><?php echo esc_html($stat['change']); ?></span>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ml-1"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg>
-                </div>
-            </div>
-        <?php endforeach; ?>
-    </div>
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <!-- Upcoming bookings -->
-        <div class="lg:col-span-2 bg-white rounded-lg shadow-sm overflow-hidden">
-            <div class="p-6 border-b">
-                <h2 class="text-lg font-bold text-gray-900">
-                    Upcoming Bookings
-                </h2>
-            </div>
-            <div class="overflow-x-auto">
-                <table class="w-full">
-                    <thead class="bg-gray-50 text-left">
-                        <tr>
-                            <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Customer
-                            </th>
-                            <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Service
-                            </th>
-                            <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Date & Time
-                            </th>
-                            <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Status
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-200">
-                        <?php if (!empty($upcoming_bookings)): ?>
-                            <?php foreach ($upcoming_bookings as $booking): ?>
-                                <?php
-                                $service_names = array_column($booking['items'], 'service_name');
-                                $service_display = !empty($service_names) ? implode(', ', $service_names) : 'N/A';
 
-                                $booking_datetime = strtotime($booking['booking_date'] . ' ' . $booking['booking_time']);
-                                $date_display = date('M j, Y', $booking_datetime);
-                                if (date('Y-m-d') == $booking['booking_date']) {
-                                    $date_display = 'Today';
-                                } elseif (date('Y-m-d', strtotime('+1 day')) == $booking['booking_date']) {
-                                    $date_display = 'Tomorrow';
-                                }
-                                $time_display = date('g:i A', $booking_datetime);
-                                ?>
-                                <tr>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="font-medium text-gray-900">
-                                            <?php echo esc_html($booking['customer_name']); ?>
-                                        </div>
-                                        <div class="text-sm text-gray-500">
-                                            <?php echo esc_html($booking['service_address']); ?>
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        <?php echo esc_html($service_display); ?>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        <div class="flex items-center">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1 text-gray-400"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                                            <?php echo esc_html($date_display . ', ' . $time_display); ?>
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <span
-                                            class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium <?php echo $booking['status'] === 'confirmed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'; ?>">
-                                            <?php if ($booking['status'] === 'confirmed'): ?>
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-                                            <?php else: ?>
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                                            <?php endif; ?>
-                                            <?php echo esc_html(ucfirst($booking['status'])); ?>
-                                        </span>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <tr>
-                                <td colspan="4" class="text-center py-4 text-gray-500">No upcoming bookings.</td>
-                            </tr>
-                        <?php endif; ?>
-                    </tbody>
-                </table>
+    <!-- KPI Widgets -->
+    <div class="kpi-grid">
+        <div class="kpi-card">
+            <div class="kpi-header">
+                <div class="kpi-title"><?php esc_html_e('Total Bookings', 'mobooking'); ?></div>
+                <div class="kpi-icon">📅</div>
             </div>
-            <div class="p-4 border-t text-center">
-                <a
-                    href="#"
-                    class="text-blue-600 hover:text-blue-700 font-medium"
-                >
-                    View all bookings
-                </a>
+            <div class="kpi-value"><?php echo esc_html($total_bookings); ?></div>
+            <div class="kpi-change <?php echo $bookings_change[0] === '+' ? 'positive' : ($bookings_change === '0%' ? 'neutral' : 'negative'); ?>">
+                <?php echo esc_html($bookings_change); ?> <?php esc_html_e('vs last month', 'mobooking'); ?>
             </div>
         </div>
-        <!-- Calendar -->
-        <div class="bg-white rounded-lg shadow-sm">
-            <div class="p-6 border-b">
-                <h2 class="text-lg font-bold text-gray-900">Calendar</h2>
-            </div>
-            <div class="p-6">
-                <div class="flex items-center justify-between mb-4">
-                    <button class="p-2 hover:bg-gray-100 rounded">
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="16"
-                            height="16"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            class="text-gray-600"
-                        >
-                            <path d="M15 18l-6-6 6-6" />
-                        </svg>
-                    </button>
-                    <span class="font-medium"><?php echo date('F Y'); ?></span>
-                    <button class="p-2 hover:bg-gray-100 rounded">
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="16"
-                            height="16"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            class="text-gray-600"
-                        >
-                            <path d="M9 18l6-6-6-6" />
-                        </svg>
-                    </button>
-                </div>
-                <div class="grid grid-cols-7 gap-1 text-center text-xs font-medium text-gray-500 mb-2">
-                    <div>Sun</div>
-                    <div>Mon</div>
-                    <div>Tue</div>
-                    <div>Wed</div>
-                    <div>Thu</div>
-                    <div>Fri</div>
-                    <div>Sat</div>
-                </div>
-                <div class="grid grid-cols-7 gap-1 text-center">
-                    <?php
-                    $first_day_of_month = date('N', strtotime("$year-$month-01"));
-                    $days_in_month = cal_days_in_month(CAL_GREGORIAN, $month, $year);
-                    for ($i = 1; $i < $first_day_of_month; $i++): ?>
-                        <div class="day empty"></div>
-                    <?php endfor; ?>
 
-                    <?php for ($day = 1; $day <= $days_in_month; $day++): ?>
-                        <button
-                            class="py-2 rounded-md <?php echo (date('j') == $day && date('m') == $month && date('Y') == $year) ? 'bg-blue-600 text-white font-medium' : 'hover:bg-gray-100'; ?> <?php echo isset($calendar_bookings[$day]) ? 'relative' : ''; ?>"
-                        >
-                            <?php echo $day; ?>
-                            <?php if (isset($calendar_bookings[$day])): ?>
-                                <span class="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-blue-600 rounded-full"></span>
-                            <?php endif; ?>
-                        </button>
-                    <?php endfor; ?>
+        <div class="kpi-card">
+            <div class="kpi-header">
+                <div class="kpi-title"><?php esc_html_e('Monthly Revenue', 'mobooking'); ?></div>
+                <div class="kpi-icon">💰</div>
+            </div>
+            <div class="kpi-value"><?php echo esc_html($currency_symbol . number_format($monthly_revenue, 2)); ?></div>
+            <div class="kpi-change <?php echo $revenue_change[0] === '+' ? 'positive' : ($revenue_change === '0%' ? 'neutral' : 'negative'); ?>">
+                <?php echo esc_html($revenue_change); ?> <?php esc_html_e('vs last month', 'mobooking'); ?>
+            </div>
+        </div>
+
+        <div class="kpi-card">
+            <div class="kpi-header">
+                <div class="kpi-title"><?php esc_html_e('Completed Jobs', 'mobooking'); ?></div>
+                <div class="kpi-icon">✅</div>
+            </div>
+            <div class="kpi-value"><?php echo esc_html($completed_jobs); ?></div>
+            <div class="kpi-change <?php echo $completed_change[0] === '+' ? 'positive' : ($completed_change === '0%' ? 'neutral' : 'negative'); ?>">
+                <?php echo esc_html($completed_change); ?> <?php esc_html_e('vs last month', 'mobooking'); ?>
+            </div>
+        </div>
+
+        <div class="kpi-card">
+            <div class="kpi-header">
+                <div class="kpi-title"><?php esc_html_e('New Customers', 'mobooking'); ?></div>
+                <div class="kpi-icon">👥</div>
+            </div>
+            <div class="kpi-value"><?php echo esc_html($new_customers); ?></div>
+            <div class="kpi-change <?php echo $customers_change[0] === '+' ? 'positive' : ($customers_change === '0%' ? 'neutral' : 'negative'); ?>">
+                <?php echo esc_html($customers_change); ?> <?php esc_html_e('vs last month', 'mobooking'); ?>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="content-grid">
+        <!-- Recent Bookings -->
+        <div class="content-card">
+            <h2 class="card-title">
+                📋 <?php esc_html_e('Recent Bookings', 'mobooking'); ?>
+            </h2>
+            
+            <?php if (!empty($recent_bookings)) : ?>
+                <?php foreach ($recent_bookings as $booking) : ?>
+                    <div class="booking-item">
+                        <div class="booking-header">
+                            <span class="booking-customer"><?php echo esc_html($booking['customer_name']); ?></span>
+                            <span class="booking-status status-<?php echo esc_attr($booking['status']); ?>">
+                                <?php echo esc_html(ucfirst($booking['status'])); ?>
+                            </span>
+                        </div>
+                        <div class="booking-details">
+                            <div><?php echo esc_html($booking['customer_email']); ?></div>
+                            <div><?php echo esc_html(date('M j, Y', strtotime($booking['booking_date']))); ?> at <?php echo esc_html($booking['booking_time']); ?></div>
+                            <div><?php echo esc_html($currency_symbol . number_format($booking['total_price'], 2)); ?> • <?php esc_html_e('Staff:', 'mobooking'); ?> <?php echo esc_html($booking['assigned_staff_name']); ?></div>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+                
+                <div style="margin-top: 1rem; text-align: center;">
+                    <a href="<?php echo esc_url(admin_url('admin.php?page=mobooking-bookings')); ?>" style="color: hsl(var(--primary)); text-decoration: none; font-weight: 500;">
+                        <?php esc_html_e('View All Bookings', 'mobooking'); ?> →
+                    </a>
                 </div>
-                <div class="mt-6 space-y-3">
-                    <?php if (!empty($calendar_bookings[date('j')])): ?>
-                        <?php foreach($calendar_bookings[date('j')] as $booking): ?>
-                            <div class="flex items-center p-2 bg-blue-50 rounded-md">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-blue-600 mr-2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                                <div class="text-sm">
-                                    <p class="font-medium text-gray-900"><?php echo esc_html(array_column($booking['items'], 'service_name')[0] ?? 'Booking'); ?></p>
-                                    <p class="text-gray-600"><?php echo date('g:i A', strtotime($booking['booking_time'])); ?></p>
-                                </div>
-                            </div>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
+            <?php else : ?>
+                <div class="empty-state">
+                    <div class="empty-state-icon">📋</div>
+                    <div><?php esc_html_e('No bookings yet', 'mobooking'); ?></div>
+                </div>
+            <?php endif; ?>
+        </div>
+
+        <!-- Sidebar Content -->
+        <div>
+            <!-- Staff Performance -->
+            <div class="content-card" style="margin-bottom: 1.5rem;">
+                <h2 class="card-title">
+                    👨‍💼 <?php esc_html_e('Staff Performance', 'mobooking'); ?>
+                </h2>
+                
+                <?php if (!empty($staff_stats)) : ?>
+                    <?php foreach ($staff_stats as $staff) : ?>
+                        <div class="staff-item">
+                            <span class="staff-name"><?php echo esc_html($staff['staff_name']); ?></span>
+                            <span class="staff-count"><?php echo esc_html($staff['booking_count']); ?></span>
+                        </div>
+                    <?php endforeach; ?>
+                <?php else : ?>
+                    <div class="empty-state">
+                        <div class="empty-state-icon">👨‍💼</div>
+                        <div><?php esc_html_e('No staff data available', 'mobooking'); ?></div>
+                    </div>
+                <?php endif; ?>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="content-card">
+                <h2 class="card-title">
+                    ⚡ <?php esc_html_e('Quick Actions', 'mobooking'); ?>
+                </h2>
+                
+                <div class="quick-actions">
+                    <a href="<?php echo esc_url(admin_url('admin.php?page=mobooking-bookings')); ?>" class="quick-action">
+                        <div class="quick-action-icon">📅</div>
+                        <div class="quick-action-text"><?php esc_html_e('Manage Bookings', 'mobooking'); ?></div>
+                    </a>
+                    
+                    <a href="<?php echo esc_url(admin_url('admin.php?page=mobooking-services')); ?>" class="quick-action">
+                        <div class="quick-action-icon">🛠️</div>
+                        <div class="quick-action-text"><?php esc_html_e('Manage Services', 'mobooking'); ?></div>
+                    </a>
+                    
+                    <a href="<?php echo esc_url(admin_url('admin.php?page=mobooking-customers')); ?>" class="quick-action">
+                        <div class="quick-action-icon">👥</div>
+                        <div class="quick-action-text"><?php esc_html_e('View Customers', 'mobooking'); ?></div>
+                    </a>
+                    
+                    <a href="<?php echo esc_url(admin_url('admin.php?page=mobooking-settings')); ?>" class="quick-action">
+                        <div class="quick-action-icon">⚙️</div>
+                        <div class="quick-action-text"><?php esc_html_e('Settings', 'mobooking'); ?></div>
+                    </a>
                 </div>
             </div>
         </div>
     </div>
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-        <!-- Staff performance -->
-        <div class="bg-white rounded-lg shadow-sm overflow-hidden">
-            <div class="p-6 border-b">
-                <h2 class="text-lg font-bold text-gray-900">
-                    Staff Performance
-                </h2>
-            </div>
-            <div class="overflow-x-auto">
-                <table class="w-full">
-                    <thead class="bg-gray-50 text-left">
-                        <tr>
-                            <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Staff Member
-                            </th>
-                            <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Role
-                            </th>
-                            <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Bookings
-                            </th>
-                            <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Rating
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-200">
-                        <?php if (!empty($staff_members_data)): ?>
-                            <?php foreach ($staff_members_data as $staff): ?>
-                                <?php
-                                $bookings_count = $staff_booking_counts[$staff->ID] ?? 0;
-                                $roles = array_map('ucfirst', $staff->roles);
-                                if (count($roles) > 1) {
-                                    $roles = array_diff($roles, ['Subscriber']);
-                                }
-                                $role_display = implode(', ', $roles);
-                                $role_display = str_replace('Mobooking_worker_staff', 'Cleaner', $role_display);
-                                ?>
-                                <tr>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="font-medium text-gray-900">
-                                            <?php echo esc_html($staff->display_name); ?>
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        <?php echo esc_html($role_display); ?>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        <?php echo esc_html($bookings_count); ?>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="flex items-center">
-                                            <span class="text-yellow-500 mr-1">★</span>
-                                            <span>4.8</span>
-                                        </div>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <tr>
-                                <td colspan="4" class="text-center py-4 text-gray-500">No staff members found.</td>
-                            </tr>
-                        <?php endif; ?>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        <!-- Popular services -->
-        <div class="bg-white rounded-lg shadow-sm overflow-hidden">
-            <div class="p-6 border-b">
-                <h2 class="text-lg font-bold text-gray-900">
-                    Popular Services
-                </h2>
-            </div>
-            <div class="overflow-x-auto">
-                <table class="w-full">
-                    <thead class="bg-gray-50 text-left">
-                        <tr>
-                            <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Service
-                            </th>
-                            <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Duration
-                            </th>
-                            <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Price
-                            </th>
-                            <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Bookings
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-200">
-                        <?php if (!empty($popular_services)): ?>
-                            <?php foreach ($popular_services as $service): ?>
-                                <tr>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="font-medium text-gray-900">
-                                            <?php echo esc_html($service['name']); ?>
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        <?php echo esc_html($service['duration'] / 60); ?> hours
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        <?php echo esc_html($currency_symbol . number_format($service['price'], 2)); ?>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        <?php echo esc_html($service['bookings_count']); ?>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <tr>
-                                <td colspan="4" class="text-center py-4 text-gray-500">No popular services found.</td>
-                            </tr>
-                        <?php endif; ?>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-</main>
+</div>
+
+<script>
+jQuery(document).ready(function($) {
+    // Add any interactive functionality here
+    console.log('MoBooking Overview Dashboard Loaded');
+    
+    // Example: Add click tracking for quick actions
+    $('.quick-action').on('click', function() {
+        const action = $(this).find('.quick-action-text').text();
+        console.log('Quick action clicked:', action);
+    });
+    
+    // Example: Add hover effects for KPI cards
+    $('.kpi-card').hover(
+        function() {
+            $(this).css('transform', 'translateY(-2px)');
+        },
+        function() {
+            $(this).css('transform', 'translateY(0)');
+        }
+    );
+});
+</script>
