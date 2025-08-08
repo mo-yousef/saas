@@ -272,7 +272,7 @@ class BookingFormAjax {
      * Get available time slots for a specific date
      */
     public function handle_get_available_time_slots() {
-        if (!check_ajax_referer('mobooking_booking_form_nonce', 'nonce')) {
+        if (!check_ajax_referer('mobooking_booking_form_nonce', 'nonce', false)) {
             wp_send_json_error(['message' => __('Security check failed.', 'mobooking')], 403);
             return;
         }
@@ -400,6 +400,9 @@ class BookingFormAjax {
         // Get and validate JSON data - use direct access to avoid URL decoding issues
         $selected_services_json = isset($_POST['selected_services']) ? wp_unslash($_POST['selected_services']) : '';
         $customer_details_json = isset($_POST['customer_details']) ? wp_unslash($_POST['customer_details']) : '';
+        $service_options_json = isset($_POST['service_options']) ? wp_unslash($_POST['service_options']) : '';
+        $pet_information_json = isset($_POST['pet_information']) ? wp_unslash($_POST['pet_information']) : '';
+        $property_access_json = isset($_POST['property_access']) ? wp_unslash($_POST['property_access']) : '';
         $discount_info_json = isset($_POST['discount_info']) ? wp_unslash($_POST['discount_info']) : '';
         $pricing_json = isset($_POST['pricing']) ? wp_unslash($_POST['pricing']) : '';
 
@@ -420,6 +423,27 @@ class BookingFormAjax {
         if (is_wp_error($customer_details)) {
             error_log('MoBooking - Customer details JSON decode error: ' . $customer_details->get_error_message());
             wp_send_json_error(['message' => __('Invalid customer information. Please check your form data.', 'mobooking')], 400);
+            return;
+        }
+
+        $service_options = $this->safe_json_decode($service_options_json, 'service_options');
+        if (is_wp_error($service_options)) {
+            error_log('MoBooking - Service options JSON decode error: ' . $service_options->get_error_message());
+            wp_send_json_error(['message' => __('Invalid service options data. Please try again.', 'mobooking')], 400);
+            return;
+        }
+
+        $pet_information = $this->safe_json_decode($pet_information_json, 'pet_information');
+        if (is_wp_error($pet_information)) {
+            error_log('MoBooking - Pet information JSON decode error: ' . $pet_information->get_error_message());
+            wp_send_json_error(['message' => __('Invalid pet information data. Please try again.', 'mobooking')], 400);
+            return;
+        }
+
+        $property_access = $this->safe_json_decode($property_access_json, 'property_access');
+        if (is_wp_error($property_access)) {
+            error_log('MoBooking - Property access JSON decode error: ' . $property_access->get_error_message());
+            wp_send_json_error(['message' => __('Invalid property access data. Please try again.', 'mobooking')], 400);
             return;
         }
 
@@ -519,6 +543,9 @@ class BookingFormAjax {
         $payload = [
             'selected_services' => $selected_services,
             'customer' => $customer_details,
+            'service_options' => $service_options,
+            'pet_information' => $pet_information,
+            'property_access' => $property_access,
             'discount_info' => $discount_info,
             'zip_code' => $zip_code,
             'country_code' => $country_code,
@@ -631,7 +658,7 @@ class BookingFormAjax {
         $day_of_week = date('w', strtotime($date));
 
         // Get recurring availability rules
-        $availability_rules_table = Database::get_table_name('availability_rules');
+        $availability_rules_table = $this->wpdb->prefix . 'mobooking_availability';
         $rules = $this->wpdb->get_results($this->wpdb->prepare(
             "SELECT start_time, end_time, capacity 
              FROM $availability_rules_table 
@@ -641,7 +668,7 @@ class BookingFormAjax {
         ), ARRAY_A);
 
         // Get availability exceptions for this specific date
-        $availability_exceptions_table = Database::get_table_name('availability_exceptions');
+        $availability_exceptions_table = $this->wpdb->prefix . 'mobooking_availability_exceptions';
         $exceptions = $this->wpdb->get_results($this->wpdb->prepare(
             "SELECT start_time, end_time, capacity, is_unavailable 
              FROM $availability_exceptions_table 
