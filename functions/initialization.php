@@ -109,15 +109,13 @@ if (class_exists('MoBooking\Classes\Customers')) {
 if (class_exists('MoBooking\Classes\Bookings') &&
     isset($GLOBALS['mobooking_discounts_manager']) &&
     isset($GLOBALS['mobooking_notifications_manager']) &&
-    isset($GLOBALS['mobooking_services_manager']) &&
-    isset($GLOBALS['mobooking_customers_manager'])) {
-    
+    isset($GLOBALS['mobooking_services_manager'])
+) {
     if (!isset($GLOBALS['mobooking_bookings_manager'])) {
         $GLOBALS['mobooking_bookings_manager'] = new MoBooking\Classes\Bookings(
             $GLOBALS['mobooking_discounts_manager'],
             $GLOBALS['mobooking_notifications_manager'],
-            $GLOBALS['mobooking_services_manager'],
-            $GLOBALS['mobooking_customers_manager']
+            $GLOBALS['mobooking_services_manager']
         );
         
         if (method_exists($GLOBALS['mobooking_bookings_manager'], 'register_ajax_actions')) {
