@@ -19,8 +19,8 @@ class Availability {
     public function __construct() {
         global $wpdb;
         $this->wpdb = $wpdb;
-        $this->slots_table_name = Database::get_table_name('availability_slots');
-        $this->overrides_table_name = Database::get_table_name('availability_overrides');
+        $this->slots_table_name = Database::get_table_name('availability_rules');
+        $this->overrides_table_name = Database::get_table_name('availability_exceptions');
     }
 
     public function register_ajax_actions() {
