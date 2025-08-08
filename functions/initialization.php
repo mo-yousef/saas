@@ -133,4 +133,12 @@ if (class_exists('MoBooking\Classes\Bookings') &&
 if ( class_exists( 'MoBooking\Classes\Admin\UserManagementPage' ) ) {
     add_action( 'admin_menu', array( 'MoBooking\Classes\Admin\UserManagementPage', 'register_page' ) );
 }
+
+// Initialize Public Booking Form AJAX and its dependencies
+if (class_exists('MoBooking\Classes\BookingFormAjax')) {
+    if (!isset($GLOBALS['mobooking_booking_form_ajax'])) {
+        $GLOBALS['mobooking_booking_form_ajax'] = new \MoBooking\Classes\BookingFormAjax();
+        $GLOBALS['mobooking_booking_form_ajax']->register_ajax_actions();
+    }
+}
 ?>

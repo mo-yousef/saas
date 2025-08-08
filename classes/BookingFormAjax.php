@@ -565,6 +565,10 @@ class BookingFormAjax {
 
         // Call the main create_booking method
         try {
+            if (!isset($this->bookings_manager) || !method_exists($this->bookings_manager, 'create_booking')) {
+                throw new \Exception('Bookings manager is not available.');
+            }
+
             $result = $this->bookings_manager->create_booking($tenant_id, $payload);
 
             if (is_wp_error($result)) {
@@ -609,7 +613,7 @@ class BookingFormAjax {
                 'total_price' => $result['final_total'] ?? 0
             ]);
 
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             error_log('MoBooking - Exception during booking creation: ' . $e->getMessage());
             error_log('MoBooking - Exception trace: ' . $e->getTraceAsString());
             wp_send_json_error(['message' => __('An unexpected error occurred. Please try again or contact support.', 'mobooking')], 500);
@@ -658,7 +662,7 @@ class BookingFormAjax {
         $day_of_week = date('w', strtotime($date));
 
         // Get recurring availability rules
-        $availability_rules_table = $this->wpdb->prefix . 'mobooking_availability';
+        $availability_rules_table = Database::get_table_name('availability_rules');
         $rules = $this->wpdb->get_results($this->wpdb->prepare(
             "SELECT start_time, end_time, capacity 
              FROM $availability_rules_table 
@@ -668,7 +672,7 @@ class BookingFormAjax {
         ), ARRAY_A);
 
         // Get availability exceptions for this specific date
-        $availability_exceptions_table = $this->wpdb->prefix . 'mobooking_availability_exceptions';
+        $availability_exceptions_table = Database::get_table_name('availability_exceptions');
         $exceptions = $this->wpdb->get_results($this->wpdb->prepare(
             "SELECT start_time, end_time, capacity, is_unavailable 
              FROM $availability_exceptions_table 
