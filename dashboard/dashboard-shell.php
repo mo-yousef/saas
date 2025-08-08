@@ -179,8 +179,8 @@ error_log('[MoBooking Shell Debug] dashboard-shell.php execution started. User l
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <?php wp_head(); ?>
 </head>
-<body <?php body_class('bg-gray-100 dark:bg-gray-900'); ?>>
-    <div class="flex h-screen bg-gray-100 dark:bg-gray-900">
+<body class="bg-gray-100 dark:bg-gray-900">
+    <div x-data="{ sidebarOpen: false }" class="flex h-screen bg-gray-100 dark:bg-gray-900">
         <?php
         error_log('[MoBooking Shell Debug] Including sidebar.php. Current view for sidebar: ' . $requested_page);
         // Set the global variable for the sidebar to use
@@ -227,15 +227,6 @@ error_log('[MoBooking Shell Debug] dashboard-shell.php execution started. User l
     </div>
     <div id="toast-container" class="fixed top-5 right-5 z-50"></div>
     <?php wp_footer(); ?>
-    <script>
-        // Basic mobile nav toggle
-        const mobileNavToggle = document.getElementById('mobooking-mobile-nav-toggle');
-        const sidebar = document.querySelector('.mobooking-dashboard-sidebar');
-        if (mobileNavToggle && sidebar) {
-            mobileNavToggle.addEventListener('click', function() {
-                sidebar.classList.toggle('open');
-            });
-        }
-    </script>
+    <script src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.min.js" defer></script>
 </body>
 </html>

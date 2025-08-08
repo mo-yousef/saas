@@ -50,16 +50,16 @@ wp_nonce_field('mobooking_services_nonce', 'mobooking_services_nonce_field');
                 </a>
             </div>
             <div class="flex">
-                <input class="w-full px-4 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                <input class="w-full px-4 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600"
                        type="text" id="services-search" placeholder="Search services...">
                 <select id="status-filter"
-                        class="px-4 py-2 border-t border-b border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-200">
+                        class="px-4 py-2 border-t border-b border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600">
                     <option value="">All Statuses</option>
                     <option value="active">Active</option>
                     <option value="inactive">Inactive</option>
                 </select>
                 <select id="sort-filter"
-                        class="px-4 py-2 border border-gray-300 rounded-r-md focus:outline-none focus:ring-2 focus:ring-indigo-200">
+                        class="px-4 py-2 border border-gray-300 rounded-r-md focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600">
                     <option value="name-asc">Name A-Z</option>
                     <option value="name-desc">Name Z-A</option>
                     <option value="price-asc">Price Low-High</option>
