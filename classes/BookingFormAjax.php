@@ -272,7 +272,7 @@ class BookingFormAjax {
      * Get available time slots for a specific date
      */
     public function handle_get_available_time_slots() {
-        if (!check_ajax_referer('mobooking_booking_form_nonce', 'nonce', false)) {
+        if (!check_ajax_referer('mobooking_booking_form_nonce', 'nonce')) {
             wp_send_json_error(['message' => __('Security check failed.', 'mobooking')], 403);
             return;
         }
