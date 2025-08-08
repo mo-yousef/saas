@@ -486,7 +486,7 @@ $total_pages = ceil($total_customers_count / $per_page);
                 <div class="kpi-title"><?php esc_html_e('Avg. Order Value', 'mobooking'); ?></div>
                 <div class="kpi-icon">💰</div>
             </div>
-            <div class="kpi-value"><?php echo esc_html($currency_symbol . number_format($kpi_data['avg_order_value'], 2)); ?></div>
+            <div class="kpi-value"><?php echo esc_html($currency_symbol . number_format($kpi_data['avg_order_value'] ?? 0, 2)); ?></div>
         </div>
     </div>
 
