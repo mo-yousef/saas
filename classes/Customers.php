@@ -328,6 +328,7 @@ class Customers {
                 'total_customers' => 0,
                 'new_customers_month' => 0,
                 'active_customers' => 0,
+                'avg_order_value' => 0,
             ];
         }
 
@@ -347,10 +348,17 @@ class Customers {
         // Active Customers
         $active_customers = $this->get_customer_count_by_tenant_id($tenant_id, ['status' => 'active']);
 
+        // Average Order Value
+        $avg_order_value = $this->db->get_var($this->db->prepare(
+            "SELECT AVG(total_price) FROM {$this->bookings_table_name} WHERE user_id = %d AND status IN ('completed', 'confirmed')",
+            $tenant_id
+        ));
+
         return [
             'total_customers' => is_wp_error($total_customers) ? 0 : $total_customers,
             'new_customers_month' => $new_customers_month ? absint($new_customers_month) : 0,
             'active_customers' => is_wp_error($active_customers) ? 0 : $active_customers,
+            'avg_order_value' => $avg_order_value ? floatval($avg_order_value) : 0,
         ];
     }
 
