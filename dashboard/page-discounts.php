@@ -28,140 +28,67 @@ $total_pages = ceil($total_discounts / $per_page);
 wp_nonce_field('mobooking_dashboard_nonce', 'mobooking_dashboard_nonce_field');
 
 ?>
-<div class="mobooking-discounts-page">
-    <div class="page-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-        <h1 class="text-2xl font-bold"><?php esc_html_e('Manage Discount Codes', 'mobooking'); ?></h1>
-        <button id="mobooking-add-new-discount-btn" class="button button-primary"><?php esc_html_e('Add New Discount Code', 'mobooking'); ?></button>
+<div>
+    <div class="flex items-center justify-between">
+        <h3 class="text-3xl font-medium text-gray-700 dark:text-gray-200">Discounts</h3>
+        <button id="mobooking-add-new-discount-btn" class="px-4 py-2 font-medium tracking-wide text-white capitalize transition-colors duration-200 transform bg-indigo-600 rounded-md hover:bg-indigo-500 focus:outline-none focus:bg-indigo-500">
+            Add New Discount Code
+        </button>
     </div>
 
-    <div id="mobooking-discounts-list-container" class="mobooking-table-container">
-    <table class="wp-list-table widefat striped">
-        <thead>
-            <tr>
-                <th scope="col"><?php esc_html_e('Code', 'mobooking'); ?></th>
-                <th scope="col"><?php esc_html_e('Type', 'mobooking'); ?></th>
-                <th scope="col"><?php esc_html_e('Value', 'mobooking'); ?></th>
-                <th scope="col"><?php esc_html_e('Expiry', 'mobooking'); ?></th>
-                <th scope="col"><?php esc_html_e('Usage (Used/Limit)', 'mobooking'); ?></th>
-                <th scope="col"><?php esc_html_e('Status', 'mobooking'); ?></th>
-                <th scope="col"><?php esc_html_e('Actions', 'mobooking'); ?></th>
-            </tr>
-        </thead>
-        <tbody id="mobooking-discounts-list">
-            <?php if ( ! empty( $discounts_list ) ) : ?>
-                <?php foreach ( $discounts_list as $discount ) : ?>
-                    <?php
-                    $type_display = $discount['type'] === 'percentage' ? __('Percentage', 'mobooking') : __('Fixed Amount', 'mobooking');
-                    $value_display = $discount['type'] === 'percentage' ? $discount['value'] . '%' : \MoBooking\Classes\Utils::format_currency($discount['value']);
-                    $expiry_date_display = !empty($discount['expiry_date']) ? date_i18n(get_option('date_format'), strtotime($discount['expiry_date'])) : __('Never', 'mobooking');
-                    $usage_limit_display = !empty($discount['usage_limit']) ? $discount['usage_limit'] : __('Unlimited', 'mobooking');
-                    $usage_display = esc_html($discount['times_used']) . ' / ' . esc_html($usage_limit_display);
-                    $status_display = $discount['status'] === 'active' ? __('Active', 'mobooking') : __('Inactive', 'mobooking');
-                    ?>
-                    <tr class="mobooking-discount-item" data-id="<?php echo esc_attr($discount['discount_id']); ?>">
-                        <td data-label="<?php esc_attr_e('Code', 'mobooking'); ?>"><strong><?php echo esc_html($discount['code']); ?></strong></td>
-                        <td data-label="<?php esc_attr_e('Type', 'mobooking'); ?>"><?php echo esc_html($type_display); ?></td>
-                        <td data-label="<?php esc_attr_e('Value', 'mobooking'); ?>"><?php echo wp_kses_post($value_display); // Currency might have HTML ?></td>
-                        <td data-label="<?php esc_attr_e('Expiry', 'mobooking'); ?>"><?php echo esc_html($expiry_date_display); ?></td>
-                        <td data-label="<?php esc_attr_e('Usage (Used/Limit)', 'mobooking'); ?>"><?php echo esc_html($usage_display); ?></td>
-                        <td data-label="<?php esc_attr_e('Status', 'mobooking'); ?>"><span class="status-<?php echo esc_attr($discount['status']); ?>"><?php echo esc_html($status_display); ?></span></td>
-                        <td data-label="<?php esc_attr_e('Actions', 'mobooking'); ?>">
-                            <button class="button button-small mobooking-edit-discount-btn" data-id="<?php echo esc_attr($discount['discount_id']); ?>"><?php esc_html_e('Edit', 'mobooking'); ?></button>
-                            <button class="button button-small button-link-delete mobooking-delete-discount-btn" data-id="<?php echo esc_attr($discount['discount_id']); ?>"><?php esc_html_e('Delete', 'mobooking'); ?></button>
-                        </td>
-                    </tr>
-                <?php endforeach; ?>
-            <?php else : ?>
-                <tr><td colspan="7"><p><?php esc_html_e('No discount codes found.', 'mobooking'); ?></p></td></tr>
-            <?php endif; ?>
-        </tbody>
-    </table>
-</div>
-<div id="mobooking-discounts-pagination-container" style="margin-top:20px; text-align: center;">
-    <?php
-    if ($total_pages > 1) {
-        echo paginate_links(array(
-            'base' => '#%#%',
-            'format' => '?paged=%#%',
-            'current' => $current_page,
-            'total' => $total_pages,
-            'prev_text' => __('&laquo; Prev'),
-            'next_text' => __('Next &raquo;'),
-            'add_fragment' => '',
-            'type' => 'list'
-        ));
-    }
-    ?>
-</div>
-
-<script type="text/template" id="mobooking-discount-item-template">
-    <tr class="mobooking-discount-item" data-id="<%= discount_id %>">
-        <td data-label="<?php esc_attr_e('Code', 'mobooking'); ?>"><strong><%= code %></strong></td>
-        <td data-label="<?php esc_attr_e('Type', 'mobooking'); ?>"><%= type_display %></td>
-        <td data-label="<?php esc_attr_e('Value', 'mobooking'); ?>"><%= value_display %></td>
-        <td data-label="<?php esc_attr_e('Expiry', 'mobooking'); ?>"><%= expiry_date_display %></td>
-        <td data-label="<?php esc_attr_e('Usage (Used/Limit)', 'mobooking'); ?>"><%= usage_display %></td>
-        <td data-label="<?php esc_attr_e('Status', 'mobooking'); ?>"><span class="status-<%= status %>"><%= status_display %></span></td>
-        <td data-label="<?php esc_attr_e('Actions', 'mobooking'); ?>">
-            <button class="button button-small mobooking-edit-discount-btn" data-id="<%= discount_id %>"><?php esc_html_e('Edit', 'mobooking'); ?></button>
-            <button class="button button-small button-link-delete mobooking-delete-discount-btn" data-id="<%= discount_id %>"><?php esc_html_e('Delete', 'mobooking'); ?></button>
-        </td>
-    </tr>
-</script>
-
-<div id="mobooking-discount-modal" class="mobooking-modal-backdrop">
-    <div class="mobooking-modal">
-        <div class="mobooking-modal-content">
-            <h2 id="mobooking-discount-form-title" class="text-lg font-semibold"></h2>
-            <form id="mobooking-discount-form">
-                <input type="hidden" id="mobooking-discount-id" name="discount_id" value="">
-                <div class="form-grid">
-                    <div class="form-group full-width">
-                        <label for="mobooking-discount-code"><?php esc_html_e('Discount Code', 'mobooking'); ?></label>
-                        <div style="display: flex; gap: 0.5rem;">
-                            <input type="text" id="mobooking-discount-code" name="code" required style="flex: 1;">
-                            <button type="button" id="mobooking-generate-code-btn" class="button"><?php esc_html_e('Generate', 'mobooking'); ?></button>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label><?php esc_html_e('Type', 'mobooking'); ?></label>
-                        <div class="radio-pills">
-                            <label>
-                                <input type="radio" name="type" value="percentage" checked>
-                                <span><?php esc_html_e('Percentage', 'mobooking'); ?></span>
-                            </label>
-                            <label>
-                                <input type="radio" name="type" value="fixed_amount">
-                                <span><?php esc_html_e('Fixed Amount', 'mobooking'); ?></span>
-                            </label>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="mobooking-discount-value"><?php esc_html_e('Value', 'mobooking'); ?></label>
-                        <input type="number" id="mobooking-discount-value" name="value" step="0.01" min="0.01" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="mobooking-discount-expiry"><?php esc_html_e('Expiry Date', 'mobooking'); ?></label>
-                        <input type="text" id="mobooking-discount-expiry" name="expiry_date" class="mobooking-datepicker" placeholder="YYYY-MM-DD" autocomplete="off">
-                    </div>
-                    <div class="form-group">
-                        <label for="mobooking-discount-limit"><?php esc_html_e('Usage Limit', 'mobooking'); ?></label>
-                        <input type="number" id="mobooking-discount-limit" name="usage_limit" step="1" min="0" placeholder="<?php esc_attr_e('e.g., 100', 'mobooking'); ?>">
-                    </div>
-                    <div class="form-group">
-                        <label for="mobooking-discount-status"><?php esc_html_e('Status', 'mobooking'); ?></label>
-                        <label class="mobooking-toggle-switch">
-                            <input type="checkbox" id="mobooking-discount-status" name="status" value="active">
-                            <span class="slider"></span>
-                        </label>
-                    </div>
+    <div class="mt-8">
+        <div class="flex flex-col">
+            <div class="-my-2 py-2 overflow-x-auto sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
+                <div class="align-middle inline-block min-w-full shadow overflow-hidden sm:rounded-lg border-b border-gray-200 dark:border-gray-700">
+                    <table class="min-w-full">
+                        <thead class="bg-gray-50 dark:bg-gray-700">
+                            <tr>
+                                <th class="px-6 py-3 text-xs font-medium leading-4 tracking-wider text-left text-gray-500 uppercase dark:text-gray-400">Code</th>
+                                <th class="px-6 py-3 text-xs font-medium leading-4 tracking-wider text-left text-gray-500 uppercase dark:text-gray-400">Type</th>
+                                <th class="px-6 py-3 text-xs font-medium leading-4 tracking-wider text-left text-gray-500 uppercase dark:text-gray-400">Value</th>
+                                <th class="px-6 py-3 text-xs font-medium leading-4 tracking-wider text-left text-gray-500 uppercase dark:text-gray-400">Expiry</th>
+                                <th class="px-6 py-3 text-xs font-medium leading-4 tracking-wider text-left text-gray-500 uppercase dark:text-gray-400">Usage (Used/Limit)</th>
+                                <th class="px-6 py-3 text-xs font-medium leading-4 tracking-wider text-left text-gray-500 uppercase dark:text-gray-400">Status</th>
+                                <th class="px-6 py-3 text-xs font-medium leading-4 tracking-wider text-left text-gray-500 uppercase dark:text-gray-400">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="mobooking-discounts-list" class="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
+                            <?php if ( ! empty( $discounts_list ) ) : ?>
+                                <?php foreach ( $discounts_list as $discount ) : ?>
+                                    <?php
+                                    $type_display = $discount['type'] === 'percentage' ? __('Percentage', 'mobooking') : __('Fixed Amount', 'mobooking');
+                                    $value_display = $discount['type'] === 'percentage' ? $discount['value'] . '%' : \MoBooking\Classes\Utils::format_currency($discount['value']);
+                                    $expiry_date_display = !empty($discount['expiry_date']) ? date_i18n(get_option('date_format'), strtotime($discount['expiry_date'])) : __('Never', 'mobooking');
+                                    $usage_limit_display = !empty($discount['usage_limit']) ? $discount['usage_limit'] : __('Unlimited', 'mobooking');
+                                    $usage_display = esc_html($discount['times_used']) . ' / ' . esc_html($usage_limit_display);
+                                    $status_display = $discount['status'] === 'active' ? __('Active', 'mobooking') : __('Inactive', 'mobooking');
+                                    ?>
+                                    <tr class="mobooking-discount-item" data-id="<?php echo esc_attr($discount['discount_id']); ?>">
+                                        <td class="px-6 py-4 whitespace-no-wrap"><?php echo esc_html($discount['code']); ?></td>
+                                        <td class="px-6 py-4 whitespace-no-wrap"><?php echo esc_html($type_display); ?></td>
+                                        <td class="px-6 py-4 whitespace-no-wrap"><?php echo wp_kses_post($value_display); ?></td>
+                                        <td class="px-6 py-4 whitespace-no-wrap"><?php echo esc_html($expiry_date_display); ?></td>
+                                        <td class="px-6 py-4 whitespace-no-wrap"><?php echo esc_html($usage_display); ?></td>
+                                        <td class="px-6 py-4 whitespace-no-wrap">
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full <?php echo $discount['status'] === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'; ?>">
+                                                <?php echo esc_html($status_display); ?>
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-no-wrap text-sm font-medium">
+                                            <button class="text-indigo-600 hover:text-indigo-900 dark:hover:text-indigo-400 mobooking-edit-discount-btn" data-id="<?php echo esc_attr($discount['discount_id']); ?>">Edit</button>
+                                            <button class="ml-2 text-red-600 hover:text-red-900 dark:hover:text-red-400 mobooking-delete-discount-btn" data-id="<?php echo esc_attr($discount['discount_id']); ?>">Delete</button>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php else : ?>
+                                <tr>
+                                    <td colspan="7" class="px-6 py-4 text-center text-gray-500 dark:text-gray-400">No discount codes found.</td>
+                                </tr>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
                 </div>
-                <div class="form-actions">
-                    <button type="button" class="button mobooking-modal-close"><?php esc_html_e('Cancel', 'mobooking'); ?></button>
-                    <button type="submit" id="mobooking-save-discount-btn" class="button button-primary"><?php esc_html_e('Save Discount', 'mobooking'); ?></button>
-                </div>
-            </form>
+            </div>
         </div>
     </div>
-</div>
 </div>

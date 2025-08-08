@@ -23,156 +23,75 @@ function mobooking_select_biz_setting_value($settings, $key, $value, $default_va
 }
 
 ?>
-<div id="mobooking-business-settings-page" class="wrap">
-    <h1><?php esc_html_e('Business Settings', 'mobooking'); ?></h1>
-    <p><?php esc_html_e('Manage your core business information, email configurations, and operating hours.', 'mobooking'); ?></p>
+<div>
+    <h3 class="text-3xl font-medium text-gray-700 dark:text-gray-200">Business Settings</h3>
+    <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">Manage your core business information, email configurations, and operating hours.</p>
 
-    <form id="mobooking-business-settings-form" method="post">
-        <?php wp_nonce_field('mobooking_dashboard_nonce', 'mobooking_dashboard_nonce_field'); ?>
-        <div id="mobooking-settings-feedback" style="margin-bottom:15px; margin-top:10px;"></div>
+    <div class="mt-8">
+        <form id="mobooking-business-settings-form" method="post">
+            <?php wp_nonce_field('mobooking_dashboard_nonce', 'mobooking_dashboard_nonce_field'); ?>
+            <div id="mobooking-settings-feedback" class="hidden p-4 mb-4 text-sm rounded-lg"></div>
 
-        <h2 class="nav-tab-wrapper" style="margin-bottom:20px;">
-            <a href="#mobooking-bizinfo-tab" class="nav-tab nav-tab-active" data-tab="bizinfo"><?php esc_html_e('Business Information', 'mobooking'); ?></a>
-            <a href="#mobooking-emailconf-tab" class="nav-tab" data-tab="emailconf"><?php esc_html_e('Email Configuration', 'mobooking'); ?></a>
-            <a href="#mobooking-bizhours-tab" class="nav-tab" data-tab="bizhours"><?php esc_html_e('Business Hours', 'mobooking'); ?></a>
-        </h2>
+            <div class="p-6 bg-white rounded-md shadow-md dark:bg-gray-800">
+                <h2 class="text-lg font-semibold text-gray-700 capitalize dark:text-white">Business Information</h2>
+                <div class="grid grid-cols-1 gap-6 mt-4 sm:grid-cols-2">
+                    <div>
+                        <label class="text-gray-700 dark:text-gray-200" for="biz_name">Business Name</label>
+                        <input id="biz_name" type="text" name="biz_name" value="<?php echo mobooking_get_biz_setting_value($biz_settings, 'biz_name'); ?>"
+                               class="block w-full px-4 py-2 mt-2 text-gray-700 bg-white border border-gray-300 rounded-md dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-500 focus:outline-none focus:ring">
+                    </div>
 
-        <div id="mobooking-bizinfo-tab" class="mobooking-settings-tab-content">
-            <h3><?php esc_html_e('Business Information', 'mobooking'); ?></h3>
-            <table class="form-table">
-                <tr valign="top">
-                    <th scope="row"><label for="biz_name"><?php esc_html_e('Business Name', 'mobooking'); ?></label></th>
-                    <td><input name="biz_name" type="text" id="biz_name" value="<?php echo mobooking_get_biz_setting_value($biz_settings, 'biz_name'); ?>" class="regular-text">
-                        <p class="description"><?php esc_html_e('The public name of your business.', 'mobooking'); ?></p></td>
-                </tr>
-                <tr valign="top">
-                    <th scope="row"><label for="biz_email"><?php esc_html_e('Public Business Email', 'mobooking'); ?></label></th>
-                    <td><input name="biz_email" type="email" id="biz_email" value="<?php echo mobooking_get_biz_setting_value($biz_settings, 'biz_email'); ?>" class="regular-text">
-                        <p class="description"><?php esc_html_e('Email address for customer communication. Defaults to your registration email if not set.', 'mobooking'); ?></p></td>
-                </tr>
-                <tr valign="top">
-                    <th scope="row"><label for="biz_phone"><?php esc_html_e('Business Phone', 'mobooking'); ?></label></th>
-                    <td><input name="biz_phone" type="tel" id="biz_phone" value="<?php echo mobooking_get_biz_setting_value($biz_settings, 'biz_phone'); ?>" class="regular-text"></td>
-                </tr>
-                <tr valign="top">
-                    <th scope="row"><label for="biz_address"><?php esc_html_e('Business Address', 'mobooking'); ?></label></th>
-                    <td><textarea name="biz_address" id="biz_address" class="large-text" rows="4"><?php echo mobooking_get_biz_setting_textarea($biz_settings, 'biz_address'); ?></textarea>
-                         <p class="description"><?php esc_html_e('Your primary business location or service area main address.', 'mobooking'); ?></p></td>
-                </tr>
-                <tr valign="top">
-                    <th scope="row"><label for="biz_logo_url"><?php esc_html_e('Business Logo URL', 'mobooking'); ?></label></th>
-                    <td><input name="biz_logo_url" type="url" id="biz_logo_url" value="<?php echo mobooking_get_biz_setting_value($biz_settings, 'biz_logo_url'); ?>" class="large-text" placeholder="https://example.com/logo.png">
-                        <p class="description"><?php esc_html_e('Link to your business logo. Will be used in emails and potentially on the booking form.', 'mobooking'); ?></p></td>
-                </tr>
-                <tr valign="top">
-                    <th scope="row"><label for="biz_currency_code"><?php esc_html_e('Currency', 'mobooking'); ?></label></th>
-                    <td>
-                        <select name="biz_currency_code" id="biz_currency_code" class="regular-text">
+                    <div>
+                        <label class="text-gray-700 dark:text-gray-200" for="biz_email">Public Business Email</label>
+                        <input id="biz_email" type="email" name="biz_email" value="<?php echo mobooking_get_biz_setting_value($biz_settings, 'biz_email'); ?>"
+                               class="block w-full px-4 py-2 mt-2 text-gray-700 bg-white border border-gray-300 rounded-md dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-500 focus:outline-none focus:ring">
+                    </div>
+
+                    <div>
+                        <label class="text-gray-700 dark:text-gray-200" for="biz_phone">Business Phone</label>
+                        <input id="biz_phone" type="tel" name="biz_phone" value="<?php echo mobooking_get_biz_setting_value($biz_settings, 'biz_phone'); ?>"
+                               class="block w-full px-4 py-2 mt-2 text-gray-700 bg-white border border-gray-300 rounded-md dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-500 focus:outline-none focus:ring">
+                    </div>
+
+                    <div>
+                        <label class="text-gray-700 dark:text-gray-200" for="biz_logo_url">Business Logo URL</label>
+                        <input id="biz_logo_url" type="url" name="biz_logo_url" value="<?php echo mobooking_get_biz_setting_value($biz_settings, 'biz_logo_url'); ?>"
+                               class="block w-full px-4 py-2 mt-2 text-gray-700 bg-white border border-gray-300 rounded-md dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-500 focus:outline-none focus:ring">
+                    </div>
+
+                    <div class="col-span-2">
+                        <label class="text-gray-700 dark:text-gray-200" for="biz_address">Business Address</label>
+                        <textarea id="biz_address" name="biz_address"
+                                  class="block w-full px-4 py-2 mt-2 text-gray-700 bg-white border border-gray-300 rounded-md dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-500 focus:outline-none focus:ring"><?php echo mobooking_get_biz_setting_textarea($biz_settings, 'biz_address'); ?></textarea>
+                    </div>
+
+                    <div>
+                        <label class="text-gray-700 dark:text-gray-200" for="biz_currency_code">Currency</label>
+                        <select id="biz_currency_code" name="biz_currency_code"
+                                class="block w-full px-4 py-2 mt-2 text-gray-700 bg-white border border-gray-300 rounded-md dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-500 focus:outline-none focus:ring">
                             <option value="USD" <?php echo mobooking_select_biz_setting_value($biz_settings, 'biz_currency_code', 'USD', 'USD'); ?>>USD (US Dollar)</option>
                             <option value="EUR" <?php echo mobooking_select_biz_setting_value($biz_settings, 'biz_currency_code', 'EUR'); ?>>EUR (Euro)</option>
                             <option value="SEK" <?php echo mobooking_select_biz_setting_value($biz_settings, 'biz_currency_code', 'SEK'); ?>>SEK (Swedish Krona)</option>
-                            <option value="NOK" <?php echo mobooking_select_biz_setting_value($biz_settings, 'biz_currency_code', 'NOK'); ?>>NOK (Norwegian Krone)</option>
-                            <option value="DKK" <?php echo mobooking_select_biz_setting_value($biz_settings, 'biz_currency_code', 'DKK'); ?>>DKK (Danish Krone)</option>
-                            <option value="" disabled>---</option>
-                            <option value="GBP" <?php echo mobooking_select_biz_setting_value($biz_settings, 'biz_currency_code', 'GBP'); ?>>GBP (British Pound)</option>
-                            <option value="CAD" <?php echo mobooking_select_biz_setting_value($biz_settings, 'biz_currency_code', 'CAD'); ?>>CAD (Canadian Dollar)</option>
-                            <option value="AUD" <?php echo mobooking_select_biz_setting_value($biz_settings, 'biz_currency_code', 'AUD'); ?>>AUD (Australian Dollar)</option>
-                            <option value="JPY" <?php echo mobooking_select_biz_setting_value($biz_settings, 'biz_currency_code', 'JPY'); ?>>JPY (Japanese Yen)</option>
-                            <?php // Add more common currencies as needed ?>
                         </select>
-                        <p class="description"><?php esc_html_e('Select your preferred currency. This will be used for all pricing display.', 'mobooking'); ?></p>
-                    </td>
-                </tr>
-                <tr valign="top">
-                    <th scope="row"><label for="biz_user_language"><?php esc_html_e('Language', 'mobooking'); ?></label></th>
-                    <td>
-                        <select name="biz_user_language" id="biz_user_language" class="regular-text">
+                    </div>
+
+                    <div>
+                        <label class="text-gray-700 dark:text-gray-200" for="biz_user_language">Language</label>
+                        <select id="biz_user_language" name="biz_user_language"
+                                class="block w-full px-4 py-2 mt-2 text-gray-700 bg-white border border-gray-300 rounded-md dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-500 focus:outline-none focus:ring">
                             <option value="en_US" <?php echo mobooking_select_biz_setting_value($biz_settings, 'biz_user_language', 'en_US', 'en_US'); ?>>English (US)</option>
                             <option value="sv_SE" <?php echo mobooking_select_biz_setting_value($biz_settings, 'biz_user_language', 'sv_SE'); ?>>Swedish (sv_SE)</option>
-                            <option value="nb_NO" <?php echo mobooking_select_biz_setting_value($biz_settings, 'biz_user_language', 'nb_NO'); ?>>Norwegian (nb_NO)</option>
-                            <option value="fi_FI" <?php echo mobooking_select_biz_setting_value($biz_settings, 'biz_user_language', 'fi_FI'); ?>>Finnish (fi_FI)</option>
-                            <option value="da_DK" <?php echo mobooking_select_biz_setting_value($biz_settings, 'biz_user_language', 'da_DK'); ?>>Danish (da_DK)</option>
                         </select>
-                        <p class="description"><?php esc_html_e("Select the preferred language for the booking form, dashboard, and invoices. Note: Translation files (.po/.mo) must be present in the theme's 'languages' directory for the selected language to take full effect.", 'mobooking'); ?></p>
-                    </td>
-                </tr>
-            </table>
-        </div>
+                    </div>
+                </div>
+            </div>
 
-        <div id="mobooking-emailconf-tab" class="mobooking-settings-tab-content" style="display:none;">
-            <h3><?php esc_html_e('Email Configuration', 'mobooking'); ?></h3>
-            <p><?php esc_html_e('Customize sender details and content for emails sent to customers and yourself.', 'mobooking'); ?></p>
-
-            <h4><?php esc_html_e('Sender Settings', 'mobooking'); ?></h4>
-            <table class="form-table">
-                <tr valign="top">
-                    <th scope="row"><label for="email_from_name"><?php esc_html_e('Email "From" Name', 'mobooking'); ?></label></th>
-                    <td><input name="email_from_name" type="text" id="email_from_name" value="<?php echo mobooking_get_biz_setting_value($biz_settings, 'email_from_name'); ?>" class="regular-text">
-                        <p class="description"><?php esc_html_e('Name displayed as the sender for emails. Defaults to Business Name or Site Title.', 'mobooking'); ?></p></td>
-                </tr>
-                <tr valign="top">
-                    <th scope="row"><label for="email_from_address"><?php esc_html_e('Email "From" Address', 'mobooking'); ?></label></th>
-                    <td><input name="email_from_address" type="email" id="email_from_address" value="<?php echo mobooking_get_biz_setting_value($biz_settings, 'email_from_address'); ?>" class="regular-text">
-                        <p class="description"><?php esc_html_e('Email address used as the sender. Defaults to Public Business Email or Site Admin Email. Ensure this email is configured for sending to improve deliverability.', 'mobooking'); ?></p></td>
-                </tr>
-            </table>
-
-            <h4><?php esc_html_e('Customer Booking Confirmation Email', 'mobooking'); ?></h4>
-            <table class="form-table">
-                <tr valign="top">
-                    <th scope="row"><label for="email_booking_conf_subj_customer"><?php esc_html_e('Subject', 'mobooking'); ?></label></th>
-                    <td><input name="email_booking_conf_subj_customer" type="text" id="email_booking_conf_subj_customer" value="<?php echo mobooking_get_biz_setting_value($biz_settings, 'email_booking_conf_subj_customer'); ?>" class="large-text"></td>
-                </tr>
-                <tr valign="top">
-                    <th scope="row"><label for="email_booking_conf_body_customer"><?php esc_html_e('Body', 'mobooking'); ?></label></th>
-                    <td><textarea name="email_booking_conf_body_customer" id="email_booking_conf_body_customer" class="large-text code" rows="10" style="font-family: monospace;"><?php echo mobooking_get_biz_setting_textarea($biz_settings, 'email_booking_conf_body_customer'); ?></textarea>
-                        <p class="description"><?php esc_html_e('Available placeholders: {{customer_name}}, {{business_name}}, {{booking_reference}}, {{service_names}}, {{booking_date_time}}, {{total_price}}, {{service_address}}, {{special_instructions}}.', 'mobooking'); ?></p>
-                    </td>
-                </tr>
-            </table>
-
-            <h4><?php esc_html_e('Admin New Booking Notification Email', 'mobooking'); ?></h4>
-            <table class="form-table">
-                <tr valign="top">
-                    <th scope="row"><label for="email_booking_conf_subj_admin"><?php esc_html_e('Subject', 'mobooking'); ?></label></th>
-                    <td><input name="email_booking_conf_subj_admin" type="text" id="email_booking_conf_subj_admin" value="<?php echo mobooking_get_biz_setting_value($biz_settings, 'email_booking_conf_subj_admin'); ?>" class="large-text"></td>
-                </tr>
-                <tr valign="top">
-                    <th scope="row"><label for="email_booking_conf_body_admin"><?php esc_html_e('Body', 'mobooking'); ?></label></th>
-                    <td><textarea name="email_booking_conf_body_admin" id="email_booking_conf_body_admin" class="large-text code" rows="10" style="font-family: monospace;"><?php echo mobooking_get_biz_setting_textarea($biz_settings, 'email_booking_conf_body_admin'); ?></textarea>
-                        <p class="description"><?php esc_html_e('Available placeholders: {{customer_name}}, {{customer_email}}, {{customer_phone}}, {{business_name}}, {{booking_reference}}, {{service_names}}, {{booking_date_time}}, {{total_price}}, {{service_address}}, {{special_instructions}}, {{admin_booking_link}}.', 'mobooking'); ?></p>
-                    </td>
-                </tr>
-            </table>
-        </div>
-
-        <div id="mobooking-bizhours-tab" class="mobooking-settings-tab-content" style="display:none;">
-            <h3><?php esc_html_e('Business Hours', 'mobooking'); ?></h3>
-            <table class="form-table">
-                <tr valign="top">
-                    <th scope="row"><label for="biz_hours_json"><?php esc_html_e('Operating Hours (JSON format)', 'mobooking'); ?></label></th>
-                    <td>
-                        <textarea name="biz_hours_json" id="biz_hours_json" class="large-text code" rows="12" style="font-family: monospace;"><?php echo mobooking_get_biz_setting_textarea($biz_settings, 'biz_hours_json', '{}'); ?></textarea>
-                        <p class="description">
-                            <?php esc_html_e('Define your weekly business hours using JSON. Use 24-hour format for times (HH:MM).', 'mobooking'); ?><br>
-                            <?php esc_html_e('Example structure:', 'mobooking'); ?><br>
-                            <code>{<br>
-                            &nbsp;&nbsp;"monday": {"open": "09:00", "close": "17:00", "is_closed": false},<br>
-                            &nbsp;&nbsp;"tuesday": {"open": "09:00", "close": "17:00", "is_closed": false},<br>
-                            &nbsp;&nbsp;"wednesday": {"open": "09:00", "close": "17:00", "is_closed": false},<br>
-                            &nbsp;&nbsp;"thursday": {"open": "09:00", "close": "17:00", "is_closed": false},<br>
-                            &nbsp;&nbsp;"friday": {"open": "09:00", "close": "17:00", "is_closed": false},<br>
-                            &nbsp;&nbsp;"saturday": {"is_closed": true},<br>
-                            &nbsp;&nbsp;"sunday": {"is_closed": true}<br>
-                            }</code>
-                        </p>
-                    </td>
-                </tr>
-            </table>
-        </div>
-
-        <p class="submit" style="margin-top:20px;">
-            <button type="submit" name="save_business_settings" id="mobooking-save-biz-settings-btn" class="button button-primary"><?php esc_html_e('Save Business Settings', 'mobooking'); ?></button>
-        </p>
-    </form>
+            <div class="mt-6">
+                <button type="submit" name="save_business_settings" id="mobooking-save-biz-settings-btn"
+                        class="px-4 py-2 font-medium tracking-wide text-white capitalize transition-colors duration-200 transform bg-indigo-600 rounded-md hover:bg-indigo-500 focus:outline-none focus:bg-indigo-500">
+                    Save Business Settings
+                </button>
+            </div>
+        </form>
+    </div>
 </div>

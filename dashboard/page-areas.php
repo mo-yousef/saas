@@ -15,129 +15,89 @@ if (!is_user_logged_in()) {
 $current_user_id = get_current_user_id();
 ?>
 
-<div class="mobooking-dashboard-page">
-    <div class="mobooking-page-header">
-        <h2 class="mobooking-page-title">
-            <span class="country-flag-emoji">🇸🇪</span>
-            <?php esc_html_e('Swedish Service Areas', 'mobooking'); ?>
-        </h2>
-        <p class="mobooking-page-description">
-            <?php esc_html_e('Manage your service coverage by selecting cities and their specific areas within Sweden.', 'mobooking'); ?>
-        </p>
-    </div>
-
-    <div class="mobooking-dashboard-content">
-        <!-- City Selection Card -->
-        <div class="mobooking-card">
-            <div class="mobooking-card-header">
-                <h3 class="mobooking-card-title">
-                    <?php esc_html_e('Select Swedish Cities', 'mobooking'); ?>
-                </h3>
-                <p class="mobooking-card-description">
-                    <?php esc_html_e('Click on a city to manage its service areas. Areas can be enabled or disabled individually.', 'mobooking'); ?>
-                </p>
-            </div>
-            <div id="cities-grid-container" class="cities-grid-container">
+<div>
+    <h3 class="text-3xl font-medium text-gray-700 dark:text-gray-200">Service Areas</h3>
+    <div class="mt-4">
+        <div class="p-6 bg-white rounded-md shadow-md dark:bg-gray-800">
+            <h2 class="text-lg font-semibold text-gray-700 capitalize dark:text-white">Select Swedish Cities</h2>
+            <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                Click on a city to manage its service areas. Areas can be enabled or disabled individually.
+            </p>
+            <div id="cities-grid-container" class="grid grid-cols-2 gap-6 mt-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
                 <!-- Cities will be loaded here by JavaScript -->
-                <div class="mobooking-loading-state">
-                    <div class="mobooking-spinner"></div>
-                    <p><?php esc_html_e('Loading Swedish cities...', 'mobooking'); ?></p>
+                <div class="text-center text-gray-500 dark:text-gray-400">
+                    <div class="w-8 h-8 mx-auto border-4 border-t-4 border-gray-200 rounded-full animate-spin" style="border-top-color: #4f46e5;"></div>
+                    <p class="mt-2">Loading Swedish cities...</p>
                 </div>
             </div>
         </div>
 
-        <!-- Current Service Coverage -->
-        <div class="mobooking-card mobooking-card-full-width">
-            <div class="mobooking-card-header">
-                <h3 class="mobooking-card-title">
-                    <svg class="mobooking-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                    <?php esc_html_e('Your Service Coverage', 'mobooking'); ?>
-                </h3>
-                <p class="mobooking-card-description">
-                    <?php esc_html_e('Manage your active service areas by country. You can enable/disable specific cities or areas, or remove entire countries.', 'mobooking'); ?>
-                </p>
-            </div>
-
-            <!-- Search and Filter Controls -->
-            <div class="mobooking-table-controls">
-                <div class="mobooking-search-filter-row">
-                    <div class="mobooking-search-group">
-                        <div class="mobooking-search-input-wrapper">
-                            <input type="text" id="coverage-search" class="mobooking-search-input" placeholder="<?php esc_attr_e('Search cities or areas...', 'mobooking'); ?>">
-                        </div>
-                    </div>
-                    <div class="mobooking-filter-group">
-                        <select id="city-filter" class="mobooking-form-select mobooking-form-select-sm">
-                            <option value=""><?php esc_html_e('All Cities', 'mobooking'); ?></option>
-                        </select>
-                        <select id="status-filter" class="mobooking-form-select mobooking-form-select-sm">
-                            <option value=""><?php esc_html_e('All Statuses', 'mobooking'); ?></option>
-                            <option value="active"><?php esc_html_e('Active', 'mobooking'); ?></option>
-                            <option value="inactive"><?php esc_html_e('Inactive', 'mobooking'); ?></option>
-                        </select>
-                        <button type="button" id="clear-coverage-filters-btn" class="mobooking-btn mobooking-btn-secondary mobooking-btn-sm">
-                            <?php esc_html_e('Clear', 'mobooking'); ?>
-                        </button>
-                    </div>
+        <div class="mt-8">
+            <h2 class="text-lg font-semibold text-gray-700 capitalize dark:text-white">Your Service Coverage</h2>
+            <div class="flex justify-between mt-2">
+                <div>
+                    <input type="text" id="coverage-search" placeholder="Search cities or areas..."
+                           class="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-200">
+                </div>
+                <div class="flex">
+                    <select id="city-filter"
+                            class="px-4 py-2 border-t border-b border-l border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-indigo-200">
+                        <option value="">All Cities</option>
+                    </select>
+                    <select id="status-filter"
+                            class="px-4 py-2 border-t border-b border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-200">
+                        <option value="">All Statuses</option>
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                    </select>
+                    <button id="clear-coverage-filters-btn"
+                            class="px-4 py-2 font-medium tracking-wide text-white capitalize transition-colors duration-200 transform bg-indigo-600 rounded-r-md hover:bg-indigo-500 focus:outline-none focus:bg-indigo-500">
+                        Clear
+                    </button>
                 </div>
             </div>
-
-            <!-- Service Coverage Display -->
-            <div class="service-coverage-container">
-                <div id="coverage-loading" class="mobooking-loading-state" style="display: none;">
-                    <div class="mobooking-spinner"></div>
-                    <p><?php esc_html_e('Loading your service coverage...', 'mobooking'); ?></p>
-                </div>
-
-                <div id="service-coverage-list">
-                    <!-- Coverage will be loaded here -->
-                </div>
-
-                <div id="no-coverage-state" class="mobooking-empty-state" style="display: none;">
-                    <svg class="mobooking-empty-state-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                    </svg>
-                    <h4 class="mobooking-empty-state-title"><?php esc_html_e('No Service Areas Yet', 'mobooking'); ?></h4>
-                    <p class="mobooking-empty-state-text">
-                        <?php esc_html_e('Start by selecting a country above to define your service coverage areas.', 'mobooking'); ?>
-                    </p>
-                </div>
+            <div id="service-coverage-list" class="mt-6">
+                <!-- Coverage will be loaded here -->
             </div>
-
-            <!-- Pagination -->
-            <div id="coverage-pagination" class="mobooking-pagination-container"></div>
+            <div id="no-coverage-state" class="hidden mt-6 text-center text-gray-500 dark:text-gray-400">
+                <h3 class="text-xl font-medium">No Service Areas Yet</h3>
+                <p class="mt-2">Start by selecting a country above to define your service coverage areas.</p>
+            </div>
+            <div id="coverage-pagination" class="mt-6"></div>
         </div>
     </div>
 </div>
 
-<!-- Area Selection Modal -->
-<div id="area-selection-modal" class="mobooking-modal" style="display: none;">
-    <div class="mobooking-modal-overlay"></div>
-    <div class="mobooking-modal-content">
-        <div class="mobooking-modal-header">
-            <h4 class="mobooking-modal-title">
-                <?php esc_html_e('Select Areas for', 'mobooking'); ?> <span id="modal-city-name"></span>
-            </h4>
-            <button type="button" class="mobooking-modal-close-btn">&times;</button>
+<div id="area-selection-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden bg-black bg-opacity-50">
+    <div class="w-full max-w-2xl p-6 bg-white rounded-md shadow-lg dark:bg-gray-800">
+        <div class="flex items-center justify-between">
+            <h3 class="text-2xl"><?php esc_html_e('Select Areas for', 'mobooking'); ?> <span id="modal-city-name"></span></h3>
+            <button type="button" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                    onclick="document.getElementById('area-selection-modal').classList.add('hidden')">
+                &times;
+            </button>
         </div>
-        <div class="mobooking-modal-body">
-            <div class="areas-selection-controls">
-                <button type="button" id="modal-select-all" class="mobooking-btn-link"><?php esc_html_e('Select All', 'mobooking'); ?></button>
-                <button type="button" id="modal-deselect-all" class="mobooking-btn-link"><?php esc_html_e('Deselect All', 'mobooking'); ?></button>
+        <div class="mt-4">
+            <div class="flex justify-between">
+                <button type="button" id="modal-select-all"
+                        class="text-indigo-600 hover:text-indigo-900 dark:hover:text-indigo-400">Select All
+                </button>
+                <button type="button" id="modal-deselect-all"
+                        class="text-indigo-600 hover:text-indigo-900 dark:hover:text-indigo-400">Deselect All
+                </button>
             </div>
-            <div id="modal-areas-grid" class="modal-areas-grid">
+            <div id="modal-areas-grid" class="grid grid-cols-2 gap-4 mt-4 overflow-y-auto max-h-96">
                 <!-- Areas for the selected city will be loaded here -->
             </div>
         </div>
-        <div class="mobooking-modal-footer">
-            <div id="modal-feedback" class="mobooking-feedback" style="display: none;"></div>
-            <button type="button" id="modal-cancel-btn" class="mobooking-btn mobooking-btn-secondary">
-                <?php esc_html_e('Cancel', 'mobooking'); ?>
+        <div class="flex justify-end mt-6">
+            <button type="button" onclick="document.getElementById('area-selection-modal').classList.add('hidden')"
+                    class="px-4 py-2 mr-2 font-medium tracking-wide text-gray-700 capitalize transition-colors duration-200 transform bg-gray-200 rounded-md hover:bg-gray-300 focus:outline-none focus:bg-gray-300">
+                Cancel
             </button>
-            <button type="button" id="modal-save-btn" class="mobooking-btn mobooking-btn-primary">
-                <?php esc_html_e('Save Areas', 'mobooking'); ?>
+            <button type="button" id="modal-save-btn"
+                    class="px-4 py-2 font-medium tracking-wide text-white capitalize transition-colors duration-200 transform bg-indigo-600 rounded-md hover:bg-indigo-500 focus:outline-none focus:bg-indigo-500">
+                Save Areas
             </button>
         </div>
     </div>

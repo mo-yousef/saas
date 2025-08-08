@@ -179,8 +179,8 @@ error_log('[MoBooking Shell Debug] dashboard-shell.php execution started. User l
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <?php wp_head(); ?>
 </head>
-<body <?php body_class('mobooking-dashboard'); ?>>
-    <div class="mobooking-dashboard-layout">
+<body <?php body_class('bg-gray-100 dark:bg-gray-900'); ?>>
+    <div class="flex h-screen bg-gray-100 dark:bg-gray-900">
         <?php
         error_log('[MoBooking Shell Debug] Including sidebar.php. Current view for sidebar: ' . $requested_page);
         // Set the global variable for the sidebar to use
@@ -188,16 +188,17 @@ error_log('[MoBooking Shell Debug] dashboard-shell.php execution started. User l
         include_once MOBOOKING_THEME_DIR . 'dashboard/sidebar.php';
         error_log('[MoBooking Shell Debug] sidebar.php included.');
         ?>
-        <div class="mobooking-dashboard-main-wrapper">
+        <div class="flex-1 flex flex-col overflow-hidden">
             <?php
             error_log('[MoBooking Shell Debug] Including header.php.');
             include_once MOBOOKING_THEME_DIR . 'dashboard/header.php';
             error_log('[MoBooking Shell Debug] header.php included.');
             ?>
-            <main class="dashboard-page-content-area">
-                <?php
-                error_log('[MoBooking Shell Debug] Determined requested page for content: ' . $requested_page);
-                $template_file = MOBOOKING_THEME_DIR . 'dashboard/page-' . sanitize_key($requested_page) . '.php';
+            <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 dark:bg-gray-900">
+                <div class="container mx-auto px-6 py-8">
+                    <?php
+                    error_log('[MoBooking Shell Debug] Determined requested page for content: ' . $requested_page);
+                    $template_file = MOBOOKING_THEME_DIR . 'dashboard/page-' . sanitize_key($requested_page) . '.php';
                 error_log('[MoBooking Shell Debug] Template file path to include: ' . $template_file);
                 
                 if ( !file_exists( $template_file ) ) {
@@ -220,10 +221,11 @@ error_log('[MoBooking Shell Debug] dashboard-shell.php execution started. User l
                 }
                 error_log('[MoBooking Shell Debug] Content template included. Shell execution nearing end.');
                 ?>
+                </div>
             </main>
         </div>
     </div>
-    <div id="toast-container"></div>
+    <div id="toast-container" class="fixed top-5 right-5 z-50"></div>
     <?php wp_footer(); ?>
     <script>
         // Basic mobile nav toggle

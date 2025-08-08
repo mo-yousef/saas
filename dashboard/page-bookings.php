@@ -177,218 +177,107 @@ $booking_statuses = [
     'processing' => __('Processing', 'mobooking'),
 ];
 ?>
-<style>
-    /* Responsive table styles */
-    @media (max-width: 768px) {
-        .mobooking-bookings-page-wrapper .divide-y > tr {
-            border-bottom-width: 8px;
-            border-color: #f3f4f6; /* gray-100 */
-        }
-        .mobooking-bookings-page-wrapper td[data-label]::before {
-            content: attr(data-label);
-            font-weight: 600;
-            display: inline-block;
-            width: 120px;
-        }
-    }
-
-    /* Status Badge Styles (copied from page-booking-single.php) */
-    .status-badge {
-        display: inline-flex;
-        align-items: center;
-        padding: 0.25em 0.6em;
-        font-size: 0.85em;
-        font-weight: 500;
-        border-radius: var(--radius, 0.5rem);
-        border: 1px solid transparent;
-        line-height: 1.2;
-    }
-    .status-badge .feather {
-        width: 1em;
-        height: 1em;
-        margin-right: 0.4em;
-        stroke-width: 2.5;
-    }
-    .status-badge.status-pending {
-        background-color: hsl(var(--muted));
-        color: hsl(var(--muted-foreground));
-        border-color: hsl(var(--border));
-    }
-    .status-badge.status-pending .feather { color: hsl(var(--muted-foreground)); }
-    .status-badge.status-confirmed {
-        background-color: hsl(var(--primary));
-        color: hsl(var(--primary-foreground));
-        border-color: hsl(var(--primary));
-    }
-    .status-badge.status-confirmed .feather { color: hsl(var(--primary-foreground)); }
-    .status-badge.status-processing {
-        background-color: hsl(200, 80%, 95%);
-        color: hsl(200, 70%, 40%);
-        border-color: hsl(200, 70%, 70%);
-    }
-    .status-badge.status-processing .feather { color: hsl(200, 70%, 40%); }
-    .status-badge.status-on-hold {
-        background-color: hsl(45, 100%, 95%);
-        color: hsl(45, 100%, 25%);
-        border-color: hsl(45, 100%, 70%);
-    }
-    .status-badge.status-on-hold .feather { color: hsl(45, 100%, 25%); }
-    .status-badge.status-completed {
-        background-color: hsl(145, 63%, 95%);
-        color: hsl(145, 63%, 22%);
-        border-color: hsl(145, 63%, 72%);
-    }
-    .status-badge.status-completed .feather { color: hsl(145, 63%, 22%); }
-    .status-badge.status-cancelled {
-        background-color: hsl(var(--destructive) / 0.1);
-        color: hsl(var(--destructive));
-        border-color: hsl(var(--destructive) / 0.3);
-    }
-    .status-badge.status-cancelled .feather { color: hsl(var(--destructive)); }
-</style>
-
-<div class="wrap mobooking-dashboard-wrap mobooking-bookings-page-wrapper">
-
-    <div class="mobooking-page-header">
-        <h1 class="wp-heading-inline"><?php esc_html_e('Manage Bookings', 'mobooking'); ?></h1>
-        <?php
-        $current_user_can_add_booking = true;
-        if (class_exists('MoBooking\Classes\Auth') && \MoBooking\Classes\Auth::is_user_worker(get_current_user_id())) {
-            $current_user_can_add_booking = false;
-        }
-        if ($current_user_can_add_booking) :
-        ?>
-        <button id="mobooking-add-booking-btn" class="page-title-action">
-            <?php esc_html_e('Add New Booking', 'mobooking'); ?>
-        </button>
-        <?php endif; ?>
-    </div>
-
-    <div class="dashboard-kpi-grid mobooking-overview-kpis">
-        <div class="dashboard-kpi-card">
-            <div class="kpi-header">
-                <span class="kpi-title"><?php esc_html_e('Bookings This Month', 'mobooking'); ?></span>
-                <div class="kpi-icon bookings">📅</div>
-            </div>
-            <div class="kpi-value"><?php echo esc_html($kpi_data['bookings_month']); ?></div>
-        </div>
-
-        <?php if ($kpi_data['revenue_month'] !== null) : ?>
-        <div class="dashboard-kpi-card">
-            <div class="kpi-header">
-                <span class="kpi-title"><?php esc_html_e('Revenue This Month', 'mobooking'); ?></span>
-                <div class="kpi-icon revenue">💰</div>
-            </div>
-            <div class="kpi-value"><?php echo esc_html($currency_symbol . number_format_i18n(floatval($kpi_data['revenue_month']), 2)); ?></div>
-        </div>
-        <?php endif; ?>
-
-        <div class="dashboard-kpi-card">
-            <div class="kpi-header">
-                <span class="kpi-title"><?php esc_html_e('Upcoming Confirmed Bookings', 'mobooking'); ?></span>
-                 <div class="kpi-icon upcoming">⏰</div>
-            </div>
-            <div class="kpi-value"><?php echo esc_html($kpi_data['upcoming_count']); ?></div>
-        </div>
-    </div>
-
-    <div class="mobooking-card mobooking-filters-wrapper">
-        <div class="mobooking-card-header">
-            <h3><?php esc_html_e('Filter Bookings', 'mobooking'); ?></h3>
-        </div>
-        <div class="mobooking-card-content">
-        <div class="inside">
-            <form id="mobooking-bookings-filter-form" class="mobooking-filters-form">
-                <div class="mobooking-filter-row">
-                    <div class="mobooking-filter-item">
-                        <label for="mobooking-status-filter"><?php esc_html_e('Status:', 'mobooking'); ?></label>
-                        <select id="mobooking-status-filter" name="status_filter" class="mobooking-filter-select">
-                            <?php foreach ($booking_statuses as $value => $label) : ?>
-                                <option value="<?php echo esc_attr($value); ?>"><?php echo esc_html($label); ?></option>
-                            <?php endforeach; ?>
-                        </select>
+<div>
+    <h3 class="text-3xl font-medium text-gray-700 dark:text-gray-200">Bookings</h3>
+    <div class="mt-4">
+        <div class="flex flex-wrap -mx-6">
+            <div class="w-full px-6 sm:w-1/2 xl:w-1/3">
+                <div class="flex items-center px-5 py-6 bg-white rounded-md shadow-sm dark:bg-gray-800">
+                    <div class="p-3 bg-indigo-600 bg-opacity-75 rounded-full">
+                        <svg class="w-8 h-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.653-.122-1.28-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.653.122-1.28.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
                     </div>
-                    <div class="mobooking-filter-item">
-                        <label for="mobooking-date-from-filter"><?php esc_html_e('From:', 'mobooking'); ?></label>
-                        <input type="text" id="mobooking-date-from-filter" name="date_from_filter" class="mobooking-datepicker regular-text" placeholder="YYYY-MM-DD">
-                    </div>
-                    <div class="mobooking-filter-item">
-                        <label for="mobooking-date-to-filter"><?php esc_html_e('To:', 'mobooking'); ?></label>
-                        <input type="text" id="mobooking-date-to-filter" name="date_to_filter" class="mobooking-datepicker regular-text" placeholder="YYYY-MM-DD">
+                    <div class="mx-5">
+                        <h4 class="text-2xl font-semibold text-gray-700 dark:text-gray-200"><?php echo esc_html($kpi_data['bookings_month']); ?></h4>
+                        <div class="text-gray-500 dark:text-gray-400">Bookings This Month</div>
                     </div>
                 </div>
-                <div class="mobooking-filter-row">
-                     <div class="mobooking-filter-item mobooking-filter-item-search">
-                        <label for="mobooking-search-query"><?php esc_html_e('Search:', 'mobooking'); ?></label>
-                        <input type="search" id="mobooking-search-query" name="search_query" class="regular-text" placeholder="<?php esc_attr_e('Ref, Name, Email', 'mobooking'); ?>">
+            </div>
+            <?php if ($kpi_data['revenue_month'] !== null) : ?>
+            <div class="w-full px-6 mt-6 sm:w-1/2 xl:w-1/3 sm:mt-0">
+                <div class="flex items-center px-5 py-6 bg-white rounded-md shadow-sm dark:bg-gray-800">
+                    <div class="p-3 bg-orange-600 bg-opacity-75 rounded-full">
+                        <svg class="w-8 h-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v.01" />
+                        </svg>
                     </div>
-                    <div class="mobooking-filter-item">
-                        <label for="mobooking-staff-filter"><?php esc_html_e('Staff:', 'mobooking'); ?></label>
-                        <select id="mobooking-staff-filter" name="staff_filter" class="mobooking-filter-select">
-                            <option value=""><?php esc_html_e('All Staff', 'mobooking'); ?></option>
-                            <option value="0"><?php esc_html_e('Unassigned', 'mobooking'); ?></option>
+                    <div class="mx-5">
+                        <h4 class="text-2xl font-semibold text-gray-700 dark:text-gray-200"><?php echo esc_html($currency_symbol . number_format_i18n(floatval($kpi_data['revenue_month']), 2)); ?></h4>
+                        <div class="text-gray-500 dark:text-gray-400">Revenue This Month</div>
+                    </div>
+                </div>
+            </div>
+            <?php endif; ?>
+            <div class="w-full px-6 mt-6 sm:w-1/2 xl:w-1/3 xl:mt-0">
+                <div class="flex items-center px-5 py-6 bg-white rounded-md shadow-sm dark:bg-gray-800">
+                    <div class="p-3 bg-pink-600 bg-opacity-75 rounded-full">
+                        <svg class="w-8 h-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <div class="mx-5">
+                        <h4 class="text-2xl font-semibold text-gray-700 dark:text-gray-200"><?php echo esc_html($kpi_data['upcoming_count']); ?></h4>
+                        <div class="text-gray-500 dark:text-gray-400">Upcoming Confirmed Bookings</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="flex flex-col mt-8">
+        <div class="-my-2 py-2 overflow-x-auto sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
+            <div class="align-middle inline-block min-w-full shadow overflow-hidden sm:rounded-lg border-b border-gray-200 dark:border-gray-700">
+                <table class="min-w-full">
+                    <thead>
+                        <tr>
+                            <th class="px-6 py-3 border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-700 text-left text-xs leading-4 font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Ref</th>
+                            <th class="px-6 py-3 border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-700 text-left text-xs leading-4 font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Customer</th>
+                            <th class="px-6 py-3 border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-700 text-left text-xs leading-4 font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Booked Date</th>
+                            <th class="px-6 py-3 border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-700 text-left text-xs leading-4 font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Assigned Staff</th>
+                            <th class="px-6 py-3 border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-700 text-left text-xs leading-4 font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Total</th>
+                            <th class="px-6 py-3 border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-700 text-left text-xs leading-4 font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
+                            <th class="px-6 py-3 border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-700"></th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white dark:bg-gray-800">
+                        <?php foreach ($bookings_result['bookings'] as $booking) : ?>
                             <?php
-                            // Fetch workers for the current business owner
-                            $owner_id_for_staff_filter = $current_user_id;
-                            if (class_exists('MoBooking\Classes\Auth') && \MoBooking\Classes\Auth::is_user_worker($current_user_id)) {
-                                $owner_id_for_staff_filter = \MoBooking\Classes\Auth::get_business_owner_id_for_worker($current_user_id);
-                            }
-
-                            if ($owner_id_for_staff_filter) {
-                                $staff_users = get_users([
-                                    'meta_key'   => \MoBooking\Classes\Auth::META_KEY_OWNER_ID,
-                                    'meta_value' => $owner_id_for_staff_filter,
-                                    'role__in'   => [\MoBooking\Classes\Auth::ROLE_WORKER_STAFF],
-                                    'orderby'    => 'display_name',
-                                    'order'      => 'ASC',
-                                ]);
-                                foreach ($staff_users as $staff_user) {
-                                    echo '<option value="' . esc_attr($staff_user->ID) . '">' . esc_html($staff_user->display_name) . '</option>';
-                                }
-                            }
+                            $status_val = $booking['status'];
+                            $status_display = !empty($status_val) ? ucfirst(str_replace('-', ' ', $status_val)) : __('N/A', 'mobooking');
+                            $total_price_formatted = esc_html($currency_symbol . number_format_i18n(floatval($booking['total_price']), 2));
+                            $booking_date_formatted = date_i18n(get_option('date_format'), strtotime($booking['booking_date']));
+                            $booking_time_formatted = date_i18n(get_option('time_format'), strtotime($booking['booking_time']));
+                            $assigned_staff_name = isset($booking['assigned_staff_name']) ? esc_html($booking['assigned_staff_name']) : esc_html__('Unassigned', 'mobooking');
+                            $details_page_url = home_url('/dashboard/bookings/?action=view_booking&booking_id=' . $booking['booking_id']);
                             ?>
-                        </select>
-                    </div>
-                </div>
-                <div class="mobooking-filter-actions">
-                    <button type="submit" class="button button-secondary"><?php esc_html_e('Filter', 'mobooking'); ?></button>
-                    <button type="button" id="mobooking-clear-filters-btn" class="button"><?php esc_html_e('Clear Filters', 'mobooking'); ?></button>
-                </div>
-            </form>
+                            <tr>
+                                <td class="px-6 py-4 whitespace-no-wrap border-b border-gray-200 dark:border-gray-700">
+                                    <div class="text-sm leading-5 text-gray-900 dark:text-gray-200"><?php echo esc_html($booking['booking_reference']); ?></div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-no-wrap border-b border-gray-200 dark:border-gray-700">
+                                    <div class="text-sm leading-5 text-gray-900 dark:text-gray-200"><?php echo esc_html($booking['customer_name']); ?></div>
+                                    <div class="text-sm leading-5 text-gray-500 dark:text-gray-400"><?php echo esc_html($booking['customer_email']); ?></div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-no-wrap border-b border-gray-200 dark:border-gray-700">
+                                    <div class="text-sm leading-5 text-gray-900 dark:text-gray-200"><?php echo esc_html($booking_date_formatted . ' ' . $booking_time_formatted); ?></div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-no-wrap border-b border-gray-200 dark:border-gray-700">
+                                    <div class="text-sm leading-5 text-gray-900 dark:text-gray-200"><?php echo $assigned_staff_name; ?></div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-no-wrap border-b border-gray-200 dark:border-gray-700">
+                                    <div class="text-sm leading-5 text-gray-900 dark:text-gray-200"><?php echo $total_price_formatted; ?></div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-no-wrap border-b border-gray-200 dark:border-gray-700">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full <?php echo $status_val === 'confirmed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'; ?>"><?php echo esc_html($status_display); ?></span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-no-wrap text-right border-b border-gray-200 dark:border-gray-700 text-sm leading-5 font-medium">
+                                    <a href="<?php echo esc_url($details_page_url); ?>" class="text-indigo-600 hover:text-indigo-900 dark:hover:text-indigo-400"><?php esc_html_e('View', 'mobooking'); ?></a>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
-
-    <div id="mobooking-bookings-list-container" class="mobooking-list-table-wrapper">
-        <?php echo $initial_bookings_html; // WPCS: XSS ok. Escaped above. ?>
-    </div>
-
-    <div id="mobooking-bookings-pagination-container" class="tablenav bottom">
-        <div class="tablenav-pages">
-            <span class="pagination-links">
-                 <?php echo $initial_pagination_html; // WPCS: XSS ok. Escaped above. ?>
-            </span>
-        </div>
-    </div>
-
-<script type="text/template" id="mobooking-booking-item-template">
-    <tr data-booking-id="<%= booking_id %>">
-        <td data-colname="<?php esc_attr_e('Ref', 'mobooking'); ?>"><%= booking_reference %></td>
-        <td data-colname="<?php esc_attr_e('Customer', 'mobooking'); ?>"><%= customer_name %><br><small><%= customer_email %></small></td>
-        <td data-colname="<?php esc_attr_e('Booked Date', 'mobooking'); ?>"><%= booking_date_formatted %> <%= booking_time_formatted %></td>
-        <td data-colname="<?php esc_attr_e('Assigned Staff', 'mobooking'); ?>"><%= assigned_staff_name || '<?php echo esc_js(__('Unassigned', 'mobooking')); ?>' %></td>
-        <td data-colname="<?php esc_attr_e('Total', 'mobooking'); ?>"><%= total_price_formatted %></td>
-        <td data-colname="<?php esc_attr_e('Status', 'mobooking'); ?>">
-            <span class="status-badge status-<%= status %>">
-                <%= icon_html %> <span class="status-text"><%= status_display %></span>
-            </span>
-        </td>
-        <td data-colname="<?php esc_attr_e('Actions', 'mobooking'); ?>" class="mobooking-table-actions">
-            <a href="<%= details_page_url %>" class="button button-small"><?php esc_html_e('View Details', 'mobooking'); ?></a>
-            <% if (typeof mobooking_dashboard_params !== 'undefined' && mobooking_dashboard_params.currentUserCanDeleteBookings) { %>
-                <button class="button button-small mobooking-delete-booking-btn" data-booking-id="<%= booking_id %>"><?php esc_html_e('Delete', 'mobooking'); ?></button>
-            <% } %>
-        </td>
-    </tr>
-</script>
-
 </div>

@@ -68,235 +68,101 @@ $total_customers = $customers_manager->get_customer_count_by_tenant_id( $tenant_
 $kpi_data = $customers_manager->get_kpi_data( $tenant_id );
 ?>
 
-<div class="wrap mobooking-dashboard-wrap mobooking-customers-page-wrapper">
-    <div class="mobooking-page-header">
-        <h1 class="wp-heading-inline"><?php esc_html_e('Manage Customers', 'mobooking'); ?></h1>
-        <button id="mobooking-add-customer-btn" class="page-title-action">
-            <?php esc_html_e('Add New Customer', 'mobooking'); ?>
-        </button>
-    </div>
-
-    <div id="mobooking-customers-feedback" class="notice" style="display:none;">
-        <p></p>
-    </div>
-
-    <div class="dashboard-kpi-grid mobooking-overview-kpis">
-        <div class="dashboard-kpi-card">
-            <div class="kpi-header">
-                <span class="kpi-title"><?php esc_html_e('Total Customers', 'mobooking'); ?></span>
-                <div class="kpi-icon customers">👥</div>
-            </div>
-            <div class="kpi-value"><?php echo esc_html($kpi_data['total_customers']); ?></div>
-        </div>
-
-        <div class="dashboard-kpi-card">
-            <div class="kpi-header">
-                <span class="kpi-title"><?php esc_html_e('New This Month', 'mobooking'); ?></span>
-                <div class="kpi-icon new">✨</div>
-            </div>
-            <div class="kpi-value"><?php echo esc_html($kpi_data['new_customers_month']); ?></div>
-        </div>
-
-        <div class="dashboard-kpi-card">
-            <div class="kpi-header">
-                <span class="kpi-title"><?php esc_html_e('Active Customers', 'mobooking'); ?></span>
-                 <div class="kpi-icon active">✔️</div>
-            </div>
-            <div class="kpi-value"><?php echo esc_html($kpi_data['active_customers']); ?></div>
-        </div>
-    </div>
-
-    <div class="mobooking-card mobooking-filters-wrapper">
-        <div class="mobooking-card-header">
-            <h3><?php esc_html_e('Filter Customers', 'mobooking'); ?></h3>
-        </div>
-        <div class="mobooking-card-content">
-            <form id="mobooking-customers-filter-form" class="mobooking-filters-form" method="get">
-                <input type="hidden" name="page" value="mobooking-customers">
-                <div class="mobooking-filter-row">
-                    <div class="mobooking-filter-item mobooking-filter-item-search">
-                        <label for="mobooking-search-query"><?php esc_html_e('Search:', 'mobooking'); ?></label>
-                        <input type="search" id="mobooking-search-query" name="s" class="regular-text" value="<?php echo esc_attr( $search ); ?>" placeholder="<?php esc_attr_e('Name, email, or phone', 'mobooking'); ?>">
+<div>
+    <h3 class="text-3xl font-medium text-gray-700 dark:text-gray-200">Customers</h3>
+    <div class="mt-4">
+        <div class="flex flex-wrap -mx-6">
+            <div class="w-full px-6 sm:w-1/2 xl:w-1/3">
+                <div class="flex items-center px-5 py-6 bg-white rounded-md shadow-sm dark:bg-gray-800">
+                    <div class="p-3 bg-indigo-600 bg-opacity-75 rounded-full">
+                        <svg class="w-8 h-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.653-.122-1.28-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.653.122-1.28.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
                     </div>
-                    <div class="mobooking-filter-item">
-                        <label for="mobooking-customer-status-filter"><?php esc_html_e('Status:', 'mobooking'); ?></label>
-                        <select id="mobooking-customer-status-filter" name="status" class="mobooking-filter-select">
-                            <option value=""><?php esc_html_e('All Statuses', 'mobooking'); ?></option>
-                            <option value="active" <?php selected($status_filter, 'active'); ?>><?php esc_html_e('Active', 'mobooking'); ?></option>
-                            <option value="inactive" <?php selected($status_filter, 'inactive'); ?>><?php esc_html_e('Inactive', 'mobooking'); ?></option>
-                            <option value="blacklisted" <?php selected($status_filter, 'blacklisted'); ?>><?php esc_html_e('Blacklisted', 'mobooking'); ?></option>
-                        </select>
+                    <div class="mx-5">
+                        <h4 class="text-2xl font-semibold text-gray-700 dark:text-gray-200"><?php echo esc_html($kpi_data['total_customers']); ?></h4>
+                        <div class="text-gray-500 dark:text-gray-400">Total Customers</div>
                     </div>
                 </div>
-                <div class="mobooking-filter-actions">
-                    <button type="submit" class="button button-secondary"><?php esc_html_e('Filter', 'mobooking'); ?></button>
-                    <a href="<?php echo esc_url( admin_url( 'admin.php?page=mobooking-customers' ) ); ?>" id="mobooking-clear-filters-btn" class="button"><?php esc_html_e('Clear Filters', 'mobooking'); ?></a>
+            </div>
+            <div class="w-full px-6 mt-6 sm:w-1/2 xl:w-1/3 sm:mt-0">
+                <div class="flex items-center px-5 py-6 bg-white rounded-md shadow-sm dark:bg-gray-800">
+                    <div class="p-3 bg-orange-600 bg-opacity-75 rounded-full">
+                        <svg class="w-8 h-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v.01" />
+                        </svg>
+                    </div>
+                    <div class="mx-5">
+                        <h4 class="text-2xl font-semibold text-gray-700 dark:text-gray-200"><?php echo esc_html($kpi_data['new_customers_month']); ?></h4>
+                        <div class="text-gray-500 dark:text-gray-400">New This Month</div>
+                    </div>
                 </div>
-            </form>
+            </div>
+            <div class="w-full px-6 mt-6 sm:w-1/2 xl:w-1/3 xl:mt-0">
+                <div class="flex items-center px-5 py-6 bg-white rounded-md shadow-sm dark:bg-gray-800">
+                    <div class="p-3 bg-pink-600 bg-opacity-75 rounded-full">
+                        <svg class="w-8 h-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <div class="mx-5">
+                        <h4 class="text-2xl font-semibold text-gray-700 dark:text-gray-200"><?php echo esc_html($kpi_data['active_customers']); ?></h4>
+                        <div class="text-gray-500 dark:text-gray-400">Active Customers</div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-    <div class="overflow-x-auto">
-        <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gray-50 hidden md:table-header-group">
-                <tr>
-                    <?php
-                    $columns = [
-                        'full_name' => __( 'Full Name', 'mobooking' ),
-                        'email' => __( 'Email', 'mobooking' ),
-                        'phone_number' => __( 'Phone Number', 'mobooking' ),
-                        'total_bookings' => __( 'Total Bookings', 'mobooking' ),
-                        'last_booking_date' => __( 'Last Booking Date', 'mobooking' ),
-                        'status' => __( 'Status', 'mobooking' ),
-                        'actions' => __( 'Actions', 'mobooking' ),
-                    ];
-
-                    foreach ( $columns as $key => $title ) {
-                        $class = "px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider";
-                        if ( in_array( $key, [ 'full_name', 'email', 'total_bookings', 'last_booking_date', 'status' ] ) ) {
-                            $order = ( $sort_by === $key && $sort_order === 'ASC' ) ? 'DESC' : 'ASC';
-                            $url = add_query_arg( [ 'orderby' => $key, 'order' => $order ] );
-                            echo "<th scope='col' class='{$class}'>
-                                    <a href='" . esc_url( $url ) . "'>
-                                        <span>{$title}</span>
-                                        <span class='sorting-indicator'></span>
-                                    </a>
-                                  </th>";
-                        } else {
-                            echo "<th scope='col' class='{$class}'>{$title}</th>";
-                        }
-                    }
-                    ?>
-                </tr>
-            </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
-                <?php if ( ! empty( $customers ) ) : ?>
-                    <?php foreach ( $customers as $customer ) : ?>
-                        <tr id="customer-<?php echo $customer->id; ?>" class="block md:table-row border-b md:border-none">
-                            <td data-label="<?php esc_attr_e( 'Full Name', 'mobooking' ); ?>" class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 block md:table-cell"><?php echo esc_html( $customer->full_name ); ?></td>
-                            <td data-label="<?php esc_attr_e( 'Email', 'mobooking' ); ?>" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 block md:table-cell"><?php echo esc_html( $customer->email ); ?></td>
-                            <td data-label="<?php esc_attr_e( 'Phone Number', 'mobooking' ); ?>" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 block md:table-cell"><?php echo esc_html( $customer->phone_number ); ?></td>
-                            <td data-label="<?php esc_attr_e( 'Total Bookings', 'mobooking' ); ?>" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 block md:table-cell"><?php echo esc_html( $customer->total_bookings ); ?></td>
-                            <td data-label="<?php esc_attr_e( 'Last Booking Date', 'mobooking' ); ?>" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 block md:table-cell"><?php echo esc_html( $customer->last_booking_date ? date_i18n( get_option( 'date_format' ), strtotime( $customer->last_booking_date ) ) : __( 'N/A', 'mobooking' ) ); ?></td>
-                            <td data-label="<?php esc_attr_e( 'Status', 'mobooking' ); ?>" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 block md:table-cell">
-                                <span class="status-badge status-<?php echo esc_attr( $customer->status ); ?>">
-                                    <?php echo mobooking_get_customer_status_badge_icon_svg( $customer->status ); ?>
-                                    <span class="status-text"><?php echo esc_html( ucfirst( $customer->status ) ); ?></span>
-                                </span>
-                            </td>
-                            <td data-label="<?php esc_attr_e( 'Actions', 'mobooking' ); ?>" class="px-6 py-4 whitespace-nowrap text-sm font-medium block md:table-cell">
-                                <a href="<?php echo esc_url( home_url( '/dashboard/customer-details/?customer_id=' . $customer->id ) ); ?>" class="button">
-                                    <?php esc_html_e( 'View Details', 'mobooking' ); ?>
-                                </a>
-                            </td>
+    <div class="flex flex-col mt-8">
+        <div class="-my-2 py-2 overflow-x-auto sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
+            <div class="align-middle inline-block min-w-full shadow overflow-hidden sm:rounded-lg border-b border-gray-200 dark:border-gray-700">
+                <table class="min-w-full">
+                    <thead>
+                        <tr>
+                            <th class="px-6 py-3 border-b border-gray-200 bg-gray-50 dark:bg-gray-700 dark:border-gray-700 text-left text-xs leading-4 font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Full Name</th>
+                            <th class="px-6 py-3 border-b border-gray-200 bg-gray-50 dark:bg-gray-700 dark:border-gray-700 text-left text-xs leading-4 font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Email</th>
+                            <th class="px-6 py-3 border-b border-gray-200 bg-gray-50 dark:bg-gray-700 dark:border-gray-700 text-left text-xs leading-4 font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Phone Number</th>
+                            <th class="px-6 py-3 border-b border-gray-200 bg-gray-50 dark:bg-gray-700 dark:border-gray-700 text-left text-xs leading-4 font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Total Bookings</th>
+                            <th class="px-6 py-3 border-b border-gray-200 bg-gray-50 dark:bg-gray-700 dark:border-gray-700 text-left text-xs leading-4 font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Last Booking Date</th>
+                            <th class="px-6 py-3 border-b border-gray-200 bg-gray-50 dark:bg-gray-700 dark:border-gray-700 text-left text-xs leading-4 font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
+                            <th class="px-6 py-3 border-b border-gray-200 bg-gray-50 dark:bg-gray-700 dark:border-gray-700"></th>
                         </tr>
-                    <?php endforeach; ?>
-                <?php else : ?>
-                    <tr class="no-items">
-                        <td class="colspanchange" colspan="7"><?php esc_html_e( 'No customers found.', 'mobooking' ); ?></td>
-                    </tr>
-                <?php endif; ?>
-            </tbody>
-        </table>
-    </div>
-    <div id="mobooking-customers-pagination-container" class="tablenav bottom">
-        <div class="tablenav-pages">
-            <span class="pagination-links">
-                <?php
-                $total_pages = ceil( $total_customers / $per_page );
-                if ( $total_pages > 1 ) {
-                    echo paginate_links( [
-                        'base' => add_query_arg( 'paged', '%#%' ),
-                        'format' => '',
-                        'current' => $page,
-                        'total' => $total_pages,
-                        'prev_text' => '&laquo; ' . __( 'Previous', 'mobooking' ),
-                        'next_text' => __( 'Next', 'mobooking' ) . ' &raquo;',
-                    ] );
-                }
-                ?>
-            </span>
+                    </thead>
+                    <tbody class="bg-white dark:bg-gray-800">
+                        <?php if ( ! empty( $customers ) ) : ?>
+                            <?php foreach ( $customers as $customer ) : ?>
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-no-wrap border-b border-gray-200 dark:border-gray-700">
+                                        <div class="text-sm leading-5 text-gray-900 dark:text-gray-200"><?php echo esc_html( $customer->full_name ); ?></div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-no-wrap border-b border-gray-200 dark:border-gray-700">
+                                        <div class="text-sm leading-5 text-gray-900 dark:text-gray-200"><?php echo esc_html( $customer->email ); ?></div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-no-wrap border-b border-gray-200 dark:border-gray-700">
+                                        <div class="text-sm leading-5 text-gray-900 dark:text-gray-200"><?php echo esc_html( $customer->phone_number ); ?></div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-no-wrap border-b border-gray-200 dark:border-gray-700">
+                                        <div class="text-sm leading-5 text-gray-900 dark:text-gray-200"><?php echo esc_html( $customer->total_bookings ); ?></div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-no-wrap border-b border-gray-200 dark:border-gray-700">
+                                        <div class="text-sm leading-5 text-gray-900 dark:text-gray-200"><?php echo esc_html( $customer->last_booking_date ? date_i18n( get_option( 'date_format' ), strtotime( $customer->last_booking_date ) ) : __( 'N/A', 'mobooking' ) ); ?></div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-no-wrap border-b border-gray-200 dark:border-gray-700">
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full <?php echo $customer->status === 'active' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'; ?>"><?php echo esc_html( ucfirst( $customer->status ) ); ?></span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-no-wrap text-right border-b border-gray-200 dark:border-gray-700 text-sm leading-5 font-medium">
+                                        <a href="<?php echo esc_url( home_url( '/dashboard/customer-details/?customer_id=' . $customer->id ) ); ?>" class="text-indigo-600 hover:text-indigo-900 dark:hover:text-indigo-400">View</a>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php else : ?>
+                            <tr>
+                                <td colspan="7" class="text-center py-4 text-gray-500 dark:text-gray-400">No customers found.</td>
+                            </tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
-
 </div>
-<style>
-    @media (max-width: 768px) {
-        .mobooking-customers-page-wrapper .divide-y > tr {
-            border-bottom-width: 8px;
-            border-color: #f3f4f6; /* gray-100 */
-        }
-        .mobooking-customers-page-wrapper td[data-label]::before {
-            content: attr(data-label);
-            font-weight: 600;
-            display: inline-block;
-            width: 120px;
-        }
-    }
-    .mobooking-table-responsive-wrapper {
-        overflow-x: auto;
-    }
-    .status-badge {
-        display: inline-flex;
-        align-items: center;
-        padding: 0.25em 0.6em;
-        font-size: 0.85em;
-        font-weight: 500;
-        border-radius: var(--radius, 0.5rem);
-        border: 1px solid transparent;
-        line-height: 1.2;
-    }
-    .status-badge .feather {
-        width: 1em;
-        height: 1em;
-        margin-right: 0.4em;
-        stroke-width: 2.5;
-    }
-    .status-badge.status-active {
-        background-color: hsl(145, 63%, 95%);
-        color: hsl(145, 63%, 22%);
-        border-color: hsl(145, 63%, 72%);
-    }
-    .status-badge.status-active .feather { color: hsl(145, 63%, 22%); }
-
-    .status-badge.status-inactive {
-        background-color: hsl(var(--muted));
-        color: hsl(var(--muted-foreground));
-        border-color: hsl(var(--border));
-    }
-    .status-badge.status-inactive .feather { color: hsl(var(--muted-foreground)); }
-
-    .status-badge.status-blacklisted {
-        background-color: hsl(var(--destructive) / 0.1);
-        color: hsl(var(--destructive));
-        border-color: hsl(var(--destructive) / 0.3);
-    }
-    .status-badge.status-blacklisted .feather { color: hsl(var(--destructive)); }
-
-    .mobooking-pagination-container {
-        margin-top: 1.5rem;
-        display: flex;
-        justify-content: center;
-    }
-
-    /* Styles for sortable columns - copied from WordPress core list tables */
-    .wp-list-table th.sortable a span {
-        float: right;
-        display: block;
-        width: 0;
-        height: 0;
-        border-left: 5px solid transparent;
-        border-right: 5px solid transparent;
-    }
-    .wp-list-table th.sortable.asc a span.sorting-indicator {
-        border-bottom: 5px solid #333;
-    }
-    .wp-list-table th.sortable.desc a span.sorting-indicator {
-        border-top: 5px solid #333;
-    }
-    .wp-list-table th.sorted .sorting-indicator {
-        /* Keep visible for sorted column */
-    }
-    .wp-list-table th.sortable a:hover span.sorting-indicator {
-        /* Optional: change color on hover */
-    }
-</style>

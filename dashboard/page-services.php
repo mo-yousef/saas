@@ -38,458 +38,56 @@ $total_pages = ceil($total_services / $per_page);
 wp_nonce_field('mobooking_services_nonce', 'mobooking_services_nonce_field');
 ?>
 
-<style>
-.services-header {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-    padding-bottom: 2rem;
-}
+<div>
+    <h3 class="text-3xl font-medium text-gray-700 dark:text-gray-200">Services</h3>
 
-.services-header-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 1rem;
-}
-
-.services-title {
-    font-size: 2rem;
-    font-weight: 700;
-    color: hsl(222.2 84% 4.9%);
-    margin: 0;
-}
-
-.add-service-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    height: 2.75rem;
-    padding: 0 1.25rem;
-    font-size: 0.9375rem;
-    font-weight: 600;
-    background-color: hsl(222.2 84% 4.9%);
-    color: hsl(210 40% 98%);
-    border: 1px solid hsl(222.2 84% 4.9%);
-    border-radius: 0.5rem;
-    text-decoration: none;
-    transition: all 0.2s ease;
-    cursor: pointer;
-}
-
-.add-service-btn:hover {
-    background-color: hsl(222.2 84% 4.9% / 0.9);
-    color: hsl(210 40% 98%);
-    text-decoration: none;
-}
-
-.services-controls {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1.5rem;
-    align-items: center;
-}
-
-.search-container {
-    position: relative;
-    flex: 1;
-    min-width: 250px;
-    max-width: 450px;
-}
-
-.search-input {
-    width: 100%;
-    height: 2.75rem;
-    padding: 0 3rem 0 1rem;
-    font-size: 0.9375rem;
-    border: 1px solid hsl(214.3 31.8% 91.4%);
-    border-radius: 0.5rem;
-    background-color: hsl(0 0% 100%);
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-.search-input:focus {
-    outline: none;
-    border-color: hsl(221.2 83.2% 53.3%);
-    box-shadow: 0 0 0 4px hsl(221.2 83.2% 53.3% / 0.1);
-}
-
-.search-icon {
-    position: absolute;
-    right: 1rem;
-    top: 50%;
-    transform: translateY(-50%);
-    color: hsl(215.4 16.3% 46.9%);
-    pointer-events: none;
-}
-
-.filter-select {
-    height: 2.75rem;
-    padding: 0 1rem;
-    font-size: 0.9375rem;
-    border: 1px solid hsl(214.3 31.8% 91.4%);
-    border-radius: 0.5rem;
-    background-color: hsl(0 0% 100%);
-    cursor: pointer;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-.filter-select:focus {
-    outline: none;
-    border-color: hsl(221.2 83.2% 53.3%);
-    box-shadow: 0 0 0 4px hsl(221.2 83.2% 53.3% / 0.1);
-}
-.services-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-    gap: 2rem;
-    margin-bottom: 2.5rem;
-}
-
-.service-card {
-    background-color: hsl(0 0% 100%);
-    border: 1px solid hsl(214.3 31.8% 91.4%);
-    border-radius: 0.75rem;
-    padding: 2rem;
-    transition: all 0.2s ease-in-out;
-    position: relative;
-    overflow: hidden;
-    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.05);
-}
-
-.service-card:hover {
-    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-    transform: translateY(-2px);
-}
-
-.service-card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 1.5rem;
-}
-
-.service-name {
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: hsl(222.2 84% 4.9%);
-    margin: 0;
-    line-height: 1.3;
-}
-
-.service-status {
-    display: inline-flex;
-    align-items: center;
-    padding: 0.375rem 0.75rem;
-    font-size: 0.8125rem;
-    font-weight: 600;
-    border-radius: 9999px;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-}
-
-.service-status.active {
-    background-color: hsl(142 76% 36% / 0.15);
-    color: hsl(142 76% 36%);
-}
-
-.service-status.inactive {
-    background-color: hsl(0 84.2% 60.2% / 0.15);
-    color: hsl(0 84.2% 60.2%);
-}
-
-.service-details {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    margin-bottom: 2rem;
-}
-
-.service-detail-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.service-detail-label {
-    font-size: 0.9375rem;
-    color: hsl(215.4 16.3% 46.9%);
-    font-weight: 500;
-}
-
-.service-detail-value {
-    font-size: 0.9375rem;
-    color: hsl(222.2 84% 4.9%);
-    font-weight: 600;
-}
-
-.service-price {
-    color: hsl(142 76% 36%);
-    font-size: 1.125rem;
-}
-
-.service-actions {
-    display: flex;
-    gap: 0.75rem;
-}
-
-.btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    height: 2.25rem;
-    padding: 0 1rem;
-    font-size: 0.875rem;
-    font-weight: 600;
-    border-radius: 0.5rem;
-    text-decoration: none;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    border: 1px solid;
-}
-
-.btn-edit {
-    background-color: hsl(221.2 83.2% 53.3%);
-    color: hsl(210 40% 98%);
-    border-color: hsl(221.2 83.2% 53.3%);
-}
-
-.btn-edit:hover {
-    background-color: hsl(221.2 83.2% 53.3% / 0.9);
-    color: hsl(210 40% 98%);
-    text-decoration: none;
-}
-
-.btn-delete {
-    background-color: transparent;
-    color: hsl(0 84.2% 60.2%);
-    border-color: hsl(0 84.2% 60.2%);
-}
-
-.btn-delete:hover {
-    background-color: hsl(0 84.2% 60.2%);
-    color: hsl(210 40% 98%);
-}
-
-.empty-state {
-    text-align: center;
-    padding: 4rem 1.5rem;
-    color: hsl(215.4 16.3% 46.9%);
-}
-
-.empty-state-icon {
-    font-size: 3.5rem;
-    margin-bottom: 1.5rem;
-    opacity: 0.6;
-}
-
-.empty-state-title {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: hsl(222.2 84% 4.9%);
-    margin-bottom: 0.75rem;
-}
-
-.empty-state-description {
-    font-size: 0.9375rem;
-    margin-bottom: 2rem;
-}
-
-.loading-state {
-    text-align: center;
-    padding: 3rem;
-    color: hsl(215.4 16.3% 46.9%);
-}
-
-.pagination-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 0.75rem;
-    margin-top: 2.5rem;
-    padding-top: 2rem;
-}
-
-.page-numbers {
-    display: flex;
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    gap: 0.5rem;
-}
-
-.page-numbers li {
-    margin: 0;
-}
-
-.page-numbers a,
-.page-numbers span {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 2.75rem;
-    height: 2.75rem;
-    font-size: 0.9375rem;
-    font-weight: 600;
-    border: 1px solid hsl(214.3 31.8% 91.4%);
-    border-radius: 0.5rem;
-    text-decoration: none;
-    color: hsl(222.2 84% 4.9%);
-    transition: all 0.2s ease;
-}
-
-.page-numbers a:hover {
-    background-color: hsl(210 40% 96%);
-    text-decoration: none;
-}
-
-.page-numbers .current {
-    background-color: hsl(222.2 84% 4.9%);
-    color: hsl(210 40% 98%);
-    border-color: hsl(222.2 84% 4.9%);
-}
-
-.feedback-message {
-    padding: 1.25rem;
-    border-radius: 0.5rem;
-    margin-bottom: 1.5rem;
-    font-size: 0.9375rem;
-    font-weight: 600;
-}
-
-.feedback-success {
-    background-color: hsl(142 76% 36% / 0.15);
-    color: hsl(142 76% 36%);
-    border: 1px solid hsl(142 76% 36% / 0.3);
-}
-
-.feedback-error {
-    background-color: hsl(0 84.2% 60.2% / 0.15);
-    color: hsl(0 84.2% 60.2%);
-    border: 1px solid hsl(0 84.2% 60.2% / 0.3);
-}
-
-@media (max-width: 768px) {
-    .services-header-top {
-        flex-direction: column;
-        align-items: stretch;
-    }
-    
-    .services-controls {
-        flex-direction: column;
-    }
-    
-    .search-container {
-        max-width: none;
-    }
-    
-    .services-grid {
-        grid-template-columns: 1fr;
-        gap: 1.5rem;
-    }
-    
-    .service-card {
-        padding: 1.5rem;
-    }
-    
-    .service-actions {
-        justify-content: stretch;
-    }
-    
-    .btn {
-        flex: 1;
-    }
-}
-</style>
-
-<div class="services-page-container">
-    <!-- Header Section -->
-    <div class="services-header">
-        <div class="services-header-top">
-            <h1 class="services-title"><?php esc_html_e('Manage Your Services', 'mobooking'); ?></h1>
-            <a href="<?php echo esc_url(site_url('/dashboard/service-edit/')); ?>" class="add-service-btn">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M5 12h14" />
-                    <path d="M12 5v14" />
-                </svg>
-                <?php esc_html_e('Add New Service', 'mobooking'); ?>
-            </a>
-        </div>
-        
-        <!-- Controls Section -->
-        <div class="services-controls">
-            <div class="search-container">
-                <input 
-                    type="text" 
-                    id="services-search" 
-                    class="search-input" 
-                    placeholder="<?php esc_attr_e('Search services...', 'mobooking'); ?>"
-                    value=""
-                >
-                <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="m21 21-4.3-4.3" />
-                    <circle cx="11" cy="11" r="8" />
-                </svg>
+    <div class="mt-8">
+        <div class="flex justify-between">
+            <div>
+                <a href="<?php echo esc_url(site_url('/dashboard/service-edit/')); ?>"
+                   class="px-4 py-2 font-medium tracking-wide text-white capitalize transition-colors duration-200 transform bg-indigo-600 rounded-md hover:bg-indigo-500 focus:outline-none focus:bg-indigo-500">
+                    Add New Service
+                </a>
             </div>
-            
-            <select id="status-filter" class="filter-select">
-                <option value=""><?php esc_html_e('All Statuses', 'mobooking'); ?></option>
-                <option value="active"><?php esc_html_e('Active', 'mobooking'); ?></option>
-                <option value="inactive"><?php esc_html_e('Inactive', 'mobooking'); ?></option>
-            </select>
-            
-            <select id="sort-filter" class="filter-select">
-                <option value="name-asc"><?php esc_html_e('Name A-Z', 'mobooking'); ?></option>
-                <option value="name-desc"><?php esc_html_e('Name Z-A', 'mobooking'); ?></option>
-                <option value="price-asc"><?php esc_html_e('Price Low-High', 'mobooking'); ?></option>
-                <option value="price-desc"><?php esc_html_e('Price High-Low', 'mobooking'); ?></option>
-                <option value="date-asc"><?php esc_html_e('Oldest First', 'mobooking'); ?></option>
-                <option value="date-desc"><?php esc_html_e('Newest First', 'mobooking'); ?></option>
-            </select>
+            <div class="flex">
+                <input class="w-full px-4 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                       type="text" id="services-search" placeholder="Search services...">
+                <select id="status-filter"
+                        class="px-4 py-2 border-t border-b border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-200">
+                    <option value="">All Statuses</option>
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                </select>
+                <select id="sort-filter"
+                        class="px-4 py-2 border border-gray-300 rounded-r-md focus:outline-none focus:ring-2 focus:ring-indigo-200">
+                    <option value="name-asc">Name A-Z</option>
+                    <option value="name-desc">Name Z-A</option>
+                    <option value="price-asc">Price Low-High</option>
+                    <option value="price-desc">Price High-Low</option>
+                    <option value="date-asc">Oldest First</option>
+                    <option value="date-desc">Newest First</option>
+                </select>
+            </div>
         </div>
-    </div>
-    
-    <!-- Content Section -->
-    <div class="services-content">
-        <!-- Feedback Messages Container -->
-        <div id="services-feedback-container"></div>
-        
-        <!-- Services List Container -->
-        <div id="services-list-container">
+
+        <div id="services-list-container" class="mt-6">
             <?php if (empty($services_list)): ?>
-                <div class="empty-state">
-                    <div class="empty-state-icon">
-                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
-                            <polyline points="14 2 14 8 20 8" />
-                            <line x1="16" y1="13" x2="8" y2="13" />
-                            <line x1="16" y1="17" x2="8" y2="17" />
-                            <line x1="10" y1="9" x2="8" y2="9" />
-                        </svg>
-                    </div>
-                    <h3 class="empty-state-title"><?php esc_html_e('No services yet', 'mobooking'); ?></h3>
-                    <p class="empty-state-description">
-                        <?php esc_html_e('Create your first service to start accepting bookings from customers.', 'mobooking'); ?>
-                    </p>
-                    <a href="<?php echo esc_url(site_url('/dashboard/service-edit/')); ?>" class="add-service-btn">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M5 12h14" />
-                            <path d="M12 5v14" />
-                        </svg>
-                        <?php esc_html_e('Create First Service', 'mobooking'); ?>
+                <div class="text-center text-gray-500 dark:text-gray-400 py-16">
+                    <h3 class="text-xl font-medium">No services yet</h3>
+                    <p class="mt-2">Create your first service to start accepting bookings from customers.</p>
+                    <a href="<?php echo esc_url(site_url('/dashboard/service-edit/')); ?>"
+                       class="inline-block px-4 py-2 mt-4 font-medium tracking-wide text-white capitalize transition-colors duration-200 transform bg-indigo-600 rounded-md hover:bg-indigo-500 focus:outline-none focus:bg-indigo-500">
+                        Create First Service
                     </a>
                 </div>
             <?php else: ?>
-                <div class="services-grid" id="services-grid">
+                <div id="services-grid" class="grid grid-cols-1 gap-6 mt-6 sm:grid-cols-2 lg:grid-cols-3">
                     <!-- Services will be rendered here by JavaScript -->
                 </div>
             <?php endif; ?>
         </div>
-        
-        <!-- Pagination Container -->
-        <div id="services-pagination-container" class="pagination-container">
+
+        <div id="services-pagination-container" class="mt-6">
             <!-- Pagination will be rendered here by JavaScript -->
         </div>
     </div>

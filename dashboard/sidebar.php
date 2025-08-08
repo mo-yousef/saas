@@ -46,86 +46,85 @@ if ( $current_user_id > 0 ) {
     }
 }
 ?>
-<aside class="mobooking-dashboard-sidebar">
-    <div class="dashboard-branding">
-        <a href="<?php echo esc_url($dashboard_base_url); ?>">
-            <h3><?php echo $display_brand_name; ?></h3>
-        </a>
-    </div>
-
-    <!-- <?php if ( ! empty( $user_mobooking_role_display_name ) ) : ?>
-        <div class="dashboard-user-role" style="padding: 10px 1rem; color: #E0E0E0;background-color: rgba(0,0,0,0.1);">
-            <?php echo esc_html( sprintf( __( 'Role: %s', 'mobooking' ), $user_mobooking_role_display_name ) ); ?>
+<aside :class="sidebarOpen ? 'translate-x-0 ease-out' : '-translate-x-full ease-in'" class="fixed inset-y-0 left-0 z-30 w-64 overflow-y-auto transition duration-300 transform bg-gray-900 lg:translate-x-0 lg:static lg:inset-0">
+    <div class="flex items-center justify-center mt-8">
+        <div class="flex items-center">
+            <a href="<?php echo esc_url($dashboard_base_url); ?>" class="text-2xl font-semibold text-white"><?php echo $display_brand_name; ?></a>
         </div>
-    <?php endif; ?> -->
-
-    <nav class="dashboard-nav">
-        <div class="nav-group">
-            <h4 class="nav-group-title"><?php esc_html_e('Main', 'mobooking'); ?></h4>
+    </div>
+    <nav class="mt-10">
+        <div class="mt-10">
+            <h3 class="mx-6 text-xs font-semibold text-gray-400 uppercase"><?php esc_html_e('Main', 'mobooking'); ?></h3>
             <ul>
                 <?php if (current_user_can(\MoBooking\Classes\Auth::ACCESS_MOBOOKING_DASHBOARD)) : ?>
-                <li class="<?php echo ($current_page === 'overview') ? 'active' : ''; ?>"><a href="<?php echo esc_url($dashboard_base_url); ?>"><span class="mobooking-menu-icon"><?php echo mobooking_get_dashboard_menu_icon('overview'); ?></span><?php esc_html_e('Overview', 'mobooking'); ?></a></li>
+                <li><a class="<?php echo ($current_page === 'overview') ? 'bg-gray-800 ' : ''; ?>flex items-center px-6 py-2 mt-4 text-gray-100 hover:bg-gray-700" href="<?php echo esc_url($dashboard_base_url); ?>"><span class="mr-3"><?php echo mobooking_get_dashboard_menu_icon('overview'); ?></span><?php esc_html_e('Overview', 'mobooking'); ?></a></li>
                 <?php endif; ?>
 
                 <?php
                 if ( current_user_can( \MoBooking\Classes\Auth::ROLE_WORKER_STAFF ) ) :
                 ?>
-                <li class="<?php echo ($current_page === 'my-assigned-bookings') ? 'active' : ''; ?>"><a href="<?php echo esc_url(trailingslashit($dashboard_base_url) . 'my-assigned-bookings/'); ?>"><span class="mobooking-menu-icon"><?php echo mobooking_get_dashboard_menu_icon('bookings'); ?></span><?php esc_html_e('My Assigned Bookings', 'mobooking'); ?></a></li>
+                <li><a class="<?php echo ($current_page === 'my-assigned-bookings') ? 'bg-gray-800 ' : ''; ?>flex items-center px-6 py-2 mt-4 text-gray-100 hover:bg-gray-700" href="<?php echo esc_url(trailingslashit($dashboard_base_url) . 'my-assigned-bookings/'); ?>"><span class="mr-3"><?php echo mobooking_get_dashboard_menu_icon('bookings'); ?></span><?php esc_html_e('My Assigned Bookings', 'mobooking'); ?></a></li>
                 <?php
                 elseif (current_user_can(\MoBooking\Classes\Auth::CAP_VIEW_BOOKINGS) || current_user_can(\MoBooking\Classes\Auth::CAP_MANAGE_BOOKINGS)) :
                 ?>
-                <li class="<?php echo ($current_page === 'bookings') ? 'active' : ''; ?>"><a href="<?php echo esc_url(trailingslashit($dashboard_base_url) . 'bookings/'); ?>"><span class="mobooking-menu-icon"><?php echo mobooking_get_dashboard_menu_icon('bookings'); ?></span><?php esc_html_e('Bookings', 'mobooking'); ?></a></li>
+                <li><a class="<?php echo ($current_page === 'bookings') ? 'bg-gray-800 ' : ''; ?>flex items-center px-6 py-2 mt-4 text-gray-100 hover:bg-gray-700" href="<?php echo esc_url(trailingslashit($dashboard_base_url) . 'bookings/'); ?>"><span class="mr-3"><?php echo mobooking_get_dashboard_menu_icon('bookings'); ?></span><?php esc_html_e('Bookings', 'mobooking'); ?></a></li>
                 <?php endif; ?>
 
                 <?php if (current_user_can(\MoBooking\Classes\Auth::CAP_VIEW_CUSTOMERS) || current_user_can(\MoBooking\Classes\Auth::CAP_MANAGE_CUSTOMERS)) : ?>
-                <li class="<?php echo ($current_page === 'customers') ? 'active' : ''; ?>"><a href="<?php echo esc_url(trailingslashit($dashboard_base_url) . 'customers/'); ?>"><span class="mobooking-menu-icon"><?php echo mobooking_get_dashboard_menu_icon('clients'); ?></span><?php esc_html_e('Customers', 'mobooking'); ?></a></li>
+                <li><a class="<?php echo ($current_page === 'customers') ? 'bg-gray-800 ' : ''; ?>flex items-center px-6 py-2 mt-4 text-gray-100 hover:bg-gray-700" href="<?php echo esc_url(trailingslashit($dashboard_base_url) . 'customers/'); ?>"><span class="mr-3"><?php echo mobooking_get_dashboard_menu_icon('clients'); ?></span><?php esc_html_e('Customers', 'mobooking'); ?></a></li>
                 <?php endif; ?>
             </ul>
         </div>
 
-        <div class="nav-group">
-            <h4 class="nav-group-title"><?php esc_html_e('Business', 'mobooking'); ?></h4>
+        <div class="mt-10">
+            <h3 class="mx-6 text-xs font-semibold text-gray-400 uppercase"><?php esc_html_e('Business', 'mobooking'); ?></h3>
             <ul>
                 <?php if (current_user_can(\MoBooking\Classes\Auth::CAP_VIEW_SERVICES) || current_user_can(\MoBooking\Classes\Auth::CAP_MANAGE_SERVICES)) : ?>
-                <li class="<?php echo ($current_page === 'services') ? 'active' : ''; ?>"><a href="<?php echo esc_url(trailingslashit($dashboard_base_url) . 'services/'); ?>"><span class="mobooking-menu-icon"><?php echo mobooking_get_dashboard_menu_icon('services'); ?></span><?php esc_html_e('Services', 'mobooking'); ?></a></li>
+                <li><a class="<?php echo ($current_page === 'services') ? 'bg-gray-800 ' : ''; ?>flex items-center px-6 py-2 mt-4 text-gray-100 hover:bg-gray-700" href="<?php echo esc_url(trailingslashit($dashboard_base_url) . 'services/'); ?>"><span class="mr-3"><?php echo mobooking_get_dashboard_menu_icon('services'); ?></span><?php esc_html_e('Services', 'mobooking'); ?></a></li>
                 <?php endif; ?>
 
                 <?php if (current_user_can(\MoBooking\Classes\Auth::CAP_MANAGE_AVAILABILITY)) : ?>
-                <li class="<?php echo ($current_page === 'availability') ? 'active' : ''; ?>"><a href="<?php echo esc_url(trailingslashit($dashboard_base_url) . 'availability/'); ?>"><span class="mobooking-menu-icon"><?php echo mobooking_get_dashboard_menu_icon('availability'); ?></span><?php esc_html_e('Availability', 'mobooking'); ?></a></li>
+                <li><a class="<?php echo ($current_page === 'availability') ? 'bg-gray-800 ' : ''; ?>flex items-center px-6 py-2 mt-4 text-gray-100 hover:bg-gray-700" href="<?php echo esc_url(trailingslashit($dashboard_base_url) . 'availability/'); ?>"><span class="mr-3"><?php echo mobooking_get_dashboard_menu_icon('availability'); ?></span><?php esc_html_e('Availability', 'mobooking'); ?></a></li>
                 <?php endif; ?>
 
                 <?php if (current_user_can(\MoBooking\Classes\Auth::CAP_VIEW_DISCOUNTS) || current_user_can(\MoBooking\Classes\Auth::CAP_MANAGE_DISCOUNTS)) : ?>
-                <li class="<?php echo ($current_page === 'discounts') ? 'active' : ''; ?>"><a href="<?php echo esc_url(trailingslashit($dashboard_base_url) . 'discounts/'); ?>"><span class="mobooking-menu-icon"><?php echo mobooking_get_dashboard_menu_icon('discounts'); ?></span><?php esc_html_e('Discounts', 'mobooking'); ?></a></li>
+                <li><a class="<?php echo ($current_page === 'discounts') ? 'bg-gray-800 ' : ''; ?>flex items-center px-6 py-2 mt-4 text-gray-100 hover:bg-gray-700" href="<?php echo esc_url(trailingslashit($dashboard_base_url) . 'discounts/'); ?>"><span class="mr-3"><?php echo mobooking_get_dashboard_menu_icon('discounts'); ?></span><?php esc_html_e('Discounts', 'mobooking'); ?></a></li>
                 <?php endif; ?>
 
                 <?php if (current_user_can(\MoBooking\Classes\Auth::CAP_VIEW_AREAS) || current_user_can(\MoBooking\Classes\Auth::CAP_MANAGE_AREAS)) : ?>
-                <li class="<?php echo ($current_page === 'areas') ? 'active' : ''; ?>"><a href="<?php echo esc_url(trailingslashit($dashboard_base_url) . 'areas/'); ?>"><span class="mobooking-menu-icon"><?php echo mobooking_get_dashboard_menu_icon('areas'); ?></span><?php esc_html_e('Service Areas', 'mobooking'); ?></a></li>
+                <li><a class="<?php echo ($current_page === 'areas') ? 'bg-gray-800 ' : ''; ?>flex items-center px-6 py-2 mt-4 text-gray-100 hover:bg-gray-700" href="<?php echo esc_url(trailingslashit($dashboard_base_url) . 'areas/'); ?>"><span class="mr-3"><?php echo mobooking_get_dashboard_menu_icon('areas'); ?></span><?php esc_html_e('Service Areas', 'mobooking'); ?></a></li>
                 <?php endif; ?>
 
                 <?php if (current_user_can(\MoBooking\Classes\Auth::CAP_MANAGE_WORKERS)) : ?>
-                <li class="<?php echo ($current_page === 'workers') ? 'active' : ''; ?>"><a href="<?php echo esc_url(trailingslashit($dashboard_base_url) . 'workers/'); ?>"><span class="mobooking-menu-icon"><?php echo mobooking_get_dashboard_menu_icon('workers'); ?></span><?php esc_html_e('Workers', 'mobooking'); ?></a></li>
+                <li><a class="<?php echo ($current_page === 'workers') ? 'bg-gray-800 ' : ''; ?>flex items-center px-6 py-2 mt-4 text-gray-100 hover:bg-gray-700" href="<?php echo esc_url(trailingslashit($dashboard_base_url) . 'workers/'); ?>"><span class="mr-3"><?php echo mobooking_get_dashboard_menu_icon('workers'); ?></span><?php esc_html_e('Workers', 'mobooking'); ?></a></li>
                 <?php endif; ?>
             </ul>
         </div>
 
-        <div class="nav-group">
-            <h4 class="nav-group-title"><?php esc_html_e('Settings', 'mobooking'); ?></h4>
+        <div class="mt-10">
+            <h3 class="mx-6 text-xs font-semibold text-gray-400 uppercase"><?php esc_html_e('Settings', 'mobooking'); ?></h3>
             <ul>
                 <?php if (current_user_can(\MoBooking\Classes\Auth::CAP_MANAGE_BOOKING_FORM)) : ?>
-                <li class="<?php echo ($current_page === 'booking-form') ? 'active' : ''; ?>"><a href="<?php echo esc_url(trailingslashit($dashboard_base_url) . 'booking-form/'); ?>"><span class="mobooking-menu-icon"><?php echo mobooking_get_dashboard_menu_icon('booking_form'); ?></span><?php esc_html_e('Booking Form', 'mobooking'); ?></a></li>
+                <li><a class="<?php echo ($current_page === 'booking-form') ? 'bg-gray-800 ' : ''; ?>flex items-center px-6 py-2 mt-4 text-gray-100 hover:bg-gray-700" href="<?php echo esc_url(trailingslashit($dashboard_base_url) . 'booking-form/'); ?>"><span class="mr-3"><?php echo mobooking_get_dashboard_menu_icon('booking_form'); ?></span><?php esc_html_e('Booking Form', 'mobooking'); ?></a></li>
                 <?php endif; ?>
 
                 <?php if (current_user_can(\MoBooking\Classes\Auth::CAP_MANAGE_BUSINESS_SETTINGS)) : ?>
-                <li class="<?php echo ($current_page === 'settings') ? 'active' : ''; ?>"><a href="<?php echo esc_url(trailingslashit($dashboard_base_url) . 'settings/'); ?>"><span class="mobooking-menu-icon"><?php echo mobooking_get_dashboard_menu_icon('settings'); ?></span><?php esc_html_e('Settings', 'mobooking'); ?></a></li>
+                <li><a class="<?php echo ($current_page === 'settings') ? 'bg-gray-800 ' : ''; ?>flex items-center px-6 py-2 mt-4 text-gray-100 hover:bg-gray-700" href="<?php echo esc_url(trailingslashit($dashboard_base_url) . 'settings/'); ?>"><span class="mr-3"><?php echo mobooking_get_dashboard_menu_icon('settings'); ?></span><?php esc_html_e('Settings', 'mobooking'); ?></a></li>
                 <?php endif; ?>
             </ul>
         </div>
     </nav>
-    <div class="mobooking-subscription-plan">
-        <div class="mobooking-subscription-plan-box">
-            <h4><?php esc_html_e('Subscription Plan', 'mobooking'); ?></h4>
-            <p><?php esc_html_e('You are currently on the Free Plan.', 'mobooking'); ?></p>
-            <a href="#" class="mobooking-btn mobooking-btn-primary"><?php esc_html_e('Upgrade', 'mobooking'); ?></a>
-        </div>
-    </div>
 </aside>
+<script>
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('dashboard', () => ({
+            sidebarOpen: false,
+            openSidebar() {
+                this.sidebarOpen = true
+            },
+            closeSidebar() {
+                this.sidebarOpen = false
+            },
+        }))
+    })
+</script>
