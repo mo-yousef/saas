@@ -167,7 +167,7 @@ class Bookings {
     private function create_enhanced_booking($booking_data) {
         global $wpdb;
 
-        $table_name = $this->db->get_table_name('bookings');
+        $table_name = Database::get_table_name('bookings');
 
         // Generate booking reference
         $booking_reference = $this->generate_booking_reference();
