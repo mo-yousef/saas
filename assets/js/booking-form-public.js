@@ -1365,382 +1365,158 @@
   }
   // Replace the submitBooking function in your booking-form-public.js file
 
-  function submitBooking() {
-    DebugTree.group("📤 Submitting Booking");
+function submitBooking() {
+    console.log("=== BOOKING SUBMISSION DEBUG START ===");
 
-    console.log("=== SUBMISSION DEBUG START ===");
-
-    // Since formData is scoped, let's access it through MoBookingDebug or rebuild it
-    let currentFormData = {};
-
-    // Try to access formData through the debug object first
-    if (window.MoBookingDebug && window.MoBookingDebug.formData) {
-      currentFormData = window.MoBookingDebug.formData;
-      console.log(
-        "✅ Retrieved formData from MoBookingDebug:",
-        currentFormData
-      );
-    } else {
-      console.log(
-        "⚠️ MoBookingDebug not available, rebuilding formData from DOM"
-      );
-      // Rebuild formData from the current DOM state
-      currentFormData = {
-        location: {
-          zip_code: $("#mobooking-zip").val() || "",
-          country_code: $("#mobooking-country").val() || "",
-        },
-        services: [],
-        options: {},
-        pets: {
-          has_pets: $('input[name="has_pets"]:checked').val() === "yes",
-          details: $("#mobooking-pet-details").val() || "",
-        },
-        frequency: $('input[name="frequency"]:checked').val() || "one-time",
-        datetime: {
-          date: $("#mobooking-service-date").val() || "",
-          time: "", // Will be filled from selected time slot
-        },
-        customer: {
-          name: $("#mobooking-customer-name").val() || "",
-          email: $("#mobooking-customer-email").val() || "",
-          phone: $("#mobooking-customer-phone").val() || "",
-          address: $("#mobooking-service-address").val() || "",
-          instructions: $("#mobooking-special-instructions").val() || "",
-        },
-        access: {
-          method: $('input[name="property_access"]:checked').val() || "home",
-          details: $("#mobooking-access-instructions").val() || "",
-        },
-      };
-
-      // Get selected services from DOM
-      const selectedServiceElements = $(
-        'input[name="selected_service"]:checked, .mobooking-service-card.selected'
-      );
-      selectedServiceElements.each(function () {
-        let serviceId;
-        if ($(this).is("input")) {
-          serviceId = $(this).val();
-        } else {
-          serviceId =
-            $(this).data("service-id") || $(this).attr("data-service-id");
-        }
-        if (serviceId && currentFormData.services.indexOf(serviceId) === -1) {
-          currentFormData.services.push(serviceId);
-        }
-      });
-
-      // Get selected time slot
-      const selectedTimeSlot = $(".mobooking-time-slot.selected");
-      if (selectedTimeSlot.length > 0) {
-        currentFormData.datetime.time =
-          selectedTimeSlot.data("time") ||
-          selectedTimeSlot.attr("data-time") ||
-          "";
-      }
-
-      // Collect service options
-      $('[name^="service_options"]').each(function () {
-        const name = $(this).attr("name");
-        const match = name.match(/service_options\[(\d+)\]/);
-        if (match) {
-          const optionId = match[1];
-          if ($(this).attr("type") === "checkbox") {
-            currentFormData.options[optionId] = $(this).is(":checked") ? 1 : 0;
-          } else {
-            currentFormData.options[optionId] = $(this).val();
-          }
-        }
-      });
-
-      console.log("✅ Rebuilt formData from DOM:", currentFormData);
-    }
-
-    if (!validateCurrentStep()) {
-      DebugTree.error("Validation failed, cannot submit");
-      return;
-    }
-
-    const $submitBtn = $(
-      "#mobooking-step-7 button[onclick='moBookingSubmitForm()']"
-    );
+    const $submitBtn = $("#mobooking-submit-booking");
     const originalBtnHtml = $submitBtn.html();
 
-    $submitBtn
-      .prop("disabled", true)
-      .html('<div class="mobooking-spinner"></div> Submitting...');
+    // Disable button and show loading
+    $submitBtn.prop("disabled", true).html("Submitting...");
 
-    // Validate that we have services selected
-    if (
-      !currentFormData.services ||
-      !Array.isArray(currentFormData.services) ||
-      currentFormData.services.length === 0
-    ) {
-      console.error("❌ No services selected:", currentFormData.services);
-      showFeedback(
-        $("#mobooking-contact-feedback"),
-        "error",
-        "Please select at least one service."
-      );
-      $submitBtn.prop("disabled", false).html(originalBtnHtml);
-      return;
-    }
-
-    console.log("✅ Services found:", currentFormData.services);
-
-    // Prepare customer details
-    const customerDetails = {
-      name:
-        currentFormData.customer.name ||
-        $("#mobooking-customer-name").val() ||
-        "",
-      email:
-        currentFormData.customer.email ||
-        $("#mobooking-customer-email").val() ||
-        "",
-      phone:
-        currentFormData.customer.phone ||
-        $("#mobooking-customer-phone").val() ||
-        "",
-      address:
-        currentFormData.customer.address ||
-        $("#mobooking-service-address").val() ||
-        "",
-      instructions:
-        currentFormData.customer.instructions ||
-        $("#mobooking-special-instructions").val() ||
-        "",
-      date:
-        currentFormData.datetime.date ||
-        $("#mobooking-service-date").val() ||
-        "",
-      time:
-        currentFormData.datetime.time ||
-        $(".mobooking-time-slot.selected").data("time") ||
-        "",
-    };
-
-    console.log("✅ Customer details prepared:", customerDetails);
-
-    // Validate required customer fields
-    const requiredFields = [
-      "name",
-      "email",
-      "phone",
-      "address",
-      "date",
-      "time",
-    ];
-    const missingFields = [];
-
-    requiredFields.forEach((field) => {
-      if (!customerDetails[field] || customerDetails[field].trim() === "") {
-        missingFields.push(field);
-      }
-    });
-
-    if (missingFields.length > 0) {
-      console.error("❌ Missing required fields:", missingFields);
-      showFeedback(
-        $("#mobooking-contact-feedback"),
-        "error",
-        `Please fill in: ${missingFields.join(", ")}`
-      );
-      $submitBtn.prop("disabled", false).html(originalBtnHtml);
-      return;
-    }
-
-    // Validate email format
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customerDetails.email)) {
-      console.error("❌ Invalid email format");
-      showFeedback(
-        $("#mobooking-contact-feedback"),
-        "error",
-        "Please enter a valid email address."
-      );
-      $submitBtn.prop("disabled", false).html(originalBtnHtml);
-      return;
-    }
-
-    // Prepare selected services for backend
-    const selectedServices = currentFormData.services.map((serviceId) => {
-      const parsedId = parseInt(serviceId);
-      console.log(`Converting service ${serviceId} to ${parsedId}`);
-      return {
-        service_id: parsedId,
-        configured_options: currentFormData.options || {},
-      };
-    });
-
-    console.log("✅ Selected services for backend:", selectedServices);
-
-    // Prepare optional data structures
-    const petInformation = {
-      has_pets:
-        currentFormData.pets && currentFormData.pets.has_pets ? true : false,
-      details:
-        currentFormData.pets && currentFormData.pets.details
-          ? currentFormData.pets.details
-          : "",
-    };
-
-    const propertyAccess = {
-      method:
-        currentFormData.access && currentFormData.access.method
-          ? currentFormData.access.method
-          : "home",
-      details:
-        currentFormData.access && currentFormData.access.details
-          ? currentFormData.access.details
-          : "",
-    };
-
-    const serviceOptions = currentFormData.options || {};
-
-    // Test JSON encoding before sending
     try {
-      const customerDetailsJson = JSON.stringify(customerDetails);
-      const selectedServicesJson = JSON.stringify(selectedServices);
-      const serviceOptionsJson = JSON.stringify(serviceOptions);
-      const petInformationJson = JSON.stringify(petInformation);
-      const propertyAccessJson = JSON.stringify(propertyAccess);
+        // Validate we have the required data
+        if (!window.formData || typeof window.formData !== 'object') {
+            console.error("❌ formData not available");
+            showFeedback($("#mobooking-contact-feedback"), "error", "Form data not available. Please try again.");
+            $submitBtn.prop("disabled", false).html(originalBtnHtml);
+            return;
+        }
 
-      console.log("✅ JSON encoding successful");
-      console.log("customerDetailsJson:", customerDetailsJson);
-      console.log("selectedServicesJson:", selectedServicesJson);
+        console.log("✅ Form data:", window.formData);
 
-      // Get CONFIG - try multiple sources
-      let config = CONFIG;
-      if (!config && window.MoBookingDebug) {
-        config = window.MoBookingDebug.config;
-      }
-      if (!config && window.MOBOOKING_CONFIG) {
-        config = window.MOBOOKING_CONFIG;
-      }
-      if (!config) {
-        console.error("❌ No CONFIG found");
-        showFeedback(
-          $("#mobooking-contact-feedback"),
-          "error",
-          "Configuration error. Please refresh the page."
-        );
+        // Prepare customer details
+        const customerDetails = {
+            name: window.formData.customer?.name || "",
+            email: window.formData.customer?.email || "",
+            phone: window.formData.customer?.phone || "",
+            address: window.formData.customer?.address || "",
+            instructions: window.formData.customer?.instructions || "",
+            date: window.formData.datetime?.date || "",
+            time: window.formData.datetime?.time || ""
+        };
+
+        console.log("✅ Customer details:", customerDetails);
+
+        // Validate required fields
+        const requiredFields = ['name', 'email', 'phone', 'date', 'time'];
+        const missingFields = requiredFields.filter(field => !customerDetails[field]);
+
+        if (missingFields.length > 0) {
+            console.error("❌ Missing required fields:", missingFields);
+            showFeedback($("#mobooking-contact-feedback"), "error", `Missing required fields: ${missingFields.join(', ')}`);
+            $submitBtn.prop("disabled", false).html(originalBtnHtml);
+            return;
+        }
+
+        // Prepare selected services
+        let selectedServices = [];
+        if (window.formData.services && Array.isArray(window.formData.services)) {
+            selectedServices = window.formData.services.map(serviceId => ({
+                service_id: parseInt(serviceId),
+                configured_options: window.formData.options || {}
+            }));
+        }
+
+        console.log("✅ Selected services:", selectedServices);
+
+        if (selectedServices.length === 0) {
+            console.error("❌ No services selected");
+            showFeedback($("#mobooking-contact-feedback"), "error", "Please select at least one service.");
+            $submitBtn.prop("disabled", false).html(originalBtnHtml);
+            return;
+        }
+
+        // Prepare optional data
+        const petInformation = {
+            has_pets: window.formData.pets?.has_pets || false,
+            details: window.formData.pets?.details || ""
+        };
+
+        const propertyAccess = {
+            method: window.formData.access?.method || "home",
+            details: window.formData.access?.details || ""
+        };
+
+        const serviceOptions = window.formData.options || {};
+        const serviceFrequency = window.formData.frequency || "one-time";
+
+        // Prepare AJAX data
+        const ajaxData = {
+            action: "mobooking_create_booking",
+            nonce: CONFIG.nonce,
+            tenant_id: CONFIG.tenant_id,
+            customer_details: JSON.stringify(customerDetails),
+            selected_services: JSON.stringify(selectedServices),
+            service_options: JSON.stringify(serviceOptions),
+            pet_information: JSON.stringify(petInformation),
+            property_access: JSON.stringify(propertyAccess),
+            service_frequency: serviceFrequency
+        };
+
+        console.log("✅ Final AJAX data:", ajaxData);
+        console.log("=== BOOKING SUBMISSION DEBUG END ===");
+
+        // Make AJAX request
+        $.ajax({
+            url: CONFIG.ajax_url,
+            type: "POST",
+            data: ajaxData,
+            timeout: 30000, // 30 second timeout
+            success: function(response) {
+                console.log("✅ AJAX Success:", response);
+
+                if (response.success) {
+                    // Handle success
+                    if (typeof populateBookingSummary === "function") {
+                        populateBookingSummary({ booking_data: response.data.booking_data });
+                    }
+
+                    if (typeof showStep === "function") {
+                        showStep(8); // Success step
+                    } else {
+                        showFeedback($("#mobooking-contact-feedback"), "success", "Booking submitted successfully!");
+                    }
+                } else {
+                    console.error("❌ Server returned error:", response);
+                    const errorMessage = response.data?.message || "An error occurred while submitting your booking.";
+                    showFeedback($("#mobooking-contact-feedback"), "error", errorMessage);
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error("❌ AJAX Error:", {
+                    status: xhr.status,
+                    statusText: xhr.statusText,
+                    responseText: xhr.responseText,
+                    error: error
+                });
+
+                let errorMessage = "Could not submit booking. Please try again.";
+
+                // Try to parse error response
+                if (xhr.responseJSON && xhr.responseJSON.data && xhr.responseJSON.data.message) {
+                    errorMessage = xhr.responseJSON.data.message;
+                } else if (xhr.status === 500) {
+                    errorMessage = "Server error occurred. Please check your data and try again.";
+                } else if (xhr.status === 403) {
+                    errorMessage = "Security check failed. Please refresh the page and try again.";
+                } else if (xhr.status === 0) {
+                    errorMessage = "Network error. Please check your connection and try again.";
+                }
+
+                showFeedback($("#mobooking-contact-feedback"), "error", errorMessage);
+            },
+            complete: function() {
+                $submitBtn.prop("disabled", false).html(originalBtnHtml);
+            }
+        });
+
+    } catch (e) {
+        console.error("❌ JavaScript Error:", e);
+        showFeedback($("#mobooking-contact-feedback"), "error", "An error occurred. Please try again.");
         $submitBtn.prop("disabled", false).html(originalBtnHtml);
-        return;
-      }
-
-      // Construct the data structure expected by the Bookings.php handler
-      const ajaxData = {
-        action: "mobooking_create_booking",
-        nonce: config.nonce,
-        tenant_id: config.tenant_id,
-
-        // JSON encoded fields as expected by Bookings.php
-        customer_details: customerDetailsJson,
-        selected_services: selectedServicesJson,
-        service_options: serviceOptionsJson,
-        pet_information: petInformationJson,
-        property_access: propertyAccessJson,
-        service_frequency: currentFormData.frequency || "one-time",
-      };
-
-      console.log("✅ Final AJAX data:", ajaxData);
-      console.log("=== SUBMISSION DEBUG END ===");
-
-      DebugTree.info("Submitting booking data", ajaxData);
-
-      $.ajax({
-        url: config.ajax_url,
-        type: "POST",
-        data: ajaxData,
-        success: function (response) {
-          console.log("✅ Booking submission response:", response);
-          DebugTree.success("Booking submission successful", response);
-
-          if (response.success) {
-            // Create a summary object for the success page
-            const bookingData = {
-              booking_id: response.data.booking_id || "N/A",
-              booking_reference: response.data.booking_reference || "N/A",
-              customer_name: customerDetails.name,
-              customer_email: customerDetails.email,
-              booking_date: customerDetails.date,
-              booking_time: customerDetails.time,
-              total_amount: response.data.total_amount || "0",
-            };
-
-            // Try to call populateBookingSummary if it exists
-            if (typeof populateBookingSummary === "function") {
-              populateBookingSummary({ booking_data: bookingData });
-            }
-
-            // Try to show success step
-            if (typeof showStep === "function") {
-              showStep(8); // Success step
-            } else {
-              // Fallback: show success message
-              showFeedback(
-                $("#mobooking-contact-feedback"),
-                "success",
-                "Booking submitted successfully!"
-              );
-            }
-          } else {
-            const errorMessage =
-              response.data.message || "An unknown error occurred.";
-            showFeedback(
-              $("#mobooking-contact-feedback"),
-              "error",
-              errorMessage
-            );
-            DebugTree.error("Booking submission failed", response.data);
-          }
-        },
-        error: function (xhr, status, error) {
-          console.error("❌ AJAX Error:", {
-            status: xhr.status,
-            statusText: xhr.statusText,
-            responseText: xhr.responseText,
-            error: error,
-          });
-
-          DebugTree.error("Booking submission AJAX error", {
-            status: xhr.status,
-            statusText: xhr.statusText,
-            responseText: xhr.responseText,
-            error: error,
-          });
-
-          let errorMessage = "Could not submit booking. Please try again.";
-
-          // Try to parse error response for more specific message
-          try {
-            const errorResponse = JSON.parse(xhr.responseText);
-            if (errorResponse.data && errorResponse.data.message) {
-              errorMessage = errorResponse.data.message;
-            }
-          } catch (e) {
-            console.log("Could not parse error response");
-          }
-
-          showFeedback($("#mobooking-contact-feedback"), "error", errorMessage);
-        },
-        complete: function () {
-          $submitBtn.prop("disabled", false).html(originalBtnHtml);
-          DebugTree.groupEnd();
-        },
-      });
-    } catch (jsonError) {
-      console.error("❌ JSON encoding error:", jsonError);
-      showFeedback(
-        $("#mobooking-contact-feedback"),
-        "error",
-        "Error preparing booking data. Please try again."
-      );
-      $submitBtn.prop("disabled", false).html(originalBtnHtml);
-      return;
     }
-  }
+}
 
   function validateCurrentStep() {
     DebugTree.debug(`Validating step ${currentStep}`);
