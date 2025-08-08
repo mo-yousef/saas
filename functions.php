@@ -47,7 +47,11 @@ function mobooking_initialize_managers() {
     
     if (!isset($GLOBALS['mobooking_bookings_manager'])) {
         try {
-            $GLOBALS['mobooking_bookings_manager'] = new \MoBooking\Classes\Bookings();
+            $GLOBALS['mobooking_bookings_manager'] = new \MoBooking\Classes\Bookings(
+                $GLOBALS['mobooking_discounts_manager'],
+                $GLOBALS['mobooking_notifications_manager'],
+                $GLOBALS['mobooking_services_manager']
+            );
         } catch (Exception $e) {
             error_log('MoBooking: Failed to initialize Bookings manager: ' . $e->getMessage());
         }
