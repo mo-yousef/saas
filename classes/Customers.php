@@ -318,49 +318,8 @@ class Customers {
         return true;
     }
 
-    public function get_customer_by_id( $customer_id ) {
-        $customer_id = absint( $customer_id );
-        if ( ! $customer_id ) {
-            return null;
-        }
 
-        $customer = $this->db->get_row(
-            $this->db->prepare(
-                "SELECT * FROM {$this->table_name} WHERE id = %d",
-                $customer_id
-            )
-        );
 
-        if ( $customer ) {
-            $customer->booking_overview = $this->get_booking_overview( $customer_id );
-        }
-
-        return $customer;
-    }
-
-    public function get_booking_overview( $customer_id ) {
-        $customer_id = absint( $customer_id );
-        if ( ! $customer_id ) {
-            return null;
-        }
-
-        $bookings_table = Database::get_table_name('bookings');
-
-        $query = $this->db->prepare(
-            "SELECT
-                COUNT(*) as total_bookings,
-                SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed_bookings,
-                SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending_bookings,
-                SUM(CASE WHEN status = 'cancelled' THEN 1 ELSE 0 END) as cancelled_bookings,
-                SUM(total_price) as total_spent,
-                AVG(total_price) as average_booking_value
-             FROM {$bookings_table}
-             WHERE mob_customer_id = %d",
-            $customer_id
-        );
-
-        return $this->db->get_row( $query );
-    }
 
     public function get_kpi_data($tenant_id) {
         $tenant_id = absint($tenant_id);
@@ -396,6 +355,143 @@ class Customers {
     }
 
 
+    /**
+     * Fixed version of the get_customer_by_id method in the Customers class
+     * This should replace the existing method in classes/Customers.php
+     * 
+     * This version includes proper tenant context checking to ensure users
+     * can only access customers that belong to their business.
+     */
+
+    public function get_customer_by_id( $customer_id, $tenant_id = null ) {
+        $customer_id = absint( $customer_id );
+        if ( ! $customer_id ) {
+            return null;
+        }
+
+        // If no tenant_id provided, try to get it from current user context
+        if ( is_null( $tenant_id ) ) {
+            $current_user_id = get_current_user_id();
+            $tenant_id = $current_user_id;
+            
+            // Handle worker case - get the business owner they work for
+            if ( class_exists( 'MoBooking\Classes\Auth' ) && \MoBooking\Classes\Auth::is_user_worker( $current_user_id ) ) {
+                $owner_id = \MoBooking\Classes\Auth::get_business_owner_id_for_worker( $current_user_id );
+                if ( $owner_id ) {
+                    $tenant_id = $owner_id;
+                }
+            }
+        }
+
+        if ( ! $tenant_id ) {
+            error_log( "MoBooking: No tenant_id available for get_customer_by_id" );
+            return null;
+        }
+
+        // Query customer with tenant check to ensure proper access control
+        $customer = $this->db->get_row(
+            $this->db->prepare(
+                "SELECT * FROM {$this->table_name} WHERE id = %d AND tenant_id = %d",
+                $customer_id,
+                $tenant_id
+            )
+        );
+
+        if ( $this->db->last_error ) {
+            error_log( "MoBooking DB Error (get_customer_by_id): " . $this->db->last_error );
+            return null;
+        }
+
+        if ( $customer ) {
+            // Get booking overview for this customer
+            $customer->booking_overview = $this->get_booking_overview( $customer_id, $tenant_id );
+        }
+
+        return $customer;
+    }
+
+    public function get_booking_overview( $customer_id, $tenant_id = null ) {
+        $customer_id = absint( $customer_id );
+        if ( ! $customer_id ) {
+            return null;
+        }
+
+        // If no tenant_id provided, try to get it from current user context
+        if ( is_null( $tenant_id ) ) {
+            $current_user_id = get_current_user_id();
+            $tenant_id = $current_user_id;
+            
+            // Handle worker case
+            if ( class_exists( 'MoBooking\Classes\Auth' ) && \MoBooking\Classes\Auth::is_user_worker( $current_user_id ) ) {
+                $owner_id = \MoBooking\Classes\Auth::get_business_owner_id_for_worker( $current_user_id );
+                if ( $owner_id ) {
+                    $tenant_id = $owner_id;
+                }
+            }
+        }
+
+        // Get customer data first to access email
+        $customer = $this->db->get_row(
+            $this->db->prepare(
+                "SELECT email FROM {$this->table_name} WHERE id = %d AND tenant_id = %d",
+                $customer_id,
+                $tenant_id
+            )
+        );
+
+        if ( ! $customer || empty( $customer->email ) ) {
+            error_log( "MoBooking: Customer not found or email missing for customer_id: {$customer_id}, tenant_id: {$tenant_id}" );
+            return (object) [
+                'total_bookings' => 0,
+                'completed_bookings' => 0,
+                'pending_bookings' => 0,
+                'cancelled_bookings' => 0,
+                'total_spent' => 0,
+                'average_booking_value' => 0
+            ];
+        }
+
+        $bookings_table = Database::get_table_name('bookings');
+
+        // Use customer_email and tenant_id to ensure proper data isolation
+        $query = $this->db->prepare(
+            "SELECT
+                COUNT(*) as total_bookings,
+                SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed_bookings,
+                SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending_bookings,
+                SUM(CASE WHEN status = 'cancelled' THEN 1 ELSE 0 END) as cancelled_bookings,
+                SUM(CASE WHEN status IN ('completed', 'confirmed') THEN total_price ELSE 0 END) as total_spent,
+                AVG(CASE WHEN status IN ('completed', 'confirmed') THEN total_price ELSE NULL END) as average_booking_value
+            FROM {$bookings_table}
+            WHERE customer_email = %s AND user_id = %d",
+            $customer->email,
+            $tenant_id
+        );
+
+        $result = $this->db->get_row( $query );
+
+        if ( $this->db->last_error ) {
+            error_log( "MoBooking DB Error (get_booking_overview): " . $this->db->last_error );
+            return (object) [
+                'total_bookings' => 0,
+                'completed_bookings' => 0,
+                'pending_bookings' => 0,
+                'cancelled_bookings' => 0,
+                'total_spent' => 0,
+                'average_booking_value' => 0
+            ];
+        }
+
+        // Ensure we return an object with all expected properties, defaulting to 0 if null
+        return (object) [
+            'total_bookings' => intval( $result->total_bookings ?? 0 ),
+            'completed_bookings' => intval( $result->completed_bookings ?? 0 ),
+            'pending_bookings' => intval( $result->pending_bookings ?? 0 ),
+            'cancelled_bookings' => intval( $result->cancelled_bookings ?? 0 ),
+            'total_spent' => floatval( $result->total_spent ?? 0 ),
+            'average_booking_value' => floatval( $result->average_booking_value ?? 0 )
+        ];
+    }
 /**
  * Get customer insights for dashboard
  * Add this method to the Customers class
