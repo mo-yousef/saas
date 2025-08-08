@@ -141,4 +141,20 @@ if (class_exists('MoBooking\Classes\BookingFormAjax')) {
         $GLOBALS['mobooking_booking_form_ajax']->register_ajax_actions();
     }
 }
+
+// Initialize Service Options AJAX
+if (class_exists('MoBooking\Classes\ServiceOptionsAjax')) {
+    if (!isset($GLOBALS['mobooking_service_options_ajax'])) {
+        $GLOBALS['mobooking_service_options_ajax'] = new \MoBooking\Classes\ServiceOptionsAjax();
+        $GLOBALS['mobooking_service_options_ajax']->register_ajax_actions();
+    }
+}
+
+// Initialize Availability AJAX
+if (class_exists('MoBooking\Classes\AvailabilityAjax')) {
+    if (!isset($GLOBALS['mobooking_availability_ajax'])) {
+        $GLOBALS['mobooking_availability_ajax'] = new \MoBooking\Classes\AvailabilityAjax();
+        $GLOBALS['mobooking_availability_ajax']->register_ajax_actions();
+    }
+}
 ?>
