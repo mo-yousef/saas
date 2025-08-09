@@ -207,6 +207,52 @@ if ( is_page_template('templates/booking-form-public.php') || $page_type_for_scr
         wp_add_inline_style('mobooking-booking-form-modern', $tenant_settings['bf_custom_css']);
     }
 
+    $theme_color = $tenant_settings['bf_theme_color'] ?? '#1abc9c';
+    $dynamic_css = "
+        .mobooking-header h1 {
+            color: {$theme_color};
+        }
+        .mobooking-step-indicator.active {
+            background: {$theme_color};
+            color: white;
+        }
+        .mobooking-progress-fill {
+            background: linear-gradient(90deg, {$theme_color}, #10b981);
+        }
+        .mobooking-input:focus {
+            border-color: {$theme_color};
+        }
+        .mobooking-service-card:hover {
+            border-color: {$theme_color};
+        }
+        .mobooking-service-card.selected {
+            border-color: {$theme_color};
+            background: rgba(26, 188, 156, 0.05);
+        }
+        .mobooking-service-price {
+            color: {$theme_color};
+        }
+        .mobooking-radio-option:hover {
+            border-color: {$theme_color};
+        }
+        .mobooking-time-slot:hover {
+            border-color: {$theme_color};
+        }
+        .mobooking-time-slot.selected {
+            border-color: {$theme_color};
+            background: {$theme_color};
+            color: white;
+        }
+        .mobooking-btn-primary {
+            background: {$theme_color};
+            color: white;
+        }
+        .mobooking-spinner {
+            border-top-color: {$theme_color};
+        }
+    ";
+    wp_add_inline_style('mobooking-booking-form-modern', $dynamic_css);
+
     wp_localize_script('mobooking-public-booking-form', 'MOBOOKING_CONFIG', [
         'ajax_url' => admin_url('admin-ajax.php'),
         'nonce' => wp_create_nonce('mobooking_booking_form_nonce'),
