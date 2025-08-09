@@ -132,6 +132,7 @@ $total_bookings = $current_month_stats['total'] ?? 0;
 $completed_jobs = $current_month_stats['by_status']['completed'] ?? 0;
 $monthly_revenue = $current_month_stats['total_revenue'] ?? 0;
 $new_customers = $current_month_customers['new_customers'] ?? 0;
+$upcoming_count = $bookings_manager->get_kpi_data($data_user_id)['upcoming_count'];
 
 $prev_total_bookings = $previous_month_stats['total'] ?? 0;
 $prev_completed_jobs = $previous_month_stats['by_status']['completed'] ?? 0;
@@ -322,7 +323,10 @@ $currency_symbol = get_option('mobooking_currency_symbol', '$');
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1rem;
+}
+.kpi-icon svg {
+    width: 1.25rem;
+    height: 1.25rem;
 }
 
 .kpi-value {
@@ -376,6 +380,11 @@ $currency_symbol = get_option('mobooking_currency_symbol', '$');
   display: flex;
   align-items: center;
   gap: 0.5rem;
+}
+.card-title svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  stroke: hsl(var(--muted-foreground));
 }
 
 /* Recent Bookings */
@@ -486,7 +495,11 @@ $currency_symbol = get_option('mobooking_currency_symbol', '$');
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.5rem;
+  color: hsl(var(--muted-foreground));
+}
+.empty-state-icon svg {
+    width: 1.75rem;
+    height: 1.75rem;
 }
 
 /* Quick Actions */
@@ -524,8 +537,11 @@ $currency_symbol = get_option('mobooking_currency_symbol', '$');
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.25rem;
   margin-bottom: 0.5rem;
+}
+.quick-action-icon svg {
+    width: 1.5rem;
+    height: 1.5rem;
 }
 
 .quick-action-text {
@@ -577,14 +593,14 @@ $currency_symbol = get_option('mobooking_currency_symbol', '$');
             <div class="kpi-card">
                 <div class="kpi-header">
                     <div class="kpi-title"><?php esc_html_e('Your Upcoming Bookings', 'mobooking'); ?></div>
-                    <div class="kpi-icon">📅</div>
+                    <div class="kpi-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg></div>
                 </div>
                 <div class="kpi-value"><?php echo esc_html($upcoming_count); ?></div>
             </div>
             <div class="kpi-card">
                 <div class="kpi-header">
                     <div class="kpi-title"><?php esc_html_e('Your Completed Jobs (This Month)', 'mobooking'); ?></div>
-                    <div class="kpi-icon">✅</div>
+                    <div class="kpi-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg></div>
                 </div>
                 <div class="kpi-value"><?php echo esc_html($worker_completed_jobs_month); ?></div>
             </div>
@@ -593,7 +609,8 @@ $currency_symbol = get_option('mobooking_currency_symbol', '$');
         <div class="content-grid">
             <div class="content-card">
                 <h2 class="card-title">
-                    📋 <?php esc_html_e('Your Upcoming Assigned Bookings', 'mobooking'); ?>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>
+                    <?php esc_html_e('Your Upcoming Assigned Bookings', 'mobooking'); ?>
                 </h2>
                 <?php
                 $upcoming_bookings = $bookings_manager->get_bookings_by_tenant($current_user_id, [
@@ -626,7 +643,7 @@ $currency_symbol = get_option('mobooking_currency_symbol', '$');
                     </div>
                 <?php else : ?>
                     <div class="empty-state">
-                        <div class="empty-state-icon">🎉</div>
+                        <div class="empty-state-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"></polyline><rect x="2" y="7" width="20" height="5"></rect><line x1="12" y1="22" x2="12" y2="7"></line><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"></path><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"></path></svg></div>
                         <div><?php esc_html_e('No upcoming bookings assigned to you. Enjoy the break!', 'mobooking'); ?></div>
                     </div>
                 <?php endif; ?>
@@ -647,7 +664,7 @@ $currency_symbol = get_option('mobooking_currency_symbol', '$');
             <div class="kpi-card">
                 <div class="kpi-header">
                     <div class="kpi-title"><?php esc_html_e('Total Bookings', 'mobooking'); ?></div>
-                    <div class="kpi-icon">📅</div>
+                    <div class="kpi-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg></div>
                 </div>
                 <div class="kpi-value"><?php echo esc_html($total_bookings); ?></div>
                 <div class="kpi-change <?php echo $bookings_change[0] === '+' ? 'positive' : ($bookings_change === '0%' ? 'neutral' : 'negative'); ?>">
@@ -658,7 +675,7 @@ $currency_symbol = get_option('mobooking_currency_symbol', '$');
             <div class="kpi-card">
                 <div class="kpi-header">
                     <div class="kpi-title"><?php esc_html_e('Monthly Revenue', 'mobooking'); ?></div>
-                    <div class="kpi-icon">💰</div>
+                    <div class="kpi-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg></div>
                 </div>
                 <div class="kpi-value"><?php echo esc_html($currency_symbol . number_format($monthly_revenue, 2)); ?></div>
                 <div class="kpi-change <?php echo $revenue_change[0] === '+' ? 'positive' : ($revenue_change === '0%' ? 'neutral' : 'negative'); ?>">
@@ -669,7 +686,7 @@ $currency_symbol = get_option('mobooking_currency_symbol', '$');
             <div class="kpi-card">
                 <div class="kpi-header">
                     <div class="kpi-title"><?php esc_html_e('Completed Jobs', 'mobooking'); ?></div>
-                    <div class="kpi-icon">✅</div>
+                    <div class="kpi-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg></div>
                 </div>
                 <div class="kpi-value"><?php echo esc_html($completed_jobs); ?></div>
                 <div class="kpi-change <?php echo $completed_change[0] === '+' ? 'positive' : ($completed_change === '0%' ? 'neutral' : 'negative'); ?>">
@@ -680,7 +697,7 @@ $currency_symbol = get_option('mobooking_currency_symbol', '$');
             <div class="kpi-card">
                 <div class="kpi-header">
                     <div class="kpi-title"><?php esc_html_e('New Customers', 'mobooking'); ?></div>
-                    <div class="kpi-icon">👥</div>
+                    <div class="kpi-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg></div>
                 </div>
                 <div class="kpi-value"><?php echo esc_html($new_customers); ?></div>
                 <div class="kpi-change <?php echo $customers_change[0] === '+' ? 'positive' : ($customers_change === '0%' ? 'neutral' : 'negative'); ?>">
@@ -694,7 +711,8 @@ $currency_symbol = get_option('mobooking_currency_symbol', '$');
             <!-- Recent Bookings -->
             <div class="content-card">
                 <h2 class="card-title">
-                    📋 <?php esc_html_e('Recent Bookings', 'mobooking'); ?>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>
+                    <?php esc_html_e('Recent Bookings', 'mobooking'); ?>
                 </h2>
                 
                 <?php if (!empty($recent_bookings)) : ?>
@@ -721,7 +739,7 @@ $currency_symbol = get_option('mobooking_currency_symbol', '$');
                     </div>
                 <?php else : ?>
                     <div class="empty-state">
-                        <div class="empty-state-icon">📋</div>
+                        <div class="empty-state-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg></div>
                         <div><?php esc_html_e('No bookings yet', 'mobooking'); ?></div>
                     </div>
                 <?php endif; ?>
@@ -732,7 +750,8 @@ $currency_symbol = get_option('mobooking_currency_symbol', '$');
                 <!-- Staff Performance -->
                 <div class="content-card" style="margin-bottom: 1.5rem;">
                     <h2 class="card-title">
-                        👨‍💼 <?php esc_html_e('Staff Performance', 'mobooking'); ?>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+                        <?php esc_html_e('Staff Performance', 'mobooking'); ?>
                     </h2>
                     
                     <?php if (!empty($staff_stats)) : ?>
@@ -744,7 +763,7 @@ $currency_symbol = get_option('mobooking_currency_symbol', '$');
                         <?php endforeach; ?>
                     <?php else : ?>
                         <div class="empty-state">
-                            <div class="empty-state-icon">👨‍💼</div>
+                            <div class="empty-state-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg></div>
                             <div><?php esc_html_e('No staff data available', 'mobooking'); ?></div>
                         </div>
                     <?php endif; ?>
@@ -753,27 +772,28 @@ $currency_symbol = get_option('mobooking_currency_symbol', '$');
                 <!-- Quick Actions -->
                 <div class="content-card">
                     <h2 class="card-title">
-                        ⚡ <?php esc_html_e('Quick Actions', 'mobooking'); ?>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                        <?php esc_html_e('Quick Actions', 'mobooking'); ?>
                     </h2>
                     
                     <div class="quick-actions">
                         <a href="<?php echo esc_url(admin_url('admin.php?page=mobooking-bookings')); ?>" class="quick-action">
-                            <div class="quick-action-icon">📅</div>
+                            <div class="quick-action-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg></div>
                             <div class="quick-action-text"><?php esc_html_e('Manage Bookings', 'mobooking'); ?></div>
                         </a>
 
                         <a href="<?php echo esc_url(admin_url('admin.php?page=mobooking-services')); ?>" class="quick-action">
-                            <div class="quick-action-icon">🛠️</div>
+                            <div class="quick-action-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg></div>
                             <div class="quick-action-text"><?php esc_html_e('Manage Services', 'mobooking'); ?></div>
                         </a>
 
                         <a href="<?php echo esc_url(admin_url('admin.php?page=mobooking-customers')); ?>" class="quick-action">
-                            <div class="quick-action-icon">👥</div>
+                            <div class="quick-action-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg></div>
                             <div class="quick-action-text"><?php esc_html_e('View Customers', 'mobooking'); ?></div>
                         </a>
 
                         <a href="<?php echo esc_url(admin_url('admin.php?page=mobooking-settings')); ?>" class="quick-action">
-                            <div class="quick-action-icon">⚙️</div>
+                            <div class="quick-action-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg></div>
                             <div class="quick-action-text"><?php esc_html_e('Settings', 'mobooking'); ?></div>
                         </a>
                     </div>
