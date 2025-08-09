@@ -1518,7 +1518,8 @@ foreach ($calculated_service_items as $service_item) {
             $booking_owner_id = $this->get_booking_owner_id($booking_id);
             if ($booking_owner_id) {
                 $staff_owner_id = Auth::get_business_owner_id_for_worker($staff_id);
-                if ($booking_owner_id !== $staff_owner_id) {
+                if ((int)$booking_owner_id !== (int)$staff_owner_id) {
+                    error_log("MoBooking - Staff assignment failed: Booking owner ID ({$booking_owner_id}) does not match staff owner ID ({$staff_owner_id}).");
                     wp_send_json_error(['message' => __('Staff member does not belong to this business.', 'mobooking')], 403);
                     return;
                 }
