@@ -690,12 +690,62 @@
 /* ============================================================================
    Enhanced Table Actions
    ============================================================================ */
-.mobooking-table-actions {
+.mobooking-workers-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.mobooking-worker-card {
+    background-color: var(--mobk-card);
+    border: 1px solid var(--mobk-border);
+    border-radius: var(--mobk-radius);
+    box-shadow: var(--mobk-shadow-sm);
+    transition: box-shadow 0.2s ease;
   display: flex;
   flex-direction: column;
+}
+
+.mobooking-worker-card:hover {
+    box-shadow: var(--mobk-shadow);
+}
+
+.mobooking-worker-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+}
+
+.mobooking-worker-details {
+    flex-grow: 1;
+}
+
+.mobooking-worker-name {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--mobk-card-foreground);
+    margin: 0;
+}
+
+.mobooking-worker-email {
+    font-size: 0.875rem;
+    color: var(--mobk-muted-foreground);
+    margin: 0.25rem 0 0.5rem;
+}
+
+.mobooking-worker-actions {
+    display: flex;
   gap: 0.5rem;
-  align-items: flex-start;
-  min-width: 200px;
+    padding: 0 1rem 1rem;
+    border-top: 1px solid var(--mobk-border);
+    margin-top: 1rem;
+    padding-top: 1rem;
+}
+
+.mobooking-edit-worker-form {
+    padding: 1rem;
+    background-color: hsl(210 40% 98%);
 }
 
 .mobooking-inline-form-group {

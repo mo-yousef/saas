@@ -337,6 +337,22 @@ if ( is_page_template('templates/booking-form-public.php') || $page_type_for_scr
 
         // Example (uncomment if needed):
         // wp_enqueue_style('mobooking-dashboard-global', MOBOOKING_THEME_URI . 'assets/css/dashboard-global.css', array('mobooking-style'), MOBOOKING_VERSION);
+
+        if ( $current_page_slug === 'workers' ) {
+            wp_enqueue_style( 'mobooking-dashboard-workers-enhanced', MOBOOKING_THEME_URI . 'assets/css/dashboard-workers-enhanced.css', array('mobooking-style'), MOBOOKING_VERSION );
+            wp_enqueue_script( 'mobooking-dashboard-workers', MOBOOKING_THEME_URI . 'assets/js/dashboard-workers.js', array( 'jquery' ), MOBOOKING_VERSION, true );
+            wp_localize_script( 'mobooking-dashboard-workers', 'mobooking_workers_params', array(
+                'ajax_url' => admin_url( 'admin-ajax.php' ),
+                'i18n' => array(
+                    'error_occurred' => __( 'An error occurred. Please try again.', 'mobooking' ),
+                    'error_ajax' => __( 'An AJAX error occurred. Please check your connection.', 'mobooking' ),
+                    'confirm_delete' => __( 'Are you sure you want to revoke access for this worker? This action cannot be undone.', 'mobooking' ),
+                    'error_deleting_worker' => __( 'Error deleting worker.', 'mobooking' ),
+                    'error_saving_worker' => __( 'Error saving worker details.', 'mobooking' ),
+                    'no_name_set' => __( 'No name set', 'mobooking' ),
+                ),
+            ));
+        }
     }
 }
 add_action( 'wp_enqueue_scripts', 'mobooking_scripts' );
