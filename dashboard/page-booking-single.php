@@ -487,6 +487,41 @@ if (!function_exists('mobooking_get_status_badge_icon_svg')) {
         </div>
     </div>
 
+    <div class="mobooking-sbs-panel">
+        <div class="mobooking-sbs-panel-header">
+            <?php echo mobooking_get_feather_icon('info'); ?>
+            <h3><?php esc_html_e('Advanced Details', 'mobooking'); ?></h3>
+        </div>
+        <div class="mobooking-sbs-panel-content">
+            <div class="mobooking-sbs-grid">
+                <div class="mobooking-sbs-item">
+                    <strong><?php esc_html_e('Service Frequency:', 'mobooking'); ?></strong>
+                    <span><?php echo esc_html(ucfirst($booking['service_frequency'] ?? 'one-time')); ?></span>
+                </div>
+                <div class="mobooking-sbs-item">
+                    <strong><?php esc_html_e('Has Pets:', 'mobooking'); ?></strong>
+                    <span><?php echo ($booking['has_pets'] ?? false) ? 'Yes' : 'No'; ?></span>
+                </div>
+                <?php if ($booking['has_pets'] ?? false): ?>
+                <div class="mobooking-sbs-item">
+                    <strong><?php esc_html_e('Pet Details:', 'mobooking'); ?></strong>
+                    <span><?php echo nl2br(esc_html($booking['pet_details'] ?? '')); ?></span>
+                </div>
+                <?php endif; ?>
+                <div class="mobooking-sbs-item">
+                    <strong><?php esc_html_e('Property Access Method:', 'mobooking'); ?></strong>
+                    <span><?php echo esc_html(ucfirst($booking['property_access_method'] ?? 'N/A')); ?></span>
+                </div>
+                <?php if (!empty($booking['property_access_details'])): ?>
+                <div class="mobooking-sbs-item">
+                    <strong><?php esc_html_e('Property Access Details:', 'mobooking'); ?></strong>
+                    <span><?php echo nl2br(esc_html($booking['property_access_details'])); ?></span>
+                </div>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+
     <?php if (!empty($booking['special_instructions'])): ?>
     <div class="mobooking-sbs-panel">
         <div class="mobooking-sbs-panel-header">
