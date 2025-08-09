@@ -21,8 +21,12 @@ if ( class_exists( 'MoBooking\Classes\Database' ) ) {
 // Initialize Services Manager and register its AJAX actions
 if (class_exists('MoBooking\Classes\Services')) {
     if (!isset($GLOBALS['mobooking_services_manager'])) {
-        $GLOBALS['mobooking_services_manager'] = new MoBooking\Classes\Services();
-        $GLOBALS['mobooking_services_manager']->register_ajax_actions();
+        try {
+            $GLOBALS['mobooking_services_manager'] = new MoBooking\Classes\Services();
+            $GLOBALS['mobooking_services_manager']->register_ajax_actions();
+        } catch (Exception $e) {
+            error_log('MoBooking: Failed to initialize Services manager: ' . $e->getMessage());
+        }
     }
 }
 
@@ -68,12 +72,16 @@ if (class_exists('MoBooking\Classes\Bookings') &&
     isset($GLOBALS['mobooking_services_manager'])
 ) {
     if (!isset($GLOBALS['mobooking_bookings_manager'])) {
-        $GLOBALS['mobooking_bookings_manager'] = new MoBooking\Classes\Bookings(
-            $GLOBALS['mobooking_discounts_manager'],
-            $GLOBALS['mobooking_notifications_manager'],
-            $GLOBALS['mobooking_services_manager']
-        );
-        $GLOBALS['mobooking_bookings_manager']->register_ajax_actions();
+        try {
+            $GLOBALS['mobooking_bookings_manager'] = new MoBooking\Classes\Bookings(
+                $GLOBALS['mobooking_discounts_manager'],
+                $GLOBALS['mobooking_notifications_manager'],
+                $GLOBALS['mobooking_services_manager']
+            );
+            $GLOBALS['mobooking_bookings_manager']->register_ajax_actions();
+        } catch (Exception $e) {
+            error_log('MoBooking: Failed to initialize Bookings manager: ' . $e->getMessage());
+        }
     }
 }
 // Initialize Availability Manager and register its AJAX actions
@@ -87,20 +95,14 @@ if (class_exists('MoBooking\Classes\Availability')) {
 // Initialize Customers Manager and register its AJAX actions
 if (class_exists('MoBooking\Classes\Customers')) {
     if (!isset($GLOBALS['mobooking_customers_manager'])) {
-        $GLOBALS['mobooking_customers_manager'] = new MoBooking\Classes\Customers();
-        // Ensure register_ajax_actions method exists before calling
-        if (method_exists($GLOBALS['mobooking_customers_manager'], 'register_ajax_actions')) {
-            $GLOBALS['mobooking_customers_manager']->register_ajax_actions();
-        }
-    }
-}
-
-// Initialize Customers Manager and register its AJAX actions
-if (class_exists('MoBooking\Classes\Customers')) {
-    if (!isset($GLOBALS['mobooking_customers_manager'])) {
-        $GLOBALS['mobooking_customers_manager'] = new MoBooking\Classes\Customers();
-        if (method_exists($GLOBALS['mobooking_customers_manager'], 'register_ajax_actions')) {
-            $GLOBALS['mobooking_customers_manager']->register_ajax_actions();
+        try {
+            $GLOBALS['mobooking_customers_manager'] = new MoBooking\Classes\Customers();
+            // Ensure register_ajax_actions method exists before calling
+            if (method_exists($GLOBALS['mobooking_customers_manager'], 'register_ajax_actions')) {
+                $GLOBALS['mobooking_customers_manager']->register_ajax_actions();
+            }
+        } catch (Exception $e) {
+            error_log('MoBooking: Failed to initialize Customers manager: ' . $e->getMessage());
         }
     }
 }
@@ -112,14 +114,18 @@ if (class_exists('MoBooking\Classes\Bookings') &&
     isset($GLOBALS['mobooking_services_manager'])
 ) {
     if (!isset($GLOBALS['mobooking_bookings_manager'])) {
-        $GLOBALS['mobooking_bookings_manager'] = new MoBooking\Classes\Bookings(
-            $GLOBALS['mobooking_discounts_manager'],
-            $GLOBALS['mobooking_notifications_manager'],
-            $GLOBALS['mobooking_services_manager']
-        );
-        
-        if (method_exists($GLOBALS['mobooking_bookings_manager'], 'register_ajax_actions')) {
-            $GLOBALS['mobooking_bookings_manager']->register_ajax_actions();
+        try {
+            $GLOBALS['mobooking_bookings_manager'] = new MoBooking\Classes\Bookings(
+                $GLOBALS['mobooking_discounts_manager'],
+                $GLOBALS['mobooking_notifications_manager'],
+                $GLOBALS['mobooking_services_manager']
+            );
+
+            if (method_exists($GLOBALS['mobooking_bookings_manager'], 'register_ajax_actions')) {
+                $GLOBALS['mobooking_bookings_manager']->register_ajax_actions();
+            }
+        } catch (Exception $e) {
+            error_log('MoBooking: Failed to initialize Bookings manager: ' . $e->getMessage());
         }
     }
 } else {
