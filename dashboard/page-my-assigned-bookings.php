@@ -32,21 +32,20 @@ if (isset($GLOBALS['mobooking_settings_manager'])) {
     $currency_symbol = \MoBooking\Classes\Utils::get_currency_symbol($currency_code_setting);
 }
 
-$kpi_data = $bookings_manager->get_kpi_data($business_owner_id);
-// For workers, we might want to show different KPIs, e.g., only their upcoming bookings
+// KPIs for staff might be different. Let's focus on upcoming bookings.
 $upcoming_args = [
-    'limit' => 999, // High limit to count all
+    'limit' => 999,
     'filter_by_exactly_assigned_staff_id' => $current_staff_id,
-    'status' => 'confirmed' // Only confirmed upcoming
+    'status' => 'confirmed'
 ];
 $upcoming_bookings_result = $bookings_manager->get_bookings_by_tenant($current_staff_id, $upcoming_args);
-$kpi_data['upcoming_count'] = $upcoming_bookings_result['total_count'];
+$upcoming_count = $upcoming_bookings_result['total_count'];
 
-
+// Handle single booking view
 if (isset($_GET['action']) && $_GET['action'] === 'view_booking' && isset($_GET['booking_id'])) {
     $single_booking_id = intval($_GET['booking_id']);
-    // For workers, we need to ensure they can only see bookings assigned to them
     $booking_to_view = $bookings_manager->get_booking($single_booking_id, $business_owner_id);
+
     if ($booking_to_view && (int)$booking_to_view['assigned_staff_id'] === $current_staff_id) {
         $single_page_path = __DIR__ . '/page-booking-single.php';
         if (file_exists($single_page_path)) {
@@ -72,7 +71,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'view_booking' && isset($_GET[
                 <span class="kpi-title"><?php esc_html_e('Upcoming Confirmed Bookings', 'mobooking'); ?></span>
                  <div class="kpi-icon upcoming">⏰</div>
             </div>
-            <div class="kpi-value"><?php echo esc_html($kpi_data['upcoming_count']); ?></div>
+            <div class="kpi-value"><?php echo esc_html($upcoming_count); ?></div>
         </div>
     </div>
 
@@ -94,31 +93,62 @@ if (isset($_GET['action']) && $_GET['action'] === 'view_booking' && isset($_GET[
 
             if ( ! empty( $bookings_result['bookings'] ) ) :
             ?>
-                <div class="mobooking-workers-grid">
-                    <?php foreach ( $bookings_result['bookings'] as $booking ) : ?>
-                        <div class="mobooking-worker-card">
-                            <div class="mobooking-card-content">
-                                <div class="mobooking-worker-info">
-                                    <div class="mobooking-worker-details">
-                                        <h3 class="mobooking-worker-name"><?php echo esc_html($booking['customer_name']); ?></h3>
-                                        <p class="mobooking-worker-email"><?php echo esc_html($booking['booking_reference']); ?></p>
-                                        <p class="mobooking-worker-email">
-                                            <?php echo esc_html(date_i18n(get_option('date_format'), strtotime($booking['booking_date'])) . ' ' . date_i18n(get_option('time_format'), strtotime($booking['booking_time']))); ?>
-                                        </p>
-                                        <div class="mobooking-badge mobooking-badge-secondary">
-                                            <?php echo esc_html(ucfirst($booking['status'])); ?>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="mobooking-worker-actions">
-                                    <a href="<?php echo esc_url(home_url('/dashboard/my-assigned-bookings/?action=view_booking&booking_id=' . $booking['booking_id'])); ?>" class="mobooking-button mobooking-button-sm mobooking-button-outline">
-                                        <?php esc_html_e('View Details', 'mobooking'); ?>
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    <?php endforeach; ?>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50 hidden md:table-header-group">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><?php esc_html_e( 'Ref', 'mobooking' ); ?></th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><?php esc_html_e( 'Customer', 'mobooking' ); ?></th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><?php esc_html_e( 'Booked Date', 'mobooking' ); ?></th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><?php esc_html_e( 'Total', 'mobooking' ); ?></th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><?php esc_html_e( 'Status', 'mobooking' ); ?></th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><?php esc_html_e( 'Actions', 'mobooking' ); ?></th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            <?php foreach ( $bookings_result['bookings'] as $booking ) :
+                                $status_val = $booking['status'];
+                                $status_display = !empty($status_val) ? ucfirst(str_replace('-', ' ', $status_val)) : __('N/A', 'mobooking');
+                                $status_icon_html = function_exists('mobooking_get_status_badge_icon_svg') ? mobooking_get_status_badge_icon_svg($status_val) : '';
+                                $total_price_formatted = esc_html($currency_symbol . number_format_i18n(floatval($booking['total_price']), 2));
+                                $booking_date_formatted = date_i18n(get_option('date_format'), strtotime($booking['booking_date']));
+                                $booking_time_formatted = date_i18n(get_option('time_format'), strtotime($booking['booking_time']));
+                                $details_page_url = home_url('/dashboard/my-assigned-bookings/?action=view_booking&booking_id=' . $booking['booking_id']);
+                            ?>
+                                <tr data-booking-id="<?php echo esc_attr($booking['booking_id']); ?>" class="block md:table-row border-b md:border-none">
+                                    <td data-label="<?php esc_attr_e('Ref', 'mobooking'); ?>" class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 block md:table-cell"><?php echo esc_html($booking['booking_reference']); ?></td>
+                                    <td data-label="<?php esc_attr_e('Customer', 'mobooking'); ?>" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 block md:table-cell"><?php echo esc_html($booking['customer_name']); ?><br><small><?php echo esc_html($booking['customer_email']); ?></small></td>
+                                    <td data-label="<?php esc_attr_e('Booked Date', 'mobooking'); ?>" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 block md:table-cell"><?php echo esc_html($booking_date_formatted . ' ' . $booking_time_formatted); ?></td>
+                                    <td data-label="<?php esc_attr_e('Total', 'mobooking'); ?>" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 block md:table-cell"><?php echo $total_price_formatted; ?></td>
+                                    <td data-label="<?php esc_attr_e('Status', 'mobooking'); ?>" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 block md:table-cell">
+                                        <span class="status-badge status-<?php echo esc_attr($status_val); ?>">
+                                            <?php echo $status_icon_html; ?>
+                                            <span class="status-text"><?php echo esc_html($status_display); ?></span>
+                                        </span>
+                                    </td>
+                                    <td data-label="<?php esc_attr_e('Actions', 'mobooking'); ?>" class="px-6 py-4 whitespace-nowrap text-sm font-medium block md:table-cell">
+                                        <a href="<?php echo esc_url($details_page_url); ?>" class="button button-small"><?php esc_html_e('View Details', 'mobooking'); ?></a>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
                 </div>
+                <?php
+                // Pagination
+                $total_bookings = $bookings_result['total_count'];
+                $total_pages = ceil( $total_bookings / $limit );
+                if ( $total_pages > 1 ) {
+                    echo '<div class="tablenav bottom"><div class="tablenav-pages"><span class="pagination-links">';
+                    echo paginate_links( array(
+                        'base'    => add_query_arg( 'paged', '%#%' ),
+                        'format'  => '',
+                        'current' => $paged,
+                        'total'   => $total_pages,
+                    ) );
+                    echo '</span></div></div>';
+                }
+                ?>
             <?php else : ?>
                 <div class="mobooking-empty-state">
                     <p><?php esc_html_e('No bookings are currently assigned to you.', 'mobooking'); ?></p>
