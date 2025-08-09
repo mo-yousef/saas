@@ -42,7 +42,7 @@ if ( !class_exists('MoBooking\Classes\Bookings') || !class_exists('MoBooking\Cla
 // This part will be fleshed out once we know how $bookings_manager is typically made available in dashboard pages.
 // For the purpose of this step, we will focus on the structure and the query modification.
 
-$currency_symbol = \MoBooking\Classes\Utils::get_currency_symbol(); // Or get specific to business owner
+$currency_symbol = '$'; // Default currency symbol
 if (isset($GLOBALS['mobooking_settings_manager'])) {
     $currency_code_setting = $GLOBALS['mobooking_settings_manager']->get_setting($business_owner_id, 'biz_currency_code', 'USD');
     $currency_symbol = \MoBooking\Classes\Utils::get_currency_symbol($currency_code_setting);
