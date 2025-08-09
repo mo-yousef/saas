@@ -34,7 +34,8 @@ if ( MoBooking\Classes\Auth::is_user_business_owner( $user_id_for_permission_che
     }
 } elseif ( MoBooking\Classes\Auth::is_user_worker( $user_id_for_permission_check ) ) {
     $worker_owner_id = MoBooking\Classes\Auth::get_business_owner_id_for_worker( $user_id_for_permission_check );
-    if ( $worker_owner_id && $worker_owner_id === $actual_booking_owner_id ) {
+    $booking_to_check = $bookings_manager->get_booking( $booking_id_to_fetch, $actual_booking_owner_id );
+    if ( $worker_owner_id && $worker_owner_id === $actual_booking_owner_id && $booking_to_check && (int)$booking_to_check['assigned_staff_id'] === $user_id_for_permission_check ) {
         $can_view = true;
         $booking_owner_id_for_fetch = $worker_owner_id;
     }
