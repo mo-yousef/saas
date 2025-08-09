@@ -556,157 +556,231 @@ $currency_symbol = get_option('mobooking_currency_symbol', '$');
 </style>
 
 <div class="wrap mobooking-overview-dashboard">
-    <div class="dashboard-header">
-        <h1 class="dashboard-title"><?php esc_html_e('Dashboard Overview', 'mobooking'); ?></h1>
-        <p class="dashboard-subtitle">
-            <?php 
-            if ($is_worker) {
-                printf(__('Welcome back, %s! Here\'s what\'s happening in your business.', 'mobooking'), esc_html($user->display_name));
-            } else {
-                printf(__('Welcome back, %s! Here\'s your business overview.', 'mobooking'), esc_html($user->display_name));
-            }
-            ?>
-        </p>
-    </div>
+    <?php if ($is_worker) : ?>
 
-    <!-- KPI Widgets -->
-    <div class="kpi-grid">
-        <div class="kpi-card">
-            <div class="kpi-header">
-                <div class="kpi-title"><?php esc_html_e('Total Bookings', 'mobooking'); ?></div>
-                <div class="kpi-icon">📅</div>
-            </div>
-            <div class="kpi-value"><?php echo esc_html($total_bookings); ?></div>
-            <div class="kpi-change <?php echo $bookings_change[0] === '+' ? 'positive' : ($bookings_change === '0%' ? 'neutral' : 'negative'); ?>">
-                <?php echo esc_html($bookings_change); ?> <?php esc_html_e('vs last month', 'mobooking'); ?>
-            </div>
+        <div class="dashboard-header">
+            <h1 class="dashboard-title"><?php esc_html_e('My Dashboard', 'mobooking'); ?></h1>
+            <p class="dashboard-subtitle">
+                <?php printf(__('Welcome back, %s! Here are your assigned tasks.', 'mobooking'), esc_html($user->display_name)); ?>
+            </p>
         </div>
 
-        <div class="kpi-card">
-            <div class="kpi-header">
-                <div class="kpi-title"><?php esc_html_e('Monthly Revenue', 'mobooking'); ?></div>
-                <div class="kpi-icon">💰</div>
-            </div>
-            <div class="kpi-value"><?php echo esc_html($currency_symbol . number_format($monthly_revenue, 2)); ?></div>
-            <div class="kpi-change <?php echo $revenue_change[0] === '+' ? 'positive' : ($revenue_change === '0%' ? 'neutral' : 'negative'); ?>">
-                <?php echo esc_html($revenue_change); ?> <?php esc_html_e('vs last month', 'mobooking'); ?>
-            </div>
-        </div>
-
-        <div class="kpi-card">
-            <div class="kpi-header">
-                <div class="kpi-title"><?php esc_html_e('Completed Jobs', 'mobooking'); ?></div>
-                <div class="kpi-icon">✅</div>
-            </div>
-            <div class="kpi-value"><?php echo esc_html($completed_jobs); ?></div>
-            <div class="kpi-change <?php echo $completed_change[0] === '+' ? 'positive' : ($completed_change === '0%' ? 'neutral' : 'negative'); ?>">
-                <?php echo esc_html($completed_change); ?> <?php esc_html_e('vs last month', 'mobooking'); ?>
-            </div>
-        </div>
-
-        <div class="kpi-card">
-            <div class="kpi-header">
-                <div class="kpi-title"><?php esc_html_e('New Customers', 'mobooking'); ?></div>
-                <div class="kpi-icon">👥</div>
-            </div>
-            <div class="kpi-value"><?php echo esc_html($new_customers); ?></div>
-            <div class="kpi-change <?php echo $customers_change[0] === '+' ? 'positive' : ($customers_change === '0%' ? 'neutral' : 'negative'); ?>">
-                <?php echo esc_html($customers_change); ?> <?php esc_html_e('vs last month', 'mobooking'); ?>
-            </div>
-        </div>
-    </div>
-
-    <!-- Main Content Grid -->
-    <div class="content-grid">
-        <!-- Recent Bookings -->
-        <div class="content-card">
-            <h2 class="card-title">
-                📋 <?php esc_html_e('Recent Bookings', 'mobooking'); ?>
-            </h2>
-            
-            <?php if (!empty($recent_bookings)) : ?>
-                <?php foreach ($recent_bookings as $booking) : ?>
-                    <div class="booking-item">
-                        <div class="booking-header">
-                            <span class="booking-customer"><?php echo esc_html($booking['customer_name']); ?></span>
-                            <span class="booking-status status-<?php echo esc_attr($booking['status']); ?>">
-                                <?php echo esc_html(ucfirst($booking['status'])); ?>
-                            </span>
-                        </div>
-                        <div class="booking-details">
-                            <div><?php echo esc_html($booking['customer_email']); ?></div>
-                            <div><?php echo esc_html(date('M j, Y', strtotime($booking['booking_date']))); ?> at <?php echo esc_html($booking['booking_time']); ?></div>
-                            <div><?php echo esc_html($currency_symbol . number_format($booking['total_price'], 2)); ?> • <?php esc_html_e('Staff:', 'mobooking'); ?> <?php echo esc_html($booking['assigned_staff_name']); ?></div>
-                        </div>
-                    </div>
-                <?php endforeach; ?>
-                
-                <div style="margin-top: 1rem; text-align: center;">
-                    <a href="<?php echo esc_url(admin_url('admin.php?page=mobooking-bookings')); ?>" style="color: hsl(var(--primary)); text-decoration: none; font-weight: 500;">
-                        <?php esc_html_e('View All Bookings', 'mobooking'); ?> →
-                    </a>
+        <!-- Worker-specific content will go here -->
+        <?php
+        // Get worker-specific data
+        $worker_completed_jobs_month = $wpdb->get_var($wpdb->prepare(
+            "SELECT COUNT(*) FROM $bookings_table WHERE assigned_staff_id = %d AND status = 'completed' AND booking_date BETWEEN %s AND %s",
+            $current_user_id, $current_month_start, $current_month_end
+        ));
+        ?>
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div class="kpi-header">
+                    <div class="kpi-title"><?php esc_html_e('Your Upcoming Bookings', 'mobooking'); ?></div>
+                    <div class="kpi-icon">📅</div>
                 </div>
-            <?php else : ?>
-                <div class="empty-state">
-                    <div class="empty-state-icon">📋</div>
-                    <div><?php esc_html_e('No bookings yet', 'mobooking'); ?></div>
+                <div class="kpi-value"><?php echo esc_html($upcoming_count); ?></div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-header">
+                    <div class="kpi-title"><?php esc_html_e('Your Completed Jobs (This Month)', 'mobooking'); ?></div>
+                    <div class="kpi-icon">✅</div>
                 </div>
-            <?php endif; ?>
+                <div class="kpi-value"><?php echo esc_html($worker_completed_jobs_month); ?></div>
+            </div>
         </div>
 
-        <!-- Sidebar Content -->
-        <div>
-            <!-- Staff Performance -->
-            <div class="content-card" style="margin-bottom: 1.5rem;">
+        <div class="content-grid">
+            <div class="content-card">
                 <h2 class="card-title">
-                    👨‍💼 <?php esc_html_e('Staff Performance', 'mobooking'); ?>
+                    📋 <?php esc_html_e('Your Upcoming Assigned Bookings', 'mobooking'); ?>
                 </h2>
-                
-                <?php if (!empty($staff_stats)) : ?>
-                    <?php foreach ($staff_stats as $staff) : ?>
-                        <div class="staff-item">
-                            <span class="staff-name"><?php echo esc_html($staff['staff_name']); ?></span>
-                            <span class="staff-count"><?php echo esc_html($staff['booking_count']); ?></span>
+                <?php
+                $upcoming_bookings = $bookings_manager->get_bookings_by_tenant($current_user_id, [
+                    'limit' => 5,
+                    'filter_by_exactly_assigned_staff_id' => $current_user_id,
+                    'status' => 'confirmed',
+                    'orderby' => 'booking_date',
+                    'order' => 'ASC'
+                ]);
+
+                if (!empty($upcoming_bookings['bookings'])) : ?>
+                    <?php foreach ($upcoming_bookings['bookings'] as $booking) : ?>
+                        <div class="booking-item">
+                            <div class="booking-header">
+                                <span class="booking-customer"><?php echo esc_html($booking['customer_name']); ?></span>
+                                <span class="booking-status status-<?php echo esc_attr($booking['status']); ?>">
+                                    <?php echo esc_html(ucfirst($booking['status'])); ?>
+                                </span>
+                            </div>
+                            <div class="booking-details">
+                                <div><?php echo esc_html(date('M j, Y', strtotime($booking['booking_date']))); ?> at <?php echo esc_html($booking['booking_time']); ?></div>
+                                <div><a href="<?php echo esc_url(home_url('/dashboard/my-assigned-bookings/?action=view_booking&booking_id=' . $booking['booking_id'])); ?>"><?php esc_html_e('View Details', 'mobooking'); ?></a></div>
+                            </div>
                         </div>
                     <?php endforeach; ?>
+                    <div style="margin-top: 1rem; text-align: center;">
+                        <a href="<?php echo esc_url(home_url('/dashboard/my-assigned-bookings/')); ?>" style="color: hsl(var(--primary)); text-decoration: none; font-weight: 500;">
+                            <?php esc_html_e('View All Your Bookings', 'mobooking'); ?> →
+                        </a>
+                    </div>
                 <?php else : ?>
                     <div class="empty-state">
-                        <div class="empty-state-icon">👨‍💼</div>
-                        <div><?php esc_html_e('No staff data available', 'mobooking'); ?></div>
+                        <div class="empty-state-icon">🎉</div>
+                        <div><?php esc_html_e('No upcoming bookings assigned to you. Enjoy the break!', 'mobooking'); ?></div>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </div>
+
+    <?php else : ?>
+
+        <div class="dashboard-header">
+            <h1 class="dashboard-title"><?php esc_html_e('Dashboard Overview', 'mobooking'); ?></h1>
+            <p class="dashboard-subtitle">
+                <?php printf(__('Welcome back, %s! Here\'s your business overview.', 'mobooking'), esc_html($user->display_name)); ?>
+            </p>
+        </div>
+
+        <!-- KPI Widgets -->
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div class="kpi-header">
+                    <div class="kpi-title"><?php esc_html_e('Total Bookings', 'mobooking'); ?></div>
+                    <div class="kpi-icon">📅</div>
+                </div>
+                <div class="kpi-value"><?php echo esc_html($total_bookings); ?></div>
+                <div class="kpi-change <?php echo $bookings_change[0] === '+' ? 'positive' : ($bookings_change === '0%' ? 'neutral' : 'negative'); ?>">
+                    <?php echo esc_html($bookings_change); ?> <?php esc_html_e('vs last month', 'mobooking'); ?>
+                </div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-header">
+                    <div class="kpi-title"><?php esc_html_e('Monthly Revenue', 'mobooking'); ?></div>
+                    <div class="kpi-icon">💰</div>
+                </div>
+                <div class="kpi-value"><?php echo esc_html($currency_symbol . number_format($monthly_revenue, 2)); ?></div>
+                <div class="kpi-change <?php echo $revenue_change[0] === '+' ? 'positive' : ($revenue_change === '0%' ? 'neutral' : 'negative'); ?>">
+                    <?php echo esc_html($revenue_change); ?> <?php esc_html_e('vs last month', 'mobooking'); ?>
+                </div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-header">
+                    <div class="kpi-title"><?php esc_html_e('Completed Jobs', 'mobooking'); ?></div>
+                    <div class="kpi-icon">✅</div>
+                </div>
+                <div class="kpi-value"><?php echo esc_html($completed_jobs); ?></div>
+                <div class="kpi-change <?php echo $completed_change[0] === '+' ? 'positive' : ($completed_change === '0%' ? 'neutral' : 'negative'); ?>">
+                    <?php echo esc_html($completed_change); ?> <?php esc_html_e('vs last month', 'mobooking'); ?>
+                </div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-header">
+                    <div class="kpi-title"><?php esc_html_e('New Customers', 'mobooking'); ?></div>
+                    <div class="kpi-icon">👥</div>
+                </div>
+                <div class="kpi-value"><?php echo esc_html($new_customers); ?></div>
+                <div class="kpi-change <?php echo $customers_change[0] === '+' ? 'positive' : ($customers_change === '0%' ? 'neutral' : 'negative'); ?>">
+                    <?php echo esc_html($customers_change); ?> <?php esc_html_e('vs last month', 'mobooking'); ?>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Grid -->
+        <div class="content-grid">
+            <!-- Recent Bookings -->
+            <div class="content-card">
+                <h2 class="card-title">
+                    📋 <?php esc_html_e('Recent Bookings', 'mobooking'); ?>
+                </h2>
+                
+                <?php if (!empty($recent_bookings)) : ?>
+                    <?php foreach ($recent_bookings as $booking) : ?>
+                        <div class="booking-item">
+                            <div class="booking-header">
+                                <span class="booking-customer"><?php echo esc_html($booking['customer_name']); ?></span>
+                                <span class="booking-status status-<?php echo esc_attr($booking['status']); ?>">
+                                    <?php echo esc_html(ucfirst($booking['status'])); ?>
+                                </span>
+                            </div>
+                            <div class="booking-details">
+                                <div><?php echo esc_html($booking['customer_email']); ?></div>
+                                <div><?php echo esc_html(date('M j, Y', strtotime($booking['booking_date']))); ?> at <?php echo esc_html($booking['booking_time']); ?></div>
+                                <div><?php echo esc_html($currency_symbol . number_format($booking['total_price'], 2)); ?> • <?php esc_html_e('Staff:', 'mobooking'); ?> <?php echo esc_html($booking['assigned_staff_name']); ?></div>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+
+                    <div style="margin-top: 1rem; text-align: center;">
+                        <a href="<?php echo esc_url(admin_url('admin.php?page=mobooking-bookings')); ?>" style="color: hsl(var(--primary)); text-decoration: none; font-weight: 500;">
+                            <?php esc_html_e('View All Bookings', 'mobooking'); ?> →
+                        </a>
+                    </div>
+                <?php else : ?>
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📋</div>
+                        <div><?php esc_html_e('No bookings yet', 'mobooking'); ?></div>
                     </div>
                 <?php endif; ?>
             </div>
 
-            <!-- Quick Actions -->
-            <div class="content-card">
-                <h2 class="card-title">
-                    ⚡ <?php esc_html_e('Quick Actions', 'mobooking'); ?>
-                </h2>
-                
-                <div class="quick-actions">
-                    <a href="<?php echo esc_url(admin_url('admin.php?page=mobooking-bookings')); ?>" class="quick-action">
-                        <div class="quick-action-icon">📅</div>
-                        <div class="quick-action-text"><?php esc_html_e('Manage Bookings', 'mobooking'); ?></div>
-                    </a>
+            <!-- Sidebar Content -->
+            <div>
+                <!-- Staff Performance -->
+                <div class="content-card" style="margin-bottom: 1.5rem;">
+                    <h2 class="card-title">
+                        👨‍💼 <?php esc_html_e('Staff Performance', 'mobooking'); ?>
+                    </h2>
                     
-                    <a href="<?php echo esc_url(admin_url('admin.php?page=mobooking-services')); ?>" class="quick-action">
-                        <div class="quick-action-icon">🛠️</div>
-                        <div class="quick-action-text"><?php esc_html_e('Manage Services', 'mobooking'); ?></div>
-                    </a>
+                    <?php if (!empty($staff_stats)) : ?>
+                        <?php foreach ($staff_stats as $staff) : ?>
+                            <div class="staff-item">
+                                <span class="staff-name"><?php echo esc_html($staff['staff_name']); ?></span>
+                                <span class="staff-count"><?php echo esc_html($staff['booking_count']); ?></span>
+                            </div>
+                        <?php endforeach; ?>
+                    <?php else : ?>
+                        <div class="empty-state">
+                            <div class="empty-state-icon">👨‍💼</div>
+                            <div><?php esc_html_e('No staff data available', 'mobooking'); ?></div>
+                        </div>
+                    <?php endif; ?>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="content-card">
+                    <h2 class="card-title">
+                        ⚡ <?php esc_html_e('Quick Actions', 'mobooking'); ?>
+                    </h2>
                     
-                    <a href="<?php echo esc_url(admin_url('admin.php?page=mobooking-customers')); ?>" class="quick-action">
-                        <div class="quick-action-icon">👥</div>
-                        <div class="quick-action-text"><?php esc_html_e('View Customers', 'mobooking'); ?></div>
-                    </a>
-                    
-                    <a href="<?php echo esc_url(admin_url('admin.php?page=mobooking-settings')); ?>" class="quick-action">
-                        <div class="quick-action-icon">⚙️</div>
-                        <div class="quick-action-text"><?php esc_html_e('Settings', 'mobooking'); ?></div>
-                    </a>
+                    <div class="quick-actions">
+                        <a href="<?php echo esc_url(admin_url('admin.php?page=mobooking-bookings')); ?>" class="quick-action">
+                            <div class="quick-action-icon">📅</div>
+                            <div class="quick-action-text"><?php esc_html_e('Manage Bookings', 'mobooking'); ?></div>
+                        </a>
+
+                        <a href="<?php echo esc_url(admin_url('admin.php?page=mobooking-services')); ?>" class="quick-action">
+                            <div class="quick-action-icon">🛠️</div>
+                            <div class="quick-action-text"><?php esc_html_e('Manage Services', 'mobooking'); ?></div>
+                        </a>
+
+                        <a href="<?php echo esc_url(admin_url('admin.php?page=mobooking-customers')); ?>" class="quick-action">
+                            <div class="quick-action-icon">👥</div>
+                            <div class="quick-action-text"><?php esc_html_e('View Customers', 'mobooking'); ?></div>
+                        </a>
+
+                        <a href="<?php echo esc_url(admin_url('admin.php?page=mobooking-settings')); ?>" class="quick-action">
+                            <div class="quick-action-icon">⚙️</div>
+                            <div class="quick-action-text"><?php esc_html_e('Settings', 'mobooking'); ?></div>
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
+    <?php endif; ?>
 </div>
 
 <script>
