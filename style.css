@@ -391,7 +391,7 @@ tbody tr:hover {
   background-color: hsl(0 0% 100%);
 }
 
-.wp-list-table.striped>tbody>tr:nth-child(even) {
+.wp-list-table.striped > tbody > tr:nth-child(even) {
   background-color: hsl(210 40% 98%);
 }
 
@@ -612,7 +612,6 @@ body.mobooking-modal-open {
   z-index: 100;
 }
 
-
 .mobooking-dashboard-sidebar .dashboard-branding h3 {
   margin: 0;
   color: hsl(210 40% 98%);
@@ -685,13 +684,13 @@ span.mobooking-menu-icon {
 
 /* Header Styles */
 .mobooking-dashboard-header {
-  background: hsl(0 0% 100%);
+  background: #fff;
   padding: 0 1.5rem;
-  border-bottom: 1px solid hsl(214.3 31.8% 91.4%);
+  border-bottom: 1px solid #e4e7ec;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  height: 3.5rem;
+  height: 4.5rem;
   flex-shrink: 0;
   position: relative;
   z-index: 90;
@@ -746,7 +745,7 @@ span.mobooking-menu-icon {
   padding: 1.5rem;
   flex-grow: 1;
   overflow-y: auto;
-  background-color: hsl(0 0% 100%);
+  background-color: #f9fafb;
 }
 
 /* Mobile Navigation Toggle */
@@ -988,8 +987,12 @@ span.mobooking-menu-icon {
 
 /* Overview Page KPI Boxes */
 .wp-admin #mobooking-overview-content .kpi-box,
-.wp-admin #mobooking-overview-content #mobooking-overview-recent-bookings-section,
-.wp-admin #mobooking-overview-content #mobooking-overview-quick-actions-section {
+.wp-admin
+  #mobooking-overview-content
+  #mobooking-overview-recent-bookings-section,
+.wp-admin
+  #mobooking-overview-content
+  #mobooking-overview-quick-actions-section {
   background-color: hsl(0 0% 100%);
   padding: 1.5rem;
   border: 1px solid hsl(214.3 31.8% 91.4%);
@@ -1146,7 +1149,6 @@ span.mobooking-menu-icon {
 8.4 Mobile Responsive Tables
 --------------------------------------------------------------*/
 @media screen and (max-width: 782px) {
-
   .wp-list-table tbody th,
   .wp-list-table tbody td {
     display: block;
@@ -1336,7 +1338,7 @@ span.mobooking-menu-icon {
   margin-bottom: 0.75rem;
 }
 
-.mobooking-availability-page>p {
+.mobooking-availability-page > p {
   /* Intro paragraph */
   font-size: 1rem;
   color: hsl(215.4 16.3% 46.9%);
@@ -1353,7 +1355,7 @@ span.mobooking-menu-icon {
   border-bottom: 1px solid hsl(214.3 31.8% 91.4%);
 }
 
-.mobooking-availability-page .mobooking-section>p {
+.mobooking-availability-page .mobooking-section > p {
   /* Paragraphs directly under section h2 */
   margin-bottom: 1.5rem;
   color: hsl(215.4 16.3% 46.9%);

@@ -231,6 +231,101 @@ $currency_symbol = get_option('mobooking_currency_symbol', '$');
 
 ?>
 
+
+<style>
+.kpi-grid {
+    display: grid
+;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.kpi-header {
+    display: flex
+;
+    align-items: center;
+    justify-content: space-between;
+}
+
+
+.kpi-card {
+    border-bottom: 1px solid #e5e7eb;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+    padding-top: 1.25rem;
+    padding-bottom: 1.25rem;
+    background: #fff;
+    border: 1px solid #e4e7ec;
+    border-radius: 10px;
+    overflow: hidden;
+    display: flex
+;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.kpi-title {
+    font-size: 18px;
+    line-height: 1.25rem;
+    color: #1d2939;
+    font-weight: 600;
+}
+
+
+.kpi-value {
+    font-size: 24px;
+    line-height: 1.75rem;
+    font-weight: 700;
+    color: #1d2939;
+    margin: 0px;
+}
+
+.kpi-card svg {
+    width: 20px;
+}
+.kpi-change {
+    font-size: 14px;
+    color: #667085;
+}
+.kpi-change.positive {
+    color: #10b981;
+}
+.kpi-change.negative {
+    color: #f04438;
+}
+
+.kpi-icon {
+    background: #f2f4f7;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+}
+
+.kpi-icon svg {
+    width: 16px;
+    color: #1d2939;
+}
+
+.card-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: hsl(var(--foreground));
+  margin: 0 0 1rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.card-title svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  stroke: hsl(var(--muted-foreground));
+}
+</style>
+<!-- 
 <style>
 /* shadcn/ui inspired styles */
 :root {
@@ -309,8 +404,7 @@ $currency_symbol = get_option('mobooking_currency_symbol', '$');
 .kpi-title {
   font-size: 0.875rem;
   font-weight: 500;
-  color: hsl(var(--muted-foreground));
-  text-transform: uppercase;
+  color: #667085;
   letter-spacing: 0.025em;
 }
 
@@ -372,20 +466,7 @@ $currency_symbol = get_option('mobooking_currency_symbol', '$');
   box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
 }
 
-.card-title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: hsl(var(--foreground));
-  margin: 0 0 1rem 0;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-.card-title svg {
-  width: 1.25rem;
-  height: 1.25rem;
-  stroke: hsl(var(--muted-foreground));
-}
+
 
 /* Recent Bookings */
 .booking-item {
@@ -569,7 +650,8 @@ $currency_symbol = get_option('mobooking_currency_symbol', '$');
     gap: 0.5rem;
   }
 }
-</style>
+</style> -->
+
 
 <div class="wrap mobooking-overview-dashboard">
     <?php if ($is_worker) : ?>
