@@ -284,26 +284,12 @@ if ( $edit_mode && $service_id > 0 ) {
             </div>
         </div>
 
-        <!-- Icon Selector Modal -->
-        <div id="icon-selector-modal" class="mb-hidden" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1050;">
-            <div style="background: white; padding: 20px; border-radius: var(--mb-radius); width: 80%; max-width: 600px; max-height: 80vh; overflow-y: auto;">
-                <div class="mb-flex mb-justify-between mb-items-center mb-mb-4">
-                    <h3 class="mb-form-section-title" style="margin-bottom: 0;"><?php esc_html_e('Select a Preset Icon', 'mobooking'); ?></h3>
-                    <button type="button" id="close-icon-modal-btn" class="btn btn-ghost btn-icon">&times;</button>
-                </div>
-                <div id="preset-icons-grid" class="mb-grid mb-gap-2" style="grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));">
-                    <?php /* Preset icons will be loaded here by JavaScript */ ?>
-                </div>
-                 <div class="mb-mt-4 mb-text-center">
-                    <button type="button" id="cancel-icon-select-btn" class="btn btn-secondary"><?php esc_html_e('Cancel', 'mobooking'); ?></button>
-                </div>
-            </div>
-        </div>
+        <!-- Icon selector modal is now handled by MoBookingDialog -->
 
         <!-- Service Options -->
         <div class="mb-form-card">
             <div class="mb-flex mb-items-center mb-justify-between mb-mb-4">
-                <h2 class="mb-form-section-title" style="margin-bottom: 0;"><?php esc_html_e('Service Options', 'mobooking'); ?></h2>
+                <h2 class="mb-form-section-title"><?php esc_html_e('Service Options', 'mobooking'); ?></h2>
                 <button type="button" id="add-option-btn" class="btn btn-secondary btn-sm">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M5 12h14"/>
@@ -430,9 +416,9 @@ if ( $edit_mode && $service_id > 0 ) {
                                 </div>
 
                                 <!-- Choices Container (for select/radio types) -->
-                                <div class="mb-choices-container mb-option-choices" style="display: <?php echo in_array($option['type'] ?? '', ['select', 'radio']) ? 'block' : 'none'; ?>;">
+                                <div class="mb-choices-container mb-option-choices">
                                     <div class="mb-flex mb-items-center mb-justify-between mb-mb-3">
-                                        <label class="mb-form-label" style="margin-bottom: 0;"><?php esc_html_e('Option Choices', 'mobooking'); ?></label>
+                                        <label class="mb-form-label"><?php esc_html_e('Option Choices', 'mobooking'); ?></label>
                                     <button type="button" class="btn btn-secondary btn-sm add-choice-btn">
                                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                                 <path d="M5 12h14"/>
@@ -485,7 +471,6 @@ if ( $edit_mode && $service_id > 0 ) {
                                                     class="mb-choice-input" 
                                                     placeholder="<?php esc_attr_e('Price', 'mobooking'); ?>"
                                                     step="0.01"
-                                                    style="max-width: 80px;"
                                                     value="<?php echo esc_attr($choice['price'] ?? ''); ?>"
                                                 >
                                                 <button type="button" class="btn btn-destructive btn-icon btn-sm" title="<?php esc_attr_e('Remove choice', 'mobooking'); ?>">×</button>
@@ -498,9 +483,9 @@ if ( $edit_mode && $service_id > 0 ) {
                                 </div>
 
                                 <!-- SQM Ranges Container (for sqm type) -->
-                                <div class="mb-sqm-ranges-container" style="display: <?php echo ($option['type'] ?? '') === 'sqm' ? 'block' : 'none'; ?>;">
+                                <div class="mb-sqm-ranges-container">
                                     <div class="mb-flex mb-items-center mb-justify-between mb-mb-3">
-                                        <label class="mb-form-label" style="margin-bottom: 0;"><?php esc_html_e('SQM Pricing Ranges', 'mobooking'); ?></label>
+                                        <label class="mb-form-label"><?php esc_html_e('SQM Pricing Ranges', 'mobooking'); ?></label>
                                         <button type="button" class="btn btn-secondary btn-sm add-sqm-range-btn">
                                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                                 <path d="M5 12h14"/>
@@ -511,7 +496,7 @@ if ( $edit_mode && $service_id > 0 ) {
                                     </div>
                                     <div class="mb-sqm-ranges-list">
                                         <!-- Table Header -->
-                                        <div class="mb-grid mb-gap-2 mb-text-sm mb-font-medium mb-text-muted-foreground" style="grid-template-columns: 1fr 1fr 1fr auto; padding-bottom: 0.5rem; border-bottom: 1px solid var(--mb-border);">
+                                        <div class="mb-grid mb-gap-2 mb-text-sm mb-font-medium mb-text-muted-foreground">
                                             <div><?php esc_html_e('From (SQM)', 'mobooking'); ?></div>
                                             <div><?php esc_html_e('To (SQM)', 'mobooking'); ?></div>
                                             <div><?php esc_html_e('Price per SQM', 'mobooking'); ?></div>
@@ -528,7 +513,7 @@ if ( $edit_mode && $service_id > 0 ) {
                                         if (!empty($sqm_ranges)):
                                             foreach ($sqm_ranges as $range_idx => $range):
                                         ?>
-                                        <div class="mb-sqm-range-item mb-grid mb-gap-2 mb-items-center" style="grid-template-columns: 1fr 1fr 1fr auto; padding-top: 0.5rem;">
+                                        <div class="mb-sqm-range-item mb-grid mb-gap-2 mb-items-center">
                                             <input type="number" name="sqm_range_from[]" class="mb-form-input mb-form-input-sm" placeholder="0" value="<?php echo esc_attr($range['from_sqm'] ?? ''); ?>" min="0" step="1" required>
                                             <input type="text" name="sqm_range_to[]" class="mb-form-input mb-form-input-sm" placeholder="<?php esc_attr_e('e.g., 50 or ∞', 'mobooking'); ?>" value="<?php echo ($range['to_sqm'] == INF || strtolower($range['to_sqm'] ?? '') === 'infinity') ? '∞' : esc_attr($range['to_sqm'] ?? ''); ?>" required>
                                             <input type="number" name="sqm_range_price[]" class="mb-form-input mb-form-input-sm" placeholder="5.00" value="<?php echo esc_attr($range['price_per_sqm'] ?? ''); ?>" min="0.01" step="0.01" required>
@@ -673,7 +658,7 @@ if ( $edit_mode && $service_id > 0 ) {
             <!-- Choices Container (for select/radio types) -->
             <div class="mb-choices-container mb-option-choices" style="display: none;">
                 <div class="mb-flex mb-items-center mb-justify-between mb-mb-3">
-                    <label class="mb-form-label" style="margin-bottom: 0;"><?php esc_html_e('Option Choices', 'mobooking'); ?></label>
+                    <label class="mb-form-label"><?php esc_html_e('Option Choices', 'mobooking'); ?></label>
                     <button type="button" class="btn btn-secondary btn-sm add-choice-btn">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M5 12h14"/>
@@ -688,7 +673,7 @@ if ( $edit_mode && $service_id > 0 ) {
             <!-- SQM Ranges Container (for sqm type) -->
             <div class="mb-sqm-ranges-container" style="display: none;">
                 <div class="mb-flex mb-items-center mb-justify-between mb-mb-3">
-                    <label class="mb-form-label" style="margin-bottom: 0;"><?php esc_html_e('SQM Pricing Ranges', 'mobooking'); ?></label>
+                    <label class="mb-form-label"><?php esc_html_e('SQM Pricing Ranges', 'mobooking'); ?></label>
                     <button type="button" class="btn btn-secondary btn-sm add-sqm-range-btn">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M5 12h14"/>
@@ -745,7 +730,6 @@ if ( $edit_mode && $service_id > 0 ) {
             class="mb-choice-input" 
             placeholder="<?php esc_attr_e('Price', 'mobooking'); ?>"
             step="0.01"
-            style="max-width: 80px;"
         >
         <button type="button" class="btn btn-destructive btn-icon btn-sm" title="<?php esc_attr_e('Remove choice', 'mobooking'); ?>">×</button>
     </div>
@@ -753,7 +737,7 @@ if ( $edit_mode && $service_id > 0 ) {
 
 <!-- SQM Range Item Template -->
 <script type="text/template" id="sqm-range-item-template">
-    <div class="mb-sqm-range-item mb-grid mb-gap-2 mb-items-center" style="grid-template-columns: 1fr 1fr 1fr auto; padding-top: 0.5rem;">
+    <div class="mb-sqm-range-item mb-grid mb-gap-2 mb-items-center">
         <input type="number" name="sqm_range_from[]" class="mb-form-input mb-form-input-sm" placeholder="0" min="0" step="1" required>
         <input type="text" name="sqm_range_to[]" class="mb-form-input mb-form-input-sm" placeholder="<?php esc_attr_e('e.g., 50 or ∞', 'mobooking'); ?>" required>
         <input type="number" name="sqm_range_price[]" class="mb-form-input mb-form-input-sm" placeholder="5.00" min="0.01" step="0.01" required>
@@ -1548,50 +1532,66 @@ jQuery(document).ready(function($) {
 
     // Icon handling
     function openPresetIconSelector() {
-        const $modal = $('#icon-selector-modal');
-        const $grid = $('#preset-icons-grid');
-        $grid.html('<p>' + (strings.loading || 'Loading...') + '</p>'); // Add a loading string
-        $modal.removeClass('mb-hidden');
+        const dialogContent = `
+            <div id="preset-icons-grid" class="mb-grid mb-gap-2" style="grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); min-height: 200px;">
+                <p>${strings.loading || 'Loading...'}</p>
+            </div>
+        `;
 
-        $.ajax({
-            url: ajaxUrl,
-            type: 'POST',
-            data: {
-                action: 'mobooking_get_preset_icons',
-                nonce: nonce
-            },
-            success: function(response) {
-                if (response.success && response.data.icons) {
-                    $grid.empty();
-                    for (const key in response.data.icons) {
-                        const iconSvg = response.data.icons[key];
-                        const $iconItem = $(
-                            '<div class="preset-icon-item mb-p-2 mb-flex mb-items-center mb-justify-center mb-rounded" style="cursor: pointer; border: 1px solid var(--mb-border);">' +
-                                iconSvg +
-                            '</div>'
-                        );
-                        $iconItem.attr('data-icon-key', key);
-                        $iconItem.attr('title', key);
-                        $iconItem.hover(function() { $(this).css('background-color', 'var(--mb-muted)'); }, function() { $(this).css('background-color', 'transparent'); });
-                        $grid.append($iconItem);
-                    }
-                } else {
-                    $grid.html('<p>' + (response.data?.message || strings.errorGeneric || 'Error loading icons.') + '</p>');
+        const iconDialog = new MoBookingDialog({
+            title: '<?php echo esc_js(__('Select a Preset Icon', 'mobooking')); ?>',
+            content: dialogContent,
+            buttons: [
+                {
+                    label: '<?php echo esc_js(__('Cancel', 'mobooking')); ?>',
+                    class: 'secondary',
+                    onClick: (dialog) => dialog.close()
                 }
-            },
-            error: function() {
-                $grid.html('<p>' + (strings.networkError || 'Network error loading icons.') + '</p>');
+            ],
+            onOpen: (dialog) => {
+                const $grid = $(dialog.getElement()).find('#preset-icons-grid');
+                $.ajax({
+                    url: ajaxUrl,
+                    type: 'POST',
+                    data: {
+                        action: 'mobooking_get_preset_icons',
+                        nonce: nonce
+                    },
+                    success: function(response) {
+                        if (response.success && response.data.icons) {
+                            $grid.empty();
+                            for (const key in response.data.icons) {
+                                const iconSvg = response.data.icons[key];
+                                const $iconItem = $(
+                                    '<div class="preset-icon-item mb-p-2 mb-flex mb-items-center mb-justify-center mb-rounded" style="cursor: pointer; border: 1px solid var(--mb-border);">' +
+                                        iconSvg +
+                                    '</div>'
+                                );
+                                $iconItem.attr('data-icon-key', key);
+                                $iconItem.attr('title', key);
+                                $iconItem.hover(function() { $(this).css('background-color', 'var(--mb-muted)'); }, function() { $(this).css('background-color', 'transparent'); });
+                                $iconItem.on('click', function() {
+                                    selectPresetIcon(key, iconSvg);
+                                    dialog.close();
+                                });
+                                $grid.append($iconItem);
+                            }
+                        } else {
+                            $grid.html('<p>' + (response.data?.message || strings.errorGeneric || 'Error loading icons.') + '</p>');
+                        }
+                    },
+                    error: function() {
+                        $grid.html('<p>' + (strings.networkError || 'Network error loading icons.') + '</p>');
+                    }
+                });
             }
         });
-    }
 
-    function closePresetIconSelector() {
-        $('#icon-selector-modal').addClass('mb-hidden');
+        iconDialog.show();
     }
 
     function selectPresetIcon(iconKey, iconSvg) {
         setIconPreview(iconSvg, `preset:${iconKey}`);
-        closePresetIconSelector();
     }
 
     function handleCustomIconUpload(e) {
@@ -1718,4 +1718,3 @@ jQuery(document).ready(function($) {
     };
 });
 </script>
-
