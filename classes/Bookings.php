@@ -633,18 +633,20 @@ foreach ($calculated_service_items as $service_item) {
             return;
         }
 
-        $page = isset($_POST['page']) ? max(1, intval($_POST['page'])) : 1;
-        $per_page = isset($_POST['per_page']) ? max(5, min(100, intval($_POST['per_page']))) : 10;
-        $search = isset($_POST['search']) ? sanitize_text_field($_POST['search']) : '';
-        $status_filter = isset($_POST['status']) ? sanitize_text_field($_POST['status']) : '';
+        $args = [
+            'limit' => isset($_POST['limit']) ? intval($_POST['limit']) : 20,
+            'paged' => isset($_POST['paged']) ? intval($_POST['paged']) : 1,
+            'status' => isset($_POST['status_filter']) ? sanitize_text_field($_POST['status_filter']) : '',
+            'search_query' => isset($_POST['search_query']) ? sanitize_text_field($_POST['search_query']) : '',
+            'date_from' => isset($_POST['date_from_filter']) ? sanitize_text_field($_POST['date_from_filter']) : '',
+            'date_to' => isset($_POST['date_to_filter']) ? sanitize_text_field($_POST['date_to_filter']) : '',
+            'assigned_staff_id_filter' => isset($_POST['assigned_staff_id_filter']) ? sanitize_text_field($_POST['assigned_staff_id_filter']) : null,
+        ];
 
-        $result = $this->get_tenant_bookings($user_id, $page, $per_page, $search, $status_filter);
+        $result = $this->get_bookings_by_tenant($user_id, $args);
 
-        if (is_wp_error($result)) {
-            wp_send_json_error(['message' => $result->get_error_message()]);
-        } else {
-            wp_send_json_success($result);
-        }
+        // No need to check for WP_Error here as get_bookings_by_tenant is designed to always return an array
+        wp_send_json_success($result);
     }
 
     public function get_tenant_bookings(int $tenant_user_id, int $page = 1, int $per_page = 10, string $search = '', string $status_filter = '') {

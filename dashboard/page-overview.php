@@ -316,7 +316,12 @@ $currency_symbol = get_option('mobooking_currency_symbol', '$');
     <?php else : ?>
 
         <div class="dashboard-header">
-            <h1 class="dashboard-title"><?php esc_html_e('Dashboard Overview', 'mobooking'); ?></h1>
+            <div class="mobooking-page-header-heading">
+                <span class="mobooking-page-header-icon">
+                    <?php echo mobooking_get_dashboard_menu_icon('overview'); ?>
+                </span>
+                <h1 class="dashboard-title"><?php esc_html_e('Dashboard Overview', 'mobooking'); ?></h1>
+            </div>
             <p class="dashboard-subtitle">
                 <?php printf(__('Welcome back, %s! Here\'s your business overview.', 'mobooking'), esc_html($user->display_name)); ?>
             </p>

@@ -11,7 +11,14 @@ if ( ! current_user_can( \MoBooking\Classes\Auth::CAP_MANAGE_AVAILABILITY ) ) {
 }
 ?>
 <div class="wrap mobooking-wrap mobooking-availability-page">
-    <h1><?php esc_html_e('Manage Availability', 'mobooking'); ?></h1>
+    <div class="mobooking-page-header">
+        <div class="mobooking-page-header-heading">
+            <span class="mobooking-page-header-icon">
+                <?php echo mobooking_get_dashboard_menu_icon('availability'); ?>
+            </span>
+            <h1><?php esc_html_e('Manage Availability', 'mobooking'); ?></h1>
+        </div>
+    </div>
     <p><?php esc_html_e('Define your regular working hours and set specific dates for overrides or days off.', 'mobooking'); ?></p>
 
     <div id="mobooking-floating-alert" class="mobooking-floating-alert" style="display:none;"></div>
