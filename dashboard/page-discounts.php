@@ -36,7 +36,7 @@ wp_nonce_field('mobooking_dashboard_nonce', 'mobooking_dashboard_nonce_field');
             </span>
             <h1 class="text-2xl font-bold"><?php esc_html_e('Manage Discount Codes', 'mobooking'); ?></h1>
         </div>
-        <button id="mobooking-add-new-discount-btn" class="button button-primary"><?php esc_html_e('Add New Discount Code', 'mobooking'); ?></button>
+        <button id="mobooking-add-new-discount-btn" class="btn btn-primary"><?php esc_html_e('Add New Discount Code', 'mobooking'); ?></button>
     </div>
 
     <div id="mobooking-discounts-list-container" class="mobooking-table-container">
@@ -71,8 +71,8 @@ wp_nonce_field('mobooking_dashboard_nonce', 'mobooking_dashboard_nonce_field');
                         <td data-label="<?php esc_attr_e('Usage (Used/Limit)', 'mobooking'); ?>"><?php echo esc_html($usage_display); ?></td>
                         <td data-label="<?php esc_attr_e('Status', 'mobooking'); ?>"><span class="status-<?php echo esc_attr($discount['status']); ?>"><?php echo esc_html($status_display); ?></span></td>
                         <td data-label="<?php esc_attr_e('Actions', 'mobooking'); ?>">
-                            <button class="button button-small mobooking-edit-discount-btn" data-id="<?php echo esc_attr($discount['discount_id']); ?>"><?php esc_html_e('Edit', 'mobooking'); ?></button>
-                            <button class="button button-small button-link-delete mobooking-delete-discount-btn" data-id="<?php echo esc_attr($discount['discount_id']); ?>"><?php esc_html_e('Delete', 'mobooking'); ?></button>
+                            <button class="btn btn-outline btn-sm mobooking-edit-discount-btn" data-id="<?php echo esc_attr($discount['discount_id']); ?>"><?php esc_html_e('Edit', 'mobooking'); ?></button>
+                            <button class="btn btn-destructive btn-sm mobooking-delete-discount-btn" data-id="<?php echo esc_attr($discount['discount_id']); ?>"><?php esc_html_e('Delete', 'mobooking'); ?></button>
                         </td>
                     </tr>
                 <?php endforeach; ?>
@@ -108,8 +108,8 @@ wp_nonce_field('mobooking_dashboard_nonce', 'mobooking_dashboard_nonce_field');
         <td data-label="<?php esc_attr_e('Usage (Used/Limit)', 'mobooking'); ?>"><%= usage_display %></td>
         <td data-label="<?php esc_attr_e('Status', 'mobooking'); ?>"><span class="status-<%= status %>"><%= status_display %></span></td>
         <td data-label="<?php esc_attr_e('Actions', 'mobooking'); ?>">
-            <button class="button button-small mobooking-edit-discount-btn" data-id="<%= discount_id %>"><?php esc_html_e('Edit', 'mobooking'); ?></button>
-            <button class="button button-small button-link-delete mobooking-delete-discount-btn" data-id="<%= discount_id %>"><?php esc_html_e('Delete', 'mobooking'); ?></button>
+            <button class="btn btn-outline btn-sm mobooking-edit-discount-btn" data-id="<%= discount_id %>"><?php esc_html_e('Edit', 'mobooking'); ?></button>
+            <button class="btn btn-destructive btn-sm mobooking-delete-discount-btn" data-id="<%= discount_id %>"><?php esc_html_e('Delete', 'mobooking'); ?></button>
         </td>
     </tr>
 </script>
@@ -162,8 +162,8 @@ wp_nonce_field('mobooking_dashboard_nonce', 'mobooking_dashboard_nonce_field');
                     </div>
                 </div>
                 <div class="form-actions">
-                    <button type="button" class="button mobooking-modal-close"><?php esc_html_e('Cancel', 'mobooking'); ?></button>
-                    <button type="submit" id="mobooking-save-discount-btn" class="button button-primary"><?php esc_html_e('Save Discount', 'mobooking'); ?></button>
+                    <button type="button" class="btn btn-secondary mobooking-modal-close"><?php esc_html_e('Cancel', 'mobooking'); ?></button>
+                    <button type="submit" id="mobooking-save-discount-btn" class="btn btn-primary"><?php esc_html_e('Save Discount', 'mobooking'); ?></button>
                 </div>
             </form>
         </div>

@@ -140,9 +140,9 @@ if ($current_user_id) {
             $initial_bookings_html .= '<td data-label="' . esc_attr__('Total', 'mobooking') . '">' . $total_price_formatted . '</td>';
             $initial_bookings_html .= '<td data-label="' . esc_attr__('Status', 'mobooking') . '"><span class="status-badge status-' . esc_attr($status_val) . '">' . $status_icon_html . '<span class="status-text">' . esc_html($status_display) . '</span></span></td>';
             $initial_bookings_html .= '<td data-label="' . esc_attr__('Actions', 'mobooking') . '" class="mobooking-table-actions">';
-            $initial_bookings_html .= '<a href="' . esc_url($details_page_url) . '" class="button button-small">' . __('View Details', 'mobooking') . '</a> ';
+            $initial_bookings_html .= '<a href="' . esc_url($details_page_url) . '" class="btn btn-outline btn-sm">' . __('View Details', 'mobooking') . '</a> ';
             if (class_exists('MoBooking\Classes\Auth') && !\MoBooking\Classes\Auth::is_user_worker($current_user_id)) {
-                $initial_bookings_html .= '<button class="button button-small mobooking-delete-booking-btn" data-booking-id="' . esc_attr($booking['booking_id']) . '">' . __('Delete', 'mobooking') . '</button>';
+                $initial_bookings_html .= '<button class="btn btn-destructive btn-sm mobooking-delete-booking-btn" data-booking-id="' . esc_attr($booking['booking_id']) . '">' . __('Delete', 'mobooking') . '</button>';
             }
             $initial_bookings_html .= '</td></tr>';
         }
@@ -194,7 +194,7 @@ $booking_statuses = [
         }
         if ($current_user_can_add_booking) :
         ?>
-        <button id="mobooking-add-booking-btn" class="page-title-action">
+        <button id="mobooking-add-booking-btn" class="btn btn-primary">
             <?php esc_html_e('Add New Booking', 'mobooking'); ?>
         </button>
         <?php endif; ?>
@@ -287,8 +287,8 @@ $booking_statuses = [
                     </div>
                 </div>
                 <div class="mobooking-filter-actions">
-                    <button type="submit" class="button button-secondary"><?php esc_html_e('Filter', 'mobooking'); ?></button>
-                    <button type="button" id="mobooking-clear-filters-btn" class="button"><?php esc_html_e('Clear Filters', 'mobooking'); ?></button>
+                    <button type="submit" class="btn btn-secondary"><?php esc_html_e('Filter', 'mobooking'); ?></button>
+                    <button type="button" id="mobooking-clear-filters-btn" class="btn btn-outline"><?php esc_html_e('Clear Filters', 'mobooking'); ?></button>
                 </div>
             </form>
         </div>
@@ -319,9 +319,9 @@ $booking_statuses = [
             </span>
         </td>
         <td data-colname="<?php esc_attr_e('Actions', 'mobooking'); ?>" class="mobooking-table-actions">
-            <a href="<%= details_page_url %>" class="button button-small"><?php esc_html_e('View Details', 'mobooking'); ?></a>
+            <a href="<%= details_page_url %>" class="btn btn-outline btn-sm"><?php esc_html_e('View Details', 'mobooking'); ?></a>
             <% if (typeof mobooking_dashboard_params !== 'undefined' && mobooking_dashboard_params.currentUserCanDeleteBookings) { %>
-                <button class="button button-small mobooking-delete-booking-btn" data-booking-id="<%= booking_id %>"><?php esc_html_e('Delete', 'mobooking'); ?></button>
+                <button class="btn btn-destructive btn-sm mobooking-delete-booking-btn" data-booking-id="<%= booking_id %>"><?php esc_html_e('Delete', 'mobooking'); ?></button>
             <% } %>
         </td>
     </tr>

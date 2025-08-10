@@ -228,10 +228,10 @@ if ( $edit_mode && $service_id > 0 ) {
                     <input type="file" id="image-upload" accept="image/*" class="mb-hidden">
                     <input type="hidden" id="image-url" name="image_url" value="<?php echo esc_attr($service_image_url); ?>">
                     <div class="mb-flex mb-gap-2">
-                        <button type="button" id="upload-image-btn" class="mb-btn mb-btn-secondary mb-btn-sm">
+                        <button type="button" id="upload-image-btn" class="btn btn-secondary btn-sm">
                             <?php esc_html_e('Upload Image', 'mobooking'); ?>
                         </button>
-                        <button type="button" id="remove-image-btn" class="mb-btn mb-btn-destructive mb-btn-sm <?php echo empty($service_image_url) ? 'mb-hidden' : ''; ?>">
+                        <button type="button" id="remove-image-btn" class="btn btn-destructive btn-sm <?php echo empty($service_image_url) ? 'mb-hidden' : ''; ?>">
                             <?php esc_html_e('Remove', 'mobooking'); ?>
                         </button>
                     </div>
@@ -270,13 +270,13 @@ if ( $edit_mode && $service_id > 0 ) {
                     <input type="hidden" id="icon-value" name="icon" value="<?php echo esc_attr($service_icon); ?>">
                     <input type="file" id="custom-icon-upload" accept=".svg" class="mb-hidden">
                     <div class="mb-flex mb-gap-2">
-                        <button type="button" id="select-icon-btn" class="mb-btn mb-btn-secondary mb-btn-sm">
+                        <button type="button" id="select-icon-btn" class="btn btn-secondary btn-sm">
                             <?php esc_html_e('Select Preset Icon', 'mobooking'); ?>
                         </button>
-                        <button type="button" id="upload-custom-icon-btn" class="mb-btn mb-btn-secondary mb-btn-sm">
+                        <button type="button" id="upload-custom-icon-btn" class="btn btn-secondary btn-sm">
                             <?php esc_html_e('Upload SVG Icon', 'mobooking'); ?>
                         </button>
-                        <button type="button" id="remove-icon-btn" class="mb-btn mb-btn-destructive mb-btn-sm <?php echo empty($service_icon) ? 'mb-hidden' : ''; ?>">
+                        <button type="button" id="remove-icon-btn" class="btn btn-destructive btn-sm <?php echo empty($service_icon) ? 'mb-hidden' : ''; ?>">
                             <?php esc_html_e('Remove', 'mobooking'); ?>
                         </button>
                     </div>
@@ -289,13 +289,13 @@ if ( $edit_mode && $service_id > 0 ) {
             <div style="background: white; padding: 20px; border-radius: var(--mb-radius); width: 80%; max-width: 600px; max-height: 80vh; overflow-y: auto;">
                 <div class="mb-flex mb-justify-between mb-items-center mb-mb-4">
                     <h3 class="mb-form-section-title" style="margin-bottom: 0;"><?php esc_html_e('Select a Preset Icon', 'mobooking'); ?></h3>
-                    <button type="button" id="close-icon-modal-btn" class="mb-btn mb-btn-sm">&times;</button>
+                    <button type="button" id="close-icon-modal-btn" class="btn btn-ghost btn-icon">&times;</button>
                 </div>
                 <div id="preset-icons-grid" class="mb-grid mb-gap-2" style="grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));">
                     <?php /* Preset icons will be loaded here by JavaScript */ ?>
                 </div>
                  <div class="mb-mt-4 mb-text-center">
-                    <button type="button" id="cancel-icon-select-btn" class="mb-btn mb-btn-secondary"><?php esc_html_e('Cancel', 'mobooking'); ?></button>
+                    <button type="button" id="cancel-icon-select-btn" class="btn btn-secondary"><?php esc_html_e('Cancel', 'mobooking'); ?></button>
                 </div>
             </div>
         </div>
@@ -304,7 +304,7 @@ if ( $edit_mode && $service_id > 0 ) {
         <div class="mb-form-card">
             <div class="mb-flex mb-items-center mb-justify-between mb-mb-4">
                 <h2 class="mb-form-section-title" style="margin-bottom: 0;"><?php esc_html_e('Service Options', 'mobooking'); ?></h2>
-                <button type="button" id="add-option-btn" class="mb-btn mb-btn-secondary mb-btn-sm">
+                <button type="button" id="add-option-btn" class="btn btn-secondary btn-sm">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M5 12h14"/>
                         <path d="m12 5 7 7-7 7"/>
@@ -335,7 +335,7 @@ if ( $edit_mode && $service_id > 0 ) {
                                     </span>
                                     <span class="mb-option-title"><?php echo esc_html($option['name'] ?: __('New Option', 'mobooking')); ?></span>
                                 </div>
-                                <button type="button" class="mb-option-remove-btn" title="<?php esc_attr_e('Remove option', 'mobooking'); ?>">
+                                <button type="button" class="btn btn-destructive btn-icon btn-sm" title="<?php esc_attr_e('Remove option', 'mobooking'); ?>">
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                         <path d="m18 6-12 12"/>
                                         <path d="m6 6 12 12"/>
@@ -433,7 +433,7 @@ if ( $edit_mode && $service_id > 0 ) {
                                 <div class="mb-choices-container mb-option-choices" style="display: <?php echo in_array($option['type'] ?? '', ['select', 'radio']) ? 'block' : 'none'; ?>;">
                                     <div class="mb-flex mb-items-center mb-justify-between mb-mb-3">
                                         <label class="mb-form-label" style="margin-bottom: 0;"><?php esc_html_e('Option Choices', 'mobooking'); ?></label>
-                                        <button type="button" class="mb-btn mb-btn-secondary mb-btn-sm add-choice-btn">
+                                    <button type="button" class="btn btn-secondary btn-sm add-choice-btn">
                                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                                 <path d="M5 12h14"/>
                                                 <path d="m12 5 7 7-7 7"/>
@@ -488,7 +488,7 @@ if ( $edit_mode && $service_id > 0 ) {
                                                     style="max-width: 80px;"
                                                     value="<?php echo esc_attr($choice['price'] ?? ''); ?>"
                                                 >
-                                                <button type="button" class="mb-choice-remove-btn" title="<?php esc_attr_e('Remove choice', 'mobooking'); ?>">×</button>
+                                                <button type="button" class="btn btn-destructive btn-icon btn-sm" title="<?php esc_attr_e('Remove choice', 'mobooking'); ?>">×</button>
                                             </div>
                                         <?php 
                                             endforeach;
@@ -501,7 +501,7 @@ if ( $edit_mode && $service_id > 0 ) {
                                 <div class="mb-sqm-ranges-container" style="display: <?php echo ($option['type'] ?? '') === 'sqm' ? 'block' : 'none'; ?>;">
                                     <div class="mb-flex mb-items-center mb-justify-between mb-mb-3">
                                         <label class="mb-form-label" style="margin-bottom: 0;"><?php esc_html_e('SQM Pricing Ranges', 'mobooking'); ?></label>
-                                        <button type="button" class="mb-btn mb-btn-secondary mb-btn-sm add-sqm-range-btn">
+                                        <button type="button" class="btn btn-secondary btn-sm add-sqm-range-btn">
                                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                                 <path d="M5 12h14"/>
                                                 <path d="m12 5 7 7-7 7"/>
@@ -532,7 +532,7 @@ if ( $edit_mode && $service_id > 0 ) {
                                             <input type="number" name="sqm_range_from[]" class="mb-form-input mb-form-input-sm" placeholder="0" value="<?php echo esc_attr($range['from_sqm'] ?? ''); ?>" min="0" step="1" required>
                                             <input type="text" name="sqm_range_to[]" class="mb-form-input mb-form-input-sm" placeholder="<?php esc_attr_e('e.g., 50 or ∞', 'mobooking'); ?>" value="<?php echo ($range['to_sqm'] == INF || strtolower($range['to_sqm'] ?? '') === 'infinity') ? '∞' : esc_attr($range['to_sqm'] ?? ''); ?>" required>
                                             <input type="number" name="sqm_range_price[]" class="mb-form-input mb-form-input-sm" placeholder="5.00" value="<?php echo esc_attr($range['price_per_sqm'] ?? ''); ?>" min="0.01" step="0.01" required>
-                                            <button type="button" class="mb-btn mb-btn-destructive mb-btn-sm remove-sqm-range-btn" title="<?php esc_attr_e('Remove range', 'mobooking'); ?>">×</button>
+                                            <button type="button" class="btn btn-destructive btn-icon btn-sm remove-sqm-range-btn" title="<?php esc_attr_e('Remove range', 'mobooking'); ?>">×</button>
                                         </div>
                                         <?php
                                             endforeach;
@@ -550,10 +550,10 @@ if ( $edit_mode && $service_id > 0 ) {
         <!-- Form Actions -->
         <div class="mb-form-card">
             <div class="mb-flex mb-items-center mb-justify-between">
-                <button type="button" id="cancel-btn" class="mb-btn mb-btn-secondary">
+                <button type="button" id="cancel-btn" class="btn btn-secondary">
                     <?php esc_html_e('Cancel', 'mobooking'); ?>
                 </button>
-                <button type="submit" id="save-btn" class="mb-btn mb-btn-primary mb-btn-with-icon">
+                <button type="submit" id="save-btn" class="btn btn-primary">
                     <svg class="mb-btn-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/>
                     </svg>
@@ -584,7 +584,7 @@ if ( $edit_mode && $service_id > 0 ) {
                 </span>
                 <span class="mb-option-title"><?php esc_html_e('New Option', 'mobooking'); ?></span>
             </div>
-            <button type="button" class="mb-option-remove-btn" title="<?php esc_attr_e('Remove option', 'mobooking'); ?>">
+            <button type="button" class="btn btn-destructive btn-icon btn-sm" title="<?php esc_attr_e('Remove option', 'mobooking'); ?>">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="m18 6-12 12"/>
                     <path d="m6 6 12 12"/>
@@ -674,7 +674,7 @@ if ( $edit_mode && $service_id > 0 ) {
             <div class="mb-choices-container mb-option-choices" style="display: none;">
                 <div class="mb-flex mb-items-center mb-justify-between mb-mb-3">
                     <label class="mb-form-label" style="margin-bottom: 0;"><?php esc_html_e('Option Choices', 'mobooking'); ?></label>
-                    <button type="button" class="mb-btn mb-btn-secondary mb-btn-sm add-choice-btn">
+                    <button type="button" class="btn btn-secondary btn-sm add-choice-btn">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M5 12h14"/>
                             <path d="m12 5 7 7-7 7"/>
@@ -689,7 +689,7 @@ if ( $edit_mode && $service_id > 0 ) {
             <div class="mb-sqm-ranges-container" style="display: none;">
                 <div class="mb-flex mb-items-center mb-justify-between mb-mb-3">
                     <label class="mb-form-label" style="margin-bottom: 0;"><?php esc_html_e('SQM Pricing Ranges', 'mobooking'); ?></label>
-                    <button type="button" class="mb-btn mb-btn-secondary mb-btn-sm add-sqm-range-btn">
+                    <button type="button" class="btn btn-secondary btn-sm add-sqm-range-btn">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M5 12h14"/>
                             <path d="m12 5 7 7-7 7"/>
@@ -747,7 +747,7 @@ if ( $edit_mode && $service_id > 0 ) {
             step="0.01"
             style="max-width: 80px;"
         >
-        <button type="button" class="mb-choice-remove-btn" title="<?php esc_attr_e('Remove choice', 'mobooking'); ?>">×</button>
+        <button type="button" class="btn btn-destructive btn-icon btn-sm" title="<?php esc_attr_e('Remove choice', 'mobooking'); ?>">×</button>
     </div>
 </script>
 
@@ -757,7 +757,7 @@ if ( $edit_mode && $service_id > 0 ) {
         <input type="number" name="sqm_range_from[]" class="mb-form-input mb-form-input-sm" placeholder="0" min="0" step="1" required>
         <input type="text" name="sqm_range_to[]" class="mb-form-input mb-form-input-sm" placeholder="<?php esc_attr_e('e.g., 50 or ∞', 'mobooking'); ?>" required>
         <input type="number" name="sqm_range_price[]" class="mb-form-input mb-form-input-sm" placeholder="5.00" min="0.01" step="0.01" required>
-        <button type="button" class="mb-btn mb-btn-destructive mb-btn-sm remove-sqm-range-btn" title="<?php esc_attr_e('Remove range', 'mobooking'); ?>">×</button>
+        <button type="button" class="btn btn-destructive btn-icon btn-sm remove-sqm-range-btn" title="<?php esc_attr_e('Remove range', 'mobooking'); ?>">×</button>
     </div>
 </script>
 
