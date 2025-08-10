@@ -3,11 +3,9 @@ jQuery(document).ready(function($) {
 
     const listContainer = $('#mobooking-discounts-list');
     const paginationContainer = $('#mobooking-discounts-pagination-container');
-    const modal = $('#mobooking-discount-modal');
-    const form = $('#mobooking-discount-form');
-    const formTitle = $('#mobooking-discount-form-title');
-    const discountIdField = $('#mobooking-discount-id');
     const itemTemplate = $('#mobooking-discount-item-template').html();
+    const formTemplate = $('#mobooking-discount-form-template').html();
+    let currentDialog = null;
 
     let currentFilters = { paged: 1, limit: 20 }; // Basic pagination, filters can be added later
 
@@ -86,26 +84,52 @@ jQuery(document).ready(function($) {
         loadDiscounts(parseInt($(this).data('page'), 10));
     });
 
-    // Show Add New Form
-    $('#mobooking-add-new-discount-btn').on('click', function() {
-        form[0].reset();
-        discountIdField.val('');
-        formTitle.text(mobooking_discounts_params.i18n.add_new_title || 'Add New Discount Code');
-        modal.addClass('active');
-    });
+    function openDiscountDialog(discountId = null) {
+        const isEdit = discountId !== null;
+        const title = isEdit
+            ? (mobooking_discounts_params.i18n.edit_title || 'Edit Discount Code')
+            : (mobooking_discounts_params.i18n.add_new_title || 'Add New Discount Code');
 
-    // Cancel Form
-    modal.on('click', '.mobooking-modal-close, .mobooking-modal-backdrop', function(e) {
-        if ($(e.target).is('.mobooking-modal-close') || $(e.target).is('.mobooking-modal-backdrop')) {
-            modal.removeClass('active');
-        }
-    });
+        currentDialog = new MoBookingDialog({
+            title: title,
+            content: formTemplate,
+            buttons: [
+                {
+                    label: mobooking_discounts_params.i18n.cancel || 'Cancel',
+                    class: 'secondary',
+                    onClick: (dialog) => dialog.close()
+                },
+                {
+                    label: mobooking_discounts_params.i18n.save || 'Save Discount',
+                    class: 'primary',
+                    onClick: (dialog) => {
+                        const form = dialog.findElement('#mobooking-discount-form');
+                        submitDiscountForm(form, dialog);
+                    }
+                }
+            ],
+            onOpen: (dialog) => {
+                const form = dialog.findElement('#mobooking-discount-form');
+                // Initialize datepicker or other elements here if needed
+                if (typeof $.fn.datepicker === 'function') {
+                    $(form).find('.mobooking-datepicker').datepicker({ dateFormat: 'yy-mm-dd', changeMonth: true, changeYear: true });
+                } else {
+                    $(form).find('.mobooking-datepicker').attr('type', 'date');
+                }
 
-    // Edit Discount
-    listContainer.on('click', '.mobooking-edit-discount-btn', function() {
-        const discountId = $(this).closest('tr').data('id');
-        form[0].reset(); // Clear form before populating
+                if (isEdit) {
+                    loadDiscountDetailsIntoForm(discountId, form);
+                }
+            },
+            onClose: () => {
+                currentDialog = null;
+            }
+        });
 
+        currentDialog.show();
+    }
+
+    function loadDiscountDetailsIntoForm(discountId, form) {
         $.ajax({
             url: mobooking_discounts_params.ajax_url,
             type: 'POST',
@@ -113,21 +137,32 @@ jQuery(document).ready(function($) {
             success: function(response) {
                 if (response.success && response.data.discount) {
                     const d = response.data.discount;
-                    formTitle.text(mobooking_discounts_params.i18n.edit_title || 'Edit Discount Code');
-                    discountIdField.val(d.discount_id);
-                    $('#mobooking-discount-code').val(d.code);
-                    $(`input[name="type"][value="${d.type}"]`).prop('checked', true);
-                    $('#mobooking-discount-value').val(d.value);
-                    $('#mobooking-discount-expiry').val(d.expiry_date || '');
-                    $('#mobooking-discount-limit').val(d.usage_limit || '');
-                    $('#mobooking-discount-status').prop('checked', d.status === 'active');
-                    modal.addClass('active');
+                    $(form).find('#mobooking-discount-id').val(d.discount_id);
+                    $(form).find('#mobooking-discount-code').val(d.code);
+                    $(form).find(`input[name="type"][value="${d.type}"]`).prop('checked', true);
+                    $(form).find('#mobooking-discount-value').val(d.value);
+                    $(form).find('#mobooking-discount-expiry').val(d.expiry_date || '');
+                    $(form).find('#mobooking-discount-limit').val(d.usage_limit || '');
+                    $(form).find('#mobooking-discount-status').prop('checked', d.status === 'active');
                 } else {
-                    alert(response.data.message || 'Error fetching details.');
+                    window.showAlert(response.data.message || 'Error fetching details.', 'error');
+                    currentDialog.close();
                 }
             },
-            error: function() { alert('AJAX error fetching details.'); }
+            error: function() {
+                window.showAlert('AJAX error fetching details.', 'error');
+                currentDialog.close();
+            }
         });
+    }
+
+    $('#mobooking-add-new-discount-btn').on('click', function() {
+        openDiscountDialog();
+    });
+
+    listContainer.on('click', '.mobooking-edit-discount-btn', function() {
+        const discountId = $(this).closest('tr').data('id');
+        openDiscountDialog(discountId);
     });
 
     // Delete Discount
@@ -149,22 +184,16 @@ jQuery(document).ready(function($) {
         });
     });
 
-    // Form Submission (Add/Edit)
-    form.on('submit', function(e) {
-        e.preventDefault();
-        const submitButton = $('#mobooking-save-discount-btn');
-        const originalButtonText = submitButton.text();
-        submitButton.prop('disabled', true).text(mobooking_discounts_params.i18n.saving || 'Saving...');
+    function submitDiscountForm(form, dialog) {
+        const $form = $(form);
+        const discountId = $form.find('#mobooking-discount-id').val();
+        // Here you can add validation if needed before submitting
 
-        let formData = $(this).serializeArray();
+        let formData = $form.serializeArray();
         let dataToSend = { action: 'mobooking_save_discount', nonce: mobooking_discounts_params.nonce };
         formData.forEach(item => dataToSend[item.name] = item.value);
-
-        dataToSend.status = $('#mobooking-discount-status').is(':checked') ? 'active' : 'inactive';
-
-        // Ensure usage_limit is sent as empty if 0, to be stored as NULL by PHP logic
+        dataToSend.status = $form.find('#mobooking-discount-status').is(':checked') ? 'active' : 'inactive';
         if (dataToSend.usage_limit === '0') dataToSend.usage_limit = '';
-
 
         $.ajax({
             url: mobooking_discounts_params.ajax_url,
@@ -173,28 +202,26 @@ jQuery(document).ready(function($) {
             success: function(response) {
                 if (response.success) {
                     window.showAlert(response.data.message, 'success');
-                    modal.removeClass('active');
-                    loadDiscounts(discountIdField.val() ? currentFilters.paged : 1); // Refresh current page on edit, or go to page 1 on add
+                    dialog.close();
+                    loadDiscounts(discountId ? currentFilters.paged : 1);
                 } else {
                     window.showAlert(response.data.message || 'Error saving.', 'error');
                 }
             },
             error: function() {
                 window.showAlert('AJAX error saving.', 'error');
-            },
-            complete: function() {
-                submitButton.prop('disabled', false).text(originalButtonText);
             }
         });
-    });
+    }
 
-    // Generate Random Code
-    $('#mobooking-generate-code-btn').on('click', function() {
+    // Generate Random Code (using event delegation on the body)
+    $('body').on('click', '#mobooking-generate-code-btn', function() {
+        if (!currentDialog) return; // Ensure this only works when a dialog is open
         const names = ['SUMMER', 'WINTER', 'SPRING', 'AUTUMN', 'HOLIDAY', 'SPECIAL', 'SALE'];
         const randomName = names[Math.floor(Math.random() * names.length)];
         const randomNumber = Math.floor(Math.random() * 1000);
         const randomCode = `${randomName}${randomNumber}`;
-        $('#mobooking-discount-code').val(randomCode);
+        currentDialog.findElement('#mobooking-discount-code').value = randomCode;
     });
 
     // Initialize Datepicker
