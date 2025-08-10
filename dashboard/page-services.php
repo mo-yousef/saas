@@ -47,7 +47,7 @@ wp_nonce_field('mobooking_services_nonce', 'mobooking_services_nonce_field');
             </span>
             <h1 class="services-title"><?php esc_html_e('Manage Your Services', 'mobooking'); ?></h1>
         </div>
-        <a href="<?php echo esc_url(site_url('/dashboard/service-edit/')); ?>" class="button button-primary">
+        <a href="<?php echo esc_url(site_url('/dashboard/service-edit/')); ?>" class="btn btn-primary">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M5 12h14" />
                 <path d="M12 5v14" />
@@ -197,14 +197,14 @@ wp_nonce_field('mobooking_services_nonce', 'mobooking_services_nonce_field');
         </div>
         
         <div class="service-actions">
-            <a href="<?php echo esc_url(site_url('/dashboard/service-edit/')); ?>?service_id=<%= service_id %>" class="btn btn-edit">
+            <a href="<?php echo esc_url(site_url('/dashboard/service-edit/')); ?>?service_id=<%= service_id %>" class="btn btn-outline btn-sm">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
                     <path d="m15 5 4 4" />
                 </svg>
                 <?php esc_html_e('Edit', 'mobooking'); ?>
             </a>
-            <button class="btn btn-delete service-delete-btn" data-service-id="<%= service_id %>" data-service-name="<%= name %>">
+            <button class="btn btn-destructive btn-sm service-delete-btn" data-service-id="<%= service_id %>" data-service-name="<%= name %>">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M3 6h18" />
                     <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />

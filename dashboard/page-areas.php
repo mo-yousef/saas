@@ -79,7 +79,7 @@ $current_user_id = get_current_user_id();
                             <option value="active"><?php esc_html_e('Active', 'mobooking'); ?></option>
                             <option value="inactive"><?php esc_html_e('Inactive', 'mobooking'); ?></option>
                         </select>
-                        <button type="button" id="clear-coverage-filters-btn" class="mobooking-btn mobooking-btn-secondary mobooking-btn-sm">
+                        <button type="button" id="clear-coverage-filters-btn" class="btn btn-secondary btn-sm">
                             <?php esc_html_e('Clear', 'mobooking'); ?>
                         </button>
                     </div>
@@ -115,30 +115,29 @@ $current_user_id = get_current_user_id();
 </div>
 
 <!-- Area Selection Modal -->
-<div id="area-selection-modal" class="mobooking-modal" style="display: none;">
-    <div class="mobooking-modal-overlay"></div>
-    <div class="mobooking-modal-content">
-        <div class="mobooking-modal-header">
-            <h4 class="mobooking-modal-title">
+<div id="area-selection-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h4 class="modal-title">
                 <?php esc_html_e('Select Areas for', 'mobooking'); ?> <span id="modal-city-name"></span>
             </h4>
-            <button type="button" class="mobooking-modal-close-btn">&times;</button>
+            <button type="button" class="modal-close-btn">&times;</button>
         </div>
-        <div class="mobooking-modal-body">
+        <div class="modal-body">
             <div class="areas-selection-controls">
-                <button type="button" id="modal-select-all" class="mobooking-btn-link"><?php esc_html_e('Select All', 'mobooking'); ?></button>
-                <button type="button" id="modal-deselect-all" class="mobooking-btn-link"><?php esc_html_e('Deselect All', 'mobooking'); ?></button>
+                <button type="button" id="modal-select-all" class="btn btn-link"><?php esc_html_e('Select All', 'mobooking'); ?></button>
+                <button type="button" id="modal-deselect-all" class="btn btn-link"><?php esc_html_e('Deselect All', 'mobooking'); ?></button>
             </div>
             <div id="modal-areas-grid" class="modal-areas-grid">
                 <!-- Areas for the selected city will be loaded here -->
             </div>
         </div>
-        <div class="mobooking-modal-footer">
+        <div class="modal-footer">
             <div id="modal-feedback" class="mobooking-feedback" style="display: none;"></div>
-            <button type="button" id="modal-cancel-btn" class="mobooking-btn mobooking-btn-secondary">
+            <button type="button" id="modal-cancel-btn" class="btn btn-secondary">
                 <?php esc_html_e('Cancel', 'mobooking'); ?>
             </button>
-            <button type="button" id="modal-save-btn" class="mobooking-btn mobooking-btn-primary">
+            <button type="button" id="modal-save-btn" class="btn btn-primary">
                 <?php esc_html_e('Save Areas', 'mobooking'); ?>
             </button>
         </div>
@@ -196,7 +195,6 @@ window.mobooking_areas_i18n = <?php echo json_encode([
 <?php
 // Enqueue enhanced scripts and styles
 wp_enqueue_script('mobooking-enhanced-areas', get_template_directory_uri() . '/assets/js/enhanced-areas.js', ['jquery', 'wp-i18n'], '1.0.0', true);
-wp_enqueue_style('mobooking-enhanced-areas', get_template_directory_uri() . '/assets/css/enhanced-areas.css', [], '1.0.0');
 
 wp_localize_script('mobooking-enhanced-areas', 'mobooking_areas_params', [
     'ajax_url' => admin_url('admin-ajax.php'),
@@ -218,24 +216,3 @@ wp_localize_script('mobooking-enhanced-areas', 'mobooking_areas_params', [
     ],
 ]);
 ?>
-<?php
-// // Enqueue required scripts and styles
-//         wp_enqueue_style('mobooking-dashboard-areas-refactored', 
-//             get_template_directory_uri() . '/assets/css/dashboard-areas-refactored.css', 
-//             [], '1.0.0');
-// wp_enqueue_script('mobooking-dashboard-areas-refactored', get_template_directory_uri() . '/assets/js/dashboard-areas-refactored.js', ['jquery'], '1.0.0', true);
-// wp_localize_script('mobooking-dashboard-areas-refactored', 'mobooking_areas_params', [
-//     'ajax_url' => admin_url('admin-ajax.php'),
-//     'nonce' => wp_create_nonce('mobooking_dashboard_nonce'),
-//     'user_id' => $current_user_id,
-// ]);
-?>
-
-
-<style>
-svg {
-    max-width: 20px;
-}
-
-
-</style>

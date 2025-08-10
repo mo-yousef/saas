@@ -53,7 +53,7 @@ $total_pages = ceil($total_customers_count / $per_page);
             </span>
             <h1 class="page-title"><?php esc_html_e('Customers', 'mobooking'); ?></h1>
         </div>
-        <a href="#" id="mobooking-add-customer-btn" class="button button-primary">
+        <a href="#" id="mobooking-add-customer-btn" class="btn btn-primary">
             <?php esc_html_e('Add Customer', 'mobooking'); ?>
         </a>
     </div>
@@ -128,8 +128,9 @@ $total_pages = ceil($total_customers_count / $per_page);
                     placeholder="<?php esc_attr_e('Search customers by name, email, or phone...', 'mobooking'); ?>"
                     value="<?php echo esc_attr($search); ?>"
                 >
-                <button type="submit" class="search-btn">
-                    🔍 <?php esc_html_e('Search', 'mobooking'); ?>
+                <button type="submit" class="btn btn-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    <?php esc_html_e('Search', 'mobooking'); ?>
                 </button>
             </form>
             
@@ -247,11 +248,11 @@ $total_pages = ceil($total_customers_count / $per_page);
                                 <div class="customer-actions">
 <a 
     href="<?php echo esc_url(home_url('/dashboard/customer-details/?customer_id=' . urlencode($customer->id))); ?>"
-    class="action-btn view-btn" 
+    class="btn btn-outline btn-sm"
     title="<?php esc_attr_e('View Customer Details', 'mobooking'); ?>"
 >
-    <span style="font-size: 14px;">👁️</span>
-    <span class="action-text"><?php esc_html_e('View Details', 'mobooking'); ?></span>
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+    <span class="action-text"><?php esc_html_e('View', 'mobooking'); ?></span>
 </a>
 
                                 </div>
