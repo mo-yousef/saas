@@ -367,81 +367,71 @@ jQuery(document).ready(function ($) {
       (d) => d.day_of_week == sourceDayIndex
     );
 
-    // Create and show a modal for copying
-    const $modal = $(`
-      <div class="mobooking-modal-backdrop active">
-        <div class="mobooking-modal active">
-            <div class="mobooking-modal-content">
-                <h3>${i18n.copy_schedule || "Copy Schedule"}</h3>
-                <p>${i18n.copy_from || "Copy schedule from"} <strong>${
+    const copyDaysSelectionHtml = daysOfWeek
+      .map((day, index) => {
+        if (index === sourceDayIndex) return "";
+        return `
+            <label class="copy-day-label">
+                <input type="checkbox" name="copy-day" value="${index}">
+                <span>${day}</span>
+            </label>
+        `;
+      })
+      .join("");
+
+    const contentHtml = `
+        <p>${i18n.copy_from || "Copy schedule from"} <strong>${
       daysOfWeek[sourceDayIndex]
     }</strong> ${i18n.to || "to the following days"}:</p>
-                <div class="copy-days-selection">
-                    ${daysOfWeek
-                      .map((day, index) => {
-                        if (index === sourceDayIndex) return "";
-                        return `
-                            <label class="copy-day-label">
-                                <input type="checkbox" name="copy-day" value="${index}">
-                                <span>${day}</span>
-                            </label>
-                        `;
-                      })
-                      .join("")}
-                </div>
-                <div class="form-actions">
-                    <button type="button" class="button mobooking-modal-close">${
-                      i18n.cancel || "Cancel"
-                    }</button>
-                    <button type="button" class="button button-primary" id="confirm-copy-btn">${
-                      i18n.copy || "Copy Schedule"
-                    }</button>
-                </div>
-            </div>
+        <div class="copy-days-selection">
+            ${copyDaysSelectionHtml}
         </div>
-      </div>
-    `);
+    `;
 
-    $("body").append($modal);
+    const copyDialog = new MoBookingDialog({
+        title: i18n.copy_schedule || "Copy Schedule",
+        content: contentHtml,
+        icon: 'copy',
+        buttons: [
+            {
+                label: i18n.cancel || "Cancel",
+                class: 'secondary',
+                onClick: (dialog) => dialog.close(),
+            },
+            {
+                label: i18n.copy || "Copy Schedule",
+                class: 'primary',
+                onClick: (dialog) => {
+                    const targetDays = [];
+                    $(dialog.getElement()).find('input[name="copy-day"]:checked').each(function () {
+                        targetDays.push(parseInt($(this).val()));
+                    });
 
-    $modal.on(
-      "click",
-      ".mobooking-modal-close, .mobooking-modal-backdrop",
-      function (e) {
-        if (
-          $(e.target).is(".mobooking-modal-backdrop, .mobooking-modal-close")
-        ) {
-          $modal.remove();
-        }
-      }
-    );
-
-    $modal.on("click", "#confirm-copy-btn", function () {
-      const targetDays = [];
-      $modal.find('input[name="copy-day"]:checked').each(function () {
-        targetDays.push(parseInt($(this).val()));
-      });
-
-      if (targetDays.length > 0) {
-        targetDays.forEach((targetDayIndex) => {
-          let targetDayData = scheduleData.find(
-            (d) => d.day_of_week == targetDayIndex
-          );
-          if (!targetDayData) {
-            targetDayData = {
-              day_of_week: targetDayIndex,
-              is_enabled: false,
-              slots: [],
-            };
-            scheduleData.push(targetDayData);
-          }
-          targetDayData.is_enabled = sourceDayData.is_enabled;
-          targetDayData.slots = JSON.parse(JSON.stringify(sourceDayData.slots)); // Deep copy
-        });
-        renderScheduleEditor();
-      }
-      $modal.remove();
+                    if (targetDays.length > 0) {
+                        targetDays.forEach((targetDayIndex) => {
+                            let targetDayData = scheduleData.find(
+                                (d) => d.day_of_week == targetDayIndex
+                            );
+                            if (!targetDayData) {
+                                targetDayData = {
+                                    day_of_week: targetDayIndex,
+                                    is_enabled: false,
+                                    slots: [],
+                                };
+                                scheduleData.push(targetDayData);
+                            }
+                            targetDayData.is_enabled = sourceDayData.is_enabled;
+                            targetDayData.slots = JSON.parse(JSON.stringify(sourceDayData.slots)); // Deep copy
+                        });
+                        renderScheduleEditor();
+                    }
+                    dialog.close();
+                },
+            },
+        ],
     });
+
+    copyDialog.show();
   });
 
   $saveScheduleBtn.on("click", saveSchedule);

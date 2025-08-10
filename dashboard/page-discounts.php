@@ -114,59 +114,52 @@ wp_nonce_field('mobooking_dashboard_nonce', 'mobooking_dashboard_nonce_field');
     </tr>
 </script>
 
-<div id="mobooking-discount-modal" class="mobooking-modal-backdrop">
-    <div class="mobooking-modal">
-        <div class="mobooking-modal-content">
-            <h2 id="mobooking-discount-form-title" class="text-lg font-semibold"></h2>
-            <form id="mobooking-discount-form">
-                <input type="hidden" id="mobooking-discount-id" name="discount_id" value="">
-                <div class="form-grid">
-                    <div class="form-group full-width">
-                        <label for="mobooking-discount-code"><?php esc_html_e('Discount Code', 'mobooking'); ?></label>
-                        <div style="display: flex; gap: 0.5rem;">
-                            <input type="text" id="mobooking-discount-code" name="code" required style="flex: 1;">
-                            <button type="button" id="mobooking-generate-code-btn" class="button"><?php esc_html_e('Generate', 'mobooking'); ?></button>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label><?php esc_html_e('Type', 'mobooking'); ?></label>
-                        <div class="radio-pills">
-                            <label>
-                                <input type="radio" name="type" value="percentage" checked>
-                                <span><?php esc_html_e('Percentage', 'mobooking'); ?></span>
-                            </label>
-                            <label>
-                                <input type="radio" name="type" value="fixed_amount">
-                                <span><?php esc_html_e('Fixed Amount', 'mobooking'); ?></span>
-                            </label>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="mobooking-discount-value"><?php esc_html_e('Value', 'mobooking'); ?></label>
-                        <input type="number" id="mobooking-discount-value" name="value" step="0.01" min="0.01" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="mobooking-discount-expiry"><?php esc_html_e('Expiry Date', 'mobooking'); ?></label>
-                        <input type="text" id="mobooking-discount-expiry" name="expiry_date" class="mobooking-datepicker" placeholder="YYYY-MM-DD" autocomplete="off">
-                    </div>
-                    <div class="form-group">
-                        <label for="mobooking-discount-limit"><?php esc_html_e('Usage Limit', 'mobooking'); ?></label>
-                        <input type="number" id="mobooking-discount-limit" name="usage_limit" step="1" min="0" placeholder="<?php esc_attr_e('e.g., 100', 'mobooking'); ?>">
-                    </div>
-                    <div class="form-group">
-                        <label for="mobooking-discount-status"><?php esc_html_e('Status', 'mobooking'); ?></label>
-                        <label class="mobooking-toggle-switch">
-                            <input type="checkbox" id="mobooking-discount-status" name="status" value="active">
-                            <span class="slider"></span>
-                        </label>
-                    </div>
+<!-- Discount form modal is now handled by assets/js/dialog.js -->
+<script type="text/template" id="mobooking-discount-form-template">
+    <form id="mobooking-discount-form">
+        <input type="hidden" id="mobooking-discount-id" name="discount_id" value="">
+        <div class="form-grid">
+            <div class="form-group full-width">
+                <label for="mobooking-discount-code"><?php esc_html_e('Discount Code', 'mobooking'); ?></label>
+                <div style="display: flex; gap: 0.5rem;">
+                    <input type="text" id="mobooking-discount-code" name="code" required style="flex: 1;">
+                    <button type="button" id="mobooking-generate-code-btn" class="button"><?php esc_html_e('Generate', 'mobooking'); ?></button>
                 </div>
-                <div class="form-actions">
-                    <button type="button" class="btn btn-secondary mobooking-modal-close"><?php esc_html_e('Cancel', 'mobooking'); ?></button>
-                    <button type="submit" id="mobooking-save-discount-btn" class="btn btn-primary"><?php esc_html_e('Save Discount', 'mobooking'); ?></button>
+            </div>
+            <div class="form-group">
+                <label><?php esc_html_e('Type', 'mobooking'); ?></label>
+                <div class="radio-pills">
+                    <label>
+                        <input type="radio" name="type" value="percentage" checked>
+                        <span><?php esc_html_e('Percentage', 'mobooking'); ?></span>
+                    </label>
+                    <label>
+                        <input type="radio" name="type" value="fixed_amount">
+                        <span><?php esc_html_e('Fixed Amount', 'mobooking'); ?></span>
+                    </label>
                 </div>
-            </form>
+            </div>
+            <div class="form-group">
+                <label for="mobooking-discount-value"><?php esc_html_e('Value', 'mobooking'); ?></label>
+                <input type="number" id="mobooking-discount-value" name="value" step="0.01" min="0.01" required>
+            </div>
+            <div class="form-group">
+                <label for="mobooking-discount-expiry"><?php esc_html_e('Expiry Date', 'mobooking'); ?></label>
+                <input type="text" id="mobooking-discount-expiry" name="expiry_date" class="mobooking-datepicker" placeholder="YYYY-MM-DD" autocomplete="off">
+            </div>
+            <div class="form-group">
+                <label for="mobooking-discount-limit"><?php esc_html_e('Usage Limit', 'mobooking'); ?></label>
+                <input type="number" id="mobooking-discount-limit" name="usage_limit" step="1" min="0" placeholder="<?php esc_attr_e('e.g., 100', 'mobooking'); ?>">
+            </div>
+            <div class="form-group">
+                <label for="mobooking-discount-status"><?php esc_html_e('Status', 'mobooking'); ?></label>
+                <label class="mobooking-toggle-switch">
+                    <input type="checkbox" id="mobooking-discount-status" name="status" value="active">
+                    <span class="slider"></span>
+                </label>
+            </div>
         </div>
-    </div>
-</div>
+        <!-- Actions are now part of the dialog footer -->
+    </form>
+</script>
 </div>
