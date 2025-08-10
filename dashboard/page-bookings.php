@@ -181,7 +181,12 @@ $booking_statuses = [
 <div class="wrap mobooking-dashboard-wrap mobooking-bookings-page-wrapper">
 
     <div class="mobooking-page-header">
-        <h1 class="wp-heading-inline"><?php esc_html_e('Manage Bookings', 'mobooking'); ?></h1>
+        <div class="mobooking-page-header-heading">
+            <span class="mobooking-page-header-icon">
+                <?php echo mobooking_get_dashboard_menu_icon('bookings'); ?>
+            </span>
+            <h1 class="wp-heading-inline"><?php esc_html_e('Manage Bookings', 'mobooking'); ?></h1>
+        </div>
         <?php
         $current_user_can_add_booking = true;
         if (class_exists('MoBooking\Classes\Auth') && \MoBooking\Classes\Auth::is_user_worker(get_current_user_id())) {

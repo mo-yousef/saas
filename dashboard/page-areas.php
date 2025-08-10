@@ -17,10 +17,12 @@ $current_user_id = get_current_user_id();
 
 <div class="mobooking-dashboard-page">
     <div class="mobooking-page-header">
-        <h2 class="mobooking-page-title">
-            <span class="country-flag-emoji">🇸🇪</span>
-            <?php esc_html_e('Swedish Service Areas', 'mobooking'); ?>
-        </h2>
+        <div class="mobooking-page-header-heading">
+            <span class="mobooking-page-header-icon">
+                <?php echo mobooking_get_dashboard_menu_icon('areas'); ?>
+            </span>
+            <h1 class="mobooking-page-title"><?php esc_html_e('Service Areas', 'mobooking'); ?></h1>
+        </div>
         <p class="mobooking-page-description">
             <?php esc_html_e('Manage your service coverage by selecting cities and their specific areas within Sweden.', 'mobooking'); ?>
         </p>

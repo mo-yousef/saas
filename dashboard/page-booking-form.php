@@ -37,7 +37,14 @@ if (!empty($current_slug)) {
 
 ?>
 <div id="mobooking-booking-form-settings-page" class="wrap">
-    <h1><?php esc_html_e('Booking Form Settings', 'mobooking'); ?></h1>
+    <div class="mobooking-page-header">
+        <div class="mobooking-page-header-heading">
+            <span class="mobooking-page-header-icon">
+                <?php echo mobooking_get_dashboard_menu_icon('booking_form'); ?>
+            </span>
+            <h1><?php esc_html_e('Booking Form Settings', 'mobooking'); ?></h1>
+        </div>
+    </div>
     <p><?php esc_html_e('Customize the appearance and behavior of your public booking form.', 'mobooking'); ?></p>
 
     <form id="mobooking-booking-form-settings-form" method="post">
@@ -465,114 +472,6 @@ if (!empty($current_slug)) {
     </form>
 </div>
 
-<style>
-
-.form-table th {
-    width: 200px;
-    font-weight: 600;
-}
-
-.form-table td {
-    padding: 15px 10px;
-}
-
-.form-table input[type="text"],
-.form-table input[type="url"],
-.form-table input[type="number"],
-.form-table select,
-.form-table textarea {
-    font-size: 14px;
-}
-
-.form-table .description {
-    margin-top: 5px;
-    font-style: italic;
-    color: #666;
-}
-
-fieldset label {
-    display: inline-block;
-    margin-right: 20px;
-    font-weight: normal;
-}
-
-#mobooking-settings-feedback {
-    max-width: 100%;
-}
-
-#mobooking-settings-feedback.notice {
-    padding: 10px 15px;
-    margin: 5px 0 15px 0;
-    border-left: 4px solid;
-    background: #fff;
-}
-
-#mobooking-settings-feedback.notice-success {
-    border-left-color: #46b450;
-    background: #f7fcf0;
-}
-
-#mobooking-settings-feedback.notice-error {
-    border-left-color: #dc3232;
-    background: #fef7f1;
-}
-
-.button.button-secondary:disabled {
-    color: #a0a5aa !important;
-    border-color: #ddd !important;
-    background: #f6f7f7 !important;
-    cursor: not-allowed;
-}
-
-/* QR Code styling */
-#qr-code-container img {
-    border-radius: 8px;
-}
-
-/* Embed customization */
-.widefat td {
-    padding: 10px;
-    border-bottom: 1px solid #f0f0f0;
-}
-
-.widefat td:first-child {
-    font-weight: 600;
-    width: 100px;
-}
-
-/* Color picker alignment */
-.wp-picker-container {
-    display: inline-block;
-}
-
-/* Responsive adjustments */
-@media screen and (max-width: 782px) {
-    .form-table th,
-    .form-table td {
-        display: block;
-        width: auto;
-        padding: 10px 0;
-    }
-    
-    .form-table th {
-        padding-bottom: 5px;
-    }
-    
-    .nav-tab-wrapper {
-        border-bottom: 1px solid #ccd0d4;
-    }
-    
-    .nav-tab {
-        display: block;
-        margin: 0;
-        border-bottom: 1px solid #ccd0d4;
-    }
-    
-    .nav-tab:last-child {
-        border-bottom: none;
-    }
-}
-</style>
 
 <script type="text/javascript">
 jQuery(document).ready(function($) {

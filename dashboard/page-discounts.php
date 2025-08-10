@@ -29,8 +29,13 @@ wp_nonce_field('mobooking_dashboard_nonce', 'mobooking_dashboard_nonce_field');
 
 ?>
 <div class="mobooking-discounts-page">
-    <div class="page-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-        <h1 class="text-2xl font-bold"><?php esc_html_e('Manage Discount Codes', 'mobooking'); ?></h1>
+    <div class="mobooking-page-header">
+        <div class="mobooking-page-header-heading">
+            <span class="mobooking-page-header-icon">
+                <?php echo mobooking_get_dashboard_menu_icon('discounts'); ?>
+            </span>
+            <h1 class="text-2xl font-bold"><?php esc_html_e('Manage Discount Codes', 'mobooking'); ?></h1>
+        </div>
         <button id="mobooking-add-new-discount-btn" class="button button-primary"><?php esc_html_e('Add New Discount Code', 'mobooking'); ?></button>
     </div>
 
