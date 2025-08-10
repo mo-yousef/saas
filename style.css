@@ -575,20 +575,7 @@ tbody tr:hover {
 /*--------------------------------------------------------------
 7.0 Modal Styles
 --------------------------------------------------------------*/
-#mobooking-service-form-modal-backdrop {
-  display: none;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.4);
-  z-index: 1001;
-}
-
-body.mobooking-modal-open {
-  overflow: hidden;
-}
+/* All modal styles have been moved to assets/css/dialog.css */
 
 /*--------------------------------------------------------------
 8.0 Dashboard Layout
@@ -1517,80 +1504,7 @@ span.mobooking-menu-icon {
   margin-top: 0.25rem;
 }
 
-/* Modal Styles (ShadCN inspired: card-like) */
-.mobooking-modal-backdrop {
-  display: none;
-  /* Initially hidden */
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: hsl(0 0% 0% / 0.6);
-  /* Darker backdrop */
-  z-index: 1000;
-  /* Below modal, above content */
-  opacity: 0;
-  /* visibility: hidden;  Visibility transition isn't smooth with display none/block */
-  transition: opacity 0.2s ease;
-}
-
-.mobooking-modal-backdrop.active {
-  display: block;
-  /* Show */
-  opacity: 1;
-  /* visibility: visible; */
-}
-
-.mobooking-modal {
-  display: none;
-  /* Initially hidden */
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%) scale(0.95);
-  background-color: hsl(0 0% 100%);
-  padding: 1.5rem;
-  /* Consistent padding */
-  border-radius: 0.5rem;
-  /* Larger radius */
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1),
-    0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  /* Softer shadow */
-  z-index: 1001;
-  width: 90%;
-  max-width: 480px;
-  /* Slightly narrower */
-  opacity: 0;
-  /* visibility: hidden; */
-  transition: opacity 0.2s ease, transform 0.2s ease;
-}
-
-.mobooking-modal.active {
-  display: block;
-  /* Show */
-  opacity: 1;
-  /* visibility: visible; */
-  transform: translate(-50%, -50%) scale(1);
-}
-
-.mobooking-modal .mobooking-modal-content h3 {
-  font-size: 1.25rem;
-  /* h4 */
-  font-weight: 600;
-  margin-top: 0;
-  margin-bottom: 1.5rem;
-  /* More space after title */
-  color: hsl(222.2 84% 4.9%);
-}
-
-.mobooking-modal .form-actions {
-  margin-top: 1.5rem;
-  display: flex;
-  justify-content: flex-end;
-  /* Align buttons to the right */
-  gap: 0.75rem;
-}
+/* Old modal styles are removed. New styles are in dialog.css */
 
 /* jQuery UI Datepicker Customization */
 .mobooking-calendar-container .ui-datepicker {
