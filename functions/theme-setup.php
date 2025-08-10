@@ -324,6 +324,10 @@ if ( is_page_template('templates/booking-form-public.php') || $page_type_for_scr
 
     // Dashboard-specific scripts (only load if we're actually on a dashboard page)
     if (!empty($current_page_slug)) {
+        // Enqueue Dialog component assets globally for the dashboard
+        wp_enqueue_style('mobooking-dialog', MOBOOKING_THEME_URI . 'assets/css/dialog.css', array(), MOBOOKING_VERSION);
+        wp_enqueue_script('mobooking-dialog', MOBOOKING_THEME_URI . 'assets/js/dialog.js', array(), MOBOOKING_VERSION, true);
+
         // Enqueue Toast Notification assets
         wp_enqueue_style('mobooking-toast', MOBOOKING_THEME_URI . 'assets/css/toast.css', array(), MOBOOKING_VERSION);
         wp_enqueue_script('mobooking-toast', MOBOOKING_THEME_URI . 'assets/js/toast.js', array('jquery'), MOBOOKING_VERSION, true);
@@ -340,7 +344,7 @@ if ( is_page_template('templates/booking-form-public.php') || $page_type_for_scr
 
         if ( $current_page_slug === 'workers' ) {
             wp_enqueue_style( 'mobooking-dashboard-workers-enhanced', MOBOOKING_THEME_URI . 'assets/css/dashboard-workers-enhanced.css', array('mobooking-style'), MOBOOKING_VERSION );
-            wp_enqueue_script( 'mobooking-dashboard-workers', MOBOOKING_THEME_URI . 'assets/js/dashboard-workers.js', array( 'jquery' ), MOBOOKING_VERSION, true );
+            wp_enqueue_script( 'mobooking-dashboard-workers', MOBOOKING_THEME_URI . 'assets/js/dashboard-workers.js', array( 'jquery', 'mobooking-dialog' ), MOBOOKING_VERSION, true );
             wp_localize_script( 'mobooking-dashboard-workers', 'mobooking_workers_params', array(
                 'ajax_url' => admin_url( 'admin-ajax.php' ),
                 'i18n' => array(

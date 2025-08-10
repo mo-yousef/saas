@@ -81,7 +81,7 @@ function mobooking_enqueue_dashboard_scripts($current_page_slug = '') {
 
     // Specific to Services page
     if ($current_page_slug === 'services' || $current_page_slug === 'service-edit') {
-        wp_enqueue_script('mobooking-dashboard-services', MOBOOKING_THEME_URI . 'assets/js/dashboard-services.js', array('jquery', 'jquery-ui-sortable'), MOBOOKING_VERSION, true);
+        wp_enqueue_script('mobooking-dashboard-services', MOBOOKING_THEME_URI . 'assets/js/dashboard-services.js', array('jquery', 'jquery-ui-sortable', 'mobooking-dialog'), MOBOOKING_VERSION, true);
         // Ensure jQuery UI Sortable CSS is also enqueued if needed, or handle styling in plugin's CSS
         // wp_enqueue_style('jquery-ui-sortable-css', MOBOOKING_THEME_URI . 'path/to/jquery-ui-sortable.css');
 
@@ -125,7 +125,7 @@ function mobooking_enqueue_dashboard_scripts($current_page_slug = '') {
     // Specific to Bookings page
     if ($current_page_slug === 'bookings') {
         wp_enqueue_script('jquery-ui-datepicker');
-        wp_enqueue_script('mobooking-dashboard-bookings', MOBOOKING_THEME_URI . 'assets/js/dashboard-bookings.js', array('jquery', 'jquery-ui-datepicker'), MOBOOKING_VERSION, true);
+        wp_enqueue_script('mobooking-dashboard-bookings', MOBOOKING_THEME_URI . 'assets/js/dashboard-bookings.js', array('jquery', 'jquery-ui-datepicker', 'mobooking-dialog'), MOBOOKING_VERSION, true);
         $bookings_params = array_merge($dashboard_params, [
             'i18n' => [
                 'loading_bookings' => __('Loading bookings...', 'mobooking'),
@@ -145,7 +145,7 @@ function mobooking_enqueue_dashboard_scripts($current_page_slug = '') {
     // Specific to Discounts page
     if ($current_page_slug === 'discounts') {
         wp_enqueue_style('mobooking-dashboard-discounts', MOBOOKING_THEME_URI . 'assets/css/dashboard-discounts.css', array(), MOBOOKING_VERSION);
-        wp_enqueue_script('mobooking-dashboard-discounts', MOBOOKING_THEME_URI . 'assets/js/dashboard-discounts.js', array('jquery'), MOBOOKING_VERSION, true);
+        wp_enqueue_script('mobooking-dashboard-discounts', MOBOOKING_THEME_URI . 'assets/js/dashboard-discounts.js', array('jquery', 'mobooking-dialog'), MOBOOKING_VERSION, true);
         $discounts_params = array_merge($dashboard_params, [
             'i18n' => [
                 'loading_discounts' => __('Loading discounts...', 'mobooking'),
@@ -174,7 +174,7 @@ function mobooking_enqueue_dashboard_scripts($current_page_slug = '') {
     // Specific to Areas page
     if ($current_page_slug === 'areas') {
         wp_enqueue_style('mobooking-enhanced-areas', MOBOOKING_THEME_URI . 'assets/css/enhanced-areas.css', array(), MOBOOKING_VERSION);
-        wp_enqueue_script('mobooking-enhanced-areas', MOBOOKING_THEME_URI . 'assets/js/enhanced-areas.js', array('jquery', 'wp-i18n'), MOBOOKING_VERSION, true);
+        wp_enqueue_script('mobooking-enhanced-areas', MOBOOKING_THEME_URI . 'assets/js/enhanced-areas.js', array('jquery', 'wp-i18n', 'mobooking-dialog'), MOBOOKING_VERSION, true);
         $areas_params = array_merge($dashboard_params, [
             'i18n' => [
                 'loading_areas' => __('Loading areas...', 'mobooking'),
@@ -386,7 +386,7 @@ function mobooking_enqueue_dashboard_scripts($current_page_slug = '') {
     if ($current_page_slug === 'availability') {
         wp_enqueue_style('mobooking-dashboard-availability', MOBOOKING_THEME_URI . 'assets/css/dashboard-availability.css', array(), MOBOOKING_VERSION);
         wp_enqueue_script('jquery-ui-datepicker'); // For calendar
-        wp_enqueue_script('mobooking-dashboard-availability', MOBOOKING_THEME_URI . 'assets/js/dashboard-availability.js', array('jquery', 'jquery-ui-datepicker'), MOBOOKING_VERSION, true);
+        wp_enqueue_script('mobooking-dashboard-availability', MOBOOKING_THEME_URI . 'assets/js/dashboard-availability.js', array('jquery', 'jquery-ui-datepicker', 'mobooking-dialog'), MOBOOKING_VERSION, true);
 
         $availability_i18n_strings = [
             'sunday' => __('Sunday', 'mobooking'),
@@ -442,7 +442,7 @@ function mobooking_enqueue_dashboard_scripts($current_page_slug = '') {
     // Specific to Workers page (if exists)
     if ($current_page_slug === 'workers') {
         wp_enqueue_style('mobooking-workers-enhanced', MOBOOKING_THEME_URI . 'assets/css/dashboard-workers-enhanced.css', [], MOBOOKING_VERSION);
-        wp_enqueue_script('mobooking-dashboard-workers', MOBOOKING_THEME_URI . 'assets/js/dashboard-workers.js', array('jquery'), MOBOOKING_VERSION, true);
+        wp_enqueue_script('mobooking-dashboard-workers', MOBOOKING_THEME_URI . 'assets/js/dashboard-workers.js', array('jquery', 'mobooking-dialog'), MOBOOKING_VERSION, true);
         $workers_params = array_merge($dashboard_params, [
             'i18n' => [
                 'loading_workers' => __('Loading workers...', 'mobooking'),
