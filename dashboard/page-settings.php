@@ -24,7 +24,14 @@ function mobooking_select_biz_setting_value($settings, $key, $value, $default_va
 
 ?>
 <div id="mobooking-business-settings-page" class="wrap">
-    <h1><?php esc_html_e('Business Settings', 'mobooking'); ?></h1>
+    <div class="mobooking-page-header">
+        <div class="mobooking-page-header-heading">
+            <span class="mobooking-page-header-icon">
+                <?php echo mobooking_get_dashboard_menu_icon('settings'); ?>
+            </span>
+            <h1><?php esc_html_e('Business Settings', 'mobooking'); ?></h1>
+        </div>
+    </div>
     <p><?php esc_html_e('Manage your core business information, email configurations, and operating hours.', 'mobooking'); ?></p>
 
     <form id="mobooking-business-settings-form" method="post">

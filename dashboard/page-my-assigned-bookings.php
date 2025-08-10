@@ -62,7 +62,12 @@ if (isset($_GET['action']) && $_GET['action'] === 'view_booking' && isset($_GET[
 <div class="wrap mobooking-dashboard-wrap mobooking-bookings-page-wrapper">
 
     <div class="mobooking-page-header">
-        <h1 class="wp-heading-inline"><?php esc_html_e('My Assigned Bookings', 'mobooking'); ?></h1>
+        <div class="mobooking-page-header-heading">
+            <span class="mobooking-page-header-icon">
+                <?php echo mobooking_get_dashboard_menu_icon('bookings'); ?>
+            </span>
+            <h1 class="wp-heading-inline"><?php esc_html_e('My Assigned Bookings', 'mobooking'); ?></h1>
+        </div>
     </div>
 
     <div class="dashboard-kpi-grid mobooking-overview-kpis">

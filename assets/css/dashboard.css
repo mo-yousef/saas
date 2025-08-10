@@ -87,6 +87,25 @@ body.wp-admin #wpbody-content .mobooking-overview-dashboard {
   margin-bottom: 1.5rem;
   padding-bottom: 1rem;
   border-bottom: 1px solid hsl(var(--border));
+  gap: 0.75rem;
+}
+
+.mobooking-page-header-heading {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-grow: 1;
+}
+
+.mobooking-page-header-icon {
+    color: hsl(var(--foreground));
+    display: flex;
+    align-items: center;
+}
+
+.mobooking-page-header-icon svg {
+    width: 2rem;
+    height: 2rem;
 }
 
 .mobooking-page-header h1,
@@ -621,11 +640,6 @@ table.mobooking-table {
 
 /* Responsive Design */
 @media (max-width: 782px) {
-  .dashboard-kpi-grid {
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 1rem;
-  }
-
   .kpi-grid {
     grid-template-columns: 1fr;
   }
