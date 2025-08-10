@@ -35,7 +35,7 @@ if ( ! current_user_can( \MoBooking\Classes\Auth::CAP_MANAGE_AVAILABILITY ) ) {
             <p><?php esc_html_e('Loading schedule editor...', 'mobooking'); ?></p>
         </div>
 
-        <button type="button" id="mobooking-save-recurring-schedule-btn" class="button button-primary" style="margin-top: 20px;">
+        <button type="button" id="mobooking-save-recurring-schedule-btn" class="btn btn-primary" style="margin-top: 20px;">
             <?php esc_html_e('Save Weekly Schedule', 'mobooking'); ?>
         </button>
     </div>
@@ -83,8 +83,8 @@ if ( ! current_user_can( \MoBooking\Classes\Auth::CAP_MANAGE_AVAILABILITY ) ) {
                     </label>
                 </div>
                 <div class="form-actions">
-                    <button type="submit" class="button button-primary"><?php esc_html_e('Save Slot', 'mobooking'); ?></button>
-                    <button type="button" class="button mobooking-modal-close"><?php esc_html_e('Cancel', 'mobooking'); ?></button>
+                    <button type="submit" class="btn btn-primary"><?php esc_html_e('Save Slot', 'mobooking'); ?></button>
+                    <button type="button" class="btn btn-secondary mobooking-modal-close"><?php esc_html_e('Cancel', 'mobooking'); ?></button>
                 </div>
             </form>
         </div>
@@ -97,8 +97,8 @@ if ( ! current_user_can( \MoBooking\Classes\Auth::CAP_MANAGE_AVAILABILITY ) ) {
             <h3 id="mobooking-generic-modal-title"></h3>
             <p id="mobooking-generic-modal-message"></p>
             <div id="mobooking-generic-modal-actions" class="form-actions">
-                <button type="button" id="mobooking-generic-modal-confirm-btn" class="button button-primary"></button>
-                <button type="button" id="mobooking-generic-modal-cancel-btn" class="button mobooking-modal-close"></button>
+                <button type="button" id="mobooking-generic-modal-confirm-btn" class="btn btn-primary"></button>
+                <button type="button" id="mobooking-generic-modal-cancel-btn" class="btn btn-secondary mobooking-modal-close"></button>
             </div>
         </div>
     </div>

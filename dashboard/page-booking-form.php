@@ -379,7 +379,7 @@ if (!empty($current_slug)) {
                 <tr valign="top">
                     <th scope="row"><?php esc_html_e('Rewrite Rules', 'mobooking'); ?></th>
                     <td>
-                        <button type="button" id="mobooking-flush-rewrite-rules-btn" class="button button-secondary"><?php esc_html_e('Flush Rewrite Rules', 'mobooking'); ?></button>
+                        <button type="button" id="mobooking-flush-rewrite-rules-btn" class="btn btn-secondary"><?php esc_html_e('Flush Rewrite Rules', 'mobooking'); ?></button>
                         <p class="description"><?php esc_html_e('If your booking form URLs are not working (e.g., showing a 404 error or homepage), flushing rewrite rules might help. This is especially needed after plugin activation or changes to URL structures.', 'mobooking'); ?></p>
                         <div id="mobooking-flush-rules-feedback" style="margin-top:10px;"></div>
                     </td>
@@ -396,9 +396,9 @@ if (!empty($current_slug)) {
                     <td>
                         <div style="display: flex; gap: 10px; align-items: center;">
                             <input type="text" id="mobooking-public-link" value="<?php echo esc_url($public_booking_url); ?>" readonly class="regular-text" style="flex: 1;" placeholder="<?php esc_attr_e('Link will appear here once slug is saved.', 'mobooking'); ?>">
-                            <button type="button" id="mobooking-copy-public-link-btn" class="button button-secondary" <?php echo empty($public_booking_url) ? 'disabled' : ''; ?>><?php esc_html_e('Copy Link', 'mobooking'); ?></button>
+                            <button type="button" id="mobooking-copy-public-link-btn" class="btn btn-secondary" <?php echo empty($public_booking_url) ? 'disabled' : ''; ?>><?php esc_html_e('Copy Link', 'mobooking'); ?></button>
                             <?php if (!empty($public_booking_url)): ?>
-                                <a href="<?php echo esc_url($public_booking_url); ?>" target="_blank" class="button button-secondary"><?php esc_html_e('Preview', 'mobooking'); ?></a>
+                                <a href="<?php echo esc_url($public_booking_url); ?>" target="_blank" class="btn btn-outline"><?php esc_html_e('Preview', 'mobooking'); ?></a>
                             <?php endif; ?>
                         </div>
                         <p class="description"><?php esc_html_e('Share this link with your customers so they can book your services online.', 'mobooking'); ?></p>
@@ -414,8 +414,8 @@ if (!empty($current_slug)) {
                             }
                             ?></textarea>
                             <div style="display: flex; gap: 10px;">
-                                <button type="button" id="mobooking-copy-embed-code-btn" class="button button-secondary" <?php echo empty($public_booking_url) ? 'disabled' : ''; ?>><?php esc_html_e('Copy Embed Code', 'mobooking'); ?></button>
-                                <button type="button" id="mobooking-customize-embed-btn" class="button button-secondary"><?php esc_html_e('Customize Embed', 'mobooking'); ?></button>
+                                <button type="button" id="mobooking-copy-embed-code-btn" class="btn btn-secondary" <?php echo empty($public_booking_url) ? 'disabled' : ''; ?>><?php esc_html_e('Copy Embed Code', 'mobooking'); ?></button>
+                                <button type="button" id="mobooking-customize-embed-btn" class="btn btn-secondary"><?php esc_html_e('Customize Embed', 'mobooking'); ?></button>
                             </div>
                         </div>
                         <p class="description"><?php esc_html_e('Copy this code and paste it into any website where you want to embed your booking form.', 'mobooking'); ?></p>
@@ -439,7 +439,7 @@ if (!empty($current_slug)) {
                             </tr>
                             <tr>
                                 <td colspan="2">
-                                    <button type="button" id="update-embed-code-btn" class="button button-primary"><?php esc_html_e('Update Embed Code', 'mobooking'); ?></button>
+                                    <button type="button" id="update-embed-code-btn" class="btn btn-primary"><?php esc_html_e('Update Embed Code', 'mobooking'); ?></button>
                                 </td>
                             </tr>
                         </table>
@@ -459,7 +459,7 @@ if (!empty($current_slug)) {
                         </div>
                         <p class="description"><?php esc_html_e('Print this QR code on business cards, flyers, or display it in your physical location.', 'mobooking'); ?></p>
                         <?php if (!empty($public_booking_url)): ?>
-                            <button type="button" id="download-qr-btn" class="button button-secondary"><?php esc_html_e('Download QR Code', 'mobooking'); ?></button>
+                            <button type="button" id="download-qr-btn" class="btn btn-secondary"><?php esc_html_e('Download QR Code', 'mobooking'); ?></button>
                         <?php endif; ?>
                     </td>
                 </tr>
@@ -467,7 +467,7 @@ if (!empty($current_slug)) {
         </div>
 
         <p class="submit" style="margin-top:20px;">
-            <button type="submit" name="save_booking_form_settings" id="mobooking-save-bf-settings-btn" class="button button-primary"><?php esc_html_e('Save Booking Form Settings', 'mobooking'); ?></button>
+            <button type="submit" name="save_booking_form_settings" id="mobooking-save-bf-settings-btn" class="btn btn-primary"><?php esc_html_e('Save Booking Form Settings', 'mobooking'); ?></button>
         </p>
     </form>
 </div>

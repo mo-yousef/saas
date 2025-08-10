@@ -179,7 +179,7 @@ function mobooking_select_biz_setting_value($settings, $key, $value, $default_va
         </div>
 
         <p class="submit" style="margin-top:20px;">
-            <button type="submit" name="save_business_settings" id="mobooking-save-biz-settings-btn" class="button button-primary"><?php esc_html_e('Save Business Settings', 'mobooking'); ?></button>
+            <button type="submit" name="save_business_settings" id="mobooking-save-biz-settings-btn" class="btn btn-primary"><?php esc_html_e('Save Business Settings', 'mobooking'); ?></button>
         </p>
     </form>
 </div>
