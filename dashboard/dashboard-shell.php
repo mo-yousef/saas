@@ -18,7 +18,7 @@ if ( ! function_exists( 'mobooking_dashboard_enqueue_styles_fix' ) ) {
             // Assuming dashboard-shell.php is in 'plugin_root/dashboard/'
             // and assets is in 'plugin_root/assets/'
             $plugin_dir_path_from_shell = dirname(__DIR__); // Goes up from 'dashboard' to 'plugin_root'
-            $css_file_rel_path = '/assets/css/dashboard-bookings-responsive.css';
+            $css_file_rel_path = '/assets/css/dashboard.css';
             $css_file_abs_path = get_stylesheet_directory() . $css_file_rel_path;
             $css_file_url = get_stylesheet_directory_uri() . $css_file_rel_path;
 
