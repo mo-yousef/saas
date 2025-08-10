@@ -132,7 +132,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'view_booking' && isset($_GET[
                                         </span>
                                     </td>
                                     <td data-label="<?php esc_attr_e('Actions', 'mobooking'); ?>" class="px-6 py-4 whitespace-nowrap text-sm font-medium block md:table-cell">
-                                        <a href="<?php echo esc_url($details_page_url); ?>" class="button button-small"><?php esc_html_e('View Details', 'mobooking'); ?></a>
+                                        <a href="<?php echo esc_url($details_page_url); ?>" class="btn btn-outline btn-sm"><?php esc_html_e('View Details', 'mobooking'); ?></a>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
