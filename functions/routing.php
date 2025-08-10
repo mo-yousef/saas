@@ -81,6 +81,7 @@ function mobooking_enqueue_dashboard_scripts($current_page_slug = '') {
 
     // Specific to Services page
     if ($current_page_slug === 'services' || $current_page_slug === 'service-edit') {
+        wp_enqueue_style('mobooking-dashboard-services-enhanced', MOBOOKING_THEME_URI . 'assets/css/dashboard-services-enhanced.css', array(), MOBOOKING_VERSION);
         wp_enqueue_script('mobooking-dashboard-services', MOBOOKING_THEME_URI . 'assets/js/dashboard-services.js', array('jquery', 'jquery-ui-sortable', 'mobooking-dialog'), MOBOOKING_VERSION, true);
         // Ensure jQuery UI Sortable CSS is also enqueued if needed, or handle styling in plugin's CSS
         // wp_enqueue_style('jquery-ui-sortable-css', MOBOOKING_THEME_URI . 'path/to/jquery-ui-sortable.css');
