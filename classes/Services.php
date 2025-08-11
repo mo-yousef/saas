@@ -737,7 +737,7 @@ public function handle_get_public_services_ajax() {
     }
 
     public function handle_delete_service_ajax() {
-        if (!check_ajax_referer('mobooking_services_nonce', 'nonce', false)) {
+        if (!check_ajax_referer('mobooking_services_nonce', '_ajax_nonce', false)) {
             wp_send_json_error(['message' => __('Error: Nonce verification failed.', 'mobooking')], 403);
             return;
         }
