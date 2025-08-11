@@ -165,4 +165,42 @@ wp_nonce_field('mobooking_services_nonce', 'mobooking_services_nonce_field');
     </div>
 </div>
 
+<!--
+  Standardized Card Template for Services
+  This template is used by dashboard-services.js to render each service card.
+  It follows the new `mobooking-card` structure for consistency across the dashboard.
+-->
+<script type="text/template" id="mobooking-service-item-template">
+    <div class="mobooking-card service-card" data-service-id="<%= service_id %>">
+        <div class="mobooking-card-header">
+            <div class="mobooking-card-title-group">
+                <span class="mobooking-card-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>
+                </span>
+                <h3 class="mobooking-card-title"><%= name %></h3>
+            </div>
+            <div class="mobooking-card-actions">
+                 <span class="badge status-<%= status %>"><%= display_status %></span>
+                 <a href="<?php echo esc_url(site_url('/dashboard/service-edit/')); ?>?service_id=<%= service_id %>" class="btn btn-icon btn-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
+                 </a>
+                <button class="btn btn-icon btn-sm btn-destructive mobooking-delete-service-btn" data-id="<%= service_id %>">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                </button>
+            </div>
+        </div>
+        <div class="mobooking-card-content">
+            <p class="text-muted-foreground"><%= description %></p>
+        </div>
+        <div class="mobooking-card-footer">
+            <div class="text-lg font-semibold">
+                <%= formatted_price %>
+            </div>
+            <div class="text-sm text-muted-foreground">
+                <%= duration %> mins
+            </div>
+        </div>
+    </div>
+</script>
+
 <!-- Service Card Template is now handled by assets/js/dashboard-services.js -->

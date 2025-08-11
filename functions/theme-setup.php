@@ -332,6 +332,9 @@ if ( is_page_template('templates/booking-form-public.php') || $page_type_for_scr
         wp_enqueue_style('mobooking-toast', MOBOOKING_THEME_URI . 'assets/css/toast.css', array(), MOBOOKING_VERSION);
         wp_enqueue_script('mobooking-toast', MOBOOKING_THEME_URI . 'assets/js/toast.js', array('jquery'), MOBOOKING_VERSION, true);
 
+        // Enqueue the new unified card styles
+        wp_enqueue_style('mobooking-dashboard-cards', MOBOOKING_THEME_URI . 'assets/css/dashboard-cards.css', array('mobooking-style'), MOBOOKING_VERSION);
+
         // NOTE: The main dashboard script loading is handled by mobooking_enqueue_dashboard_scripts()
         // which is called from the router. This section is just for any additional scripts
         // that need to be loaded in the general scripts function.

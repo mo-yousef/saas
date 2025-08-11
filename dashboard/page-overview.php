@@ -329,141 +329,160 @@ $currency_symbol = get_option('mobooking_currency_symbol', '$');
 
         <!-- KPI Widgets -->
         <div class="kpi-grid">
-            <div class="kpi-card">
-                <div class="kpi-header">
-                    <div class="kpi-title"><?php esc_html_e('Total Bookings', 'mobooking'); ?></div>
-                    <div class="kpi-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg></div>
+        <div class="mobooking-card">
+            <div class="mobooking-card-header">
+                <div class="mobooking-card-title-group">
+                    <span class="mobooking-card-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg></span>
+                    <h3 class="mobooking-card-title"><?php esc_html_e('Total Bookings', 'mobooking'); ?></h3>
                 </div>
-                <div class="kpi-value"><?php echo esc_html($total_bookings); ?></div>
-                <div class="kpi-change <?php echo $bookings_change[0] === '+' ? 'positive' : ($bookings_change === '0%' ? 'neutral' : 'negative'); ?>">
+            </div>
+            <div class="mobooking-card-content">
+                <div class="text-3xl font-bold"><?php echo esc_html($total_bookings); ?></div>
+                <p class="text-xs text-muted-foreground <?php echo $bookings_change[0] === '+' ? 'text-success' : 'text-destructive'; ?>">
                     <?php echo esc_html($bookings_change); ?> <?php esc_html_e('vs last month', 'mobooking'); ?>
+                </p>
+            </div>
+        </div>
+
+        <div class="mobooking-card">
+            <div class="mobooking-card-header">
+                <div class="mobooking-card-title-group">
+                    <span class="mobooking-card-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg></span>
+                    <h3 class="mobooking-card-title"><?php esc_html_e('Monthly Revenue', 'mobooking'); ?></h3>
                 </div>
             </div>
-
-            <div class="kpi-card">
-                <div class="kpi-header">
-                    <div class="kpi-title"><?php esc_html_e('Monthly Revenue', 'mobooking'); ?></div>
-                    <div class="kpi-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg></div>
-                </div>
-                <div class="kpi-value"><?php echo esc_html($currency_symbol . number_format($monthly_revenue, 2)); ?></div>
-                <div class="kpi-change <?php echo $revenue_change[0] === '+' ? 'positive' : ($revenue_change === '0%' ? 'neutral' : 'negative'); ?>">
+            <div class="mobooking-card-content">
+                <div class="text-3xl font-bold"><?php echo esc_html($currency_symbol . number_format($monthly_revenue, 2)); ?></div>
+                <p class="text-xs text-muted-foreground <?php echo $revenue_change[0] === '+' ? 'text-success' : 'text-destructive'; ?>">
                     <?php echo esc_html($revenue_change); ?> <?php esc_html_e('vs last month', 'mobooking'); ?>
+                </p>
+            </div>
+        </div>
+
+        <div class="mobooking-card">
+            <div class="mobooking-card-header">
+                <div class="mobooking-card-title-group">
+                    <span class="mobooking-card-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg></span>
+                    <h3 class="mobooking-card-title"><?php esc_html_e('Completed Jobs', 'mobooking'); ?></h3>
                 </div>
             </div>
-
-            <div class="kpi-card">
-                <div class="kpi-header">
-                    <div class="kpi-title"><?php esc_html_e('Completed Jobs', 'mobooking'); ?></div>
-                    <div class="kpi-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg></div>
-                </div>
-                <div class="kpi-value"><?php echo esc_html($completed_jobs); ?></div>
-                <div class="kpi-change <?php echo $completed_change[0] === '+' ? 'positive' : ($completed_change === '0%' ? 'neutral' : 'negative'); ?>">
+            <div class="mobooking-card-content">
+                <div class="text-3xl font-bold"><?php echo esc_html($completed_jobs); ?></div>
+                <p class="text-xs text-muted-foreground <?php echo $completed_change[0] === '+' ? 'text-success' : 'text-destructive'; ?>">
                     <?php echo esc_html($completed_change); ?> <?php esc_html_e('vs last month', 'mobooking'); ?>
-                </div>
+                </p>
             </div>
+        </div>
 
-            <div class="kpi-card">
-                <div class="kpi-header">
-                    <div class="kpi-title"><?php esc_html_e('New Customers', 'mobooking'); ?></div>
-                    <div class="kpi-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg></div>
-                </div>
-                <div class="kpi-value"><?php echo esc_html($new_customers); ?></div>
-                <div class="kpi-change <?php echo $customers_change[0] === '+' ? 'positive' : ($customers_change === '0%' ? 'neutral' : 'negative'); ?>">
-                    <?php echo esc_html($customers_change); ?> <?php esc_html_e('vs last month', 'mobooking'); ?>
+        <div class="mobooking-card">
+            <div class="mobooking-card-header">
+                <div class="mobooking-card-title-group">
+                    <span class="mobooking-card-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg></span>
+                    <h3 class="mobooking-card-title"><?php esc_html_e('New Customers', 'mobooking'); ?></h3>
                 </div>
             </div>
+            <div class="mobooking-card-content">
+                <div class="text-3xl font-bold"><?php echo esc_html($new_customers); ?></div>
+                <p class="text-xs text-muted-foreground <?php echo $customers_change[0] === '+' ? 'text-success' : 'text-destructive'; ?>">
+                    <?php echo esc_html($customers_change); ?> <?php esc_html_e('vs last month', 'mobooking'); ?>
+                </p>
+            </div>
+        </div>
         </div>
 
         <!-- Main Content Grid -->
         <div class="content-grid">
             <!-- Recent Bookings -->
-            <div class="content-card">
-                <h2 class="card-title">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>
-                    <?php esc_html_e('Recent Bookings', 'mobooking'); ?>
-                </h2>
-                
-                <?php if (!empty($recent_bookings)) : ?>
-                    <?php foreach ($recent_bookings as $booking) : ?>
-                        <div class="booking-item">
-                            <div class="booking-header">
-                                <span class="booking-customer"><?php echo esc_html($booking['customer_name']); ?></span>
-                                <span class="booking-status status-<?php echo esc_attr($booking['status']); ?>">
-                                    <?php echo esc_html(ucfirst($booking['status'])); ?>
-                                </span>
+            <div class="mobooking-card">
+                <div class="mobooking-card-header">
+                    <div class="mobooking-card-title-group">
+                        <span class="mobooking-card-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg></span>
+                        <h3 class="mobooking-card-title"><?php esc_html_e('Recent Bookings', 'mobooking'); ?></h3>
+                    </div>
+                    <div class="mobooking-card-actions">
+                        <a href="<?php echo esc_url(admin_url('admin.php?page=mobooking-bookings')); ?>" class="btn btn-sm"><?php esc_html_e('View All', 'mobooking'); ?></a>
+                    </div>
+                </div>
+                <div class="mobooking-card-content">
+                    <?php if (!empty($recent_bookings)) : ?>
+                        <?php foreach ($recent_bookings as $booking) : ?>
+                            <div class="booking-item">
+                                <div class="booking-header">
+                                    <span class="booking-customer"><?php echo esc_html($booking['customer_name']); ?></span>
+                                    <span class="booking-status status-<?php echo esc_attr($booking['status']); ?>">
+                                        <?php echo esc_html(ucfirst($booking['status'])); ?>
+                                    </span>
+                                </div>
+                                <div class="booking-details">
+                                    <div><?php echo esc_html($booking['customer_email']); ?></div>
+                                    <div><?php echo esc_html(date('M j, Y', strtotime($booking['booking_date']))); ?> at <?php echo esc_html($booking['booking_time']); ?></div>
+                                    <div><?php echo esc_html($currency_symbol . number_format($booking['total_price'], 2)); ?> • <?php esc_html_e('Staff:', 'mobooking'); ?> <?php echo esc_html($booking['assigned_staff_name']); ?></div>
+                                </div>
                             </div>
-                            <div class="booking-details">
-                                <div><?php echo esc_html($booking['customer_email']); ?></div>
-                                <div><?php echo esc_html(date('M j, Y', strtotime($booking['booking_date']))); ?> at <?php echo esc_html($booking['booking_time']); ?></div>
-                                <div><?php echo esc_html($currency_symbol . number_format($booking['total_price'], 2)); ?> • <?php esc_html_e('Staff:', 'mobooking'); ?> <?php echo esc_html($booking['assigned_staff_name']); ?></div>
-                            </div>
+                        <?php endforeach; ?>
+                    <?php else : ?>
+                        <div class="empty-state">
+                            <div class="empty-state-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg></div>
+                            <div><?php esc_html_e('No bookings yet', 'mobooking'); ?></div>
                         </div>
-                    <?php endforeach; ?>
-
-                    <div style="margin-top: 1rem; text-align: center;">
-                        <a href="<?php echo esc_url(admin_url('admin.php?page=mobooking-bookings')); ?>" style="color: hsl(var(--primary)); text-decoration: none; font-weight: 500;">
-                            <?php esc_html_e('View All Bookings', 'mobooking'); ?> →
-                        </a>
-                    </div>
-                <?php else : ?>
-                    <div class="empty-state">
-                        <div class="empty-state-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg></div>
-                        <div><?php esc_html_e('No bookings yet', 'mobooking'); ?></div>
-                    </div>
-                <?php endif; ?>
+                    <?php endif; ?>
+                </div>
             </div>
 
             <!-- Sidebar Content -->
             <div>
                 <!-- Staff Performance -->
-                <div class="content-card" style="margin-bottom: 1.5rem;">
-                    <h2 class="card-title">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
-                        <?php esc_html_e('Staff Performance', 'mobooking'); ?>
-                    </h2>
-                    
-                    <?php if (!empty($staff_stats)) : ?>
-                        <?php foreach ($staff_stats as $staff) : ?>
-                            <div class="staff-item">
-                                <span class="staff-name"><?php echo esc_html($staff['staff_name']); ?></span>
-                                <span class="staff-count"><?php echo esc_html($staff['booking_count']); ?></span>
-                            </div>
-                        <?php endforeach; ?>
-                    <?php else : ?>
-                        <div class="empty-state">
-                            <div class="empty-state-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg></div>
-                            <div><?php esc_html_e('No staff data available', 'mobooking'); ?></div>
+                <div class="mobooking-card" style="margin-bottom: 1.5rem;">
+                    <div class="mobooking-card-header">
+                         <div class="mobooking-card-title-group">
+                            <span class="mobooking-card-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg></span>
+                            <h3 class="mobooking-card-title"><?php esc_html_e('Staff Performance', 'mobooking'); ?></h3>
                         </div>
-                    <?php endif; ?>
+                    </div>
+                    <div class="mobooking-card-content">
+                        <?php if (!empty($staff_stats)) : ?>
+                            <?php foreach ($staff_stats as $staff) : ?>
+                                <div class="staff-item">
+                                    <span class="staff-name"><?php echo esc_html($staff['staff_name']); ?></span>
+                                    <span class="staff-count"><?php echo esc_html($staff['booking_count']); ?></span>
+                                </div>
+                            <?php endforeach; ?>
+                        <?php else : ?>
+                            <div class="empty-state">
+                                <div class="empty-state-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg></div>
+                                <div><?php esc_html_e('No staff data available', 'mobooking'); ?></div>
+                            </div>
+                        <?php endif; ?>
+                    </div>
                 </div>
 
                 <!-- Quick Actions -->
-                <div class="content-card">
-                    <h2 class="card-title">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
-                        <?php esc_html_e('Quick Actions', 'mobooking'); ?>
-                    </h2>
-                    
-                    <div class="quick-actions">
-                        <a href="<?php echo esc_url(admin_url('admin.php?page=mobooking-bookings')); ?>" class="quick-action">
-                            <div class="quick-action-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg></div>
-                            <div class="quick-action-text"><?php esc_html_e('Manage Bookings', 'mobooking'); ?></div>
-                        </a>
-
-                        <a href="<?php echo esc_url(admin_url('admin.php?page=mobooking-services')); ?>" class="quick-action">
-                            <div class="quick-action-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg></div>
-                            <div class="quick-action-text"><?php esc_html_e('Manage Services', 'mobooking'); ?></div>
-                        </a>
-
-                        <a href="<?php echo esc_url(admin_url('admin.php?page=mobooking-customers')); ?>" class="quick-action">
-                            <div class="quick-action-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg></div>
-                            <div class="quick-action-text"><?php esc_html_e('View Customers', 'mobooking'); ?></div>
-                        </a>
-
-                        <a href="<?php echo esc_url(admin_url('admin.php?page=mobooking-settings')); ?>" class="quick-action">
-                            <div class="quick-action-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg></div>
-                            <div class="quick-action-text"><?php esc_html_e('Settings', 'mobooking'); ?></div>
-                        </a>
+                <div class="mobooking-card">
+                    <div class="mobooking-card-header">
+                        <div class="mobooking-card-title-group">
+                            <span class="mobooking-card-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg></span>
+                            <h3 class="mobooking-card-title"><?php esc_html_e('Quick Actions', 'mobooking'); ?></h3>
+                        </div>
+                    </div>
+                    <div class="mobooking-card-content">
+                        <div class="quick-actions">
+                            <a href="<?php echo esc_url(admin_url('admin.php?page=mobooking-bookings')); ?>" class="quick-action">
+                                <div class="quick-action-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg></div>
+                                <div class="quick-action-text"><?php esc_html_e('Manage Bookings', 'mobooking'); ?></div>
+                            </a>
+                            <a href="<?php echo esc_url(admin_url('admin.php?page=mobooking-services')); ?>" class="quick-action">
+                                <div class="quick-action-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg></div>
+                                <div class="quick-action-text"><?php esc_html_e('Manage Services', 'mobooking'); ?></div>
+                            </a>
+                            <a href="<?php echo esc_url(admin_url('admin.php?page=mobooking-customers')); ?>" class="quick-action">
+                                <div class="quick-action-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg></div>
+                                <div class="quick-action-text"><?php esc_html_e('View Customers', 'mobooking'); ?></div>
+                            </a>
+                            <a href="<?php echo esc_url(admin_url('admin.php?page=mobooking-settings')); ?>" class="quick-action">
+                                <div class="quick-action-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg></div>
+                                <div class="quick-action-text"><?php esc_html_e('Settings', 'mobooking'); ?></div>
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
