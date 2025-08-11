@@ -41,45 +41,43 @@ class Services {
     public static function get_all_preset_icons(): array {
         $icons = [];
         $path = self::$preset_icons_path;
-        error_log('[MoBooking Debug] get_all_preset_icons: Preset icons path: ' . $path);
 
-        if (is_dir($path)) {
-            error_log('[MoBooking Debug] get_all_preset_icons: Path is a directory.');
-            $files = scandir($path);
-            error_log('[MoBooking Debug] get_all_preset_icons: Files found by scandir: ' . print_r($files, true));
+        if (!is_dir($path) || !is_readable($path)) {
+            error_log('[MoBooking Error] Preset icons directory not found or not readable at: ' . $path);
+            return [];
+        }
 
-            foreach ($files as $file) {
-                if (strtolower(pathinfo($file, PATHINFO_EXTENSION)) === 'svg') {
-                    $filepath = $path . $file;
-                    error_log('[MoBooking Debug] get_all_preset_icons: Processing SVG file: ' . $filepath);
-                    $content = file_get_contents($filepath);
-                    if ($content) {
-                        error_log('[MoBooking Debug] get_all_preset_icons: Successfully read content for: ' . $file);
-                        $icons[sanitize_file_name($file)] = Utils::sanitize_svg($content);
-                    } else {
-                        error_log('[MoBooking Debug] get_all_preset_icons: Failed to read content for: ' . $file);
-                    }
+        $files = scandir($path);
+        if ($files === false) {
+            error_log('[MoBooking Error] Could not scan preset icons directory: ' . $path);
+            return [];
+        }
+
+        foreach ($files as $file) {
+            if (strtolower(pathinfo($file, PATHINFO_EXTENSION)) === 'svg') {
+                $filepath = $path . $file;
+                $content = file_get_contents($filepath);
+                if ($content) {
+                    $icons[sanitize_file_name($file)] = Utils::sanitize_svg($content);
+                } else {
+                    error_log('[MoBooking Warning] Could not read content for preset icon: ' . $filepath);
                 }
             }
-        } else {
-            error_log('[MoBooking Debug] get_all_preset_icons: Path is NOT a directory or not readable: ' . $path);
         }
-        error_log('[MoBooking Debug] get_all_preset_icons: Returning ' . count($icons) . ' icons.');
+
         return $icons;
     }
 
     public function get_service_icon_html(string $icon_identifier_or_url): string {
         if (strpos($icon_identifier_or_url, 'preset:') === 0) {
             $filename = substr($icon_identifier_or_url, strlen('preset:'));
-            $svg_content = self::get_preset_icon_svg($filename); // $filename is like "tools.svg"
-            return $svg_content ?: ''; // Return raw SVG content or empty string
-        } elseif (!empty($icon_identifier_or_url)) {
-            // For a URL, return the URL itself for client-side handling (e.g. <img src="..."> or fetch)
-            // Or if it's a path to a local SVG file that should be inlined server-side (more complex)
-            // For now, returning the URL is simpler and safer for custom SVGs.
-            // If it's a full URL, it can be used directly. If it's a relative path from uploads, it needs to be converted to URL.
-            // Assuming $icon_identifier_or_url is a full URL if not a preset.
-            return esc_url($icon_identifier_or_url); // Ensure it's a safe URL
+            $svg_content = self::get_preset_icon_svg($filename);
+            if ($svg_content) {
+                return '<div class="mobooking-preset-icon">' . $svg_content . '</div>';
+            }
+            return '';
+        } elseif (filter_var($icon_identifier_or_url, FILTER_VALIDATE_URL)) {
+            return '<img src="' . esc_url($icon_identifier_or_url) . '" alt="Service Icon" class="mobooking-custom-icon"/>';
         }
         return '';
     }
