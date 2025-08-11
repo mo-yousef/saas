@@ -22,7 +22,7 @@ if ( class_exists( 'MoBooking\Classes\Database' ) ) {
 if (class_exists('MoBooking\Classes\Services')) {
     if (!isset($GLOBALS['mobooking_services_manager'])) {
         $GLOBALS['mobooking_services_manager'] = new MoBooking\Classes\Services();
-        $GLOBALS['mobooking_services_manager']->register_ajax_actions();
+        $GLOBALS['mobooking_services_manager']->register_actions();
     }
 }
 
