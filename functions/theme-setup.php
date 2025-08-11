@@ -336,6 +336,19 @@ if ( is_page_template('templates/booking-form-public.php') || $page_type_for_scr
             'nonce' => wp_create_nonce('mobooking_dashboard_nonce')
         ]);
 
+        if ( $current_page_slug === 'services' ) {
+            wp_enqueue_script('mobooking-services-js', MOBOOKING_THEME_URI . 'assets/js/dashboard-services.js', array('jquery'), MOBOOKING_VERSION, true);
+            wp_localize_script('mobooking-services-js', 'mobooking_services_params', [
+                'ajax_url' => admin_url('admin-ajax.php'),
+                'nonce' => wp_create_nonce('mobooking_services_nonce'),
+                'i18n' => [
+                    'loading_services' => __('Loading...', 'mobooking'),
+                    'no_services_found' => __('No services found.', 'mobooking'),
+                    'confirm_delete_service' => __('Are you sure you want to delete this service?', 'mobooking'),
+                ],
+            ]);
+        }
+
         if ( $current_page_slug === 'workers' ) {
             wp_enqueue_script( 'mobooking-dashboard-workers', MOBOOKING_THEME_URI . 'assets/js/dashboard-workers.js', array( 'jquery', 'mobooking-dialog' ), MOBOOKING_VERSION, true );
             wp_localize_script( 'mobooking-dashboard-workers', 'mobooking_workers_params', array(
