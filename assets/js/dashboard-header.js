@@ -8,12 +8,12 @@ jQuery(document).ready(function($) {
 
     userMenuToggle.on('click', function(e) {
         e.stopPropagation();
-        userMenu.toggleClass('open');
+        userMenu.toggleClass('active');
     });
 
     $(document).on('click', function(e) {
-        if (userMenu.hasClass('open') && !$(e.target).closest('.user-menu').length) {
-            userMenu.removeClass('open');
+        if (userMenu.hasClass('active') && !$(e.target).closest('.user-menu').length) {
+            userMenu.removeClass('active');
         }
     });
 
@@ -47,7 +47,7 @@ jQuery(document).ready(function($) {
             searchResultsList.html('<p>Searching...</p>');
 
             $.ajax({
-                url: ajaxurl, // WordPress AJAX URL
+                url: mobooking_dashboard_params.ajax_url,
                 type: 'POST',
                 data: {
                     action: 'mobooking_dashboard_live_search',

@@ -973,7 +973,7 @@ table.mobooking-table {
     transition: transform 0.2s ease;
 }
 
-.user-menu.open .chevron-down {
+.user-menu.active .chevron-down {
     transform: rotate(180deg);
 }
 
@@ -996,7 +996,7 @@ table.mobooking-table {
     pointer-events: none;
 }
 
-.user-menu.open .user-dropdown-menu {
+.user-menu.active .user-dropdown-menu {
     opacity: 1;
     transform: translateY(0);
     pointer-events: auto;
