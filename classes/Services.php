@@ -171,6 +171,7 @@ class Services {
     }
 
     public function get_services_by_user(int $user_id, array $args = []) {
+        error_log('[MoBooking Services Debug] get_services_by_user called for user_id: ' . $user_id . ' with args: ' . print_r($args, true));
         if ( empty($user_id) ) {
             return array();
         }
@@ -219,6 +220,9 @@ class Services {
         $sql_select .= $this->wpdb->prepare(" LIMIT %d OFFSET %d", $args['number'], $args['offset']);
 
         $services_data = $this->wpdb->get_results($this->wpdb->prepare($sql_select, ...$params), ARRAY_A);
+
+        error_log('[MoBooking Services Debug] SQL query: ' . $this->wpdb->prepare($sql_select, ...$params));
+        error_log('[MoBooking Services Debug] Found ' . count($services_data) . ' services.');
 
         if ($services_data) {
             foreach ($services_data as $key => $service) {
@@ -693,8 +697,8 @@ public function handle_get_public_services_ajax() {
 
 
     public function handle_get_services_ajax() {
-        // error_log('[MoBooking Services Debug] handle_get_services_ajax reached.');
-        // error_log('[MoBooking Services Debug] POST data: ' . print_r($_POST, true));
+        error_log('[MoBooking Services Debug] handle_get_services_ajax reached.');
+        error_log('[MoBooking Services Debug] POST data: ' . print_r($_POST, true));
 
         if (!check_ajax_referer('mobooking_services_nonce', 'nonce', false)) {
             wp_send_json_error(['message' => __('Error: Nonce verification failed.', 'mobooking')], 403);
