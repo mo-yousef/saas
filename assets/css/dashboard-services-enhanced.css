@@ -11,6 +11,24 @@
     --badge-text-inactive: #4B5563;
 }
 
+.services-dashboard .grid {
+    display: grid;
+    gap: 1.5rem;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+@media (min-width: 768px) {
+    .services-dashboard .grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (min-width: 1024px) {
+    .services-dashboard .grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
 .services-dashboard .card {
     background-color: var(--card-bg);
     border: 1px solid var(--card-border);
@@ -113,4 +131,29 @@
     outline-offset: 2px;
     border-color: var(--accent-color);
     box-shadow: 0 0 0 2px var(--accent-color);
+}
+
+.services-dashboard .empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    border: 2px dashed var(--card-border);
+    border-radius: 0.5rem;
+    background-color: #F9FAFB;
+}
+
+.services-dashboard .empty-state .empty-state-icon {
+    color: var(--secondary-color);
+    margin-bottom: 1rem;
+    display: inline-block;
+}
+
+.services-dashboard .empty-state .empty-state-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.services-dashboard .empty-state .empty-state-description {
+    color: var(--secondary-color);
+    margin-bottom: 1.5rem;
 }
