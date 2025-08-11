@@ -108,87 +108,34 @@ if ( $edit_mode && $service_id > 0 ) {
     <div id="mb-alert-container"></div>
 
     <!-- Main Form -->
-    <form id="mobooking-service-form" class="mb-space-y-6">
+    <form id="mobooking-service-form">
         <?php wp_nonce_field('mobooking_services_nonce', 'mobooking_services_nonce'); ?>
         
         <?php if ($edit_mode): ?>
             <input type="hidden" name="service_id" value="<?php echo esc_attr($service_id); ?>">
         <?php endif; ?>
 
-        <!-- Basic Information -->
-        <div class="mb-form-card">
+        <div class="mobooking-edit-layout-grid">
+            <!-- Main Content -->
+            <div class="mobooking-main-content">
+                <!-- Basic Information -->
+                <div class="mb-form-card">
             <h2 class="mb-form-section-title"><?php esc_html_e('Basic Information', 'mobooking'); ?></h2>
             
             <div class="mb-space-y-4">
-                <div class="mb-form-grid">
-                    <div class="mb-form-group">
-                        <label class="mb-form-label" for="service-name">
-                            <?php esc_html_e('Service Name', 'mobooking'); ?> <span class="mb-text-destructive">*</span>
-                        </label>
-                        <input 
-                            type="text" 
-                            id="service-name" 
-                            name="name" 
-                            class="mb-form-input" 
-                            placeholder="<?php esc_attr_e('e.g., Deep House Cleaning', 'mobooking'); ?>"
-                            value="<?php echo esc_attr($service_name); ?>"
-                            required
-                        >
-                    </div>
-
-                    <div class="mb-form-group">
-                        <label class="mb-form-label" for="service-price">
-                            <?php 
-                            printf(
-                                esc_html__('Price (%s)', 'mobooking'),
-                                esc_html($currency_symbol)
-                            ); 
-                            ?> <span class="mb-text-destructive">*</span>
-                        </label>
-                        <input 
-                            type="number" 
-                            id="service-price" 
-                            name="price" 
-                            class="mb-form-input" 
-                            step="0.01" 
-                            min="0"
-                            placeholder="0.00"
-                            value="<?php echo esc_attr($service_price); ?>"
-                            required
-                        >
-                    </div>
-                </div>
-
-                <div class="mb-form-grid">
-                    <div class="mb-form-group">
-                        <label class="mb-form-label" for="service-duration">
-                            <?php esc_html_e('Duration (minutes)', 'mobooking'); ?> <span class="mb-text-destructive">*</span>
-                        </label>
-                        <input 
-                            type="number" 
-                            id="service-duration" 
-                            name="duration" 
-                            class="mb-form-input" 
-                            min="15" 
-                            step="15"
-                            placeholder="60"
-                            value="<?php echo esc_attr($service_duration); ?>"
-                            required
-                        >
-                    </div>
-
-                    <div class="mb-form-group">
-                        <label class="mb-form-label"><?php esc_html_e('Status', 'mobooking'); ?></label>
-                        <div class="mb-flex mb-items-center mb-gap-3">
-                            <label class="mobooking-toggle-switch">
-                                <input type="checkbox" id="service-status" name="status" <?php checked($service_status, 'active'); ?>>
-                                <span class="slider"></span>
-                            </label>
-                            <span id="status-text" class="mb-text-sm toggle-label">
-                                <?php echo $service_status === 'active' ? esc_html__('Active', 'mobooking') : esc_html__('Inactive', 'mobooking'); ?>
-                            </span>
-                        </div>
-                    </div>
+                <div class="mb-form-group">
+                    <label class="mb-form-label" for="service-name">
+                        <?php esc_html_e('Service Name', 'mobooking'); ?> <span class="mb-text-destructive">*</span>
+                    </label>
+                    <input
+                        type="text"
+                        id="service-name"
+                        name="name"
+                        class="mb-form-input"
+                        placeholder="<?php esc_attr_e('e.g., Deep House Cleaning', 'mobooking'); ?>"
+                        value="<?php echo esc_attr($service_name); ?>"
+                        required
+                    >
                 </div>
 
                 <div class="mb-form-group">
@@ -200,86 +147,6 @@ if ( $edit_mode && $service_id > 0 ) {
                         rows="3"
                         placeholder="<?php esc_attr_e('Describe your service in detail...', 'mobooking'); ?>"
                     ><?php echo esc_textarea($service_description); ?></textarea>
-                </div>
-            </div>
-        </div>
-
-        <!-- Media -->
-        <div class="mb-form-card">
-            <h2 class="mb-form-section-title"><?php esc_html_e('Media', 'mobooking'); ?></h2>
-            
-            <div class="mb-form-grid">
-                <div class="mb-form-group">
-                    <label class="mb-form-label"><?php esc_html_e('Service Image', 'mobooking'); ?></label>
-                    <div class="mb-image-preview" id="image-preview">
-                        <?php if (!empty($service_image_url)): ?>
-                            <img src="<?php echo esc_url($service_image_url); ?>" alt="<?php esc_attr_e('Service Image', 'mobooking'); ?>">
-                        <?php else: ?>
-                            <div class="mb-image-placeholder">
-                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
-                                    <rect width="18" height="18" x="3" y="3" rx="2" ry="2"/>
-                                    <circle cx="9" cy="9" r="2"/>
-                                    <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
-                                </svg>
-                                <div class="mb-mt-2"><?php esc_html_e('Click to upload', 'mobooking'); ?></div>
-                            </div>
-                        <?php endif; ?>
-                    </div>
-                    <input type="file" id="image-upload" accept="image/*" class="mb-hidden">
-                    <input type="hidden" id="image-url" name="image_url" value="<?php echo esc_attr($service_image_url); ?>">
-                    <div class="mb-flex mb-gap-2">
-                        <button type="button" id="upload-image-btn" class="btn btn-secondary btn-sm">
-                            <?php esc_html_e('Upload Image', 'mobooking'); ?>
-                        </button>
-                        <button type="button" id="remove-image-btn" class="btn btn-destructive btn-sm <?php echo empty($service_image_url) ? 'mb-hidden' : ''; ?>">
-                            <?php esc_html_e('Remove', 'mobooking'); ?>
-                        </button>
-                    </div>
-                </div>
-
-                <div class="mb-form-group">
-                    <label class="mb-form-label"><?php esc_html_e('Icon', 'mobooking'); ?></label>
-                    <div id="icon-preview" class="mb-image-preview">
-                        <?php
-                        if (!empty($service_icon)):
-                            $icon_html = '';
-                            if (strpos($service_icon, 'preset:') === 0) {
-                                $key = substr($service_icon, strlen('preset:'));
-                                // We need access to Services class to get SVG content
-                                if (class_exists('\MoBooking\Classes\Services')) {
-                                    $icon_html = \MoBooking\Classes\Services::get_preset_icon_svg($key);
-                                }
-                            } elseif (filter_var($service_icon, FILTER_VALIDATE_URL)) {
-                                $icon_html = '<img src="' . esc_url($service_icon) . '" alt="' . esc_attr__('Service Icon', 'mobooking') . '" style="width: 48px; height: 48px; object-fit: contain;">';
-                            }
-                            // Fallback for old dashicons or if SVG content is empty
-                            if (empty($icon_html) && !filter_var($service_icon, FILTER_VALIDATE_URL) && strpos($service_icon, 'dashicons-') === 0) {
-                                $icon_html = '<span class="' . esc_attr($service_icon) . '" style="font-size: 48px;"></span>';
-                            }
-                            echo $icon_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- HTML is constructed with esc_url/esc_attr or from trusted SVG source.
-                        else: ?>
-                            <div class="mb-image-placeholder">
-                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
-                                    <circle cx="12" cy="12" r="10"/>
-                                    <path d="m9 12 2 2 4-4"/>
-                                </svg>
-                                <div class="mb-mt-2"><?php esc_html_e('Select Icon', 'mobooking'); ?></div>
-                            </div>
-                        <?php endif; ?>
-                    </div>
-                    <input type="hidden" id="icon-value" name="icon" value="<?php echo esc_attr($service_icon); ?>">
-                    <input type="file" id="custom-icon-upload" accept=".svg" class="mb-hidden">
-                    <div class="mb-flex mb-gap-2">
-                        <button type="button" id="select-icon-btn" class="btn btn-secondary btn-sm">
-                            <?php esc_html_e('Select Preset Icon', 'mobooking'); ?>
-                        </button>
-                        <button type="button" id="upload-custom-icon-btn" class="btn btn-secondary btn-sm">
-                            <?php esc_html_e('Upload SVG Icon', 'mobooking'); ?>
-                        </button>
-                        <button type="button" id="remove-icon-btn" class="btn btn-destructive btn-sm <?php echo empty($service_icon) ? 'mb-hidden' : ''; ?>">
-                            <?php esc_html_e('Remove', 'mobooking'); ?>
-                        </button>
-                    </div>
                 </div>
             </div>
         </div>
@@ -333,7 +200,7 @@ if ( $edit_mode && $service_id > 0 ) {
                                 <input type="hidden" name="options[<?php echo esc_attr($index); ?>][option_id]" value="<?php echo esc_attr($option['option_id'] ?? ''); ?>">
                                 <input type="hidden" name="options[<?php echo esc_attr($index); ?>][sort_order]" value="<?php echo esc_attr($index + 1); ?>">
 
-                                <div class="mb-form-grid">
+                                <div class="mb-form-grid" style="grid-template-columns: 2fr 1fr;">
                                     <div class="mb-form-group">
                                         <label class="mb-form-label">
                                             <?php esc_html_e('Option Name', 'mobooking'); ?> <span class="mb-text-destructive">*</span>
@@ -350,12 +217,11 @@ if ( $edit_mode && $service_id > 0 ) {
 
                                     <div class="mb-form-group">
                                         <label class="mb-form-label"><?php esc_html_e('Required', 'mobooking'); ?></label>
-                                        <div class="mb-flex mb-items-center mb-gap-3">
+                                        <div class="mb-flex mb-items-center mb-gap-3" style="padding-top: 0.5rem;">
                                             <label class="mobooking-toggle-switch">
                                                 <input type="checkbox" name="options[<?php echo esc_attr($index); ?>][is_required]" value="1" <?php checked(!empty($option['is_required'])); ?>>
                                                 <span class="slider"></span>
                                             </label>
-                                            <span class="mb-text-sm mb-text-muted-foreground toggle-label"><?php esc_html_e('Customer must select this option', 'mobooking'); ?></span>
                                         </div>
                                     </div>
                                 </div>
@@ -372,7 +238,7 @@ if ( $edit_mode && $service_id > 0 ) {
 
                                 <div class="mb-form-group">
                                     <label class="mb-form-label"><?php esc_html_e('Option Type', 'mobooking'); ?></label>
-                                    <div class="mb-radio-group">
+                                    <div class="mb-radio-group compact">
                                         <?php 
                                         // $option_types is now defined globally at the top of the script
                                         foreach ($option_types as $type_value => $type_label): 
@@ -385,10 +251,10 @@ if ( $edit_mode && $service_id > 0 ) {
                                     </div>
                                 </div>
 
-                                <div class="mb-form-grid">
+                                <div class="mb-form-grid" style="grid-template-columns: 2fr 1fr;">
                                     <div class="mb-form-group">
                                         <label class="mb-form-label"><?php esc_html_e('Price Impact Type', 'mobooking'); ?></label>
-                                        <div class="mb-radio-group">
+                                        <div class="mb-radio-group compact">
                                             <?php 
                                             // $price_types is now defined globally at the top of the script
                                             foreach ($price_types as $price_value => $price_label): 
@@ -531,24 +397,147 @@ if ( $edit_mode && $service_id > 0 ) {
                 <?php endif; ?>
             </div>
         </div>
+        </div> <!-- close .mobooking-main-content -->
 
-        <!-- Form Actions -->
-        <div class="mb-form-card">
-            <div class="mb-flex mb-items-center mb-justify-between">
-                <button type="button" id="cancel-btn" class="btn btn-secondary">
-                    <?php esc_html_e('Cancel', 'mobooking'); ?>
-                </button>
-                <button type="submit" id="save-btn" class="btn btn-primary">
-                    <svg class="mb-btn-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/>
-                    </svg>
-                    <span id="save-text">
-                        <?php echo $edit_mode ? esc_html__('Update Service', 'mobooking') : esc_html__('Create Service', 'mobooking'); ?>
-                    </span>
-                    <span id="save-spinner" class="mb-spinner mb-hidden"></span>
-                </button>
+        <!-- Sidebar -->
+        <div class="mobooking-sidebar">
+            <!-- Publish Card -->
+            <div class="mb-form-card">
+                <h2 class="mb-form-section-title"><?php esc_html_e('Actions', 'mobooking'); ?></h2>
+                <div class="mb-space-y-4">
+                    <div class="mb-form-group">
+                        <label class="mb-form-label"><?php esc_html_e('Status', 'mobooking'); ?></label>
+                        <div class="mb-flex mb-items-center mb-gap-3">
+                            <label class="mobooking-toggle-switch">
+                                <input type="checkbox" id="service-status" name="status" <?php checked($service_status, 'active'); ?>>
+                                <span class="slider"></span>
+                            </label>
+                            <span id="status-text" class="mb-text-sm toggle-label">
+                                <?php echo $service_status === 'active' ? esc_html__('Active', 'mobooking') : esc_html__('Inactive', 'mobooking'); ?>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="mb-flex mb-items-center mb-justify-between">
+                        <button type="button" id="cancel-btn" class="btn btn-secondary">
+                            <?php esc_html_e('Cancel', 'mobooking'); ?>
+                        </button>
+                        <button type="submit" id="save-btn" class="btn btn-primary">
+                            <svg class="mb-btn-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/>
+                            </svg>
+                            <span id="save-text">
+                                <?php echo $edit_mode ? esc_html__('Update Service', 'mobooking') : esc_html__('Create Service', 'mobooking'); ?>
+                            </span>
+                            <span id="save-spinner" class="mb-spinner mb-hidden"></span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Price Card -->
+            <div class="mb-form-card">
+                 <h2 class="mb-form-section-title"><?php esc_html_e('Pricing', 'mobooking'); ?></h2>
+                 <div class="mb-form-group">
+                    <label class="mb-form-label" for="service-price">
+                        <?php
+                        printf(
+                            esc_html__('Base Price (%s)', 'mobooking'),
+                            esc_html($currency_symbol)
+                        );
+                        ?> <span class="mb-text-destructive">*</span>
+                    </label>
+                    <input
+                        type="number"
+                        id="service-price"
+                        name="price"
+                        class="mb-form-input"
+                        step="0.01"
+                        min="0"
+                        placeholder="0.00"
+                        value="<?php echo esc_attr($service_price); ?>"
+                        required
+                    >
+                </div>
+            </div>
+
+            <!-- Media Card -->
+            <div class="mb-form-card">
+                <h2 class="mb-form-section-title"><?php esc_html_e('Media', 'mobooking'); ?></h2>
+                <div class="mb-space-y-4">
+                    <div class="mb-form-group">
+                        <label class="mb-form-label"><?php esc_html_e('Service Image', 'mobooking'); ?></label>
+                        <div class="mb-image-preview" id="image-preview">
+                            <?php if (!empty($service_image_url)): ?>
+                                <img src="<?php echo esc_url($service_image_url); ?>" alt="<?php esc_attr_e('Service Image', 'mobooking'); ?>">
+                            <?php else: ?>
+                                <div class="mb-image-placeholder">
+                                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+                                        <rect width="18" height="18" x="3" y="3" rx="2" ry="2"/>
+                                        <circle cx="9" cy="9" r="2"/>
+                                        <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
+                                    </svg>
+                                    <div class="mb-mt-2"><?php esc_html_e('Click to upload', 'mobooking'); ?></div>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                        <input type="file" id="image-upload" accept="image/*" class="mb-hidden">
+                        <input type="hidden" id="image-url" name="image_url" value="<?php echo esc_attr($service_image_url); ?>">
+                        <div class="mb-flex mb-gap-2">
+                            <button type="button" id="upload-image-btn" class="btn btn-secondary btn-sm">
+                                <?php esc_html_e('Upload Image', 'mobooking'); ?>
+                            </button>
+                            <button type="button" id="remove-image-btn" class="btn btn-destructive btn-sm <?php echo empty($service_image_url) ? 'mb-hidden' : ''; ?>">
+                                <?php esc_html_e('Remove', 'mobooking'); ?>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mb-form-group">
+                        <label class="mb-form-label"><?php esc_html_e('Icon', 'mobooking'); ?></label>
+                        <div id="icon-preview" class="mb-image-preview">
+                            <?php
+                            if (!empty($service_icon)):
+                                $icon_html = '';
+                                if (strpos($service_icon, 'preset:') === 0) {
+                                    $key = substr($service_icon, strlen('preset:'));
+                                    if (class_exists('\MoBooking\Classes\Services')) {
+                                        $icon_html = \MoBooking\Classes\Services::get_preset_icon_svg($key);
+                                    }
+                                } elseif (filter_var($service_icon, FILTER_VALIDATE_URL)) {
+                                    $icon_html = '<img src="' . esc_url($service_icon) . '" alt="' . esc_attr__('Service Icon', 'mobooking') . '" style="width: 48px; height: 48px; object-fit: contain;">';
+                                }
+                                if (empty($icon_html) && !filter_var($service_icon, FILTER_VALIDATE_URL) && strpos($service_icon, 'dashicons-') === 0) {
+                                    $icon_html = '<span class="' . esc_attr($service_icon) . '" style="font-size: 48px;"></span>';
+                                }
+                                echo $icon_html;
+                            else: ?>
+                                <div class="mb-image-placeholder">
+                                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+                                        <circle cx="12" cy="12" r="10"/>
+                                        <path d="m9 12 2 2 4-4"/>
+                                    </svg>
+                                    <div class="mb-mt-2"><?php esc_html_e('Select Icon', 'mobooking'); ?></div>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                        <input type="hidden" id="icon-value" name="icon" value="<?php echo esc_attr($service_icon); ?>">
+                        <input type="file" id="custom-icon-upload" accept=".svg" class="mb-hidden">
+                        <div class="mb-flex mb-gap-2">
+                            <button type="button" id="select-icon-btn" class="btn btn-secondary btn-sm">
+                                <?php esc_html_e('Select Preset Icon', 'mobooking'); ?>
+                            </button>
+                            <button type="button" id="upload-custom-icon-btn" class="btn btn-secondary btn-sm">
+                                <?php esc_html_e('Upload SVG Icon', 'mobooking'); ?>
+                            </button>
+                            <button type="button" id="remove-icon-btn" class="btn btn-destructive btn-sm <?php echo empty($service_icon) ? 'mb-hidden' : ''; ?>">
+                                <?php esc_html_e('Remove', 'mobooking'); ?>
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
+
+        </div> <!-- close .mobooking-edit-layout-grid -->
     </form>
 </div>
 
@@ -581,7 +570,7 @@ if ( $edit_mode && $service_id > 0 ) {
             <input type="hidden" name="options[][option_id]" value="">
             <input type="hidden" name="options[][sort_order]" value="0">
 
-            <div class="mb-form-grid">
+            <div class="mb-form-grid" style="grid-template-columns: 2fr 1fr;">
                 <div class="mb-form-group">
                     <label class="mb-form-label">
                         <?php esc_html_e('Option Name', 'mobooking'); ?> <span class="mb-text-destructive">*</span>
@@ -597,12 +586,11 @@ if ( $edit_mode && $service_id > 0 ) {
 
                 <div class="mb-form-group">
                     <label class="mb-form-label"><?php esc_html_e('Required', 'mobooking'); ?></label>
-                    <div class="mb-flex mb-items-center mb-gap-3">
-                            <label class="mobooking-toggle-switch">
-                            <input type="checkbox" name="options[][is_required]" value="1">
-                                <span class="slider"></span>
+                    <div class="mb-flex mb-items-center mb-gap-3" style="padding-top: 0.5rem;">
+                        <label class="mobooking-toggle-switch">
+                        <input type="checkbox" name="options[][is_required]" value="1">
+                            <span class="slider"></span>
                         </label>
-                            <span class="mb-text-sm mb-text-muted-foreground toggle-label"><?php esc_html_e('Customer must select this option', 'mobooking'); ?></span>
                     </div>
                 </div>
             </div>
@@ -619,7 +607,7 @@ if ( $edit_mode && $service_id > 0 ) {
 
             <div class="mb-form-group">
                 <label class="mb-form-label"><?php esc_html_e('Option Type', 'mobooking'); ?></label>
-                <div class="mb-radio-group">
+                <div class="mb-radio-group compact">
                     <?php foreach ($option_types as $type_value => $type_label): ?>
                         <div class="mb-radio-option">
                             <input type="radio" name="options[][type]" value="<?php echo esc_attr($type_value); ?>" id="type-<?php echo esc_attr($type_value); ?>-{INDEX}" <?php checked($type_value, 'checkbox'); ?>>
@@ -629,10 +617,10 @@ if ( $edit_mode && $service_id > 0 ) {
                 </div>
             </div>
 
-            <div class="mb-form-grid">
+            <div class="mb-form-grid" style="grid-template-columns: 2fr 1fr;">
                 <div class="mb-form-group">
                     <label class="mb-form-label"><?php esc_html_e('Price Impact Type', 'mobooking'); ?></label>
-                    <div class="mb-radio-group">
+                    <div class="mb-radio-group compact">
                         <?php foreach ($price_types as $price_value => $price_label): ?>
                             <div class="mb-radio-option">
                                 <input type="radio" name="options[][price_impact_type]" value="<?php echo esc_attr($price_value); ?>" id="price-<?php echo esc_attr($price_value ?: 'none'); ?>-{INDEX}" <?php checked($price_value, ''); ?>>
