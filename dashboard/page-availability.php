@@ -26,18 +26,25 @@ if ( ! current_user_can( \MoBooking\Classes\Auth::CAP_MANAGE_AVAILABILITY ) ) {
     <div id="mobooking-availability-feedback" class="notice" style="display:none;"></div>
 
     <!-- Recurring Weekly Availability Section -->
-    <div class="mobooking-section">
-        <h2><?php esc_html_e('Recurring Weekly Schedule', 'mobooking'); ?></h2>
-        <p><?php esc_html_e('Set your standard availability for each day of the week. These are your default hours unless overridden by a specific date setting below.', 'mobooking'); ?></p>
-
-        <div id="recurring-schedule-container">
-            <!-- JS will populate this with the schedule editor -->
-            <p><?php esc_html_e('Loading schedule editor...', 'mobooking'); ?></p>
+    <div class="mobooking-card">
+        <div class="mobooking-card-header">
+            <div class="mobooking-card-title-group">
+                <h2 class="mobooking-card-title"><?php esc_html_e('Recurring Weekly Schedule', 'mobooking'); ?></h2>
+            </div>
+            <div class="mobooking-card-actions">
+                <button type="button" id="mobooking-save-recurring-schedule-btn" class="btn btn-primary">
+                    <?php esc_html_e('Save Weekly Schedule', 'mobooking'); ?>
+                </button>
+            </div>
         </div>
+        <div class="mobooking-card-content">
+            <p><?php esc_html_e('Set your standard availability for each day of the week. These are your default hours unless overridden by a specific date setting below.', 'mobooking'); ?></p>
 
-        <button type="button" id="mobooking-save-recurring-schedule-btn" class="btn btn-primary" style="margin-top: 20px;">
-            <?php esc_html_e('Save Weekly Schedule', 'mobooking'); ?>
-        </button>
+            <div id="recurring-schedule-container">
+                <!-- JS will populate this with the schedule editor -->
+                <p><?php esc_html_e('Loading schedule editor...', 'mobooking'); ?></p>
+            </div>
+        </div>
     </div>
 
 

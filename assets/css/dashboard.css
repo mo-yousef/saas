@@ -45,38 +45,6 @@ body.wp-admin #wpbody-content .mobooking-overview-dashboard {
   padding: 1px 15px 15px 15px;
 }
 
-.mobooking-card,
-.content-card {
-  background-color: hsl(var(--card));
-  border: 1px solid hsl(var(--border));
-  border-radius: var(--radius);
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  margin-bottom: 1.5rem;
-  padding: 1.5rem;
-}
-
-.mobooking-card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-bottom: 1rem;
-  margin-bottom: 1rem;
-  border-bottom: 1px solid hsl(var(--border));
-}
-
-.mobooking-card-header h3 {
-  margin: 0;
-  font-size: 1.125rem;
-  font-weight: 600;
-  line-height: 1.2;
-  color: hsl(var(--card-foreground));
-}
-
-.mobooking-card-content p {
-  margin-bottom: 0.75rem;
-  line-height: 1.6;
-  color: hsl(var(--card-foreground));
-}
 
 /* Page Header */
 .mobooking-page-header,
@@ -231,82 +199,12 @@ body.wp-admin #wpbody-content .mobooking-overview-dashboard {
     height: 1.25rem;
 }
 
-/* KPI Grid */
+/* KPI Grid - now just a generic grid */
 .kpi-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 1.5rem;
   margin-bottom: 2rem;
-}
-
-.kpi-card {
-  background: hsl(var(--card));
-  border: 1px solid hsl(var(--border));
-  border-radius: var(--radius);
-  padding: 1.5rem;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-  transition: all 0.2s ease;
-}
-
-.kpi-card:hover {
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  transform: translateY(-1px);
-}
-
-.kpi-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-}
-
-.kpi-title {
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: #667085;
-  letter-spacing: 0.025em;
-}
-
-.kpi-icon {
-  width: 2rem;
-  height: 2rem;
-  background: hsl(var(--primary));
-  color: hsl(var(--primary-foreground));
-  border-radius: var(--radius);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.kpi-icon svg {
-    width: 1.25rem;
-    height: 1.25rem;
-}
-
-.kpi-value {
-  font-size: 2rem;
-  font-weight: 700;
-  color: hsl(var(--foreground));
-  margin-bottom: 0.5rem;
-}
-
-.kpi-change {
-  font-size: 0.875rem;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-}
-
-.kpi-change.positive {
-  color: #10b981;
-}
-
-.kpi-change.negative {
-  color: #ef4444;
-}
-
-.kpi-change.neutral {
-  color: hsl(var(--muted-foreground));
 }
 
 
@@ -772,4 +670,16 @@ table.mobooking-table {
     display: flex;
     justify-content: flex-end;
     gap: 0.75rem;
+}
+
+/* Generic Section for simple content wrappers */
+.mobooking-section {
+    padding: 1.5rem 0;
+    border-bottom: 1px solid hsl(var(--border));
+    margin-bottom: 1.5rem;
+}
+
+.mobooking-section:last-of-type {
+    border-bottom: none;
+    margin-bottom: 0;
 }
