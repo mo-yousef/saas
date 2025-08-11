@@ -622,7 +622,15 @@ jQuery(document).ready(function ($) {
     });
 
     if (servicesListContainer.length && mainServiceItemTemplate) {
+      console.log('MoBooking: Rendering initial services.');
       fetchAndRenderServices(1, currentServiceFilters);
+    } else {
+        if (!servicesListContainer.length) {
+            console.error('MoBooking Error: Could not find services list container.');
+        }
+        if (!mainServiceItemTemplate) {
+            console.error('MoBooking Error: Could not find service item template.');
+        }
     }
   }
 });
