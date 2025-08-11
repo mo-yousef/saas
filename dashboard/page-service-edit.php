@@ -874,7 +874,11 @@ jQuery(document).ready(function($) {
                         label: '<?php echo esc_js(__('Delete Service', 'mobooking')); ?>',
                         class: 'destructive',
                         onClick: (dialog) => {
-                            dialog.setLoading(true);
+                            const deleteButton = dialog.findElement('.btn-destructive');
+                            if (deleteButton) {
+                                deleteButton.disabled = true;
+                                deleteButton.innerHTML = '<span class="mb-spinner" style="display: inline-block; width: 1rem; height: 1rem; border-width: 2px;"></span> <?php echo esc_js(__('Deleting...', 'mobooking')); ?>';
+                            }
                             $.ajax({
                                 url: ajaxUrl,
                                 type: 'POST',
@@ -891,12 +895,18 @@ jQuery(document).ready(function($) {
                                         }, 1500);
                                     } else {
                                         showAlert(response.data?.message || strings.errorGeneric, 'error');
-                                        dialog.setLoading(false);
+                                        if (deleteButton) {
+                                            deleteButton.disabled = false;
+                                            deleteButton.textContent = '<?php echo esc_js(__('Delete Service', 'mobooking')); ?>';
+                                        }
                                     }
                                 },
                                 error: function() {
                                     showAlert(strings.networkError, 'error');
-                                    dialog.setLoading(false);
+                                    if (deleteButton) {
+                                        deleteButton.disabled = false;
+                                        deleteButton.textContent = '<?php echo esc_js(__('Delete Service', 'mobooking')); ?>';
+                                    }
                                 }
                             });
                         }
@@ -929,7 +939,6 @@ jQuery(document).ready(function($) {
         });
         $('#custom-icon-upload').on('change', handleCustomIconUpload);
         $('#remove-icon-btn').on('click', removeIcon);
-        $('#close-icon-modal-btn, #cancel-icon-select-btn').on('click', closePresetIconSelector);
         $('body').on('click', '.preset-icon-item', function() {
             const iconKey = $(this).data('icon-key');
             const iconSvg = $(this).html();
