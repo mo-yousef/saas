@@ -1043,3 +1043,41 @@ table.mobooking-table {
     height: 1rem;
     color: hsl(var(--muted-foreground));
 }
+
+/* Service Edit Page Layout */
+.mb-radio-group.compact {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 0.5rem 1rem;
+}
+.mobooking-edit-layout-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    align-items: flex-start;
+}
+
+.mobooking-main-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.mobooking-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    position: relative;
+}
+
+/* Desktop layout */
+@media (min-width: 1024px) {
+    .mobooking-edit-layout-grid {
+        grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    }
+
+    .mobooking-sidebar {
+        position: sticky;
+        top: 2rem; /* Adjust as needed */
+    }
+}
