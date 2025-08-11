@@ -683,3 +683,363 @@ table.mobooking-table {
     border-bottom: none;
     margin-bottom: 0;
 }
+
+/* ============================================================================
+   Unified Card Component Styles
+   ============================================================================ */
+
+/* Main card container */
+.mobooking-card {
+    background: hsl(var(--mobk-card));
+    border: 1px solid hsl(var(--mobk-border));
+    border-radius: var(--mobk-radius);
+    box-shadow: var(--mobk-shadow-sm);
+    transition: all var(--mobk-duration-normal) ease;
+    display: flex;
+    flex-direction: column;
+}
+
+.mobooking-card:hover {
+    box-shadow: var(--mobk-shadow-md);
+    transform: translateY(-2px);
+}
+
+/* Card Header */
+.mobooking-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid hsl(var(--mobk-border));
+}
+
+.mobooking-card-title-group {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.mobooking-card-icon {
+    color: hsl(var(--mobk-primary));
+}
+
+.mobooking-card-icon svg {
+    width: 24px;
+    height: 24px;
+}
+
+.mobooking-card-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin: 0;
+    color: hsl(var(--mobk-card-foreground));
+}
+
+.mobooking-card-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Card Content */
+.mobooking-card-content {
+    padding: 1.25rem;
+    flex-grow: 1;
+}
+
+/* Card Footer */
+.mobooking-card-footer {
+    padding: 1rem 1.25rem;
+    border-top: 1px solid hsl(var(--mobk-border));
+    background-color: hsl(var(--mobk-secondary) / 0.5);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.875rem;
+}
+
+/* Badge for status */
+.badge {
+    display: inline-block;
+    padding: 0.25em 0.6em;
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: baseline;
+    border-radius: 9999px;
+}
+
+.badge.status-active {
+    color: hsl(var(--mobk-success));
+    background-color: hsl(var(--mobk-success) / 0.1);
+}
+
+.badge.status-inactive {
+    color: hsl(var(--mobk-muted-foreground));
+    background-color: hsl(var(--mobk-muted));
+}
+
+/* Buttons inside cards */
+.btn.btn-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    border: 1px solid transparent;
+    background-color: transparent;
+    transition: background-color 0.2s;
+}
+
+.btn.btn-icon:hover {
+    background-color: hsl(var(--mobk-muted));
+}
+
+.btn.btn-icon.btn-destructive:hover {
+    background-color: hsl(var(--mobk-destructive) / 0.1);
+    color: hsl(var(--mobk-destructive));
+}
+
+.btn.btn-icon svg {
+    width: 16px;
+    height: 16px;
+}
+
+/* ============================================================================
+   Dashboard Header & Search Component Styles
+   ============================================================================ */
+
+.mobooking-dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1.5rem;
+    border-bottom: 1px solid hsl(var(--border));
+    background-color: hsl(var(--card));
+    height: 64px;
+}
+
+/* Left side: Nav toggle and Search */
+.dashboard-header-left {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-grow: 1;
+}
+
+#mobooking-mobile-nav-toggle {
+    display: none; /* Hidden on desktop */
+}
+
+/* Search Container */
+.mobooking-search-container {
+    position: relative;
+    width: 100%;
+    max-width: 400px;
+}
+
+.mobooking-search-icon {
+    position: absolute;
+    left: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: hsl(var(--muted-foreground));
+    width: 1rem;
+    height: 1rem;
+}
+
+#mobooking-live-search {
+    width: 100%;
+    height: 36px;
+    padding-left: 2.5rem;
+    border-radius: var(--radius);
+    border: 1px solid hsl(var(--input));
+    background-color: hsl(var(--background));
+    transition: all 0.2s ease;
+}
+
+#mobooking-live-search:focus {
+    border-color: hsl(var(--primary));
+    box-shadow: 0 0 0 2px hsl(var(--ring) / 0.2);
+}
+
+/* Search Results Dropdown */
+.mobooking-search-results-dropdown {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    left: 0;
+    width: 100%;
+    background-color: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius);
+    box-shadow: var(--mobk-shadow-lg);
+    z-index: 100;
+    overflow: hidden;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    pointer-events: none;
+}
+
+.mobooking-search-results-dropdown.open {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+.search-quick-links {
+    padding: 0.5rem;
+    display: flex;
+    gap: 0.5rem;
+    border-bottom: 1px solid hsl(var(--border));
+}
+
+.search-quick-links a {
+    flex-grow: 1;
+    text-align: center;
+    padding: 0.5rem;
+    border-radius: var(--radius-sm);
+    text-decoration: none;
+    color: hsl(var(--muted-foreground));
+    font-size: 0.875rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.search-quick-links a:hover {
+    background-color: hsl(var(--accent));
+    color: hsl(var(--accent-foreground));
+}
+
+.search-quick-links .shortcut {
+    font-size: 0.75rem;
+    color: hsl(var(--muted-foreground));
+    border: 1px solid hsl(var(--border));
+    padding: 0.125rem 0.375rem;
+    border-radius: 4px;
+}
+
+#search-results-list {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+/* User Menu */
+.user-menu {
+    position: relative;
+}
+
+.user-menu-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background-color: transparent;
+    border: none;
+    border-radius: var(--radius);
+    padding: 0.25rem 0.5rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.user-menu-toggle:hover {
+    background-color: hsl(var(--accent));
+}
+
+.user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+}
+
+.user-name {
+    font-weight: 500;
+    font-size: 0.875rem;
+}
+
+.chevron-down {
+    width: 1rem;
+    height: 1rem;
+    color: hsl(var(--muted-foreground));
+    transition: transform 0.2s ease;
+}
+
+.user-menu.open .chevron-down {
+    transform: rotate(180deg);
+}
+
+.user-dropdown-menu {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    right: 0;
+    width: 240px;
+    background-color: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius);
+    box-shadow: var(--mobk-shadow-lg);
+    z-index: 100;
+    list-style: none;
+    padding: 0.5rem;
+    margin: 0;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    pointer-events: none;
+}
+
+.user-menu.open .user-dropdown-menu {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+.dropdown-header {
+    padding: 0.5rem 0.75rem;
+    margin-bottom: 0.5rem;
+}
+
+.user-display-name {
+    display: block;
+    font-weight: 600;
+}
+
+.user-email {
+    font-size: 0.875rem;
+    color: hsl(var(--muted-foreground));
+}
+
+.dropdown-divider {
+    height: 1px;
+    background-color: hsl(var(--border));
+    margin: 0.5rem -0.5rem;
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--radius-sm);
+    text-decoration: none;
+    color: hsl(var(--foreground));
+    font-size: 0.875rem;
+}
+
+.dropdown-item:hover {
+    background-color: hsl(var(--accent));
+}
+
+.dropdown-item svg {
+    width: 1rem;
+    height: 1rem;
+    color: hsl(var(--muted-foreground));
+}
