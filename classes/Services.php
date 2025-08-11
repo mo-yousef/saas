@@ -723,6 +723,16 @@ public function handle_get_public_services_ajax() {
 
         $result = $this->get_services_by_user($user_id, $args);
 
+        // Process icons before sending
+        if (!empty($result['services'])) {
+            foreach ($result['services'] as &$service) {
+                if (!empty($service['icon'])) {
+                    $service['icon'] = $this->get_service_icon_html($service['icon']);
+                }
+            }
+            unset($service); // Unset reference
+        }
+
         // get_services_by_user now returns an array with 'services', 'total_count' etc.
         // No need to check is_wp_error if it always returns this array structure.
         wp_send_json_success($result);

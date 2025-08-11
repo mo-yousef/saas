@@ -87,39 +87,6 @@ wp_nonce_field('mobooking_services_nonce', 'mobooking_services_nonce_field');
             <option value="date-desc"><?php esc_html_e('Newest First', 'mobooking'); ?></option>
         </select>
     </div>
-        
-        <!-- Controls Section -->
-        <div class="services-controls">
-            <div class="search-container">
-                <input 
-                    type="text" 
-                    id="services-search" 
-                    class="search-input" 
-                    placeholder="<?php esc_attr_e('Search services...', 'mobooking'); ?>"
-                    value=""
-                >
-                <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="m21 21-4.3-4.3" />
-                    <circle cx="11" cy="11" r="8" />
-                </svg>
-            </div>
-            
-            <select id="status-filter" class="filter-select">
-                <option value=""><?php esc_html_e('All Statuses', 'mobooking'); ?></option>
-                <option value="active"><?php esc_html_e('Active', 'mobooking'); ?></option>
-                <option value="inactive"><?php esc_html_e('Inactive', 'mobooking'); ?></option>
-            </select>
-            
-            <select id="sort-filter" class="filter-select">
-                <option value="name-asc"><?php esc_html_e('Name A-Z', 'mobooking'); ?></option>
-                <option value="name-desc"><?php esc_html_e('Name Z-A', 'mobooking'); ?></option>
-                <option value="price-asc"><?php esc_html_e('Price Low-High', 'mobooking'); ?></option>
-                <option value="price-desc"><?php esc_html_e('Price High-Low', 'mobooking'); ?></option>
-                <option value="date-asc"><?php esc_html_e('Oldest First', 'mobooking'); ?></option>
-                <option value="date-desc"><?php esc_html_e('Newest First', 'mobooking'); ?></option>
-            </select>
-        </div>
-    </div>
     
     <!-- Content Section -->
     <div class="services-content">
@@ -153,13 +120,28 @@ wp_nonce_field('mobooking_services_nonce', 'mobooking_services_nonce_field');
                 </div>
             <?php else: ?>
                 <div class="services-grid" id="services-grid">
-                    <?php foreach ($services_list as $service): ?>
+                    <?php
+                    // This initial rendering will be replaced by JS, but we do it once
+                    // to avoid a flash of empty content if JS is slow.
+                    foreach ($services_list as $service) {
+                        // Prepare data similarly to the JS function
+                        $price_formatted = $currency_pos === 'before'
+                            ? esc_html($currency_symbol) . number_format_i18n($service['price'], $currency_decimals)
+                            : number_format_i18n($service['price'], $currency_decimals) . esc_html($currency_symbol);
+
+                        $card_icon = !empty($service['icon'])
+                            ? $services_manager->get_service_icon_html($service['icon'])
+                            : '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>';
+
+                        $thumbnail_html = !empty($service['image_url'])
+                            ? '<div class="mobooking-card-thumbnail" style="background-image: url(\'' . esc_url($service['image_url']) . '\');"></div>'
+                            : '';
+                        ?>
                         <div class="mobooking-card service-card" data-service-id="<?php echo esc_attr($service['service_id']); ?>">
+                            <?php echo $thumbnail_html; ?>
                             <div class="mobooking-card-header">
                                 <div class="mobooking-card-title-group">
-                                    <span class="mobooking-card-icon">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>
-                                    </span>
+                                    <span class="mobooking-card-icon"><?php echo $card_icon; ?></span>
                                     <h3 class="mobooking-card-title"><?php echo esc_html($service['name']); ?></h3>
                                 </div>
                                 <div class="mobooking-card-actions">
@@ -177,14 +159,14 @@ wp_nonce_field('mobooking_services_nonce', 'mobooking_services_nonce_field');
                             </div>
                             <div class="mobooking-card-footer">
                                 <div class="text-lg font-semibold">
-                                    <?php echo esc_html($currency_symbol . number_format($service['price'], 2)); ?>
+                                    <?php echo $price_formatted; ?>
                                 </div>
                                 <div class="text-sm text-muted-foreground">
                                     <?php echo esc_html($service['duration']); ?> mins
                                 </div>
                             </div>
                         </div>
-                    <?php endforeach; ?>
+                    <?php } // end foreach ?>
                 </div>
             <?php endif; ?>
         </div>
