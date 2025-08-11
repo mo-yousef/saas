@@ -569,8 +569,8 @@ jQuery(document).ready(function ($) {
       function () {
         const serviceId = $(this).data("id");
         const serviceName = $(this)
-          .closest(".mobooking-service-item")
-          .find("h3")
+          .closest(".service-card")
+          .find(".mobooking-card-title")
           .text();
         if (
           confirm(
