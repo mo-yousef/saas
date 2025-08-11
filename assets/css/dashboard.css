@@ -1045,6 +1045,15 @@ table.mobooking-table {
 }
 
 /* Service Edit Page Layout */
+.mb-pb-6 {
+    padding-bottom: 1.5rem;
+}
+.mb-border-b {
+    border-bottom: 1px solid hsl(var(--border));
+}
+.mb-mt-6 {
+    margin-top: 1.5rem;
+}
 .mb-radio-group.compact {
     flex-direction: row;
     flex-wrap: wrap;
