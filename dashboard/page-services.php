@@ -32,8 +32,6 @@ $per_page = $services_result['per_page'] ?? 20;
 $current_page = $services_result['current_page'] ?? 1;
 $total_pages = ceil($total_services / $per_page);
 
-// Nonce for AJAX operations
-wp_nonce_field('mobooking_services_nonce', 'mobooking_services_nonce_field');
 
 // Function to format currency
 function format_currency($amount, $symbol, $position) {
