@@ -78,36 +78,52 @@ $total_pages = ceil($total_customers_count / $per_page);
 
     <!-- KPI Cards -->
     <div class="kpi-grid">
-        <div class="kpi-card">
-            <div class="kpi-header">
-                <div class="kpi-title"><?php esc_html_e('Total Customers', 'mobooking'); ?></div>
-                <div class="kpi-icon">👥</div>
+        <div class="mobooking-card">
+            <div class="mobooking-card-header">
+                <div class="mobooking-card-title-group">
+                    <span class="mobooking-card-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg></span>
+                    <h3 class="mobooking-card-title"><?php esc_html_e('Total Customers', 'mobooking'); ?></h3>
+                </div>
             </div>
-            <div class="kpi-value"><?php echo esc_html($kpi_data['total_customers']); ?></div>
+            <div class="mobooking-card-content">
+                <div class="text-3xl font-bold"><?php echo esc_html($kpi_data['total_customers']); ?></div>
+            </div>
         </div>
 
-        <div class="kpi-card">
-            <div class="kpi-header">
-                <div class="kpi-title"><?php esc_html_e('New This Month', 'mobooking'); ?></div>
-                <div class="kpi-icon">✨</div>
+        <div class="mobooking-card">
+            <div class="mobooking-card-header">
+                <div class="mobooking-card-title-group">
+                    <span class="mobooking-card-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L14.39 8.36L21 9.27L16 14.14L17.21 21.02L12 17.77L6.79 21.02L8 14.14L3 9.27L9.61 8.36L12 2z"></path></svg></span>
+                    <h3 class="mobooking-card-title"><?php esc_html_e('New This Month', 'mobooking'); ?></h3>
+                </div>
             </div>
-            <div class="kpi-value"><?php echo esc_html($kpi_data['new_customers_month']); ?></div>
+            <div class="mobooking-card-content">
+                <div class="text-3xl font-bold"><?php echo esc_html($kpi_data['new_customers_month']); ?></div>
+            </div>
         </div>
 
-        <div class="kpi-card">
-            <div class="kpi-header">
-                <div class="kpi-title"><?php esc_html_e('Active Customers', 'mobooking'); ?></div>
-                <div class="kpi-icon">🟢</div>
+        <div class="mobooking-card">
+            <div class="mobooking-card-header">
+                <div class="mobooking-card-title-group">
+                    <span class="mobooking-card-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg></span>
+                    <h3 class="mobooking-card-title"><?php esc_html_e('Active Customers', 'mobooking'); ?></h3>
+                </div>
             </div>
-            <div class="kpi-value"><?php echo esc_html($kpi_data['active_customers']); ?></div>
+            <div class="mobooking-card-content">
+                <div class="text-3xl font-bold"><?php echo esc_html($kpi_data['active_customers']); ?></div>
+            </div>
         </div>
 
-        <div class="kpi-card">
-            <div class="kpi-header">
-                <div class="kpi-title"><?php esc_html_e('Avg. Order Value', 'mobooking'); ?></div>
-                <div class="kpi-icon">💰</div>
+        <div class="mobooking-card">
+            <div class="mobooking-card-header">
+                <div class="mobooking-card-title-group">
+                    <span class="mobooking-card-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg></span>
+                    <h3 class="mobooking-card-title"><?php esc_html_e('Avg. Order Value', 'mobooking'); ?></h3>
+                </div>
             </div>
-            <div class="kpi-value"><?php echo esc_html($currency_symbol . number_format($kpi_data['avg_order_value'] ?? 0, 2)); ?></div>
+            <div class="mobooking-card-content">
+                <div class="text-3xl font-bold"><?php echo esc_html($currency_symbol . number_format($kpi_data['avg_order_value'] ?? 0, 2)); ?></div>
+            </div>
         </div>
     </div>
 
