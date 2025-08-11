@@ -1420,3 +1420,29 @@ if (!function_exists('mobooking_convert_to_csv')) {
         return implode("\n", $csv_lines);
     }
 }
+
+// AJAX handler for dashboard live search
+add_action('wp_ajax_mobooking_dashboard_live_search', 'mobooking_ajax_dashboard_live_search');
+if (!function_exists('mobooking_ajax_dashboard_live_search')) {
+    function mobooking_ajax_dashboard_live_search() {
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'mobooking_dashboard_nonce')) {
+            wp_send_json_error(array('message' => 'Security check failed: Invalid nonce.'), 403);
+            return;
+        }
+
+        $query = isset($_POST['query']) ? sanitize_text_field($_POST['query']) : '';
+        if (strlen($query) < 2) {
+            wp_send_json_success(array('results' => []));
+            return;
+        }
+
+        // For now, return dummy data
+        $dummy_results = [
+            ['title' => 'Booking #123 for ' . $query, 'url' => '#', 'type' => 'Booking'],
+            ['title' => 'Customer: ' . $query . ' Smith', 'url' => '#', 'type' => 'Customer'],
+            ['title' => 'Page: About Us', 'url' => '#', 'type' => 'Page'],
+        ];
+
+        wp_send_json_success(array('results' => $dummy_results));
+    }
+}
