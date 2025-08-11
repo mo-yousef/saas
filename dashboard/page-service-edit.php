@@ -401,10 +401,10 @@ if ( $edit_mode && $service_id > 0 ) {
 
         <!-- Sidebar -->
         <div class="mobooking-sidebar">
-            <!-- Publish Card -->
             <div class="mb-form-card">
+                <!-- Actions -->
                 <h2 class="mb-form-section-title"><?php esc_html_e('Actions', 'mobooking'); ?></h2>
-                <div class="mb-space-y-4">
+                <div class="mb-space-y-4 mb-pb-6 mb-border-b">
                     <div class="mb-form-group">
                         <label class="mb-form-label"><?php esc_html_e('Status', 'mobooking'); ?></label>
                         <div class="mb-flex mb-items-center mb-gap-3">
@@ -418,8 +418,8 @@ if ( $edit_mode && $service_id > 0 ) {
                         </div>
                     </div>
                     <div class="mb-flex mb-items-center mb-justify-between">
-                        <button type="button" id="cancel-btn" class="btn btn-secondary">
-                            <?php esc_html_e('Cancel', 'mobooking'); ?>
+                        <button type="button" id="delete-service-btn" class="btn btn-destructive">
+                            <?php esc_html_e('Delete Service', 'mobooking'); ?>
                         </button>
                         <button type="submit" id="save-btn" class="btn btn-primary">
                             <svg class="mb-btn-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -432,12 +432,10 @@ if ( $edit_mode && $service_id > 0 ) {
                         </button>
                     </div>
                 </div>
-            </div>
 
-            <!-- Price Card -->
-            <div class="mb-form-card">
-                 <h2 class="mb-form-section-title"><?php esc_html_e('Pricing', 'mobooking'); ?></h2>
-                 <div class="mb-form-group">
+                <!-- Pricing -->
+                <h2 class="mb-form-section-title mb-mt-6"><?php esc_html_e('Pricing', 'mobooking'); ?></h2>
+                <div class="mb-form-group mb-pb-6 mb-border-b">
                     <label class="mb-form-label" for="service-price">
                         <?php
                         printf(
@@ -458,11 +456,9 @@ if ( $edit_mode && $service_id > 0 ) {
                         required
                     >
                 </div>
-            </div>
 
-            <!-- Media Card -->
-            <div class="mb-form-card">
-                <h2 class="mb-form-section-title"><?php esc_html_e('Media', 'mobooking'); ?></h2>
+                <!-- Media -->
+                <h2 class="mb-form-section-title mb-mt-6"><?php esc_html_e('Media', 'mobooking'); ?></h2>
                 <div class="mb-space-y-4">
                     <div class="mb-form-group">
                         <label class="mb-form-label"><?php esc_html_e('Service Image', 'mobooking'); ?></label>
@@ -858,9 +854,56 @@ jQuery(document).ready(function($) {
         // Form submission
         $('#mobooking-service-form').on('submit', handleFormSubmit);
         
-        // Cancel button
-        $('#cancel-btn').on('click', function() {
-            window.location.href = '<?php echo esc_url($breadcrumb_services); ?>';
+        // Delete button
+        $('#delete-service-btn').on('click', function() {
+            if (!isEditMode || !serviceId) {
+                showAlert('Cannot delete a service that has not been saved yet.', 'error');
+                return;
+            }
+
+            const deleteDialog = new MoBookingDialog({
+                title: '<?php echo esc_js(__('Confirm Deletion', 'mobooking')); ?>',
+                content: '<p><?php echo esc_js(__('Are you sure you want to delete this service? This action cannot be undone.', 'mobooking')); ?></p>',
+                buttons: [
+                    {
+                        label: '<?php echo esc_js(__('Cancel', 'mobooking')); ?>',
+                        class: 'secondary',
+                        onClick: (dialog) => dialog.close()
+                    },
+                    {
+                        label: '<?php echo esc_js(__('Delete Service', 'mobooking')); ?>',
+                        class: 'destructive',
+                        onClick: (dialog) => {
+                            dialog.setLoading(true);
+                            $.ajax({
+                                url: ajaxUrl,
+                                type: 'POST',
+                                data: {
+                                    action: 'mobooking_delete_service_ajax',
+                                    nonce: nonce,
+                                    service_id: serviceId
+                                },
+                                success: function(response) {
+                                    if (response.success) {
+                                        showAlert(response.data.message, 'success');
+                                        setTimeout(() => {
+                                            window.location.href = '<?php echo esc_url($breadcrumb_services); ?>';
+                                        }, 1500);
+                                    } else {
+                                        showAlert(response.data?.message || strings.errorGeneric, 'error');
+                                        dialog.setLoading(false);
+                                    }
+                                },
+                                error: function() {
+                                    showAlert(strings.networkError, 'error');
+                                    dialog.setLoading(false);
+                                }
+                            });
+                        }
+                    }
+                ]
+            });
+            deleteDialog.show();
         });
 
         // Status toggle
