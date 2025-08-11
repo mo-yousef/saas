@@ -1436,13 +1436,31 @@ if (!function_exists('mobooking_ajax_dashboard_live_search')) {
             return;
         }
 
-        // For now, return dummy data
-        $dummy_results = [
-            ['title' => 'Booking #123 for ' . $query, 'url' => '#', 'type' => 'Booking'],
-            ['title' => 'Customer: ' . $query . ' Smith', 'url' => '#', 'type' => 'Customer'],
-            ['title' => 'Page: About Us', 'url' => '#', 'type' => 'Page'],
-        ];
+        $results = [];
+        $tenant_id = \MoBooking\Classes\Auth::get_effective_tenant_id_for_user(get_current_user_id());
 
-        wp_send_json_success(array('results' => $dummy_results));
+        // Search Customers
+        $customers_manager = new \MoBooking\Classes\Customers();
+        $customers = $customers_manager->get_customers_by_tenant_id($tenant_id, ['search' => $query, 'per_page' => 5]);
+        foreach ($customers as $customer) {
+            $results[] = [
+                'title' => $customer->full_name,
+                'url' => home_url('/dashboard/customer-details/?customer_id=' . $customer->id),
+                'type' => 'Customer'
+            ];
+        }
+
+        // Search Bookings
+        $bookings_manager = new \MoBooking\Classes\Bookings(new \MoBooking\Classes\Discounts($tenant_id), new \MoBooking\Classes\Notifications(), new \MoBooking\Classes\Services());
+        $bookings = $bookings_manager->get_bookings_by_tenant($tenant_id, ['search' => $query, 'limit' => 5]);
+        foreach ($bookings['bookings'] as $booking) {
+            $results[] = [
+                'title' => 'Booking #' . $booking['booking_reference'],
+                'url' => home_url('/dashboard/bookings/?action=view_booking&booking_id=' . $booking['booking_id']),
+                'type' => 'Booking'
+            ];
+        }
+
+        wp_send_json_success(array('results' => $results));
     }
 }
