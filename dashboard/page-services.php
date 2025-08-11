@@ -141,10 +141,10 @@ function get_default_service_icon() {
                                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 mr-2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
                                         <?php esc_html_e('View', 'mobooking'); ?>
                                     </a>
-                                    <form method="POST" action="">
-                                        <input type="hidden" name="action" value="delete_service">
+                                    <form method="POST" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" data-service-name="<?php echo esc_attr($service['name']); ?>">
+                                        <input type="hidden" name="action" value="mobooking_delete_service">
                                         <input type="hidden" name="service_id" value="<?php echo esc_attr($service['service_id']); ?>">
-                                        <?php wp_nonce_field('delete_service_' . $service['service_id']); ?>
+                                        <?php wp_nonce_field('mobooking_delete_service_nonce'); ?>
                                         <button type="submit" class="btn btn-destructive">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
                                         </button>
@@ -268,28 +268,13 @@ function get_default_service_icon() {
 jQuery(document).ready(function($) {
     'use strict';
 
-    // Check if required parameters exist
-    if (typeof mobooking_services_params === 'undefined') {
-        console.error('MoBooking: mobooking_services_params is not defined.');
-        return;
-    }
-
-    // Cache DOM elements
     const $searchInput = $('#services-search');
-    const $statusFilter = $('#status-filter');
-    const $sortFilter = $('#sort-filter');
-    const $servicesGrid = $('#services-grid');
-    const $paginationContainer = $('#services-pagination-container');
-    const $feedbackContainer = $('#services-feedback-container');
-    const $loadingState = $('#loading-state');
     const $servicesListContainer = $('#services-list-container');
-
-    // Current state
-    let currentPage = 1;
+    const $loadingState = $('#loading-state');
+    const $modal = $('#delete-confirmation-modal');
     let currentRequest = null;
-    let isLoading = false;
 
-    // Debounce function
+    // Debounce function for search
     function debounce(func, delay) {
         let timeout;
         return function(...args) {
@@ -298,396 +283,76 @@ jQuery(document).ready(function($) {
         };
     }
 
-    // Show feedback message
-    function showFeedback(message, type = 'success') {
-        const feedbackHtml = `
-            <div class="feedback-message feedback-${type}">
-                ${message}
-            </div>
-        `;
-        $feedbackContainer.html(feedbackHtml);
-        
-        // Auto-hide after 5 seconds
-        setTimeout(() => {
-            $feedbackContainer.find('.feedback-message').fadeOut(500, function() {
-                $(this).remove();
-            });
-        }, 5000);
-    }
-
-    // Format currency
-    function formatCurrency(amount) {
-        const symbol = mobooking_services_params.currency_symbol || '
-                ;
-        const position = mobooking_services_params.currency_position || 'before';
-        const formattedAmount = parseFloat(amount).toFixed(2);
-        
-        return position === 'before' ? symbol + formattedAmount : formattedAmount + symbol;
-    }
-
-    // Get default service icon
-    function getDefaultServiceIcon() {
-        return `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
-        </svg>`;
-    }
-
-    // Render service card
-    function renderServiceCard(service) {
-        const priceFormatted = formatCurrency(service.price);
-        const serviceIcon = service.icon_html || getDefaultServiceIcon();
-        const optionsCount = service.options ? service.options.length : 0;
-        const createdDate = new Date(service.created_at).toLocaleDateString();
-
-        const imageHtml = service.image_url 
-            ? `<img src="${service.image_url}" alt="${service.name}">`
-            : `<div class="service-image-placeholder">
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                    <rect width="18" height="18" x="3" y="3" rx="2" ry="2"/>
-                    <circle cx="9" cy="9" r="2"/>
-                    <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
-                </svg>
-                <span><?php esc_html_e('No Image', 'mobooking'); ?></span>
-            </div>`;
-
-        return `
-            <div class="service-card" data-service-id="${service.service_id}">
-                <div class="service-card-image">
-                    ${imageHtml}
-                    <div class="service-status-badge status-${service.status}">
-                        ${service.status.charAt(0).toUpperCase() + service.status.slice(1)}
-                    </div>
-                </div>
-                
-                <div class="service-card-content">
-                    <div class="service-card-header">
-                        <div class="service-icon">
-                            ${serviceIcon}
-                        </div>
-                        <div class="service-details">
-                            <h3>${service.name}</h3>
-                            <div class="service-price">${priceFormatted}</div>
-                        </div>
-                    </div>
-                    
-                    ${service.description ? `<p class="service-description">${service.description}</p>` : ''}
-                    
-                    <div class="service-meta">
-                        <div class="service-meta-item">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <circle cx="12" cy="12" r="10"/>
-                                <polyline points="12 6 12 12 16 14"/>
-                            </svg>
-                            ${service.duration} <?php esc_html_e('min', 'mobooking'); ?>
-                        </div>
-                        
-                        ${optionsCount > 0 ? `
-                            <div class="service-meta-item">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M9 12l2 2 4-4"/>
-                                    <path d="M21 12c.552 0 1-.448 1-1V5c0-.552-.448-1-1-1H3c-.552 0-1 .448-1 1v6c0 .552.448 1 1 1h18z"/>
-                                </svg>
-                                ${optionsCount} <?php esc_html_e('Options', 'mobooking'); ?>
-                            </div>
-                        ` : ''}
-                        
-                        <div class="service-meta-item">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M8 2v4"/>
-                                <path d="M16 2v4"/>
-                                <rect width="18" height="18" x="3" y="4" rx="2"/>
-                                <path d="M3 10h18"/>
-                            </svg>
-                            ${createdDate}
-                        </div>
-                    </div>
-                    
-                    <div class="service-actions">
-                        <a href="<?php echo esc_url(site_url('/dashboard/service-edit/')); ?>${service.service_id}" class="btn btn-primary">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
-                            </svg>
-                            <?php esc_html_e('Edit', 'mobooking'); ?>
-                        </a>
-                        
-                        <button type="button" class="btn btn-secondary service-duplicate-btn" data-service-id="${service.service_id}">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
-                                <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
-                            </svg>
-                            <?php esc_html_e('Duplicate', 'mobooking'); ?>
-                        </button>
-                        
-                        <button type="button" class="btn btn-destructive service-delete-btn" data-service-id="${service.service_id}" data-service-name="${service.name}">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M3 6h18"/>
-                                <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
-                                <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
-                            </svg>
-                            <?php esc_html_e('Delete', 'mobooking'); ?>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-
-    // Render pagination
-    function renderPagination(totalPages, currentPage) {
-        if (totalPages <= 1) {
-            $paginationContainer.hide();
-            return;
-        }
-
-        const maxPagesToShow = 5;
-        let startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2));
-        let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
-
-        if (endPage - startPage + 1 < maxPagesToShow) {
-            startPage = Math.max(1, endPage - maxPagesToShow + 1);
-        }
-
-        let paginationHTML = `
-            <a href="#" class="pagination-link prev ${currentPage === 1 ? 'disabled' : ''}" data-page="${currentPage - 1}">
-                &laquo; <?php esc_html_e('Prev', 'mobooking'); ?>
-            </a>
-        `;
-
-        if (startPage > 1) {
-            paginationHTML += `<a href="#" class="pagination-link" data-page="1">1</a>`;
-            if (startPage > 2) {
-                paginationHTML += `<span class="pagination-ellipsis">&hellip;</span>`;
-            }
-        }
-
-        for (let i = startPage; i <= endPage; i++) {
-            paginationHTML += `<a href="#" class="pagination-link ${i === currentPage ? 'active' : ''}" data-page="${i}">${i}</a>`;
-        }
-
-        if (endPage < totalPages) {
-            if (endPage < totalPages - 1) {
-                paginationHTML += `<span class="pagination-ellipsis">&hellip;</span>`;
-            }
-            paginationHTML += `<a href="#" class="pagination-link" data-page="${totalPages}">${totalPages}</a>`;
-        }
-
-        paginationHTML += `
-            <a href="#" class="pagination-link next ${currentPage === totalPages ? 'disabled' : ''}" data-page="${currentPage + 1}">
-                <?php esc_html_e('Next', 'mobooking'); ?> &raquo;
-            </a>
-        `;
-
-        $paginationContainer.html(paginationHTML).show();
-    }
-
-    // Render empty state
-    function renderEmptyState(isFiltered = false) {
-        const emptyStateHTML = isFiltered ? `
-            <div class="empty-state">
-                <div class="empty-state-icon">
-                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="11" cy="11" r="8"></circle>
-                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                        <line x1="13" y1="9" x2="9" y2="13"></line>
-                        <line x1="9" y1="9" x2="13" y2="13"></line>
-                    </svg>
-                </div>
-                <h3 class="empty-state-title"><?php esc_html_e('No matching services found', 'mobooking'); ?></h3>
-                <p class="empty-state-description">
-                    <?php esc_html_e('Try adjusting your search or filter criteria to find what you\'re looking for.', 'mobooking'); ?>
-                </p>
-            </div>
-        ` : `
-            <div class="empty-state">
-                <div class="empty-state-icon">
-                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
-                        <polyline points="14 2 14 8 20 8" />
-                        <line x1="16" y1="13" x2="8" y2="13" />
-                        <line x1="16" y1="17" x2="8" y2="17" />
-                        <line x1="10" y1="9" x2="8" y2="9" />
-                    </svg>
-                </div>
-                <h3 class="empty-state-title"><?php esc_html_e('No services yet', 'mobooking'); ?></h3>
-                <p class="empty-state-description">
-                    <?php esc_html_e('Create your first service to start accepting bookings from customers.', 'mobooking'); ?>
-                </p>
-                <a href="<?php echo esc_url(site_url('/dashboard/service-edit/')); ?>" class="add-service-btn">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M5 12h14" />
-                        <path d="M12 5v14" />
-                    </svg>
-                    <?php esc_html_e('Create First Service', 'mobooking'); ?>
-                </a>
-            </div>
-        `;
-
-        $servicesListContainer.html(emptyStateHTML);
-        $paginationContainer.hide();
-    }
-
-    // Fetch services via AJAX
-    function fetchServices(page = 1) {
-        if (isLoading) return;
-
-        isLoading = true;
-        currentPage = page;
-
+    // AJAX search function
+    const fetchSearchResults = debounce(function() {
         const searchQuery = $searchInput.val().trim();
-        const status = $statusFilter.val();
-        const sort = $sortFilter.val().split('-');
-        const [orderby, order] = sort;
 
-        // Show loading state
         $loadingState.show();
         $servicesListContainer.hide();
 
-        // Abort previous request
         if (currentRequest) {
             currentRequest.abort();
         }
 
-        const requestData = {
-            action: 'mobooking_get_services',
-            nonce: mobooking_services_params.services_nonce,
-            search_query: searchQuery,
-            status_filter: status,
-            orderby: orderby,
-            order: order.toUpperCase(),
-            paged: currentPage,
-            per_page: 20,
-        };
-
         currentRequest = $.ajax({
-            url: mobooking_services_params.ajax_url,
-            type: 'POST',
-            data: requestData,
-            dataType: 'json',
-            success: function(response) {
-                isLoading = false;
-                $loadingState.hide();
-                $servicesListContainer.show();
-
-                if (response.success && response.data) {
-                    const { services, total_count, per_page, current_page } = response.data;
-                    const totalPages = Math.ceil(total_count / per_page);
-
-                    if (services && services.length > 0) {
-                        // Render services grid
-                        const servicesHTML = services.map(service => renderServiceCard(service)).join('');
-                        $servicesListContainer.html(`<div class="services-grid" id="services-grid">${servicesHTML}</div>`);
-                        
-                        // Update pagination
-                        renderPagination(totalPages, current_page);
-                    } else {
-                        // Show empty state
-                        const isFiltered = searchQuery || status;
-                        renderEmptyState(isFiltered);
-                    }
-                } else {
-                    showFeedback(response.data?.message || '<?php esc_html_e('Failed to load services. Please try again.', 'mobooking'); ?>', 'error');
-                    renderEmptyState();
-                }
-            },
-            error: function(jqXHR, textStatus, errorThrown) {
-                isLoading = false;
-                $loadingState.hide();
-                $servicesListContainer.show();
-
-                if (textStatus !== 'abort') {
-                    showFeedback('<?php esc_html_e('Network error. Please check your connection and try again.', 'mobooking'); ?>', 'error');
-                    renderEmptyState();
-                }
-            }
-        });
-    }
-
-    // Event handlers
-    const debouncedFetch = debounce(() => fetchServices(1), 300);
-
-    $searchInput.on('input', debouncedFetch);
-    $statusFilter.on('change', () => fetchServices(1));
-    $sortFilter.on('change', () => fetchServices(1));
-
-    // Pagination event handler
-    $(document).on('click', '.pagination-link:not(.disabled)', function(e) {
-        e.preventDefault();
-        const page = parseInt($(this).data('page'));
-        if (page && page !== currentPage) {
-            fetchServices(page);
-        }
-    });
-
-    // Service action handlers
-    $(document).on('click', '.service-delete-btn', function(e) {
-        e.preventDefault();
-        const serviceId = $(this).data('service-id');
-        const serviceName = $(this).data('service-name');
-        
-        $('#delete-confirmation-text').text(`<?php esc_html_e('Are you sure you want to delete the service', 'mobooking'); ?> "${serviceName}"? <?php esc_html_e('This action cannot be undone.', 'mobooking'); ?>`);
-        $('#delete-confirmation-modal').show();
-        $('#confirm-delete-btn').data('service-id', serviceId);
-    });
-
-    $(document).on('click', '.service-duplicate-btn', function(e) {
-        e.preventDefault();
-        const serviceId = $(this).data('service-id');
-        
-        // Show loading state on button
-        const $btn = $(this);
-        const originalHtml = $btn.html();
-        $btn.html('<div class="loading-spinner" style="width: 14px; height: 14px;"></div> <?php esc_html_e('Duplicating...', 'mobooking'); ?>').prop('disabled', true);
-
-        $.ajax({
-            url: mobooking_services_params.ajax_url,
+            url: "<?php echo esc_url(admin_url('admin-ajax.php')); ?>",
             type: 'POST',
             data: {
-                action: 'mobooking_duplicate_service',
-                nonce: mobooking_services_params.services_nonce,
-                service_id: serviceId
+                action: 'mobooking_search_services',
+                search_query: searchQuery,
+                nonce: "<?php echo wp_create_nonce('mobooking_search_services_nonce'); ?>"
             },
-            dataType: 'json',
             success: function(response) {
-                $btn.html(originalHtml).prop('disabled', false);
-                $('#delete-confirmation-modal').hide();
-                
-                if (response.success) {
-                    showFeedback(response.data.message || '<?php esc_html_e('Service deleted successfully.', 'mobooking'); ?>');
-                    fetchServices(currentPage); // Refresh current page
-                } else {
-                    showFeedback(response.data?.message || '<?php esc_html_e('Failed to delete service.', 'mobooking'); ?>', 'error');
-                }
+                $loadingState.hide();
+                $servicesListContainer.html(response).show();
             },
-            error: function() {
-                $btn.html(originalHtml).prop('disabled', false);
-                $('#delete-confirmation-modal').hide();
-                showFeedback('<?php esc_html_e('Network error. Please try again.', 'mobooking'); ?>', 'error');
+            error: function(jqXHR, textStatus) {
+                if (textStatus !== 'abort') {
+                    $loadingState.hide();
+                    $servicesListContainer.html('<p>An error occurred.</p>').show();
+                }
             }
         });
+    }, 300);
+
+    $searchInput.on('input', fetchSearchResults);
+
+    // --- Delete Confirmation Modal ---
+    let formToSubmit;
+
+    // Open modal
+    $(document).on('click', '.btn-destructive', function(e) {
+        e.preventDefault();
+        formToSubmit = $(this).closest('form');
+        const serviceName = formToSubmit.data('service-name') || 'this service';
+        $('#delete-confirmation-text').text(`Are you sure you want to delete "${serviceName}"? This action cannot be undone.`);
+        $modal.show();
     });
 
-    // Close modal when clicking outside
-    $(document).on('click', '.modal-overlay', function(e) {
+    // Confirm deletion
+    $('#confirm-delete-btn').on('click', function() {
+        if (formToSubmit) {
+            formToSubmit.submit();
+        }
+    });
+
+    // Cancel deletion / Close modal
+    function closeModal() {
+        $modal.hide();
+        formToSubmit = null;
+    }
+
+    $('#cancel-delete-btn, #modal-close-btn, .modal-overlay').on('click', function(e) {
         if (e.target === this) {
-            $('#delete-confirmation-modal').hide();
+            closeModal();
         }
     });
 
-    // Keyboard navigation for modal
     $(document).on('keydown', function(e) {
-        if (e.key === 'Escape' && $('#delete-confirmation-modal').is(':visible')) {
-            $('#delete-confirmation-modal').hide();
+        if (e.key === 'Escape' && $modal.is(':visible')) {
+            closeModal();
         }
     });
-
-    // Auto-refresh services every 30 seconds (optional)
-    // setInterval(() => {
-    //     if (!isLoading) {
-    //         fetchServices(currentPage);
-    //     }
-    // }, 30000);
-
-    console.log('MoBooking Services: Enhanced page initialized');
 });
 </script>
 
