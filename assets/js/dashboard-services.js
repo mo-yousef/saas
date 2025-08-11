@@ -54,10 +54,6 @@
       this.$statusFilter.on("change", () => this.handleStatusFilter());
       this.$sortFilter.on("change", () => this.handleSortFilter());
 
-      // Pagination events
-      $(document).on("click", ".pagination-link:not(.disabled)", (e) =>
-        this.handlePagination(e)
-      );
 
       // Service action events
       $(document).on("click", ".service-delete-btn", (e) =>
@@ -251,14 +247,6 @@
       this.fetchServices(1);
     }
 
-    handlePagination(e) {
-      e.preventDefault();
-      const page = parseInt($(e.currentTarget).data("page"));
-      if (page && page !== this.currentPage) {
-        this.fetchServices(page);
-        this.smoothScrollToTop();
-      }
-    }
 
     handleDeleteService(e) {
       e.preventDefault();
@@ -308,31 +296,30 @@
     }
 
     handleFetchSuccess(response) {
-      this.isLoading = false;
-      this.hideLoadingState();
+        this.isLoading = false;
+        this.hideLoadingState();
 
-      if (response.success && response.data) {
-        const { services, total_count, per_page, current_page } = response.data;
-        const totalPages = Math.ceil(total_count / per_page);
+        if (response.success && response.data) {
+            const { services } = response.data;
 
-        if (services && services.length > 0) {
-          this.renderServices(services);
-          this.renderPagination(totalPages, current_page);
+            if (services && services.length > 0) {
+                const servicesHTML = services.map((service) => this.renderServiceCard(service)).join("");
+                this.$servicesListContainer.html(`<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="services-grid">${servicesHTML}</div>`);
+            } else {
+                const isFiltered = this.filters.search || this.filters.status;
+                this.renderEmptyState(isFiltered);
+            }
+
+            // Update URL without page refresh (if history API is available)
+            this.updateURL();
         } else {
-          const isFiltered = this.filters.search || this.filters.status;
-          this.renderEmptyState(isFiltered);
+            this.showFeedback(
+                response.data?.message ||
+                "Failed to load services. Please try again.",
+                "error"
+            );
+            this.renderEmptyState();
         }
-
-        // Update URL without page refresh (if history API is available)
-        this.updateURL();
-      } else {
-        this.showFeedback(
-          response.data?.message ||
-            "Failed to load services. Please try again.",
-          "error"
-        );
-        this.renderEmptyState();
-      }
     }
 
     handleFetchError(jqXHR, textStatus, errorThrown) {
@@ -468,14 +455,6 @@
       $("#delete-confirmation-modal").hide();
     }
 
-    smoothScrollToTop() {
-      $("html, body").animate(
-        {
-          scrollTop: this.$servicesContent.offset().top - 100,
-        },
-        300
-      );
-    }
 
     updateURL() {
       if (history.pushState) {
@@ -500,122 +479,6 @@
       }
     }
 
-    // Render Methods
-    renderServices(services) {
-      const servicesHTML = services
-        .map((service) => this.renderServiceCard(service))
-        .join("");
-      this.$servicesListContainer.html(
-        `<div class="services-grid" id="services-grid">${servicesHTML}</div>`
-      );
-    }
-
-    renderServiceCard(service) {
-        const priceFormatted = this.formatCurrency(service.price);
-        const serviceIcon = service.icon_html || '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>';
-        const optionsCount = service.options ? service.options.length : 0;
-
-        const imageHtml = service.image_url
-            ? `<img src="${service.image_url}" alt="${service.name}" class="w-full h-48 object-cover">`
-            : `<div class="w-full h-48 bg-muted flex items-center justify-center">
-                   <svg class="w-12 h-12 text-muted-foreground" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
-               </div>`;
-
-        return `
-            <div class="card" data-service-id="${service.service_id}">
-                <div class="card-header p-0 relative">
-                    ${imageHtml}
-                    <div class="badge badge-${service.status} absolute top-2 right-2">${service.status.charAt(0).toUpperCase() + service.status.slice(1)}</div>
-                </div>
-                <div class="card-content p-4">
-                    <div class="flex items-start gap-4 mb-4">
-                        <div class="text-primary">${serviceIcon}</div>
-                        <div>
-                            <h3 class="font-semibold">${service.name}</h3>
-                            <p class="text-primary font-bold">${priceFormatted}</p>
-                        </div>
-                    </div>
-                    ${service.description ? `<p class="text-sm text-muted-foreground mb-4 line-clamp-3">${service.description}</p>` : ''}
-                    <div class="text-xs text-muted-foreground space-y-2">
-                        <div class="flex items-center gap-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                            <span>${service.duration} min</span>
-                        </div>
-                        ${optionsCount > 0 ? `
-                        <div class="flex items-center gap-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M9 12l2 2 4-4"/><path d="M21 12c.552 0 1-.448 1-1V5c0-.552-.448-1-1-1H3c-.552 0-1 .448-1 1v6c0 .552.448 1 1 1h18z"/></svg>
-                            <span>${optionsCount} Options</span>
-                        </div>
-                        ` : ''}
-                    </div>
-                </div>
-                <div class="card-footer p-4 flex gap-2">
-                    <a href="/dashboard/service-edit/?service_id=${service.service_id}" class="btn btn-primary w-full">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 mr-2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
-                        View
-                    </a>
-                    <button type="button" class="btn btn-destructive service-delete-btn" data-service-id="${service.service_id}" data-service-name="${service.name}">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
-                    </button>
-                </div>
-            </div>
-        `;
-    }
-
-    renderPagination(totalPages, currentPage) {
-      if (totalPages <= 1) {
-        this.$paginationContainer.hide();
-        return;
-      }
-
-      const maxPagesToShow = 5;
-      let startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2));
-      let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
-
-      if (endPage - startPage + 1 < maxPagesToShow) {
-        startPage = Math.max(1, endPage - maxPagesToShow + 1);
-      }
-
-      let paginationHTML = `
-                <a href="#" class="pagination-link prev ${
-                  currentPage === 1 ? "disabled" : ""
-                }" data-page="${currentPage - 1}" aria-label="Previous page">
-                    &laquo; Prev
-                </a>
-            `;
-
-      if (startPage > 1) {
-        paginationHTML += `<a href="#" class="pagination-link" data-page="1" aria-label="Page 1">1</a>`;
-        if (startPage > 2) {
-          paginationHTML += `<span class="pagination-ellipsis" aria-hidden="true">&hellip;</span>`;
-        }
-      }
-
-      for (let i = startPage; i <= endPage; i++) {
-        paginationHTML += `<a href="#" class="pagination-link ${
-          i === currentPage ? "active" : ""
-        }" data-page="${i}" aria-label="Page ${i}" ${
-          i === currentPage ? 'aria-current="page"' : ""
-        }>${i}</a>`;
-      }
-
-      if (endPage < totalPages) {
-        if (endPage < totalPages - 1) {
-          paginationHTML += `<span class="pagination-ellipsis" aria-hidden="true">&hellip;</span>`;
-        }
-        paginationHTML += `<a href="#" class="pagination-link" data-page="${totalPages}" aria-label="Page ${totalPages}">${totalPages}</a>`;
-      }
-
-      paginationHTML += `
-                <a href="#" class="pagination-link next ${
-                  currentPage === totalPages ? "disabled" : ""
-                }" data-page="${currentPage + 1}" aria-label="Next page">
-                    Next &raquo;
-                </a>
-            `;
-
-      this.$paginationContainer.html(paginationHTML).show();
-    }
 
     renderEmptyState(isFiltered = false) {
       const emptyStateHTML = isFiltered
