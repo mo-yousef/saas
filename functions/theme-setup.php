@@ -324,34 +324,19 @@ if ( is_page_template('templates/booking-form-public.php') || $page_type_for_scr
 
     // Dashboard-specific scripts (only load if we're actually on a dashboard page)
     if (!empty($current_page_slug)) {
-        // Enqueue Dialog component assets globally for the dashboard
-        wp_enqueue_style('mobooking-dialog', MOBOOKING_THEME_URI . 'assets/css/dialog.css', array(), MOBOOKING_VERSION);
+        // Enqueue the main dashboard stylesheet
+        wp_enqueue_style('mobooking-dashboard-main', MOBOOKING_THEME_URI . 'assets/css/dashboard-main.css', array('mobooking-style'), MOBOOKING_VERSION);
+
+        // Enqueue scripts
         wp_enqueue_script('mobooking-dialog', MOBOOKING_THEME_URI . 'assets/js/dialog.js', array(), MOBOOKING_VERSION, true);
-
-        // Enqueue Toast Notification assets
-        wp_enqueue_style('mobooking-toast', MOBOOKING_THEME_URI . 'assets/css/toast.css', array(), MOBOOKING_VERSION);
         wp_enqueue_script('mobooking-toast', MOBOOKING_THEME_URI . 'assets/js/toast.js', array('jquery'), MOBOOKING_VERSION, true);
-
-
-        // Enqueue the new header script
         wp_enqueue_script('mobooking-dashboard-header', MOBOOKING_THEME_URI . 'assets/js/dashboard-header.js', array('jquery'), MOBOOKING_VERSION, true);
         wp_localize_script('mobooking-dashboard-header', 'mobooking_dashboard_params', [
             'ajax_url' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce('mobooking_dashboard_nonce')
         ]);
 
-        // NOTE: The main dashboard script loading is handled by mobooking_enqueue_dashboard_scripts()
-        // which is called from the router. This section is just for any additional scripts
-        // that need to be loaded in the general scripts function.
-
-        // You can add any additional dashboard-related scripts here if needed
-        // For example, global dashboard styles or scripts that should load on all dashboard pages
-
-        // Example (uncomment if needed):
-        // wp_enqueue_style('mobooking-dashboard-global', MOBOOKING_THEME_URI . 'assets/css/dashboard-global.css', array('mobooking-style'), MOBOOKING_VERSION);
-
         if ( $current_page_slug === 'workers' ) {
-            wp_enqueue_style( 'mobooking-dashboard-workers-enhanced', MOBOOKING_THEME_URI . 'assets/css/dashboard-workers-enhanced.css', array('mobooking-style'), MOBOOKING_VERSION );
             wp_enqueue_script( 'mobooking-dashboard-workers', MOBOOKING_THEME_URI . 'assets/js/dashboard-workers.js', array( 'jquery', 'mobooking-dialog' ), MOBOOKING_VERSION, true );
             wp_localize_script( 'mobooking-dashboard-workers', 'mobooking_workers_params', array(
                 'ajax_url' => admin_url( 'admin-ajax.php' ),
