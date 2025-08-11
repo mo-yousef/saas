@@ -67,23 +67,10 @@ function get_default_service_icon() {
         <!-- Controls Section -->
         <div class="mb-6 p-4 bg-card rounded-lg border">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div class="relative">
+                <div class="relative md:col-span-3">
                     <svg class="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21 21-4.3-4.3"/><circle cx="11" cy="11" r="8"/></svg>
                     <input type="text" id="services-search" class="input pl-10" placeholder="<?php esc_attr_e('Search services...', 'mobooking'); ?>" value="">
                 </div>
-                <select id="status-filter" class="select">
-                    <option value=""><?php esc_html_e('All Statuses', 'mobooking'); ?></option>
-                    <option value="active"><?php esc_html_e('Active', 'mobooking'); ?></option>
-                    <option value="inactive"><?php esc_html_e('Inactive', 'mobooking'); ?></option>
-                </select>
-                <select id="sort-filter" class="select">
-                    <option value="name-asc"><?php esc_html_e('Name A-Z', 'mobooking'); ?></option>
-                    <option value="name-desc"><?php esc_html_e('Name Z-A', 'mobooking'); ?></option>
-                    <option value="price-asc"><?php esc_html_e('Price Low-High', 'mobooking'); ?></option>
-                    <option value="price-desc"><?php esc_html_e('Price High-Low', 'mobooking'); ?></option>
-                    <option value="date-asc"><?php esc_html_e('Oldest First', 'mobooking'); ?></option>
-                    <option value="date-desc"><?php esc_html_e('Newest First', 'mobooking'); ?></option>
-                </select>
             </div>
         </div>
         
