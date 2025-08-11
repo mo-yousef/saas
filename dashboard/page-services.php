@@ -49,597 +49,66 @@ function get_default_service_icon() {
 }
 ?>
 
-<style>
-/* Enhanced Services Page Styles */
-:root {
-    --primary: 222.2 84% 4.9%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222.2 84% 4.9%;
-    --muted: 210 40% 96%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96%;
-    --destructive: 0 84.2% 60.2%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --radius: 0.5rem;
-}
-
-.services-dashboard {
-    min-height: 100vh;
-    background: linear-gradient(135deg, hsl(210, 40%, 99%) 0%, hsl(210, 40%, 96%) 100%);
-    padding: 2rem;
-}
-
-.services-container {
-    max-width: 1400px;
-    margin: 0 auto;
-}
-
-/* Header Section */
-.services-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 2rem;
-    padding: 1.5rem;
-    background: hsl(var(--card));
-    border: 1px solid hsl(var(--border));
-    border-radius: var(--radius);
-    box-shadow: 0 2px 8px hsl(var(--primary) / 0.05);
-}
-
-.header-content {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-}
-
-.header-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 3rem;
-    height: 3rem;
-    background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary) / 0.8) 100%);
-    color: hsl(var(--primary-foreground));
-    border-radius: var(--radius);
-    box-shadow: 0 4px 12px hsl(var(--primary) / 0.2);
-}
-
-.services-title {
-    font-size: 2rem;
-    font-weight: 700;
-    background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary) / 0.7) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    margin: 0;
-}
-
-.add-service-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary) / 0.9) 100%);
-    color: hsl(var(--primary-foreground));
-    border: none;
-    padding: 0.75rem 1.5rem;
-    border-radius: var(--radius);
-    font-weight: 500;
-    text-decoration: none;
-    transition: all 0.2s ease;
-    box-shadow: 0 2px 8px hsl(var(--primary) / 0.2);
-}
-
-.add-service-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 16px hsl(var(--primary) / 0.3);
-    color: hsl(var(--primary-foreground));
-    text-decoration: none;
-}
-
-/* Controls Section */
-.services-controls {
-    display: grid;
-    grid-template-columns: 2fr 1fr 1fr;
-    gap: 1rem;
-    margin-bottom: 2rem;
-    padding: 1.5rem;
-    background: hsl(var(--card));
-    border: 1px solid hsl(var(--border));
-    border-radius: var(--radius);
-    box-shadow: 0 2px 8px hsl(var(--primary) / 0.05);
-}
-
-.search-container {
-    position: relative;
-}
-
-.search-input {
-    width: 100%;
-    padding: 0.75rem 0.75rem 0.75rem 2.5rem;
-    border: 1px solid hsl(var(--input));
-    border-radius: var(--radius);
-    background: hsl(var(--background));
-    font-size: 0.95rem;
-    transition: all 0.2s ease;
-}
-
-.search-input:focus {
-    outline: none;
-    border-color: hsl(var(--ring));
-    box-shadow: 0 0 0 2px hsl(var(--ring) / 0.2);
-}
-
-.search-icon {
-    position: absolute;
-    left: 0.75rem;
-    top: 50%;
-    transform: translateY(-50%);
-    color: hsl(var(--muted-foreground));
-    pointer-events: none;
-}
-
-.filter-select {
-    padding: 0.75rem;
-    border: 1px solid hsl(var(--input));
-    border-radius: var(--radius);
-    background: hsl(var(--background));
-    font-size: 0.95rem;
-    transition: all 0.2s ease;
-}
-
-.filter-select:focus {
-    outline: none;
-    border-color: hsl(var(--ring));
-    box-shadow: 0 0 0 2px hsl(var(--ring) / 0.2);
-}
-
-/* Content Section */
-.services-content {
-    background: hsl(var(--card));
-    border: 1px solid hsl(var(--border));
-    border-radius: var(--radius);
-    padding: 2rem;
-    box-shadow: 0 2px 8px hsl(var(--primary) / 0.05);
-}
-
-/* Loading State */
-.loading-state {
-    display: none;
-    text-align: center;
-    padding: 2rem;
-    color: hsl(var(--muted-foreground));
-}
-
-.loading-spinner {
-    display: inline-block;
-    width: 2rem;
-    height: 2rem;
-    border: 2px solid hsl(var(--border));
-    border-top: 2px solid hsl(var(--primary));
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-/* Services Grid */
-.services-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 2rem;
-}
-
-/* Service Cards */
-.service-card {
-    background: hsl(var(--card));
-    border: 1px solid hsl(var(--border));
-    border-radius: var(--radius);
-    overflow: hidden;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 8px hsl(var(--primary) / 0.05);
-    position: relative;
-}
-
-.service-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 25px hsl(var(--primary) / 0.15);
-    border-color: hsl(var(--primary) / 0.3);
-}
-
-.service-card-image {
-    position: relative;
-    height: 180px;
-    background: linear-gradient(135deg, hsl(var(--muted)) 0%, hsl(var(--muted) / 0.7) 100%);
-    overflow: hidden;
-}
-
-.service-card-image img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform 0.3s ease;
-}
-
-.service-card:hover .service-card-image img {
-    transform: scale(1.05);
-}
-
-.service-image-placeholder {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
-    color: hsl(var(--muted-foreground));
-    flex-direction: column;
-    gap: 0.5rem;
-}
-
-.service-status-badge {
-    position: absolute;
-    top: 0.75rem;
-    right: 0.75rem;
-    padding: 0.25rem 0.75rem;
-    border-radius: 9999px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.025em;
-    backdrop-filter: blur(8px);
-}
-
-.status-active {
-    background: hsl(142 76% 36% / 0.9);
-    color: hsl(var(--background));
-    border: 1px solid hsl(142 76% 36%);
-}
-
-.status-inactive {
-    background: hsl(var(--muted) / 0.9);
-    color: hsl(var(--foreground));
-    border: 1px solid hsl(var(--border));
-}
-
-.service-card-content {
-    padding: 1.5rem;
-}
-
-.service-card-header {
-    display: flex;
-    align-items: flex-start;
-    gap: 1rem;
-    margin-bottom: 1rem;
-}
-
-.service-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 2.5rem;
-    height: 2.5rem;
-    background: hsl(var(--accent));
-    border-radius: var(--radius);
-    color: hsl(var(--primary));
-    flex-shrink: 0;
-}
-
-.service-icon svg {
-    width: 1.25rem;
-    height: 1.25rem;
-}
-
-.service-details h3 {
-    font-size: 1.25rem;
-    font-weight: 600;
-    margin: 0 0 0.25rem 0;
-    color: hsl(var(--foreground));
-}
-
-.service-price {
-    font-size: 1.125rem;
-    font-weight: 700;
-    color: hsl(var(--primary));
-}
-
-.service-description {
-    color: hsl(var(--muted-foreground));
-    line-height: 1.6;
-    margin-bottom: 1rem;
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-}
-
-.service-meta {
-    display: flex;
-    gap: 1rem;
-    margin-bottom: 1rem;
-    font-size: 0.875rem;
-    color: hsl(var(--muted-foreground));
-}
-
-.service-meta-item {
-    display: flex;
-    align-items: center;
-    gap: 0.25rem;
-}
-
-.service-actions {
-    display: flex;
-    gap: 0.5rem;
-    margin-top: auto;
-}
-
-.btn {
-    padding: 0.5rem 1rem;
-    border-radius: var(--radius);
-    font-size: 0.875rem;
-    font-weight: 500;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    transition: all 0.2s ease;
-    border: 1px solid transparent;
-    cursor: pointer;
-}
-
-.btn-primary {
-    background: hsl(var(--primary));
-    color: hsl(var(--primary-foreground));
-    border-color: hsl(var(--primary));
-}
-
-.btn-primary:hover {
-    background: hsl(var(--primary) / 0.9);
-    color: hsl(var(--primary-foreground));
-    text-decoration: none;
-}
-
-.btn-secondary {
-    background: hsl(var(--secondary));
-    color: hsl(var(--secondary-foreground));
-    border-color: hsl(var(--border));
-}
-
-.btn-secondary:hover {
-    background: hsl(var(--secondary) / 0.8);
-    color: hsl(var(--secondary-foreground));
-    text-decoration: none;
-}
-
-.btn-destructive {
-    background: hsl(var(--destructive));
-    color: hsl(var(--primary-foreground));
-    border-color: hsl(var(--destructive));
-}
-
-.btn-destructive:hover {
-    background: hsl(var(--destructive) / 0.9);
-    color: hsl(var(--primary-foreground));
-    text-decoration: none;
-}
-
-/* Empty State */
-.empty-state {
-    text-align: center;
-    padding: 4rem 2rem;
-    color: hsl(var(--muted-foreground));
-}
-
-.empty-state-icon {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 1rem;
-    color: hsl(var(--muted-foreground));
-}
-
-.empty-state-title {
-    font-size: 1.5rem;
-    font-weight: 600;
-    margin-bottom: 0.5rem;
-    color: hsl(var(--foreground));
-}
-
-.empty-state-description {
-    margin-bottom: 1.5rem;
-    line-height: 1.6;
-}
-
-/* Pagination */
-.services-pagination {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 0.5rem;
-    margin-top: 2rem;
-}
-
-.pagination-link {
-    padding: 0.5rem 0.75rem;
-    border: 1px solid hsl(var(--border));
-    border-radius: var(--radius);
-    color: hsl(var(--foreground));
-    text-decoration: none;
-    transition: all 0.2s ease;
-}
-
-.pagination-link:hover {
-    background: hsl(var(--accent));
-    border-color: hsl(var(--primary));
-    color: hsl(var(--foreground));
-    text-decoration: none;
-}
-
-.pagination-link.active {
-    background: hsl(var(--primary));
-    color: hsl(var(--primary-foreground));
-    border-color: hsl(var(--primary));
-}
-
-.pagination-link.disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    pointer-events: none;
-}
-
-.pagination-ellipsis {
-    padding: 0.5rem 0.25rem;
-    color: hsl(var(--muted-foreground));
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-    .services-dashboard {
-        padding: 1rem;
-    }
-    
-    .services-header {
-        flex-direction: column;
-        gap: 1rem;
-        text-align: center;
-    }
-    
-    .services-controls {
-        grid-template-columns: 1fr;
-        gap: 0.75rem;
-    }
-    
-    .services-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .service-card-header {
-        flex-direction: column;
-        gap: 0.75rem;
-    }
-    
-    .service-actions {
-        flex-direction: column;
-    }
-}
-
-/* Feedback Messages */
-.feedback-message {
-    padding: 1rem;
-    border-radius: var(--radius);
-    margin-bottom: 1rem;
-    border: 1px solid;
-}
-
-.feedback-success {
-    background: hsl(142 76% 36% / 0.1);
-    color: hsl(142 76% 36%);
-    border-color: hsl(142 76% 36% / 0.3);
-}
-
-.feedback-error {
-    background: hsl(var(--destructive) / 0.1);
-    color: hsl(var(--destructive));
-    border-color: hsl(var(--destructive) / 0.3);
-}
-</style>
 
 <div class="services-dashboard">
-    <div class="services-container">
+    <div class="container mx-auto p-4 md:p-6 lg:p-8">
         <!-- Header Section -->
-        <div class="services-header">
-            <div class="header-content">
-                <div class="header-icon">
+        <div class="flex items-center justify-between mb-6">
+            <div class="flex items-center gap-4">
+                <div class="bg-primary text-primary-foreground p-3 rounded-lg">
                     <?php echo mobooking_get_dashboard_menu_icon('services'); ?>
                 </div>
-                <h1 class="services-title"><?php esc_html_e('Manage Your Services', 'mobooking'); ?></h1>
+                <h1 class="text-3xl font-bold"><?php esc_html_e('Manage Your Services', 'mobooking'); ?></h1>
             </div>
-            <a href="<?php echo esc_url(site_url('/dashboard/service-edit/')); ?>" class="add-service-btn">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M5 12h14" />
-                    <path d="M12 5v14" />
-                </svg>
+            <a href="<?php echo esc_url(site_url('/dashboard/service-edit/')); ?>" class="btn btn-primary">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 mr-2"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
                 <?php esc_html_e('Add New Service', 'mobooking'); ?>
             </a>
         </div>
 
         <!-- Controls Section -->
-        <div class="services-controls">
-            <div class="search-container">
-                <input
-                    type="text"
-                    id="services-search"
-                    class="search-input"
-                    placeholder="<?php esc_attr_e('Search services...', 'mobooking'); ?>"
-                    value=""
-                >
-                <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="m21 21-4.3-4.3" />
-                    <circle cx="11" cy="11" r="8" />
-                </svg>
+        <div class="mb-6 p-4 bg-card rounded-lg border">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="relative">
+                    <svg class="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21 21-4.3-4.3"/><circle cx="11" cy="11" r="8"/></svg>
+                    <input type="text" id="services-search" class="input pl-10" placeholder="<?php esc_attr_e('Search services...', 'mobooking'); ?>" value="">
+                </div>
+                <select id="status-filter" class="select">
+                    <option value=""><?php esc_html_e('All Statuses', 'mobooking'); ?></option>
+                    <option value="active"><?php esc_html_e('Active', 'mobooking'); ?></option>
+                    <option value="inactive"><?php esc_html_e('Inactive', 'mobooking'); ?></option>
+                </select>
+                <select id="sort-filter" class="select">
+                    <option value="name-asc"><?php esc_html_e('Name A-Z', 'mobooking'); ?></option>
+                    <option value="name-desc"><?php esc_html_e('Name Z-A', 'mobooking'); ?></option>
+                    <option value="price-asc"><?php esc_html_e('Price Low-High', 'mobooking'); ?></option>
+                    <option value="price-desc"><?php esc_html_e('Price High-Low', 'mobooking'); ?></option>
+                    <option value="date-asc"><?php esc_html_e('Oldest First', 'mobooking'); ?></option>
+                    <option value="date-desc"><?php esc_html_e('Newest First', 'mobooking'); ?></option>
+                </select>
             </div>
-
-            <select id="status-filter" class="filter-select">
-                <option value=""><?php esc_html_e('All Statuses', 'mobooking'); ?></option>
-                <option value="active"><?php esc_html_e('Active', 'mobooking'); ?></option>
-                <option value="inactive"><?php esc_html_e('Inactive', 'mobooking'); ?></option>
-            </select>
-
-            <select id="sort-filter" class="filter-select">
-                <option value="name-asc"><?php esc_html_e('Name A-Z', 'mobooking'); ?></option>
-                <option value="name-desc"><?php esc_html_e('Name Z-A', 'mobooking'); ?></option>
-                <option value="price-asc"><?php esc_html_e('Price Low-High', 'mobooking'); ?></option>
-                <option value="price-desc"><?php esc_html_e('Price High-Low', 'mobooking'); ?></option>
-                <option value="date-asc"><?php esc_html_e('Oldest First', 'mobooking'); ?></option>
-                <option value="date-desc"><?php esc_html_e('Newest First', 'mobooking'); ?></option>
-            </select>
         </div>
         
         <!-- Content Section -->
-        <div class="services-content">
-            <!-- Feedback Messages Container -->
+        <div class="bg-card rounded-lg border p-4">
             <div id="services-feedback-container"></div>
-            
-            <!-- Loading State -->
-            <div id="loading-state" class="loading-state">
+            <div id="loading-state" class="loading-state" style="display: none;">
                 <div class="loading-spinner"></div>
                 <p><?php esc_html_e('Loading services...', 'mobooking'); ?></p>
             </div>
-            
-            <!-- Services List Container -->
             <div id="services-list-container">
                 <?php if (empty($services_list)): ?>
-                    <div class="empty-state">
-                        <div class="empty-state-icon">
-                            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
-                                <polyline points="14 2 14 8 20 8" />
-                                <line x1="16" y1="13" x2="8" y2="13" />
-                                <line x1="16" y1="17" x2="8" y2="17" />
-                                <line x1="10" y1="9" x2="8" y2="9" />
-                            </svg>
-                        </div>
-                        <h3 class="empty-state-title"><?php esc_html_e('No services yet', 'mobooking'); ?></h3>
-                        <p class="empty-state-description">
-                            <?php esc_html_e('Create your first service to start accepting bookings from customers.', 'mobooking'); ?>
-                        </p>
-                        <a href="<?php echo esc_url(site_url('/dashboard/service-edit/')); ?>" class="add-service-btn">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M5 12h14" />
-                                <path d="M12 5v14" />
-                            </svg>
+                    <div class="text-center py-12">
+                        <svg class="mx-auto h-12 w-12 text-muted-foreground" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>
+                        <h3 class="mt-4 text-lg font-semibold"><?php esc_html_e('No services yet', 'mobooking'); ?></h3>
+                        <p class="mt-2 text-sm text-muted-foreground"><?php esc_html_e('Create your first service to start accepting bookings.', 'mobooking'); ?></p>
+                        <a href="<?php echo esc_url(site_url('/dashboard/service-edit/')); ?>" class="btn btn-primary mt-6">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 mr-2"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
                             <?php esc_html_e('Create First Service', 'mobooking'); ?>
                         </a>
                     </div>
                 <?php else: ?>
-                    <div class="services-grid" id="services-grid">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" id="services-grid">
                         <?php foreach ($services_list as $service): 
                             $price_formatted = format_currency($service['price'], $currency_symbol, $currency_pos);
                             $service_icon = !empty($service['icon']) 
@@ -647,135 +116,59 @@ function get_default_service_icon() {
                                 : get_default_service_icon();
                             $options_count = !empty($service['options']) ? count($service['options']) : 0;
                         ?>
-                            <div class="service-card" data-service-id="<?php echo esc_attr($service['service_id']); ?>">
-                                <div class="service-card-image">
+                            <div class="card" data-service-id="<?php echo esc_attr($service['service_id']); ?>">
+                                <div class="card-header p-0 relative">
                                     <?php if (!empty($service['image_url'])): ?>
-                                        <img src="<?php echo esc_url($service['image_url']); ?>" alt="<?php echo esc_attr($service['name']); ?>">
+                                        <img src="<?php echo esc_url($service['image_url']); ?>" alt="<?php echo esc_attr($service['name']); ?>" class="w-full h-48 object-cover">
                                     <?php else: ?>
-                                        <div class="service-image-placeholder">
-                                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                                                <rect width="18" height="18" x="3" y="3" rx="2" ry="2"/>
-                                                <circle cx="9" cy="9" r="2"/>
-                                                <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
-                                            </svg>
-                                            <span><?php esc_html_e('No Image', 'mobooking'); ?></span>
+                                        <div class="w-full h-48 bg-muted flex items-center justify-center">
+                                            <svg class="w-12 h-12 text-muted-foreground" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
                                         </div>
                                     <?php endif; ?>
-                                    
-                                    <div class="service-status-badge status-<?php echo esc_attr($service['status']); ?>">
-                                        <?php echo esc_html(ucfirst($service['status'])); ?>
+                                    <div class="badge badge-<?php echo esc_attr($service['status']); ?> absolute top-2 right-2"><?php echo esc_html(ucfirst($service['status'])); ?></div>
+                                </div>
+                                <div class="card-content p-4">
+                                    <div class="flex items-start gap-4 mb-4">
+                                        <div class="text-primary"><?php echo $service_icon; ?></div>
+                                        <div>
+                                            <h3 class="font-semibold"><?php echo esc_html($service['name']); ?></h3>
+                                            <p class="text-primary font-bold"><?php echo esc_html($price_formatted); ?></p>
+                                        </div>
+                                    </div>
+                                    <?php if (!empty($service['description'])): ?>
+                                        <p class="text-sm text-muted-foreground mb-4 line-clamp-3"><?php echo esc_html($service['description']); ?></p>
+                                    <?php endif; ?>
+                                    <div class="text-xs text-muted-foreground space-y-2">
+                                        <div class="flex items-center gap-2">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                                            <span><?php echo esc_html($service['duration']); ?> <?php esc_html_e('min', 'mobooking'); ?></span>
+                                        </div>
+                                        <?php if ($options_count > 0): ?>
+                                        <div class="flex items-center gap-2">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M9 12l2 2 4-4"/><path d="M21 12c.552 0 1-.448 1-1V5c0-.552-.448-1-1-1H3c-.552 0-1 .448-1 1v6c0 .552.448 1 1 1h18z"/></svg>
+                                            <span><?php echo esc_html($options_count); ?> <?php esc_html_e('Options', 'mobooking'); ?></span>
+                                        </div>
+                                        <?php endif; ?>
                                     </div>
                                 </div>
-                                
-                                <div class="service-card-content">
-                                    <div class="service-card-header">
-                                        <div class="service-icon">
-                                            <?php echo $service_icon; // Already escaped in get_service_icon_html ?>
-                                        </div>
-                                        <div class="service-details">
-                                            <h3><?php echo esc_html($service['name']); ?></h3>
-                                            <div class="service-price"><?php echo esc_html($price_formatted); ?></div>
-                                        </div>
-                                    </div>
-                                    
-                                    <?php if (!empty($service['description'])): ?>
-                                        <p class="service-description"><?php echo esc_html($service['description']); ?></p>
-                                    <?php endif; ?>
-                                    
-                                    <div class="service-meta">
-                                        <div class="service-meta-item">
-                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                <circle cx="12" cy="12" r="10"/>
-                                                <polyline points="12 6 12 12 16 14"/>
-                                            </svg>
-                                            <?php echo esc_html($service['duration']); ?> <?php esc_html_e('min', 'mobooking'); ?>
-                                        </div>
-                                        
-                                        <?php if ($options_count > 0): ?>
-                                            <div class="service-meta-item">
-                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                    <path d="M9 12l2 2 4-4"/>
-                                                    <path d="M21 12c.552 0 1-.448 1-1V5c0-.552-.448-1-1-1H3c-.552 0-1 .448-1 1v6c0 .552.448 1 1 1h18z"/>
-                                                </svg>
-                                                <?php echo esc_html($options_count); ?> <?php esc_html_e('Options', 'mobooking'); ?>
-                                            </div>
-                                        <?php endif; ?>
-                                        
-                                        <div class="service-meta-item">
-                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                <path d="M8 2v4"/>
-                                                <path d="M16 2v4"/>
-                                                <rect width="18" height="18" x="3" y="4" rx="2"/>
-                                                <path d="M3 10h18"/>
-                                            </svg>
-                                            <?php echo esc_html(date_i18n(get_option('date_format'), strtotime($service['created_at']))); ?>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="service-actions">
-                                        <a href="<?php echo esc_url(site_url('/dashboard/service-edit/' . $service['service_id'])); ?>" class="btn btn-primary">
-                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
-                                            </svg>
-                                            <?php esc_html_e('Edit', 'mobooking'); ?>
-                                        </a>
-                                        
-                                        <button type="button" class="btn btn-secondary service-duplicate-btn" data-service-id="<?php echo esc_attr($service['service_id']); ?>">
-                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
-                                                <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
-                                            </svg>
-                                            <?php esc_html_e('Duplicate', 'mobooking'); ?>
-                                        </button>
-                                        
-                                        <button type="button" class="btn btn-destructive service-delete-btn" data-service-id="<?php echo esc_attr($service['service_id']); ?>" data-service-name="<?php echo esc_attr($service['name']); ?>">
-                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                <path d="M3 6h18"/>
-                                                <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
-                                                <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
-                                            </svg>
-                                            <?php esc_html_e('Delete', 'mobooking'); ?>
-                                        </button>
-                                    </div>
+                                <div class="card-footer p-4 flex gap-2">
+                                    <a href="<?php echo esc_url(site_url('/dashboard/service-edit/' . $service['service_id'])); ?>" class="btn btn-primary w-full">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 mr-2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+                                        <?php esc_html_e('Edit', 'mobooking'); ?>
+                                    </a>
+                                    <button type="button" class="btn btn-secondary service-duplicate-btn" data-service-id="<?php echo esc_attr($service['service_id']); ?>">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+                                    </button>
+                                    <button type="button" class="btn btn-destructive service-delete-btn" data-service-id="<?php echo esc_attr($service['service_id']); ?>" data-service-name="<?php echo esc_attr($service['name']); ?>">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                                    </button>
                                 </div>
                             </div>
                         <?php endforeach; ?>
                     </div>
-                    
-                    <!-- Pagination -->
                     <?php if ($total_pages > 1): ?>
-                        <div class="services-pagination" id="services-pagination-container">
-                            <a href="#" class="pagination-link prev <?php echo $current_page === 1 ? 'disabled' : ''; ?>" data-page="<?php echo $current_page - 1; ?>">&laquo; <?php esc_html_e('Prev', 'mobooking'); ?></a>
-                            
-                            <?php
-                            $maxPagesToShow = 5;
-                            $startPage = max(1, $current_page - floor($maxPagesToShow / 2));
-                            $endPage = min($total_pages, $startPage + $maxPagesToShow - 1);
-                            
-                            if ($endPage - $startPage + 1 < $maxPagesToShow) {
-                                $startPage = max(1, $endPage - $maxPagesToShow + 1);
-                            }
-
-                            if ($startPage > 1) {
-                                echo '<a href="#" class="pagination-link" data-page="1">1</a>';
-                                if ($startPage > 2) {
-                                    echo '<span class="pagination-ellipsis">&hellip;</span>';
-                                }
-                            }
-
-                            for ($i = $startPage; $i <= $endPage; $i++) {
-                                echo '<a href="#" class="pagination-link ' . ($i === $current_page ? 'active' : '') . '" data-page="' . $i . '">' . $i . '</a>';
-                            }
-
-                            if ($endPage < $total_pages) {
-                                if ($endPage < $total_pages - 1) {
-                                    echo '<span class="pagination-ellipsis">&hellip;</span>';
-                                }
-                                echo '<a href="#" class="pagination-link" data-page="' . $total_pages . '">' . $total_pages . '</a>';
-                            }
-                            ?>
-                            
-                            <a href="#" class="pagination-link next <?php echo $current_page === $total_pages ? 'disabled' : ''; ?>" data-page="<?php echo $current_page + 1; ?>"><?php esc_html_e('Next', 'mobooking'); ?> &raquo;</a>
+                        <div class="flex justify-center mt-6" id="services-pagination-container">
+                            <!-- Pagination links will be injected here by JavaScript -->
                         </div>
                     <?php endif; ?>
                 <?php endif; ?>
