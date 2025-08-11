@@ -173,7 +173,51 @@ wp_nonce_field('mobooking_services_nonce', 'mobooking_services_nonce_field');
         
         <!-- Pagination Container -->
         <div id="services-pagination-container" class="pagination-container">
-            <!-- Pagination will be rendered here by JavaScript -->
+            <?php if ($total_pages > 1): ?>
+                <div class="pagination-links">
+                    <a href="#" class="pagination-link prev <?php echo $current_page === 1 ? 'disabled' : ''; ?>" data-page="<?php echo $current_page - 1; ?>">&laquo; Prev</a>
+                    <?php
+                    $maxPagesToShow = 5;
+                    $startPage;
+                    $endPage;
+
+                    if ($total_pages <= $maxPagesToShow) {
+                        $startPage = 1;
+                        $endPage = $total_pages;
+                    } else {
+                        if ($current_page <= ceil($maxPagesToShow / 2)) {
+                            $startPage = 1;
+                            $endPage = $maxPagesToShow;
+                        } elseif ($current_page + floor($maxPagesToShow / 2) >= $total_pages) {
+                            $startPage = $total_pages - $maxPagesToShow + 1;
+                            $endPage = $total_pages;
+                        } else {
+                            $startPage = $current_page - floor($maxPagesToShow / 2);
+                            $endPage = $current_page + floor($maxPagesToShow / 2);
+                        }
+                    }
+
+                    if ($startPage > 1) {
+                        echo '<a href="#" class="pagination-link" data-page="1">1</a>';
+                        if ($startPage > 2) {
+                            echo '<span class="pagination-ellipsis">&hellip;</span>';
+                        }
+                    }
+
+                    for ($i = $startPage; $i <= $endPage; $i++) {
+                        echo '<a href="#" class="pagination-link ' . ($i === $current_page ? 'active' : '') . '" data-page="' . $i . '">' . $i . '</a>';
+                    }
+
+                    if ($endPage < $total_pages) {
+                        if ($endPage < $total_pages - 1) {
+                            echo '<span class="pagination-ellipsis">&hellip;</span>';
+                        }
+                        echo '<a href="#" class="pagination-link" data-page="' . $total_pages . '">' . $total_pages . '</a>';
+                    }
+                    ?>
+                    <a href="#" class="pagination-link next <?php echo $current_page === $total_pages ? 'disabled' : ''; ?>" data-page="<?php echo $current_page + 1; ?>">Next &raquo;</a>
+                </div>
+            <?php endif; ?>
         </div>
     </div>
 </div>
