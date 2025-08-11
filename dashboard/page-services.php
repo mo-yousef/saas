@@ -48,42 +48,41 @@ function get_default_service_icon() {
 ?>
 
 
-<div class="services-dashboard">
-    <div class="container mx-auto p-4 md:p-6 lg:p-8">
-        <!-- Header Section -->
-        <div class="flex items-center justify-between mb-6">
-            <div class="flex items-center gap-4">
-                <div class="bg-primary text-primary-foreground p-3 rounded-lg">
-                    <?php echo mobooking_get_dashboard_menu_icon('services'); ?>
-                </div>
-                <h1 class="text-3xl font-bold"><?php esc_html_e('Manage Your Services', 'mobooking'); ?></h1>
-            </div>
-            <a href="<?php echo esc_url(site_url('/dashboard/service-edit/')); ?>" class="btn btn-primary">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 mr-2"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
-                <?php esc_html_e('Add New Service', 'mobooking'); ?>
-            </a>
+<div class="wrap mobooking-dashboard-wrap mobooking-services-page-wrapper">
+    <div class="mobooking-page-header">
+        <div class="mobooking-page-header-heading">
+            <span class="mobooking-page-header-icon">
+                <?php echo mobooking_get_dashboard_menu_icon('services'); ?>
+            </span>
+            <h1 class="wp-heading-inline"><?php esc_html_e('Manage Your Services', 'mobooking'); ?></h1>
         </div>
+        <a href="<?php echo esc_url(site_url('/dashboard/service-edit/')); ?>" class="btn btn-primary">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 mr-2"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+            <?php esc_html_e('Add New Service', 'mobooking'); ?>
+        </a>
+    </div>
 
-        <!-- Controls Section -->
-        <div class="mb-6 p-4 bg-card rounded-lg border">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div class="relative md:col-span-3">
-                    <svg class="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21 21-4.3-4.3"/><circle cx="11" cy="11" r="8"/></svg>
-                    <input type="text" id="services-search" class="input pl-10" placeholder="<?php esc_attr_e('Search services...', 'mobooking'); ?>" value="">
+    <!-- Controls Section -->
+    <div class="mobooking-card mobooking-filters-wrapper">
+        <div class="mobooking-card-content">
+            <div class="mobooking-filter-row">
+                <div class="mobooking-filter-item mobooking-filter-item-search">
+                    <label for="services-search"><?php esc_html_e('Search:', 'mobooking'); ?></label>
+                    <input type="text" id="services-search" class="regular-text" placeholder="<?php esc_attr_e('Search services...', 'mobooking'); ?>" value="">
                 </div>
             </div>
         </div>
+    </div>
         
-        <!-- Content Section -->
-        <div class="bg-card rounded-lg border p-4">
-            <div id="services-feedback-container"></div>
+    <!-- Content Section -->
+    <div class="mobooking-card">
+        <div id="services-list-container">
             <div id="loading-state" class="loading-state" style="display: none;">
                 <div class="loading-spinner"></div>
                 <p><?php esc_html_e('Loading services...', 'mobooking'); ?></p>
             </div>
-            <div id="services-list-container">
-                <?php if (empty($services_list)): ?>
-                    <div class="text-center py-12">
+            <?php if (empty($services_list)): ?>
+                <div class="text-center py-12">
                         <svg class="mx-auto h-12 w-12 text-muted-foreground" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>
                         <h3 class="mt-4 text-lg font-semibold"><?php esc_html_e('No services yet', 'mobooking'); ?></h3>
                         <p class="mt-2 text-sm text-muted-foreground"><?php esc_html_e('Create your first service to start accepting bookings.', 'mobooking'); ?></p>
