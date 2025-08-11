@@ -1,28 +1,22 @@
 jQuery(document).ready(function ($) {
     'use strict';
 
-    // Check if essential params are defined
     if (typeof mobooking_services_params === 'undefined') {
         console.error('MoBooking: mobooking_services_params is not defined.');
-        // Provide fallback params to prevent fatal errors
         window.mobooking_services_params = {
             ajax_url: '/wp-admin/admin-ajax.php',
             nonce: '',
             i18n: {},
-            currency: {
-                symbol: '$',
-                position: 'before',
-            },
+            currency_symbol: '$',
+            currency_position: 'before',
         };
     }
 
-    // --- Logic for Service List Page (page-services.php) ---
     const servicesPageContainer = $('.services-page-container');
     if (!servicesPageContainer.length) {
-        return; // Exit if we are not on the services page
+        return;
     }
 
-    // --- Element Selectors ---
     const searchInput = $('#services-search');
     const statusFilter = $('#status-filter');
     const sortFilter = $('#sort-filter');
@@ -31,11 +25,9 @@ jQuery(document).ready(function ($) {
     const paginationContainer = $('#services-pagination-container');
     const feedbackContainer = $('#services-feedback-container');
 
-    // --- State Management ---
     let currentPage = 1;
-    let currentRequest = null; // To handle aborting previous AJAX requests
+    let currentRequest = null;
 
-    // --- Debounce Utility ---
     function debounce(func, delay) {
         let timeout;
         return function (...args) {
@@ -44,17 +36,14 @@ jQuery(document).ready(function ($) {
         };
     }
 
-    // --- Main Data Fetching Function ---
     const fetchServices = () => {
         const searchQuery = searchInput.val();
         const status = statusFilter.val();
         const sort = sortFilter.val().split('-');
         const [orderby, order] = sort;
 
-        // Show loading state
         gridContainer.css('opacity', 0.5);
 
-        // Abort previous request if it's still running
         if (currentRequest) {
             currentRequest.abort();
         }
@@ -64,7 +53,7 @@ jQuery(document).ready(function ($) {
             type: 'POST',
             data: {
                 action: 'mobooking_get_services',
-                nonce: mobooking_services_params.nonce,
+                nonce: mobooking_services_params.services_nonce,
                 search_query: searchQuery,
                 status_filter: status,
                 orderby: orderby,
@@ -96,8 +85,6 @@ jQuery(document).ready(function ($) {
         });
     };
 
-    // --- Rendering Functions ---
-
     function renderServices(services) {
         gridContainer.empty();
         if (services && services.length > 0) {
@@ -112,11 +99,12 @@ jQuery(document).ready(function ($) {
 
     function createServiceCardHTML(service) {
         const {
-            currency
+            currency_symbol,
+            currency_position
         } = mobooking_services_params;
-        const priceFormatted = currency.position === 'before' ?
-            `${currency.symbol}${parseFloat(service.price).toFixed(2)}` :
-            `${parseFloat(service.price).toFixed(2)}${currency.symbol}`;
+        const priceFormatted = currency_position === 'before' ?
+            `${currency_symbol}${parseFloat(service.price).toFixed(2)}` :
+            `${parseFloat(service.price).toFixed(2)}${currency_symbol}`;
 
         const defaultIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>`;
         const cardIcon = service.icon ? service.icon : defaultIcon;
@@ -162,27 +150,46 @@ jQuery(document).ready(function ($) {
         }
 
         let paginationHTML = '<div class="pagination-links">';
+        const maxPagesToShow = 5;
+        let startPage, endPage;
 
-        // Previous Button
-        paginationHTML += `
-            <a href="#" class="pagination-link prev ${currentPage === 1 ? 'disabled' : ''}" data-page="${currentPage - 1}">
-                &laquo; Prev
-            </a>`;
-
-        // Page Number Links
-        for (let i = 1; i <= totalPages; i++) {
-            paginationHTML += `
-                <a href="#" class="pagination-link ${i === currentPage ? 'active' : ''}" data-page="${i}">
-                    ${i}
-                </a>`;
+        if (totalPages <= maxPagesToShow) {
+            startPage = 1;
+            endPage = totalPages;
+        } else {
+            if (currentPage <= Math.ceil(maxPagesToShow / 2)) {
+                startPage = 1;
+                endPage = maxPagesToShow;
+            } else if (currentPage + Math.floor(maxPagesToShow / 2) >= totalPages) {
+                startPage = totalPages - maxPagesToShow + 1;
+                endPage = totalPages;
+            } else {
+                startPage = currentPage - Math.floor(maxPagesToShow / 2);
+                endPage = currentPage + Math.floor(maxPagesToShow / 2);
+            }
         }
 
-        // Next Button
-        paginationHTML += `
-            <a href="#" class="pagination-link next ${currentPage === totalPages ? 'disabled' : ''}" data-page="${currentPage + 1}">
-                Next &raquo;
-            </a>`;
+        paginationHTML += `<a href="#" class="pagination-link prev ${currentPage === 1 ? 'disabled' : ''}" data-page="${currentPage - 1}">&laquo; Prev</a>`;
 
+        if (startPage > 1) {
+            paginationHTML += `<a href="#" class="pagination-link" data-page="1">1</a>`;
+            if (startPage > 2) {
+                paginationHTML += `<span class="pagination-ellipsis">&hellip;</span>`;
+            }
+        }
+
+        for (let i = startPage; i <= endPage; i++) {
+            paginationHTML += `<a href="#" class="pagination-link ${i === currentPage ? 'active' : ''}" data-page="${i}">${i}</a>`;
+        }
+
+        if (endPage < totalPages) {
+            if (endPage < totalPages - 1) {
+                paginationHTML += `<span class="pagination-ellipsis">&hellip;</span>`;
+            }
+            paginationHTML += `<a href="#" class="pagination-link" data-page="${totalPages}">${totalPages}</a>`;
+        }
+
+        paginationHTML += `<a href="#" class="pagination-link next ${currentPage === totalPages ? 'disabled' : ''}" data-page="${currentPage + 1}">Next &raquo;</a>`;
         paginationHTML += '</div>';
         paginationContainer.html(paginationHTML);
     }
@@ -212,59 +219,53 @@ jQuery(document).ready(function ($) {
         feedbackContainer.html(errorHTML);
     }
 
-    // --- Event Handlers ---
-
     const debouncedFetch = debounce(fetchServices, 300);
 
     searchInput.on('input', () => {
-        currentPage = 1; // Reset to first page on new search
+        currentPage = 1;
         debouncedFetch();
     });
 
     statusFilter.on('change', () => {
-        currentPage = 1; // Reset to first page on filter change
+        currentPage = 1;
         fetchServices();
     });
 
     sortFilter.on('change', () => {
-        currentPage = 1; // Reset to first page on sort change
+        currentPage = 1;
         fetchServices();
     });
 
     paginationContainer.on('click', 'a.pagination-link', function (e) {
         e.preventDefault();
         const page = $(this).data('page');
-        if (page && page !== currentPage && !$(this).hasClass('disabled')) {
+        if (page && page != currentPage && !$(this).hasClass('disabled')) {
             currentPage = page;
             fetchServices();
         }
     });
 
-    // --- Delete Handler (delegated to list container) ---
     listContainer.on('click', '.mobooking-delete-service-btn', function () {
         const serviceCard = $(this).closest('.service-card');
         const serviceId = $(this).data('id');
         const serviceName = serviceCard.find('.mobooking-card-title').text();
 
-        // Using a more modern confirm dialog if available, otherwise fallback to browser default
         if (confirm(`Are you sure you want to delete the service "${serviceName}"? This action cannot be undone.`)) {
             $.ajax({
                 url: mobooking_services_params.ajax_url,
                 type: 'POST',
                 data: {
                     action: 'mobooking_delete_service',
-                    nonce: mobooking_services_params.nonce,
+                    nonce: mobooking_services_params.services_nonce,
                     service_id: serviceId,
                 },
                 dataType: 'json',
                 success: function (response) {
                     if (response.success) {
-                        // Instead of reloading, just remove the card and maybe show a toast
-                        serviceCard.fadeOut(300, function() {
+                        serviceCard.fadeOut(300, function () {
                             $(this).remove();
-                            // Optional: check if grid is now empty and show empty state
                             if (gridContainer.children().length === 0) {
-                                fetchServices(); // Re-fetch to show correct state (e.g., empty page or previous page)
+                                fetchServices();
                             }
                         });
                     } else {
@@ -277,14 +278,4 @@ jQuery(document).ready(function ($) {
             });
         }
     });
-
-    // --- Initial Load ---
-    // The page is initially rendered by PHP, so we don't need an initial fetch.
-    // We just need to render the initial pagination based on the data available in the PHP template.
-    // However, the required variables (totalPages, currentPage) are in PHP scope.
-    // To simplify, we'll let the JS take over pagination completely.
-    // We'll trigger an initial fetch to get the pagination right.
-    if (gridContainer.length) {
-       fetchServices();
-    }
 });
