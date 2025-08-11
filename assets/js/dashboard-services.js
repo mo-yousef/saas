@@ -63,9 +63,6 @@
       $(document).on("click", ".service-delete-btn", (e) =>
         this.handleDeleteService(e)
       );
-      $(document).on("click", ".service-duplicate-btn", (e) =>
-        this.handleDuplicateService(e)
-      );
 
       // Modal events
       this.bindModalEvents();
@@ -272,13 +269,6 @@
       this.showDeleteConfirmation(serviceId, serviceName);
     }
 
-    handleDuplicateService(e) {
-      e.preventDefault();
-      const $btn = $(e.currentTarget);
-      const serviceId = $btn.data("service-id");
-
-      this.duplicateService(serviceId, $btn);
-    }
 
     // API Methods
     fetchServices(page = 1) {
@@ -358,44 +348,6 @@
       }
     }
 
-    duplicateService(serviceId, $btn) {
-      const originalHtml = $btn.html();
-      $btn
-        .html(
-          '<div class="loading-spinner"><div class="spinner-ring"></div></div> Duplicating...'
-        )
-        .addClass("btn-loading");
-
-      $.ajax({
-        url: mobooking_services_params.ajax_url,
-        type: "POST",
-        data: {
-          action: "mobooking_duplicate_service",
-          nonce: mobooking_services_params.services_nonce,
-          service_id: serviceId,
-        },
-        dataType: "json",
-        success: (response) => {
-          $btn.html(originalHtml).removeClass("btn-loading");
-
-          if (response.success) {
-            this.showFeedback(
-              response.data.message || "Service duplicated successfully."
-            );
-            this.fetchServices(this.currentPage);
-          } else {
-            this.showFeedback(
-              response.data?.message || "Failed to duplicate service.",
-              "error"
-            );
-          }
-        },
-        error: () => {
-          $btn.html(originalHtml).removeClass("btn-loading");
-          this.showFeedback("Network error. Please try again.", "error");
-        },
-      });
-    }
 
     deleteService(serviceId) {
       const $btn = $("#confirm-delete-btn");
@@ -412,7 +364,7 @@
         type: "POST",
         data: {
           action: "mobooking_delete_service",
-          nonce: mobooking_services_params.services_nonce,
+          _ajax_nonce: mobooking_services_params.services_nonce,
           service_id: serviceId,
         },
         dataType: "json",
