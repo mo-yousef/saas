@@ -324,9 +324,9 @@ class Services {
 
     // --- AJAX Handlers ---
 
-    public function register_ajax_actions() {
+    public function register_actions() {
         add_action('wp_ajax_mobooking_get_services', [$this, 'handle_get_services_ajax']);
-        add_action('wp_ajax_mobooking_delete_service', [$this, 'handle_delete_service_ajax']);
+        add_action('admin_post_delete_service', [$this, 'handle_delete_service_form']);
         add_action('wp_ajax_mobooking_save_service', [$this, 'handle_save_service_ajax']); // Covers Create and Update for service + options
 
         // AJAX handlers for individual service options
@@ -736,30 +736,16 @@ public function handle_get_public_services_ajax() {
         wp_send_json_success($result);
     }
 
-    public function handle_delete_service_ajax() {
-        if (!check_ajax_referer('mobooking_services_nonce', '_ajax_nonce', false)) {
-            wp_send_json_error(['message' => __('Error: Nonce verification failed.', 'mobooking')], 403);
-            return;
-        }
-        $user_id = get_current_user_id();
-        if (!$user_id) {
-            wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403);
-            return;
-        }
-        if (!isset($_POST['service_id']) || !is_numeric($_POST['service_id'])) {
-            wp_send_json_error(['message' => __('Invalid service ID.', 'mobooking')], 400);
-            return;
-        }
-        $service_id = intval($_POST['service_id']);
-        $result = $this->delete_service($service_id, $user_id);
-
-        if (is_wp_error($result)) {
-            wp_send_json_error(['message' => $result->get_error_message()], ('not_owner' === $result->get_error_code() ? 403 : 500) );
-        } elseif ($result) {
-            wp_send_json_success(['message' => __('Service deleted successfully.', 'mobooking')]);
-        } else {
-            // This case might not be reached if delete_service always returns WP_Error on failure
-            wp_send_json_error(['message' => __('Could not delete service.', 'mobooking')], 500);
+    public function handle_delete_service_form() {
+        if (isset($_POST['action']) && $_POST['action'] === 'delete_service') {
+            $service_id = isset($_POST['service_id']) ? intval($_POST['service_id']) : 0;
+            if ($service_id && check_admin_referer('delete_service_' . $service_id)) {
+                $user_id = get_current_user_id();
+                $this->delete_service($service_id, $user_id);
+                // Redirect to the services page to prevent form resubmission
+                wp_redirect(admin_url('admin.php?page=mo-booking-services'));
+                exit;
+            }
         }
     }
 

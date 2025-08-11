@@ -93,7 +93,7 @@ function get_default_service_icon() {
                         </a>
                     </div>
                 <?php else: ?>
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" id="services-grid">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="services-grid">
                         <?php foreach ($services_list as $service): 
                             $price_formatted = format_currency($service['price'], $currency_symbol, $currency_pos);
                             $service_icon = !empty($service['icon']) 
@@ -137,23 +137,34 @@ function get_default_service_icon() {
                                     </div>
                                 </div>
                                 <div class="card-footer p-4 flex gap-2">
-                                    <a href="<?php echo esc_url(site_url('/dashboard/service-edit/' . $service['service_id'])); ?>" class="btn btn-primary w-full">
+                                    <a href="<?php echo esc_url(site_url('/dashboard/service-edit/?service_id=' . $service['service_id'])); ?>" class="btn btn-primary w-full">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 mr-2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
-                                        <?php esc_html_e('Edit', 'mobooking'); ?>
+                                        <?php esc_html_e('View', 'mobooking'); ?>
                                     </a>
-                                    <button type="button" class="btn btn-secondary service-duplicate-btn" data-service-id="<?php echo esc_attr($service['service_id']); ?>">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
-                                    </button>
-                                    <button type="button" class="btn btn-destructive service-delete-btn" data-service-id="<?php echo esc_attr($service['service_id']); ?>" data-service-name="<?php echo esc_attr($service['name']); ?>">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
-                                    </button>
+                                    <form method="POST" action="">
+                                        <input type="hidden" name="action" value="delete_service">
+                                        <input type="hidden" name="service_id" value="<?php echo esc_attr($service['service_id']); ?>">
+                                        <?php wp_nonce_field('delete_service_' . $service['service_id']); ?>
+                                        <button type="submit" class="btn btn-destructive">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                                        </button>
+                                    </form>
                                 </div>
                             </div>
                         <?php endforeach; ?>
                     </div>
                     <?php if ($total_pages > 1): ?>
-                        <div class="flex justify-center mt-6" id="services-pagination-container">
-                            <!-- Pagination links will be injected here by JavaScript -->
+                        <div class="flex justify-center mt-6">
+                            <?php
+                            echo paginate_links([
+                                'base' => str_replace(999999999, '%#%', esc_url(get_pagenum_link(999999999))),
+                                'total' => $total_pages,
+                                'current' => $current_page,
+                                'format' => '?paged=%#%',
+                                'prev_text' => __('&laquo; Prev'),
+                                'next_text' => __('Next &raquo;'),
+                            ]);
+                            ?>
                         </div>
                     <?php endif; ?>
                 <?php endif; ?>
