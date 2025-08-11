@@ -326,7 +326,8 @@ class Services {
 
     public function register_actions() {
         add_action('wp_ajax_mobooking_get_services', [$this, 'handle_get_services_ajax']);
-        add_action('admin_post_delete_service', [$this, 'handle_delete_service_form']);
+        add_action('admin_post_mobooking_delete_service', [$this, 'handle_mobooking_delete_service_form']);
+        add_action('wp_ajax_mobooking_search_services', [$this, 'handle_search_services_ajax']);
         add_action('wp_ajax_mobooking_save_service', [$this, 'handle_save_service_ajax']); // Covers Create and Update for service + options
 
         // AJAX handlers for individual service options
@@ -736,18 +737,165 @@ public function handle_get_public_services_ajax() {
         wp_send_json_success($result);
     }
 
-    public function handle_delete_service_form() {
-        if (isset($_POST['action']) && $_POST['action'] === 'delete_service') {
-            $service_id = isset($_POST['service_id']) ? intval($_POST['service_id']) : 0;
-            if ($service_id && check_admin_referer('delete_service_' . $service_id)) {
-                $user_id = get_current_user_id();
-                $this->delete_service($service_id, $user_id);
-                // Redirect to the services page to prevent form resubmission
-                wp_redirect(admin_url('admin.php?page=mo-booking-services'));
-                exit;
-            }
+    public function handle_mobooking_delete_service_form() {
+        if (!isset($_POST['action']) || $_POST['action'] !== 'mobooking_delete_service') {
+            wp_die('Invalid action.');
         }
+
+        if (!isset($_POST['_wpnonce']) || !wp_verify_nonce($_POST['_wpnonce'], 'mobooking_delete_service_nonce')) {
+            wp_die('Nonce verification failed. Please go back and try again.');
+        }
+
+        $service_id = isset($_POST['service_id']) ? intval($_POST['service_id']) : 0;
+        $user_id = get_current_user_id();
+
+        if (empty($service_id) || empty($user_id)) {
+            wp_die('Missing required information (service id or user).');
+        }
+
+        // The delete_service method already verifies ownership
+        $result = $this->delete_service($service_id, $user_id);
+
+        if (is_wp_error($result)) {
+            // Optional: Add a transient to show an error message on the services page
+            set_transient('mobooking_admin_notice', ['type' => 'error', 'message' => $result->get_error_message()], 60);
+        } else {
+            // Optional: Add a transient for a success message
+            set_transient('mobooking_admin_notice', ['type' => 'success', 'message' => __('Service deleted successfully.', 'mobooking')], 60);
+        }
+
+        // Redirect back to the services page
+        $redirect_url = esc_url_raw(site_url('/dashboard/services/'));
+        wp_redirect($redirect_url);
+        exit;
     }
+
+    public function handle_search_services_ajax() {
+        if (!check_ajax_referer('mobooking_search_services_nonce', 'nonce', false)) {
+            wp_die('Nonce verification failed.');
+        }
+
+        $user_id = get_current_user_id();
+        if (!$user_id) {
+            wp_die('User not logged in.');
+        }
+
+        $search_query = isset($_POST['search_query']) ? sanitize_text_field($_POST['search_query']) : '';
+
+        $args = [
+            'search_query' => $search_query,
+            'number' => 100,
+            'status' => null,
+        ];
+
+        $result = $this->get_services_by_user($user_id, $args);
+        $services_list = $result['services'] ?? [];
+
+        ob_start();
+
+        if (empty($services_list)) {
+            // You can create a more styled empty state message here
+            echo '<div class="text-center py-12"><p>' . esc_html__('No services found matching your search.', 'mobooking') . '</p></div>';
+        } else {
+            // To render the cards, we need access to some functions and variables from the main page.
+            // This is a good reason to have a reusable template part.
+            // Let's define what we need here.
+            $settings_manager = new \MoBooking\Classes\Settings();
+            $biz_settings = $settings_manager->get_business_settings($user_id);
+            $currency_symbol = $biz_settings['biz_currency_symbol'] ?? '$';
+            $currency_pos = $biz_settings['biz_currency_position'] ?? 'before';
+
+            echo '<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="services-grid">';
+
+            // This is not ideal, but for now we define the function here.
+            // A better solution is a utility class or putting it in the theme's functions.php
+            if (!function_exists('format_currency')) {
+                function format_currency($amount, $symbol, $position) {
+                    $formatted_amount = number_format_i18n($amount, 2);
+                    return $position === 'before' ? $symbol . $formatted_amount : $formatted_amount . $symbol;
+                }
+            }
+             if (!function_exists('get_default_service_icon')) {
+                function get_default_service_icon() {
+                    return '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>';
+                }
+            }
+
+
+            foreach ($services_list as $service) {
+                // To avoid duplicating the entire card HTML, we should use a template part.
+                // For now, let's assume `mobooking_get_template_part` exists and can load 'dashboard/template-parts/service-card.php'
+                // set_query_var('service', $service);
+                // load_template(MOBOOKING_PLUGIN_DIR . 'dashboard/template-parts/service-card.php');
+
+                // Since I cannot create new files, I will duplicate the HTML here.
+                // This is technical debt that should be addressed.
+                $price_formatted = format_currency($service['price'], $currency_symbol, $currency_pos);
+                $service_icon = !empty($service['icon'])
+                    ? $this->get_service_icon_html($service['icon'])
+                    : get_default_service_icon();
+                $options_count = !empty($service['options']) ? count($service['options']) : 0;
+                ?>
+                <div class="card" data-service-id="<?php echo esc_attr($service['service_id']); ?>">
+                    <div class="card-header p-0 relative">
+                        <?php if (!empty($service['image_url'])): ?>
+                            <img src="<?php echo esc_url($service['image_url']); ?>" alt="<?php echo esc_attr($service['name']); ?>" class="w-full h-48 object-cover">
+                        <?php else: ?>
+                            <div class="w-full h-48 bg-muted flex items-center justify-center">
+                                <svg class="w-12 h-12 text-muted-foreground" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+                            </div>
+                        <?php endif; ?>
+                        <div class="badge badge-<?php echo esc_attr($service['status']); ?> absolute top-2 right-2"><?php echo esc_html(ucfirst($service['status'])); ?></div>
+                    </div>
+                    <div class="card-content p-4">
+                        <div class="flex items-start gap-4 mb-4">
+                            <div class="text-primary"><?php echo $service_icon; ?></div>
+                            <div>
+                                <h3 class="font-semibold"><?php echo esc_html($service['name']); ?></h3>
+                                <p class="text-primary font-bold"><?php echo esc_html($price_formatted); ?></p>
+                            </div>
+                        </div>
+                        <?php if (!empty($service['description'])): ?>
+                            <p class="text-sm text-muted-foreground mb-4 line-clamp-3"><?php echo esc_html($service['description']); ?></p>
+                        <?php endif; ?>
+                        <div class="text-xs text-muted-foreground space-y-2">
+                            <div class="flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                                <span><?php echo esc_html($service['duration']); ?> <?php esc_html_e('min', 'mobooking'); ?></span>
+                            </div>
+                            <?php if ($options_count > 0): ?>
+                            <div class="flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M9 12l2 2 4-4"/><path d="M21 12c.552 0 1-.448 1-1V5c0-.552-.448-1-1-1H3c-.552 0-1 .448-1 1v6c0 .552.448 1 1 1h18z"/></svg>
+                                <span><?php echo esc_html($options_count); ?> <?php esc_html_e('Options', 'mobooking'); ?></span>
+                            </div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                    <div class="card-footer p-4 flex gap-2">
+                        <a href="<?php echo esc_url(site_url('/dashboard/service-edit/?service_id=' . $service['service_id'])); ?>" class="btn btn-primary w-full">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 mr-2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+                            <?php esc_html_e('View', 'mobooking'); ?>
+                        </a>
+                        <form method="POST" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" data-service-name="<?php echo esc_attr($service['name']); ?>">
+                            <input type="hidden" name="action" value="mobooking_delete_service">
+                            <input type="hidden" name="service_id" value="<?php echo esc_attr($service['service_id']); ?>">
+                            <?php wp_nonce_field('mobooking_delete_service_nonce'); ?>
+                            <button type="submit" class="btn btn-destructive">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                <?php
+            }
+            echo '</div>';
+        }
+
+        $output = ob_get_clean();
+        echo $output;
+        wp_die();
+    }
+
 
     // AJAX handler for service OPTIONS
     public function handle_get_public_service_options_ajax() {
