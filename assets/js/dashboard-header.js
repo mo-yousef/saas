@@ -44,9 +44,35 @@ jQuery(document).ready(function($) {
         }
 
         searchTimeout = setTimeout(function() {
-            // AJAX call will go here
-            console.log('Searching for:', query);
             searchResultsList.html('<p>Searching...</p>');
+
+            $.ajax({
+                url: ajaxurl, // WordPress AJAX URL
+                type: 'POST',
+                data: {
+                    action: 'mobooking_dashboard_live_search',
+                    nonce: mobooking_dashboard_params.nonce,
+                    query: query
+                },
+                success: function(response) {
+                    if (response.success) {
+                        let html = '';
+                        if (response.data.results.length) {
+                            response.data.results.forEach(function(item) {
+                                html += `<a href="${item.url}" class="search-result-item">
+                                            <span class="result-type">${item.type}</span>
+                                            <span class="result-title">${item.title}</span>
+                                         </a>`;
+                            });
+                        } else {
+                            html = '<p class="no-results">No results found.</p>';
+                        }
+                        searchResultsList.html(html);
+                    } else {
+                        searchResultsList.html('<p class="no-results">Search failed.</p>');
+                    }
+                }
+            });
         }, 300);
     });
 });
