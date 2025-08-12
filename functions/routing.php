@@ -80,47 +80,59 @@ function mobooking_enqueue_dashboard_scripts($current_page_slug = '') {
     ];
 
     // Specific to Services page
-    if ($current_page_slug === 'services' || $current_page_slug === 'service-edit') {
+    if ($current_page_slug === 'services') {
         wp_enqueue_style('mobooking-dashboard-services-enhanced', MOBOOKING_THEME_URI . 'assets/css/dashboard-services-enhanced.css', array(), MOBOOKING_VERSION);
         wp_enqueue_script('mobooking-dashboard-services', MOBOOKING_THEME_URI . 'assets/js/dashboard-services.js', array('jquery', 'jquery-ui-sortable', 'mobooking-dialog'), MOBOOKING_VERSION, true);
-        // Ensure jQuery UI Sortable CSS is also enqueued if needed, or handle styling in plugin's CSS
-        // wp_enqueue_style('jquery-ui-sortable-css', MOBOOKING_THEME_URI . 'path/to/jquery-ui-sortable.css');
-
-        if ($current_page_slug === 'service-edit') {
-            wp_enqueue_style('mobooking-dashboard-service-edit', MOBOOKING_THEME_URI . 'assets/css/dashboard-service-edit.css', array(), MOBOOKING_VERSION);
-        }
 
         $services_params = array_merge($dashboard_params, [
-            // 'nonce' is already general, if services needs specific, it's services_nonce from dashboard_params
-            // 'currency_code', 'currency_symbol', etc. are already in dashboard_params
             'i18n' => [
-                'loading_details' => __('Loading details...', 'mobooking'),
-                'error_fetching_service_details' => __('Error: Could not fetch service details.', 'mobooking'),
-                'name_required' => __('Service name is required.', 'mobooking'),
-                'valid_price_required' => __('A valid, non-negative price is required.', 'mobooking'),
-                'valid_duration_required' => __('A valid, positive duration in minutes is required.', 'mobooking'),
-                'saving' => __('Saving...', 'mobooking'),
-                'service_saved' => __('Service saved successfully.', 'mobooking'),
-                'error_saving_service' => __('Error saving service. Please check your input and try again.', 'mobooking'),
-                'error_saving_service_ajax' => __('AJAX error saving service. Check console.', 'mobooking'),
-                'invalid_json_for_option' => __('Invalid JSON in Option Values for: ', 'mobooking'),
                 'loading_services' => __('Loading services...', 'mobooking'),
                 'no_services_found' => __('No services found.', 'mobooking'),
                 'error_loading_services' => __('Error loading services.', 'mobooking'),
-                'error_loading_services_ajax' => __('AJAX error loading services.', 'mobooking'),
                 'service_deleted' => __('Service deleted.', 'mobooking'),
                 'error_deleting_service_ajax' => __('AJAX error deleting service.', 'mobooking'),
-                'fill_service_details_first' => __('Please fill in the following service details before adding options: %s.', 'mobooking'),
-                'service_name_label' => __('Service Name', 'mobooking'),
-                'service_price_label' => __('Price', 'mobooking'),
-                'service_duration_label' => __('Duration', 'mobooking'),
                 'active' => __('Active', 'mobooking'),
                 'inactive' => __('Inactive', 'mobooking'),
                 'confirm_delete' => __('Are you sure you want to delete this service?', 'mobooking'),
-                'confirm_delete_option' => __('Are you sure you want to delete this option?', 'mobooking'),
             ]
         ]);
         wp_localize_script('mobooking-dashboard-services', 'mobooking_services_params', $services_params);
+    }
+
+    // Specific to Service Edit page
+    if ($current_page_slug === 'service-edit') {
+        wp_enqueue_style('mobooking-dashboard-service-edit', MOBOOKING_THEME_URI . 'assets/css/dashboard-service-edit.css', array(), MOBOOKING_VERSION);
+        wp_enqueue_script('mobooking-service-edit', MOBOOKING_THEME_URI . 'assets/js/dashboard-service-edit.js', array('jquery'), MOBOOKING_VERSION, true);
+
+        $service_id = isset($_GET['service_id']) ? intval($_GET['service_id']) : 0;
+        $option_count = 0;
+        if ($service_id > 0) {
+            $services_manager = new \MoBooking\Classes\Services();
+            $service_data = $services_manager->get_service($service_id, get_current_user_id());
+            if ($service_data && !is_wp_error($service_data) && !empty($service_data['options'])) {
+                $option_count = count($service_data['options']);
+            }
+        }
+
+        wp_localize_script('mobooking-service-edit', 'mobooking_service_edit_params', [
+            'ajax_url' => admin_url('admin-ajax.php'),
+            'nonce' => wp_create_nonce('mobooking_services_nonce'),
+            'option_count' => $option_count,
+            'redirect_url' => home_url('/dashboard/services'),
+            'i18n' => [
+                'saving' => __('Saving...', 'mobooking'),
+                'service_saved' => __('Service saved successfully.', 'mobooking'),
+                'error_saving_service' => __('Error saving service. Please check your input and try again.', 'mobooking'),
+                'error_ajax' => __('An AJAX error occurred. Please try again.', 'mobooking'),
+                'confirm_delete' => __('Are you sure you want to delete this service? This action cannot be undone.', 'mobooking'),
+                'confirm_delete_option' => __('Are you sure you want to delete this option?', 'mobooking'),
+                'service_deleted' => __('Service deleted successfully', 'mobooking'),
+                'error_deleting_service' => __('Failed to delete service', 'mobooking'),
+                'service_duplicated' => __('Service duplicated successfully', 'mobooking'),
+                'error_duplicating_service' => __('Failed to duplicate service', 'mobooking'),
+                'error_uploading_image' => __('Failed to upload image', 'mobooking'),
+            ]
+        ]);
     }
 
     // Specific to Bookings page
