@@ -1156,7 +1156,16 @@ if ( $edit_mode && $service_id > 0 ) {
                                     </button>
                                 </div>
                             <?php else: ?>
-                                <!-- Existing options will be rendered here -->
+                                <?php foreach ($service_options_data as $index => $option): ?>
+                                    <?php
+                                    // Pass variables to the template
+                                    set_query_var('option', $option);
+                                    set_query_var('option_index', $index);
+                                    set_query_var('option_types', $option_types);
+                                    set_query_var('price_types', $price_types);
+                                    get_template_part('templates/service-option-item');
+                                    ?>
+                                <?php endforeach; ?>
                             <?php endif; ?>
                         </div>
                     </div>
