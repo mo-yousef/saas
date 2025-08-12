@@ -365,11 +365,27 @@ if ( is_page_template('templates/booking-form-public.php') || $page_type_for_scr
         }
 
         if ( $current_page_slug === 'service-edit' ) {
-            wp_register_script('mobooking-service-edit', false);
-            wp_enqueue_script('mobooking-service-edit');
+            wp_enqueue_script('mobooking-service-edit', MOBOOKING_THEME_URI . 'assets/js/dashboard-service-edit.js', array('jquery'), MOBOOKING_VERSION, true);
+
+            // Get the initial option count
+            $service_id = isset($_GET['service_id']) ? intval($_GET['service_id']) : 0;
+            $option_count = 0;
+            if ($service_id > 0) {
+                $services_manager = new \MoBooking\Classes\Services();
+                $service_data = $services_manager->get_service($service_id, get_current_user_id());
+                if ($service_data && !is_wp_error($service_data) && !empty($service_data['options'])) {
+                    $option_count = count($service_data['options']);
+                }
+            }
+
             wp_localize_script('mobooking-service-edit', 'mobooking_service_edit_params', [
                 'ajax_url' => admin_url('admin-ajax.php'),
                 'nonce' => wp_create_nonce('mobooking_services_nonce'),
+                'option_count' => $option_count,
+                'redirect_url' => admin_url('admin.php?page=mobooking-services'),
+                'i18n' => [
+                    'empty_state_html' => '<div class="empty-state">...</div>', // Simplified for brevity
+                ]
             ]);
         }
     }
