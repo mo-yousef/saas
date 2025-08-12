@@ -20,7 +20,7 @@ $is_required = $option['is_required'] ?? 0;
 $price_type = $option['price_type'] ?? '';
 $price_change = $option['price_change'] ?? '';
 $choices = $option['choices'] ?? [];
-$sort_order = $option['sort_order'] ?? $option_index + 1;
+$sort_order = $option['sort_order'] ?? (is_numeric($option_index) ? $option_index + 1 : 0);
 
 ?>
 <div class="option-item" data-option-index="<?php echo esc_attr($option_index); ?>">
