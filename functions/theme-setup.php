@@ -363,6 +363,15 @@ if ( is_page_template('templates/booking-form-public.php') || $page_type_for_scr
                 ),
             ));
         }
+
+        if ( $current_page_slug === 'service-edit' ) {
+            wp_register_script('mobooking-service-edit', false);
+            wp_enqueue_script('mobooking-service-edit');
+            wp_localize_script('mobooking-service-edit', 'mobooking_service_edit_params', [
+                'ajax_url' => admin_url('admin-ajax.php'),
+                'nonce' => wp_create_nonce('mobooking_services_nonce'),
+            ]);
+        }
     }
 }
 add_action( 'wp_enqueue_scripts', 'mobooking_scripts' );
