@@ -7,11 +7,12 @@ jQuery(function($) {
             this.bindEvents();
             this.initTabs();
             this.initSwitches();
-            $('.option-item').each((i, option) => this.bindOptionEvents($(option)));
         },
 
         bindEvents: function() {
             const self = this;
+            const $container = $('#options-container');
+
             // Add option button
             $(document).on('click', '#add-option-btn, .add-first-option', function() {
                 self.addOption();
@@ -45,6 +46,82 @@ jQuery(function($) {
             $(document).on('click', '.remove-image-btn', function(e) {
                 e.stopPropagation();
                 self.removeImage();
+            });
+
+            // --- Delegated Option Events ---
+
+            // Toggle option
+            $container.on('click', '.toggle-option', function() {
+                const $optionElement = $(this).closest('.option-item');
+                $optionElement.toggleClass('expanded');
+                $optionElement.find('.option-content').slideToggle(200);
+            });
+
+            // Delete option
+            $container.on('click', '.delete-option', function() {
+                if (confirm(mobooking_service_edit_params.i18n.confirm_delete_option)) {
+                    $(this).closest('.option-item').remove();
+                    self.updateOptionsBadge();
+
+                    if ($('.option-item').length === 0) {
+                        self.showEmptyState();
+                    }
+                }
+            });
+
+            // Update option name in header
+            $container.on('input', '.option-name-input', function() {
+                const $input = $(this);
+                const nameDisplay = $input.closest('.option-item').find('.option-name');
+                nameDisplay.text($input.val() || 'New Option');
+            });
+
+            // Update option type badge and show/hide choices
+            $container.on('change', '.option-type-radio', function() {
+                const $radio = $(this);
+                const type = $radio.val();
+                const $optionItem = $radio.closest('.option-item');
+
+                // Update badge
+                const badge = $optionItem.find('.option-badges .badge-outline');
+                const typeLabel = $radio.closest('.option-type-card').find('.option-type-title').text();
+                if (badge.length) {
+                    badge.text(typeLabel);
+                }
+
+                // Show/hide choices container
+                const $choicesContainer = $optionItem.find('.choices-container');
+                const choiceTypes = ['select', 'radio', 'checkbox', 'sqm'];
+                if (choiceTypes.includes(type)) {
+                    $choicesContainer.slideDown(200);
+                } else {
+                    $choicesContainer.slideUp(200);
+                }
+            });
+
+            // Add choice
+            $container.on('click', '.add-choice-btn', function() {
+                const $button = $(this);
+                const $optionElement = $button.closest('.option-item');
+                const $list = $optionElement.find('.choices-list');
+                const optionIndex = $optionElement.data('option-index');
+                const choiceIndex = $list.find('.choice-item').length;
+
+                const newChoiceHtml = `
+                    <div class="choice-item flex items-center gap-2">
+                        <input type="text" name="options[${optionIndex}][choices][${choiceIndex}][label]" class="form-input flex-1" placeholder="Choice Label">
+                        <input type="number" name="options[${optionIndex}][choices][${choiceIndex}][price]" class="form-input w-24" placeholder="Price" step="0.01">
+                        <button type="button" class="btn-icon remove-choice-btn">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><path d="m19 6-1 14H6L5 6"/></svg>
+                        </button>
+                    </div>
+                `;
+                $list.append(newChoiceHtml);
+            });
+
+            // Remove choice
+            $container.on('click', '.remove-choice-btn', function() {
+                $(this).closest('.choice-item').remove();
             });
         },
 
@@ -96,8 +173,6 @@ jQuery(function($) {
 
             const $newOption = $container.find('.option-item').last();
             if ($newOption.length) {
-                this.bindOptionEvents($newOption);
-
                 $newOption.addClass('expanded');
                 $newOption.find('.option-content').show();
                 $newOption.find('.option-name-input').focus();
@@ -105,42 +180,6 @@ jQuery(function($) {
 
             this.updateOptionsBadge();
             this.optionIndex++;
-        },
-
-        bindOptionEvents: function($optionElement) {
-            const self = this;
-            // Toggle option
-            $optionElement.find('.toggle-option').on('click', function() {
-                $optionElement.toggleClass('expanded');
-                $optionElement.find('.option-content').slideToggle(200);
-            });
-
-            // Delete option
-            $optionElement.find('.delete-option').on('click', function() {
-                if (confirm(mobooking_service_edit_params.i18n.confirm_delete_option)) {
-                    $optionElement.remove();
-                    self.updateOptionsBadge();
-
-                    if ($('.option-item').length === 0) {
-                        self.showEmptyState();
-                    }
-                }
-            });
-
-            // Update option name in header
-            $optionElement.find('.option-name-input').on('input', function() {
-                const nameDisplay = $optionElement.find('.option-name');
-                nameDisplay.text($(this).val() || 'New Option');
-            });
-
-            // Update option type badge
-            $optionElement.find('input[type="radio"][name^="options["]').on('change', function() {
-                const badge = $optionElement.find('.option-badges .badge-outline');
-                const typeLabel = $(this).closest('.option-type-card').find('.option-type-title').text();
-                if (badge.length) {
-                    badge.text(typeLabel);
-                }
-            });
         },
 
         showEmptyState: function() {
