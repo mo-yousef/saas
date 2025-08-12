@@ -11,24 +11,6 @@ if ( ! current_user_can( 'mobooking_business_owner' ) ) {
     wp_die( __( 'You do not have sufficient permissions to access this page.', 'mobooking' ) );
 }
 
-// Simple icon SVG helper function
-function get_simple_icon_svg($icon_name) {
-    $icons = [
-        'check-square' => '<polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>',
-        'type' => '<polyline points="4 7 4 4 20 4 20 7"></polyline><line x1="9" y1="20" x2="15" y2="20"></line><line x1="12" y1="4" x2="12" y2="20"></line>',
-        'hash' => '<line x1="4" y1="9" x2="20" y2="9"></line><line x1="4" y1="15" x2="20" y2="15"></line><line x1="10" y1="3" x2="8" y2="21"></line><line x1="16" y1="3" x2="14" y2="21"></line>',
-        'chevron-down' => '<polyline points="6 9 12 15 18 9"></polyline>',
-        'circle' => '<circle cx="12" cy="12" r="10"></circle>',
-        'file-text' => '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line>',
-        'plus-minus' => '<line x1="5" y1="12" x2="19" y2="12"></line><line x1="12" y1="5" x2="12" y2="19"></line>',
-        'square' => '<rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>',
-        'minus' => '<line x1="5" y1="12" x2="19" y2="12"></line>',
-        'dollar-sign' => '<line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>',
-        'percent' => '<line x1="19" y1="5" x2="5" y2="19"></line><circle cx="6.5" cy="6.5" r="2.5"></circle><circle cx="17.5" cy="17.5" r="2.5"></circle>',
-        'x' => '<line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line>'
-    ];
-    return isset($icons[$icon_name]) ? $icons[$icon_name] : '<circle cx="12" cy="12" r="10"></circle>';
-}
 
 // Page setup
 $edit_mode = false;
