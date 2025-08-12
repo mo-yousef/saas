@@ -19,19 +19,25 @@ add_action('switch_theme', 'mobooking_flush_rewrite_rules_on_activation_deactiva
 // Function to handle script enqueuing (was mobooking_enqueue_dashboard_scripts)
 // No changes needed to its definition, only to its invocation if necessary
 function mobooking_enqueue_dashboard_scripts($current_page_slug = '') {
+    error_log('[MoBooking Debug] Enqueueing dashboard scripts. Page slug passed: ' . $current_page_slug);
+
     // FIXED: Handle missing parameter by getting it from various sources
     if (empty($current_page_slug)) {
         // Try to get from query vars first (set by router)
         $current_page_slug = get_query_var('mobooking_dashboard_page');
+        error_log('[MoBooking Debug] Slug from query var: ' . $current_page_slug);
+
 
         // Fallback to global variable
         if (empty($current_page_slug)) {
             $current_page_slug = isset($GLOBALS['mobooking_current_dashboard_view']) ? $GLOBALS['mobooking_current_dashboard_view'] : '';
+            error_log('[MoBooking Debug] Slug from global var: ' . $current_page_slug);
         }
 
         // Final fallback to 'overview'
         if (empty($current_page_slug)) {
             $current_page_slug = 'overview';
+            error_log('[MoBooking Debug] Slug fell back to overview.');
         }
     }
 
@@ -101,6 +107,7 @@ function mobooking_enqueue_dashboard_scripts($current_page_slug = '') {
 
     // Specific to Service Edit page
     if ($current_page_slug === 'service-edit') {
+        error_log('[MoBooking Debug] Correctly identified service-edit page. Enqueueing scripts.');
         wp_enqueue_style('mobooking-dashboard-service-edit', MOBOOKING_THEME_URI . 'assets/css/dashboard-service-edit.css', array(), MOBOOKING_VERSION);
         wp_enqueue_script('mobooking-service-edit', MOBOOKING_THEME_URI . 'assets/js/dashboard-service-edit.js', array('jquery'), MOBOOKING_VERSION, true);
 
