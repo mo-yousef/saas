@@ -104,7 +104,7 @@ $sort_order = $option['sort_order'] ?? (is_numeric($option_index) ? $option_inde
                 <div class="option-types-grid">
                     <?php foreach ($option_types as $type_key => $type_data): ?>
                         <label class="option-type-card <?php echo $type === $type_key ? 'selected' : ''; ?>">
-                            <input type="radio" name="options[<?php echo esc_attr($option_index); ?>][type]" value="<?php echo esc_attr($type_key); ?>" class="sr-only" <?php checked($type, $type_key); ?>>
+                            <input type="radio" name="options[<?php echo esc_attr($option_index); ?>][type]" value="<?php echo esc_attr($type_key); ?>" class="sr-only option-type-radio" <?php checked($type, $type_key); ?>>
                             <div class="option-type-label">
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="option-type-icon">
                                     <?php echo get_simple_icon_svg($type_data['icon']); ?>
@@ -115,6 +115,31 @@ $sort_order = $option['sort_order'] ?? (is_numeric($option_index) ? $option_inde
                             </div>
                         </label>
                     <?php endforeach; ?>
+                </div>
+            </div>
+
+            <div class="choices-container" style="display: <?php echo in_array($type, ['select', 'radio', 'checkbox', 'sqm']) ? 'block' : 'none'; ?>;">
+                <hr>
+                <div class="mt-4">
+                    <label class="form-label">Choices</label>
+                    <p class="form-description text-xs mb-2">Add choices for this option. For Square Meter, these are ranges.</p>
+                    <div class="choices-list space-y-2">
+                        <?php if (!empty($choices)): ?>
+                            <?php foreach ($choices as $choice_index => $choice): ?>
+                                <div class="choice-item flex items-center gap-2">
+                                    <input type="text" name="options[<?php echo esc_attr($option_index); ?>][choices][<?php echo $choice_index; ?>][label]" class="form-input flex-1" placeholder="Choice Label (e.g., Small, 10-20 sqm)" value="<?php echo esc_attr($choice['label']); ?>">
+                                    <input type="number" name="options[<?php echo esc_attr($option_index); ?>][choices][<?php echo $choice_index; ?>][price]" class="form-input w-24" placeholder="Price" value="<?php echo esc_attr($choice['price']); ?>" step="0.01">
+                                    <button type="button" class="btn-icon remove-choice-btn">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><path d="m19 6-1 14H6L5 6"/></svg>
+                                    </button>
+                                </div>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </div>
+                    <button type="button" class="btn btn-outline btn-sm mt-2 add-choice-btn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+                        Add Choice
+                    </button>
                 </div>
             </div>
         </div>
