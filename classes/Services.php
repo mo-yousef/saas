@@ -1190,89 +1190,64 @@ public function handle_get_public_services_ajax() {
         error_log('[MoBooking SaveSvc Debug] Service main data saved/updated successfully for service_id: ' . $service_id);
 
         // Process service options if provided
-        error_log('[MoBooking SaveSvc Debug] Checking for service_options. Current service_id: ' . $service_id);
-        if (isset($_POST['service_options'])) {
-            error_log('[MoBooking SaveSvc Debug] service_options POST data: ' . print_r($_POST['service_options'], true));
-            $options_json = stripslashes($_POST['service_options']);
-            error_log('[MoBooking SaveSvc Debug] Received service_options JSON string: ' . $options_json);
-            $options = json_decode($options_json, true);
+        error_log('[MoBooking SaveSvc Debug] Checking for service options. Current service_id: ' . $service_id);
+        if (isset($_POST['options']) && is_array($_POST['options'])) {
+            $options = $_POST['options'];
+            error_log('[MoBooking SaveSvc Debug] Found options array in POST: ' . print_r($options, true));
 
-            if (is_array($options)) {
-                error_log('[MoBooking SaveSvc Debug] Decoded options array: ' . print_r($options, true));
-                error_log('[MoBooking SaveSvc Debug] Deleting existing options for service_id: ' . $service_id);
-                $this->service_options_manager->delete_options_for_service($service_id, $user_id);
+            // First, delete all existing options for this service to ensure a clean slate.
+            $this->service_options_manager->delete_options_for_service($service_id, $user_id);
+            error_log('[MoBooking SaveSvc Debug] Deleted existing options for service_id: ' . $service_id);
 
-                foreach ($options as $idx => $option_data_from_client) {
-                    error_log("[MoBooking SaveSvc Debug] Processing option #{$idx}: " . print_r($option_data_from_client, true));
+            foreach ($options as $idx => $option_data) {
+                error_log("[MoBooking SaveSvc Debug] Processing option #{$idx}: " . print_r($option_data, true));
 
-                    $option_type_for_values = isset($option_data_from_client['type']) ? sanitize_text_field($option_data_from_client['type']) : '';
-                    $current_option_values_str = isset($option_data_from_client['option_values']) ? stripslashes($option_data_from_client['option_values']) : null;
-                    $processed_option_values_for_db;
-
-                    if ($option_type_for_values === 'sqm') {
-                        // For SQM, option_values is already a JSON string of ranges from the client.
-                        // ServiceOptions::add_service_option will validate this JSON string.
-                        $processed_option_values_for_db = $current_option_values_str;
-                    } elseif (in_array($option_type_for_values, ['select', 'radio'])) {
-                        if (!is_null($current_option_values_str) && !empty(trim($current_option_values_str))) {
-                            $decoded_values = json_decode($current_option_values_str, true);
-                            if (is_array($decoded_values)) {
-                                // Re-encode to ensure it's a valid JSON string for the DB,
-                                // even if it was already JSON from client.
-                                $processed_option_values_for_db = wp_json_encode($decoded_values);
-                            } else {
-                                $processed_option_values_for_db = wp_json_encode([]); // Default to empty JSON array
-                                error_log("[MoBooking SaveSvc Debug] Invalid JSON for option_values (select/radio) for option '{$option_data_from_client['name']}': " . $current_option_values_str);
-                            }
-                        } else {
-                            $processed_option_values_for_db = wp_json_encode([]); // Default to empty JSON array if no values provided
-                        }
-                    } else {
-                        // For other types (text, number, checkbox, quantity, textarea), option_values is generally not used or is null.
-                        // If a specific type needs to store something in option_values, handle it here.
-                        $processed_option_values_for_db = null;
-                    }
-
-                    $clean_option_data = [
-                        'name' => isset($option_data_from_client['name']) ? sanitize_text_field($option_data_from_client['name']) : '',
-                        'description' => isset($option_data_from_client['description']) ? wp_kses_post($option_data_from_client['description']) : '',
-                        'type' => $option_type_for_values,
-                        'is_required' => !empty($option_data_from_client['is_required']) && $option_data_from_client['is_required'] === '1' ? 1 : 0,
-                        // price_impact_type and price_impact_value are set to null for 'sqm' type in ServiceOptions class
-                        'price_impact_type' => isset($option_data_from_client['price_impact_type']) ? sanitize_text_field($option_data_from_client['price_impact_type']) : null,
-                        'price_impact_value' => !empty($option_data_from_client['price_impact_value']) ? floatval($option_data_from_client['price_impact_value']) : null,
-                        'option_values' => $processed_option_values_for_db, // This is now correctly populated for SQM
-                        'sort_order' => isset($option_data_from_client['sort_order']) ? intval($option_data_from_client['sort_order']) : 0,
-                    ];
-
-                    if (!empty($clean_option_data['name'])) {
-                         error_log("[MoBooking SaveSvc Debug] Adding option for service_id {$service_id}, user_id {$user_id}. Option data: " . print_r($clean_option_data, true));
-                         $option_result = $this->service_options_manager->add_service_option($user_id, $service_id, $clean_option_data);
-                         error_log("[MoBooking SaveSvc Debug] Result of add_service_option for '{$clean_option_data['name']}': " . print_r($option_result, true));
-                         if (is_wp_error($option_result)) {
-                            error_log("[MoBooking SaveSvc Debug] Error adding service option '{$clean_option_data['name']}': " . $option_result->get_error_message());
-                            // IMPORTANT: Send error and exit if an option fails to save
-                            if (ob_get_length()) ob_clean();
-                            wp_send_json_error(['message' => __('Error saving option: ', 'mobooking') . $option_result->get_error_message()], 400);
-                            return; // Exit the handle_save_service_ajax function
-                         } else {
-                            error_log("[MoBooking SaveSvc Debug] Successfully added option '{$clean_option_data['name']}'. New option ID: " . $option_result);
-                         }
-                    } else {
-                        error_log("[MoBooking SaveSvc Debug] Skipped processing option #{$idx} due to empty name.");
-                    }
+                // Skip if the option name is missing, as it's a required field.
+                if (empty($option_data['name'])) {
+                    error_log("[MoBooking SaveSvc Debug] Skipped processing option #{$idx} due to empty name.");
+                    continue;
                 }
-                error_log('[MoBooking SaveSvc Debug] Finished processing service options.');
 
-            } else if (!empty($_POST['service_options'])) { // This means service_options was sent, but json_decode failed
-                 error_log('[MoBooking SaveSvc Debug] Error: service_options was provided but failed json_decode. Original: ' . $options_json);
-                 if (ob_get_length()) ob_clean();
-                 wp_send_json_error(['message' => __('Invalid format for service options data. Could not decode JSON.', 'mobooking')], 400);
-                 return; // Exit the handle_save_service_ajax function
+                $choices = isset($option_data['choices']) && is_array($option_data['choices']) ? $option_data['choices'] : null;
+                $option_values_for_db = null;
+                if ($choices) {
+                    // We have choices, so we need to JSON encode them for the DB.
+                    // This handles Dropdown, Checkbox, Radio, and SQM choices.
+                    $option_values_for_db = wp_json_encode($choices);
+                }
+
+                $clean_option_data = [
+                    'name' => sanitize_text_field($option_data['name']),
+                    'description' => isset($option_data['description']) ? wp_kses_post($option_data['description']) : '',
+                    'type' => isset($option_data['type']) ? sanitize_text_field($option_data['type']) : 'text',
+                    'is_required' => isset($option_data['is_required']) && $option_data['is_required'] === '1' ? 1 : 0,
+                    'option_values' => $option_values_for_db,
+                    'sort_order' => isset($option_data['sort_order']) ? intval($option_data['sort_order']) : $idx,
+                    // The following fields are not part of the form for standard options,
+                    // but we set defaults to avoid DB errors. They are handled by ServiceOptions class.
+                    'price_impact_type' => null,
+                    'price_impact_value' => null,
+                ];
+
+                error_log("[MoBooking SaveSvc Debug] Adding option for service_id {$service_id}. Cleaned data: " . print_r($clean_option_data, true));
+                $option_result = $this->service_options_manager->add_service_option($user_id, $service_id, $clean_option_data);
+
+                if (is_wp_error($option_result)) {
+                    $error_message = __('Error saving option: ', 'mobooking') . $option_result->get_error_message();
+                    error_log("[MoBooking SaveSvc Debug] Error adding service option '{$clean_option_data['name']}': " . $error_message);
+                    if (ob_get_length()) ob_clean();
+                    wp_send_json_error(['message' => $error_message], 400);
+                    return; // Stop execution
+                } else {
+                    error_log("[MoBooking SaveSvc Debug] Successfully added option '{$clean_option_data['name']}'. New option ID: " . $option_result);
+                }
             }
-            // If $_POST['service_options'] was not set at all, it's fine, just means no options to process.
+            error_log('[MoBooking SaveSvc Debug] Finished processing service options.');
         } else {
-            error_log('[MoBooking SaveSvc Debug] service_options NOT SET in POST or was empty string.');
+            error_log('[MoBooking SaveSvc Debug] No service options found in POST data.');
+            // If no options are submitted, we should ensure any existing options are removed.
+            $this->service_options_manager->delete_options_for_service($service_id, $user_id);
+            error_log('[MoBooking SaveSvc Debug] No options in POST, ensured existing options are deleted for service_id: ' . $service_id);
         }
 
 

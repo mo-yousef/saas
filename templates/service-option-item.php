@@ -123,16 +123,28 @@ $sort_order = $option['sort_order'] ?? (is_numeric($option_index) ? $option_inde
                 <div class="mt-4">
                     <label class="form-label">Choices</label>
                     <p class="form-description text-xs mb-2">Add choices for this option. For Square Meter, these are ranges.</p>
-                    <div class="choices-list space-y-2">
+                    <div class="choices-list space-y-2" data-option-type="<?php echo esc_attr($type); ?>">
                         <?php if (!empty($choices)): ?>
                             <?php foreach ($choices as $choice_index => $choice): ?>
-                                <div class="choice-item flex items-center gap-2">
-                                    <input type="text" name="options[<?php echo esc_attr($option_index); ?>][choices][<?php echo $choice_index; ?>][label]" class="form-input flex-1" placeholder="Choice Label (e.g., Small, 10-20 sqm)" value="<?php echo esc_attr($choice['label']); ?>">
-                                    <input type="number" name="options[<?php echo esc_attr($option_index); ?>][choices][<?php echo $choice_index; ?>][price]" class="form-input w-24" placeholder="Price" value="<?php echo esc_attr($choice['price']); ?>" step="0.01">
-                                    <button type="button" class="btn-icon remove-choice-btn">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><path d="m19 6-1 14H6L5 6"/></svg>
-                                    </button>
-                                </div>
+                                <?php if ($type === 'sqm'): ?>
+                                    <div class="choice-item flex items-center gap-2">
+                                        <input type="number" name="options[<?php echo esc_attr($option_index); ?>][choices][<?php echo $choice_index; ?>][from_sqm]" class="form-input w-24" placeholder="From" value="<?php echo esc_attr($choice['from_sqm'] ?? ''); ?>" step="0.01">
+                                        <span class="text-muted-foreground">-</span>
+                                        <input type="number" name="options[<?php echo esc_attr($option_index); ?>][choices][<?php echo $choice_index; ?>][to_sqm]" class="form-input w-24" placeholder="To" value="<?php echo esc_attr($choice['to_sqm'] ?? ''); ?>" step="0.01">
+                                        <input type="number" name="options[<?php echo esc_attr($option_index); ?>][choices][<?php echo $choice_index; ?>][price]" class="form-input flex-1" placeholder="Price per SQM" value="<?php echo esc_attr($choice['price'] ?? ''); ?>" step="0.01">
+                                        <button type="button" class="btn-icon remove-choice-btn">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><path d="m19 6-1 14H6L5 6"/></svg>
+                                        </button>
+                                    </div>
+                                <?php else: ?>
+                                    <div class="choice-item flex items-center gap-2">
+                                        <input type="text" name="options[<?php echo esc_attr($option_index); ?>][choices][<?php echo $choice_index; ?>][label]" class="form-input flex-1" placeholder="Choice Label" value="<?php echo esc_attr($choice['label'] ?? ''); ?>">
+                                        <input type="number" name="options[<?php echo esc_attr($option_index); ?>][choices][<?php echo $choice_index; ?>][price]" class="form-input w-24" placeholder="Price" value="<?php echo esc_attr($choice['price'] ?? ''); ?>" step="0.01">
+                                        <button type="button" class="btn-icon remove-choice-btn">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><path d="m19 6-1 14H6L5 6"/></svg>
+                                        </button>
+                                    </div>
+                                <?php endif; ?>
                             <?php endforeach; ?>
                         <?php endif; ?>
                     </div>

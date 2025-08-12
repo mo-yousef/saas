@@ -89,14 +89,21 @@ jQuery(function($) {
                     badge.text(typeLabel);
                 }
 
-                // Show/hide choices container
+                // Show/hide choices container and clear existing choices on type change
                 const $choicesContainer = $optionItem.find('.choices-container');
+                const $choicesList = $optionItem.find('.choices-list');
                 const choiceTypes = ['select', 'radio', 'checkbox', 'sqm'];
+
                 if (choiceTypes.includes(type)) {
                     $choicesContainer.slideDown(200);
                 } else {
                     $choicesContainer.slideUp(200);
                 }
+
+                // Clear the list to prevent keeping choices from a different type
+                $choicesList.empty();
+                // Update the data attribute for the add choice button
+                $choicesList.data('option-type', type);
             });
 
             // Add choice
@@ -106,16 +113,34 @@ jQuery(function($) {
                 const $list = $optionElement.find('.choices-list');
                 const optionIndex = $optionElement.data('option-index');
                 const choiceIndex = $list.find('.choice-item').length;
+                const optionType = $optionElement.find('.option-type-radio:checked').val();
 
-                const newChoiceHtml = `
-                    <div class="choice-item flex items-center gap-2">
-                        <input type="text" name="options[${optionIndex}][choices][${choiceIndex}][label]" class="form-input flex-1" placeholder="Choice Label">
-                        <input type="number" name="options[${optionIndex}][choices][${choiceIndex}][price]" class="form-input w-24" placeholder="Price" step="0.01">
-                        <button type="button" class="btn-icon remove-choice-btn">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><path d="m19 6-1 14H6L5 6"/></svg>
-                        </button>
-                    </div>
-                `;
+                let newChoiceHtml = '';
+
+                if (optionType === 'sqm') {
+                    newChoiceHtml = `
+                        <div class="choice-item flex items-center gap-2">
+                            <input type="number" name="options[${optionIndex}][choices][${choiceIndex}][from_sqm]" class="form-input w-24" placeholder="From" step="0.01">
+                            <span class="text-muted-foreground">-</span>
+                            <input type="number" name="options[${optionIndex}][choices][${choiceIndex}][to_sqm]" class="form-input w-24" placeholder="To" step="0.01">
+                            <input type="number" name="options[${optionIndex}][choices][${choiceIndex}][price]" class="form-input flex-1" placeholder="Price per SQM" step="0.01">
+                            <button type="button" class="btn-icon remove-choice-btn">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><path d="m19 6-1 14H6L5 6"/></svg>
+                            </button>
+                        </div>
+                    `;
+                } else {
+                    newChoiceHtml = `
+                        <div class="choice-item flex items-center gap-2">
+                            <input type="text" name="options[${optionIndex}][choices][${choiceIndex}][label]" class="form-input flex-1" placeholder="Choice Label">
+                            <input type="number" name="options[${optionIndex}][choices][${choiceIndex}][price]" class="form-input w-24" placeholder="Price" step="0.01">
+                            <button type="button" class="btn-icon remove-choice-btn">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><path d="m19 6-1 14H6L5 6"/></svg>
+                            </button>
+                        </div>
+                    `;
+                }
+
                 $list.append(newChoiceHtml);
             });
 
