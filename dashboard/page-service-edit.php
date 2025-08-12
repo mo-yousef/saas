@@ -1202,6 +1202,16 @@ if ( $edit_mode && $service_id > 0 ) {
     </form>
 </div>
 
+<template id="mobooking-option-template">
+    <?php
+    set_query_var('option', []);
+    set_query_var('option_index', '__INDEX__');
+    set_query_var('option_types', $option_types);
+    set_query_var('price_types', $price_types);
+    get_template_part('templates/service-option-item');
+    ?>
+</template>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Service Edit functionality
@@ -1212,6 +1222,7 @@ document.addEventListener('DOMContentLoaded', function() {
             this.bindEvents();
             this.initTabs();
             this.initSwitches();
+            document.querySelectorAll('.option-item').forEach(option => this.bindOptionEvents(option));
         },
         
         bindEvents: function() {
@@ -1296,102 +1307,32 @@ document.addEventListener('DOMContentLoaded', function() {
         },
         
         addOption: function() {
-            // Simple option addition - for full functionality, you'd need the complete template system
             const container = document.getElementById('options-container');
             const emptyState = container.querySelector('.empty-state');
             if (emptyState) {
                 emptyState.remove();
             }
-            
-            // Basic option HTML - this would be more complex in the full implementation
-            const optionHtml = `
-                <div class="option-item" data-option-index="${this.optionIndex}">
-                    <div class="option-header">
-                        <div class="drag-handle">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <circle cx="9" cy="12" r="1"/>
-                                <circle cx="9" cy="5" r="1"/>
-                                <circle cx="9" cy="19" r="1"/>
-                                <circle cx="15" cy="12" r="1"/>
-                                <circle cx="15" cy="5" r="1"/>
-                                <circle cx="15" cy="19" r="1"/>
-                            </svg>
-                        </div>
-                        <div class="option-summary">
-                            <h4 class="option-name">New Option</h4>
-                            <div class="option-badges">
-                                <span class="badge badge-outline">Checkbox</span>
-                            </div>
-                        </div>
-                        <div class="option-actions">
-                            <button type="button" class="btn-icon toggle-option">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="m6 9 6 6 6-6"/>
-                                </svg>
-                            </button>
-                            <button type="button" class="btn-icon delete-option">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M3 6h18"/>
-                                    <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
-                                    <path d="m19 6-1 14H6L5 6"/>
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="option-content">
-                        <input type="hidden" name="options[${this.optionIndex}][option_id]" value="">
-                        <input type="hidden" name="options[${this.optionIndex}][sort_order]" value="${this.optionIndex + 1}">
-                        
-                        <div class="space-y-4">
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <div class="md:col-span-2">
-                                    <label class="form-label">
-                                        Option Name <span class="text-destructive">*</span>
-                                    </label>
-                                    <input 
-                                        type="text" 
-                                        name="options[${this.optionIndex}][name]" 
-                                        class="form-input option-name-input" 
-                                        placeholder="e.g., Room Size"
-                                        value="New Option"
-                                        required
-                                    >
-                                </div>
-                                <div>
-                                    <label class="form-label">Required</label>
-                                    <div class="flex items-center space-x-2 mt-2">
-                                        <button type="button" class="switch" data-switch="required">
-                                            <span class="switch-thumb"></span>
-                                        </button>
-                                        <span class="text-sm">Required option</span>
-                                        <input type="hidden" name="options[${this.optionIndex}][is_required]" value="0" class="option-required-input">
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div>
-                                <label class="form-label">Description</label>
-                                <textarea 
-                                    name="options[${this.optionIndex}][description]" 
-                                    class="form-textarea" 
-                                    rows="2"
-                                    placeholder="Helpful description for customers..."
-                                ></textarea>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
+
+            const template = document.getElementById('mobooking-option-template');
+            if (!template) {
+                console.error('Option template not found!');
+                return;
+            }
+
+            // Get the HTML from the template and replace the index placeholder
+            const optionHtml = template.innerHTML.replace(/__INDEX__/g, this.optionIndex);
             
             container.insertAdjacentHTML('beforeend', optionHtml);
             
-            // Add event listeners for the new option
             const newOption = container.lastElementChild;
-            this.bindOptionEvents(newOption);
-            
-            // Expand the new option
-            newOption.classList.add('expanded');
-            newOption.querySelector('.option-name-input').focus();
+            if (newOption) {
+                this.bindOptionEvents(newOption);
+
+                // Expand the new option and focus
+                newOption.classList.add('expanded');
+                newOption.querySelector('.option-content').style.display = 'block';
+                newOption.querySelector('.option-name-input').focus();
+            }
             
             this.updateOptionsBadge();
             this.optionIndex++;
@@ -1401,6 +1342,8 @@ document.addEventListener('DOMContentLoaded', function() {
             // Toggle option
             optionElement.querySelector('.toggle-option').addEventListener('click', () => {
                 optionElement.classList.toggle('expanded');
+                const content = optionElement.querySelector('.option-content');
+                content.style.display = optionElement.classList.contains('expanded') ? 'block' : 'none';
             });
             
             // Delete option
@@ -1409,21 +1352,30 @@ document.addEventListener('DOMContentLoaded', function() {
                     optionElement.remove();
                     this.updateOptionsBadge();
                     
-                    // Show empty state if no options left
-                    const container = document.getElementById('options-container');
-                    if (!container.querySelector('.option-item')) {
+                    if (document.querySelectorAll('.option-item').length === 0) {
                         this.showEmptyState();
                     }
                 }
             });
             
-            // Update option name
+            // Update option name in header
             optionElement.querySelector('.option-name-input').addEventListener('input', (e) => {
                 const nameDisplay = optionElement.querySelector('.option-name');
-                nameDisplay.textContent = e.target.value || 'Untitled Option';
+                nameDisplay.textContent = e.target.value || 'New Option';
+            });
+
+            // Update option type badge
+            optionElement.querySelectorAll('input[type="radio"][name^="options["]').forEach(radio => {
+                radio.addEventListener('change', (e) => {
+                    const badge = optionElement.querySelector('.option-badges .badge-outline');
+                    const typeLabel = e.target.closest('.option-type-card').querySelector('.option-type-title').textContent;
+                    if (badge) {
+                        badge.textContent = typeLabel;
+                    }
+                });
             });
         },
-        
+
         showEmptyState: function() {
             const container = document.getElementById('options-container');
             container.innerHTML = `
@@ -1449,12 +1401,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     </button>
                 </div>
             `;
+            container.querySelector('.add-first-option')?.addEventListener('click', () => this.addOption());
         },
-        
+
         updateOptionsBadge: function() {
             const trigger = document.querySelector('[data-tab="service-options"]');
             const optionCount = document.querySelectorAll('.option-item').length;
-            let badge = trigger.querySelector('.badge');
+            let badge = trigger.querySelector('.badge-secondary');
             
             if (optionCount > 0) {
                 if (!badge) {
@@ -1485,7 +1438,7 @@ document.addEventListener('DOMContentLoaded', function() {
             saveBtn.disabled = true;
             
             // Submit via AJAX
-            fetch(ajaxurl, {
+            fetch(mobooking_service_edit_params.ajax_url, {
                 method: 'POST',
                 body: formData
             })
@@ -1519,9 +1472,9 @@ document.addEventListener('DOMContentLoaded', function() {
             const formData = new FormData();
             formData.append('action', 'mobooking_delete_service_ajax');
             formData.append('service_id', serviceId);
-            formData.append('nonce', document.querySelector('input[name="mobooking_services_nonce"]').value);
+            formData.append('nonce', mobooking_service_edit_params.nonce);
             
-            fetch(ajaxurl, {
+            fetch(mobooking_service_edit_params.ajax_url, {
                 method: 'POST',
                 body: formData
             })
@@ -1551,7 +1504,7 @@ document.addEventListener('DOMContentLoaded', function() {
             formData.set('name', currentName + ' (Copy)');
             formData.append('action', 'mobooking_save_service');
             
-            fetch(ajaxurl, {
+            fetch(mobooking_service_edit_params.ajax_url, {
                 method: 'POST',
                 body: formData
             })
@@ -1596,12 +1549,12 @@ document.addEventListener('DOMContentLoaded', function() {
             const formData = new FormData();
             formData.append('action', 'mobooking_upload_service_image');
             formData.append('image', file);
-            formData.append('nonce', document.querySelector('input[name="mobooking_services_nonce"]').value);
+            formData.append('nonce', mobooking_service_edit_params.nonce);
             
             const preview = document.getElementById('image-preview');
             preview.innerHTML = '<div class="upload-loading">Uploading...</div>';
             
-            fetch(ajaxurl, {
+            fetch(mobooking_service_edit_params.ajax_url, {
                 method: 'POST',
                 body: formData
             })
