@@ -885,7 +885,7 @@ if ( $edit_mode && $service_id > 0 ) {
 
     <!-- Main Form -->
     <form id="mobooking-service-form" class="service-form">
-        <?php wp_nonce_field('mobooking_services_nonce', 'mobooking_services_nonce'); ?>
+        <?php wp_nonce_field('mobooking_services_nonce', 'nonce'); ?>
         
         <?php if ($edit_mode): ?>
             <input type="hidden" name="service_id" value="<?php echo esc_attr($service_id); ?>">
