@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', function() {
+jQuery(function($) {
     // Service Edit functionality
     const ServiceEdit = {
         optionIndex: mobooking_service_edit_params.option_count,
@@ -7,186 +7,189 @@ document.addEventListener('DOMContentLoaded', function() {
             this.bindEvents();
             this.initTabs();
             this.initSwitches();
-            document.querySelectorAll('.option-item').forEach(option => this.bindOptionEvents(option));
+            $('.option-item').each((i, option) => this.bindOptionEvents($(option)));
         },
 
         bindEvents: function() {
+            const self = this;
             // Add option button
-            document.getElementById('add-option-btn')?.addEventListener('click', () => this.addOption());
-            document.querySelector('.add-first-option')?.addEventListener('click', () => this.addOption());
+            $(document).on('click', '#add-option-btn, .add-first-option', function() {
+                self.addOption();
+            });
 
             // Form submission
-            document.getElementById('mobooking-service-form').addEventListener('submit', (e) => {
+            $('#mobooking-service-form').on('submit', function(e) {
                 e.preventDefault();
-                this.saveService();
+                self.saveService();
             });
 
             // Save as draft
-            document.getElementById('save-draft-btn').addEventListener('click', () => this.saveService(true));
+            $('#save-draft-btn').on('click', () => this.saveService(true));
 
             // Delete and duplicate
-            document.getElementById('delete-service-btn')?.addEventListener('click', () => this.deleteService());
-            document.getElementById('duplicate-service-btn')?.addEventListener('click', () => this.duplicateService());
+            $('#delete-service-btn').on('click', () => this.deleteService());
+            $('#duplicate-service-btn').on('click', () => this.duplicateService());
 
             // Icon and image handling
-            document.getElementById('select-icon-btn').addEventListener('click', () => this.openIconSelector());
-            document.getElementById('image-preview').addEventListener('click', function() {
-                if (!this.querySelector('img')) {
-                    document.getElementById('service-image-upload').click();
+            $('#select-icon-btn').on('click', () => this.openIconSelector());
+            $('#image-preview').on('click', function() {
+                if (!$(this).find('img').length) {
+                    $('#service-image-upload').click();
                 }
             });
-            document.getElementById('service-image-upload').addEventListener('change', (e) => {
-                if (e.target.files[0]) this.handleImageUpload(e.target.files[0]);
+            $('#service-image-upload').on('change', function(e) {
+                if (e.target.files[0]) {
+                    self.handleImageUpload(e.target.files[0]);
+                }
             });
-            document.querySelector('.remove-image-btn')?.addEventListener('click', (e) => {
+            $(document).on('click', '.remove-image-btn', function(e) {
                 e.stopPropagation();
-                this.removeImage();
+                self.removeImage();
             });
         },
 
         initTabs: function() {
-            const triggers = document.querySelectorAll('.tabs-trigger');
-            const contents = document.querySelectorAll('.tabs-content');
+            $('.tabs-trigger').on('click', function() {
+                const tabId = $(this).data('tab');
 
-            triggers.forEach(trigger => {
-                trigger.addEventListener('click', () => {
-                    const tabId = trigger.dataset.tab;
+                $('.tabs-trigger').removeClass('active').attr('aria-selected', 'false');
+                $(this).addClass('active').attr('aria-selected', 'true');
 
-                    triggers.forEach(t => {
-                        t.classList.remove('active');
-                        t.setAttribute('aria-selected', 'false');
-                    });
-                    trigger.classList.add('active');
-                    trigger.setAttribute('aria-selected', 'true');
-
-                    contents.forEach(content => content.classList.remove('active'));
-                    document.getElementById(tabId).classList.add('active');
-                });
+                $('.tabs-content').removeClass('active');
+                $('#' + tabId).addClass('active');
             });
         },
 
         initSwitches: function() {
-            document.addEventListener('click', (e) => {
-                if (e.target.closest('.switch')) {
-                    const switchEl = e.target.closest('.switch');
-                    const isChecked = switchEl.classList.contains('switch-checked');
-                    const hiddenInput = switchEl.parentNode.querySelector('input[type="hidden"]');
+            $(document).on('click', '.switch', function() {
+                const $switchEl = $(this);
+                const $hiddenInput = $switchEl.parent().find('input[type="hidden"]');
 
-                    if (isChecked) {
-                        switchEl.classList.remove('switch-checked');
-                        if (hiddenInput) hiddenInput.value = switchEl.dataset.switch === 'status' ? 'inactive' : '0';
-                    } else {
-                        switchEl.classList.add('switch-checked');
-                        if (hiddenInput) hiddenInput.value = switchEl.dataset.switch === 'status' ? 'active' : '1';
-                    }
+                $switchEl.toggleClass('switch-checked');
+                const isChecked = $switchEl.hasClass('switch-checked');
 
-                    // Update status label
-                    if (switchEl.dataset.switch === 'status') {
-                        const label = switchEl.parentNode.querySelector('.text-sm');
-                        if (label) {
-                            label.textContent = switchEl.classList.contains('switch-checked') ? 'Active' : 'Inactive';
-                        }
+                if ($hiddenInput.length) {
+                    $hiddenInput.val($switchEl.data('switch') === 'status' ? (isChecked ? 'active' : 'inactive') : (isChecked ? '1' : '0'));
+                }
+
+                if ($switchEl.data('switch') === 'status') {
+                    const $label = $switchEl.parent().find('.text-sm');
+                    if ($label.length) {
+                        $label.text(isChecked ? 'Active' : 'Inactive');
                     }
                 }
             });
         },
 
         addOption: function() {
-            const container = document.getElementById('options-container');
-            const emptyState = container.querySelector('.empty-state');
-            if (emptyState) {
-                emptyState.remove();
-            }
+            const $container = $('#options-container');
+            $container.find('.empty-state').remove();
 
-            const template = document.getElementById('mobooking-option-template');
+            const template = $('#mobooking-option-template').html();
             if (!template) {
                 console.error('Option template not found!');
                 return;
             }
 
-            // Get the HTML from the template and replace the index placeholder
-            const optionHtml = template.innerHTML.replace(/__INDEX__/g, this.optionIndex);
+            const optionHtml = template.replace(/__INDEX__/g, this.optionIndex);
+            $container.append(optionHtml);
 
-            container.insertAdjacentHTML('beforeend', optionHtml);
+            const $newOption = $container.find('.option-item').last();
+            if ($newOption.length) {
+                this.bindOptionEvents($newOption);
 
-            const newOption = container.lastElementChild;
-            if (newOption) {
-                this.bindOptionEvents(newOption);
-
-                // Expand the new option and focus
-                newOption.classList.add('expanded');
-                newOption.querySelector('.option-content').style.display = 'block';
-                newOption.querySelector('.option-name-input').focus();
+                $newOption.addClass('expanded');
+                $newOption.find('.option-content').show();
+                $newOption.find('.option-name-input').focus();
             }
 
             this.updateOptionsBadge();
             this.optionIndex++;
         },
 
-        bindOptionEvents: function(optionElement) {
+        bindOptionEvents: function($optionElement) {
+            const self = this;
             // Toggle option
-            optionElement.querySelector('.toggle-option').addEventListener('click', () => {
-                optionElement.classList.toggle('expanded');
-                const content = optionElement.querySelector('.option-content');
-                content.style.display = optionElement.classList.contains('expanded') ? 'block' : 'none';
+            $optionElement.find('.toggle-option').on('click', function() {
+                $optionElement.toggleClass('expanded');
+                $optionElement.find('.option-content').slideToggle(200);
             });
 
             // Delete option
-            optionElement.querySelector('.delete-option').addEventListener('click', () => {
-                if (confirm('Are you sure you want to delete this option?')) {
-                    optionElement.remove();
-                    this.updateOptionsBadge();
+            $optionElement.find('.delete-option').on('click', function() {
+                if (confirm(mobooking_service_edit_params.i18n.confirm_delete_option)) {
+                    $optionElement.remove();
+                    self.updateOptionsBadge();
 
-                    if (document.querySelectorAll('.option-item').length === 0) {
-                        this.showEmptyState();
+                    if ($('.option-item').length === 0) {
+                        self.showEmptyState();
                     }
                 }
             });
 
             // Update option name in header
-            optionElement.querySelector('.option-name-input').addEventListener('input', (e) => {
-                const nameDisplay = optionElement.querySelector('.option-name');
-                nameDisplay.textContent = e.target.value || 'New Option';
+            $optionElement.find('.option-name-input').on('input', function() {
+                const nameDisplay = $optionElement.find('.option-name');
+                nameDisplay.text($(this).val() || 'New Option');
             });
 
             // Update option type badge
-            optionElement.querySelectorAll('input[type="radio"][name^="options["]').forEach(radio => {
-                radio.addEventListener('change', (e) => {
-                    const badge = optionElement.querySelector('.option-badges .badge-outline');
-                    const typeLabel = e.target.closest('.option-type-card').querySelector('.option-type-title').textContent;
-                    if (badge) {
-                        badge.textContent = typeLabel;
-                    }
-                });
+            $optionElement.find('input[type="radio"][name^="options["]').on('change', function() {
+                const badge = $optionElement.find('.option-badges .badge-outline');
+                const typeLabel = $(this).closest('.option-type-card').find('.option-type-title').text();
+                if (badge.length) {
+                    badge.text(typeLabel);
+                }
             });
         },
 
         showEmptyState: function() {
-            const container = document.getElementById('options-container');
-            container.innerHTML = mobooking_service_edit_params.i18n.empty_state_html;
-            container.querySelector('.add-first-option')?.addEventListener('click', () => this.addOption());
+            const i18n = mobooking_service_edit_params.i18n;
+            const emptyStateHtml = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <circle cx="12" cy="12" r="10"/>
+                            <path d="M8 14s1.5 2 4 2 4-2 4-2"/>
+                            <line x1="9" y1="9" x2="9.01" y2="9"/>
+                            <line x1="15" y1="9" x2="15.01" y2="9"/>
+                        </svg>
+                    </div>
+                    <h3 class="empty-state-title">${i18n.no_options_yet || 'No options added yet'}</h3>
+                    <p class="empty-state-description">
+                        ${i18n.add_options_prompt || 'Add customization options like room size, add-ons, or special requirements to make your service more flexible.'}
+                    </p>
+                    <button type="button" class="btn btn-primary add-first-option">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M5 12h14"/>
+                            <path d="M12 5v14"/>
+                        </svg>
+                        ${i18n.add_first_option || 'Add Your First Option'}
+                    </button>
+                </div>`;
+            $('#options-container').html(emptyStateHtml);
         },
 
         updateOptionsBadge: function() {
-            const trigger = document.querySelector('[data-tab="service-options"]');
-            const optionCount = document.querySelectorAll('.option-item').length;
-            let badge = trigger.querySelector('.badge-secondary');
+            const $trigger = $('[data-tab="service-options"]');
+            const optionCount = $('.option-item').length;
+            let $badge = $trigger.find('.badge-secondary');
 
             if (optionCount > 0) {
-                if (!badge) {
-                    badge = document.createElement('span');
-                    badge.className = 'badge badge-secondary';
-                    trigger.appendChild(badge);
+                if (!$badge.length) {
+                    $badge = $('<span class="badge badge-secondary"></span>');
+                    $trigger.append($badge);
                 }
-                badge.textContent = optionCount;
-            } else if (badge) {
-                badge.remove();
+                $badge.text(optionCount);
+            } else if ($badge.length) {
+                $badge.remove();
             }
         },
 
         saveService: function(isDraft = false) {
-            const form = document.getElementById('mobooking-service-form');
-            const formData = new FormData(form);
+            const self = this;
+            const $form = $('#mobooking-service-form');
+            const formData = new FormData($form[0]);
 
             if (isDraft) {
                 formData.set('status', 'draft');
@@ -194,111 +197,110 @@ document.addEventListener('DOMContentLoaded', function() {
 
             formData.append('action', 'mobooking_save_service');
 
-            // Show loading state
-            const saveBtn = document.getElementById('save-service-btn');
-            const originalText = saveBtn.innerHTML;
-            saveBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 11-6.219-8.56"/></svg> Saving...';
-            saveBtn.disabled = true;
+            const $saveBtn = $('#save-service-btn');
+            const originalText = $saveBtn.html();
+            $saveBtn.html('<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 11-6.219-8.56"/></svg> ' + mobooking_service_edit_params.i18n.saving).prop('disabled', true);
 
-            // Submit via AJAX
-            fetch(mobooking_service_edit_params.ajax_url, {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    this.showAlert('success', data.data.message);
-                    setTimeout(() => {
-                        window.location.href = mobooking_service_edit_params.redirect_url;
-                    }, 1500);
-                } else {
-                    this.showAlert('error', data.data.message || 'An error occurred while saving the service.');
+            $.ajax({
+                url: mobooking_service_edit_params.ajax_url,
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    if (response.success) {
+                        self.showAlert('success', response.data.message);
+                        setTimeout(() => {
+                            window.location.href = mobooking_service_edit_params.redirect_url;
+                        }, 1500);
+                    } else {
+                        self.showAlert('error', response.data.message || mobooking_service_edit_params.i18n.error_saving_service);
+                    }
+                },
+                error: function() {
+                    self.showAlert('error', mobooking_service_edit_params.i18n.error_ajax);
+                },
+                complete: function() {
+                    $saveBtn.html(originalText).prop('disabled', false);
                 }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                this.showAlert('error', 'An unexpected error occurred. Please try again.');
-            })
-            .finally(() => {
-                saveBtn.innerHTML = originalText;
-                saveBtn.disabled = false;
             });
         },
 
         deleteService: function() {
-            if (!confirm('Are you sure you want to delete this service? This action cannot be undone.')) {
+            const self = this;
+            if (!confirm(mobooking_service_edit_params.i18n.confirm_delete)) {
                 return;
             }
 
-            const serviceId = document.querySelector('input[name="service_id"]').value;
-            const formData = new FormData();
-            formData.append('action', 'mobooking_delete_service_ajax');
-            formData.append('service_id', serviceId);
-            formData.append('nonce', mobooking_service_edit_params.nonce);
+            const serviceId = $('input[name="service_id"]').val();
 
-            fetch(mobooking_service_edit_params.ajax_url, {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    this.showAlert('success', 'Service deleted successfully');
-                    setTimeout(() => {
-                        window.location.href = mobooking_service_edit_params.redirect_url;
-                    }, 1000);
-                } else {
-                    this.showAlert('error', data.data.message || 'Failed to delete service');
+            $.ajax({
+                url: mobooking_service_edit_params.ajax_url,
+                type: 'POST',
+                data: {
+                    action: 'mobooking_delete_service_ajax',
+                    service_id: serviceId,
+                    nonce: mobooking_service_edit_params.nonce
+                },
+                success: function(response) {
+                    if (response.success) {
+                        self.showAlert('success', mobooking_service_edit_params.i18n.service_deleted);
+                        setTimeout(() => {
+                            window.location.href = mobooking_service_edit_params.redirect_url;
+                        }, 1000);
+                    } else {
+                        self.showAlert('error', response.data.message || mobooking_service_edit_params.i18n.error_deleting_service);
+                    }
+                },
+                error: function() {
+                    self.showAlert('error', mobooking_service_edit_params.i18n.error_ajax);
                 }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                this.showAlert('error', 'An unexpected error occurred');
             });
         },
 
         duplicateService: function() {
-            const form = document.getElementById('mobooking-service-form');
-            const formData = new FormData(form);
+            const self = this;
+            const $form = $('#mobooking-service-form');
+            const formData = new FormData($form[0]);
 
             formData.delete('service_id');
             const currentName = formData.get('name');
             formData.set('name', currentName + ' (Copy)');
             formData.append('action', 'mobooking_save_service');
 
-            fetch(mobooking_service_edit_params.ajax_url, {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    this.showAlert('success', 'Service duplicated successfully');
-                    setTimeout(() => {
-                        window.location.href = mobooking_service_edit_params.redirect_url;
-                    }, 1500);
-                } else {
-                    this.showAlert('error', data.data.message || 'Failed to duplicate service');
+            $.ajax({
+                url: mobooking_service_edit_params.ajax_url,
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    if (response.success) {
+                        self.showAlert('success', mobooking_service_edit_params.i18n.service_duplicated);
+                        setTimeout(() => {
+                            window.location.href = mobooking_service_edit_params.redirect_url;
+                        }, 1500);
+                    } else {
+                        self.showAlert('error', response.data.message || mobooking_service_edit_params.i18n.error_duplicating_service);
+                    }
+                },
+                error: function() {
+                    self.showAlert('error', mobooking_service_edit_params.i18n.error_ajax);
                 }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                this.showAlert('error', 'An unexpected error occurred');
             });
         },
 
         openIconSelector: function() {
-            // Icon selector implementation
             if (typeof MoBookingIconSelector !== 'undefined') {
                 MoBookingIconSelector.open((selectedIcon) => {
-                    document.getElementById('service-icon').value = selectedIcon;
-                    document.getElementById('current-icon').innerHTML = selectedIcon;
+                    $('#service-icon').val(selectedIcon);
+                    $('#current-icon').html(selectedIcon);
                 });
             }
         },
 
         handleImageUpload: function(file) {
+            const self = this;
             if (!file.type.startsWith('image/')) {
                 this.showAlert('error', 'Please select a valid image file');
                 return;
@@ -314,88 +316,81 @@ document.addEventListener('DOMContentLoaded', function() {
             formData.append('image', file);
             formData.append('nonce', mobooking_service_edit_params.nonce);
 
-            const preview = document.getElementById('image-preview');
-            preview.innerHTML = '<div class="upload-loading">Uploading...</div>';
+            const $preview = $('#image-preview');
+            $preview.html('<div class="upload-loading">Uploading...</div>');
 
-            fetch(mobooking_service_edit_params.ajax_url, {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    const imageUrl = data.data.url;
-                    document.getElementById('service-image-url').value = imageUrl;
-                    preview.innerHTML = `
-                        <img src="${imageUrl}" alt="Service Image">
-                        <button type="button" class="remove-image-btn">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M3 6h18"/>
-                                <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
-                                <path d="m19 6-1 14H6L5 6"/>
-                            </svg>
-                        </button>
-                    `;
-                    preview.classList.remove('empty');
-                } else {
-                    this.showAlert('error', data.data.message || 'Failed to upload image');
-                    this.resetImagePreview();
+            $.ajax({
+                url: mobooking_service_edit_params.ajax_url,
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    if (response.success) {
+                        const imageUrl = response.data.url;
+                        $('#service-image-url').val(imageUrl);
+                        $preview.html(`
+                            <img src="${imageUrl}" alt="Service Image">
+                            <button type="button" class="remove-image-btn">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M3 6h18"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><path d="m19 6-1 14H6L5 6"/>
+                                </svg>
+                            </button>
+                        `);
+                        $preview.removeClass('empty');
+                    } else {
+                        self.showAlert('error', response.data.message || mobooking_service_edit_params.i18n.error_uploading_image);
+                        self.resetImagePreview();
+                    }
+                },
+                error: function() {
+                    self.showAlert('error', mobooking_service_edit_params.i18n.error_uploading_image);
+                    self.resetImagePreview();
                 }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                this.showAlert('error', 'Failed to upload image');
-                this.resetImagePreview();
             });
         },
 
         removeImage: function() {
-            document.getElementById('service-image-url').value = '';
+            $('#service-image-url').val('');
             this.resetImagePreview();
         },
 
         resetImagePreview: function() {
-            const preview = document.getElementById('image-preview');
-            preview.innerHTML = `
+            const $preview = $('#image-preview');
+            $preview.html(`
                 <div class="upload-placeholder">
                     <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                        <rect width="18" height="18" x="3" y="3" rx="2" ry="2"/>
-                        <circle cx="9" cy="9" r="2"/>
-                        <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
+                        <rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
                     </svg>
                     <p>Click to upload image</p>
                     <p class="text-xs text-muted-foreground">PNG, JPG up to 5MB</p>
                 </div>
-            `;
-            preview.classList.add('empty');
+            `);
+            $preview.addClass('empty');
         },
 
         showAlert: function(type, message) {
-            const container = document.getElementById('alert-container');
             const alertClass = type === 'success' ? 'alert-success' : 'alert-destructive';
             const iconSvg = type === 'success'
                 ? '<path d="m9 12 2 2 4-4"/><path d="M21 12c.552 0 1-.448 1-1V5a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v6c0 .552.448 1 1 1h18z"/>'
                 : '<circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/>';
 
-            const alert = document.createElement('div');
-            alert.className = `alert ${alertClass}`;
-            alert.innerHTML = `
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    ${iconSvg}
-                </svg>
-                <span>${message}</span>
-            `;
+            const $alert = $(`
+                <div class="alert ${alertClass}">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        ${iconSvg}
+                    </svg>
+                    <span>${message}</span>
+                </div>
+            `);
 
-            container.appendChild(alert);
+            $('#alert-container').append($alert);
 
             setTimeout(() => {
-                if (alert.parentElement) {
-                    alert.remove();
-                }
+                $alert.fadeOut(300, function() { $(this).remove(); });
             }, 5000);
         }
     };
 
-    // Initialize the service edit functionality
     ServiceEdit.init();
 });
