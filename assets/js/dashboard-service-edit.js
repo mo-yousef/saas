@@ -123,7 +123,7 @@ jQuery(function($) {
                             <input type="number" name="options[${optionIndex}][choices][${choiceIndex}][from_sqm]" class="form-input w-24" placeholder="From" step="0.01">
                             <span class="text-muted-foreground">-</span>
                             <input type="number" name="options[${optionIndex}][choices][${choiceIndex}][to_sqm]" class="form-input w-24" placeholder="To" step="0.01">
-                            <input type="number" name="options[${optionIndex}][choices][${choiceIndex}][price]" class="form-input flex-1" placeholder="Price per SQM" step="0.01">
+                            <input type="number" name="options[${optionIndex}][choices][${choiceIndex}][price_per_sqm]" class="form-input flex-1" placeholder="Price per SQM" step="0.01">
                             <button type="button" class="btn-icon remove-choice-btn">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><path d="m19 6-1 14H6L5 6"/></svg>
                             </button>
