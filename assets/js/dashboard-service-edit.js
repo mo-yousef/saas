@@ -349,6 +349,9 @@ jQuery(function ($) {
         .prop("disabled", true)
         .text(mobooking_service_edit_params.i18n.saving || "Saving...");
 
+      // Clear all previous option-level feedback messages
+      $('.option-feedback').empty();
+
       // Add draft status if saving as draft
       if (isDraft) {
         $("<input>")
@@ -384,10 +387,26 @@ jQuery(function ($) {
             }, 1000);
           } else {
             console.error("Save failed:", response.data);
-            alert(
-              response.data.message ||
-                mobooking_service_edit_params.i18n.error_saving_service
-            );
+            const errorMessage = response.data.message || mobooking_service_edit_params.i18n.error_saving_service;
+
+            // Try to find the specific option and display the error inline
+            const optionMatch = errorMessage.match(/Error saving option '([^']+)':/);
+            let errorHandled = false;
+            if (optionMatch && optionMatch[1]) {
+                const optionName = optionMatch[1];
+                $('.option-name-input').each(function() {
+                    if ($(this).val() === optionName) {
+                        $(this).closest('.option-item').find('.option-feedback').text(errorMessage.replace(/Error saving option '[^']+': /, ''));
+                        errorHandled = true;
+                        return false; // break loop
+                    }
+                });
+            }
+
+            // Fallback to alert if we couldn't place the error message
+            if (!errorHandled) {
+                alert(errorMessage);
+            }
           }
         },
         error: function (xhr, status, error) {
