@@ -206,6 +206,7 @@ $choices_visible = in_array($type, ['select', 'radio', 'checkbox', 'sqm', 'kilom
                             Add Choice
                         <?php endif; ?>
                     </button>
+                    <div class="option-feedback text-destructive text-sm mt-2"></div>
                 </div>
             </div>
         </div>
