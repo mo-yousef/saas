@@ -1106,39 +1106,39 @@ public function handle_get_public_services_ajax() {
         // die('[DEBUG] Service ID determined: ' . $service_id);
         error_log('[MoBooking SaveSvc Debug] Service ID for save/update: ' . $service_id);
 
-    $service_name_from_post = isset($_POST['name']) ? (string) $_POST['name'] : '';
-    $trimmed_service_name = trim($service_name_from_post);
+        $service_name_from_post = isset($_POST['name']) ? (string) $_POST['name'] : '';
+        $trimmed_service_name = trim($service_name_from_post);
 
-    if (empty($trimmed_service_name)) {
-        error_log('[MoBooking SaveSvc Debug] Validation Error: Service name (after trim) is required. Original POST name: \'' . $service_name_from_post . '\'');
-            if (ob_get_length()) ob_clean();
-            wp_send_json_error(['message' => __('Service name is required.', 'mobooking')], 400);
-            return;
-        }
+        if (empty($trimmed_service_name)) {
+            error_log('[MoBooking SaveSvc Debug] Validation Error: Service name (after trim) is required. Original POST name: \'' . $service_name_from_post . '\'');
+                if (ob_get_length()) ob_clean();
+                wp_send_json_error(['message' => __('Service name is required.', 'mobooking')], 400);
+                return;
+            }
 
-    $price_from_post = isset($_POST['price']) ? $_POST['price'] : null;
-    if (is_null($price_from_post) || !is_numeric($price_from_post)) {
-        error_log('[MoBooking SaveSvc Debug] Validation Error: Valid price is required. Received: ' . print_r($price_from_post, true));
-            if (ob_get_length()) ob_clean();
-            wp_send_json_error(['message' => __('Valid price is required.', 'mobooking')], 400);
-            return;
-        }
+        $price_from_post = isset($_POST['price']) ? $_POST['price'] : null;
+        if (is_null($price_from_post) || !is_numeric($price_from_post)) {
+            error_log('[MoBooking SaveSvc Debug] Validation Error: Valid price is required. Received: ' . print_r($price_from_post, true));
+                if (ob_get_length()) ob_clean();
+                wp_send_json_error(['message' => __('Valid price is required.', 'mobooking')], 400);
+                return;
+            }
 
-    // Prepare data, converting empty optional strings to null
-    $icon_from_post = isset($_POST['icon']) ? trim($_POST['icon']) : '';
-    $image_url_from_post = isset($_POST['image_url']) ? trim($_POST['image_url']) : '';
+        // Prepare data, converting empty optional strings to null
+        $icon_from_post = isset($_POST['icon']) ? trim($_POST['icon']) : '';
+        $image_url_from_post = isset($_POST['image_url']) ? trim($_POST['image_url']) : '';
 
-        $data_for_service_method = [
-        'name' => sanitize_text_field($trimmed_service_name),
-            'description' => wp_kses_post(isset($_POST['description']) ? $_POST['description'] : ''),
-        'price' => floatval($price_from_post),
-        // Add category to the data prepared for save/update methods
-        'category' => isset($_POST['category']) ? sanitize_text_field($_POST['category']) : '', // Default to empty string if not set, for consistency
-        'icon' => !empty($icon_from_post) ? sanitize_text_field($icon_from_post) : null,
-        'image_url' => !empty($image_url_from_post) ? esc_url_raw($image_url_from_post) : null,
-            'status' => sanitize_text_field(isset($_POST['status']) ? $_POST['status'] : 'active'),
-        ];
-    error_log('[MoBooking SaveSvc Debug] Data for add/update_service (with nulls for empty optionals): ' . print_r($data_for_service_method, true));
+            $data_for_service_method = [
+            'name' => sanitize_text_field($trimmed_service_name),
+                'description' => wp_kses_post(isset($_POST['description']) ? $_POST['description'] : ''),
+            'price' => floatval($price_from_post),
+            // Add category to the data prepared for save/update methods
+            'category' => isset($_POST['category']) ? sanitize_text_field($_POST['category']) : '', // Default to empty string if not set, for consistency
+            'icon' => !empty($icon_from_post) ? sanitize_text_field($icon_from_post) : null,
+            'image_url' => !empty($image_url_from_post) ? esc_url_raw($image_url_from_post) : null,
+                'status' => sanitize_text_field(isset($_POST['status']) ? $_POST['status'] : 'active'),
+            ];
+        error_log('[MoBooking SaveSvc Debug] Data for add/update_service (with nulls for empty optionals): ' . print_r($data_for_service_method, true));
 
         $result_service_save = null;
         $message = '';
