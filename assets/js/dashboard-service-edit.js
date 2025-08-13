@@ -339,15 +339,16 @@ jQuery(function ($) {
     },
 
     displaySaveError: function(errorMessage) {
-        const optionMatch = errorMessage.match(/Error saving option '([^']+)':/);
+        // This regex now looks for the option name and is more flexible about the prefix.
+        const optionMatch = errorMessage.match(/'([^']+)':\s*(Range \d+:.*)/);
         let errorHandled = false;
 
-        if (optionMatch && optionMatch[1]) {
+        if (optionMatch && optionMatch[1] && optionMatch[2]) {
             const optionName = optionMatch[1];
+            const cleanMessage = optionMatch[2]; // The part of the message after the name.
+
             $('.option-name-input').each(function() {
                 if ($(this).val() === optionName) {
-                    // Display the error message, stripping the repetitive prefix
-                    const cleanMessage = errorMessage.replace(/Error saving option '[^']+':\s*/, '');
                     $(this).closest('.option-item').find('.option-feedback').text(cleanMessage);
                     errorHandled = true;
                     return false; // break loop
@@ -355,9 +356,16 @@ jQuery(function ($) {
             });
         }
 
-        // Fallback to a general alert if the error couldn't be placed with a specific option
+        // Fallback to a general alert if we couldn't place the error message
         if (!errorHandled) {
-            alert(errorMessage);
+            // A more generic fallback that doesn't rely on the regex
+            const generalErrorContainer = $('#alert-container');
+            if (generalErrorContainer.length) {
+                const alertHtml = `<div class="alert alert-destructive"><span>${errorMessage}</span></div>`;
+                generalErrorContainer.html(alertHtml);
+            } else {
+                alert(errorMessage);
+            }
         }
     },
 
@@ -372,8 +380,9 @@ jQuery(function ($) {
             .prop("disabled", true)
             .text(mobooking_service_edit_params.i18n.saving || "Saving...");
 
-        // Clear all previous option-level feedback messages
+        // Clear all previous option-level and global feedback messages
         $('.option-feedback').empty();
+        $('#alert-container').empty();
 
         // Add draft status if saving as draft
         if (isDraft) {
@@ -395,18 +404,16 @@ jQuery(function ($) {
             contentType: false,
             success: function (response) {
                 if (response.success) {
-                    console.log("Service saved successfully:", response.data);
+                    // Success logic remains the same
                     setTimeout(() => {
                         window.location.href = mobooking_service_edit_params.redirect_url;
                     }, 1000);
                 } else {
                     // Handle non-400 errors that have success:false
-                    console.error("Save failed (success:false):", response.data);
                     self.displaySaveError(response.data.message || mobooking_service_edit_params.i18n.error_saving_service);
                 }
             },
             error: function (xhr, status, error) {
-                console.error("AJAX error:", xhr.responseText, status, error);
                 let errorMessage = mobooking_service_edit_params.i18n.error_ajax || "An AJAX error occurred.";
                 try {
                     const response = JSON.parse(xhr.responseText);
@@ -414,7 +421,6 @@ jQuery(function ($) {
                         errorMessage = response.data.message;
                     }
                 } catch (e) {
-                    // Could not parse JSON, use the generic message or the raw responseText
                     errorMessage = xhr.responseText || errorMessage;
                 }
                 self.displaySaveError(errorMessage);
