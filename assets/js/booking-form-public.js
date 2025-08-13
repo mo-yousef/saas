@@ -9,6 +9,8 @@
   // Global variables
   let CONFIG = {};
   let currentStep = 1;
+  let displayedOptions = [];
+  let displayedServices = [];
   let formData = {
     location: {},
     services: [],
@@ -358,16 +360,27 @@
     // Service options
     formData.options = {};
     $('[name^="service_options"]').each(function () {
-      const name = $(this).attr("name");
-      const match = name.match(/service_options\[(\d+)\]/);
-      if (match) {
-        const optionId = match[1];
-        if ($(this).attr("type") === "checkbox") {
-          formData.options[optionId] = $(this).is(":checked") ? 1 : 0;
-        } else {
-          formData.options[optionId] = $(this).val();
+        const $input = $(this);
+        const name = $input.attr("name");
+        const match = name.match(/service_options\[(\d+)\]/);
+        if (match) {
+            const optionId = match[1];
+            const optionType = $input.data('option-type');
+            const value = $input.attr('type') === 'checkbox' ? ($input.is(':checked') ? 1 : 0) : $input.val();
+
+            formData.options[optionId] = {
+                value: value
+            };
+
+            if (optionType === 'sqm' || optionType === 'kilometers') {
+                // Find the full option data which was stored when options were displayed
+                const fullOption = displayedOptions.find(o => o.option_id == optionId);
+                if (fullOption) {
+                    formData.options[optionId].ranges = fullOption.option_values;
+                    formData.options[optionId].type = optionType;
+                }
+            }
         }
-      }
     });
 
     // Pet information
@@ -483,6 +496,7 @@
    * Display services in the container
    */
   function displayServices(services) {
+    displayedServices = services; // Store for later use
     DebugTree.info("Displaying services", services);
 
     const $container = $("#mobooking-services-container");
@@ -715,6 +729,7 @@
    * Display service options
    */
   function displayServiceOptions(options) {
+    displayedOptions = options; // Store for later use
     const $container = $("#mobooking-service-options-container");
     if ($container.length === 0 || !options || options.length === 0) {
       $container.html(
@@ -745,8 +760,10 @@
       // Generate input based on option type
       if (option.type === "number" || option.type === "quantity") {
         html += `<input type="number" name="service_options[${option.option_id}]" id="option_${option.option_id}" class="mobooking-input" min="0" step="1" placeholder="Enter quantity">`;
-      } else if (option.type === "sqm") {
-        html += `<input type="number" name="service_options[${option.option_id}]" id="option_${option.option_id}" class="mobooking-input" min="0" step="0.01" placeholder="Enter square meters">`;
+      } else if (option.type === "sqm" || option.type === 'kilometers') {
+        const placeholder = option.type === 'sqm' ? "Enter square meters" : "Enter kilometers";
+        const step = option.type === 'sqm' ? "0.01" : "0.1";
+        html += `<input type="number" name="service_options[${option.option_id}]" id="option_${option.option_id}" class="mobooking-input" min="0" step="${step}" placeholder="${placeholder}" data-option-type="${option.type}">`;
       } else if (option.type === "text") {
         html += `<input type="text" name="service_options[${option.option_id}]" id="option_${option.option_id}" class="mobooking-input" placeholder="Enter text">`;
       } else if (option.type === "textarea") {
@@ -1118,6 +1135,41 @@
     }, 5000);
   }
 
+  function calculateTotalPrice() {
+    let total = 0;
+
+    // Base service price (assuming single service selection for now)
+    if (formData.services.length > 0) {
+        const serviceId = formData.services[0];
+        const service = displayedServices.find(s => s.service_id == serviceId);
+        if (service) {
+            total += parseFloat(service.price);
+        }
+    }
+
+    // Add option prices
+    for (const optionId in formData.options) {
+        const option = formData.options[optionId];
+        if (option.type === 'sqm' || option.type === 'kilometers') {
+            const value = parseFloat(option.value);
+            if (!isNaN(value) && option.ranges) {
+                for (const range of option.ranges) {
+                    const from = parseFloat(range.from_sqm || range.from_km);
+                    const to = (range.to_sqm === '∞' || range.to_km === '∞') ? Infinity : parseFloat(range.to_sqm || range.to_km);
+                    if (value >= from && value <= to) {
+                        const price_per_unit = parseFloat(range.price_per_sqm || range.price_per_km);
+                        total += value * price_per_unit;
+                        break; // Stop after finding the correct range
+                    }
+                }
+            }
+        }
+        // Add other option price calculations here if needed (e.g., fixed, percentage)
+    }
+
+    return total.toFixed(2);
+  }
+
   function updateLiveSummary() {
     // Update any live summary displays
     const $summary = $("#mobooking-live-summary");
@@ -1131,6 +1183,10 @@
       if (formData.datetime.date && formData.datetime.time) {
         html += `<p>Date: ${formData.datetime.date} at ${formData.datetime.time}</p>`;
       }
+
+      const totalPrice = calculateTotalPrice();
+      html += `<p><b>Total:</b> ${CONFIG.currency?.symbol || '$'}${totalPrice}</p>`;
+
 
       $summary.html(html);
     }

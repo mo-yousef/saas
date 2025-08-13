@@ -51,7 +51,8 @@ $option_types = [
     'radio' => ['label' => __('Radio Buttons', 'mobooking'), 'description' => __('Single choice selection', 'mobooking'), 'icon' => 'circle'],
     'textarea' => ['label' => __('Text Area', 'mobooking'), 'description' => __('Multi-line text', 'mobooking'), 'icon' => 'file-text'],
     'quantity' => ['label' => __('Quantity', 'mobooking'), 'description' => __('Number with +/- buttons', 'mobooking'), 'icon' => 'plus-minus'],
-    'sqm' => ['label' => __('Square Meter', 'mobooking'), 'description' => __('Area calculation', 'mobooking'), 'icon' => 'square']
+    'sqm' => ['label' => __('Square Meter', 'mobooking'), 'description' => __('Area calculation', 'mobooking'), 'icon' => 'square'],
+    'kilometers' => ['label' => __('Kilometers', 'mobooking'), 'description' => __('Distance calculation', 'mobooking'), 'icon' => 'truck']
 ];
 
 // Define price types
