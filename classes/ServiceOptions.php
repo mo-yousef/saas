@@ -55,38 +55,12 @@ class ServiceOptions {
             }
 
             // Check for continuity and overlap
-            // The first range should ideally start at 0 or 0.01 or 1.
-            if ($index === 0) {
-                if ($from_sqm != 0 && $from_sqm != 1) {
-                    // This rule might be too strict, depends on business logic.
-                    // For now, allowing any positive start.
-                }
-            } else {
-                // Subsequent ranges must start right after the previous one ended.
-                // Allow for a small gap if using integers, e.g. prev ends 50, next starts 51.
-                // If using floats, they should be continuous.
-                // For simplicity with integer SQM values, we expect "From" to be "Previous To" + 1
-                // If To_SQM can be float, this logic needs adjustment. Assuming integer SQM units for now.
-                if ($previous_to_sqm !== INF && $from_sqm != ($previous_to_sqm + 1)) {
-                     return new \WP_Error('sqm_range_gap_or_overlap', sprintf(__('Range %d: "From SQM" (%s) must logically follow the previous range\'s "To SQM" (%s). Expected %s.', 'mobooking'), $index + 1, $from_sqm, $previous_to_sqm, $previous_to_sqm + 1 ));
-                }
-            }
-             // Check if current from_sqm is less than or equal to previous to_sqm (overlap)
-            if ($previous_to_sqm !== INF && $from_sqm <= $previous_to_sqm) {
-                return new \WP_Error('sqm_range_overlap', sprintf(__('Range %d: "From SQM" (%s) overlaps with the previous range ending at %s.', 'mobooking'), $index + 1, $from_sqm, $previous_to_sqm));
+            if ($previous_to_sqm !== INF && $from_sqm < $previous_to_sqm) {
+                return new \WP_Error('sqm_range_overlap', sprintf(__('Range %d: "From SQM" (%s) cannot be less than the previous range\'s "To SQM" (%s).', 'mobooking'), $index + 1, $from_sqm, $previous_to_sqm));
             }
 
 
             $previous_to_sqm = $to_sqm;
-
-            // The last range must have To SQM as infinity
-            if ($index === count($ranges) - 1 && $to_sqm !== INF) {
-                return new \WP_Error('sqm_last_range_must_be_infinity', __('The last SQM range must have "To SQM" set to infinity (leave blank or use ∞).', 'mobooking'));
-            }
-            // A non-last range cannot be infinity
-            if ($index < count($ranges) - 1 && $to_sqm === INF) {
-                return new \WP_Error('sqm_intermediate_range_cannot_be_infinity', __('Only the last SQM range can have "To SQM" as infinity.', 'mobooking'));
-            }
         }
         return true;
     }
@@ -115,18 +89,11 @@ class ServiceOptions {
                 return new \WP_Error('km_from_greater_than_to', sprintf(__('Range %d: "From KM" must be less than "To KM".', 'mobooking'), $index + 1));
             }
 
-            if ($previous_to_km !== INF && $from_km <= $previous_to_km) {
-                return new \WP_Error('km_range_overlap', sprintf(__('Range %d: "From KM" (%s) overlaps with the previous range ending at %s.', 'mobooking'), $index + 1, $from_km, $previous_to_km));
+            if ($previous_to_km !== INF && $from_km < $previous_to_km) {
+                return new \WP_Error('km_range_overlap', sprintf(__('Range %d: "From KM" (%s) cannot be less than the previous range\'s "To KM" (%s).', 'mobooking'), $index + 1, $from_km, $previous_to_km));
             }
 
             $previous_to_km = $to_km;
-
-            if ($index === count($ranges) - 1 && $to_km !== INF) {
-                return new \WP_Error('km_last_range_must_be_infinity', __('The last KM range must have "To KM" set to infinity.', 'mobooking'));
-            }
-            if ($index < count($ranges) - 1 && $to_km === INF) {
-                return new \WP_Error('km_intermediate_range_cannot_be_infinity', __('Only the last KM range can have "To KM" as infinity.', 'mobooking'));
-            }
         }
         return true;
     }
@@ -167,7 +134,7 @@ class ServiceOptions {
             }
 
             if (is_wp_error($validation_result)) {
-                return $validation_result;
+                return new \WP_Error($validation_result->get_error_code(), "Error saving option '{$option_data['name']}': " . $validation_result->get_error_message());
             }
             // Ensure option_values is stored as JSON string
             $option_data['option_values'] = wp_json_encode($ranges);
@@ -298,7 +265,8 @@ class ServiceOptions {
             }
 
             if (is_wp_error($validation_result)) {
-                return $validation_result;
+                $option_name = isset($data['name']) ? $data['name'] : $this->wpdb->get_var("SELECT name FROM " . Database::get_table_name('service_options') . " WHERE option_id = $option_id");
+                return new \WP_Error($validation_result->get_error_code(), "Error saving option '$option_name': " . $validation_result->get_error_message());
             }
             $data['option_values'] = wp_json_encode($ranges);
         }
