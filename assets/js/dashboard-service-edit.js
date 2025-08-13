@@ -139,12 +139,13 @@ jQuery(function ($) {
           "kilometers",
         ];
 
+        // Always clear choices when the type changes, to avoid mismatched inputs.
+        $choicesList.empty();
+
         if (choiceTypes.includes(type)) {
           $choicesContainer.slideDown(200);
         } else {
           $choicesContainer.slideUp(200);
-          // Clear choices when switching to non-choice type
-          $choicesList.empty();
         }
 
         // Update card selection visually
