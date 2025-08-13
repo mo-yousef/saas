@@ -1233,7 +1233,7 @@ public function handle_get_public_services_ajax() {
                 $option_result = $this->service_options_manager->add_service_option($user_id, $service_id, $clean_option_data);
 
                 if (is_wp_error($option_result)) {
-                    $error_message = __('Error saving option: ', 'mobooking') . $option_result->get_error_message();
+                    $error_message = $option_result->get_error_message(); // The message from ServiceOptions is now specific enough
                     error_log("[MoBooking SaveSvc Debug] Error adding service option '{$clean_option_data['name']}': " . $error_message);
                     if (ob_get_length()) ob_clean();
                     wp_send_json_error(['message' => $error_message], 400);
