@@ -1113,7 +1113,7 @@ if ( $edit_mode && $service_id > 0 ) {
                             </button>
                         </div>
                     </div>
-                    <div class="card-content">
+<div class="card-content">
                         <div id="options-container" class="options-container">
                             <?php if (empty($service_options_data)): ?>
                                 <div class="empty-state">
@@ -1145,6 +1145,8 @@ if ( $edit_mode && $service_id > 0 ) {
                                     set_query_var('option_index', $index);
                                     set_query_var('option_types', $option_types);
                                     set_query_var('price_types', $price_types);
+                                    
+                                    // Include the service option item template
                                     get_template_part('templates/service-option-item');
                                     ?>
                                 <?php endforeach; ?>
