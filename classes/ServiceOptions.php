@@ -78,15 +78,6 @@ class ServiceOptions {
 
 
             $previous_to_sqm = $to_sqm;
-
-            // The last range must have To SQM as infinity
-            if ($index === count($ranges) - 1 && $to_sqm !== INF) {
-                return new \WP_Error('sqm_last_range_must_be_infinity', __('The last SQM range must have "To SQM" set to infinity (leave blank or use ∞).', 'mobooking'));
-            }
-            // A non-last range cannot be infinity
-            if ($index < count($ranges) - 1 && $to_sqm === INF) {
-                return new \WP_Error('sqm_intermediate_range_cannot_be_infinity', __('Only the last SQM range can have "To SQM" as infinity.', 'mobooking'));
-            }
         }
         return true;
     }
@@ -120,13 +111,6 @@ class ServiceOptions {
             }
 
             $previous_to_km = $to_km;
-
-            if ($index === count($ranges) - 1 && $to_km !== INF) {
-                return new \WP_Error('km_last_range_must_be_infinity', __('The last KM range must have "To KM" set to infinity.', 'mobooking'));
-            }
-            if ($index < count($ranges) - 1 && $to_km === INF) {
-                return new \WP_Error('km_intermediate_range_cannot_be_infinity', __('Only the last KM range can have "To KM" as infinity.', 'mobooking'));
-            }
         }
         return true;
     }
