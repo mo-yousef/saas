@@ -338,94 +338,95 @@ jQuery(function ($) {
       }
     },
 
-    // FIXED: Improved form serialization to properly handle choices
+    displaySaveError: function(errorMessage) {
+        const optionMatch = errorMessage.match(/Error saving option '([^']+)':/);
+        let errorHandled = false;
+
+        if (optionMatch && optionMatch[1]) {
+            const optionName = optionMatch[1];
+            $('.option-name-input').each(function() {
+                if ($(this).val() === optionName) {
+                    // Display the error message, stripping the repetitive prefix
+                    const cleanMessage = errorMessage.replace(/Error saving option '[^']+':\s*/, '');
+                    $(this).closest('.option-item').find('.option-feedback').text(cleanMessage);
+                    errorHandled = true;
+                    return false; // break loop
+                }
+            });
+        }
+
+        // Fallback to a general alert if the error couldn't be placed with a specific option
+        if (!errorHandled) {
+            alert(errorMessage);
+        }
+    },
+
     saveService: function (isDraft = false) {
-      const $form = $("#mobooking-service-form");
-      const $submitBtn = $form.find('button[type="submit"]');
-      const originalText = $submitBtn.text();
+        const self = this;
+        const $form = $("#mobooking-service-form");
+        const $submitBtn = $form.find('button[type="submit"]');
+        const originalText = $submitBtn.text();
 
-      // Show loading state
-      $submitBtn
-        .prop("disabled", true)
-        .text(mobooking_service_edit_params.i18n.saving || "Saving...");
+        // Show loading state
+        $submitBtn
+            .prop("disabled", true)
+            .text(mobooking_service_edit_params.i18n.saving || "Saving...");
 
-      // Clear all previous option-level feedback messages
-      $('.option-feedback').empty();
+        // Clear all previous option-level feedback messages
+        $('.option-feedback').empty();
 
-      // Add draft status if saving as draft
-      if (isDraft) {
-        $("<input>")
-          .attr({
-            type: "hidden",
-            name: "status",
-            value: "inactive",
-          })
-          .appendTo($form);
-      }
+        // Add draft status if saving as draft
+        if (isDraft) {
+            $("<input>")
+                .attr({ type: "hidden", name: "status", value: "inactive" })
+                .appendTo($form);
+        }
 
-      // Serialize form data
-      const formData = new FormData($form[0]);
+        // Serialize form data
+        const formData = new FormData($form[0]);
+        formData.append("action", "mobooking_save_service");
+        formData.append("nonce", mobooking_service_edit_params.nonce);
 
-      // Add AJAX action and nonce
-      formData.append("action", "mobooking_save_service");
-      formData.append("nonce", mobooking_service_edit_params.nonce);
-
-      $.ajax({
-        url: mobooking_service_edit_params.ajax_url,
-        type: "POST",
-        data: formData,
-        processData: false,
-        contentType: false,
-        success: function (response) {
-          if (response.success) {
-            // Show success message
-            console.log("Service saved successfully:", response.data);
-
-            // Redirect after short delay
-            setTimeout(() => {
-              window.location.href = mobooking_service_edit_params.redirect_url;
-            }, 1000);
-          } else {
-            console.error("Save failed:", response.data);
-            const errorMessage = response.data.message || mobooking_service_edit_params.i18n.error_saving_service;
-
-            // Try to find the specific option and display the error inline
-            const optionMatch = errorMessage.match(/Error saving option '([^']+)':/);
-            let errorHandled = false;
-            if (optionMatch && optionMatch[1]) {
-                const optionName = optionMatch[1];
-                $('.option-name-input').each(function() {
-                    if ($(this).val() === optionName) {
-                        $(this).closest('.option-item').find('.option-feedback').text(errorMessage.replace(/Error saving option '[^']+': /, ''));
-                        errorHandled = true;
-                        return false; // break loop
+        $.ajax({
+            url: mobooking_service_edit_params.ajax_url,
+            type: "POST",
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (response) {
+                if (response.success) {
+                    console.log("Service saved successfully:", response.data);
+                    setTimeout(() => {
+                        window.location.href = mobooking_service_edit_params.redirect_url;
+                    }, 1000);
+                } else {
+                    // Handle non-400 errors that have success:false
+                    console.error("Save failed (success:false):", response.data);
+                    self.displaySaveError(response.data.message || mobooking_service_edit_params.i18n.error_saving_service);
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error("AJAX error:", xhr.responseText, status, error);
+                let errorMessage = mobooking_service_edit_params.i18n.error_ajax || "An AJAX error occurred.";
+                try {
+                    const response = JSON.parse(xhr.responseText);
+                    if (response.data && response.data.message) {
+                        errorMessage = response.data.message;
                     }
-                });
-            }
-
-            // Fallback to alert if we couldn't place the error message
-            if (!errorHandled) {
-                alert(errorMessage);
-            }
-          }
-        },
-        error: function (xhr, status, error) {
-          console.error("AJAX error:", xhr.responseText);
-          alert(
-            mobooking_service_edit_params.i18n.error_ajax ||
-              "An AJAX error occurred. Please try again."
-          );
-        },
-        complete: function () {
-          // Restore button state
-          $submitBtn.prop("disabled", false).text(originalText);
-
-          // Remove draft input if it was added
-          if (isDraft) {
-            $form.find('input[name="status"][value="inactive"]').remove();
-          }
-        },
-      });
+                } catch (e) {
+                    // Could not parse JSON, use the generic message or the raw responseText
+                    errorMessage = xhr.responseText || errorMessage;
+                }
+                self.displaySaveError(errorMessage);
+            },
+            complete: function () {
+                // Restore button state
+                $submitBtn.prop("disabled", false).text(originalText);
+                if (isDraft) {
+                    $form.find('input[name="status"][value="inactive"]').remove();
+                }
+            },
+        });
     },
 
     deleteService: function () {
