@@ -12,10 +12,27 @@ jQuery(function ($) {
 
     // NEW: Initialize existing options to show proper state
     initExistingOptions: function () {
-      const self = this;
       $(".option-item").each(function () {
         const $option = $(this);
-        self.toggleContainers($option);
+        const selectedType = $option.find(".option-type-radio:checked").val();
+
+        if (selectedType) {
+          // Update the choices container visibility based on existing type
+          const choiceTypes = [
+            "select",
+            "radio",
+            "checkbox",
+            "sqm",
+            "kilometers",
+          ];
+          const $choicesContainer = $option.find(".choices-container");
+
+          if (choiceTypes.includes(selectedType)) {
+            $choicesContainer.show();
+          } else {
+            $choicesContainer.hide();
+          }
+        }
       });
     },
 
@@ -159,33 +176,35 @@ jQuery(function ($) {
         const $list = $btn.siblings(".choices-list");
         const $optionItem = $btn.closest(".option-item");
         const optionIndex = $optionItem.data("option-index");
-        const choiceIndex = $list.find(".choice-item").length;
+        const choiceIndex = $list.children().length;
         const optionType = $optionItem.find(".option-type-radio:checked").val();
 
-        let newChoiceHtml = '';
+        let newChoiceHtml = "";
 
-        if (optionType === 'sqm') {
-            newChoiceHtml = `
-                <div class="choice-item" data-choice-index="${choiceIndex}">
-                    <div class="flex items-center gap-2">
-                        <input type="number" name="options[${optionIndex}][choices][${choiceIndex}][from_sqm]" class="form-input w-24" placeholder="From" step="0.01" min="0">
-                        <span class="text-muted-foreground">-</span>
-                        <input type="number" name="options[${optionIndex}][choices][${choiceIndex}][to_sqm]" class="form-input w-24" placeholder="To (∞)" step="0.01" min="0">
-                        <input type="number" name="options[${optionIndex}][choices][${choiceIndex}][price_per_sqm]" class="form-input flex-1" placeholder="Price per SQM" step="0.01" min="0">
-                        <button type="button" class="btn-icon remove-choice-btn"><svg width="16" height="16" viewBox="0 0 24 24"><path d="M3 6h18m-2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>
-                    </div>
-                </div>`;
-        } else if (optionType === 'kilometers') {
-            newChoiceHtml = `
-                <div class="choice-item" data-choice-index="${choiceIndex}">
-                    <div class="flex items-center gap-2">
-                        <input type="number" name="options[${optionIndex}][choices][${choiceIndex}][from_km]" class="form-input w-24" placeholder="From" step="0.1" min="0">
-                        <span class="text-muted-foreground">-</span>
-                        <input type="number" name="options[${optionIndex}][choices][${choiceIndex}][to_km]" class="form-input w-24" placeholder="To (∞)" step="0.1" min="0">
-                        <input type="number" name="options[${optionIndex}][choices][${choiceIndex}][price_per_km]" class="form-input flex-1" placeholder="Price per KM" step="0.01" min="0">
-                        <button type="button" class="btn-icon remove-choice-btn"><svg width="16" height="16" viewBox="0 0 24 24"><path d="M3 6h18m-2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>
-                    </div>
-                </div>`;
+        if (optionType === "sqm") {
+          newChoiceHtml = `
+                        <div class="choice-item flex items-center gap-2">
+                            <input type="number" name="options[${optionIndex}][choices][${choiceIndex}][from_sqm]" class="form-input w-24" placeholder="From" step="0.01" min="0">
+                            <span class="text-muted-foreground">-</span>
+                            <input type="number" name="options[${optionIndex}][choices][${choiceIndex}][to_sqm]" class="form-input w-24" placeholder="To (∞ for unlimited)" step="0.01" min="0">
+                            <input type="number" name="options[${optionIndex}][choices][${choiceIndex}][price_per_sqm]" class="form-input flex-1" placeholder="Price per SQM" step="0.01" min="0">
+                            <button type="button" class="btn-icon remove-choice-btn">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><path d="m19 6-1 14H6L5 6"/></svg>
+                            </button>
+                        </div>
+                    `;
+        } else if (optionType === "kilometers") {
+          newChoiceHtml = `
+                        <div class="choice-item flex items-center gap-2">
+                            <input type="number" name="options[${optionIndex}][choices][${choiceIndex}][from_km]" class="form-input w-24" placeholder="From" step="0.1" min="0">
+                            <span class="text-muted-foreground">-</span>
+                            <input type="number" name="options[${optionIndex}][choices][${choiceIndex}][to_km]" class="form-input w-24" placeholder="To (∞ for unlimited)" step="0.1" min="0">
+                            <input type="number" name="options[${optionIndex}][choices][${choiceIndex}][price_per_km]" class="form-input flex-1" placeholder="Price per KM" step="0.01" min="0">
+                            <button type="button" class="btn-icon remove-choice-btn">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><path d="m19 6-1 14H6L5 6"/></svg>
+                            </button>
+                        </div>
+                    `;
         } else {
             const priceTypes = mobooking_service_edit_params.price_types || {};
             let priceTypeOptions = "";
@@ -195,22 +214,21 @@ jQuery(function ($) {
             }
 
             newChoiceHtml = `
-                <div class="choice-item" data-choice-index="${choiceIndex}">
-                    <div class="flex items-center gap-2">
-                        <input type="text" name="options[${optionIndex}][choices][${choiceIndex}][label]" class="form-input flex-1" placeholder="Choice Label">
-                        <div class="relative">
-                            <select name="options[${optionIndex}][choices][${choiceIndex}][price_type]" class="form-input choice-price-type" style="padding-right: 2.5rem;">
-                                ${priceTypeOptions}
-                            </select>
-                        </div>
-                        <div class="relative price-input-wrapper">
-                            <input type="number" name="options[${optionIndex}][choices][${choiceIndex}][price]" class="form-input w-28 choice-price-input" placeholder="Price" step="0.01">
-                        </div>
-                        <button type="button" class="btn-icon remove-choice-btn">
-                           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><path d="m19 6-1 14H6L5 6"/></svg>
-                        </button>
+                <div class="choice-item flex items-center gap-2">
+                    <input type="text" name="options[${optionIndex}][choices][${choiceIndex}][label]" class="form-input flex-1" placeholder="Choice Label">
+                    <div class="relative">
+                        <select name="options[${optionIndex}][choices][${choiceIndex}][price_type]" class="form-input choice-price-type" style="padding-right: 2.5rem;">
+                            ${priceTypeOptions}
+                        </select>
                     </div>
-                </div>`;
+                    <div class="relative price-input-wrapper">
+                        <input type="number" name="options[${optionIndex}][choices][${choiceIndex}][price]" class="form-input w-28 choice-price-input" placeholder="Price" step="0.01">
+                    </div>
+                    <button type="button" class="btn-icon remove-choice-btn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><path d="m19 6-1 14H6L5 6"/></svg>
+                    </button>
+                </div>
+            `;
         }
 
         $list.append(newChoiceHtml);
