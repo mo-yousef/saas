@@ -8,6 +8,7 @@
  * @var int $option_index
  * @var array $option_types
  * @var array $price_types
+ * @var array $price_impact_types
  */
 
 if (!defined('ABSPATH')) exit;
@@ -18,8 +19,8 @@ $name = $option['name'] ?? 'New Option';
 $description = $option['description'] ?? '';
 $type = $option['type'] ?? 'checkbox';
 $is_required = $option['is_required'] ?? 0;
-$price_type = $option['price_type'] ?? '';
-$price_change = $option['price_change'] ?? '';
+$price_impact_type = $option['price_impact_type'] ?? 'per_choice';
+$price_impact_value = $option['price_impact_value'] ?? '';
 $sort_order = $option['sort_order'] ?? (is_numeric($option_index) ? $option_index + 1 : 0);
 
 // Handle choices - decode if JSON string, otherwise use as array
@@ -57,11 +58,9 @@ $choices_visible = in_array($type, ['select', 'radio', 'checkbox', 'sqm', 'kilom
             <h4 class="option-name"><?php echo esc_html($name); ?></h4>
             <div class="option-badges">
                 <span class="badge badge-outline"><?php echo esc_html($option_types[$type]['label'] ?? 'Unknown'); ?></span>
-                <?php if (!empty($price_type) && $price_type !== ''): ?>
-                    <span class="badge badge-accent">
-                        <?php echo esc_html($price_types[$price_type]['label'] ?? 'Price'); ?>
-                    </span>
-                <?php endif; ?>
+                <span class="badge badge-accent price-impact-badge">
+                    <?php echo esc_html($price_impact_types[$price_impact_type]['label'] ?? 'Per Choice'); ?>
+                </span>
             </div>
         </div>
         <div class="option-actions">
@@ -140,75 +139,73 @@ $choices_visible = in_array($type, ['select', 'radio', 'checkbox', 'sqm', 'kilom
                 </div>
             </div>
 
-            <div class="choices-container" style="display: <?php echo $choices_visible ? 'block' : 'none'; ?>;">
+            <div class="price-impact-container">
                 <hr>
                 <div class="mt-4">
-                    <label class="form-label">
-                        <?php if ($type === 'sqm'): ?>
-                            Square Meter Ranges
-                        <?php elseif ($type === 'kilometers'): ?>
-                            Kilometer Ranges
-                        <?php else: ?>
-                            Choices
-                        <?php endif; ?>
-                    </label>
-                    <p class="form-description text-xs mb-2">
-                        <?php if ($type === 'sqm'): ?>
-                            Define pricing ranges for different square meter values.
-                        <?php elseif ($type === 'kilometers'): ?>
-                            Define pricing ranges for different kilometer distances.
-                        <?php else: ?>
-                            Add choices for this option.
-                        <?php endif; ?>
-                    </p>
-                    <div class="choices-list">
+                    <label class="form-label">Price Calculation</label>
+                    <p class="form-description text-xs mb-2">How should this option affect the service price?</p>
+                    <div class="price-impact-grid">
+                        <?php foreach ($price_impact_types as $impact_key => $impact_data): ?>
+                            <label class="price-impact-card <?php echo $price_impact_type === $impact_key ? 'selected' : ''; ?>">
+                                <input type="radio" name="options[<?php echo esc_attr($option_index); ?>][price_impact_type]" value="<?php echo esc_attr($impact_key); ?>" class="sr-only price-impact-radio" <?php checked($price_impact_type, $impact_key); ?>>
+                                <div class="price-impact-label">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="price-impact-icon">
+                                        <?php echo get_simple_icon_svg($impact_data['icon']); ?>
+                                    </svg>
+                                    <div class="price-impact-content">
+                                        <span class="price-impact-title"><?php echo esc_html($impact_data['label']); ?></span>
+                                    </div>
+                                </div>
+                            </label>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+            </div>
+
+            <div class="choices-container" style="display: <?php echo ($price_impact_type === 'per_choice' && $choices_visible) ? 'block' : 'none'; ?>;">
+                <hr>
+                <div class="mt-4">
+                    <label class="form-label">Choices</label>
+                    <p class="form-description text-xs mb-2">Add choices for this option. Each can have its own price impact.</p>
+                    <div class="choices-list space-y-2">
                         <?php if (!empty($choices)): ?>
                             <?php foreach ($choices as $choice_index => $choice): ?>
-                                <?php if ($type === 'sqm'): ?>
-                                    <div class="choice-item flex items-center gap-2">
-                                        <input type="number" name="options[<?php echo esc_attr($option_index); ?>][choices][<?php echo $choice_index; ?>][from_sqm]" class="form-input w-24" placeholder="From" value="<?php echo esc_attr($choice['from_sqm'] ?? $choice['from'] ?? ''); ?>" step="0.01" min="0">
-                                        <span class="text-muted-foreground">-</span>
-                                        <input type="number" name="options[<?php echo esc_attr($option_index); ?>][choices][<?php echo $choice_index; ?>][to_sqm]" class="form-input w-24" placeholder="To (∞ for unlimited)" value="<?php echo esc_attr($choice['to_sqm'] ?? $choice['to'] ?? ''); ?>" step="0.01" min="0">
-                                        <input type="number" name="options[<?php echo esc_attr($option_index); ?>][choices][<?php echo $choice_index; ?>][price_per_sqm]" class="form-input flex-1" placeholder="Price per SQM" value="<?php echo esc_attr($choice['price_per_sqm'] ?? $choice['price'] ?? ''); ?>" step="0.01" min="0">
+                                <?php
+                                $choice_label = $choice['label'] ?? ($choice ?? '');
+                                $choice_price_type = $choice['price_type'] ?? '';
+                                $choice_price = $choice['price'] ?? '';
+                                ?>
+                                <div class="choice-item">
+                                    <div class="flex items-center gap-2">
+                                        <input type="text" name="options[<?php echo esc_attr($option_index); ?>][choices][<?php echo $choice_index; ?>][label]" class="form-input flex-1" placeholder="Choice Label" value="<?php echo esc_attr($choice_label); ?>">
+                                        <div class="relative">
+                                            <select name="options[<?php echo esc_attr($option_index); ?>][choices][<?php echo $choice_index; ?>][price_type]" class="form-input choice-price-type" style="padding-right: 2.5rem;">
+                                                <?php foreach ($price_types as $pt_key => $pt_data): ?>
+                                                    <option value="<?php echo esc_attr($pt_key); ?>" <?php selected($choice_price_type, $pt_key); ?>>
+                                                        <?php echo esc_html($pt_data['label']); ?>
+                                                    </option>
+                                                <?php endforeach; ?>
+                                            </select>
+                                        </div>
+                                        <div class="relative price-input-wrapper">
+                                            <input type="number" name="options[<?php echo esc_attr($option_index); ?>][choices][<?php echo $choice_index; ?>][price]" class="form-input w-28 choice-price-input" placeholder="Price" value="<?php echo esc_attr($choice_price); ?>" step="0.01" <?php echo $choice_price_type === '' ? 'disabled' : ''; ?>>
+                                        </div>
                                         <button type="button" class="btn-icon remove-choice-btn">
                                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><path d="m19 6-1 14H6L5 6"/></svg>
                                         </button>
                                     </div>
-                                <?php elseif ($type === 'kilometers'): ?>
-                                    <div class="choice-item flex items-center gap-2">
-                                        <input type="number" name="options[<?php echo esc_attr($option_index); ?>][choices][<?php echo $choice_index; ?>][from_km]" class="form-input w-24" placeholder="From" value="<?php echo esc_attr($choice['from_km'] ?? $choice['from'] ?? ''); ?>" step="0.1" min="0">
-                                        <span class="text-muted-foreground">-</span>
-                                        <input type="number" name="options[<?php echo esc_attr($option_index); ?>][choices][<?php echo $choice_index; ?>][to_km]" class="form-input w-24" placeholder="To (∞ for unlimited)" value="<?php echo esc_attr($choice['to_km'] ?? $choice['to'] ?? ''); ?>" step="0.1" min="0">
-                                        <input type="number" name="options[<?php echo esc_attr($option_index); ?>][choices][<?php echo $choice_index; ?>][price_per_km]" class="form-input flex-1" placeholder="Price per KM" value="<?php echo esc_attr($choice['price_per_km'] ?? $choice['price'] ?? ''); ?>" step="0.01" min="0">
-                                        <button type="button" class="btn-icon remove-choice-btn">
-                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><path d="m19 6-1 14H6L5 6"/></svg>
-                                        </button>
-                                    </div>
-                                <?php else: ?>
-                                    <div class="choice-item flex items-center gap-2">
-                                        <input type="text" name="options[<?php echo esc_attr($option_index); ?>][choices][<?php echo $choice_index; ?>][label]" class="form-input flex-1" placeholder="Choice Label" value="<?php echo esc_attr($choice['label'] ?? $choice); ?>">
-                                        <input type="number" name="options[<?php echo esc_attr($option_index); ?>][choices][<?php echo $choice_index; ?>][price]" class="form-input w-24" placeholder="Price" value="<?php echo esc_attr($choice['price'] ?? ''); ?>" step="0.01">
-                                        <button type="button" class="btn-icon remove-choice-btn">
-                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><path d="m19 6-1 14H6L5 6"/></svg>
-                                        </button>
-                                    </div>
-                                <?php endif; ?>
+                                </div>
                             <?php endforeach; ?>
                         <?php endif; ?>
                     </div>
-                    <button type="button" class="btn btn-outline btn-sm mt-2 add-choice-btn">
+                    <button type="button" class="btn btn-outline btn-sm mt-3 add-choice-btn">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
-                        <?php if ($type === 'sqm'): ?>
-                            Add SQM Range
-                        <?php elseif ($type === 'kilometers'): ?>
-                            Add KM Range
-                        <?php else: ?>
-                            Add Choice
-                        <?php endif; ?>
+                        Add Choice
                     </button>
-                    <div class="option-feedback text-destructive text-sm mt-2"></div>
                 </div>
             </div>
+
+            <div class="option-feedback text-destructive text-sm mt-2"></div>
         </div>
     </div>
 </div>

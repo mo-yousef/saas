@@ -57,7 +57,15 @@ $option_types = [
 
 // Define price types
 $price_types = [
-    '' => ['label' => __('No Price Impact', 'mobooking'), 'description' => __('This option doesn\'t affect the price', 'mobooking'), 'icon' => 'minus'],
+    '' => ['label' => __('No Price', 'mobooking'), 'description' => __("This option doesn't affect the price.", 'mobooking'), 'icon' => 'minus-circle'],
+    'fixed' => ['label' => __('Fixed', 'mobooking'), 'description' => __('Add a fixed amount to the total.', 'mobooking'), 'icon' => 'dollar-sign'],
+    'percentage' => ['label' => __('Percentage', 'mobooking'), 'description' => __('Increase total by a percentage.', 'mobooking'), 'icon' => 'percent'],
+    'multiply' => ['label' => __('Multiply', 'mobooking'), 'description' => __('Multiply price by a value.', 'mobooking'), 'icon' => 'x-circle'],
+];
+
+// Define price impact types for the entire option
+$price_impact_types = [
+    'per_choice' => ['label' => __('Per Choice Pricing', 'mobooking'), 'description' => __('Each choice has its own price setting', 'mobooking'), 'icon' => 'list'],
     'fixed' => ['label' => __('Fixed Amount', 'mobooking'), 'description' => __('Add/subtract a fixed amount', 'mobooking'), 'icon' => 'dollar-sign'],
     'percentage' => ['label' => __('Percentage', 'mobooking'), 'description' => __('Increase/decrease by percentage', 'mobooking'), 'icon' => 'percent'],
     'multiply' => ['label' => __('Multiply', 'mobooking'), 'description' => __('Multiply price by option value', 'mobooking'), 'icon' => 'x']
@@ -1146,6 +1154,7 @@ if ( $edit_mode && $service_id > 0 ) {
                                     set_query_var('option_index', $index);
                                     set_query_var('option_types', $option_types);
                                     set_query_var('price_types', $price_types);
+                                    set_query_var('price_impact_types', $price_impact_types);
                                     
                                     // Include the service option item template
                                     get_template_part('templates/service-option-item');
@@ -1202,6 +1211,7 @@ if ( $edit_mode && $service_id > 0 ) {
     set_query_var('option_index', '__INDEX__');
     set_query_var('option_types', $option_types);
     set_query_var('price_types', $price_types);
+    set_query_var('price_impact_types', $price_impact_types);
     get_template_part('templates/service-option-item');
     ?>
 </template>
