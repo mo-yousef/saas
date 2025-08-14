@@ -128,46 +128,29 @@ jQuery(function ($) {
           badge.text(typeLabel);
         }
 
-        // Always clear choices when the type changes
-        $optionItem.find(".choices-list").empty();
+        // Show/hide choices container and clear existing choices on type change
+        const $choicesContainer = $optionItem.find(".choices-container");
+        const $choicesList = $optionItem.find(".choices-list");
+        const choiceTypes = [
+          "select",
+          "radio",
+          "checkbox",
+          "sqm",
+          "kilometers",
+        ];
 
-        // Update "Add Choice" button text
-        const $addChoiceBtnText = $optionItem.find(".add-choice-btn-text");
-        if (type === 'sqm') {
-            $addChoiceBtnText.text('Add SQM Range');
-        } else if (type === 'kilometers') {
-            $addChoiceBtnText.text('Add KM Range');
+        // Always clear choices when the type changes, to avoid mismatched inputs.
+        $choicesList.empty();
+
+        if (choiceTypes.includes(type)) {
+          $choicesContainer.slideDown(200);
         } else {
-            $addChoiceBtnText.text('Add Choice');
+          $choicesContainer.slideUp(200);
         }
 
         // Update card selection visually
         $optionItem.find(".option-type-card").removeClass("selected");
         $radio.closest(".option-type-card").addClass("selected");
-
-        self.toggleContainers($optionItem);
-      });
-
-      // Change price impact type
-      $container.on("change", ".price-impact-radio", function () {
-        const $radio = $(this);
-        const $optionItem = $radio.closest(".option-item");
-
-        // Update badge
-        const badge = $optionItem.find(".price-impact-badge");
-        const typeLabel = $radio
-          .closest(".price-impact-card")
-          .find(".price-impact-title")
-          .text();
-        if (badge.length) {
-          badge.text(typeLabel);
-        }
-
-        // Update card selection visually
-        $optionItem.find(".price-impact-card").removeClass("selected");
-        $radio.closest(".price-impact-card").addClass("selected");
-
-        self.toggleContainers($optionItem);
       });
 
       // Add choice
@@ -206,29 +189,15 @@ jQuery(function ($) {
                         </div>
                     `;
         } else {
-            const priceTypes = mobooking_service_edit_params.price_types || {};
-            let priceTypeOptions = "";
-            for (const key in priceTypes) {
-                const selected = key === 'fixed' ? 'selected' : '';
-                priceTypeOptions += `<option value="${key}" ${selected}>${priceTypes[key].label}</option>`;
-            }
-
-            newChoiceHtml = `
-                <div class="choice-item flex items-center gap-2">
-                    <input type="text" name="options[${optionIndex}][choices][${choiceIndex}][label]" class="form-input flex-1" placeholder="Choice Label">
-                    <div class="relative">
-                        <select name="options[${optionIndex}][choices][${choiceIndex}][price_type]" class="form-input choice-price-type" style="padding-right: 2.5rem;">
-                            ${priceTypeOptions}
-                        </select>
-                    </div>
-                    <div class="relative price-input-wrapper">
-                        <input type="number" name="options[${optionIndex}][choices][${choiceIndex}][price]" class="form-input w-28 choice-price-input" placeholder="Price" step="0.01">
-                    </div>
-                    <button type="button" class="btn-icon remove-choice-btn">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><path d="m19 6-1 14H6L5 6"/></svg>
-                    </button>
-                </div>
-            `;
+          newChoiceHtml = `
+                        <div class="choice-item flex items-center gap-2">
+                            <input type="text" name="options[${optionIndex}][choices][${choiceIndex}][label]" class="form-input flex-1" placeholder="Choice Label">
+                            <input type="number" name="options[${optionIndex}][choices][${choiceIndex}][price]" class="form-input w-24" placeholder="Price" step="0.01">
+                            <button type="button" class="btn-icon remove-choice-btn">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><path d="m19 6-1 14H6L5 6"/></svg>
+                            </button>
+                        </div>
+                    `;
         }
 
         $list.append(newChoiceHtml);
@@ -238,41 +207,6 @@ jQuery(function ($) {
       $container.on("click", ".remove-choice-btn", function () {
         $(this).closest(".choice-item").remove();
       });
-
-      // Toggle price input based on choice price type
-      $container.on("change", ".choice-price-type", function () {
-        const $select = $(this);
-        const $priceInput = $select
-          .closest(".choice-item")
-          .find(".choice-price-input");
-        $priceInput.prop("disabled", $select.val() === "");
-      });
-    },
-
-    toggleContainers: function ($optionItem) {
-      const optionType = $optionItem.find(".option-type-radio:checked").val();
-      const priceImpactType = $optionItem.find(".price-impact-radio:checked").val();
-      const $choicesContainer = $optionItem.find(".choices-container");
-      const $priceImpactContainer = $optionItem.find(".price-impact-container");
-
-      const hasChoices = ["select", "radio", "checkbox", "sqm", "kilometers"].includes(optionType);
-      const hasPriceImpact = ["select", "radio", "checkbox"].includes(optionType);
-
-      if (hasChoices) {
-        $choicesContainer.slideDown(200);
-      } else {
-        $choicesContainer.slideUp(200);
-      }
-
-      if (hasPriceImpact) {
-        $priceImpactContainer.slideDown(200);
-        // If price impact is not per-choice, hide the choices container again
-        if (priceImpactType !== 'per_choice') {
-            $choicesContainer.slideUp(200);
-        }
-      } else {
-        $priceImpactContainer.slideUp(200);
-      }
     },
 
     initTabs: function () {
