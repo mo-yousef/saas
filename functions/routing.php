@@ -121,11 +121,20 @@ function mobooking_enqueue_dashboard_scripts($current_page_slug = '') {
             }
         }
 
+        // Define price types for JS
+        $price_types = [
+            '' => ['label' => __('No Price', 'mobooking')],
+            'fixed' => ['label' => __('Fixed', 'mobooking')],
+            'percentage' => ['label' => __('Percentage', 'mobooking')],
+            'multiply' => ['label' => __('Multiply', 'mobooking')],
+        ];
+
         wp_localize_script('mobooking-service-edit', 'mobooking_service_edit_params', [
             'ajax_url' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce('mobooking_services_nonce'),
             'option_count' => $option_count,
             'redirect_url' => home_url('/dashboard/services'),
+            'price_types' => $price_types,
             'i18n' => [
                 'saving' => __('Saving...', 'mobooking'),
                 'service_saved' => __('Service saved successfully.', 'mobooking'),
