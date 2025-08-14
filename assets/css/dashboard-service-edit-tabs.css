@@ -1,0 +1,48 @@
+/*- Style for price calculation tabs -*/
+.price-impact-tabs-list {
+    display: flex;
+    background-color: hsl(var(--muted));
+    border-radius: var(--radius);
+    padding: 0.25rem;
+    margin-bottom: 1.5rem;
+}
+
+.price-impact-tab {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border-radius: calc(var(--radius) - 0.125rem);
+    background: transparent;
+    border: none;
+    color: hsl(var(--muted-foreground));
+    cursor: pointer;
+    transition: all 0.2s;
+    flex: 1;
+}
+
+.price-impact-tab:hover {
+    background-color: hsl(var(--accent));
+    color: hsl(var(--accent-foreground));
+}
+
+.price-impact-tab.active {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.price-impact-tab-icon {
+    color: hsl(var(--muted-foreground));
+}
+
+.price-impact-tab.active .price-impact-tab-icon {
+    color: hsl(var(--primary));
+}
+
+.price-impact-tab-label {
+    font-weight: 500;
+}
