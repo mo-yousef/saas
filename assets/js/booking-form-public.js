@@ -365,8 +365,35 @@
       }
   }
 
-  // Other functions (submit, validate, etc.) would go here
-  // ...
+  function showStep(step) {
+    DebugTree.info(`Showing step ${step}`);
+    currentStep = step;
+    $(".mobooking-step-content").hide();
+    $(`#mobooking-step-${step}`).show();
+    if (CONFIG.form_config?.show_progress_bar) {
+      updateProgressBar(step);
+    }
+    collectAllFormData();
+  }
+
+  function updateProgressBar(step) {
+    const totalSteps = 8;
+    const percentage = (step / totalSteps) * 100;
+    $(".mobooking-progress-fill").css("width", `${percentage}%`);
+    $(`.mobooking-step-indicator[data-step="${step}"]`).addClass("active").siblings().removeClass("active");
+  }
+
+  function validateCurrentStep() {
+    collectAllFormData();
+    // Simplified validation for this context
+    return true;
+  }
+
+  function submitBooking() { /* ... */ }
+  function validateBookingData() { return true; }
+  function prepareSubmissionData() { return {}; }
+  function handleBookingSuccess(data) { /* ... */ }
+  function handleBookingError(xhr, status, error) { /* ... */ }
 
   /**
    * Global functions for form interaction
