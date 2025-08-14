@@ -18,7 +18,7 @@ $name = $option['name'] ?? 'New Option';
 $description = $option['description'] ?? '';
 $type = $option['type'] ?? 'checkbox';
 $is_required = $option['is_required'] ?? 0;
-$price_impact_type = $option['price_impact_type'] ?? '';
+$price_impact_type = $option['price_impact_type'] ?? 'fixed';
 $price_impact_value = $option['price_impact_value'] ?? '';
 $sort_order = $option['sort_order'] ?? (is_numeric($option_index) ? $option_index + 1 : 0);
 
@@ -121,6 +121,40 @@ $choices_visible = in_array($type, ['select', 'radio', 'checkbox', 'sqm', 'kilom
             <hr>
 
             <div>
+                <label class="form-label"><?php esc_html_e('Price Impact', 'mobooking'); ?></label>
+                <p class="form-description text-xs mb-2"><?php esc_html_e('Set a price for this option itself, independent of choices.', 'mobooking'); ?></p>
+                <div class="price-types-grid">
+                    <?php foreach ($price_impact_types as $impact_type_key => $impact_type_data): ?>
+                        <label class="price-type-card <?php echo $price_impact_type === $impact_type_key ? 'selected' : ''; ?>">
+                            <input type="radio" name="options[<?php echo esc_attr($option_index); ?>][price_impact_type]" value="<?php echo esc_attr($impact_type_key); ?>" class="sr-only price-impact-type-radio" <?php checked($price_impact_type, $impact_type_key); ?>>
+                            <div class="price-type-label">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="price-type-icon">
+                                    <?php echo get_simple_icon_svg($impact_type_data['icon']); ?>
+                                </svg>
+                                <div class="price-type-content">
+                                    <span class="price-type-title"><?php echo esc_html($impact_type_data['label']); ?></span>
+                                </div>
+                            </div>
+                        </label>
+                    <?php endforeach; ?>
+                </div>
+                <div class="price-impact-value-container mt-3" style="display: <?php echo !empty($price_impact_type) || $price_impact_type === 'fixed' ? 'block' : 'none'; ?>;">
+                    <label class="form-label" for="price-impact-value-<?php echo esc_attr($option_index); ?>"><?php esc_html_e('Price Value', 'mobooking'); ?></label>
+                    <input
+                        type="number"
+                        id="price-impact-value-<?php echo esc_attr($option_index); ?>"
+                        name="options[<?php echo esc_attr($option_index); ?>][price_impact_value]"
+                        class="form-input"
+                        placeholder="e.g., 10.00"
+                        value="<?php echo esc_attr($price_impact_value); ?>"
+                        step="0.01"
+                    >
+                </div>
+            </div>
+
+            <hr>
+
+            <div>
                 <label class="form-label">Option Type</label>
                 <p class="form-description text-xs mb-2">Select how the user will interact with this option.</p>
                 <div class="option-types-grid">
@@ -139,41 +173,6 @@ $choices_visible = in_array($type, ['select', 'radio', 'checkbox', 'sqm', 'kilom
                     <?php endforeach; ?>
                 </div>
             </div>
-
-            <hr>
-
-            <div>
-                <label class="form-label"><?php esc_html_e('Price Impact', 'mobooking'); ?></label>
-                <p class="form-description text-xs mb-2"><?php esc_html_e('Set a price for this option itself, independent of choices.', 'mobooking'); ?></p>
-                <div class="price-types-grid">
-                    <?php foreach ($price_impact_types as $impact_type_key => $impact_type_data): ?>
-                        <label class="price-type-card <?php echo $price_impact_type === $impact_type_key ? 'selected' : ''; ?>">
-                            <input type="radio" name="options[<?php echo esc_attr($option_index); ?>][price_impact_type]" value="<?php echo esc_attr($impact_type_key); ?>" class="sr-only price-impact-type-radio" <?php checked($price_impact_type, $impact_type_key); ?>>
-                            <div class="price-type-label">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="price-type-icon">
-                                    <?php echo get_simple_icon_svg($impact_type_data['icon']); ?>
-                                </svg>
-                                <div class="price-type-content">
-                                    <span class="price-type-title"><?php echo esc_html($impact_type_data['label']); ?></span>
-                                </div>
-                            </div>
-                        </label>
-                    <?php endforeach; ?>
-                </div>
-                <div class="price-impact-value-container mt-3" style="display: <?php echo !empty($price_impact_type) ? 'block' : 'none'; ?>;">
-                    <label class="form-label" for="price-impact-value-<?php echo esc_attr($option_index); ?>"><?php esc_html_e('Price Value', 'mobooking'); ?></label>
-                    <input
-                        type="number"
-                        id="price-impact-value-<?php echo esc_attr($option_index); ?>"
-                        name="options[<?php echo esc_attr($option_index); ?>][price_impact_value]"
-                        class="form-input"
-                        placeholder="e.g., 10.00"
-                        value="<?php echo esc_attr($price_impact_value); ?>"
-                        step="0.01"
-                    >
-                </div>
-            </div>
-
 
             <div class="choices-container" style="display: <?php echo $choices_visible ? 'block' : 'none'; ?>;">
                 <hr>
