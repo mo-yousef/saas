@@ -364,6 +364,94 @@ if ( is_page_template('templates/booking-form-public.php') || $page_type_for_scr
             ));
         }
 
+        if ($current_page_slug === 'service-edit' || $current_page_slug === 'service-add') {
+            wp_enqueue_style('mobooking-dashboard-service-edit', MOBOOKING_THEME_URI . 'assets/css/dashboard-service-edit.css', array(), MOBOOKING_VERSION);
+            wp_enqueue_script('mobooking-dashboard-service-edit', MOBOOKING_THEME_URI . 'assets/js/dashboard-service-edit.js', array('jquery', 'jquery-ui-sortable'), MOBOOKING_VERSION, true);
+
+            $service_id = isset($_GET['service_id']) ? intval($_GET['service_id']) : 0;
+            $option_count = 0;
+            if ($service_id > 0) {
+                $services_manager = new \MoBooking\Classes\Services();
+                $service_data = $services_manager->get_service($service_id, get_current_user_id());
+                if ($service_data && !is_wp_error($service_data) && !empty($service_data['options'])) {
+                    $option_count = count($service_data['options']);
+                }
+            }
+
+            wp_localize_script('mobooking-dashboard-service-edit', 'mobooking_service_edit_params', [
+                'ajax_url' => admin_url('admin-ajax.php'),
+                'nonce' => wp_create_nonce('mobooking_services_nonce'),
+                'option_count' => $option_count,
+                'redirect_url' => home_url('/dashboard/services'),
+                'i18n' => [
+                    'saving' => __('Saving...', 'mobooking'),
+                    'service_saved' => __('Service saved successfully.', 'mobooking'),
+                    'error_saving_service' => __('Error saving service. Please check your input and try again.', 'mobooking'),
+                    'error_ajax' => __('An AJAX error occurred. Please try again.', 'mobooking'),
+                    'confirm_delete' => __('Are you sure you want to delete this service? This action cannot be undone.', 'mobooking'),
+                    'confirm_delete_option' => __('Are you sure you want to delete this option?', 'mobooking'),
+                    'service_deleted' => __('Service deleted successfully', 'mobooking'),
+                    'error_deleting_service' => __('Failed to delete service', 'mobooking'),
+                    'service_duplicated' => __('Service duplicated successfully', 'mobooking'),
+                    'error_duplicating_service' => __('Failed to duplicate service', 'mobooking'),
+                    'error_uploading_image' => __('Failed to upload image', 'mobooking'),
+                ]
+            ]);
+        }
+
+        if ($current_page_slug === 'bookings') {
+            wp_enqueue_script('jquery-ui-datepicker');
+            wp_enqueue_script('mobooking-dashboard-bookings', MOBOOKING_THEME_URI . 'assets/js/dashboard-bookings.js', array('jquery', 'jquery-ui-datepicker', 'mobooking-dialog'), MOBOOKING_VERSION, true);
+        }
+
+        if ($current_page_slug === 'discounts') {
+            wp_enqueue_style('mobooking-dashboard-discounts', MOBOOKING_THEME_URI . 'assets/css/dashboard-discounts.css', array(), MOBOOKING_VERSION);
+            wp_enqueue_script('mobooking-dashboard-discounts', MOBOOKING_THEME_URI . 'assets/js/dashboard-discounts.js', array('jquery', 'mobooking-dialog'), MOBOOKING_VERSION, true);
+        }
+
+        if ($current_page_slug === 'areas') {
+            wp_enqueue_style('mobooking-enhanced-areas', MOBOOKING_THEME_URI . 'assets/css/enhanced-areas.css', array(), MOBOOKING_VERSION);
+            wp_enqueue_script('mobooking-enhanced-areas', MOBOOKING_THEME_URI . 'assets/js/enhanced-areas.js', array('jquery', 'wp-i18n', 'mobooking-dialog'), MOBOOKING_VERSION, true);
+        }
+
+        if ($current_page_slug === 'booking-form') {
+            wp_enqueue_script('wp-color-picker');
+            wp_enqueue_style('wp-color-picker');
+            wp_enqueue_script(
+                'mobooking-dashboard-booking-form-settings',
+                MOBOOKING_THEME_URI . 'assets/js/dashboard-booking-form-settings.js',
+                array('jquery', 'wp-color-picker'),
+                MOBOOKING_VERSION,
+                true
+            );
+        }
+
+        if ($current_page_slug === 'settings') {
+            wp_enqueue_script(
+                'mobooking-dashboard-business-settings',
+                MOBOOKING_THEME_URI . 'assets/js/dashboard-business-settings.js',
+                array('jquery'),
+                MOBOOKING_VERSION,
+                true
+            );
+        }
+
+        if ($current_page_slug === 'overview') {
+            wp_enqueue_script('feather-icons', 'https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.29.0/feather.min.js', array(), '4.29.0', true);
+            wp_enqueue_script('chart-js', 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js', array(), '3.9.1', true);
+            wp_enqueue_style('mobooking-dashboard-enhanced-css', MOBOOKING_THEME_URI . 'assets/css/dashboard-overview-enhanced.css', array(), MOBOOKING_VERSION);
+            wp_enqueue_script('mobooking-dashboard-enhanced-js', MOBOOKING_THEME_URI . 'assets/js/dashboard-overview-enhanced.js', array('jquery', 'feather-icons', 'chart-js'), MOBOOKING_VERSION, true);
+        }
+
+        if ($current_page_slug === 'availability') {
+            wp_enqueue_style('mobooking-dashboard-availability', MOBOOKING_THEME_URI . 'assets/css/dashboard-availability.css', array(), MOBOOKING_VERSION);
+            wp_enqueue_script('jquery-ui-datepicker');
+            wp_enqueue_script('mobooking-dashboard-availability', MOBOOKING_THEME_URI . 'assets/js/dashboard-availability.js', array('jquery', 'jquery-ui-datepicker', 'mobooking-dialog'), MOBOOKING_VERSION, true);
+        }
+
+        if ($current_page_slug === 'customers' || $current_page_slug === 'customer-details') {
+            wp_enqueue_style('mobooking-dashboard-customer-details', MOBOOKING_THEME_URI . 'assets/css/dashboard-customer-details.css', array(), MOBOOKING_VERSION);
+        }
     }
 }
 add_action( 'wp_enqueue_scripts', 'mobooking_scripts' );
