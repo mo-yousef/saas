@@ -18,8 +18,8 @@ $name = $option['name'] ?? 'New Option';
 $description = $option['description'] ?? '';
 $type = $option['type'] ?? 'checkbox';
 $is_required = $option['is_required'] ?? 0;
-$price_type = $option['price_type'] ?? '';
-$price_change = $option['price_change'] ?? '';
+$price_impact_type = $option['price_impact_type'] ?? 'fixed';
+$price_impact_value = $option['price_impact_value'] ?? 0;
 $sort_order = $option['sort_order'] ?? (is_numeric($option_index) ? $option_index + 1 : 0);
 
 // Handle choices - decode if JSON string, otherwise use as array
