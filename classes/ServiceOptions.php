@@ -11,6 +11,8 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
+use MoBooking\Classes\EnhancedServiceOptionsSchema;
+
 class ServiceOptions {
     private $wpdb;
 
@@ -105,41 +107,25 @@ class ServiceOptions {
         if ( empty($user_id) || empty($service_id) ) {
             return new \WP_Error('invalid_ids', __('Invalid user or service ID.', 'mobooking'));
         }
-        if ( empty($data['name']) || empty($data['type']) ) {
-            return new \WP_Error('missing_fields', __('Option name and type are required.', 'mobooking'));
+
+        $validation_errors = EnhancedServiceOptionsSchema::validate_option_data($data);
+        if (!empty($validation_errors)) {
+            return new \WP_Error('validation_error', implode(', ', $validation_errors));
         }
 
         $defaults = array(
             'description' => '',
             'is_required' => 0,
-            'price_impact_type' => null,
-            'price_impact_value' => null,
+            'price_type' => 'fixed',
+            'price_value' => null,
             'option_values' => null, // Should be JSON string or null
             'sort_order' => 0
         );
         $option_data = wp_parse_args($data, $defaults);
 
-        // Validate SQM or Kilometer ranges
-        if ($option_data['type'] === 'sqm' || $option_data['type'] === 'kilometers') {
-            $ranges = !empty($option_data['option_values']) ? json_decode($option_data['option_values'], true) : [];
-            if (json_last_error() !== JSON_ERROR_NONE && !empty($option_data['option_values'])) {
-                return new \WP_Error('invalid_json', __('Pricing ranges are not valid JSON.', 'mobooking'));
-            }
-
-            $validation_result = null;
-            if ($option_data['type'] === 'sqm') {
-                $validation_result = $this->validate_sqm_ranges($ranges ?: []);
-            } else { // kilometers
-                $validation_result = $this->validate_km_ranges($ranges ?: []);
-            }
-
-            if (is_wp_error($validation_result)) {
-                return new \WP_Error($validation_result->get_error_code(), "Error saving option '{$option_data['name']}': " . $validation_result->get_error_message());
-            }
-            // Ensure option_values is stored as JSON string
-            $option_data['option_values'] = wp_json_encode($ranges);
+        if (is_array($option_data['option_values'])) {
+            $option_data['option_values'] = wp_json_encode($option_data['option_values']);
         }
-
 
         $table_name = Database::get_table_name('service_options');
 
@@ -152,29 +138,15 @@ class ServiceOptions {
                 'description' => wp_kses_post($option_data['description']),
                 'type' => sanitize_text_field($option_data['type']),
                 'is_required' => boolval($option_data['is_required']),
-                // For SQM, these might not be directly used, or could define a base price if needed.
-                // For now, assuming SQM price is solely from ranges.
-                'price_impact_type' => in_array($option_data['type'], ['sqm', 'kilometers']) ? null : $option_data['price_impact_type'],
-                'price_impact_value' => in_array($option_data['type'], ['sqm', 'kilometers']) ? null : $option_data['price_impact_value'],
-                'option_values' => $option_data['option_values'], // JSON string for SQM and other types
+                'price_type' => sanitize_text_field($option_data['price_type']),
+                'price_value' => is_null($option_data['price_value']) ? null : floatval($option_data['price_value']),
+                'option_values' => $option_data['option_values'],
                 'sort_order' => intval($option_data['sort_order']),
                 'created_at' => current_time('mysql', 1), // GMT
                 'updated_at' => current_time('mysql', 1), // GMT
             ),
-            // Ensure formats match the data being inserted
             array(
-                '%d', // user_id
-                '%d', // service_id
-                '%s', // name
-                '%s', // description
-                '%s', // type
-                '%d', // is_required (boolval results in 0 or 1)
-                '%s', // price_impact_type (string or null)
-                (is_null($option_data['price_impact_value']) || $option_data['type'] === 'sqm' ? '%s' : '%f'), // price_impact_value (float or null)
-                '%s', // option_values (JSON string or null)
-                '%d', // sort_order
-                '%s', // created_at
-                '%s'  // updated_at
+                '%d', '%d', '%s', '%s', '%s', '%d', '%s', '%f', '%s', '%d', '%s', '%s'
             )
         );
 
@@ -239,38 +211,14 @@ class ServiceOptions {
             return new \WP_Error('no_data', __('No data provided for update.', 'mobooking'));
         }
 
-        // Fetch current option type if not provided in $data, to ensure validation consistency
-        $current_option_type = isset($data['type']) ? $data['type'] : null;
-        if (!$current_option_type) {
-            $current_option = $this->get_service_option($option_id, $user_id);
-            $current_option_type = $current_option ? $current_option['type'] : null;
+        $validation_errors = EnhancedServiceOptionsSchema::validate_option_data($data);
+        if (!empty($validation_errors)) {
+            return new \WP_Error('validation_error', implode(', ', $validation_errors));
         }
 
-        // Validate SQM or Kilometer ranges
-        if (in_array($current_option_type, ['sqm', 'kilometers']) && array_key_exists('option_values', $data)) {
-            $ranges = is_string($data['option_values']) ? json_decode($data['option_values'], true) : $data['option_values'];
-
-            if (json_last_error() !== JSON_ERROR_NONE && is_string($data['option_values']) && !empty($data['option_values'])) {
-                return new \WP_Error('invalid_json_update', __('Pricing ranges for update are not valid JSON.', 'mobooking'));
-            }
-            if (!is_array($ranges) && !is_null($ranges)) {
-                return new \WP_Error('ranges_not_array', __('Pricing ranges must be an array.', 'mobooking'));
-            }
-
-            $validation_result = null;
-            if ($current_option_type === 'sqm') {
-                $validation_result = $this->validate_sqm_ranges($ranges ?: []);
-            } else { // kilometers
-                $validation_result = $this->validate_km_ranges($ranges ?: []);
-            }
-
-            if (is_wp_error($validation_result)) {
-                $option_name = isset($data['name']) ? $data['name'] : $this->wpdb->get_var("SELECT name FROM " . Database::get_table_name('service_options') . " WHERE option_id = $option_id");
-                return new \WP_Error($validation_result->get_error_code(), "Error saving option '$option_name': " . $validation_result->get_error_message());
-            }
-            $data['option_values'] = wp_json_encode($ranges);
+        if (isset($data['option_values']) && is_array($data['option_values'])) {
+            $data['option_values'] = wp_json_encode($data['option_values']);
         }
-
 
         $table_name = Database::get_table_name('service_options');
 
@@ -281,32 +229,9 @@ class ServiceOptions {
         if (isset($data['description'])) { $update_data['description'] = wp_kses_post($data['description']); $update_formats[] = '%s'; }
         if (isset($data['type'])) { $update_data['type'] = sanitize_text_field($data['type']); $update_formats[] = '%s'; }
         if (isset($data['is_required'])) { $update_data['is_required'] = boolval($data['is_required']); $update_formats[] = '%d'; }
-
-        // If type is changing to a range-based pricing model, nullify price_impact fields.
-        $effective_type = $current_option_type; // Use the type that will be in the DB after this update.
-        if (isset($data['type'])) {
-            $effective_type = $data['type'];
-        }
-
-        if (in_array($effective_type, ['sqm', 'kilometers'])) {
-            $update_data['price_impact_type'] = null;
-            $update_data['price_impact_value'] = null;
-            $update_formats[] = '%s'; // for price_impact_type
-            $update_formats[] = '%s'; // for price_impact_value (will be null)
-        } else {
-            if (array_key_exists('price_impact_type', $data)) { $update_data['price_impact_type'] = !is_null($data['price_impact_type']) ? sanitize_text_field($data['price_impact_type']) : null; $update_formats[] = '%s'; }
-            if (array_key_exists('price_impact_value', $data)) { $update_data['price_impact_value'] = !is_null($data['price_impact_value']) ? floatval($data['price_impact_value']) : null; $update_formats[] = (is_null($data['price_impact_value']) ? '%s' : '%f'); }
-        }
-
-        // For option_values, if it's not SQM, it might be an array from direct PHP call, or already JSON string from AJAX
-        if (array_key_exists('option_values', $data)) {
-            if ($effective_type !== 'sqm') { // SQM already encoded above
-                 $update_data['option_values'] = !is_null($data['option_values']) ? wp_json_encode($data['option_values']) : null;
-            } else {
-                 $update_data['option_values'] = $data['option_values']; // Already JSON encoded for SQM
-            }
-            $update_formats[] = '%s';
-        }
+        if (isset($data['price_type'])) { $update_data['price_type'] = sanitize_text_field($data['price_type']); $update_formats[] = '%s'; }
+        if (array_key_exists('price_value', $data)) { $update_data['price_value'] = is_null($data['price_value']) ? null : floatval($data['price_value']); $update_formats[] = '%f'; }
+        if (array_key_exists('option_values', $data)) { $update_data['option_values'] = $data['option_values']; $update_formats[] = '%s'; }
         if (isset($data['sort_order'])) { $update_data['sort_order'] = intval($data['sort_order']); $update_formats[] = '%d'; }
 
 

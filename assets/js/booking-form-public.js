@@ -3,6 +3,502 @@
  * Handles all form interactions, data collection, and submission
  */
 
+/**
+ * Enhanced Booking Form JavaScript with New Pricing Logic
+ * Supports Fixed, Percentage, Multiplication, and No Price types
+ */
+
+class BookingFormPriceCalculator {
+    constructor(currencySymbol = '$') {
+        this.currencySymbol = currencySymbol;
+        this.currentSelectionForSummary = {
+            service: null,
+            options: {},
+            details: {},
+            pricing: {
+                subtotal: 0,
+                optionsTotal: 0,
+                discountAmount: 0,
+                finalTotal: 0
+            }
+        };
+    }
+
+    /**
+     * Calculate option price based on the new pricing system
+     */
+    calculateOptionPrice(option, selectedValue, basePrice, quantity = 1) {
+        if (!option || !option.price_type || option.price_type === 'no_price') {
+            return 0;
+        }
+
+        const priceValue = parseFloat(option.price_value || 0);
+        let calculatedPrice = 0;
+
+        switch (option.price_type) {
+            case 'fixed':
+                calculatedPrice = priceValue * quantity;
+                break;
+
+            case 'percentage':
+                calculatedPrice = (basePrice * priceValue / 100) * quantity;
+                break;
+
+            case 'multiplication':
+                if (selectedValue !== null && !isNaN(selectedValue)) {
+                    // For input values (like SQM, KM, or numeric inputs)
+                    calculatedPrice = basePrice * parseFloat(selectedValue) * priceValue * quantity;
+                } else {
+                    // For simple selections
+                    calculatedPrice = basePrice * priceValue * quantity;
+                }
+                break;
+
+            default:
+                calculatedPrice = 0;
+        }
+
+        return calculatedPrice;
+    }
+
+    /**
+     * Calculate price for choice-based options (select, radio, checkbox)
+     */
+    calculateChoicePrice(choice, basePrice, quantity = 1) {
+        if (!choice || !choice.price_type || choice.price_type === 'no_price') {
+            return 0;
+        }
+
+        const priceValue = parseFloat(choice.price_value || 0);
+        let calculatedPrice = 0;
+
+        switch (choice.price_type) {
+            case 'fixed':
+                calculatedPrice = priceValue * quantity;
+                break;
+
+            case 'percentage':
+                calculatedPrice = (basePrice * priceValue / 100) * quantity;
+                break;
+
+            case 'multiplication':
+                calculatedPrice = basePrice * priceValue * quantity;
+                break;
+
+            default:
+                calculatedPrice = 0;
+        }
+
+        return calculatedPrice;
+    }
+
+    /**
+     * Calculate price for range-based options (SQM, Kilometers)
+     */
+    calculateRangePrice(option, inputValue) {
+        if (!option || !['sqm', 'kilometers'].includes(option.type) || !option.parsed_option_values) {
+            return 0;
+        }
+
+        const ranges = option.parsed_option_values;
+        if (!Array.isArray(ranges)) {
+            return 0;
+        }
+
+        const input = parseFloat(inputValue);
+        if (isNaN(input) || input <= 0) {
+            return 0;
+        }
+
+        let totalPrice = 0;
+        let remainingInput = input;
+
+        // Sort ranges by from value to ensure proper calculation
+        const sortedRanges = ranges.sort((a, b) => {
+            const fromA = parseFloat(a.from_sqm || a.from_km || 0);
+            const fromB = parseFloat(b.from_sqm || b.from_km || 0);
+            return fromA - fromB;
+        });
+
+        for (const range of sortedRanges) {
+            const from = parseFloat(range.from_sqm || range.from_km || 0);
+            const to = range.to_sqm || range.to_km;
+            const toValue = (to === null || to === '' || to === '∞' ||
+                           to.toString().toLowerCase() === 'infinity') ? Infinity : parseFloat(to);
+            const pricePerUnit = parseFloat(range.price_per_sqm || range.price_per_km || 0);
+
+            if (input >= from && input < toValue) {
+                // Input falls within this range
+                const unitsInRange = Math.min(input - from, toValue - from);
+                totalPrice += unitsInRange * pricePerUnit;
+                break;
+            } else if (input >= toValue && toValue !== Infinity) {
+                // Input exceeds this range, calculate for the full range
+                const unitsInRange = toValue - from;
+                totalPrice += unitsInRange * pricePerUnit;
+            }
+        }
+
+        return totalPrice;
+    }
+
+    /**
+     * Process a single option selection and calculate its price
+     */
+    processOptionSelection(option, selectedValue, basePrice) {
+        let optionPrice = 0;
+        let displayValue = selectedValue;
+
+        switch (option.type) {
+            case 'sqm':
+            case 'kilometers':
+                optionPrice = this.calculateRangePrice(option, selectedValue);
+                displayValue = `${selectedValue} ${option.type === 'sqm' ? 'sqm' : 'km'}`;
+                break;
+
+            case 'select':
+            case 'radio':
+                if (option.parsed_option_values && Array.isArray(option.parsed_option_values)) {
+                    const selectedChoice = option.parsed_option_values.find(choice =>
+                        (choice.value || choice.label || choice) === selectedValue
+                    );
+                    if (selectedChoice) {
+                        optionPrice = this.calculateChoicePrice(selectedChoice, basePrice);
+                        displayValue = selectedChoice.label || selectedChoice.value || selectedChoice;
+                    }
+                } else {
+                    // Fallback to option-level pricing
+                    optionPrice = this.calculateOptionPrice(option, selectedValue, basePrice);
+                }
+                break;
+
+            case 'checkbox':
+                if (selectedValue) {
+                    if (option.parsed_option_values && Array.isArray(option.parsed_option_values)) {
+                        // Multiple checkbox choices
+                        const selectedValues = Array.isArray(selectedValue) ? selectedValue : [selectedValue];
+                        displayValue = [];
+                        for (const value of selectedValues) {
+                            const choice = option.parsed_option_values.find(c =>
+                                (c.value || c.label || c) === value
+                            );
+                            if (choice) {
+                                optionPrice += this.calculateChoicePrice(choice, basePrice);
+                                displayValue.push(choice.label || choice.value || choice);
+                            }
+                        }
+                        displayValue = displayValue.join(', ');
+                    } else {
+                        // Single checkbox with option-level pricing
+                        optionPrice = this.calculateOptionPrice(option, 1, basePrice);
+                        displayValue = 'Yes';
+                    }
+                }
+                break;
+
+            case 'text':
+            case 'textarea':
+                // For text inputs, check if it's a numeric value for multiplication
+                if (option.price_type === 'multiplication' && !isNaN(selectedValue)) {
+                    optionPrice = this.calculateOptionPrice(option, selectedValue, basePrice);
+                } else {
+                    optionPrice = this.calculateOptionPrice(option, null, basePrice);
+                }
+                break;
+
+            default:
+                optionPrice = this.calculateOptionPrice(option, selectedValue, basePrice);
+        }
+
+        return {
+            price: optionPrice,
+            displayValue: displayValue,
+            name: option.name
+        };
+    }
+
+    /**
+     * Update pricing calculation for the entire form
+     */
+    updatePricing() {
+        if (!this.currentSelectionForSummary.service) {
+            return;
+        }
+
+        const service = this.currentSelectionForSummary.service;
+        const basePrice = parseFloat(service.price || 0);
+        let optionsTotal = 0;
+
+        // Calculate all option prices
+        for (const [optionId, optionData] of Object.entries(this.currentSelectionForSummary.options)) {
+            optionsTotal += optionData.price || 0;
+        }
+
+        // Calculate subtotal
+        const subtotal = basePrice + optionsTotal;
+
+        // Apply discount if any
+        const discountAmount = this.currentSelectionForSummary.pricing.discountAmount || 0;
+        const finalTotal = Math.max(0, subtotal - discountAmount);
+
+        // Update pricing object
+        this.currentSelectionForSummary.pricing = {
+            basePrice: basePrice,
+            optionsTotal: optionsTotal,
+            subtotal: subtotal,
+            discountAmount: discountAmount,
+            finalTotal: finalTotal
+        };
+
+        return this.currentSelectionForSummary.pricing;
+    }
+
+    /**
+     * Handle option change events
+     */
+    handleOptionChange(optionElement, options) {
+        const optionId = optionElement.dataset.optionId || optionElement.name.match(/\[(\d+)\]/)?.[1];
+        const option = options.find(opt => opt.option_id == optionId);
+
+        if (!option) {
+            return;
+        }
+
+        const selectedValue = this.getSelectedValue(optionElement, option.type);
+        const basePrice = parseFloat(this.currentSelectionForSummary.service?.price || 0);
+
+        if (selectedValue !== null && selectedValue !== '' && selectedValue !== false) {
+            const result = this.processOptionSelection(option, selectedValue, basePrice);
+
+            this.currentSelectionForSummary.options[optionId] = {
+                name: option.name,
+                value: result.displayValue,
+                price: result.price,
+                option_id: optionId
+            };
+        } else {
+            // Remove option if no value selected
+            delete this.currentSelectionForSummary.options[optionId];
+        }
+
+        // Update pricing and UI
+        this.updatePricing();
+        this.updatePricingDisplay();
+        this.renderOrUpdateSidebarSummary();
+    }
+
+    /**
+     * Get selected value based on input type
+     */
+    getSelectedValue(element, optionType) {
+        switch (optionType) {
+            case 'checkbox':
+                if (element.type === 'checkbox') {
+                    return element.checked ? (element.value || '1') : null;
+                } else {
+                    // Multiple checkboxes
+                    const checkboxes = document.querySelectorAll(`input[name="${element.name}"]:checked`);
+                    return Array.from(checkboxes).map(cb => cb.value);
+                }
+
+            case 'radio':
+                const selectedRadio = document.querySelector(`input[name="${element.name}"]:checked`);
+                return selectedRadio ? selectedRadio.value : null;
+
+            case 'select':
+                return element.value || null;
+
+            case 'sqm':
+            case 'kilometers':
+            case 'text':
+            case 'textarea':
+                return element.value || null;
+
+            default:
+                return element.value || null;
+        }
+    }
+
+    /**
+     * Update the pricing display in the UI
+     */
+    updatePricingDisplay() {
+        const pricing = this.currentSelectionForSummary.pricing;
+
+        // Update various price display elements
+        const elements = {
+            basePrice: document.querySelector('.mobooking-bf__base-price'),
+            optionsTotal: document.querySelector('.mobooking-bf__options-total'),
+            subtotal: document.querySelector('.mobooking-bf__subtotal'),
+            discount: document.querySelector('.mobooking-bf__discount'),
+            finalTotal: document.querySelector('.mobooking-bf__final-total')
+        };
+
+        if (elements.basePrice) {
+            elements.basePrice.textContent = `${this.currencySymbol}${pricing.basePrice.toFixed(2)}`;
+        }
+
+        if (elements.optionsTotal) {
+            elements.optionsTotal.textContent = `${this.currencySymbol}${pricing.optionsTotal.toFixed(2)}`;
+            elements.optionsTotal.style.display = pricing.optionsTotal > 0 ? 'block' : 'none';
+        }
+
+        if (elements.subtotal) {
+            elements.subtotal.textContent = `${this.currencySymbol}${pricing.subtotal.toFixed(2)}`;
+        }
+
+        if (elements.discount) {
+            if (pricing.discountAmount > 0) {
+                elements.discount.textContent = `-${this.currencySymbol}${pricing.discountAmount.toFixed(2)}`;
+                elements.discount.style.display = 'block';
+            } else {
+                elements.discount.style.display = 'none';
+            }
+        }
+
+        if (elements.finalTotal) {
+            elements.finalTotal.textContent = `${this.currencySymbol}${pricing.finalTotal.toFixed(2)}`;
+        }
+    }
+
+    /**
+     * Render or update sidebar summary
+     */
+    renderOrUpdateSidebarSummary() {
+        const sidebarDiv = document.querySelector('.mobooking-bf__sidebar-summary');
+        if (!sidebarDiv || !this.currentSelectionForSummary.service) {
+            return;
+        }
+
+        const service = this.currentSelectionForSummary.service;
+        const pricing = this.currentSelectionForSummary.pricing;
+
+        let summaryHtml = `
+            <div class="mobooking-bf__sidebar-service">
+                <h4>${this.escapeHtml(service.name)}</h4>
+                <div class="mobooking-bf__sidebar-price">
+                    <span class="mobooking-bf__sidebar-service-price">${this.currencySymbol}${pricing.basePrice.toFixed(2)}</span>
+                    <span class="mobooking-bf__sidebar-duration">${service.duration} min</span>
+                </div>
+            </div>
+        `;
+
+        // Show selected options
+        if (Object.keys(this.currentSelectionForSummary.options).length > 0) {
+            summaryHtml += '<div class="mobooking-bf__sidebar-options"><h5>Options</h5>';
+            Object.values(this.currentSelectionForSummary.options).forEach((option) => {
+                summaryHtml += `
+                    <div class="mobooking-bf__sidebar-option">
+                        <span class="mobooking-bf__sidebar-option-name">${this.escapeHtml(option.name)}: ${this.escapeHtml(option.value)}</span>
+                        ${option.price > 0 ?
+                            `<span class="mobooking-bf__sidebar-option-price">+${this.currencySymbol}${option.price.toFixed(2)}</span>` :
+                            option.price < 0 ?
+                            `<span class="mobooking-bf__sidebar-option-price">${this.currencySymbol}${option.price.toFixed(2)}</span>` :
+                            ''
+                        }
+                    </div>
+                `;
+            });
+            summaryHtml += '</div>';
+        }
+
+        // Show pricing summary
+        summaryHtml += `
+            <div class="mobooking-bf__sidebar-pricing">
+                ${pricing.optionsTotal !== 0 ? `
+                    <div class="mobooking-bf__sidebar-subtotal">
+                        <span>Base Price:</span>
+                        <span>${this.currencySymbol}${pricing.basePrice.toFixed(2)}</span>
+                    </div>
+                    <div class="mobooking-bf__sidebar-options-total">
+                        <span>Options:</span>
+                        <span>${pricing.optionsTotal >= 0 ? '+' : ''}${this.currencySymbol}${pricing.optionsTotal.toFixed(2)}</span>
+                    </div>
+                ` : ''}
+                ${pricing.discountAmount > 0 ? `
+                    <div class="mobooking-bf__sidebar-discount">
+                        <span>Discount:</span>
+                        <span>-${this.currencySymbol}${pricing.discountAmount.toFixed(2)}</span>
+                    </div>
+                ` : ''}
+                <div class="mobooking-bf__sidebar-total">
+                    <span><strong>Total:</strong></span>
+                    <span><strong>${this.currencySymbol}${pricing.finalTotal.toFixed(2)}</strong></span>
+                </div>
+            </div>
+        `;
+
+        sidebarDiv.innerHTML = summaryHtml;
+    }
+
+    /**
+     * Apply discount
+     */
+    applyDiscount(discountAmount) {
+        this.currentSelectionForSummary.pricing.discountAmount = parseFloat(discountAmount) || 0;
+        this.updatePricing();
+        this.updatePricingDisplay();
+        this.renderOrUpdateSidebarSummary();
+    }
+
+    /**
+     * Set selected service
+     */
+    setSelectedService(service) {
+        this.currentSelectionForSummary.service = service;
+        this.currentSelectionForSummary.options = {};
+        this.updatePricing();
+    }
+
+    /**
+     * Escape HTML for security
+     */
+    escapeHtml(text) {
+        const map = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;'
+        };
+        return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+    }
+
+    /**
+     * Initialize the calculator with form elements
+     */
+    init(serviceOptions) {
+        // Set up event listeners for all option inputs
+        document.addEventListener('change', (e) => {
+            if (e.target.matches('[data-option-id], input[name^="service_options"], select[name^="service_options"], textarea[name^="service_options"]')) {
+                this.handleOptionChange(e.target, serviceOptions);
+            }
+        });
+
+        document.addEventListener('input', (e) => {
+            if (e.target.matches('input[type="number"][data-option-type], input[type="text"][name^="service_options"], textarea[name^="service_options"]')) {
+                // Debounce for better performance
+                clearTimeout(e.target.priceUpdateTimeout);
+                e.target.priceUpdateTimeout = setTimeout(() => {
+                    this.handleOptionChange(e.target, serviceOptions);
+                }, 300);
+            }
+        });
+
+        // Initial pricing update
+        this.updatePricing();
+        this.updatePricingDisplay();
+        this.renderOrUpdateSidebarSummary();
+    }
+}
+
+// Export for use in other scripts
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = BookingFormPriceCalculator;
+} else if (typeof window !== 'undefined') {
+    window.BookingFormPriceCalculator = BookingFormPriceCalculator;
+}
+
 (function ($) {
   "use strict";
 
@@ -11,6 +507,7 @@
   let currentStep = 1;
   let displayedOptions = [];
   let displayedServices = [];
+  let priceCalculator;
   let formData = {
     location: {},
     services: [],
@@ -110,6 +607,9 @@
       return;
     }
 
+    // Initialize Price Calculator
+    priceCalculator = new BookingFormPriceCalculator(CONFIG.currency?.symbol || '$');
+
     // Determine starting step
     currentStep = CONFIG.form_config?.enable_area_check ? 1 : 2;
     DebugTree.info(`Starting at step ${currentStep}`);
@@ -205,8 +705,13 @@
     DebugTree.info("Setting up event handlers");
 
     // Form input changes
-    $(document).on("change input", "input, select, textarea", function () {
+    $(document).on("change input", "input, select, textarea", function (e) {
       collectAllFormData();
+      if (priceCalculator) {
+          if (e.target.matches('[data-option-id], input[name^="service_options"], select[name^="service_options"], textarea[name^="service_options"]')) {
+              priceCalculator.handleOptionChange(e.target, displayedOptions);
+          }
+      }
       updateLiveSummary();
     });
 
@@ -634,6 +1139,11 @@
     // Update form data (single service only)
     formData.services = [serviceId.toString()];
 
+    if (priceCalculator) {
+        const service = displayedServices.find(s => s.service_id == serviceId);
+        priceCalculator.setSelectedService(service);
+    }
+
     collectAllFormData();
     updateLiveSummary();
 
@@ -704,6 +1214,9 @@
 
         if (response.success && response.data && response.data.length > 0) {
           displayServiceOptions(response.data);
+          if (priceCalculator) {
+              priceCalculator.init(response.data);
+          }
         } else {
           $container.html(
             '<p class="text-gray-600">No additional options available for selected services.</p>'
@@ -1136,38 +1649,11 @@
   }
 
   function calculateTotalPrice() {
-    let total = 0;
-
-    // Base service price (assuming single service selection for now)
-    if (formData.services.length > 0) {
-        const serviceId = formData.services[0];
-        const service = displayedServices.find(s => s.service_id == serviceId);
-        if (service) {
-            total += parseFloat(service.price);
-        }
-    }
-
-    // Add option prices
-    for (const optionId in formData.options) {
-        const option = formData.options[optionId];
-        if (option.type === 'sqm' || option.type === 'kilometers') {
-            const value = parseFloat(option.value);
-            if (!isNaN(value) && option.ranges) {
-                for (const range of option.ranges) {
-                    const from = parseFloat(range.from_sqm || range.from_km);
-                    const to = (range.to_sqm === '∞' || range.to_km === '∞') ? Infinity : parseFloat(range.to_sqm || range.to_km);
-                    if (value >= from && value <= to) {
-                        const price_per_unit = parseFloat(range.price_per_sqm || range.price_per_km);
-                        total += value * price_per_unit;
-                        break; // Stop after finding the correct range
-                    }
-                }
-            }
-        }
-        // Add other option price calculations here if needed (e.g., fixed, percentage)
-    }
-
-    return total.toFixed(2);
+      if (priceCalculator) {
+          const pricing = priceCalculator.updatePricing();
+          return pricing.finalTotal.toFixed(2);
+      }
+      return '0.00';
   }
 
   function updateLiveSummary() {
@@ -1189,6 +1675,9 @@
 
 
       $summary.html(html);
+    }
+    if (priceCalculator) {
+        priceCalculator.renderOrUpdateSidebarSummary();
     }
   }
 

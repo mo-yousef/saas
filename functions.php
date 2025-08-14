@@ -30,6 +30,7 @@ require_once MOBOOKING_THEME_DIR . 'functions/debug.php';
 require_once MOBOOKING_THEME_DIR . 'functions/email.php';
 require_once MOBOOKING_THEME_DIR . 'functions/ajax-fixes.php';
 require_once MOBOOKING_THEME_DIR . 'functions/debug-utils.php';
+require_once MOBOOKING_THEME_DIR . 'functions/migration.php';
 
 
 /**

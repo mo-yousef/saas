@@ -88,24 +88,7 @@ class Database {
         // Service Options Table
         $table_name = self::get_table_name('service_options');
         error_log('[MoBooking DB Debug] Preparing SQL for service_options table: ' . $table_name);
-        $sql_service_options = "CREATE TABLE $table_name (
-            option_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-            service_id BIGINT UNSIGNED NOT NULL,
-            user_id BIGINT UNSIGNED NOT NULL,
-            name VARCHAR(255) NOT NULL,
-            description TEXT,
-            type VARCHAR(50) NOT NULL,
-            is_required BOOLEAN NOT NULL DEFAULT 0,
-            price_impact_type VARCHAR(20),
-            price_impact_value DECIMAL(10,2),
-            option_values TEXT,
-            sort_order INT NOT NULL DEFAULT 0,
-            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-            PRIMARY KEY (option_id),
-            INDEX service_id_idx (service_id),
-            INDEX user_id_idx (user_id)
-        ) $charset_collate;";
+        $sql_service_options = EnhancedServiceOptionsSchema::get_service_options_table_sql($table_name, $charset_collate);
         error_log('[MoBooking DB Debug] SQL for service_options table: ' . preg_replace('/\s+/', ' ', $sql_service_options));
         $dbDelta_results['service_options'] = dbDelta( $sql_service_options );
 
@@ -549,5 +532,368 @@ class Database {
         }
 
         return $result;
+    }
+}
+
+/**
+ * Updated Database Schema for Service Options with Enhanced Pricing
+ * This file contains the enhanced table structure for service_options
+ */
+
+class EnhancedServiceOptionsSchema {
+
+    /**
+     * Get the enhanced service_options table SQL
+     */
+    public static function get_service_options_table_sql($table_name, $charset_collate) {
+        return "CREATE TABLE $table_name (
+            option_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+            service_id BIGINT UNSIGNED NOT NULL,
+            user_id BIGINT UNSIGNED NOT NULL,
+            name VARCHAR(255) NOT NULL,
+            description TEXT,
+            type VARCHAR(50) NOT NULL,
+            is_required BOOLEAN NOT NULL DEFAULT 0,
+
+            -- New enhanced pricing fields
+            price_type VARCHAR(20) NOT NULL DEFAULT 'fixed',
+            price_value DECIMAL(10,2) NULL,
+
+            -- Legacy pricing fields (maintained for backward compatibility)
+            price_impact_type VARCHAR(20) NULL,
+            price_impact_value DECIMAL(10,2) NULL,
+
+            -- Option values (JSON for choices, ranges, etc.)
+            option_values TEXT,
+
+            -- Sorting and timestamps
+            sort_order INT NOT NULL DEFAULT 0,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+            PRIMARY KEY (option_id),
+            INDEX service_id_idx (service_id),
+            INDEX user_id_idx (user_id),
+            INDEX type_idx (type),
+            INDEX price_type_idx (price_type),
+            INDEX sort_order_idx (sort_order)
+        ) $charset_collate;";
+    }
+
+    /**
+     * Get validation rules for the new price types
+     */
+    public static function get_price_type_validation_rules() {
+        return [
+            'no_price' => [
+                'requires_value' => false,
+                'value_constraints' => [],
+                'description' => 'Option does not affect pricing'
+            ],
+            'fixed' => [
+                'requires_value' => true,
+                'value_constraints' => ['numeric'],
+                'description' => 'Adds or subtracts a fixed amount'
+            ],
+            'percentage' => [
+                'requires_value' => true,
+                'value_constraints' => ['numeric'],
+                'description' => 'Increases or decreases by percentage'
+            ],
+            'multiplication' => [
+                'requires_value' => true,
+                'value_constraints' => ['numeric', 'positive'],
+                'description' => 'Multiplies the base price'
+            ]
+        ];
+    }
+
+    /**
+     * Get the supported option types and their characteristics
+     */
+    public static function get_option_types() {
+        return [
+            'text' => [
+                'label' => 'Text Input',
+                'supports_choices' => false,
+                'supports_ranges' => false,
+                'supports_individual_pricing' => true,
+                'input_type' => 'text'
+            ],
+            'textarea' => [
+                'label' => 'Text Area',
+                'supports_choices' => false,
+                'supports_ranges' => false,
+                'supports_individual_pricing' => true,
+                'input_type' => 'textarea'
+            ],
+            'select' => [
+                'label' => 'Dropdown',
+                'supports_choices' => true,
+                'supports_ranges' => false,
+                'supports_individual_pricing' => true,
+                'supports_choice_pricing' => true,
+                'input_type' => 'select'
+            ],
+            'radio' => [
+                'label' => 'Radio Buttons',
+                'supports_choices' => true,
+                'supports_ranges' => false,
+                'supports_individual_pricing' => true,
+                'supports_choice_pricing' => true,
+                'input_type' => 'radio'
+            ],
+            'checkbox' => [
+                'label' => 'Checkboxes',
+                'supports_choices' => true,
+                'supports_ranges' => false,
+                'supports_individual_pricing' => true,
+                'supports_choice_pricing' => true,
+                'input_type' => 'checkbox'
+            ],
+            'sqm' => [
+                'label' => 'Square Meters',
+                'supports_choices' => false,
+                'supports_ranges' => true,
+                'supports_individual_pricing' => false,
+                'pricing_method' => 'ranges',
+                'input_type' => 'number'
+            ],
+            'kilometers' => [
+                'label' => 'Kilometers',
+                'supports_choices' => false,
+                'supports_ranges' => true,
+                'supports_individual_pricing' => false,
+                'pricing_method' => 'ranges',
+                'input_type' => 'number'
+            ]
+        ];
+    }
+
+    /**
+     * Get example option_values structures for different types
+     */
+    public static function get_option_values_examples() {
+        return [
+            'select' => [
+                [
+                    'label' => 'Small',
+                    'value' => 'small',
+                    'price_type' => 'fixed',
+                    'price_value' => 0
+                ],
+                [
+                    'label' => 'Medium',
+                    'value' => 'medium',
+                    'price_type' => 'fixed',
+                    'price_value' => 10
+                ],
+                [
+                    'label' => 'Large',
+                    'value' => 'large',
+                    'price_type' => 'percentage',
+                    'price_value' => 25
+                ]
+            ],
+            'radio' => [
+                [
+                    'label' => 'Standard',
+                    'value' => 'standard',
+                    'price_type' => 'no_price',
+                    'price_value' => 0
+                ],
+                [
+                    'label' => 'Premium',
+                    'value' => 'premium',
+                    'price_type' => 'multiplication',
+                    'price_value' => 1.5
+                ]
+            ],
+            'checkbox' => [
+                [
+                    'label' => 'Extra cleaning',
+                    'value' => 'extra_cleaning',
+                    'price_type' => 'fixed',
+                    'price_value' => 25
+                ],
+                [
+                    'label' => 'Weekend service',
+                    'value' => 'weekend',
+                    'price_type' => 'percentage',
+                    'price_value' => 20
+                ]
+            ],
+            'sqm' => [
+                [
+                    'from_sqm' => 0,
+                    'to_sqm' => 50,
+                    'price_per_sqm' => 2.50
+                ],
+                [
+                    'from_sqm' => 50,
+                    'to_sqm' => 100,
+                    'price_per_sqm' => 2.25
+                ],
+                [
+                    'from_sqm' => 100,
+                    'to_sqm' => null, // Infinity
+                    'price_per_sqm' => 2.00
+                ]
+            ],
+            'kilometers' => [
+                [
+                    'from_km' => 0,
+                    'to_km' => 10,
+                    'price_per_km' => 5.00
+                ],
+                [
+                    'from_km' => 10,
+                    'to_km' => 25,
+                    'price_per_km' => 4.50
+                ],
+                [
+                    'from_km' => 25,
+                    'to_km' => null, // Infinity
+                    'price_per_km' => 4.00
+                ]
+            ]
+        ];
+    }
+
+    /**
+     * Validate option data structure
+     */
+    public static function validate_option_data($option_data) {
+        $errors = [];
+        $option_types = self::get_option_types();
+        $price_validation = self::get_price_type_validation_rules();
+
+        // Validate required fields
+        if (empty($option_data['name'])) {
+            $errors[] = 'Option name is required';
+        }
+
+        if (empty($option_data['type'])) {
+            $errors[] = 'Option type is required';
+        } elseif (!isset($option_types[$option_data['type']])) {
+            $errors[] = 'Invalid option type';
+        }
+
+        // Validate price type
+        $price_type = $option_data['price_type'] ?? 'fixed';
+        if (!isset($price_validation[$price_type])) {
+            $errors[] = 'Invalid price type';
+        } else {
+            $price_rules = $price_validation[$price_type];
+            $price_value = $option_data['price_value'] ?? null;
+
+            if ($price_rules['requires_value'] && ($price_value === null || $price_value === '')) {
+                $errors[] = "Price value is required for price type '{$price_type}'";
+            }
+
+            if ($price_value !== null && in_array('numeric', $price_rules['value_constraints'])) {
+                if (!is_numeric($price_value)) {
+                    $errors[] = 'Price value must be numeric';
+                } elseif (in_array('positive', $price_rules['value_constraints']) && floatval($price_value) <= 0) {
+                    $errors[] = 'Price value must be positive for multiplication type';
+                }
+            }
+        }
+
+        // Validate option_values structure if present
+        if (!empty($option_data['option_values'])) {
+            $option_type_info = $option_types[$option_data['type']] ?? [];
+
+            if ($option_type_info['supports_ranges'] ?? false) {
+                $validation_errors = self::validate_ranges($option_data['option_values'], $option_data['type']);
+                $errors = array_merge($errors, $validation_errors);
+            } elseif ($option_type_info['supports_choices'] ?? false) {
+                $validation_errors = self::validate_choices($option_data['option_values']);
+                $errors = array_merge($errors, $validation_errors);
+            }
+        }
+
+        return $errors;
+    }
+
+    /**
+     * Validate range data for SQM/Kilometers
+     */
+    private static function validate_ranges($ranges_data, $type) {
+        $errors = [];
+        $ranges = is_string($ranges_data) ? json_decode($ranges_data, true) : $ranges_data;
+
+        if (!is_array($ranges)) {
+            return ['Invalid ranges data structure'];
+        }
+
+        $field_prefix = $type === 'sqm' ? 'sqm' : 'km';
+        $previous_to = -1;
+
+        foreach ($ranges as $index => $range) {
+            $from = floatval($range["from_{$field_prefix}"] ?? 0);
+            $to = $range["to_{$field_prefix}"] ?? null;
+            $to_value = ($to === null || $to === '' || $to === '∞' ||
+                        strtolower($to) === 'infinity') ? INF : floatval($to);
+            $price = floatval($range["price_per_{$field_prefix}"] ?? 0);
+
+            if ($from < 0) {
+                $errors[] = "Range " . ($index + 1) . ": 'From' value cannot be negative";
+            }
+
+            if ($to_value !== INF && $from >= $to_value) {
+                $errors[] = "Range " . ($index + 1) . ": 'From' value must be less than 'To' value";
+            }
+
+            if ($price <= 0) {
+                $errors[] = "Range " . ($index + 1) . ": Price per unit must be positive";
+            }
+
+            if ($previous_to !== INF && $from < $previous_to) {
+                $errors[] = "Range " . ($index + 1) . ": Overlapping ranges detected";
+            }
+
+            $previous_to = $to_value;
+        }
+
+        return $errors;
+    }
+
+    /**
+     * Validate choice data for select/radio/checkbox
+     */
+    private static function validate_choices($choices_data) {
+        $errors = [];
+        $choices = is_string($choices_data) ? json_decode($choices_data, true) : $choices_data;
+
+        if (!is_array($choices)) {
+            return ['Invalid choices data structure'];
+        }
+
+        foreach ($choices as $index => $choice) {
+            if (is_array($choice)) {
+                if (empty($choice['label']) && empty($choice['value'])) {
+                    $errors[] = "Choice " . ($index + 1) . ": Either label or value is required";
+                }
+
+                if (isset($choice['price_type']) && isset($choice['price_value'])) {
+                    $price_validation = self::get_price_type_validation_rules();
+                    $price_type = $choice['price_type'];
+
+                    if (!isset($price_validation[$price_type])) {
+                        $errors[] = "Choice " . ($index + 1) . ": Invalid price type";
+                    } else {
+                        $rules = $price_validation[$price_type];
+                        if ($rules['requires_value'] && ($choice['price_value'] === null || $choice['price_value'] === '')) {
+                            $errors[] = "Choice " . ($index + 1) . ": Price value required for this price type";
+                        }
+                    }
+                }
+            } elseif (empty($choice)) {
+                $errors[] = "Choice " . ($index + 1) . ": Choice cannot be empty";
+            }
+        }
+
+        return $errors;
     }
 }
