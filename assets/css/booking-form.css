@@ -29,7 +29,7 @@
 /* Reset and base styles */
 .mobooking-booking-form-container {
   font-family: var(--mobooking-font-family);
-  max-width: 900px;
+  max-width: 720px; /* More compact width */
   margin: 2rem auto;
   padding: 0;
   background-color: var(--mobooking-background-color);
@@ -144,7 +144,7 @@
 }
 
 .mobooking-step-content {
-  padding: 2rem;
+  padding: 1.5rem; /* Reduced padding */
 }
 
 .mobooking-step-with-sidebar {
@@ -155,16 +155,16 @@
 }
 
 .mobooking-step-main {
-  padding: 2rem;
+  padding: 1.5rem; /* Reduced padding */
   border-right: 1px solid var(--mobooking-border-color);
 }
 
 /* Step Titles */
 .mobooking-step-title {
-  font-size: 1.75rem;
+  font-size: 1.5rem; /* Reduced font size */
   font-weight: 600;
   color: var(--mobooking-secondary-color);
-  margin: 0 0 0.75rem 0;
+  margin: 0 0 0.5rem 0; /* Reduced margin */
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -172,19 +172,19 @@
 
 .mobooking-step-title i {
   color: var(--mobooking-primary-color);
-  font-size: 1.5rem;
+  font-size: 1.25rem; /* Reduced icon size */
 }
 
 .mobooking-step-description {
   color: var(--mobooking-text-muted);
-  margin-bottom: 1.75rem;
-  font-size: 1rem;
+  margin-bottom: 1.5rem; /* Reduced margin */
+  font-size: 0.9rem;
 }
 
 /* Sidebar */
 .mobooking-sidebar {
   background: linear-gradient(135deg, #f8f9fa, #e9ecef);
-  padding: 2rem 1.5rem;
+  padding: 1.5rem; /* Reduced padding */
   border-left: 4px solid var(--mobooking-primary-color);
   position: relative;
   overflow-y: auto;
@@ -205,10 +205,10 @@
 }
 
 .mobooking-sidebar-title {
-  font-size: 1.25rem;
+  font-size: 1.15rem; /* Reduced font size */
   font-weight: 600;
   color: var(--mobooking-secondary-color);
-  margin: 0 0 1.25rem 0;
+  margin: 0 0 1rem 0; /* Reduced margin */
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -220,7 +220,7 @@
 
 /* Form Elements */
 .mobooking-form-group {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem; /* Reduced margin */
 }
 
 .mobooking-form-row {
@@ -247,10 +247,10 @@
 .mobooking-textarea,
 .mobooking-select {
   width: 100%;
-  padding: 0.875rem 1rem;
-  border: 2px solid var(--mobooking-border-color);
-  border-radius: var(--mobooking-border-radius);
-  font-size: 1rem;
+  padding: 0.625rem 0.75rem; /* Compact padding */
+  border: 1px solid var(--mobooking-border-color); /* Thinner border */
+  border-radius: 6px; /* Slightly smaller radius */
+  font-size: 0.9rem; /* Smaller font */
   font-family: inherit;
   transition: var(--mobooking-transition);
   background-color: white;
@@ -283,17 +283,17 @@
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  padding: 0.875rem 1.5rem;
+  padding: 0.625rem 1rem; /* Compact padding */
   border: none;
-  border-radius: var(--mobooking-border-radius);
-  font-size: 1rem;
+  border-radius: 6px; /* Smaller radius */
+  font-size: 0.9rem; /* Smaller font */
   font-weight: 600;
   font-family: inherit;
   cursor: pointer;
   transition: var(--mobooking-transition);
   text-decoration: none;
   white-space: nowrap;
-  min-height: 48px;
+  min-height: 40px; /* Compact height */
   position: relative;
   overflow: hidden;
 }
@@ -1152,4 +1152,153 @@
     background: none;
     color: #000;
   }
+}
+
+/* Custom Number Stepper */
+.mobooking-number-stepper {
+  display: flex;
+  align-items: center;
+  border: 2px solid var(--mobooking-border-color);
+  border-radius: var(--mobooking-border-radius);
+  overflow: hidden;
+  max-width: 150px;
+}
+
+.mobooking-number-stepper:focus-within {
+  border-color: var(--mobooking-primary-color);
+  box-shadow: 0 0 0 3px rgba(26, 188, 156, 0.1);
+}
+
+.stepper-input {
+  width: 100%;
+  text-align: center;
+  border: none;
+  padding: 0.75rem 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--mobooking-secondary-color);
+  -moz-appearance: textfield; /* Firefox */
+}
+
+.stepper-input::-webkit-outer-spin-button,
+.stepper-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+
+.stepper-input:focus {
+  outline: none;
+}
+
+.stepper-btn {
+  background-color: transparent;
+  border: none;
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  font-size: 1.5rem;
+  line-height: 1;
+  color: var(--mobooking-text-muted);
+  transition: background-color 0.2s ease;
+}
+
+.stepper-btn:hover {
+  background-color: rgba(0,0,0,0.05);
+  color: var(--mobooking-primary-color);
+}
+
+.stepper-minus {
+  border-right: 2px solid var(--mobooking-border-color);
+}
+
+.stepper-plus {
+  border-left: 2px solid var(--mobooking-border-color);
+}
+
+/* Custom Select Component */
+.mobooking-custom-select {
+  position: relative;
+  width: 100%;
+}
+
+.custom-select-trigger {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.875rem 1rem;
+  border: 2px solid var(--mobooking-border-color);
+  border-radius: var(--mobooking-border-radius);
+  background-color: white;
+  cursor: pointer;
+  transition: var(--mobooking-transition);
+  user-select: none;
+}
+
+.custom-select-trigger:hover,
+.mobooking-custom-select.open .custom-select-trigger {
+  border-color: var(--mobooking-primary-color);
+  box-shadow: 0 0 0 3px rgba(26, 188, 156, 0.1);
+}
+
+.custom-select-trigger span {
+  color: var(--mobooking-text-color);
+}
+
+.custom-select-trigger .arrow {
+  border: solid var(--mobooking-text-muted);
+  border-width: 0 2px 2px 0;
+  display: inline-block;
+  padding: 3px;
+  transform: rotate(45deg);
+  transition: transform 0.2s ease;
+}
+
+.mobooking-custom-select.open .custom-select-trigger .arrow {
+  transform: rotate(-135deg);
+}
+
+.custom-select-options {
+  display: none;
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  background-color: white;
+  border: 1px solid var(--mobooking-border-color);
+  border-radius: var(--mobooking-border-radius);
+  box-shadow: var(--mobooking-shadow-lg);
+  z-index: 100;
+  max-height: 200px;
+  overflow-y: auto;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.mobooking-custom-select.open .custom-select-options {
+  display: block;
+}
+
+.custom-select-option {
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.custom-select-option:hover {
+  background-color: rgba(26, 188, 156, 0.1);
+}
+
+.custom-select-option.selected {
+  background-color: var(--mobooking-primary-color);
+  color: white;
+  font-weight: 600;
+}
+
+.custom-select-option span {
+  color: var(--mobooking-text-muted);
+  font-size: 0.9em;
+  margin-left: 0.5rem;
+}
+
+.custom-select-option.selected span {
+  color: rgba(255, 255, 255, 0.8);
 }
