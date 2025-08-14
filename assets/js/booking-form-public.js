@@ -320,109 +320,125 @@
   }
 
   /**
-   * Collect all form data from DOM
+   * Collect all form data from DOM - REWRITTEN FOR ACCURACY
    */
   function collectAllFormData() {
-    DebugTree.info("Collecting all form data");
+      DebugTree.info("Collecting all form data");
 
-    // Location data
-    formData.location = {
-      zip_code: $("#mobooking-zip").val() || "",
-      country_code: $("#mobooking-country").val() || "",
-    };
+      // Location data
+      formData.location = {
+          zip_code: $("#mobooking-zip").val() || "",
+          country_code: $("#mobooking-country").val() || "",
+      };
 
-    // Services data
-    formData.services = [];
-    const serviceSelectors = [
-      'input[name="selected_service"]:checked',
-      ".mobooking-service-card.selected",
-      "[data-service-id].selected",
-    ];
+      // Services data (single service selection)
+      const $selectedService = $(".mobooking-service-card.selected");
+      if ($selectedService.length > 0) {
+          formData.services = [$selectedService.data("service-id").toString()];
+      }
 
-    serviceSelectors.forEach((selector) => {
-      $(selector).each(function () {
-        let serviceId;
-        if ($(this).is("input")) {
-          serviceId = $(this).val();
-        } else {
-          serviceId =
-            $(this).data("service-id") || $(this).attr("data-service-id");
-        }
-        if (
-          serviceId &&
-          formData.services.indexOf(serviceId.toString()) === -1
-        ) {
-          formData.services.push(serviceId.toString());
-        }
+      // Service options - NEW LOGIC
+      formData.options = {};
+      $('#mobooking-service-options-container .mobooking-service-option').each(function () {
+          const $optionContainer = $(this);
+          const optionId = $optionContainer.data('option-id');
+          const option = displayedOptions.find(o => o.option_id == optionId);
+          if (!option) return;
+
+          const optionType = option.type;
+          let value = null;
+          let selectedChoices = [];
+
+          switch (optionType) {
+              case 'text':
+              case 'textarea':
+              case 'number':
+              case 'quantity':
+              case 'sqm':
+              case 'kilometers':
+                  value = $optionContainer.find(`[name="service_options[${optionId}]"]`).val();
+                  break;
+              case 'select':
+                  const $selectedOption = $optionContainer.find('select option:selected');
+                  if ($selectedOption.val()) {
+                      selectedChoices.push({
+                          label: $selectedOption.val(),
+                          price: $selectedOption.data('price')
+                      });
+                  }
+                  break;
+              case 'radio':
+                  const $checkedRadio = $optionContainer.find('input[type="radio"]:checked');
+                  if ($checkedRadio.length) {
+                      selectedChoices.push({
+                          label: $checkedRadio.val(),
+                          price: $checkedRadio.data('price')
+                      });
+                  }
+                  break;
+              case 'checkbox':
+                  // This handles both single boolean and multiple choice checkboxes
+                  const $checkedCheckboxes = $optionContainer.find('input[type="checkbox"]:checked');
+                  $checkedCheckboxes.each(function () {
+                      const $checkbox = $(this);
+                      selectedChoices.push({
+                          label: $checkbox.val(),
+                          price: $checkbox.data('price')
+                      });
+                  });
+                  break;
+          }
+
+          // Only add to formData if there is a value or a selection
+          if ((value && value !== '') || selectedChoices.length > 0) {
+              formData.options[optionId] = {
+                  value: value,
+                  selectedChoices: selectedChoices
+              };
+          }
       });
-    });
 
-    // Service options
-    formData.options = {};
-    $('[name^="service_options"]').each(function () {
-        const $input = $(this);
-        const name = $input.attr("name");
-        const match = name.match(/service_options\[(\d+)\]/);
-        if (match) {
-            const optionId = match[1];
-            const optionType = $input.data('option-type');
-            const value = $input.attr('type') === 'checkbox' ? ($input.is(':checked') ? 1 : 0) : $input.val();
 
-            formData.options[optionId] = {
-                value: value
-            };
+      // Pet information
+      formData.pets = {
+          has_pets: $('input[name="has_pets"]:checked').val() === "yes",
+          details: $("#mobooking-pet-details").val() || "",
+      };
 
-            if (optionType === 'sqm' || optionType === 'kilometers') {
-                // Find the full option data which was stored when options were displayed
-                const fullOption = displayedOptions.find(o => o.option_id == optionId);
-                if (fullOption) {
-                    formData.options[optionId].ranges = fullOption.option_values;
-                    formData.options[optionId].type = optionType;
-                }
-            }
-        }
-    });
+      // Service frequency
+      formData.frequency =
+          $('input[name="frequency"]:checked').val() || "one-time";
 
-    // Pet information
-    formData.pets = {
-      has_pets: $('input[name="has_pets"]:checked').val() === "yes",
-      details: $("#mobooking-pet-details").val() || "",
-    };
+      // DateTime
+      formData.datetime = {
+          date: $("#mobooking-service-date").val() || "",
+          time:
+              $(".mobooking-time-slot.selected").data("time") ||
+              $(".mobooking-time-slot.selected").attr("data-time") ||
+              "",
+      };
 
-    // Service frequency
-    formData.frequency =
-      $('input[name="frequency"]:checked').val() || "one-time";
+      // Customer details
+      formData.customer = {
+          name: $("#mobooking-customer-name").val() || "",
+          email: $("#mobooking-customer-email").val() || "",
+          phone: $("#mobooking-customer-phone").val() || "",
+          address: $("#mobooking-service-address").val() || "",
+          instructions: $("#mobooking-special-instructions").val() || "",
+      };
 
-    // DateTime
-    formData.datetime = {
-      date: $("#mobooking-service-date").val() || "",
-      time:
-        $(".mobooking-time-slot.selected").data("time") ||
-        $(".mobooking-time-slot.selected").attr("data-time") ||
-        "",
-    };
+      // Property access
+      formData.access = {
+          method: $('input[name="property_access"]:checked').val() || "home",
+          details: $("#mobooking-access-instructions").val() || "",
+      };
 
-    // Customer details
-    formData.customer = {
-      name: $("#mobooking-customer-name").val() || "",
-      email: $("#mobooking-customer-email").val() || "",
-      phone: $("#mobooking-customer-phone").val() || "",
-      address: $("#mobooking-service-address").val() || "",
-      instructions: $("#mobooking-special-instructions").val() || "",
-    };
+      DebugTree.success("Form data collected", formData);
 
-    // Property access
-    formData.access = {
-      method: $('input[name="property_access"]:checked').val() || "home",
-      details: $("#mobooking-access-instructions").val() || "",
-    };
+      // Update debug display if it exists
+      updateDebugInfo();
 
-    DebugTree.success("Form data collected", formData);
-
-    // Update debug display if it exists
-    updateDebugInfo();
-
-    return formData;
+      return formData;
   }
 
   /**
@@ -726,98 +742,130 @@
   }
 
   /**
-   * Display service options
+   * Display service options - REWRITTEN FOR FULL SUPPORT
    */
   function displayServiceOptions(options) {
-    displayedOptions = options; // Store for later use
-    const $container = $("#mobooking-service-options-container");
-    if ($container.length === 0 || !options || options.length === 0) {
-      $container.html(
-        '<p class="text-gray-600">No additional options available for selected services.</p>'
-      );
-      return;
-    }
-
-    DebugTree.info("Displaying service options", options);
-
-    let html = '<div class="mobooking-service-options-list">';
-
-    options.forEach((option) => {
-      html += `<div class="mobooking-service-option">`;
-      html += `<div class="mobooking-form-group">`;
-      html += `<label for="option_${option.option_id}" class="mobooking-label">${option.name}`;
-
-      if (option.is_required === "1" || option.is_required === 1) {
-        html += " *";
+      if (!options) {
+          options = displayedOptions;
+      }
+      displayedOptions = options; // Store for later use
+      const $container = $("#mobooking-service-options-container");
+      if ($container.length === 0 || !options || options.length === 0) {
+          $container.html(
+              '<p class="text-gray-600">No additional options available for selected services.</p>'
+          );
+          return;
       }
 
-      html += `</label>`;
+      DebugTree.info("Displaying service options", options);
 
-      if (option.description) {
-        html += `<p class="mobooking-option-description">${option.description}</p>`;
-      }
+      let html = '<div class="mobooking-service-options-list">';
 
-      // Generate input based on option type
-      if (option.type === "number" || option.type === "quantity") {
-        html += `<input type="number" name="service_options[${option.option_id}]" id="option_${option.option_id}" class="mobooking-input" min="0" step="1" placeholder="Enter quantity">`;
-      } else if (option.type === "sqm" || option.type === 'kilometers') {
-        const placeholder = option.type === 'sqm' ? "Enter square meters" : "Enter kilometers";
-        const step = option.type === 'sqm' ? "0.01" : "0.1";
-        html += `<input type="number" name="service_options[${option.option_id}]" id="option_${option.option_id}" class="mobooking-input" min="0" step="${step}" placeholder="${placeholder}" data-option-type="${option.type}">`;
-      } else if (option.type === "text") {
-        html += `<input type="text" name="service_options[${option.option_id}]" id="option_${option.option_id}" class="mobooking-input" placeholder="Enter text">`;
-      } else if (option.type === "textarea") {
-        html += `<textarea name="service_options[${option.option_id}]" id="option_${option.option_id}" class="mobooking-textarea" placeholder="Enter details"></textarea>`;
-      } else if (option.type === "checkbox") {
-        html += `<div class="mobooking-checkbox-group">`;
-        html += `<label class="mobooking-checkbox-option">`;
-        html += `<input type="checkbox" name="service_options[${option.option_id}]" id="option_${option.option_id}" value="1">`;
-        html += `<span>Yes, add this option</span>`;
-        html += `</label>`;
-        html += `</div>`;
-      } else if (option.type === "select" && option.option_values) {
-        html += `<select name="service_options[${option.option_id}]" id="option_${option.option_id}" class="mobooking-select">`;
-        html += `<option value="">Select an option</option>`;
+      options.forEach((option) => {
+          const optionId = option.option_id;
+          const optionType = option.type;
+          const isRequired = option.is_required === "1" || option.is_required === 1;
 
-        let selectOptions = [];
-        try {
-          selectOptions =
-            typeof option.option_values === "string"
-              ? JSON.parse(option.option_values)
-              : option.option_values;
-        } catch (e) {
-          selectOptions = [];
-        }
+          // Add data attributes for price calculation later
+          html += `<div class="mobooking-service-option"
+                        data-option-id="${optionId}"
+                        data-price-impact-type="${option.price_impact_type || ''}"
+                        data-price-impact-value="${option.price_impact_value || 0}">`;
 
-        if (Array.isArray(selectOptions)) {
-          selectOptions.forEach((selectOption) => {
-            html += `<option value="${selectOption.value || selectOption}">${
-              selectOption.label || selectOption
-            }</option>`;
-          });
-        }
-        html += `</select>`;
-      }
+          html += `<div class="mobooking-form-group">`;
+          // The main label for the option group
+          html += `<label class="mobooking-label">${option.name}${isRequired ? ' *' : ''}</label>`;
 
-      // Show price impact if any
-      if (option.price_impact_type && option.price_impact_value) {
-        html += `<small class="mobooking-price-impact">`;
-        if (option.price_impact_type === "fixed") {
-          html += `+${option.price_impact_value}`;
-        } else if (option.price_impact_type === "percentage") {
-          html += `+${option.price_impact_value}%`;
-        }
-        html += `</small>`;
-      }
+          if (option.description) {
+              html += `<p class="mobooking-option-description">${option.description}</p>`;
+          }
 
-      html += `</div>`;
-      html += `</div>`;
-    });
+          // Generate input based on option type
+          const commonAttrs = `id="option_${optionId}" name="service_options[${optionId}]" data-option-id="${optionId}"`;
+          let choices = [];
+          if (option.option_values) {
+              try {
+                  choices = typeof option.option_values === "string" ? JSON.parse(option.option_values) : option.option_values;
+              } catch (e) {
+                  DebugTree.error("Failed to parse option_values for option " + optionId, option.option_values);
+                  choices = [];
+              }
+          }
 
-    html += "</div>";
-    $container.html(html);
+          switch (optionType) {
+              case 'text':
+                  html += `<input type="text" ${commonAttrs} class="mobooking-input" placeholder="Enter text">`;
+                  break;
+              case 'textarea':
+                  html += `<textarea ${commonAttrs} class="mobooking-textarea" placeholder="Enter details"></textarea>`;
+                  break;
+              case 'number':
+              case 'quantity':
+                  html += `<input type="number" ${commonAttrs} class="mobooking-input" min="0" step="1" placeholder="Enter quantity">`;
+                  break;
+              case 'sqm':
+              case 'kilometers':
+                  const placeholder = optionType === 'sqm' ? "Enter square meters" : "Enter kilometers";
+                  const step = optionType === 'sqm' ? "0.01" : "0.1";
+                  html += `<input type="number" ${commonAttrs} class="mobooking-input" min="0" step="${step}" placeholder="${placeholder}" data-option-type="${optionType}">`;
+                  break;
+              case 'checkbox':
+                  if (choices.length > 0) {
+                      // Multiple choice checkbox
+                      html += `<div class="mobooking-checkbox-group">`;
+                      choices.forEach((choice, index) => {
+                          const choiceId = `option_${optionId}_${index}`;
+                          html += `<label class="mobooking-checkbox-option" for="${choiceId}">`;
+                          html += `<input type="checkbox" name="service_options[${optionId}][${index}]" id="${choiceId}" value="${choice.label}" data-price="${choice.price || 0}">`;
+                          html += `<span>${choice.label} (+${CONFIG.currency?.symbol || '$'}${choice.price || '0.00'})</span>`;
+                          html += `</label>`;
+                      });
+                      html += `</div>`;
+                  } else {
+                      // Simple boolean checkbox
+                      html += `<div class="mobooking-checkbox-group">`;
+                      html += `<label class="mobooking-checkbox-option" for="option_${optionId}">`;
+                      html += `<input type="checkbox" ${commonAttrs} value="1">`;
+                      html += `<span>Yes, add this option</span>`;
+                      html += `</label>`;
+                      html += `</div>`;
+                  }
+                  break;
+              case 'radio':
+                  if (choices.length > 0) {
+                      html += `<div class="mobooking-radio-group">`;
+                      choices.forEach((choice, index) => {
+                          const choiceId = `option_${optionId}_${index}`;
+                          html += `<label class="mobooking-radio-option" for="${choiceId}">`;
+                          html += `<input type="radio" ${commonAttrs} id="${choiceId}" value="${choice.label}" data-price="${choice.price || 0}">`;
+                          html += `<span>${choice.label} (+${CONFIG.currency?.symbol || '$'}${choice.price || '0.00'})</span>`;
+                          html += `</label>`;
+                      });
+                      html += `</div>`;
+                  }
+                  break;
+              case 'select':
+                  if (choices.length > 0) {
+                      html += `<select ${commonAttrs} class="mobooking-select">`;
+                      html += `<option value="" data-price="0">Select an option</option>`;
+                      choices.forEach(choice => {
+                          html += `<option value="${choice.label}" data-price="${choice.price || 0}">${choice.label} (+${CONFIG.currency?.symbol || '$'}${choice.price || '0.00'})</option>`;
+                      });
+                      html += `</select>`;
+                  }
+                  break;
+              default:
+                  DebugTree.warning("Unknown option type:", optionType);
+                  break;
+          }
 
-    DebugTree.success("Service options displayed successfully");
+          html += `</div></div>`; // Close .mobooking-form-group and .mobooking-service-option
+      });
+
+      html += "</div>";
+      $container.html(html);
+
+      DebugTree.success("Service options displayed successfully");
   }
 
   /**
@@ -1136,38 +1184,78 @@
   }
 
   function calculateTotalPrice() {
-    let total = 0;
+      let baseTotal = 0;
 
-    // Base service price (assuming single service selection for now)
-    if (formData.services.length > 0) {
-        const serviceId = formData.services[0];
-        const service = displayedServices.find(s => s.service_id == serviceId);
-        if (service) {
-            total += parseFloat(service.price);
-        }
-    }
+      // 1. Get base service price
+      if (formData.services.length > 0) {
+          const serviceId = formData.services[0];
+          const service = displayedServices.find(s => s.service_id == serviceId);
+          if (service) {
+              baseTotal += parseFloat(service.price || 0);
+          }
+      }
 
-    // Add option prices
-    for (const optionId in formData.options) {
-        const option = formData.options[optionId];
-        if (option.type === 'sqm' || option.type === 'kilometers') {
-            const value = parseFloat(option.value);
-            if (!isNaN(value) && option.ranges) {
-                for (const range of option.ranges) {
-                    const from = parseFloat(range.from_sqm || range.from_km);
-                    const to = (range.to_sqm === '∞' || range.to_km === '∞') ? Infinity : parseFloat(range.to_sqm || range.to_km);
-                    if (value >= from && value <= to) {
-                        const price_per_unit = parseFloat(range.price_per_sqm || range.price_per_km);
-                        total += value * price_per_unit;
-                        break; // Stop after finding the correct range
-                    }
-                }
-            }
-        }
-        // Add other option price calculations here if needed (e.g., fixed, percentage)
-    }
+      let optionsTotal = 0;
+      let percentageImpact = 0;
 
-    return total.toFixed(2);
+      // 2. Iterate through selected options to calculate their contribution
+      for (const optionId in formData.options) {
+          const selectedOptionData = formData.options[optionId];
+          const optionInfo = displayedOptions.find(o => o.option_id == optionId);
+          if (!optionInfo) continue;
+
+          const priceImpactType = optionInfo.price_impact_type;
+          const priceImpactValue = parseFloat(optionInfo.price_impact_value || 0);
+          const optionType = optionInfo.type;
+
+          // A. Handle option-level price impacts (that apply to the option as a whole)
+          if (optionType !== 'quantity') { // Quantity is handled differently
+              switch (priceImpactType) {
+                  case 'fixed':
+                      optionsTotal += priceImpactValue;
+                      break;
+                  case 'percentage':
+                      percentageImpact += priceImpactValue;
+                      break;
+              }
+          }
+
+          // B. Handle value-based pricing (quantity, sqm, km)
+          const value = parseFloat(selectedOptionData.value);
+          if (!isNaN(value)) {
+              if (optionType === 'quantity' && priceImpactType === 'multiply') {
+                  optionsTotal += priceImpactValue * value;
+              } else if (optionType === 'sqm' || optionType === 'kilometers') {
+                  const ranges = Array.isArray(optionInfo.option_values) ? optionInfo.option_values : [];
+                  for (const range of ranges) {
+                      const from = parseFloat(range.from_sqm || range.from_km);
+                      const to = (range.to_sqm === '∞' || range.to_km === '∞') ? Infinity : parseFloat(range.to_sqm || range.to_km);
+                      if (value >= from && (value <= to || to === Infinity)) {
+                          const price_per_unit = parseFloat(range.price_per_sqm || range.price_per_km);
+                          if (!isNaN(price_per_unit)) {
+                              optionsTotal += value * price_per_unit;
+                          }
+                          break;
+                      }
+                  }
+              }
+          }
+
+          // C. Handle choice-level pricing
+          if (selectedOptionData.selectedChoices && selectedOptionData.selectedChoices.length > 0) {
+              selectedOptionData.selectedChoices.forEach(choice => {
+                  optionsTotal += parseFloat(choice.price || 0);
+              });
+          }
+      }
+
+      // 3. Combine totals and apply percentage
+      let finalTotal = baseTotal + optionsTotal;
+      if (percentageImpact > 0) {
+          finalTotal += finalTotal * (percentageImpact / 100);
+      }
+
+      return finalTotal.toFixed(2);
   }
 
   function updateLiveSummary() {
