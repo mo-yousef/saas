@@ -65,7 +65,7 @@ $price_types = [
 
 // Define price impact types for the entire option
 $price_impact_types = [
-    'per_choice' => ['label' => __('Per Choice Pricing', 'mobooking'), 'description' => __('Each choice has its own price setting', 'mobooking'), 'icon' => 'list'],
+    '' => ['label' => __('No Price', 'mobooking'), 'description' => __("This option doesn't affect the price.", 'mobooking'), 'icon' => 'minus-circle'],
     'fixed' => ['label' => __('Fixed Amount', 'mobooking'), 'description' => __('Add/subtract a fixed amount', 'mobooking'), 'icon' => 'dollar-sign'],
     'percentage' => ['label' => __('Percentage', 'mobooking'), 'description' => __('Increase/decrease by percentage', 'mobooking'), 'icon' => 'percent'],
     'multiply' => ['label' => __('Multiply', 'mobooking'), 'description' => __('Multiply price by option value', 'mobooking'), 'icon' => 'x']
