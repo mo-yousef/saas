@@ -207,6 +207,26 @@ jQuery(function ($) {
       $container.on("click", ".remove-choice-btn", function () {
         $(this).closest(".choice-item").remove();
       });
+
+      // Update price impact value visibility
+      $container.on("change", ".price-impact-type-radio", function () {
+        const $radio = $(this);
+        const impactType = $radio.val();
+        const $optionItem = $radio.closest(".option-item");
+        const $valueContainer = $optionItem.find(
+          ".price-impact-value-container"
+        );
+
+        if (impactType) {
+          $valueContainer.slideDown(200);
+        } else {
+          $valueContainer.slideUp(200);
+        }
+
+        // Update card selection visually
+        $optionItem.find(".price-type-card").removeClass("selected");
+        $radio.closest(".price-type-card").addClass("selected");
+      });
     },
 
     initTabs: function () {
