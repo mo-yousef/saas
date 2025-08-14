@@ -1223,10 +1223,9 @@ public function handle_get_public_services_ajax() {
                     'is_required' => isset($option_data['is_required']) && $option_data['is_required'] === '1' ? 1 : 0,
                     'option_values' => $option_values_for_db,
                     'sort_order' => isset($option_data['sort_order']) ? intval($option_data['sort_order']) : $idx,
-                    // The following fields are not part of the form for standard options,
-                    // but we set defaults to avoid DB errors. They are handled by ServiceOptions class.
-                    'price_impact_type' => null,
-                    'price_impact_value' => null,
+                    // Read the price impact fields from the submitted form data.
+                    'price_impact_type' => isset($option_data['price_impact_type']) ? sanitize_text_field($option_data['price_impact_type']) : null,
+                    'price_impact_value' => isset($option_data['price_impact_value']) && is_numeric($option_data['price_impact_value']) ? floatval($option_data['price_impact_value']) : null,
                 ];
 
                 error_log("[MoBooking SaveSvc Debug] Adding option for service_id {$service_id}. Cleaned data: " . print_r($clean_option_data, true));
