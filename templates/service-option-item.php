@@ -8,7 +8,6 @@
  * @var int $option_index
  * @var array $option_types
  * @var array $price_types
- * @var array $price_impact_types
  */
 
 if (!defined('ABSPATH')) exit;
@@ -19,8 +18,8 @@ $name = $option['name'] ?? 'New Option';
 $description = $option['description'] ?? '';
 $type = $option['type'] ?? 'checkbox';
 $is_required = $option['is_required'] ?? 0;
-$price_impact_type = $option['price_impact_type'] ?? 'per_choice';
-$price_impact_value = $option['price_impact_value'] ?? '';
+$price_type = $option['price_type'] ?? '';
+$price_change = $option['price_change'] ?? '';
 $sort_order = $option['sort_order'] ?? (is_numeric($option_index) ? $option_index + 1 : 0);
 
 // Handle choices - decode if JSON string, otherwise use as array
@@ -58,9 +57,11 @@ $choices_visible = in_array($type, ['select', 'radio', 'checkbox', 'sqm', 'kilom
             <h4 class="option-name"><?php echo esc_html($name); ?></h4>
             <div class="option-badges">
                 <span class="badge badge-outline"><?php echo esc_html($option_types[$type]['label'] ?? 'Unknown'); ?></span>
-                <span class="badge badge-accent price-impact-badge">
-                    <?php echo esc_html($price_impact_types[$price_impact_type]['label'] ?? 'Per Choice'); ?>
-                </span>
+                <?php if (!empty($price_type) && $price_type !== ''): ?>
+                    <span class="badge badge-accent">
+                        <?php echo esc_html($price_types[$price_type]['label'] ?? 'Price'); ?>
+                    </span>
+                <?php endif; ?>
             </div>
         </div>
         <div class="option-actions">
@@ -228,10 +229,9 @@ $choices_visible = in_array($type, ['select', 'radio', 'checkbox', 'sqm', 'kilom
                             ?>
                         </span>
                     </button>
+                    <div class="option-feedback text-destructive text-sm mt-2"></div>
                 </div>
             </div>
-
-            <div class="option-feedback text-destructive text-sm mt-2"></div>
         </div>
     </div>
 </div>
