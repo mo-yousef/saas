@@ -35,16 +35,42 @@ jQuery(document).ready(function($) {
         return template;
     }
 
+    function getTableHTML() {
+        return `
+            <div class="mobooking-table-responsive-wrapper">
+                <table class="mobooking-table">
+                    <thead>
+                        <tr>
+                            <th>${mobooking_bookings_params.i18n.ref || 'Ref'}</th>
+                            <th>${mobooking_bookings_params.i18n.customer || 'Customer'}</th>
+                            <th>${mobooking_bookings_params.i18n.booked_date || 'Booked Date'}</th>
+                            <th>${mobooking_bookings_params.i18n.assigned_staff || 'Assigned Staff'}</th>
+                            <th>${mobooking_bookings_params.i18n.total || 'Total'}</th>
+                            <th>${mobooking_bookings_params.i18n.status || 'Status'}</th>
+                            <th>${mobooking_bookings_params.i18n.actions || 'Actions'}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+        `;
+    }
+
     function loadBookings(page = 1) {
         currentFilters.paged = page;
-        bookingsListContainer.html('<p>' + (mobooking_bookings_params.i18n.loading_bookings || 'Loading bookings...') + '</p>');
+        bookingsListContainer.html('<div class="mobooking-spinner"></div>'); // Show spinner
         paginationContainer.empty();
 
         let ajaxData = {
             action: 'mobooking_get_tenant_bookings',
             nonce: mobooking_bookings_params.nonce,
-            ...currentFilters // Spread all filter values
+            ...currentFilters
         };
+
+        // Show clear button if any filter is active
+        const isFilterActive = currentFilters.status_filter || currentFilters.date_from_filter || currentFilters.date_to_filter || currentFilters.search_query || currentFilters.assigned_staff_id_filter;
+        $('#mobooking-clear-filters-btn').toggle(!!isFilterActive);
 
         $.ajax({
             url: mobooking_bookings_params.ajax_url,
@@ -53,18 +79,15 @@ jQuery(document).ready(function($) {
             success: function(response) {
                 bookingsListContainer.empty();
                 if (response.success && response.data.bookings && response.data.bookings.length) {
+                    bookingsListContainer.html(getTableHTML());
+                    const tableBody = bookingsListContainer.find('tbody');
                     response.data.bookings.forEach(function(booking) {
                         let bookingDataForTemplate = {...booking};
-                        // Format data for display
                         bookingDataForTemplate.total_price_formatted = currencyCode + ' ' + parseFloat(booking.total_price).toFixed(2);
                         bookingDataForTemplate.status_display = mobooking_bookings_params.statuses[booking.status] || booking.status;
 
-                        // Date and Time formatting for booking_date and booking_time
-                        // These should match the format used in the initial PHP render if possible
-                        // For simplicity, using toLocaleDateString and toLocaleTimeString
-                        // A more robust solution might involve a date formatting library or server-side formatted strings
                         try {
-                            const bookingDate = new Date(booking.booking_date + 'T' + booking.booking_time); // Combine date and time for proper Date object
+                            const bookingDate = new Date(booking.booking_date + 'T' + booking.booking_time);
                             bookingDataForTemplate.booking_date_formatted = bookingDate.toLocaleDateString();
                             bookingDataForTemplate.booking_time_formatted = bookingDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                         } catch(e) {
@@ -72,21 +95,13 @@ jQuery(document).ready(function($) {
                             bookingDataForTemplate.booking_time_formatted = booking.booking_time;
                         }
 
-                        // Construct details_page_url
-                        // Assuming mobooking_bookings_params.bookings_page_base_url is like 'admin.php?page=mobooking'
-                        // This might need to be passed from PHP if not already available.
-                        // For now, constructing it based on a common pattern.
-                        // A better approach is to have a bookings_page_url in mobooking_bookings_params.
-                        let baseUrl = mobooking_bookings_params.bookings_page_url || 'admin.php?page=mobooking';
+                        let baseUrl = mobooking_bookings_params.bookings_page_url || 'admin.php?page=mobooking-bookings';
                         bookingDataForTemplate.details_page_url = baseUrl + '&action=view_booking&booking_id=' + booking.booking_id;
 
+                        // This is a placeholder for the icon HTML. A better way would be to pass this from PHP.
+                        bookingDataForTemplate.icon_html = '<svg class="feather" width="18" height="18"><circle cx="12" cy="12" r="10"></circle></svg>';
 
-                        // The renderTemplate function expects all keys in the template to be present in bookingDataForTemplate
-                        // Ensure all fields used in the template (`booking_reference`, `customer_name`, `customer_email`, `status`)
-                        // are directly available on `booking` or added to `bookingDataForTemplate`.
-                        // `created_at_formatted` is no longer in the table template.
-
-                        bookingsListContainer.find('tbody').append(renderTemplate(bookingItemTemplate, bookingDataForTemplate));
+                        tableBody.append(renderTemplate(bookingItemTemplate, bookingDataForTemplate));
                     });
                     renderPagination(response.data.total_count, response.data.per_page, response.data.current_page);
                 } else if (response.success) {
@@ -141,6 +156,13 @@ jQuery(document).ready(function($) {
         e.preventDefault();
         const page = $(this).data('page');
         loadBookings(page);
+    });
+
+    // Toggle more filters
+    $('#mobooking-toggle-more-filters-btn').on('click', function() {
+        $('.mobooking-filters-secondary').slideToggle();
+        const text = $('.mobooking-filters-secondary').is(':visible') ? mobooking_bookings_params.i18n.less_filters || 'Less Filters' : mobooking_bookings_params.i18n.more_filters || 'More Filters';
+        $(this).text(text);
     });
 
     // Datepicker initialization
