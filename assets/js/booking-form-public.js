@@ -1,431 +1,1201 @@
 /**
- * MoBooking Public Form JavaScript - Complete Refactored Version
- * Handles all form interactions, data collection, and submission
+ * Complete MoBooking Booking Form JavaScript with ShadCN UI Design
+ * Fully fixed with working AJAX and modern UI components
+ * Updated to skip location step and auto-load service options
  */
 
-(function ($) {
+jQuery(document).ready(function ($) {
   "use strict";
 
-  // Global variables
-  let CONFIG = {};
-  let currentStep = 1;
-  let displayedOptions = [];
-  let displayedServices = [];
-  let formData = {
-    location: {},
-    services: [],
-    options: {},
+  // ==========================================
+  // CONFIG & STATE
+  // ==========================================
+
+  const CONFIG = {
+    ajax_url:
+      window.MOBOOKING_CONFIG?.ajax_url ||
+      window.mobooking_booking_form_params?.ajax_url ||
+      "/wp-admin/admin-ajax.php",
+    tenant_id:
+      window.MOBOOKING_CONFIG?.tenant_id ||
+      window.mobooking_booking_form_params?.tenant_id ||
+      0,
+    nonce:
+      window.MOBOOKING_CONFIG?.nonce ||
+      window.mobooking_booking_form_params?.nonce ||
+      "",
+    currency_symbol:
+      window.MOBOOKING_CONFIG?.currency?.symbol ||
+      window.mobooking_booking_form_params?.currency_symbol ||
+      "$",
+    i18n:
+      window.MOBOOKING_CONFIG?.i18n ||
+      window.mobooking_booking_form_params?.i18n ||
+      {},
+    settings:
+      window.MOBOOKING_CONFIG?.settings ||
+      window.mobooking_booking_form_params?.settings ||
+      {},
+  };
+
+  const state = {
+    currentStep: 1,
+    totalSteps: 8,
+    service: null, // { service_id, name, price, duration, ... }
+    optionsById: {}, // { [option_id]: { id, name, type, value, price, meta } }
+    pricing: {
+      base: 0,
+      options: 0,
+      discount: 0,
+      total: 0,
+    },
     pets: { has_pets: false, details: "" },
     frequency: "one-time",
-    datetime: { date: "", time: "" },
+    date: "",
+    time: "",
     customer: { name: "", email: "", phone: "", address: "", instructions: "" },
-    access: { method: "home", details: "" },
-  };
-  let debugResponses = [];
-  let isSubmitting = false;
-
-  // Debug Tree for enhanced logging
-  const DebugTree = {
-    group: function (title) {
-      if (
-        CONFIG.form_config?.debug_mode ||
-        window.location.search.includes("debug=1")
-      ) {
-        console.group(`🌳 ${title}`);
-      }
-    },
-    groupEnd: function () {
-      if (
-        CONFIG.form_config?.debug_mode ||
-        window.location.search.includes("debug=1")
-      ) {
-        console.groupEnd();
-      }
-    },
-    info: function (message, data = null) {
-      if (
-        CONFIG.form_config?.debug_mode ||
-        window.location.search.includes("debug=1")
-      ) {
-        console.log(`ℹ️ ${message}`, data || "");
-      }
-    },
-    success: function (message, data = null) {
-      if (
-        CONFIG.form_config?.debug_mode ||
-        window.location.search.includes("debug=1")
-      ) {
-        console.log(`✅ ${message}`, data || "");
-      }
-    },
-    warning: function (message, data = null) {
-      if (
-        CONFIG.form_config?.debug_mode ||
-        window.location.search.includes("debug=1")
-      ) {
-        console.warn(`⚠️ ${message}`, data || "");
-      }
-    },
-    error: function (message, data = null) {
-      console.error(`❌ ${message}`, data || "");
-    },
+    propertyAccess: { method: "home", details: "" },
+    latestTimeSlots: [],
   };
 
-  /**
-   * Initialize the booking form
-   */
-  function initializeBookingForm() {
-    DebugTree.group("🚀 Initializing MoBooking Form");
+  // DOM refs
+  const els = {
+    progressFill: $("#mobooking-progress-fill"),
+    stepIndicators: $(".mobooking-step-indicator"),
+    steps: $(".mobooking-step-content"),
+    // Step 1
+    areaForm: $("#mobooking-area-check-form"),
+    areaFeedback: $("#mobooking-location-feedback"),
+    // Step 2
+    servicesContainer: $("#mobooking-services-container"),
+    serviceFeedback: $("#mobooking-service-feedback"),
+    // Step 3
+    optionsContainer: $("#mobooking-service-options-container"),
+    optionsFeedback: $("#mobooking-options-feedback"),
+    // Step 6
+    dateInput: $("#mobooking-service-date"),
+    timeSlotsWrap: $("#mobooking-time-slots-container"),
+    timeSlots: $("#mobooking-time-slots"),
+    dateTimeFeedback: $("#mobooking-datetime-feedback"),
+    // Step 7
+    nameInput: $("#mobooking-customer-name"),
+    emailInput: $("#mobooking-customer-email"),
+    phoneInput: $("#mobooking-customer-phone"),
+    addressInput: $("#mobooking-service-address"),
+    specialInstructions: $("#mobooking-special-instructions"),
+    contactFeedback: $("#mobooking-contact-feedback"),
+    accessDetailsWrap: $("#mobooking-custom-access-details"),
+    accessInstructions: $("#mobooking-access-instructions"),
+    // Live summary
+    liveSummary: $("#mobooking-summary-content"),
+    // Success
+    successMessage: $("#mobooking-success-message"),
+    successSummary: $("#mobooking-booking-summary"),
+  };
 
-    CONFIG = window.MOBOOKING_CONFIG || {};
-    if (!validateConfiguration()) {
-      DebugTree.error("Configuration validation failed");
+  // ==========================================
+  // STEP NAVIGATION
+  // ==========================================
+
+  function showStep(step) {
+    state.currentStep = step;
+
+    els.steps.removeClass("active").hide();
+    $(`#mobooking-step-${step}`).addClass("active").show();
+
+    const visibleIndicators = els.stepIndicators;
+    visibleIndicators.removeClass("active completed");
+    visibleIndicators.each(function () {
+      const s = parseInt($(this).data("step"), 10);
+      if (s < step) $(this).addClass("completed");
+      if (s === step) $(this).addClass("active");
+    });
+
+    const totalInd = visibleIndicators.length || state.totalSteps;
+    const idx = Math.max(1, Math.min(step, totalInd));
+    const progress = ((idx - 1) / Math.max(1, totalInd - 1)) * 100;
+    els.progressFill.css("width", `${progress}%`);
+
+    // Step-specific hooks
+    if (step === 2) loadServices();
+    if (step === 3) ensureOptionsLoaded();
+    if (step === 6) initDatePicker();
+    if (step === 8) renderSuccessSummary();
+
+    updateLiveSummary();
+  }
+
+  function nextStep() {
+    const next = state.currentStep + 1;
+    if (validateStep(state.currentStep)) showStep(next);
+  }
+
+  function prevStep() {
+    const prev = state.currentStep - 1;
+    if (prev >= 1) showStep(prev);
+  }
+
+  function validateStep(step) {
+    switch (step) {
+      case 1:
+        // Area check (optional if feature disabled). If form shows step 1, require zip/country.
+        if (!$("#mobooking-step-1").length) return true;
+        if (
+          !CONFIG.settings?.bf_enable_location_check ||
+          CONFIG.settings.bf_enable_location_check === "0"
+        )
+          return true;
+        const zip = $("#mobooking-zip").val()?.trim();
+        const country = $("#mobooking-country").val()?.trim();
+        if (!zip)
+          return (
+            showFeedback(
+              els.areaFeedback,
+              "error",
+              CONFIG.i18n.zip_required || "ZIP required"
+            ),
+            false
+          );
+        if (!country)
+          return (
+            showFeedback(
+              els.areaFeedback,
+              "error",
+              CONFIG.i18n.country_required || "Country required"
+            ),
+            false
+          );
+        return true;
+      case 2:
+        if (!state.service)
+          return (
+            showFeedback(
+              els.serviceFeedback,
+              "error",
+              CONFIG.i18n.select_service || "Select a service"
+            ),
+            false
+          );
+        return true;
+      case 3:
+        // Validate required options
+        const missing = [];
+        els.optionsContainer.find("[data-required='1']").each(function () {
+          const type = $(this).data("type");
+          if (type === "checkbox" && !$(this).is(":checked"))
+            missing.push($(this).data("name") || "Option");
+          else if (
+            (type === "text" ||
+              type === "textarea" ||
+              type === "number" ||
+              type === "quantity" ||
+              type === "sqm") &&
+            !$(this).val()
+          )
+            missing.push($(this).data("name") || "Option");
+          else if ((type === "select" || type === "radio") && !$(this).val())
+            missing.push($(this).data("name") || "Option");
+        });
+        if (missing.length)
+          return (
+            showFeedback(
+              els.optionsFeedback,
+              "error",
+              `Please fill required: ${missing.join(", ")}`
+            ),
+            false
+          );
+        return true;
+      case 4:
+        // Pets: if yes, require details
+        const hasPets = $('input[name="has_pets"]:checked').val() === "yes";
+        if (hasPets) {
+          const details = $("#mobooking-pet-details").val().trim();
+          if (!details)
+            return (
+              showFeedback(
+                $("#mobooking-pet-feedback"),
+                "error",
+                CONFIG.i18n.pet_details_required || "Please add pet details"
+              ),
+              false
+            );
+        }
+        return true;
+      case 5:
+        // Frequency always valid
+        return true;
+      case 6:
+        if (!state.date)
+          return (
+            showFeedback(
+              els.dateTimeFeedback,
+              "error",
+              CONFIG.i18n.select_date || "Select a date"
+            ),
+            false
+          );
+        if (!state.time)
+          return (
+            showFeedback(
+              els.dateTimeFeedback,
+              "error",
+              CONFIG.i18n.select_time || "Select a time"
+            ),
+            false
+          );
+        return true;
+      case 7:
+        const name = els.nameInput.val().trim();
+        const email = els.emailInput.val().trim();
+        const phone = els.phoneInput.val().trim();
+        const address = els.addressInput.val().trim();
+        if (!name)
+          return (
+            showFeedback(
+              els.contactFeedback,
+              "error",
+              CONFIG.i18n.name_required || "Name required"
+            ),
+            false
+          );
+        if (!email || !/^\S+@\S+\.\S+$/.test(email))
+          return (
+            showFeedback(
+              els.contactFeedback,
+              "error",
+              CONFIG.i18n.email_required || "Valid email required"
+            ),
+            false
+          );
+        if (!phone)
+          return (
+            showFeedback(
+              els.contactFeedback,
+              "error",
+              CONFIG.i18n.phone_required || "Phone required"
+            ),
+            false
+          );
+        if (!address)
+          return (
+            showFeedback(
+              els.contactFeedback,
+              "error",
+              CONFIG.i18n.address_required || "Address required"
+            ),
+            false
+          );
+        return true;
+      default:
+        return true;
+    }
+  }
+
+  function showFeedback($el, type, message) {
+    $el.removeClass("success error").addClass(type).text(message).show();
+    return $el;
+  }
+
+  // Expose for template buttons
+  window.moBookingNextStep = nextStep;
+  window.moBookingPreviousStep = prevStep;
+
+  // ==========================================
+  // STEP 1: AREA CHECK (optional)
+  // ==========================================
+
+  els.areaForm.on("submit", function (e) {
+    e.preventDefault();
+    // Validate only ZIP since Sweden-only
+    const zip = $("#mobooking-zip").val()?.trim();
+    if (!zip) {
+      showFeedback(
+        els.areaFeedback,
+        "error",
+        CONFIG.i18n.zip_required || "Please enter your ZIP code."
+      );
       return;
     }
 
-    currentStep = CONFIG.form_config?.enable_area_check ? 1 : 2;
-    initializeEventHandlers();
-    initializeDatePicker();
-    initializeFormState();
-    showStep(currentStep);
-    DebugTree.success("Form initialization complete");
-    DebugTree.groupEnd();
-  }
+    showFeedback(
+      els.areaFeedback,
+      "",
+      CONFIG.i18n.checking_availability || "Checking availability..."
+    ).text(CONFIG.i18n.checking_availability || "Checking availability...");
 
-  function validateConfiguration() {
-      // For simplicity in this context, we assume config is valid.
-      return true;
-  }
-
-  /**
-   * Initialize event handlers
-   */
-  function initializeEventHandlers() {
-    DebugTree.info("Setting up event handlers");
-
-    // Main change handler for most inputs
-    $(document).on("change input", "input, select, textarea", function () {
-      collectAllFormData();
-      updateLiveSummary();
-    });
-
-    // Service selection
-    $(document).on("click", ".mobooking-service-card", function () {
-        const serviceId = $(this).data("service-id") || $(this).attr("data-service-id");
-        if (serviceId) selectService(serviceId);
-    });
-
-    // Custom number stepper
-    $(document).on("click", ".stepper-btn", function () {
-        const $button = $(this);
-        const $input = $button.siblings(".stepper-input");
-        const step = parseFloat($input.attr("step") || "1");
-        let currentValue = parseFloat($input.val() || "0");
-        if ($button.hasClass("stepper-plus")) {
-            currentValue += step;
+    $.post(CONFIG.ajax_url, {
+      action: "mobooking_check_service_area",
+      nonce: CONFIG.nonce,
+      tenant_id: CONFIG.tenant_id,
+      location: zip,
+    })
+      .done(function (res) {
+        // Treat missing/unconfigured areas as covered to avoid blocking bookings
+        if (
+          res.success ||
+          /no service areas configured/i.test(res?.data?.message || "")
+        ) {
+          showFeedback(
+            els.areaFeedback,
+            "success",
+            res.data?.message ||
+              CONFIG.i18n.service_available ||
+              "Service is available in your area!"
+          );
+          setTimeout(() => showStep(2), 400);
         } else {
-            currentValue -= step;
+          showFeedback(
+            els.areaFeedback,
+            "error",
+            res.data?.message ||
+              CONFIG.i18n.service_not_available ||
+              "Service is not available in your area."
+          );
         }
-        const min = parseFloat($input.attr("min") || "0");
-        if (currentValue < min) {
-            currentValue = min;
-        }
-        $input.val(currentValue);
-        collectAllFormData();
-        updateLiveSummary();
-    });
-
-    // Custom select dropdown
-    $(document).on("click", ".custom-select-trigger", function (e) {
-        e.stopPropagation();
-        const $select = $(this).closest(".mobooking-custom-select");
-        $(".mobooking-custom-select").not($select).removeClass("open");
-        $select.toggleClass("open");
-    });
-
-    $(document).on("click", ".custom-select-option", function () {
-        const $option = $(this);
-        const $select = $option.closest(".mobooking-custom-select");
-        const value = $option.data("value");
-        const text = $option.contents().get(0).nodeValue; // Get text content without the span
-        $select.find(".custom-select-trigger span").text(text);
-        $select.find(".custom-select-value").val(value);
-        $select.find(".custom-select-option").removeClass("selected");
-        $option.addClass("selected");
-        $select.removeClass("open");
-        collectAllFormData();
-        updateLiveSummary();
-    });
-
-    // Close custom selects when clicking outside
-    $(document).on("click", function () {
-        $(".mobooking-custom-select").removeClass("open");
-    });
-
-    DebugTree.success("Event handlers initialized");
-  }
-
-  function initializeDatePicker() { /* ... */ }
-  function initializeFormState() {
-      if (!CONFIG.form_config?.enable_area_check) {
-          loadServices();
-      }
-      collectAllFormData();
-      updateLiveSummary();
-  }
-
-  function collectAllFormData() {
-      DebugTree.info("Collecting all form data");
-      const $selectedService = $(".mobooking-service-card.selected");
-      if ($selectedService.length > 0) {
-          formData.services = [$selectedService.data("service-id").toString()];
-      }
-
-      formData.options = {};
-      $('#mobooking-service-options-container .mobooking-service-option').each(function () {
-          const $optionContainer = $(this);
-          const optionId = $optionContainer.data('option-id');
-          const option = displayedOptions.find(o => o.option_id == optionId);
-          if (!option) return;
-          const optionType = option.type;
-          let value = null;
-          let selectedChoices = [];
-          switch (optionType) {
-              case 'text': case 'textarea': case 'number': case 'sqm': case 'kilometers':
-                  value = $optionContainer.find(`[name="service_options[${optionId}]"]`).val();
-                  break;
-              case 'quantity':
-                  value = $optionContainer.find('.stepper-input').val();
-                  break;
-              case 'select':
-                  const hiddenVal = $optionContainer.find('.custom-select-value').val();
-                  if(hiddenVal) {
-                      const choice = (option.option_values || []).find(c => c.label === hiddenVal);
-                      if(choice) selectedChoices.push({ label: choice.label, price: choice.price });
-                  }
-                  break;
-              case 'radio':
-                  const $checkedRadio = $optionContainer.find('input[type="radio"]:checked');
-                  if ($checkedRadio.length) {
-                      selectedChoices.push({ label: $checkedRadio.val(), price: $checkedRadio.data('price') });
-                  }
-                  break;
-              case 'checkbox':
-                  const $checkedCheckboxes = $optionContainer.find('input[type="checkbox"]:checked');
-                  $checkedCheckboxes.each(function () {
-                      const $checkbox = $(this);
-                      selectedChoices.push({ label: $checkbox.val(), price: $checkbox.data('price') });
-                  });
-                  break;
-          }
-          if ((value && value !== '' && value !== '0') || selectedChoices.length > 0) {
-              formData.options[optionId] = { value: value, selectedChoices: selectedChoices };
-          }
-      });
-      DebugTree.success("Form data collected", formData);
-      return formData;
-  }
-
-  function loadServices() { /* ... */ }
-  function displayServices(services) { /* ... */ }
-  function loadTimeSlots(date) { /* ... */ }
-  function displayTimeSlots(timeSlots) { /* ... */ }
-  function selectService(serviceId) { /* ... */ }
-  function selectTimeSlot(time) { /* ... */ }
-  function loadServiceOptions() { /* ... */ }
-
-  function displayServiceOptions(options) {
-      if (!options) options = displayedOptions;
-      displayedOptions = options;
-      const $container = $("#mobooking-service-options-container");
-      if ($container.length === 0 || !options || options.length === 0) {
-          $container.html('<p>No additional options available.</p>');
+      })
+      .fail(function (xhr) {
+        // If admin-ajax is missing (404), allow proceed and rely on direct services endpoint fallback
+        if (xhr?.status === 404) {
+          showFeedback(
+            els.areaFeedback,
+            "success",
+            CONFIG.i18n.service_available ||
+              "Service is available in your area!"
+          );
+          setTimeout(() => showStep(2), 400);
           return;
-      }
-      let html = '<div class="mobooking-service-options-list">';
-      options.forEach((option) => {
-          const optionId = option.option_id;
-          const optionType = option.type;
-          const isRequired = option.is_required === "1" || option.is_required === 1;
-          html += `<div class="mobooking-service-option" data-option-id="${optionId}" data-price-impact-type="${option.price_impact_type || ''}" data-price-impact-value="${option.price_impact_value || 0}">`;
-          html += `<div class="mobooking-form-group">`;
-          html += `<label class="mobooking-label">${option.name}${isRequired ? ' *' : ''}</label>`;
-          if (option.description) html += `<p class="mobooking-option-description">${option.description}</p>`;
-          const commonAttrs = `id="option_${optionId}" name="service_options[${optionId}]" data-option-id="${optionId}"`;
-          let choices = [];
-          if (option.option_values) {
-              try { choices = typeof option.option_values === "string" ? JSON.parse(option.option_values) : option.option_values; } catch (e) { choices = []; }
-          }
-          switch (optionType) {
-              case 'text': html += `<input type="text" ${commonAttrs} class="mobooking-input">`; break;
-              case 'textarea': html += `<textarea ${commonAttrs} class="mobooking-textarea"></textarea>`; break;
-              case 'number':
-              case 'quantity':
-                  html += `<div class="mobooking-number-stepper"><button type="button" class="stepper-btn stepper-minus">-</button><input type="number" ${commonAttrs} class="mobooking-input stepper-input" min="0" step="1" value="0"><button type="button" class="stepper-btn stepper-plus">+</button></div>`;
-                  break;
-              case 'sqm': case 'kilometers':
-                  html += `<input type="number" ${commonAttrs} class="mobooking-input" min="0" step="0.1">`; break;
-              case 'checkbox':
-                  if (choices.length > 0) {
-                      html += `<div class="mobooking-checkbox-group">`;
-                      choices.forEach((choice, index) => {
-                          const choiceId = `option_${optionId}_${index}`;
-                          html += `<label class="mobooking-checkbox-option" for="${choiceId}"><input type="checkbox" name="service_options[${optionId}][${index}]" id="${choiceId}" value="${choice.label}" data-price="${choice.price || 0}"><span>${choice.label} (+${CONFIG.currency?.symbol || '$'}${choice.price || '0.00'})</span></label>`;
-                      });
-                      html += `</div>`;
-                  } else {
-                      html += `<label class="mobooking-checkbox-option" for="option_${optionId}"><input type="checkbox" ${commonAttrs} value="1"><span>Yes</span></label>`;
-                  }
-                  break;
-              case 'radio':
-                  if (choices.length > 0) {
-                      html += `<div class="mobooking-radio-group">`;
-                      choices.forEach((choice, index) => {
-                          const choiceId = `option_${optionId}_${index}`;
-                          html += `<label class="mobooking-radio-option" for="${choiceId}"><input type="radio" ${commonAttrs} id="${choiceId}" value="${choice.label}" data-price="${choice.price || 0}"><span>${choice.label} (+${CONFIG.currency?.symbol || '$'}${choice.price || '0.00'})</span></label>`;
-                      });
-                      html += `</div>`;
-                  }
-                  break;
-              case 'select':
-                  if (choices.length > 0) {
-                      html += `<div class="mobooking-custom-select" data-option-id="${optionId}"><input type="hidden" ${commonAttrs} class="custom-select-value"><div class="custom-select-trigger"><span>Select an option</span><i class="arrow down"></i></div><div class="custom-select-options">`;
-                      choices.forEach(choice => {
-                          html += `<div class="custom-select-option" data-value="${choice.label}" data-price="${choice.price || 0}">${choice.label} <span>(+${CONFIG.currency?.symbol || '$'}${choice.price || '0.00'})</span></div>`;
-                      });
-                      html += `</div></div>`;
-                  }
-                  break;
-          }
-          html += `</div></div>`;
+        }
+        showFeedback(
+          els.areaFeedback,
+          "error",
+          CONFIG.i18n.error_ajax || "Network error"
+        );
       });
-      html += "</div>";
-      $container.html(html);
-  }
-
-  function calculateTotalPrice() {
-      let baseTotal = 0;
-      if (formData.services.length > 0) {
-          const service = displayedServices.find(s => s.service_id == formData.services[0]);
-          if (service) baseTotal += parseFloat(service.price || 0);
-      }
-      let optionsTotal = 0;
-      let percentageImpact = 0;
-      for (const optionId in formData.options) {
-          const selectedOptionData = formData.options[optionId];
-          const optionInfo = displayedOptions.find(o => o.option_id == optionId);
-          if (!optionInfo) continue;
-          const priceImpactType = optionInfo.price_impact_type;
-          const priceImpactValue = parseFloat(optionInfo.price_impact_value || 0);
-          const optionType = optionInfo.type;
-          if (optionType !== 'quantity') {
-              if (priceImpactType === 'fixed') optionsTotal += priceImpactValue;
-              if (priceImpactType === 'percentage') percentageImpact += priceImpactValue;
-          }
-          const value = parseFloat(selectedOptionData.value);
-          if (!isNaN(value)) {
-              if (optionType === 'quantity' && priceImpactType === 'multiply') {
-                  optionsTotal += priceImpactValue * value;
-              } else if (optionType === 'sqm' || optionType === 'kilometers') {
-                  const ranges = Array.isArray(optionInfo.option_values) ? optionInfo.option_values : [];
-                  for (const range of ranges) {
-                      const from = parseFloat(range.from_sqm || range.from_km);
-                      const to = (range.to_sqm === '∞' || range.to_km === '∞') ? Infinity : parseFloat(range.to_sqm || range.to_km);
-                      if (value >= from && (value <= to || to === Infinity)) {
-                          const price_per_unit = parseFloat(range.price_per_sqm || range.price_per_km);
-                          if (!isNaN(price_per_unit)) optionsTotal += value * price_per_unit;
-                          break;
-                      }
-                  }
-              }
-          }
-          if (selectedOptionData.selectedChoices && selectedOptionData.selectedChoices.length > 0) {
-              selectedOptionData.selectedChoices.forEach(choice => {
-                  optionsTotal += parseFloat(choice.price || 0);
-              });
-          }
-      }
-      let finalTotal = baseTotal + optionsTotal;
-      if (percentageImpact > 0) {
-          finalTotal += finalTotal * (percentageImpact / 100);
-      }
-      return finalTotal.toFixed(2);
-  }
-
-  function updateLiveSummary() {
-      const $summary = $("#mobooking-live-summary");
-      if ($summary.length > 0) {
-          let html = "";
-          if (formData.services.length > 0) {
-              html += `<p>Services: ${formData.services.length} selected</p>`;
-          }
-          const totalPrice = calculateTotalPrice();
-          html += `<p><b>Total:</b> ${CONFIG.currency?.symbol || '$'}${totalPrice}</p>`;
-          $summary.html(html);
-      }
-  }
-
-  function showStep(step) {
-    DebugTree.info(`Showing step ${step}`);
-    currentStep = step;
-    $(".mobooking-step-content").hide();
-    $(`#mobooking-step-${step}`).show();
-    if (CONFIG.form_config?.show_progress_bar) {
-      updateProgressBar(step);
-    }
-    collectAllFormData();
-  }
-
-  function updateProgressBar(step) {
-    const totalSteps = 8;
-    const percentage = (step / totalSteps) * 100;
-    $(".mobooking-progress-fill").css("width", `${percentage}%`);
-    $(`.mobooking-step-indicator[data-step="${step}"]`).addClass("active").siblings().removeClass("active");
-  }
-
-  function validateCurrentStep() {
-    collectAllFormData();
-    // Simplified validation for this context
-    return true;
-  }
-
-  function submitBooking() { /* ... */ }
-  function validateBookingData() { return true; }
-  function prepareSubmissionData() { return {}; }
-  function handleBookingSuccess(data) { /* ... */ }
-  function handleBookingError(xhr, status, error) { /* ... */ }
-
-  /**
-   * Global functions for form interaction
-   */
-  window.selectService = selectService;
-  window.selectTimeSlot = selectTimeSlot;
-
-  window.moBookingNextStep = function () {
-    DebugTree.info("Next step requested");
-    if (validateCurrentStep()) {
-      collectAllFormData();
-      showStep(currentStep + 1);
-    }
-  };
-
-  window.moBookingPreviousStep = function () {
-    DebugTree.info("Previous step requested");
-    if (currentStep > 1) {
-      showStep(currentStep - 1);
-    }
-  };
-
-  window.moBookingSubmitForm = function () {
-    DebugTree.info("Form submission requested");
-    collectAllFormData();
-    submitBooking();
-  };
-
-  // Initialize when document is ready
-  $(document).ready(function () {
-    initializeBookingForm();
   });
 
-  DebugTree.success("MoBooking Public Form JavaScript loaded successfully");
-})(jQuery);
+  // ==========================================
+  // STEP 2: SERVICES
+  // ==========================================
+
+  function loadServices() {
+    els.servicesContainer.html(`
+      <div style="text-align:center;padding:40px 0;">
+        <div class="mobooking-spinner" style="margin:0 auto;"></div>
+        <div style="margin-top:10px;">${
+          CONFIG.i18n.loading_services || "Loading services..."
+        }</div>
+      </div>
+    `);
+
+    $.post(CONFIG.ajax_url, {
+      action: "mobooking_get_services",
+      nonce: CONFIG.nonce,
+      tenant_id: CONFIG.tenant_id,
+    })
+      .done(function (response) {
+        if (response.success && response.data?.services?.length) {
+          renderServices(response.data.services);
+        } else {
+          els.servicesContainer.html(
+            `<p>${
+              response.data?.message ||
+              CONFIG.i18n.no_services_available ||
+              "No services available"
+            }</p>`
+          );
+        }
+      })
+      .fail(function (xhr) {
+        // Fallback to direct endpoint if admin-ajax is not available
+        if (
+          xhr?.status === 404 &&
+          window.mobooking_booking_form_params?.direct_url
+        ) {
+          $.get(window.mobooking_booking_form_params.direct_url)
+            .done(function (resp) {
+              if (resp?.success && resp?.data?.services) {
+                renderServices(resp.data.services);
+              } else {
+                els.servicesContainer.html(
+                  `<p>${
+                    resp?.data?.message ||
+                    CONFIG.i18n.no_services_available ||
+                    "No services available"
+                  }</p>`
+                );
+              }
+            })
+            .fail(function () {
+              els.servicesContainer.html(
+                `<p>${
+                  CONFIG.i18n.error_loading_services || "Error loading services"
+                }</p>`
+              );
+            });
+          return;
+        }
+        els.servicesContainer.html(
+          `<p>${
+            CONFIG.i18n.error_loading_services || "Error loading services"
+          }</p>`
+        );
+      });
+  }
+
+  function renderServices(services) {
+    let html = '<div class="mobooking-services-grid">';
+    services.forEach((svc) => {
+      const price = parseFloat(svc.price) || 0;
+      const priceDisplay = `${CONFIG.currency_symbol}${price.toFixed(2)}`;
+      const duration = parseInt(svc.duration) || 0;
+      html += `
+        <label class="mobooking-service-card" style="cursor:pointer;">
+          <input type="radio" name="mobooking-selected-service" value="${
+            svc.service_id
+          }" data-service='${JSON.stringify(
+        svc
+      )}' style="position:absolute;opacity:0;pointer-events:none;">
+          <div class="mobooking-service-header">
+            ${
+              svc.icon
+                ? `<div class="mobooking-service-icon"><img src="${
+                    svc.icon
+                  }" alt="${escapeHtml(
+                    svc.name
+                  )}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;"></div>`
+                : ""
+            }
+            <div style="flex:1;">
+              <div class="mobooking-service-title">${escapeHtml(svc.name)}</div>
+              ${
+                svc.description
+                  ? `<div class="mobooking-service-description">${escapeHtml(
+                      svc.description
+                    )}</div>`
+                  : ""
+              }
+            </div>
+          </div>
+          <div class="mobooking-service-footer">
+            <div>
+              <div class="mobooking-service-price">${priceDisplay}</div>
+              <div class="mobooking-service-duration">${duration} minutes</div>
+            </div>
+          </div>
+        </label>`;
+    });
+    html += "</div>";
+    els.servicesContainer.html(html);
+
+    els.servicesContainer
+      .find('input[name="mobooking-selected-service"]')
+      .on("change", function () {
+        const svc = $(this).data("service");
+        // Toggle active class on selected card
+        els.servicesContainer
+          .find(".mobooking-service-card")
+          .removeClass("active");
+        $(this).closest(".mobooking-service-card").addClass("active");
+
+        state.service = svc;
+        state.pricing.base = parseFloat(svc.price) || 0;
+        recalcTotal();
+        updateLiveSummary();
+        // Auto advance to options
+        setTimeout(() => showStep(3), 200);
+      });
+  }
+
+  // ==========================================
+  // STEP 3: SERVICE OPTIONS
+  // ==========================================
+
+  function ensureOptionsLoaded() {
+    if (!state.service) {
+      showFeedback(
+        els.optionsFeedback,
+        "error",
+        CONFIG.i18n.select_service || "Select a service in previous step"
+      );
+      return;
+    }
+
+    els.optionsContainer.html(`
+      <div class="mobooking-card">
+        <div class="mobooking-text-center">
+          <div class="mobooking-spinner" style="margin: 2rem auto;"></div>
+          <p>${CONFIG.i18n.loading_options || "Loading service options..."}</p>
+        </div>
+      </div>
+    `);
+
+    $.post(CONFIG.ajax_url, {
+      action: "mobooking_get_public_service_options",
+      nonce: CONFIG.nonce,
+      tenant_id: CONFIG.tenant_id,
+      service_ids: [state.service.service_id],
+    })
+      .done(function (res) {
+        if (res?.success) {
+          // Support two formats:
+          // 1) { success: true, data: { options: { [serviceId]: [...] } } }
+          // 2) { success: true, data: [ ...options ] }
+          if (res.data && Array.isArray(res.data)) {
+            renderOptions(res.data);
+          } else {
+            const optionsMap = res?.data?.options || {};
+            const list = optionsMap[state.service.service_id] || [];
+            renderOptions(list);
+          }
+        } else {
+          els.optionsContainer.html(
+            `<p>${
+              CONFIG.i18n.error_loading_options || "Unable to load options"
+            }</p>`
+          );
+        }
+      })
+      .fail(function () {
+        els.optionsContainer.html(
+          `<p>${
+            CONFIG.i18n.error_loading_options || "Unable to load options"
+          }</p>`
+        );
+      });
+  }
+
+  function renderOptions(options) {
+    if (!options || options.length === 0) {
+      els.optionsContainer.html(
+        `<p>${
+          CONFIG.i18n.no_options_available ||
+          "No additional options available for this service."
+        }</p>`
+      );
+      state.optionsById = {};
+      state.pricing.options = 0;
+      recalcTotal();
+      updateLiveSummary();
+      return;
+    }
+
+    state.optionsById = {};
+
+    let html = "";
+    options.forEach((opt) => {
+      const id = opt.option_id;
+      const name = opt.name || "Option";
+      const type = opt.type || "text";
+      const isReq = opt.is_required ? 1 : 0;
+      const impactType = opt.price_impact_type || "fixed";
+      const impactValue = parseFloat(opt.price_impact_value) || 0;
+      const values = Array.isArray(opt.option_values) ? opt.option_values : [];
+
+      html += `<div class="mobooking-form-group" data-option-id="${id}">`;
+      html += `<label class="mobooking-label">${escapeHtml(name)}${
+        impactValue > 0 ? priceImpactLabel(impactType, impactValue) : ""
+      }${isReq ? ' <span style="color:#ef4444">*</span>' : ""}</label>`;
+
+      if (type === "checkbox") {
+        html += `<label class="mobooking-radio-option"><input type="checkbox" class="mobooking-option-input" data-type="checkbox" data-required="${isReq}" data-name="${escapeHtml(
+          name
+        )}" data-impact-type="${impactType}" data-impact-value="${impactValue}" value="1"> <span>${escapeHtml(
+          opt.description || ""
+        )}</span></label>`;
+      } else if (type === "select") {
+        html += `<select class="mobooking-select mobooking-option-input" data-type="select" data-required="${isReq}" data-name="${escapeHtml(
+          name
+        )}">`;
+        html += `<option value="">${"Choose an option"}</option>`;
+        values.forEach((v) => {
+          const label = v.label || v.value || v;
+          const value = v.value || v.label || v;
+          const price = parseFloat(v.price) || 0;
+          html += `<option value="${escapeHtml(
+            value
+          )}" data-price="${price}">${escapeHtml(label)}${
+            price > 0 ? ` (+${CONFIG.currency_symbol}${price.toFixed(2)})` : ""
+          }</option>`;
+        });
+        html += `</select>`;
+        if (opt.description)
+          html += `<div class="mobooking-option-description" style="color:#6b7280;font-size:0.875rem;margin-top:0.5rem;">${escapeHtml(
+            opt.description
+          )}</div>`;
+      } else if (type === "radio") {
+        values.forEach((v, idx) => {
+          const label = v.label || v.value || v;
+          const value = v.value || v.label || v;
+          const price = parseFloat(v.price) || 0;
+          const rid = `mobooking-opt-${id}-${idx}`;
+          html += `<label class="mobooking-radio-option"><input type="radio" name="mobooking-option-${id}" id="${rid}" class="mobooking-option-input" data-type="radio" data-required="${isReq}" data-name="${escapeHtml(
+            name
+          )}" value="${escapeHtml(
+            value
+          )}" data-price="${price}"> <span>${escapeHtml(label)}${
+            price > 0 ? ` (+${CONFIG.currency_symbol}${price.toFixed(2)})` : ""
+          }</span></label>`;
+        });
+        if (opt.description)
+          html += `<div class="mobooking-option-description" style="color:#6b7280;font-size:0.875rem;margin-top:0.5rem;">${escapeHtml(
+            opt.description
+          )}</div>`;
+      } else if (type === "number" || type === "quantity") {
+        html += `<input type="number" min="0" class="mobooking-input mobooking-option-input" data-type="${type}" data-required="${isReq}" data-name="${escapeHtml(
+          name
+        )}" data-impact-type="${impactType}" data-impact-value="${impactValue}" value="${
+          isReq ? 1 : 0
+        }">`;
+        if (opt.description)
+          html += `<div class="mobooking-option-description" style="color:#6b7280;font-size:0.875rem;margin-top:0.5rem;">${escapeHtml(
+            opt.description
+          )}</div>`;
+      } else if (type === "textarea") {
+        html += `<textarea class="mobooking-textarea mobooking-option-input" data-type="textarea" data-required="${isReq}" data-name="${escapeHtml(
+          name
+        )}" data-impact-type="${impactType}" data-impact-value="${impactValue}"></textarea>`;
+      } else if (type === "sqm") {
+        html += `<input type="number" min="1" step="0.1" placeholder="Enter square meters" class="mobooking-input mobooking-option-input" data-type="sqm" data-required="${isReq}" data-name="${escapeHtml(
+          name
+        )}" data-ranges='${JSON.stringify(values)}'>`;
+      } else {
+        // text default
+        html += `<input type="text" class="mobooking-input mobooking-option-input" data-type="text" data-required="${isReq}" data-name="${escapeHtml(
+          name
+        )}" data-impact-type="${impactType}" data-impact-value="${impactValue}" placeholder="Enter ${escapeHtml(
+          name.toLowerCase()
+        )}...">`;
+        if (opt.description)
+          html += `<div class="mobooking-option-description" style="color:#6b7280;font-size:0.875rem;margin-top:0.5rem;">${escapeHtml(
+            opt.description
+          )}</div>`;
+      }
+
+      html += "</div>";
+    });
+
+    els.optionsContainer.html(html);
+
+    els.optionsContainer
+      .find(".mobooking-option-input")
+      .on("change input", function () {
+        // Toggle active class for UI feedback
+        const $input = $(this);
+        const type = $input.attr("type");
+        const $group = $input.closest(".mobooking-form-group");
+        if (type === "radio") {
+          // Clear actives for this radio group
+          const name = $input.attr("name");
+          $(`input[name="${name}"]`).each(function () {
+            $(this).closest(".mobooking-radio-option").removeClass("active");
+          });
+          if ($input.is(":checked"))
+            $input.closest(".mobooking-radio-option").addClass("active");
+        } else if (type === "checkbox") {
+          $input
+            .closest(".mobooking-radio-option")
+            .toggleClass("active", $input.is(":checked"));
+        } else if ($input.is("select")) {
+          $group.toggleClass("active", !!$input.val());
+        } else {
+          $group.toggleClass(
+            "active",
+            !!($input.val() || "").toString().trim()
+          );
+        }
+
+        collectOptionsAndPrice();
+        updateLiveSummary();
+      });
+
+    // initialize price once
+    collectOptionsAndPrice();
+    updateLiveSummary();
+  }
+
+  function priceImpactLabel(type, value) {
+    if (type === "percentage")
+      return ` <span style=\"color:#6b7280\">(+${value}%)</span>`;
+    if (type === "multiply")
+      return ` <span style=\"color:#6b7280\">(×${value})</span>`;
+    return ` <span style=\"color:#6b7280\">(+${
+      CONFIG.currency_symbol
+    }${Number(value).toFixed(2)})</span>`;
+  }
+
+  function collectOptionsAndPrice() {
+    let optionsTotal = 0;
+    const opts = {};
+
+    els.optionsContainer.find(".mobooking-option-input").each(function () {
+      const $el = $(this);
+      const type = $el.data("type");
+      const name = $el.data("name") || "Option";
+      const optWrap = $el.closest("[data-option-id]");
+      const optionId = parseInt(optWrap.data("option-id"), 10);
+
+      let value = null;
+      let price = 0;
+
+      if (type === "checkbox") {
+        if ($el.is(":checked")) {
+          value = "1";
+          price = calcImpactPrice(
+            $el.data("impact-type"),
+            parseFloat($el.data("impact-value")) || 0,
+            1
+          );
+        }
+      } else if (type === "select") {
+        value = $el.val();
+        const p = parseFloat($el.find("option:selected").data("price")) || 0;
+        if (value) price = p; // select values carry their own fixed price
+      } else if (type === "radio") {
+        const selected = $(
+          `input[name="mobooking-option-${optionId}"]:checked`
+        );
+        if (selected.length) {
+          value = selected.val();
+          price = parseFloat(selected.data("price")) || 0; // radios carry own fixed price
+        }
+      } else if (type === "number" || type === "quantity") {
+        const qty = parseFloat($el.val()) || 0;
+        if (qty > 0) {
+          value = String(qty);
+          price = calcImpactPrice(
+            $el.data("impact-type"),
+            parseFloat($el.data("impact-value")) || 0,
+            qty
+          );
+        }
+      } else if (type === "textarea" || type === "text") {
+        const txt = ($el.val() || "").trim();
+        if (txt) {
+          value = txt;
+          price = calcImpactPrice(
+            $el.data("impact-type"),
+            parseFloat($el.data("impact-value")) || 0,
+            1
+          );
+        }
+      } else if (type === "sqm") {
+        const sqm = parseFloat($el.val()) || 0;
+        if (sqm > 0) {
+          value = String(sqm);
+          price = calcSqmPrice($el.data("ranges"), sqm);
+        }
+      }
+
+      if (value !== null && value !== "") {
+        opts[optionId] = { id: optionId, name, type, value, price };
+        optionsTotal += price;
+      }
+    });
+
+    state.optionsById = opts;
+    state.pricing.options = optionsTotal;
+    recalcTotal();
+  }
+
+  function calcImpactPrice(type, impact, quantity) {
+    const base = state.pricing.base || 0;
+    if (!impact) return 0;
+    if (type === "percentage") return ((base * impact) / 100) * (quantity || 1);
+    if (type === "multiply") return base * impact * (quantity || 1);
+    return impact * (quantity || 1);
+  }
+
+  function calcSqmPrice(rangesData, sqm) {
+    try {
+      const ranges = Array.isArray(rangesData)
+        ? rangesData
+        : JSON.parse(rangesData || "[]");
+      for (let r of ranges) {
+        const from = parseFloat(r.from) || 0;
+        const to = r.to === "∞" ? Infinity : parseFloat(r.to) || Infinity;
+        const price = parseFloat(r.price) || 0;
+        if (sqm >= from && sqm <= to) return sqm * price;
+      }
+      return 0;
+    } catch (e) {
+      return 0;
+    }
+  }
+
+  function recalcTotal() {
+    const base = state.pricing.base || 0;
+    const opts = state.pricing.options || 0;
+    const disc = state.pricing.discount || 0;
+    state.pricing.total = Math.max(0, base + opts - disc);
+    updateLiveSummary();
+  }
+
+  // ==========================================
+  // STEP 4: PETS
+  // ==========================================
+
+  $(document).on("change", 'input[name="has_pets"]', function () {
+    const val = $(this).val();
+    const show = val === "yes";
+    if (show)
+      $("#mobooking-pet-details-container")
+        .removeClass("hidden")
+        .removeClass("mobooking-collapsed");
+    else $("#mobooking-pet-details-container").addClass("mobooking-collapsed");
+  });
+
+  // ==========================================
+  // STEP 5: FREQUENCY
+  // ==========================================
+
+  $(document).on("change", 'input[name="frequency"]', function () {
+    state.frequency = $(this).val();
+  });
+
+  // ==========================================
+  // STEP 6: DATE/TIME
+  // ==========================================
+
+  function initDatePicker() {
+    if (!els.dateInput.length) return;
+    if (els.dateInput.data("fp")) return; // already initialized
+
+    els.dateInput.flatpickr({
+      dateFormat: "Y-m-d",
+      minDate: "today",
+      inline: true, // show calendar by default
+      onReady: function (selectedDates, dateStr, instance) {
+        // Ensure the calendar renders immediately
+        try {
+          instance.open();
+        } catch (e) {}
+      },
+      onChange: function (selectedDates, dateStr) {
+        state.date = dateStr || "";
+        state.time = "";
+        collapseTimeSlots(true);
+        els.timeSlots.empty();
+        if (state.date) loadTimeSlots(dateStr);
+      },
+    });
+  }
+
+  function collapseTimeSlots(collapsed) {
+    if (collapsed) {
+      els.timeSlotsWrap.addClass("mobooking-collapsed");
+    } else {
+      els.timeSlotsWrap.removeClass("mobooking-collapsed");
+    }
+  }
+
+  function loadTimeSlots(dateStr) {
+    els.dateTimeFeedback.text("").hide();
+    els.timeSlotsWrap.removeClass("hidden");
+    els.timeSlots.html(
+      `<div class="mobooking-spinner" style="margin: 10px auto;"></div>`
+    );
+
+    $.post(CONFIG.ajax_url, {
+      action: "mobooking_get_available_time_slots",
+      nonce: CONFIG.nonce,
+      tenant_id: CONFIG.tenant_id,
+      date: dateStr,
+      services: [state.service?.service_id || 0],
+    })
+      .done(function (res) {
+        const slots = res?.data?.time_slots || [];
+        state.latestTimeSlots = slots;
+        if (!slots.length) {
+          els.timeSlots.html(
+            `<p style=\"color:#6b7280;\">No time slots available for this date.</p>`
+          );
+          return;
+        }
+        let html = "";
+        slots.forEach((s, i) => {
+          html += `<button type=\"button\" class=\"mobooking-btn mobooking-btn-outline mobooking-time-slot\" data-time=\"${
+            s.start_time
+          }\" style=\"margin:5px;\">${escapeHtml(
+            s.display || `${s.start_time}`
+          )}</button>`;
+        });
+        els.timeSlots.html(html);
+        collapseTimeSlots(false);
+        els.timeSlots.find(".mobooking-time-slot").on("click", function () {
+          els.timeSlots
+            .find(".mobooking-time-slot")
+            .removeClass("selected active");
+          $(this).addClass("selected active");
+          state.time = $(this).data("time");
+          updateLiveSummary();
+        });
+      })
+      .fail(function () {
+        els.timeSlots.html(
+          `<p>${CONFIG.i18n.error_ajax || "Network error"}</p>`
+        );
+      });
+  }
+
+  // ==========================================
+  // STEP 7: CUSTOMER & ACCESS
+  // ==========================================
+
+  $(document).on("change", 'input[name="property_access"]', function () {
+    const name = $(this).attr("name");
+    $(`input[name="${name}"]`).each(function () {
+      $(this).closest(".mobooking-radio-option").removeClass("active");
+    });
+    if ($(this).is(":checked"))
+      $(this).closest(".mobooking-radio-option").addClass("active");
+    const val = $(this).val();
+    state.propertyAccess.method = val;
+    if (val === "other")
+      els.accessDetailsWrap
+        .removeClass("hidden")
+        .removeClass("mobooking-collapsed");
+    else els.accessDetailsWrap.addClass("mobooking-collapsed");
+  });
+
+  // ==========================================
+  // LIVE SUMMARY
+  // ==========================================
+
+  function updateLiveSummary() {
+    if (!els.liveSummary.length) return;
+
+    let html = "";
+    if (state.service) {
+      html += `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+        <span>${escapeHtml(state.service.name)}</span>
+        <span>${CONFIG.currency_symbol}${(
+        parseFloat(state.service.price) || 0
+      ).toFixed(2)}</span>
+      </div>`;
+    }
+
+    const optList = Object.values(state.optionsById || {});
+    if (optList.length) {
+      html += `<div style="color:#6b7280;margin:6px 0;">Options:</div>`;
+      optList.forEach((o) => {
+        html += `<div style="display:flex;justify-content:space-between;margin-bottom:4px;color:#6b7280;">
+          <span>${escapeHtml(o.name)}${
+          o.value ? `: ${escapeHtml(String(o.value))}` : ""
+        }</span>
+          <span>${
+            o.price > 0 ? `+${CONFIG.currency_symbol}${o.price.toFixed(2)}` : ""
+          }</span>
+        </div>`;
+      });
+    }
+
+    if (state.date || state.time) {
+      html += `<div style="margin-top:6px;">Date/Time: <strong>${escapeHtml(
+        state.date || "-"
+      )}${state.time ? ` ${escapeHtml(state.time)}` : ""}</strong></div>`;
+    }
+
+    if (state.customer?.name) {
+      html += `<div style="margin-top:6px;">Name: <strong>${escapeHtml(
+        state.customer.name
+      )}</strong></div>`;
+    }
+
+    html += `<hr style="border:0;border-top:1px solid #e5e7eb;margin:10px 0;">`;
+    html += `<div style="display:flex;justify-content:space-between;align-items:center;">
+      <strong>Total</strong>
+      <strong>${CONFIG.currency_symbol}${(state.pricing.total || 0).toFixed(
+      2
+    )}</strong>
+    </div>`;
+
+    els.liveSummary.html(
+      html || `<p>${"Complete the form to see your booking summary"}</p>`
+    );
+  }
+
+  // ==========================================
+  // SUBMISSION (Step 7 button)
+  // ==========================================
+
+  function submitForm() {
+    if (!validateStep(7)) return;
+
+    // Collect step data
+    state.pets.has_pets = $('input[name="has_pets"]:checked').val() === "yes";
+    state.pets.details = $("#mobooking-pet-details").val().trim();
+    state.frequency =
+      $('input[name="frequency"]:checked').val() || state.frequency;
+
+    state.customer = {
+      name: els.nameInput.val().trim(),
+      email: els.emailInput.val().trim(),
+      phone: els.phoneInput.val().trim(),
+      address: els.addressInput.val().trim(),
+      date: state.date,
+      time: state.time,
+      instructions: els.specialInstructions.val().trim(),
+    };
+
+    state.propertyAccess.details = els.accessInstructions.val().trim();
+
+    // Build payload
+    const selected_services = [
+      {
+        service_id: state.service?.service_id || 0,
+        configured_options: state.optionsById,
+      },
+    ];
+
+    const payload = {
+      action: "mobooking_create_booking",
+      tenant_id: CONFIG.tenant_id,
+      nonce: CONFIG.nonce,
+      selected_services: JSON.stringify(selected_services),
+      service_options: JSON.stringify(state.optionsById),
+      customer_details: JSON.stringify(state.customer),
+      service_frequency: state.frequency,
+      pet_information: JSON.stringify({
+        has_pets: state.pets.has_pets,
+        details: state.pets.details,
+      }),
+      property_access: JSON.stringify({
+        method: state.propertyAccess.method,
+        details: state.propertyAccess.details,
+      }),
+      pricing: JSON.stringify(state.pricing),
+    };
+
+    showFeedback(
+      els.contactFeedback,
+      "",
+      CONFIG.i18n.submitting_booking || "Submitting booking..."
+    ).text(CONFIG.i18n.submitting_booking || "Submitting booking...");
+
+    $.post(CONFIG.ajax_url, payload)
+      .done(function (res) {
+        if (res.success) {
+          showStep(8);
+          renderSuccessSummary(res.data);
+        } else {
+          showFeedback(
+            els.contactFeedback,
+            "error",
+            res.data?.message || CONFIG.i18n.booking_error || "Submission error"
+          );
+        }
+      })
+      .fail(function () {
+        showFeedback(
+          els.contactFeedback,
+          "error",
+          CONFIG.i18n.error_ajax || "Network error"
+        );
+      });
+  }
+
+  window.moBookingSubmitForm = submitForm;
+
+  // Step 8 success summary
+  function renderSuccessSummary(serverData) {
+    if (!els.successSummary.length) return;
+
+    let html = "";
+    if (state.service) {
+      html += `<div><strong>Service:</strong> ${escapeHtml(
+        state.service.name
+      )}</div>`;
+    }
+    const opts = Object.values(state.optionsById || {});
+    if (opts.length) {
+      html += `<div style=\"margin-top:6px;\"><strong>Options:</strong></div>`;
+      opts.forEach((o) => {
+        html += `<div style=\"color:#6b7280;\">- ${escapeHtml(o.name)}${
+          o.value ? `: ${escapeHtml(String(o.value))}` : ""
+        }${
+          o.price > 0
+            ? ` (+${CONFIG.currency_symbol}${o.price.toFixed(2)})`
+            : ""
+        }</div>`;
+      });
+    }
+    if (state.date || state.time) {
+      html += `<div style=\"margin-top:6px;\"><strong>Date/Time:</strong> ${escapeHtml(
+        state.date || "-"
+      )}${state.time ? ` ${escapeHtml(state.time)}` : ""}</div>`;
+    }
+    html += `<div style=\"margin-top:6px;\"><strong>Total:</strong> ${
+      CONFIG.currency_symbol
+    }${(state.pricing.total || 0).toFixed(2)}</div>`;
+
+    if (serverData?.booking_reference) {
+      html += `<div style=\"margin-top:6px;\"><strong>Reference:</strong> ${escapeHtml(
+        serverData.booking_reference
+      )}</div>`;
+    }
+
+    els.successSummary.html(html);
+  }
+
+  window.moBookingResetForm = function () {
+    window.location.reload();
+  };
+
+  // ==========================================
+  // UTIL
+  // ==========================================
+
+  function escapeHtml(text) {
+    if (text == null) return "";
+    const div = document.createElement("div");
+    div.textContent = String(text);
+    return div.innerHTML;
+  }
+
+  // ==========================================
+  // INIT
+  // ==========================================
+
+  // If step 1 is disabled, start at step 2
+  const startStep = $("#mobooking-step-1").length ? 1 : 2;
+  showStep(startStep);
+
+  // Pets step active styling for radios
+  $(document).on("change", 'input[name="has_pets"]', function () {
+    const name = $(this).attr("name");
+    $(`input[name="${name}"]`).each(function () {
+      $(this).closest(".mobooking-radio-option").removeClass("active");
+    });
+    if ($(this).is(":checked"))
+      $(this).closest(".mobooking-radio-option").addClass("active");
+  });
+
+  // Frequency radios active styling
+  $(document).on("change", 'input[name="frequency"]', function () {
+    const name = $(this).attr("name");
+    $(`input[name="${name}"]`).each(function () {
+      $(this).closest(".mobooking-radio-option").removeClass("active");
+    });
+    if ($(this).is(":checked"))
+      $(this).closest(".mobooking-radio-option").addClass("active");
+    state.frequency = $(this).val();
+  });
+
+  // Property access radios active styling
+  $(document).on("change", 'input[name="property_access"]', function () {
+    const name = $(this).attr("name");
+    $(`input[name="${name}"]`).each(function () {
+      $(this).closest(".mobooking-radio-option").removeClass("active");
+    });
+    if ($(this).is(":checked"))
+      $(this).closest(".mobooking-radio-option").addClass("active");
+    const val = $(this).val();
+    state.propertyAccess.method = val;
+    if (val === "other")
+      els.accessDetailsWrap
+        .removeClass("hidden")
+        .removeClass("mobooking-collapsed");
+    else els.accessDetailsWrap.addClass("mobooking-collapsed");
+  });
+});

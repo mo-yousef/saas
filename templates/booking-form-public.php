@@ -149,18 +149,9 @@ $script_data = [
             <h2 class="mobooking-step-title"><?php echo esc_html($bf_settings['bf_step_1_title'] ?? 'Step 1: Check Service Area'); ?></h2>
             <form id="mobooking-area-check-form">
                 <div class="mobooking-grid mobooking-grid-2">
-                    <div class="mobooking-form-group">
+                    <div class="mobooking-form-group" style="grid-column: 1 / -1;">
                         <label for="mobooking-zip" class="mobooking-label"><?php _e('ZIP/Postal Code', 'mobooking'); ?> *</label>
                         <input type="text" id="mobooking-zip" class="mobooking-input" placeholder="<?php esc_attr_e('Enter your ZIP code', 'mobooking'); ?>" required>
-                    </div>
-                    <div class="mobooking-form-group">
-                        <label for="mobooking-country" class="mobooking-label"><?php _e('Country', 'mobooking'); ?> *</label>
-                        <select id="mobooking-country" class="mobooking-select" required>
-                            <option value=""><?php _e('Select Country', 'mobooking'); ?></option>
-                            <option value="US"><?php _e('United States', 'mobooking'); ?></option>
-                            <option value="CA"><?php _e('Canada', 'mobooking'); ?></option>
-                            <option value="UK"><?php _e('United Kingdom', 'mobooking'); ?></option>
-                        </select>
                     </div>
                 </div>
                 <div id="mobooking-location-feedback" class="mobooking-feedback"></div>

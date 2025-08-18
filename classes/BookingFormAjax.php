@@ -90,7 +90,12 @@ class BookingFormAjax {
             ), ARRAY_A);
 
             if (empty($areas)) {
-                wp_send_json_error(['message' => __('No service areas configured.', 'mobooking')], 404);
+                // If no service areas configured, consider service available (do not block booking)
+                wp_send_json_success([
+                    'message' => __('Service is available in your area!', 'mobooking'),
+                    'covered' => true,
+                    'note' => 'no_areas_configured'
+                ]);
                 return;
             }
 
