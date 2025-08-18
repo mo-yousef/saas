@@ -28,9 +28,14 @@ jQuery(document).ready(function($) {
 
     function renderTemplate(templateHtml, data) {
         let template = templateHtml;
+        const noEscapeKeys = ['icon_html', 'delete_button_html'];
         for (const key in data) {
-            const value = (typeof data[key] === 'string' || typeof data[key] === 'number') ? data[key] : '';
-            template = template.replace(new RegExp('<%=\\s*' + key + '\\s*%>', 'g'), sanitizeHTML(String(value)));
+            let value = (typeof data[key] === 'string' || typeof data[key] === 'number') ? data[key] : '';
+            if (!noEscapeKeys.includes(key)) {
+                value = sanitizeHTML(String(value));
+            }
+            // A more robust regex to avoid replacing parts of other words
+            template = template.replace(new RegExp('<%=\\s*' + key + '\\s*%>', 'g'), value);
         }
         return template;
     }
@@ -242,45 +247,58 @@ jQuery(document).ready(function($) {
 
 
     // DELETE BOOKING
-    // Adjusted to work with table rows.
     bookingsListContainer.on('click', '.mobooking-delete-booking-btn', function(e) {
         e.preventDefault();
         const bookingId = $(this).data('booking-id');
-        const $row = $(this).closest('tr');
-        // Attempt to get booking reference from the first cell (td) in the row
-        const bookingRef = $row.find('td:first').text();
+        const bookingRef = $(this).closest('tr').find('td:first').text();
 
-        if (confirm( (mobooking_bookings_params.i18n.confirm_delete || 'Are you sure you want to delete booking %s?').replace('%s', bookingRef) )) {
-            $.ajax({
-                url: mobooking_bookings_params.ajax_url,
-                type: 'POST',
-                data: {
-                    action: 'mobooking_delete_dashboard_booking',
-                    nonce: mobooking_bookings_params.nonce, // Ensure this nonce is still valid and appropriate
-                    booking_id: bookingId
+        const dialog = new MoBookingDialog({
+            title: 'Delete Booking',
+            content: `<p>Are you sure you want to delete booking <strong>${bookingRef}</strong>? This action cannot be undone.</p>`,
+            icon: 'trash',
+            buttons: [
+                {
+                    label: 'Cancel',
+                    class: 'secondary',
+                    onClick: (dialog) => dialog.close()
                 },
-                success: function(response) {
-                    if (response.success) {
-                        // On successful deletion, remove the row from the table or reload.
-                        // For simplicity, reloading the current view.
-                        loadBookings(currentFilters.paged);
-                        // Alternatively, to remove the row directly without full reload:
-                        // $row.fadeOut(300, function() { $(this).remove(); });
-                        // If removing directly, also update total counts if displayed.
-                        if(mobooking_bookings_params.i18n.booking_deleted_successfully) {
-                             window.showAlert(mobooking_bookings_params.i18n.booking_deleted_successfully, 'success');
-                        } else {
-                            window.showAlert(response.data.message || 'Booking deleted.', 'success');
-                        }
-                    } else {
-                        window.showAlert('Error: ' + (response.data.message || mobooking_bookings_params.i18n.error_deleting_booking || 'Could not delete booking.'), 'error');
+                {
+                    label: 'Delete',
+                    class: 'destructive',
+                    onClick: (dialog) => {
+                        $.ajax({
+                            url: mobooking_bookings_params.ajax_url,
+                            type: 'POST',
+                            data: {
+                                action: 'mobooking_delete_dashboard_booking',
+                                nonce: mobooking_bookings_params.nonce,
+                                booking_id: bookingId
+                            },
+                            success: function(response) {
+                                if (response.success) {
+                                    loadBookings(currentFilters.paged);
+                                    // Assuming a global showAlert function exists for toasts
+                                    if (window.showAlert) {
+                                        window.showAlert(response.data.message || 'Booking deleted.', 'success');
+                                    }
+                                } else {
+                                    if (window.showAlert) {
+                                        window.showAlert('Error: ' + (response.data.message || 'Could not delete booking.'), 'error');
+                                    }
+                                }
+                            },
+                            error: function() {
+                                if (window.showAlert) {
+                                    window.showAlert('AJAX error deleting booking.', 'error');
+                                }
+                            },
+                            complete: () => dialog.close()
+                        });
                     }
-                },
-                error: function() {
-                    window.showAlert(mobooking_bookings_params.i18n.error_deleting_booking_ajax || 'AJAX error deleting booking.', 'error');
                 }
-            });
-        }
+            ]
+        });
+        dialog.show();
     });
 
 });
