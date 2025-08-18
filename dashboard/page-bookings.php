@@ -240,22 +240,62 @@ $booking_statuses = [
         </div>
     </div>
 
+    <style>
+        .mobooking-filters-form {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .mobooking-filters-main, .mobooking-filters-secondary {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            align-items: flex-end;
+        }
+        .mobooking-filters-main {
+            flex-grow: 1;
+        }
+        .mobooking-filter-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+        .mobooking-filter-item-search {
+            flex-grow: 1;
+        }
+        .mobooking-filters-secondary {
+            width: 100%;
+            display: none; /* Hidden by default */
+        }
+        .mobooking-filter-actions {
+            display: flex;
+            gap: 0.5rem;
+            align-items: flex-end;
+        }
+    </style>
     <div class="mobooking-card mobooking-filters-wrapper">
-        <div class="mobooking-card-header">
-            <h3><?php esc_html_e('Filter Bookings', 'mobooking'); ?></h3>
-        </div>
         <div class="mobooking-card-content">
-        <div class="inside">
             <form id="mobooking-bookings-filter-form" class="mobooking-filters-form">
-                <div class="mobooking-filter-row">
+                <div class="mobooking-filters-main">
+                    <div class="mobooking-filter-item mobooking-filter-item-search">
+                        <label for="mobooking-search-query"><?php esc_html_e('Search', 'mobooking'); ?></label>
+                        <input type="search" id="mobooking-search-query" name="search_query" class="regular-text" placeholder="<?php esc_attr_e('Ref, Name, Email', 'mobooking'); ?>">
+                    </div>
                     <div class="mobooking-filter-item">
-                        <label for="mobooking-status-filter"><?php esc_html_e('Status:', 'mobooking'); ?></label>
+                        <label for="mobooking-status-filter"><?php esc_html_e('Status', 'mobooking'); ?></label>
                         <select id="mobooking-status-filter" name="status_filter" class="mobooking-filter-select">
                             <?php foreach ($booking_statuses as $value => $label) : ?>
                                 <option value="<?php echo esc_attr($value); ?>"><?php echo esc_html($label); ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>
+                    <div class="mobooking-filter-actions">
+                        <button type="submit" class="btn btn-secondary"><?php esc_html_e('Filter', 'mobooking'); ?></button>
+                        <button type="button" id="mobooking-toggle-more-filters-btn" class="btn btn-outline"><?php esc_html_e('More Filters', 'mobooking'); ?></button>
+                        <button type="button" id="mobooking-clear-filters-btn" class="btn btn-outline" style="display: none;"><?php esc_html_e('Clear', 'mobooking'); ?></button>
+                    </div>
+                </div>
+                <div class="mobooking-filters-secondary">
                     <div class="mobooking-filter-item">
                         <label for="mobooking-date-from-filter"><?php esc_html_e('From:', 'mobooking'); ?></label>
                         <input type="text" id="mobooking-date-from-filter" name="date_from_filter" class="mobooking-datepicker regular-text" placeholder="YYYY-MM-DD">
@@ -264,19 +304,12 @@ $booking_statuses = [
                         <label for="mobooking-date-to-filter"><?php esc_html_e('To:', 'mobooking'); ?></label>
                         <input type="text" id="mobooking-date-to-filter" name="date_to_filter" class="mobooking-datepicker regular-text" placeholder="YYYY-MM-DD">
                     </div>
-                </div>
-                <div class="mobooking-filter-row">
-                     <div class="mobooking-filter-item mobooking-filter-item-search">
-                        <label for="mobooking-search-query"><?php esc_html_e('Search:', 'mobooking'); ?></label>
-                        <input type="search" id="mobooking-search-query" name="search_query" class="regular-text" placeholder="<?php esc_attr_e('Ref, Name, Email', 'mobooking'); ?>">
-                    </div>
                     <div class="mobooking-filter-item">
                         <label for="mobooking-staff-filter"><?php esc_html_e('Staff:', 'mobooking'); ?></label>
                         <select id="mobooking-staff-filter" name="staff_filter" class="mobooking-filter-select">
                             <option value=""><?php esc_html_e('All Staff', 'mobooking'); ?></option>
                             <option value="0"><?php esc_html_e('Unassigned', 'mobooking'); ?></option>
                             <?php
-                            // Fetch workers for the current business owner
                             $owner_id_for_staff_filter = $current_user_id;
                             if (class_exists('MoBooking\Classes\Auth') && \MoBooking\Classes\Auth::is_user_worker($current_user_id)) {
                                 $owner_id_for_staff_filter = \MoBooking\Classes\Auth::get_business_owner_id_for_worker($current_user_id);
@@ -297,10 +330,6 @@ $booking_statuses = [
                             ?>
                         </select>
                     </div>
-                </div>
-                <div class="mobooking-filter-actions">
-                    <button type="submit" class="btn btn-secondary"><?php esc_html_e('Filter', 'mobooking'); ?></button>
-                    <button type="button" id="mobooking-clear-filters-btn" class="btn btn-outline"><?php esc_html_e('Clear Filters', 'mobooking'); ?></button>
                 </div>
             </form>
         </div>
