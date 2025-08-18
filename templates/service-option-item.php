@@ -42,7 +42,7 @@ if (isset($option['choices'])) {
 }
 
 // Determine if choices container should be visible
-$choices_visible = in_array($type, ['select', 'radio', 'checkbox', 'sqm', 'kilometers']);
+$choices_visible = in_array($type, ['select', 'radio', 'checkbox']);
 
 ?>
 <div class="option-item" data-option-index="<?php echo esc_attr($option_index); ?>">
@@ -121,12 +121,21 @@ $choices_visible = in_array($type, ['select', 'radio', 'checkbox', 'sqm', 'kilom
             <hr>
 
             <div>
-                <label class="form-label"><?php esc_html_e('Price Impact', 'mobooking'); ?></label>
-                <p class="form-description text-xs mb-2"><?php esc_html_e('Set a price for this option itself, independent of choices.', 'mobooking'); ?></p>
-                <div class="price-types-grid">
-                    <?php foreach ($price_impact_types as $impact_type_key => $impact_type_data): ?>
+                <label class="form-label price-impact-label">
+                    <?php if ($type === 'sqm'): ?>
+                        <?php esc_html_e('Price per Square Meter', 'mobooking'); ?>
+                    <?php elseif ($type === 'kilometers'): ?>
+                        <?php esc_html_e('Price per Kilometer', 'mobooking'); ?>
+                    <?php else: ?>
+                        <?php esc_html_e('Price Impact', 'mobooking'); ?>
+                    <?php endif; ?>
+                </label>
+                <p class="form-description text-xs mb-2 price-impact-description" style="<?php echo in_array($type, ['sqm', 'kilometers']) ? 'display:none;' : ''; ?>"><?php esc_html_e('Set a price for this option itself, independent of choices.', 'mobooking'); ?></p>
+
+                <div class="price-types-grid" style="<?php echo in_array($type, ['sqm', 'kilometers']) ? 'display:none;' : ''; ?>">
+                     <?php foreach ($price_impact_types as $impact_type_key => $impact_type_data): ?>
                         <label class="price-type-card <?php echo $price_impact_type === $impact_type_key ? 'selected' : ''; ?>">
-                            <input type="radio" name="options[<?php echo esc_attr($option_index); ?>][price_impact_type]" value="<?php echo esc_attr($impact_type_key); ?>" class="sr-only price-impact-type-radio" <?php checked($price_impact_type, $impact_type_key); ?>>
+                            <input type="radio" name="options[<?php echo esc_attr($option_index); ?>][price_impact_type]" value="<?php echo esc_attr($impact_type_key); ?>" class="sr-only price-impact-type-radio" <?php checked($price_impact_type, $impact_type_key); ?> >
                             <div class="price-type-label">
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="price-type-icon">
                                     <?php echo get_simple_icon_svg($impact_type_data['icon']); ?>
@@ -138,8 +147,20 @@ $choices_visible = in_array($type, ['select', 'radio', 'checkbox', 'sqm', 'kilom
                         </label>
                     <?php endforeach; ?>
                 </div>
-                <div class="price-impact-value-container mt-3" style="display: <?php echo !empty($price_impact_type) || $price_impact_type === 'fixed' ? 'block' : 'none'; ?>;">
-                    <label class="form-label" for="price-impact-value-<?php echo esc_attr($option_index); ?>"><?php esc_html_e('Price Value', 'mobooking'); ?></label>
+                 <?php if (in_array($type, ['sqm', 'kilometers'])): ?>
+                    <input type="hidden" name="options[<?php echo esc_attr($option_index); ?>][price_impact_type]" value="fixed" class="price-impact-type-input">
+                 <?php endif; ?>
+
+                <div class="price-impact-value-container mt-3" style="display: <?php echo !empty($price_impact_type) || in_array($type, ['sqm', 'kilometers']) ? 'block' : 'none'; ?>;">
+                    <label class="form-label" for="price-impact-value-<?php echo esc_attr($option_index); ?>">
+                        <?php if ($type === 'sqm'): ?>
+                            <?php esc_html_e('Price per Square Meter', 'mobooking'); ?>
+                        <?php elseif ($type === 'kilometers'): ?>
+                            <?php esc_html_e('Price per Kilometer', 'mobooking'); ?>
+                        <?php else: ?>
+                            <?php esc_html_e('Price Value', 'mobooking'); ?>
+                        <?php endif; ?>
+                    </label>
                     <input
                         type="number"
                         id="price-impact-value-<?php echo esc_attr($option_index); ?>"
@@ -178,47 +199,15 @@ $choices_visible = in_array($type, ['select', 'radio', 'checkbox', 'sqm', 'kilom
                 <hr>
                 <div class="mt-4">
                     <label class="form-label">
-                        <?php if ($type === 'sqm'): ?>
-                            Square Meter Ranges
-                        <?php elseif ($type === 'kilometers'): ?>
-                            Kilometer Ranges
-                        <?php else: ?>
-                            Choices
-                        <?php endif; ?>
+                        Choices
                     </label>
                     <p class="form-description text-xs mb-2">
-                        <?php if ($type === 'sqm'): ?>
-                            Define pricing ranges for different square meter values.
-                        <?php elseif ($type === 'kilometers'): ?>
-                            Define pricing ranges for different kilometer distances.
-                        <?php else: ?>
-                            Add choices for this option.
-                        <?php endif; ?>
+                        Add choices for this option.
                     </p>
                     <div class="choices-list">
                         <?php if (!empty($choices)): ?>
                             <?php foreach ($choices as $choice_index => $choice): ?>
-                                <?php if ($type === 'sqm'): ?>
-                                    <div class="choice-item flex items-center gap-2">
-                                        <input type="number" name="options[<?php echo esc_attr($option_index); ?>][choices][<?php echo $choice_index; ?>][from_sqm]" class="form-input w-24" placeholder="From" value="<?php echo esc_attr($choice['from_sqm'] ?? $choice['from'] ?? ''); ?>" step="0.01" min="0">
-                                        <span class="text-muted-foreground">-</span>
-                                        <input type="number" name="options[<?php echo esc_attr($option_index); ?>][choices][<?php echo $choice_index; ?>][to_sqm]" class="form-input w-24" placeholder="To (∞ for unlimited)" value="<?php echo esc_attr($choice['to_sqm'] ?? $choice['to'] ?? ''); ?>" step="0.01" min="0">
-                                        <input type="number" name="options[<?php echo esc_attr($option_index); ?>][choices][<?php echo $choice_index; ?>][price_per_sqm]" class="form-input flex-1" placeholder="Price per SQM" value="<?php echo esc_attr($choice['price_per_sqm'] ?? $choice['price'] ?? ''); ?>" step="0.01" min="0">
-                                        <button type="button" class="btn-icon remove-choice-btn">
-                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><path d="m19 6-1 14H6L5 6"/></svg>
-                                        </button>
-                                    </div>
-                                <?php elseif ($type === 'kilometers'): ?>
-                                    <div class="choice-item flex items-center gap-2">
-                                        <input type="number" name="options[<?php echo esc_attr($option_index); ?>][choices][<?php echo $choice_index; ?>][from_km]" class="form-input w-24" placeholder="From" value="<?php echo esc_attr($choice['from_km'] ?? $choice['from'] ?? ''); ?>" step="0.1" min="0">
-                                        <span class="text-muted-foreground">-</span>
-                                        <input type="number" name="options[<?php echo esc_attr($option_index); ?>][choices][<?php echo $choice_index; ?>][to_km]" class="form-input w-24" placeholder="To (∞ for unlimited)" value="<?php echo esc_attr($choice['to_km'] ?? $choice['to'] ?? ''); ?>" step="0.1" min="0">
-                                        <input type="number" name="options[<?php echo esc_attr($option_index); ?>][choices][<?php echo $choice_index; ?>][price_per_km]" class="form-input flex-1" placeholder="Price per KM" value="<?php echo esc_attr($choice['price_per_km'] ?? $choice['price'] ?? ''); ?>" step="0.01" min="0">
-                                        <button type="button" class="btn-icon remove-choice-btn">
-                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><path d="m19 6-1 14H6L5 6"/></svg>
-                                        </button>
-                                    </div>
-                                <?php else: ?>
+
                                     <div class="choice-item flex items-center gap-2">
                                         <input type="text" name="options[<?php echo esc_attr($option_index); ?>][choices][<?php echo $choice_index; ?>][label]" class="form-input flex-1" placeholder="Choice Label" value="<?php echo esc_attr($choice['label'] ?? $choice); ?>">
                                         <input type="number" name="options[<?php echo esc_attr($option_index); ?>][choices][<?php echo $choice_index; ?>][price]" class="form-input w-24" placeholder="Price" value="<?php echo esc_attr($choice['price'] ?? ''); ?>" step="0.01">
@@ -226,19 +215,15 @@ $choices_visible = in_array($type, ['select', 'radio', 'checkbox', 'sqm', 'kilom
                                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><path d="m19 6-1 14H6L5 6"/></svg>
                                         </button>
                                     </div>
-                                <?php endif; ?>
+
                             <?php endforeach; ?>
                         <?php endif; ?>
                     </div>
                     <button type="button" class="btn btn-outline btn-sm mt-2 add-choice-btn">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
-                        <?php if ($type === 'sqm'): ?>
-                            Add SQM Range
-                        <?php elseif ($type === 'kilometers'): ?>
-                            Add KM Range
-                        <?php else: ?>
+
                             Add Choice
-                        <?php endif; ?>
+
                     </button>
                     <div class="option-feedback text-destructive text-sm mt-2"></div>
                 </div>
