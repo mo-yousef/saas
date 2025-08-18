@@ -145,7 +145,7 @@ function mobooking_enqueue_dashboard_scripts($current_page_slug = '') {
     // Specific to Bookings page
     if ($current_page_slug === 'bookings') {
         wp_enqueue_script('jquery-ui-datepicker');
-        wp_enqueue_script('mobooking-dashboard-bookings', MOBOOKING_THEME_URI . 'assets/js/dashboard-bookings.js', array('jquery', 'jquery-ui-datepicker', 'mobooking-dialog'), MOBOOKING_VERSION, true);
+        wp_enqueue_script('mobooking-dashboard-bookings', MOBOOKING_THEME_URI . 'assets/js/dashboard-bookings.js', array('jquery', 'jquery-ui-datepicker', 'mobooking-dialog', 'mobooking-dashboard-global'), MOBOOKING_VERSION, true);
         $bookings_params = array_merge($dashboard_params, [
             'statuses' => [
                 'pending' => __('Pending', 'mobooking'),
