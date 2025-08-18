@@ -147,6 +147,14 @@ function mobooking_enqueue_dashboard_scripts($current_page_slug = '') {
         wp_enqueue_script('jquery-ui-datepicker');
         wp_enqueue_script('mobooking-dashboard-bookings', MOBOOKING_THEME_URI . 'assets/js/dashboard-bookings.js', array('jquery', 'jquery-ui-datepicker', 'mobooking-dialog'), MOBOOKING_VERSION, true);
         $bookings_params = array_merge($dashboard_params, [
+            'statuses' => [
+                'pending' => __('Pending', 'mobooking'),
+                'confirmed' => __('Confirmed', 'mobooking'),
+                'completed' => __('Completed', 'mobooking'),
+                'cancelled' => __('Cancelled', 'mobooking'),
+                'on-hold' => __('On Hold', 'mobooking'),
+                'processing' => __('Processing', 'mobooking'),
+            ],
             'i18n' => [
                 'loading_bookings' => __('Loading bookings...', 'mobooking'),
                 'no_bookings_found' => __('No bookings found.', 'mobooking'),
@@ -157,6 +165,9 @@ function mobooking_enqueue_dashboard_scripts($current_page_slug = '') {
                 'error_deleting_booking' => __('Error deleting booking.', 'mobooking'),
                 'booking_updated' => __('Booking updated.', 'mobooking'),
                 'error_updating_booking' => __('Error updating booking.', 'mobooking'),
+                'more_filters' => __('More Filters', 'mobooking'),
+                'less_filters' => __('Less Filters', 'mobooking'),
+                'try_different_filters' => __('Try adjusting your filters or clearing them to see all bookings.', 'mobooking'),
             ]
         ]);
         wp_localize_script('mobooking-dashboard-bookings', 'mobooking_bookings_params', $bookings_params);

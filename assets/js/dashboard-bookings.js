@@ -105,7 +105,14 @@ jQuery(document).ready(function($) {
                     });
                     renderPagination(response.data.total_count, response.data.per_page, response.data.current_page);
                 } else if (response.success) {
-                    bookingsListContainer.html('<p>' + (mobooking_bookings_params.i18n.no_bookings_found || 'No bookings found.') + '</p>');
+                    const noResultsHTML = `
+                        <div class="mobooking-no-results-message">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                            <h4>${mobooking_bookings_params.i18n.no_bookings_found || 'No bookings found'}</h4>
+                            <p>${mobooking_bookings_params.i18n.try_different_filters || 'Try adjusting your filters or clearing them to see all bookings.'}</p>
+                        </div>
+                    `;
+                    bookingsListContainer.html(noResultsHTML);
                 } else {
                     bookingsListContainer.html('<p>' + (response.data.message || mobooking_bookings_params.i18n.error_loading_bookings || 'Error loading bookings.') + '</p>');
                 }
@@ -160,9 +167,11 @@ jQuery(document).ready(function($) {
 
     // Toggle more filters
     $('#mobooking-toggle-more-filters-btn').on('click', function() {
-        $('.mobooking-filters-secondary').slideToggle();
-        const text = $('.mobooking-filters-secondary').is(':visible') ? mobooking_bookings_params.i18n.less_filters || 'Less Filters' : mobooking_bookings_params.i18n.more_filters || 'More Filters';
-        $(this).text(text);
+        const button = $(this);
+        $('.mobooking-filters-secondary').slideToggle(function() {
+            const text = $(this).is(':visible') ? (mobooking_bookings_params.i18n.less_filters || 'Less Filters') : (mobooking_bookings_params.i18n.more_filters || 'More Filters');
+            button.text(text);
+        });
     });
 
     // Datepicker initialization
