@@ -108,7 +108,7 @@ jQuery(document).ready(function($) {
                         bookingDataForTemplate.assigned_staff_name = booking.assigned_staff_name || (mobooking_bookings_params.i18n.unassigned || 'Unassigned');
 
                         bookingDataForTemplate.delete_button_html = '';
-                        if (mobooking_dashboard_params && mobooking_dashboard_params.currentUserCanDeleteBookings) {
+                        if (mobooking_bookings_params && mobooking_bookings_params.currentUserCanDeleteBookings) {
                             bookingDataForTemplate.delete_button_html = `<button class="btn btn-destructive btn-sm mobooking-delete-booking-btn" data-booking-id="${booking.booking_id}">${mobooking_bookings_params.i18n.delete_btn_text || 'Delete'}</button>`;
                         }
 
