@@ -117,11 +117,7 @@ if ( $edit_mode && $service_id > 0 ) {
   --radius: 0.5rem;
 }
 
-.mobooking-wrap {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 1rem;
-}
+
 
 /* Page Header */
 .page-header {
@@ -826,7 +822,7 @@ if ( $edit_mode && $service_id > 0 ) {
 }
 </style>
 
-<div class="wrap mobooking-wrap">
+<div class="">
     <!-- Page Header -->
     <div class="page-header">
         <div class="breadcrumb">

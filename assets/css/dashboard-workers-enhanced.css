@@ -145,16 +145,6 @@
   transition: box-shadow 0.2s ease;
 }
 
-.mobooking-card:hover {
-  box-shadow: var(--mobk-shadow);
-}
-.mobooking-card-title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--mobk-card-foreground);
-  line-height: 1.4;
-}
-
 .mobooking-card-description {
   color: var(--mobk-muted-foreground);
   font-size: 0.875rem;
@@ -227,6 +217,7 @@
   position: relative;
   display: flex;
   width: 100%;
+  flex-direction: column;
 }
 
 .mobooking-input-group .mobooking-input {
@@ -700,11 +691,6 @@
   display: flex;
   flex-direction: column;
 }
-
-.mobooking-worker-card:hover {
-  box-shadow: var(--mobk-shadow);
-}
-
 .mobooking-worker-info {
   display: flex;
   align-items: center;
