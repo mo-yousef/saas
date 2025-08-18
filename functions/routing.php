@@ -155,6 +155,14 @@ function mobooking_enqueue_dashboard_scripts($current_page_slug = '') {
                 'on-hold' => __('On Hold', 'mobooking'),
                 'processing' => __('Processing', 'mobooking'),
             ],
+            'icons' => [
+                'pending' => mobooking_get_status_badge_icon_svg('pending'),
+                'confirmed' => mobooking_get_status_badge_icon_svg('confirmed'),
+                'completed' => mobooking_get_status_badge_icon_svg('completed'),
+                'cancelled' => mobooking_get_status_badge_icon_svg('cancelled'),
+                'on-hold' => mobooking_get_status_badge_icon_svg('on-hold'),
+                'processing' => mobooking_get_status_badge_icon_svg('processing'),
+            ],
             'i18n' => [
                 'loading_bookings' => __('Loading bookings...', 'mobooking'),
                 'no_bookings_found' => __('No bookings found.', 'mobooking'),
@@ -165,9 +173,11 @@ function mobooking_enqueue_dashboard_scripts($current_page_slug = '') {
                 'error_deleting_booking' => __('Error deleting booking.', 'mobooking'),
                 'booking_updated' => __('Booking updated.', 'mobooking'),
                 'error_updating_booking' => __('Error updating booking.', 'mobooking'),
-                'more_filters' => __('More Filters', 'mobooking'),
-                'less_filters' => __('Less Filters', 'mobooking'),
+                'more_filters' => __('More', 'mobooking'),
+                'less_filters' => __('Less', 'mobooking'),
                 'try_different_filters' => __('Try adjusting your filters or clearing them to see all bookings.', 'mobooking'),
+                'unassigned' => __('Unassigned', 'mobooking'),
+                'delete_btn_text' => __('Delete', 'mobooking'),
             ]
         ]);
         wp_localize_script('mobooking-dashboard-bookings', 'mobooking_bookings_params', $bookings_params);
