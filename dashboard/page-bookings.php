@@ -260,6 +260,14 @@ $booking_statuses = [
             color: #64748b;
             margin: 0;
         }
+        .mobooking-filters-secondary .mobooking-filter-item {
+            flex-basis: calc(50% - 1rem);
+            flex-grow: 1;
+        }
+        .mobooking-filters-secondary .mobooking-datepicker {
+            background-color: #ffffff;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        }
     </style>
     <div class="mobooking-card mobooking-filters-wrapper">
         <div class="mobooking-card-content">
