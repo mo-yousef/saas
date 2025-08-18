@@ -272,6 +272,29 @@ $booking_statuses = [
             gap: 0.5rem;
             align-items: flex-end;
         }
+        .mobooking-no-results-message {
+            text-align: center;
+            padding: 4rem 2rem;
+            border: 2px dashed #e2e8f0;
+            border-radius: 0.5rem;
+            margin-top: 2rem;
+        }
+        .mobooking-no-results-message svg {
+            width: 3rem;
+            height: 3rem;
+            stroke-width: 1.5;
+            color: #94a3b8;
+            margin-bottom: 1rem;
+        }
+        .mobooking-no-results-message h4 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin: 0 0 0.5rem 0;
+        }
+        .mobooking-no-results-message p {
+            color: #64748b;
+            margin: 0;
+        }
     </style>
     <div class="mobooking-card mobooking-filters-wrapper">
         <div class="mobooking-card-content">
