@@ -656,9 +656,11 @@ jQuery(document).ready(function ($) {
           name
         )}" data-impact-type="${impactType}" data-impact-value="${impactValue}"></textarea>`;
       } else if (type === "sqm") {
-        html += `<input type="number" min="1" step="0.1" placeholder="Enter square meters" class="mobooking-input mobooking-option-input" data-type="sqm" data-required="${isReq}" data-name="${escapeHtml(
+        html += `<input type="number" min="1" step="0.1" placeholder="Enter square meters" class="mobooking-input mobooking-option-input" data-type="sqm" data-required="${isReq}" data-name="${escapeHtml(name)}" data-price-per-unit="${impactValue}">`;
+      } else if (type === "kilometers") {
+        html += `<input type="number" min="1" step="0.1" placeholder="Enter kilometers" class="mobooking-input mobooking-option-input" data-type="kilometers" data-required="${isReq}" data-name="${escapeHtml(
           name
-        )}" data-ranges='${JSON.stringify(values)}'>`;
+        )}" data-price-per-unit="${impactValue}">`;
       } else {
         // text default
         html += `<input type="text" class="mobooking-input mobooking-option-input" data-type="text" data-required="${isReq}" data-name="${escapeHtml(
@@ -779,11 +781,12 @@ jQuery(document).ready(function ($) {
             1
           );
         }
-      } else if (type === "sqm") {
-        const sqm = parseFloat($el.val()) || 0;
-        if (sqm > 0) {
-          value = String(sqm);
-          price = calcSqmPrice($el.data("ranges"), sqm);
+      } else if (type === "sqm" || type === "kilometers") {
+        const quantity = parseFloat($el.val()) || 0;
+        if (quantity > 0) {
+          value = String(quantity);
+          const pricePerUnit = parseFloat($el.data("price-per-unit")) || 0;
+          price = quantity * pricePerUnit;
         }
       }
 
@@ -804,23 +807,6 @@ jQuery(document).ready(function ($) {
     if (type === "percentage") return ((base * impact) / 100) * (quantity || 1);
     if (type === "multiply") return base * impact * (quantity || 1);
     return impact * (quantity || 1);
-  }
-
-  function calcSqmPrice(rangesData, sqm) {
-    try {
-      const ranges = Array.isArray(rangesData)
-        ? rangesData
-        : JSON.parse(rangesData || "[]");
-      for (let r of ranges) {
-        const from = parseFloat(r.from) || 0;
-        const to = r.to === "∞" ? Infinity : parseFloat(r.to) || Infinity;
-        const price = parseFloat(r.price) || 0;
-        if (sqm >= from && sqm <= to) return sqm * price;
-      }
-      return 0;
-    } catch (e) {
-      return 0;
-    }
   }
 
   function recalcTotal() {

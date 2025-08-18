@@ -405,16 +405,44 @@ class BookingFormAjax {
             }
 
             // 3. Server-side Price Calculation
-            $subtotal = 0;
+            $total_price = 0;
             $total_duration = 0;
+            $service_options_manager = new ServiceOptions();
+
             foreach ($selected_services as $item) {
                 $service = $this->services_manager->get_service(intval($item['service_id']), $tenant_id);
                 if ($service) {
-                    $subtotal += floatval($service['price']);
+                    $total_price += floatval($service['price']);
                     $total_duration += intval($service['duration']);
+
+                    if (!empty($item['configured_options'])) {
+                        foreach($item['configured_options'] as $option_id => $option_data) {
+                            $option_details = $service_options_manager->get_service_option(intval($option_id), $tenant_id);
+                            if ($option_details) {
+                                $option_type = $option_details['type'];
+                                if ($option_type === 'sqm' || $option_type === 'kilometers') {
+                                    $quantity = floatval($option_data['value']);
+                                    $price_per_unit = floatval($option_details['price_impact_value']);
+                                    $total_price += $quantity * $price_per_unit;
+                                } else if ($option_type === 'select' || $option_type === 'radio') {
+                                    // For select/radio, find the chosen value and add its price
+                                    $option_values = json_decode($option_details['option_values'], true);
+                                    if(is_array($option_values)) {
+                                        foreach($option_values as $choice) {
+                                            if ($choice['label'] === $option_data['value']) {
+                                                $total_price += floatval($choice['price']);
+                                                break;
+                                            }
+                                        }
+                                    }
+                                } else {
+                                     $total_price += floatval($option_details['price_impact_value']);
+                                }
+                            }
+                        }
+                    }
                 }
             }
-            // Note: Add service options price calculation here if needed
 
             // 4. Database Insertion
             $bookings_table = Database::get_table_name('bookings');
@@ -430,7 +458,7 @@ class BookingFormAjax {
                 'booking_date' => sanitize_text_field($customer_details['date']),
                 'booking_time' => sanitize_text_field($customer_details['time']),
                 'special_instructions' => sanitize_textarea_field($customer_details['instructions'] ?? ''),
-                'total_price' => $subtotal, // Use server-calculated subtotal
+                'total_price' => $total_price, // Use server-calculated subtotal
                 'total_duration' => $total_duration,
                 'status' => 'pending',
                 'booking_reference' => $booking_reference,
@@ -458,7 +486,7 @@ class BookingFormAjax {
                         'service_price' => floatval($service['price']),
                         'quantity' => 1,
                         'selected_options' => wp_json_encode($item['configured_options'] ?? []),
-                        'item_total_price' => floatval($service['price']), // Placeholder
+                        'item_total_price' => $total_price,
                     ]);
                  }
             }

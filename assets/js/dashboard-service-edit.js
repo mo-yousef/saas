@@ -18,13 +18,7 @@ jQuery(function ($) {
 
         if (selectedType) {
           // Update the choices container visibility based on existing type
-          const choiceTypes = [
-            "select",
-            "radio",
-            "checkbox",
-            "sqm",
-            "kilometers",
-          ];
+          const choiceTypes = ["select", "radio", "checkbox"];
           const $choicesContainer = $option.find(".choices-container");
 
           if (choiceTypes.includes(selectedType)) {
@@ -131,13 +125,7 @@ jQuery(function ($) {
         // Show/hide choices container and clear existing choices on type change
         const $choicesContainer = $optionItem.find(".choices-container");
         const $choicesList = $optionItem.find(".choices-list");
-        const choiceTypes = [
-          "select",
-          "radio",
-          "checkbox",
-          "sqm",
-          "kilometers",
-        ];
+        const choiceTypes = ["select", "radio", "checkbox"];
 
         // Always clear choices when the type changes, to avoid mismatched inputs.
         $choicesList.empty();
@@ -146,6 +134,43 @@ jQuery(function ($) {
           $choicesContainer.slideDown(200);
         } else {
           $choicesContainer.slideUp(200);
+        }
+
+        // Handle SQM/Kilometers specific UI
+        const $priceImpactContainer = $optionItem.find(
+          ".price-impact-value-container"
+        );
+        const $priceTypesGrid = $optionItem.find(".price-types-grid");
+        const $priceImpactDescription = $optionItem.find(
+          ".price-impact-description"
+        );
+        const $priceImpactLabel = $optionItem.find(".price-impact-label");
+        const $priceImpactValueLabel = $priceImpactContainer.find("label");
+
+        if (type === "sqm" || type === "kilometers") {
+          $priceImpactContainer.slideDown(200);
+          $priceTypesGrid.slideUp(200);
+          $priceImpactDescription.hide();
+          const labelText =
+            type === "sqm"
+              ? mobooking_service_edit_params.i18n.price_per_sqm ||
+                "Price per Square Meter"
+              : mobooking_service_edit_params.i18n.price_per_km ||
+                "Price per Kilometer";
+          $priceImpactLabel.text(labelText);
+          $priceImpactValueLabel.text(labelText);
+          // Ensure price impact type is set to 'fixed'
+          $optionItem.find(".price-impact-type-input").val("fixed");
+        } else {
+          // Restore default view for other types
+          $priceTypesGrid.slideDown(200);
+          $priceImpactDescription.show();
+          $priceImpactLabel.text(
+            mobooking_service_edit_params.i18n.price_impact || "Price Impact"
+          );
+          $priceImpactValueLabel.text(
+            mobooking_service_edit_params.i18n.price_value || "Price Value"
+          );
         }
 
         // Update card selection visually
@@ -164,32 +189,7 @@ jQuery(function ($) {
 
         let newChoiceHtml = "";
 
-        if (optionType === "sqm") {
-          newChoiceHtml = `
-                        <div class="choice-item flex items-center gap-2">
-                            <input type="number" name="options[${optionIndex}][choices][${choiceIndex}][from_sqm]" class="form-input w-24" placeholder="From" step="0.01" min="0">
-                            <span class="text-muted-foreground">-</span>
-                            <input type="number" name="options[${optionIndex}][choices][${choiceIndex}][to_sqm]" class="form-input w-24" placeholder="To (∞ for unlimited)" step="0.01" min="0">
-                            <input type="number" name="options[${optionIndex}][choices][${choiceIndex}][price_per_sqm]" class="form-input flex-1" placeholder="Price per SQM" step="0.01" min="0">
-                            <button type="button" class="btn-icon remove-choice-btn">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><path d="m19 6-1 14H6L5 6"/></svg>
-                            </button>
-                        </div>
-                    `;
-        } else if (optionType === "kilometers") {
-          newChoiceHtml = `
-                        <div class="choice-item flex items-center gap-2">
-                            <input type="number" name="options[${optionIndex}][choices][${choiceIndex}][from_km]" class="form-input w-24" placeholder="From" step="0.1" min="0">
-                            <span class="text-muted-foreground">-</span>
-                            <input type="number" name="options[${optionIndex}][choices][${choiceIndex}][to_km]" class="form-input w-24" placeholder="To (∞ for unlimited)" step="0.1" min="0">
-                            <input type="number" name="options[${optionIndex}][choices][${choiceIndex}][price_per_km]" class="form-input flex-1" placeholder="Price per KM" step="0.01" min="0">
-                            <button type="button" class="btn-icon remove-choice-btn">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><path d="m19 6-1 14H6L5 6"/></svg>
-                            </button>
-                        </div>
-                    `;
-        } else {
-          newChoiceHtml = `
+        newChoiceHtml = `
                         <div class="choice-item flex items-center gap-2">
                             <input type="text" name="options[${optionIndex}][choices][${choiceIndex}][label]" class="form-input flex-1" placeholder="Choice Label">
                             <input type="number" name="options[${optionIndex}][choices][${choiceIndex}][price]" class="form-input w-24" placeholder="Price" step="0.01">
@@ -198,7 +198,6 @@ jQuery(function ($) {
                             </button>
                         </div>
                     `;
-        }
 
         $list.append(newChoiceHtml);
       });
@@ -292,13 +291,7 @@ jQuery(function ($) {
         // Initialize the new option's choices container visibility
         const selectedType =
           $newOption.find(".option-type-radio:checked").val() || "checkbox";
-        const choiceTypes = [
-          "select",
-          "radio",
-          "checkbox",
-          "sqm",
-          "kilometers",
-        ];
+        const choiceTypes = ["select", "radio", "checkbox"];
         const $choicesContainer = $newOption.find(".choices-container");
 
         if (choiceTypes.includes(selectedType)) {
