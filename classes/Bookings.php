@@ -1492,6 +1492,19 @@ foreach ($calculated_service_items as $service_item) {
         return (int) $owner_id;
     }
 
+    public function get_active_bookings_count(int $tenant_user_id) {
+        if (empty($tenant_user_id)) {
+            return 0;
+        }
+        $bookings_table = Database::get_table_name('bookings');
+        $count = $this->wpdb->get_var($this->wpdb->prepare(
+            "SELECT COUNT(booking_id) FROM $bookings_table
+             WHERE user_id = %d AND status NOT IN ('completed', 'cancelled')",
+            $tenant_user_id
+        ));
+        return intval($count);
+    }
+
     public function handle_assign_staff_to_booking_ajax() {
         check_ajax_referer('mobooking_dashboard_nonce', 'nonce'); // Assuming a general dashboard nonce
         $current_user_id = get_current_user_id();

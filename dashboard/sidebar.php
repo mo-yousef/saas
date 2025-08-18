@@ -73,8 +73,12 @@ if ( $current_user_id > 0 ) {
                 <li class="<?php echo ($current_page === 'my-assigned-bookings') ? 'active' : ''; ?>"><a href="<?php echo esc_url(trailingslashit($dashboard_base_url) . 'my-assigned-bookings/'); ?>"><span class="mobooking-menu-icon"><?php echo mobooking_get_dashboard_menu_icon('bookings'); ?></span><?php esc_html_e('My Assigned Bookings', 'mobooking'); ?></a></li>
                 <?php
                 elseif (current_user_can(\MoBooking\Classes\Auth::CAP_VIEW_BOOKINGS) || current_user_can(\MoBooking\Classes\Auth::CAP_MANAGE_BOOKINGS)) :
+                    $active_bookings_count = 0;
+                    if (isset($GLOBALS['mobooking_bookings_manager'])) {
+                        $active_bookings_count = $GLOBALS['mobooking_bookings_manager']->get_active_bookings_count(get_current_user_id());
+                    }
                 ?>
-                <li class="<?php echo ($current_page === 'bookings') ? 'active' : ''; ?>"><a href="<?php echo esc_url(trailingslashit($dashboard_base_url) . 'bookings/'); ?>"><span class="mobooking-menu-icon"><?php echo mobooking_get_dashboard_menu_icon('bookings'); ?></span><?php esc_html_e('Bookings', 'mobooking'); ?></a></li>
+                <li class="<?php echo ($current_page === 'bookings') ? 'active' : ''; ?>"><a href="<?php echo esc_url(trailingslashit($dashboard_base_url) . 'bookings/'); ?>"><span class="mobooking-menu-icon"><?php echo mobooking_get_dashboard_menu_icon('bookings'); ?></span><?php esc_html_e('Bookings', 'mobooking'); ?><?php if ($active_bookings_count > 0) : ?><span class="nav-badge"><?php echo esc_html($active_bookings_count); ?></span><?php endif; ?></a></li>
                 <?php endif; ?>
 
                 <?php if (current_user_can(\MoBooking\Classes\Auth::CAP_VIEW_CUSTOMERS) || current_user_can(\MoBooking\Classes\Auth::CAP_MANAGE_CUSTOMERS)) : ?>
