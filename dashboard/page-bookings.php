@@ -313,9 +313,9 @@ $booking_statuses = [
                         </select>
                     </div>
                     <div class="mobooking-filter-actions">
-                        <button type="submit" class="btn btn-secondary"><?php esc_html_e('Filter', 'mobooking'); ?></button>
-                        <button type="button" id="mobooking-toggle-more-filters-btn" class="btn btn-outline"><?php esc_html_e('More Filters', 'mobooking'); ?></button>
-                        <button type="button" id="mobooking-clear-filters-btn" class="btn btn-outline" style="display: none;"><?php esc_html_e('Clear', 'mobooking'); ?></button>
+                        <button type="submit" class="btn btn-secondary" style="display:none;"><?php echo mobooking_get_feather_icon('filter'); ?> <?php esc_html_e('Filter', 'mobooking'); ?></button>
+                        <button type="button" id="mobooking-toggle-more-filters-btn" class="btn btn-outline"><?php echo mobooking_get_feather_icon('sliders'); ?> <span class="btn-text"><?php esc_html_e('More', 'mobooking'); ?></span></button>
+                        <button type="button" id="mobooking-clear-filters-btn" class="btn btn-outline" style="display: none;"><?php echo mobooking_get_feather_icon('x'); ?> <span class="btn-text"><?php esc_html_e('Clear', 'mobooking'); ?></span></button>
                     </div>
                 </div>
                 <div class="mobooking-filters-secondary">
@@ -375,7 +375,7 @@ $booking_statuses = [
         <td data-colname="<?php esc_attr_e('Ref', 'mobooking'); ?>"><%= booking_reference %></td>
         <td data-colname="<?php esc_attr_e('Customer', 'mobooking'); ?>"><%= customer_name %><br><small><%= customer_email %></small></td>
         <td data-colname="<?php esc_attr_e('Booked Date', 'mobooking'); ?>"><%= booking_date_formatted %> <%= booking_time_formatted %></td>
-        <td data-colname="<?php esc_attr_e('Assigned Staff', 'mobooking'); ?>"><%= assigned_staff_name || '<?php echo esc_js(__('Unassigned', 'mobooking')); ?>' %></td>
+        <td data-colname="<?php esc_attr_e('Assigned Staff', 'mobooking'); ?>"><%= assigned_staff_name %></td>
         <td data-colname="<?php esc_attr_e('Total', 'mobooking'); ?>"><%= total_price_formatted %></td>
         <td data-colname="<?php esc_attr_e('Status', 'mobooking'); ?>">
             <span class="status-badge status-<%= status %>">
@@ -384,9 +384,7 @@ $booking_statuses = [
         </td>
         <td data-colname="<?php esc_attr_e('Actions', 'mobooking'); ?>" class="mobooking-table-actions">
             <a href="<%= details_page_url %>" class="btn btn-outline btn-sm"><?php esc_html_e('View Details', 'mobooking'); ?></a>
-            <% if (typeof mobooking_dashboard_params !== 'undefined' && mobooking_dashboard_params.currentUserCanDeleteBookings) { %>
-                <button class="btn btn-destructive btn-sm mobooking-delete-booking-btn" data-booking-id="<%= booking_id %>"><?php esc_html_e('Delete', 'mobooking'); ?></button>
-            <% } %>
+            <%= delete_button_html %>
         </td>
     </tr>
 </script>
