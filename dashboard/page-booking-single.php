@@ -400,78 +400,78 @@ if (!function_exists('mobooking_get_status_badge_icon_svg')) {
                                     <?php echo esc_html($currency_symbol . number_format_i18n(floatval($item['item_total_price']), 2)); ?>
                                 </td>
                             </tr>
-                            <?php if (!empty($item['selected_options']) && is_array($item['selected_options'])): ?>
-                                <?php
-                                if (is_array($item['selected_options'])) {
-                                    foreach ($item['selected_options'] as $option_key => $option_data):
-                                        $option_field_label = ''; // The label of the option field itself, e.g., "Number of Doors"
-                                        $option_selected_value_display = ''; // The specific value chosen, e.g., "3"
-                                        $option_price_text = ''; // Price of this specific choice
-
-                                        // $option_data is expected to be an array like ['name' => 'Field Label', 'value' => 'Selected Value/JSON String', 'price' => X]
-                                        if (is_array($option_data) && isset($option_data['name'])) {
-                                            $option_field_label = $option_data['name']; // This is the 'name' from selected_options_summary
-                                            $value_from_db = $option_data['value'] ?? '';
-
-                                            if (is_string($value_from_db)) {
-                                                $decoded_value = json_decode($value_from_db, true);
-                                                if (is_array($decoded_value) && isset($decoded_value['name']) && isset($decoded_value['value'])) {
-                                                    // If value was '{"name":"Doors", "value":"22", "price":0}'
-                                                    // $option_field_label might be something generic like "Extra Options",
-                                                    // and $decoded_value['name'] is "Doors", $decoded_value['value'] is "22"
-                                                    // For clarity, let's use the decoded name if available, and append to field_label or use as primary
-                                                    $option_field_label = $decoded_value['name']; // Use the name from JSON if more specific
-                                                    $option_selected_value_display = esc_html($decoded_value['value']);
-                                                    $current_option_price = isset($decoded_value['price']) ? floatval($decoded_value['price']) : 0;
-                                                    $option_price_text = ($current_option_price >= 0 ? '+' : '') . esc_html($currency_symbol . number_format_i18n($current_option_price, 2));
-                                                } elseif (is_array($decoded_value)) {
-                                                    $option_selected_value_display = esc_html(wp_json_encode($decoded_value));
-                                                     // Price might be in $option_data['price'] if the value itself is complex but price is top-level for the option
-                                                    $current_option_price = isset($option_data['price']) ? floatval($option_data['price']) : (isset($decoded_value['price']) ? floatval($decoded_value['price']) : 0);
-                                                    $option_price_text = ($current_option_price >= 0 ? '+' : '') . esc_html($currency_symbol . number_format_i18n($current_option_price, 2));
-                                                } else {
-                                                    // $value_from_db is a simple string
-                                                    $option_selected_value_display = esc_html($value_from_db);
-                                                    $current_option_price = isset($option_data['price']) ? floatval($option_data['price']) : 0; // Check original $option_data for price
-                                                    if ($current_option_price != 0) { // Only show price if it's part of this $option_data
-                                                       $option_price_text = ($current_option_price >= 0 ? '+' : '') . esc_html($currency_symbol . number_format_i18n($current_option_price, 2));
-                                                    }
-                                                }
-                                            } elseif (is_array($value_from_db)) {
-                                                // If $option_data['value'] is already an array
-                                                $option_selected_value_display = esc_html(wp_json_encode($value_from_db));
-                                                $current_option_price = isset($option_data['price']) ? floatval($option_data['price']) : 0;
-                                                if ($current_option_price != 0) {
-                                                    $option_price_text = ($current_option_price >= 0 ? '+' : '') . esc_html($currency_symbol . number_format_i18n($current_option_price, 2));
-                                                }
-                                            } else {
-                                                // Scalar value
-                                                $option_selected_value_display = esc_html($value_from_db);
-                                                $current_option_price = isset($option_data['price']) ? floatval($option_data['price']) : 0;
-                                                 if ($current_option_price != 0) {
-                                                    $option_price_text = ($current_option_price >= 0 ? '+' : '') . esc_html($currency_symbol . number_format_i18n($current_option_price, 2));
-                                                 }
-                                            }
-                                        } else {
-                                            // Fallback for very different structures
-                                            $option_field_label = is_string($option_key) ? esc_html($option_key) : 'Additional Option';
-                                            $option_selected_value_display = esc_html(wp_json_encode($option_data));
-                                        }
-                                ?>
-                                    <tr class="option-row">
-                                        <td data-label="<?php echo esc_attr($option_field_label); ?>" class="option-name">
-                                            └ <?php echo esc_html($option_field_label); ?>
-                                        </td>
-                                        <td data-label="<?php esc_attr_e('Selected', 'mobooking'); ?>">
-                                            <?php echo $option_selected_value_display; ?>
-                                        </td>
-                                        <td data-label="<?php esc_attr_e('Price', 'mobooking'); ?>" class="price-cell">
-                                            <?php echo $option_price_text; ?>
-                                        </td>
-                                    </tr>
-                                <?php endforeach;
-                                } ?>
-                            <?php endif; ?>
+                            <?php
+								// Ensure selected options are available as an array (decode JSON string if needed)
+								$selected_options_raw = $item['selected_options'] ?? [];
+								if (is_string($selected_options_raw)) {
+									$decoded = json_decode($selected_options_raw, true);
+									if (json_last_error() === JSON_ERROR_NONE) {
+										$selected_options = $decoded;
+									} else {
+										$selected_options = [];
+									}
+								} else {
+									$selected_options = is_array($selected_options_raw) ? $selected_options_raw : [];
+								}
+							?>
+							<?php if (!empty($selected_options) && is_array($selected_options)): ?>
+								<?php
+									foreach ($selected_options as $option_key => $option_data):
+										$option_field_label = '';
+										$option_selected_value_display = '';
+										$option_price_text = '';
+										if (is_array($option_data) && isset($option_data['name'])) {
+											$option_field_label = $option_data['name'];
+											$value_from_db = $option_data['value'] ?? '';
+											if (is_string($value_from_db)) {
+												$decoded_value = json_decode($value_from_db, true);
+												if (is_array($decoded_value) && isset($decoded_value['name']) && isset($decoded_value['value'])) {
+													$option_field_label = $decoded_value['name'];
+													$option_selected_value_display = esc_html($decoded_value['value']);
+													$current_option_price = isset($decoded_value['price']) ? floatval($decoded_value['price']) : 0;
+													$option_price_text = ($current_option_price >= 0 ? '+' : '') . esc_html($currency_symbol . number_format_i18n($current_option_price, 2));
+												} elseif (is_array($decoded_value)) {
+													$option_selected_value_display = esc_html(wp_json_encode($decoded_value));
+													$current_option_price = isset($option_data['price']) ? floatval($option_data['price']) : (isset($decoded_value['price']) ? floatval($decoded_value['price']) : 0);
+													$option_price_text = ($current_option_price >= 0 ? '+' : '') . esc_html($currency_symbol . number_format_i18n($current_option_price, 2));
+												} else {
+													$option_selected_value_display = esc_html($value_from_db);
+													$current_option_price = isset($option_data['price']) ? floatval($option_data['price']) : 0;
+													if ($current_option_price != 0) {
+														$option_price_text = ($current_option_price >= 0 ? '+' : '') . esc_html($currency_symbol . number_format_i18n($current_option_price, 2));
+													}
+												}
+											} elseif (is_array($value_from_db)) {
+												$option_selected_value_display = esc_html(wp_json_encode($value_from_db));
+												$current_option_price = isset($option_data['price']) ? floatval($option_data['price']) : 0;
+												if ($current_option_price != 0) {
+													$option_price_text = ($current_option_price >= 0 ? '+' : '') . esc_html($currency_symbol . number_format_i18n($current_option_price, 2));
+												}
+											} else {
+												$option_selected_value_display = esc_html($value_from_db);
+												$current_option_price = isset($option_data['price']) ? floatval($option_data['price']) : 0;
+												if ($current_option_price != 0) {
+													$option_price_text = ($current_option_price >= 0 ? '+' : '') . esc_html($currency_symbol . number_format_i18n($current_option_price, 2));
+												}
+											}
+										} else {
+											$option_field_label = is_string($option_key) ? esc_html($option_key) : 'Additional Option';
+											$option_selected_value_display = esc_html(wp_json_encode($option_data));
+										}
+									?>
+									<tr class="option-row">
+										<td data-label="<?php echo esc_attr($option_field_label); ?>" class="option-name">
+											└ <?php echo esc_html($option_field_label); ?>
+										</td>
+										<td data-label="<?php esc_attr_e('Selected', 'mobooking'); ?>">
+											<?php echo $option_selected_value_display; ?>
+										</td>
+										<td data-label="<?php esc_attr_e('Price', 'mobooking'); ?>" class="price-cell">
+											<?php echo $option_price_text; ?>
+										</td>
+									</tr>
+								<?php endforeach; ?>
+							<?php endif; ?>
                         <?php endforeach; ?>
                     </tbody>
                 </table>

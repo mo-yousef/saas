@@ -75,7 +75,7 @@ function get_default_service_icon() {
     </div>
         
     <!-- Content Section -->
-    <div class="mobooking-card">
+    <div class="mobooking-services-list-wrapper">
         <div id="services-list-container">
             <div id="loading-state" class="loading-state" style="display: none;">
                 <div class="loading-spinner"></div>

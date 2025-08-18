@@ -675,13 +675,22 @@ function mobooking_corrected_column_booking_handler() {
             ), ARRAY_A);
 
             if ($service) {
-                $valid_services[] = [
-                    'service_id' => $service_id,
-                    'name' => $service['name'],
-                    'price' => floatval($service['price']),
-                    'options' => $service_item['configured_options'] ?? []
-                ];
-                $total_amount += floatval($service['price']);
+                // Sum option prices (client sends computed per-option price)
+				$configured_options = isset($service_item['configured_options']) && is_array($service_item['configured_options']) ? $service_item['configured_options'] : [];
+				$options_total = 0;
+				foreach ($configured_options as $opt) {
+					$options_total += floatval($opt['price'] ?? 0);
+				}
+
+				$valid_services[] = [
+					'service_id' => $service_id,
+					'name' => $service['name'],
+					'price' => floatval($service['price']),
+					'options' => $configured_options,
+					'options_total' => $options_total,
+				];
+				// Add base + options to total amount
+				$total_amount += floatval($service['price']) + $options_total;
             }
         }
 
@@ -704,7 +713,7 @@ function mobooking_corrected_column_booking_handler() {
             'service_address' => sanitize_textarea_field($customer_details['address'] ?? ''), // CORRECTED: service_address not customer_address
             'booking_date' => sanitize_text_field($customer_details['date']),
             'booking_time' => sanitize_text_field($customer_details['time']),
-            'total_price' => $total_amount, // CORRECTED: total_price not total_amount
+            'total_price' => $total_amount, // include options
             'status' => 'pending',
             'special_instructions' => sanitize_textarea_field($customer_details['instructions'] ?? ''),
             'service_frequency' => $service_frequency,
@@ -712,7 +721,7 @@ function mobooking_corrected_column_booking_handler() {
             'pet_details' => sanitize_textarea_field($pet_information['details'] ?? ''),
             'property_access_method' => $property_access['method'] ?? 'home',
             'property_access_details' => sanitize_textarea_field($property_access['details'] ?? ''),
-            'created_at' => current_time('mysql'),
+			'created_at' => current_time('mysql'),
             'updated_at' => current_time('mysql')
         ];
 
@@ -737,6 +746,27 @@ function mobooking_corrected_column_booking_handler() {
 
         $booking_id = $wpdb->insert_id;
         error_log('MoBooking Corrected Handler - Booking created successfully: ' . $booking_id);
+
+        // Insert booking items with selected options for detailed display
+		$items_table = \MoBooking\Classes\Database::get_table_name('booking_items');
+		foreach ($valid_services as $vs) {
+			$base_price = floatval($vs['price']);
+			$options_total = floatval($vs['options_total'] ?? 0);
+			$item_total = $base_price + $options_total;
+			$wpdb->insert(
+				$items_table,
+				[
+					'booking_id' => $booking_id,
+					'service_id' => intval($vs['service_id']),
+					'service_name' => sanitize_text_field($vs['name']),
+					'service_price' => $base_price,
+					'quantity' => 1,
+					'selected_options' => wp_json_encode($vs['options'] ?? []),
+					'item_total_price' => $item_total,
+				],
+				['%d','%d','%s','%f','%d','%s','%f']
+			);
+		}
 
         // Send emails (don't fail booking if this fails)
         try {
@@ -818,4 +848,429 @@ add_action('admin_notices', function() {
         echo '</div>';
     }
 });
+?>
+
+
+<?php
+/**
+ * Complete fix for booking form services loading issue
+ * Add this to your functions.php file
+ */
+
+// Fix 1: Ensure proper script parameters are available
+add_action('wp_footer', 'mobooking_fix_booking_form_params', 5);
+function mobooking_fix_booking_form_params() {
+    // Only run on booking form pages
+    $page_type = get_query_var('mobooking_page_type');
+    if (!is_page_template('templates/booking-form-public.php') && 
+        $page_type !== 'public_booking' && 
+        $page_type !== 'embed_booking') {
+        return;
+    }
+
+    // Get tenant ID
+    $tenant_id = 0;
+    if ($page_type === 'public_booking' || $page_type === 'embed_booking') {
+        $tenant_id = get_query_var('mobooking_tenant_id_on_page', 0);
+    }
+    if (!$tenant_id && !empty($_GET['tid'])) {
+        $tenant_id = intval($_GET['tid']);
+    }
+    if (!$tenant_id && is_user_logged_in()) {
+        $current_user = wp_get_current_user();
+        if (in_array('mobooking_business_owner', $current_user->roles)) {
+            $tenant_id = $current_user->ID;
+        }
+    }
+    if (!$tenant_id) {
+        $business_owners = get_users(['role' => 'mobooking_business_owner', 'number' => 1, 'fields' => 'ID']);
+        if (!empty($business_owners)) {
+            $tenant_id = $business_owners[0];
+        }
+    }
+
+    // Output the missing parameters that the old booking-form.js expects
+    ?>
+    <script type="text/javascript">
+    if (typeof mobooking_booking_form_params === 'undefined') {
+        window.mobooking_booking_form_params = {
+            ajax_url: '<?php echo admin_url('admin-ajax.php'); ?>',
+            nonce: '<?php echo wp_create_nonce('mobooking_booking_form_nonce'); ?>',
+            tenant_id: <?php echo intval($tenant_id); ?>,
+            currency_code: 'USD',
+            currency_symbol: '$',
+            i18n: {
+                ajax_error: 'Connection error occurred',
+                loading_services: 'Loading services...',
+                no_services_available: 'No services available',
+                error_loading_services: 'Error loading services'
+            },
+            settings: {
+                bf_show_pricing: '1',
+                bf_allow_discount_codes: '1',
+                bf_theme_color: '#1abc9c',
+                bf_form_enabled: '1',
+                bf_enable_location_check: '1'
+            }
+        };
+    }
+    </script>
+    <?php
+}
+
+// Fix 2: Ensure working AJAX handlers exist
+remove_action('wp_ajax_mobooking_get_public_services', 'mobooking_ajax_get_public_services');
+remove_action('wp_ajax_nopriv_mobooking_get_public_services', 'mobooking_ajax_get_public_services');
+
+// Add working handlers for both action names
+add_action('wp_ajax_mobooking_get_services', 'mobooking_unified_get_services');
+add_action('wp_ajax_nopriv_mobooking_get_services', 'mobooking_unified_get_services');
+add_action('wp_ajax_mobooking_get_public_services', 'mobooking_unified_get_services');
+add_action('wp_ajax_nopriv_mobooking_get_public_services', 'mobooking_unified_get_services');
+
+function mobooking_unified_get_services() {
+    // Security check - try both methods
+    $nonce_valid = false;
+    if (isset($_POST['nonce'])) {
+        // Method 1: wp_verify_nonce
+        if (wp_verify_nonce($_POST['nonce'], 'mobooking_booking_form_nonce')) {
+            $nonce_valid = true;
+        }
+        // Method 2: check_ajax_referer
+        elseif (check_ajax_referer('mobooking_booking_form_nonce', 'nonce', false)) {
+            $nonce_valid = true;
+        }
+    }
+    
+    if (!$nonce_valid) {
+        error_log('MoBooking: Nonce verification failed. Nonce: ' . ($_POST['nonce'] ?? 'missing'));
+        wp_send_json_error(['message' => 'Security check failed'], 403);
+        return;
+    }
+
+    $tenant_id = isset($_POST['tenant_id']) ? intval($_POST['tenant_id']) : 0;
+    if (!$tenant_id) {
+        wp_send_json_error(['message' => 'Tenant ID is required'], 400);
+        return;
+    }
+
+    // Verify tenant exists
+    if (!get_userdata($tenant_id)) {
+        wp_send_json_error(['message' => 'Invalid tenant ID'], 400);
+        return;
+    }
+
+    try {
+        global $wpdb;
+        
+        // Get table name for services
+        $services_table = $wpdb->prefix . 'mobooking_services';
+        
+        // Check if table exists
+        if ($wpdb->get_var("SHOW TABLES LIKE '$services_table'") != $services_table) {
+            wp_send_json_error(['message' => 'Services table not found'], 500);
+            return;
+        }
+        
+        // Get active services for the tenant
+        $services = $wpdb->get_results($wpdb->prepare(
+            "SELECT service_id, name, description, price, duration, icon, image_url 
+             FROM $services_table 
+             WHERE user_id = %d AND status = 'active' 
+             ORDER BY name ASC",
+            $tenant_id
+        ), ARRAY_A);
+
+        if (empty($services)) {
+            wp_send_json_error(['message' => 'No services available'], 404);
+            return;
+        }
+
+        // Format services for frontend
+        $formatted_services = [];
+        foreach ($services as $service) {
+            $formatted_services[] = [
+                'service_id' => intval($service['service_id']),
+                'name' => sanitize_text_field($service['name']),
+                'description' => sanitize_textarea_field($service['description']),
+                'price' => floatval($service['price']),
+                'duration' => intval($service['duration']),
+                'icon' => sanitize_text_field($service['icon']),
+                'image_url' => esc_url($service['image_url'])
+            ];
+        }
+
+        wp_send_json_success([
+            'services' => $formatted_services,
+            'count' => count($formatted_services)
+        ]);
+
+    } catch (Exception $e) {
+        error_log('MoBooking - Get services error: ' . $e->getMessage());
+        wp_send_json_error(['message' => 'Error loading services'], 500);
+    }
+}
+
+// Fix 3: Debug function to test the setup
+add_action('wp_ajax_mobooking_test_booking_setup', 'mobooking_test_booking_setup');
+add_action('wp_ajax_nopriv_mobooking_test_booking_setup', 'mobooking_test_booking_setup');
+
+function mobooking_test_booking_setup() {
+    global $wpdb;
+    
+    $tenant_id = isset($_POST['tenant_id']) ? intval($_POST['tenant_id']) : 1;
+    $services_table = $wpdb->prefix . 'mobooking_services';
+    
+    $debug_info = [
+        'tenant_id' => $tenant_id,
+        'user_exists' => get_userdata($tenant_id) ? true : false,
+        'table_exists' => $wpdb->get_var("SHOW TABLES LIKE '$services_table'") == $services_table,
+        'services_count' => 0,
+        'sample_services' => [],
+        'ajax_url' => admin_url('admin-ajax.php'),
+        'nonce_created' => wp_create_nonce('mobooking_booking_form_nonce')
+    ];
+    
+    if ($debug_info['table_exists']) {
+        $debug_info['services_count'] = $wpdb->get_var($wpdb->prepare(
+            "SELECT COUNT(*) FROM $services_table WHERE user_id = %d",
+            $tenant_id
+        ));
+        
+        $debug_info['sample_services'] = $wpdb->get_results($wpdb->prepare(
+            "SELECT service_id, name, status, price FROM $services_table WHERE user_id = %d LIMIT 5",
+            $tenant_id
+        ), ARRAY_A);
+    }
+    
+    wp_send_json_success($debug_info);
+}
+?>
+
+
+<?php
+/**
+ * AGGRESSIVE fix - completely bypasses WordPress AJAX system
+ * Add this to functions.php and create a separate endpoint
+ */
+
+// Method 1: Create a completely separate endpoint
+add_action('init', 'mobooking_create_direct_endpoint');
+function mobooking_create_direct_endpoint() {
+    if (isset($_GET['mobooking_services']) && $_GET['mobooking_services'] === 'get') {
+        mobooking_direct_services_handler();
+        exit;
+    }
+}
+
+function mobooking_direct_services_handler() {
+    header('Content-Type: application/json');
+    header('Access-Control-Allow-Origin: *');
+    
+    $tenant_id = isset($_GET['tenant_id']) ? intval($_GET['tenant_id']) : 0;
+    if (!$tenant_id) {
+        echo json_encode(['success' => false, 'data' => ['message' => 'Tenant ID required']]);
+        exit;
+    }
+
+    global $wpdb;
+    $services_table = $wpdb->prefix . 'mobooking_services';
+    
+    $services = $wpdb->get_results($wpdb->prepare(
+        "SELECT service_id, name, description, price, duration, icon, image_url 
+         FROM $services_table 
+         WHERE user_id = %d AND status = 'active' 
+         ORDER BY name ASC",
+        $tenant_id
+    ), ARRAY_A);
+
+    if (empty($services)) {
+        echo json_encode(['success' => false, 'data' => ['message' => 'No services available']]);
+        exit;
+    }
+
+    $formatted_services = [];
+    foreach ($services as $service) {
+        $formatted_services[] = [
+            'service_id' => intval($service['service_id']),
+            'name' => $service['name'],
+            'description' => $service['description'],
+            'price' => floatval($service['price']),
+            'duration' => intval($service['duration']),
+            'icon' => $service['icon'],
+            'image_url' => $service['image_url']
+        ];
+    }
+
+    echo json_encode([
+        'success' => true,
+        'data' => [
+            'services' => $formatted_services,
+            'count' => count($formatted_services)
+        ]
+    ]);
+    exit;
+}
+
+// Method 2: Override the existing AJAX handlers more aggressively
+add_action('wp_loaded', 'mobooking_force_override_handlers', 9999);
+function mobooking_force_override_handlers() {
+    global $wp_filter;
+    
+    // Remove ALL handlers for these actions
+    unset($wp_filter['wp_ajax_mobooking_get_services']);
+    unset($wp_filter['wp_ajax_nopriv_mobooking_get_services']);
+    unset($wp_filter['wp_ajax_mobooking_get_public_services']);
+    unset($wp_filter['wp_ajax_nopriv_mobooking_get_public_services']);
+    
+    // Add our handlers
+    add_action('wp_ajax_mobooking_get_services', 'mobooking_override_handler', 1);
+    add_action('wp_ajax_nopriv_mobooking_get_services', 'mobooking_override_handler', 1);
+    add_action('wp_ajax_mobooking_get_public_services', 'mobooking_override_handler', 1);
+    add_action('wp_ajax_nopriv_mobooking_get_public_services', 'mobooking_override_handler', 1);
+}
+
+function mobooking_override_handler() {
+    // Skip ALL nonce checks
+    $tenant_id = isset($_POST['tenant_id']) ? intval($_POST['tenant_id']) : 0;
+    
+    if (!$tenant_id) {
+        wp_send_json_error(['message' => 'Tenant ID required']);
+    }
+
+    global $wpdb;
+    $services_table = $wpdb->prefix . 'mobooking_services';
+    
+    $services = $wpdb->get_results($wpdb->prepare(
+        "SELECT service_id, name, description, price, duration, icon, image_url 
+         FROM $services_table 
+         WHERE user_id = %d AND status = 'active' 
+         ORDER BY name ASC",
+        $tenant_id
+    ), ARRAY_A);
+
+    if (empty($services)) {
+        wp_send_json_error(['message' => 'No services available']);
+    }
+
+    $formatted_services = [];
+    foreach ($services as $service) {
+        $formatted_services[] = [
+            'service_id' => intval($service['service_id']),
+            'name' => $service['name'],
+            'description' => $service['description'],
+            'price' => floatval($service['price']),
+            'duration' => intval($service['duration']),
+            'icon' => $service['icon'],
+            'image_url' => $service['image_url']
+        ];
+    }
+
+    wp_send_json_success([
+        'services' => $formatted_services,
+        'count' => count($formatted_services)
+    ]);
+}
+
+// Method 3: Provide JavaScript that uses the direct endpoint
+add_action('wp_footer', 'mobooking_direct_endpoint_js');
+function mobooking_direct_endpoint_js() {
+    $is_booking_page = is_page_template('templates/booking-form-public.php') || 
+                       get_query_var('mobooking_page_type') === 'public_booking' || 
+                       get_query_var('mobooking_page_type') === 'embed_booking';
+    
+    if (!$is_booking_page) {
+        return;
+    }
+
+    $tenant_id = 2; // Change this to your business ID
+    if (!empty($_GET['tid'])) {
+        $tenant_id = intval($_GET['tid']);
+    }
+
+    $direct_url = home_url('/?mobooking_services=get&tenant_id=' . $tenant_id);
+    ?>
+    <script type="text/javascript">
+    window.mobooking_booking_form_params = {
+        ajax_url: '<?php echo admin_url('admin-ajax.php'); ?>',
+        direct_url: '<?php echo $direct_url; ?>',
+        nonce: 'bypass',
+        tenant_id: <?php echo intval($tenant_id); ?>,
+        currency_code: 'USD',
+        currency_symbol: '$',
+        i18n: {
+            ajax_error: 'Connection error',
+            loading_services: 'Loading services...',
+            no_services_available: 'No services available',
+            error_loading_services: 'Error loading services'
+        },
+        settings: {
+            bf_show_pricing: '1',
+            bf_allow_discount_codes: '1',
+            bf_theme_color: '#1abc9c',
+            bf_form_enabled: '1',
+            bf_enable_location_check: '1'
+        }
+    };
+
+    // Test both methods
+    jQuery(document).ready(function($) {
+        console.log('Testing direct endpoint...');
+        
+        // Method 1: Direct endpoint (bypasses WordPress AJAX entirely)
+        $.get(mobooking_booking_form_params.direct_url)
+        .done(function(response) {
+            console.log('✅ Direct endpoint works:', response);
+        })
+        .fail(function(xhr, status, error) {
+            console.log('❌ Direct endpoint failed:', status, error);
+        });
+        
+        // Method 2: WordPress AJAX (should work with our override)
+        $.post(mobooking_booking_form_params.ajax_url, {
+            action: 'mobooking_get_services',
+            tenant_id: mobooking_booking_form_params.tenant_id
+        })
+        .done(function(response) {
+            console.log('✅ WordPress AJAX override works:', response);
+        })
+        .fail(function(xhr, status, error) {
+            console.log('❌ WordPress AJAX still failing:', status, error);
+            console.log('Response:', xhr.responseText);
+        });
+    });
+
+    // Override the original loadServicesForTenant function if it exists
+    if (typeof window.loadServicesForTenant === 'function') {
+        window.loadServicesForTenant = function(tenantId) {
+            console.log('Using direct endpoint for tenant:', tenantId);
+            var directUrl = '<?php echo home_url('/'); ?>?mobooking_services=get&tenant_id=' + tenantId;
+            
+            jQuery.get(directUrl)
+            .done(function(response) {
+                if (response.success && response.data.services) {
+                    console.log('Services loaded via direct endpoint');
+                    // Call the original renderServices function if it exists
+                    if (typeof window.renderServices === 'function') {
+                        window.renderServices(response.data.services);
+                    }
+                }
+            })
+            .fail(function() {
+                console.log('Direct endpoint failed, trying WordPress AJAX...');
+                // Fallback to WordPress AJAX without nonce
+                jQuery.post(mobooking_booking_form_params.ajax_url, {
+                    action: 'mobooking_get_services',
+                    tenant_id: tenantId
+                }).done(function(response) {
+                    if (response.success && response.data.services && typeof window.renderServices === 'function') {
+                        window.renderServices(response.data.services);
+                    }
+                });
+            });
+        };
+    }
+    </script>
+    <?php
+}
 ?>

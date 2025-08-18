@@ -54,7 +54,6 @@
       this.$statusFilter.on("change", () => this.handleStatusFilter());
       this.$sortFilter.on("change", () => this.handleSortFilter());
 
-
       // Service action events
       $(document).on("click", ".service-delete-btn", (e) =>
         this.handleDeleteService(e)
@@ -247,7 +246,6 @@
       this.fetchServices(1);
     }
 
-
     handleDeleteService(e) {
       e.preventDefault();
       const $btn = $(e.currentTarget);
@@ -256,7 +254,6 @@
 
       this.showDeleteConfirmation(serviceId, serviceName);
     }
-
 
     // API Methods
     fetchServices(page = 1) {
@@ -296,30 +293,34 @@
     }
 
     handleFetchSuccess(response) {
-        this.isLoading = false;
-        this.hideLoadingState();
+      this.isLoading = false;
+      this.hideLoadingState();
 
-        if (response.success && response.data) {
-            const { services } = response.data;
+      if (response.success && response.data) {
+        const { services } = response.data;
 
-            if (services && services.length > 0) {
-                const servicesHTML = services.map((service) => this.renderServiceCard(service)).join("");
-                this.$servicesListContainer.html(`<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="services-grid">${servicesHTML}</div>`);
-            } else {
-                const isFiltered = this.filters.search || this.filters.status;
-                this.renderEmptyState(isFiltered);
-            }
-
-            // Update URL without page refresh (if history API is available)
-            this.updateURL();
+        if (services && services.length > 0) {
+          const servicesHTML = services
+            .map((service) => this.renderServiceCard(service))
+            .join("");
+          this.$servicesListContainer.html(
+            `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="services-grid">${servicesHTML}</div>`
+          );
         } else {
-            this.showFeedback(
-                response.data?.message ||
-                "Failed to load services. Please try again.",
-                "error"
-            );
-            this.renderEmptyState();
+          const isFiltered = this.filters.search || this.filters.status;
+          this.renderEmptyState(isFiltered);
         }
+
+        // Update URL without page refresh (if history API is available)
+        this.updateURL();
+      } else {
+        this.showFeedback(
+          response.data?.message ||
+            "Failed to load services. Please try again.",
+          "error"
+        );
+        this.renderEmptyState();
+      }
     }
 
     handleFetchError(jqXHR, textStatus, errorThrown) {
@@ -334,7 +335,6 @@
         this.renderEmptyState();
       }
     }
-
 
     deleteService(serviceId) {
       const $btn = $("#confirm-delete-btn");
@@ -455,7 +455,6 @@
       $("#delete-confirmation-modal").hide();
     }
 
-
     updateURL() {
       if (history.pushState) {
         const url = new URL(window.location);
@@ -478,7 +477,6 @@
         history.pushState(null, "", url.toString());
       }
     }
-
 
     renderEmptyState(isFiltered = false) {
       const emptyStateHTML = isFiltered
