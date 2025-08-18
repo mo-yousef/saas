@@ -53,9 +53,7 @@ $total_pages = ceil($total_customers_count / $per_page);
             </span>
             <h1 class="page-title"><?php esc_html_e('Customers', 'mobooking'); ?></h1>
         </div>
-        <a href="#" id="mobooking-add-customer-btn" class="btn btn-primary">
-            <?php esc_html_e('Add Customer', 'mobooking'); ?>
-        </a>
+        
     </div>
 
     <!-- Debug Info (remove in production) -->
@@ -127,30 +125,31 @@ $total_pages = ceil($total_customers_count / $per_page);
         </div>
     </div>
 
-    <!-- Search and Controls -->
-    <div class="controls-section">
-        <div class="controls-row">
-            <form method="get" action="" class="search-form">
+    <!-- Search and Filters -->
+    <div class="mobooking-card mobooking-filters-wrapper">
+        <div class="mobooking-card-content">
+            <form id="mobooking-customers-filter-form" class="mobooking-filters-form" method="get" action="">
                 <input type="hidden" name="page" value="mobooking-customers">
+                <input type="hidden" name="paged" value="1">
                 <?php foreach ($_GET as $key => $value): ?>
-                    <?php if ($key !== 's' && $key !== 'page'): ?>
+                    <?php if ($key !== 's' && $key !== 'page' && $key !== 'paged'): ?>
                         <input type="hidden" name="<?php echo esc_attr($key); ?>" value="<?php echo esc_attr($value); ?>">
                     <?php endif; ?>
                 <?php endforeach; ?>
-                <input 
-                    type="text" 
-                    name="s" 
-                    class="search-input" 
-                    placeholder="<?php esc_attr_e('Search customers by name, email, or phone...', 'mobooking'); ?>"
-                    value="<?php echo esc_attr($search); ?>"
-                >
-                <button type="submit" class="btn btn-primary">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                    <?php esc_html_e('Search', 'mobooking'); ?>
-                </button>
+                <div class="mobooking-filters-main">
+                    <div class="mobooking-filter-item mobooking-filter-item-search">
+                        <label for="mobooking-customers-search-query"><?php esc_html_e('Search', 'mobooking'); ?></label>
+                        <input type="search" id="mobooking-customers-search-query" name="s" class="regular-text" placeholder="<?php esc_attr_e('Name, Email, Phone', 'mobooking'); ?>" value="<?php echo esc_attr($search); ?>">
+                    </div>
+                    <div class="mobooking-filter-actions">
+                        <button type="submit" class="btn btn-secondary" style="display:none;"><?php echo mobooking_get_feather_icon('filter'); ?> <?php esc_html_e('Filter', 'mobooking'); ?></button>
+                        <button type="button" id="mobooking-customers-clear-filters-btn" class="btn btn-outline" style="display: <?php echo empty($search) ? 'none' : 'inline-flex'; ?>;">
+                            <?php echo mobooking_get_feather_icon('x'); ?> <span class="btn-text"><?php esc_html_e('Clear', 'mobooking'); ?></span>
+                        </button>
+                    </div>
+                </div>
             </form>
-            
-            <div style="font-size: 0.875rem; color: hsl(var(--muted-foreground));">
+            <div style="font-size: 0.875rem; color: hsl(var(--muted-foreground)); margin-top: 0.25rem;">
                 <?php printf(__('Showing %d of %d customers', 'mobooking'), count($customers), $total_customers_count); ?>
             </div>
         </div>
@@ -279,8 +278,10 @@ $total_pages = ceil($total_customers_count / $per_page);
             </table>
         <?php else : ?>
             <div class="empty-state">
-                <div class="empty-icon">👥</div>
-                <h3 style="margin: 0 0 1rem 0; color: hsl(var(--foreground));">
+                <div class="empty-state-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                </div>
+                <h3>
                     <?php 
                     if (!empty($search)) {
                         esc_html_e('No customers found matching your search', 'mobooking');
@@ -289,7 +290,7 @@ $total_pages = ceil($total_customers_count / $per_page);
                     }
                     ?>
                 </h3>
-                <p style="margin: 0 0 1.5rem 0;">
+                <p>
                     <?php 
                     if (!empty($search)) {
                         printf(__('Try adjusting your search terms or <a href="%s">view all customers</a>.', 'mobooking'), 
@@ -299,11 +300,6 @@ $total_pages = ceil($total_customers_count / $per_page);
                     }
                     ?>
                 </p>
-                <?php if (empty($search)): ?>
-                <button class="add-btn" onclick="document.getElementById('mobooking-add-customer-btn').click()">
-                    ➕ <?php esc_html_e('Add Your First Customer', 'mobooking'); ?>
-                </button>
-                <?php endif; ?>
             </div>
         <?php endif; ?>
     </div>
@@ -378,18 +374,40 @@ $total_pages = ceil($total_customers_count / $per_page);
 
 <script>
 jQuery(document).ready(function($) {
-    // Add customer button functionality
-    $('#mobooking-add-customer-btn').on('click', function(e) {
-        e.preventDefault();
-        
-        // For now, show an alert. You can replace this with your add customer functionality
-        alert('<?php esc_js(__("Add customer functionality will be implemented here. You can create a modal form or redirect to an add customer page.", "mobooking")); ?>');
-        
-        // Example: Redirect to add customer page
-        // window.location.href = '<?php echo esc_url(admin_url("admin.php?page=mobooking-add-customer")); ?>';
-        
-        // Example: Open modal
-        // openAddCustomerModal();
+    // Debounced search behavior like Bookings page filters
+    function debounce(func, wait) {
+        let timeout;
+        return function() {
+            const context = this, args = arguments;
+            clearTimeout(timeout);
+            timeout = setTimeout(function() { func.apply(context, args); }, wait);
+        };
+    }
+
+    const $form = $('#mobooking-customers-filter-form');
+    const $search = $('#mobooking-customers-search-query');
+    const $clearBtn = $('#mobooking-customers-clear-filters-btn');
+
+    const submitForm = debounce(function() {
+        $form.find('input[name="paged"]').val('1');
+        $form.trigger('submit');
+    }, 500);
+
+    $search.on('keyup', function() {
+        const hasVal = $.trim($search.val()).length > 0;
+        $clearBtn.toggle(hasVal);
+        submitForm();
+    });
+
+    $form.on('submit', function(e) {
+        // Allow default GET submit
+    });
+
+    $clearBtn.on('click', function() {
+        $search.val('');
+        $form.find('input[name="paged"]').val('1');
+        $clearBtn.hide();
+        $form.trigger('submit');
     });
     
     // Auto-hide feedback messages

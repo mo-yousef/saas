@@ -53,7 +53,7 @@ $all_worker_roles = [
     </div>
 
     <!-- Add New Worker Section -->
-    <div class="mobooking-card">
+    <div class="mobooking-card card-bs">
         <div class="mobooking-card-header">
             <h2 class="mobooking-card-title">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -63,9 +63,6 @@ $all_worker_roles = [
                 </svg>
                 <?php esc_html_e( 'Add New Worker', 'mobooking' ); ?>
             </h2>
-            <p class="mobooking-card-description">
-                <?php esc_html_e( 'You can either invite a worker to create their own account, or manually add them with a defined password.', 'mobooking' ); ?>
-            </p>
         </div>
 
         <div class="mobooking-card-content">
@@ -302,7 +299,7 @@ $all_worker_roles = [
                         }
                         ?>
                         <div id="worker-card-<?php echo esc_attr( $worker->ID ); ?>" class="mobooking-worker-card">
-                            <div class="mobooking-card-content">
+                            <div class="mobooking-card-inner-content">
                                 <div class="mobooking-worker-info">
                                     <div class="mobooking-avatar">
                                         <?php echo get_avatar($worker->ID, 40, '', '', ['class' => 'mobooking-avatar-img']); ?>

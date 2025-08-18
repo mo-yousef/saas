@@ -261,28 +261,6 @@ input:checked + .slider:before {
   display: none;
 }
 
-/* Save Button */
-#mobooking-save-recurring-schedule-btn {
-  background-color: hsl(var(--primary));
-  color: hsl(var(--primary-foreground));
-  padding: 0.75rem 1.5rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  border-radius: var(--radius);
-  border: none;
-  cursor: pointer;
-  transition: background-color 0.2s;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-#mobooking-save-recurring-schedule-btn:hover {
-  background-color: hsl(var(--primary) / 0.9);
-}
-
-/* Old modal styles are removed. New styles are in dialog.css */
-
 /* Responsive adjustments */
 /* Floating Alert Styles */
 .mobooking-floating-alert {
@@ -318,10 +296,6 @@ input:checked + .slider:before {
 
   .mobooking-availability-page h1 {
     font-size: 1.75rem;
-  }
-
-  .mobooking-availability-page h2 {
-    font-size: 1.25rem;
   }
 
   .day-schedule {

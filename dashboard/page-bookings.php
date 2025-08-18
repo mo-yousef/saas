@@ -232,6 +232,22 @@ $booking_statuses = [
             width: 100%;
             display: none; /* Hidden by default */
         }
+        .mobooking-filters-secondary-inner {
+    display: flex
+;
+    gap: 1.5rem;
+}
+
+div#ui-datepicker-div {
+    background: #fff;
+    gap: 0.75rem;
+    background-color: var(--mobk-card);
+    border: 1px solid var(--mobk-border);
+    border-radius: var(--mobk-radius);
+    padding: 16px;
+}
+
+
         .mobooking-filter-actions {
             display: flex;
             gap: 0.5rem;
@@ -249,6 +265,7 @@ $booking_statuses = [
             height: 3rem;
             stroke-width: 1.5;
             color: #94a3b8;
+            margin-inline: auto;
             margin-bottom: 1rem;
         }
         .mobooking-no-results-message h4 {
@@ -292,40 +309,42 @@ $booking_statuses = [
                     </div>
                 </div>
                 <div class="mobooking-filters-secondary">
-                    <div class="mobooking-filter-item">
-                        <label for="mobooking-date-from-filter"><?php esc_html_e('From:', 'mobooking'); ?></label>
-                        <input type="text" id="mobooking-date-from-filter" name="date_from_filter" class="mobooking-datepicker regular-text" placeholder="YYYY-MM-DD">
-                    </div>
-                    <div class="mobooking-filter-item">
-                        <label for="mobooking-date-to-filter"><?php esc_html_e('To:', 'mobooking'); ?></label>
-                        <input type="text" id="mobooking-date-to-filter" name="date_to_filter" class="mobooking-datepicker regular-text" placeholder="YYYY-MM-DD">
-                    </div>
-                    <div class="mobooking-filter-item">
-                        <label for="mobooking-staff-filter"><?php esc_html_e('Staff:', 'mobooking'); ?></label>
-                        <select id="mobooking-staff-filter" name="staff_filter" class="mobooking-filter-select">
-                            <option value=""><?php esc_html_e('All Staff', 'mobooking'); ?></option>
-                            <option value="0"><?php esc_html_e('Unassigned', 'mobooking'); ?></option>
-                            <?php
-                            $owner_id_for_staff_filter = $current_user_id;
-                            if (class_exists('MoBooking\Classes\Auth') && \MoBooking\Classes\Auth::is_user_worker($current_user_id)) {
-                                $owner_id_for_staff_filter = \MoBooking\Classes\Auth::get_business_owner_id_for_worker($current_user_id);
-                            }
-
-                            if ($owner_id_for_staff_filter) {
-                                $staff_users = get_users([
-                                    'meta_key'   => \MoBooking\Classes\Auth::META_KEY_OWNER_ID,
-                                    'meta_value' => $owner_id_for_staff_filter,
-                                    'role__in'   => [\MoBooking\Classes\Auth::ROLE_WORKER_STAFF],
-                                    'orderby'    => 'display_name',
-                                    'order'      => 'ASC',
-                                ]);
-                                foreach ($staff_users as $staff_user) {
-                                    echo '<option value="' . esc_attr($staff_user->ID) . '">' . esc_html($staff_user->display_name) . '</option>';
+                    <div class="mobooking-filters-secondary-inner">
+                        <div class="mobooking-filter-item">
+                            <label for="mobooking-date-from-filter"><?php esc_html_e('From:', 'mobooking'); ?></label>
+                            <input type="text" id="mobooking-date-from-filter" name="date_from_filter" class="mobooking-datepicker regular-text" placeholder="YYYY-MM-DD">
+                        </div>
+                        <div class="mobooking-filter-item">
+                            <label for="mobooking-date-to-filter"><?php esc_html_e('To:', 'mobooking'); ?></label>
+                            <input type="text" id="mobooking-date-to-filter" name="date_to_filter" class="mobooking-datepicker regular-text" placeholder="YYYY-MM-DD">
+                        </div>
+                        <div class="mobooking-filter-item">
+                            <label for="mobooking-staff-filter"><?php esc_html_e('Staff:', 'mobooking'); ?></label>
+                            <select id="mobooking-staff-filter" name="staff_filter" class="mobooking-filter-select">
+                                <option value=""><?php esc_html_e('All Staff', 'mobooking'); ?></option>
+                                <option value="0"><?php esc_html_e('Unassigned', 'mobooking'); ?></option>
+                                <?php
+                                $owner_id_for_staff_filter = $current_user_id;
+                                if (class_exists('MoBooking\Classes\Auth') && \MoBooking\Classes\Auth::is_user_worker($current_user_id)) {
+                                    $owner_id_for_staff_filter = \MoBooking\Classes\Auth::get_business_owner_id_for_worker($current_user_id);
                                 }
-                            }
-                            ?>
-                        </select>
-                    </div>
+
+                                if ($owner_id_for_staff_filter) {
+                                    $staff_users = get_users([
+                                        'meta_key'   => \MoBooking\Classes\Auth::META_KEY_OWNER_ID,
+                                        'meta_value' => $owner_id_for_staff_filter,
+                                        'role__in'   => [\MoBooking\Classes\Auth::ROLE_WORKER_STAFF],
+                                        'orderby'    => 'display_name',
+                                        'order'      => 'ASC',
+                                    ]);
+                                    foreach ($staff_users as $staff_user) {
+                                        echo '<option value="' . esc_attr($staff_user->ID) . '">' . esc_html($staff_user->display_name) . '</option>';
+                                    }
+                                }
+                                ?>
+                            </select>
+                        </div>
+                    </div>  
                 </div>
             </form>
         </div>
