@@ -98,8 +98,14 @@ jQuery(document).ready(function($) {
                         let baseUrl = mobooking_bookings_params.bookings_page_url || 'admin.php?page=mobooking-bookings';
                         bookingDataForTemplate.details_page_url = baseUrl + '&action=view_booking&booking_id=' + booking.booking_id;
 
-                        // This is a placeholder for the icon HTML. A better way would be to pass this from PHP.
-                        bookingDataForTemplate.icon_html = '<svg class="feather" width="18" height="18"><circle cx="12" cy="12" r="10"></circle></svg>';
+                        bookingDataForTemplate.icon_html = mobooking_bookings_params.icons[booking.status] || '';
+
+                        bookingDataForTemplate.assigned_staff_name = booking.assigned_staff_name || (mobooking_bookings_params.i18n.unassigned || 'Unassigned');
+
+                        bookingDataForTemplate.delete_button_html = '';
+                        if (mobooking_dashboard_params && mobooking_dashboard_params.currentUserCanDeleteBookings) {
+                            bookingDataForTemplate.delete_button_html = `<button class="btn btn-destructive btn-sm mobooking-delete-booking-btn" data-booking-id="${booking.booking_id}">${mobooking_bookings_params.i18n.delete_btn_text || 'Delete'}</button>`;
+                        }
 
                         tableBody.append(renderTemplate(bookingItemTemplate, bookingDataForTemplate));
                     });
@@ -136,15 +142,37 @@ jQuery(document).ready(function($) {
         paginationContainer.html(paginationHtml);
     }
 
-    // Filter form submission
-    filterForm.on('submit', function(e) {
-        e.preventDefault();
+    // Debounce function
+    function debounce(func, wait) {
+        let timeout;
+        return function(...args) {
+            const context = this;
+            clearTimeout(timeout);
+            timeout = setTimeout(() => func.apply(context, args), wait);
+        };
+    }
+
+    // Function to update filters and load bookings
+    function applyFilters() {
         currentFilters.status_filter = $('#mobooking-status-filter').val();
         currentFilters.date_from_filter = $('#mobooking-date-from-filter').val();
         currentFilters.date_to_filter = $('#mobooking-date-to-filter').val();
         currentFilters.search_query = $('#mobooking-search-query').val();
-        currentFilters.assigned_staff_id_filter = $('#mobooking-staff-filter').val(); // Get staff filter value
-        loadBookings(1); // Reset to page 1 on new filter
+        currentFilters.assigned_staff_id_filter = $('#mobooking-staff-filter').val();
+        loadBookings(1);
+    }
+
+    // Event listeners for filters
+    const debouncedApplyFilters = debounce(applyFilters, 500); // 500ms delay
+
+    $('#mobooking-search-query').on('keyup', debouncedApplyFilters);
+    $('#mobooking-status-filter, #mobooking-staff-filter').on('change', applyFilters);
+    $('.mobooking-datepicker').on('change', applyFilters);
+
+    // Initial filter form submission is now handled by the change events, but we keep this for the submit button as a fallback.
+    filterForm.on('submit', function(e) {
+        e.preventDefault();
+        applyFilters();
     });
 
     // Clear filters
@@ -169,8 +197,8 @@ jQuery(document).ready(function($) {
     $('#mobooking-toggle-more-filters-btn').on('click', function() {
         const button = $(this);
         $('.mobooking-filters-secondary').slideToggle(function() {
-            const text = $(this).is(':visible') ? (mobooking_bookings_params.i18n.less_filters || 'Less Filters') : (mobooking_bookings_params.i18n.more_filters || 'More Filters');
-            button.text(text);
+            const text = $(this).is(':visible') ? (mobooking_bookings_params.i18n.less_filters || 'Less') : (mobooking_bookings_params.i18n.more_filters || 'More');
+            button.find('.btn-text').text(text);
         });
     });
 
