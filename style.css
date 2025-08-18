@@ -48,7 +48,7 @@ body {
 1.0 General Body & Typography
 --------------------------------------------------------------*/
 body {
-  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+  font-family: "Outfit", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
     Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue",
     sans-serif;
   font-size: 0.875rem;
@@ -142,7 +142,7 @@ a {
 
 a:hover,
 a:focus {
-  text-decoration: underline;
+  text-decoration: none;
 }
 
 /* Button Base Styles */
@@ -355,13 +355,12 @@ td {
 }
 
 thead th {
-  background-color: hsl(210 40% 98%);
-  font-weight: 600;
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: hsl(215.4 16.3% 46.9%);
-  border-bottom: 1px solid hsl(214.3 31.8% 91.4%);
+  background-color: hsl(210 40% 98%) !important;
+  font-weight: 600 !important;
+  font-size: 0.875rem !important;
+  letter-spacing: 0;
+  color: hsl(215.4 16.3% 46.9%) !important;
+  border-bottom: 1px solid hsl(214.3 31.8% 91.4%) !important;
 }
 
 tbody tr:hover {
@@ -408,7 +407,6 @@ tbody tr:hover {
 5.0 Basic Layout & Utility Classes
 --------------------------------------------------------------*/
 .wrap {
-  max-width: 68rem;
   margin: 0 auto;
   padding: 0rem;
 }

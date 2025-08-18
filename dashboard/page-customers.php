@@ -86,7 +86,7 @@ $total_pages = ceil($total_customers_count / $per_page);
                 </div>
             </div>
             <div class="mobooking-card-content">
-                <div class="text-3xl font-bold"><?php echo esc_html($kpi_data['total_customers']); ?></div>
+                <div class="card-content-value text-2xl font-bold"><?php echo esc_html($kpi_data['total_customers']); ?></div>
             </div>
         </div>
 
@@ -98,7 +98,7 @@ $total_pages = ceil($total_customers_count / $per_page);
                 </div>
             </div>
             <div class="mobooking-card-content">
-                <div class="text-3xl font-bold"><?php echo esc_html($kpi_data['new_customers_month']); ?></div>
+                <div class="card-content-value text-2xl font-bold"><?php echo esc_html($kpi_data['new_customers_month']); ?></div>
             </div>
         </div>
 
@@ -110,7 +110,7 @@ $total_pages = ceil($total_customers_count / $per_page);
                 </div>
             </div>
             <div class="mobooking-card-content">
-                <div class="text-3xl font-bold"><?php echo esc_html($kpi_data['active_customers']); ?></div>
+                <div class="card-content-value text-2xl font-bold"><?php echo esc_html($kpi_data['active_customers']); ?></div>
             </div>
         </div>
 
@@ -122,7 +122,7 @@ $total_pages = ceil($total_customers_count / $per_page);
                 </div>
             </div>
             <div class="mobooking-card-content">
-                <div class="text-3xl font-bold"><?php echo esc_html($currency_symbol . number_format($kpi_data['avg_order_value'] ?? 0, 2)); ?></div>
+                <div class="card-content-value text-2xl font-bold"><?php echo esc_html($currency_symbol . number_format($kpi_data['avg_order_value'] ?? 0, 2)); ?></div>
             </div>
         </div>
     </div>

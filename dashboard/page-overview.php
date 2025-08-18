@@ -320,11 +320,14 @@ $currency_symbol = get_option('mobooking_currency_symbol', '$');
                 <span class="mobooking-page-header-icon">
                     <?php echo mobooking_get_dashboard_menu_icon('overview'); ?>
                 </span>
-                <h1 class="dashboard-title"><?php esc_html_e('Dashboard Overview', 'mobooking'); ?></h1>
+                <div class="heading-wrapper">
+                    <h1 class="dashboard-title"><?php esc_html_e('Dashboard Overview', 'mobooking'); ?></h1>
+                    <p class="dashboard-subtitle">
+                        <?php printf(__('Welcome back, %s! Here\'s your business overview.', 'mobooking'), esc_html($user->display_name)); ?>
+                    </p>
+                </div>
             </div>
-            <p class="dashboard-subtitle">
-                <?php printf(__('Welcome back, %s! Here\'s your business overview.', 'mobooking'), esc_html($user->display_name)); ?>
-            </p>
+
         </div>
 
         <!-- KPI Widgets -->
@@ -337,7 +340,7 @@ $currency_symbol = get_option('mobooking_currency_symbol', '$');
                 </div>
             </div>
             <div class="mobooking-card-content">
-                <div class="text-3xl font-bold"><?php echo esc_html($total_bookings); ?></div>
+                <div class="card-content-value text-2xl font-bold"><?php echo esc_html($total_bookings); ?></div>
                 <p class="text-xs text-muted-foreground <?php echo $bookings_change[0] === '+' ? 'text-success' : 'text-destructive'; ?>">
                     <?php echo esc_html($bookings_change); ?> <?php esc_html_e('vs last month', 'mobooking'); ?>
                 </p>
@@ -352,7 +355,7 @@ $currency_symbol = get_option('mobooking_currency_symbol', '$');
                 </div>
             </div>
             <div class="mobooking-card-content">
-                <div class="text-3xl font-bold"><?php echo esc_html($currency_symbol . number_format($monthly_revenue, 2)); ?></div>
+                <div class="card-content-value text-2xl font-bold"><?php echo esc_html($currency_symbol . number_format($monthly_revenue, 2)); ?></div>
                 <p class="text-xs text-muted-foreground <?php echo $revenue_change[0] === '+' ? 'text-success' : 'text-destructive'; ?>">
                     <?php echo esc_html($revenue_change); ?> <?php esc_html_e('vs last month', 'mobooking'); ?>
                 </p>
@@ -367,7 +370,7 @@ $currency_symbol = get_option('mobooking_currency_symbol', '$');
                 </div>
             </div>
             <div class="mobooking-card-content">
-                <div class="text-3xl font-bold"><?php echo esc_html($completed_jobs); ?></div>
+                <div class="card-content-value text-2xl font-bold"><?php echo esc_html($completed_jobs); ?></div>
                 <p class="text-xs text-muted-foreground <?php echo $completed_change[0] === '+' ? 'text-success' : 'text-destructive'; ?>">
                     <?php echo esc_html($completed_change); ?> <?php esc_html_e('vs last month', 'mobooking'); ?>
                 </p>
@@ -382,7 +385,7 @@ $currency_symbol = get_option('mobooking_currency_symbol', '$');
                 </div>
             </div>
             <div class="mobooking-card-content">
-                <div class="text-3xl font-bold"><?php echo esc_html($new_customers); ?></div>
+                <div class="card-content-value text-2xl font-bold"><?php echo esc_html($new_customers); ?></div>
                 <p class="text-xs text-muted-foreground <?php echo $customers_change[0] === '+' ? 'text-success' : 'text-destructive'; ?>">
                     <?php echo esc_html($customers_change); ?> <?php esc_html_e('vs last month', 'mobooking'); ?>
                 </p>

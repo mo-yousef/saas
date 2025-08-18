@@ -9,65 +9,67 @@
    CSS Variables - shadcn/ui Design System
    ============================================================================ */
 :root {
-    /* Base Colors */
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+  /* Base Colors */
+  --background: 0 0% 100%;
+  --foreground: 222.2 84% 4.9%;
+  --card: 0 0% 100%;
+  --card-foreground: 222.2 84% 4.9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222.2 84% 4.9%;
 
-    /* Primary Colors */
-    --primary: 221.2 83.2% 53.3%;
-    --primary-foreground: 210 40% 98%;
+  /* Primary Colors */
+  --primary: 221.2 83.2% 53.3%;
+  --primary-foreground: 210 40% 98%;
 
-    /* Secondary Colors */
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 84% 4.9%;
+  /* Secondary Colors */
+  --secondary: 210 40% 96.1%;
+  --secondary-foreground: 222.2 84% 4.9%;
 
-    /* Muted Colors */
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+  /* Muted Colors */
+  --muted: 210 40% 96.1%;
+  --muted-foreground: 215.4 16.3% 46.9%;
 
-    /* Accent Colors */
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 84% 4.9%;
+  /* Accent Colors */
+  --accent: 210 40% 96.1%;
+  --accent-foreground: 222.2 84% 4.9%;
 
-    /* Destructive Colors */
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+  /* Destructive Colors */
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 210 40% 98%;
 
-    /* Border and Input */
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
+  /* Border and Input */
+  --border: 214.3 31.8% 91.4%;
+  --input: 214.3 31.8% 91.4%;
+  --ring: 221.2 83.2% 53.3%;
 
-    /* Chart Colors */
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
+  /* Chart Colors */
+  --chart-1: 12 76% 61%;
+  --chart-2: 173 58% 39%;
+  --chart-3: 197 37% 24%;
+  --chart-4: 43 74% 66%;
+  --chart-5: 27 87% 67%;
 
-    /* Radius */
-    --radius: 0.5rem;
+  /* Radius */
+  --radius: 0.5rem;
 
-    /* Typography */
-    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+  /* Typography */
+  --font-sans: "Outfit", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif !important;
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Consolas,
+    "Liberation Mono", Menlo, monospace;
 }
 
 /* ============================================================================
    Base Body Styling
    ============================================================================ */
 body {
-    font-family: var(--font-sans);
-    background-color: hsl(var(--background));
-    color: hsl(var(--foreground));
-    margin: 0;
-    line-height: 1.5;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+  font-family: var(--font-sans);
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  margin: 0;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* ============================================================================
@@ -76,571 +78,586 @@ body {
 
 /* Button Base */
 .btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    white-space: nowrap;
-    border-radius: calc(var(--radius) - 2px);
-    font-size: 0.875rem;
-    font-weight: 500;
-    transition: all 0.2s;
-    cursor: pointer;
-    border: 1px solid transparent;
-    text-decoration: none;
-    outline: none;
-    user-select: none;
-    -webkit-user-select: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  border-radius: calc(var(--radius) - 2px);
+  font-size: 0.875rem;
+  font-weight: 500;
+  gap: 8px;
+  transition: all 0.2s;
+  cursor: pointer;
+  border: 1px solid transparent;
+  text-decoration: none;
+  outline: none;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .btn:focus-visible {
-    outline: 2px solid hsl(var(--ring));
-    outline-offset: 2px;
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
 }
 
 .btn:disabled {
-    pointer-events: none;
-    opacity: 0.5;
+  pointer-events: none;
+  opacity: 0.5;
 }
 
 /* Button Variants */
 .btn-primary {
-    background-color: hsl(var(--primary));
-    color: hsl(var(--primary-foreground));
-    border-color: hsl(var(--primary));
+  background-color: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  border-color: hsl(var(--primary));
 }
 
 .btn-primary:hover {
-    background-color: hsl(var(--primary) / 0.9);
+  background-color: hsl(var(--primary) / 0.9);
 }
 
 .btn-secondary {
-    background-color: hsl(var(--secondary));
-    color: hsl(var(--secondary-foreground));
-    border-color: hsl(var(--border));
+  background-color: hsl(var(--secondary));
+  color: hsl(var(--secondary-foreground));
+  border-color: hsl(var(--border));
 }
 
 .btn-secondary:hover {
-    background-color: hsl(var(--secondary) / 0.8);
+  background-color: hsl(var(--secondary) / 0.8);
 }
 
 .btn-ghost {
-    background-color: transparent;
-    color: hsl(var(--foreground));
+  background-color: transparent;
+  color: hsl(var(--foreground));
 }
 
 .btn-ghost:hover {
-    background-color: hsl(var(--accent));
-    color: hsl(var(--accent-foreground));
+  background-color: hsl(var(--accent));
+  color: hsl(var(--accent-foreground));
 }
 
 /* Button Sizes */
 .btn-sm {
-    height: 2.25rem;
-    padding: 0 0.75rem;
-    font-size: 0.8125rem;
+  height: 2.25rem;
+  padding: 0 0.75rem;
+  font-size: 0.8125rem;
 }
 
 .btn-md {
-    height: 2.5rem;
-    padding: 0 1rem;
+  height: 2.5rem;
+  padding: 0 1rem;
 }
 
 .btn-lg {
-    height: 2.75rem;
-    padding: 0 2rem;
+  height: 2.75rem;
+  padding: 0 2rem;
 }
 
 /* Card Component */
 .card {
-    border-radius: var(--radius);
-    border: 1px solid hsl(var(--border));
-    background-color: hsl(var(--card));
-    color: hsl(var(--card-foreground));
-    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  border-radius: var(--radius);
+  border: 1px solid hsl(var(--border));
+  background-color: hsl(var(--card));
+  color: hsl(var(--card-foreground));
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
 }
 
 .card-header {
-    display: flex;
-    flex-direction: column;
-    space-y: 1.5;
-    padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  space-y: 1.5;
+  padding: 1.5rem;
 }
 
 .card-title {
-    font-size: 1.5rem;
-    font-weight: 600;
-    line-height: 1;
-    letter-spacing: -0.025em;
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.025em;
 }
 
 .card-description {
-    font-size: 0.875rem;
-    color: hsl(var(--muted-foreground));
+  font-size: 0.875rem;
+  color: hsl(var(--muted-foreground));
 }
 
 .card-content {
-    padding: 1.5rem;
-    padding-top: 0;
+  padding: 1.5rem;
+  padding-top: 0;
 }
 
 .card-footer {
-    display: flex;
-    align-items: center;
-    padding: 1.5rem;
-    padding-top: 0;
+  display: flex;
+  align-items: center;
+  padding: 1.5rem;
+  padding-top: 0;
 }
 
 /* Badge Component */
 .badge {
-    display: inline-flex;
-    align-items: center;
-    border-radius: 9999px;
-    padding: 0.25rem 0.625rem;
-    font-size: 0.75rem;
-    font-weight: 600;
-    line-height: 1;
-    transition: all 0.2s;
-    cursor: default;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 9999px;
+  padding: 0.25rem 0.625rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1;
+  transition: all 0.2s;
+  cursor: default;
 }
 
 .badge-default {
-    background-color: hsl(var(--primary));
-    color: hsl(var(--primary-foreground));
+  background-color: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
 }
 
 .badge-secondary {
-    background-color: hsl(var(--secondary));
-    color: hsl(var(--secondary-foreground));
+  background-color: hsl(var(--secondary));
+  color: hsl(var(--secondary-foreground));
 }
 
 .badge-outline {
-    color: hsl(var(--foreground));
-    border: 1px solid hsl(var(--border));
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--border));
 }
 
 /* ============================================================================
    Sidebar Base Structure
    ============================================================================ */
 .mobooking-dashboard-sidebar {
-    width: 280px;
-    background-color: hsl(var(--background));
-    border-right: 1px solid hsl(var(--border));
-    flex-shrink: 0;
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-    position: relative;
-    z-index: 100;
-    font-family: var(--font-sans);
+  width: 280px;
+  background-color: hsl(var(--background));
+  border-right: 1px solid hsl(var(--border));
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  position: relative;
+  z-index: 100;
+  font-family: var(--font-sans);
 }
 
 /* ============================================================================
    Sidebar Header/Branding
    ============================================================================ */
 .mobooking-dashboard-sidebar .dashboard-branding {
-    display: flex;
-    align-items: center;
-    padding: 1rem 1.5rem;
-    /* border-bottom: 1px solid hsl(var(--border)); */
-    background-color: hsl(var(--background));
+  display: flex;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  /* border-bottom: 1px solid hsl(var(--border)); */
+  background-color: hsl(var(--background));
 }
 
 .mobooking-dashboard-sidebar .dashboard-branding .logo-container {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }
 
 .mobooking-dashboard-sidebar .dashboard-branding .logo-icon {
-    width: 2rem;
-    height: 2rem;
-    background: linear-gradient(135deg, hsl(271 81% 56%), hsl(271 91% 65%));
-    border-radius: calc(var(--radius) - 2px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
+  width: 2rem;
+  height: 2rem;
+  background: linear-gradient(135deg, hsl(271 81% 56%), hsl(271 91% 65%));
+  border-radius: calc(var(--radius) - 2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
 .mobooking-dashboard-sidebar .dashboard-branding h3 {
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: hsl(var(--foreground));
-    margin: 0;
-    letter-spacing: -0.025em;
-    line-height: 1.6;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: hsl(var(--foreground));
+  margin: 0;
+  letter-spacing: -0.025em;
+  line-height: 1.6;
 }
 
 .mobooking-dashboard-sidebar .dashboard-branding a {
-    text-decoration: none;
-    color: inherit;
-    transition: opacity 0.2s;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
+  text-decoration: none;
+  color: inherit;
+  transition: opacity 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }
 
 .mobooking-dashboard-sidebar .dashboard-branding a:hover {
-    opacity: 0.8;
+  opacity: 0.8;
 }
 
 /* ============================================================================
    User Role Display
    ============================================================================ */
 .mobooking-dashboard-sidebar .dashboard-user-role {
-    padding: 0.75rem 1.5rem;
-    background-color: hsl(var(--muted));
-    border-bottom: 1px solid hsl(var(--border));
-    font-size: 0.8125rem;
-    font-weight: 500;
-    color: hsl(var(--muted-foreground));
-    text-transform: uppercase;
-    letter-spacing: 0.025em;
+  padding: 0.75rem 1.5rem;
+  background-color: hsl(var(--muted));
+  border-bottom: 1px solid hsl(var(--border));
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: hsl(var(--muted-foreground));
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
 }
 
 /* ============================================================================
    Navigation Container
    ============================================================================ */
 .mobooking-dashboard-sidebar .dashboard-nav {
-    flex-grow: 1;
-    padding: 1rem 0;
-    overflow-y: auto;
-    scrollbar-width: thin;
-    scrollbar-color: hsl(var(--border)) transparent;
+  flex-grow: 1;
+  padding: 1rem 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--border)) transparent;
 }
 
 .mobooking-dashboard-sidebar .dashboard-nav::-webkit-scrollbar {
-    width: 6px;
+  width: 6px;
 }
 
 .mobooking-dashboard-sidebar .dashboard-nav::-webkit-scrollbar-track {
-    background: transparent;
+  background: transparent;
 }
 
 .mobooking-dashboard-sidebar .dashboard-nav::-webkit-scrollbar-thumb {
-    background: hsl(var(--border));
-    border-radius: 3px;
+  background: hsl(var(--border));
+  border-radius: 3px;
 }
 
 .mobooking-dashboard-sidebar .dashboard-nav::-webkit-scrollbar-thumb:hover {
-    background: hsl(var(--muted-foreground));
+  background: hsl(var(--muted-foreground));
 }
 
 /* ============================================================================
    Navigation Groups
    ============================================================================ */
 .mobooking-dashboard-sidebar .dashboard-nav .nav-group {
-    margin-bottom: 1.5rem;
+  margin-bottom: 1.5rem;
 }
 
 .mobooking-dashboard-sidebar .dashboard-nav .nav-group:last-child {
-    margin-bottom: 0;
+  margin-bottom: 0;
 }
 
 .mobooking-dashboard-sidebar .dashboard-nav .nav-group-title {
-    font-size: 0.8125rem;
-    font-weight: 600;
-    color: hsl(var(--muted-foreground));
-    text-transform: uppercase;
-    letter-spacing: 0.025em;
-    padding: 0 1.5rem 0.5rem;
-    margin-bottom: 0.25rem;
-    line-height: 1.5;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: hsl(var(--muted-foreground));
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+  padding: 0 1.5rem 0.5rem;
+  margin-bottom: 0.25rem;
+  line-height: 1.5;
 }
 
 /* ============================================================================
    Navigation Lists and Items
    ============================================================================ */
 .mobooking-dashboard-sidebar .dashboard-nav ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 0.125rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
 }
 
 .mobooking-dashboard-sidebar .dashboard-nav li {
-    position: relative;
-    padding: 0 0.75rem;
+  position: relative;
+  padding: 0 0.75rem;
 }
 
 /* ============================================================================
    Navigation Links - shadcn/ui Button Style
    ============================================================================ */
 .mobooking-dashboard-sidebar .dashboard-nav li a {
-    display: flex;
-    align-items: center;
-    width: 100%;
-    padding: 0.625rem 0.75rem;
-    text-decoration: none;
-    color: hsl(var(--muted-foreground));
-    font-size: 0.875rem;
-    font-weight: 600;
-    line-height: 1.25;
-    border-radius: calc(var(--radius) - 2px);
-    transition: all 0.2s;
-    gap: 0.75rem;
-    position: relative;
-    cursor: pointer;
-    border: 1px solid transparent;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 0.625rem 0.75rem;
+  text-decoration: none;
+  color: hsl(var(--muted-foreground));
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.25;
+  border-radius: calc(var(--radius) - 2px);
+  transition: all 0.2s;
+  gap: 0.75rem;
+  position: relative;
+  cursor: pointer;
+  border: 1px solid transparent;
 }
 
 .mobooking-dashboard-sidebar .dashboard-nav li a:hover {
-    background-color: hsl(var(--accent));
-    color: hsl(var(--accent-foreground));
+  background-color: hsl(var(--accent));
+  color: hsl(var(--accent-foreground));
 }
 
 .mobooking-dashboard-sidebar .dashboard-nav li a:focus-visible {
-    outline: 2px solid hsl(var(--ring));
-    outline-offset: 2px;
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
 }
 
 /* ============================================================================
    Active Navigation State
    ============================================================================ */
 .mobooking-dashboard-sidebar .dashboard-nav li.active a {
-    background-color: hsl(var(--primary));
-    color: hsl(var(--primary-foreground));
-    font-weight: 600;
+  background-color: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  font-weight: 600;
 }
 
 .mobooking-dashboard-sidebar .dashboard-nav li.active a:hover {
-    background-color: hsl(var(--primary) / 0.9);
-    color: hsl(var(--primary-foreground));
+  background-color: hsl(var(--primary) / 0.9);
+  color: hsl(var(--primary-foreground));
 }
 
 /* ============================================================================
    Navigation Icons
    ============================================================================ */
 .mobooking-dashboard-sidebar .mobooking-menu-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 1.25rem;
-    height: 1.25rem;
-    flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
 }
 
 .mobooking-dashboard-sidebar .mobooking-menu-icon svg {
-    width: 1.25rem;
-    height: 1.25rem;
-    transition: all 0.2s;
+  width: 1.25rem;
+  height: 1.25rem;
+  transition: all 0.2s;
 }
 
 .mobooking-dashboard-sidebar .dashboard-nav li a .mobooking-menu-icon svg {
-    color: hsl(var(--muted-foreground));
+  color: hsl(var(--muted-foreground));
 }
 
-.mobooking-dashboard-sidebar .dashboard-nav li a:hover .mobooking-menu-icon svg {
-    color: hsl(var(--accent-foreground));
+.mobooking-dashboard-sidebar
+  .dashboard-nav
+  li
+  a:hover
+  .mobooking-menu-icon
+  svg {
+  color: hsl(var(--accent-foreground));
 }
 
-.mobooking-dashboard-sidebar .dashboard-nav li.active a .mobooking-menu-icon svg {
-    color: hsl(var(--primary-foreground));
+.mobooking-dashboard-sidebar
+  .dashboard-nav
+  li.active
+  a
+  .mobooking-menu-icon
+  svg {
+  color: hsl(var(--primary-foreground));
 }
 
 /* ============================================================================
    Navigation Badges
    ============================================================================ */
 .mobooking-dashboard-sidebar .nav-badge {
-    margin-left: auto;
-    background-color: hsl(var(--secondary));
-    color: hsl(var(--secondary-foreground));
-    font-size: 0.75rem;
-    font-weight: 600;
-    padding: 0.125rem 0.5rem;
-    border-radius: 9999px;
-    min-width: 1.25rem;
-    height: 1.25rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    line-height: 1;
+  margin-left: auto;
+  background-color: hsl(var(--secondary));
+  color: hsl(var(--secondary-foreground));
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
 }
 
 .mobooking-dashboard-sidebar .dashboard-nav li.active a .nav-badge {
-    background-color: hsl(var(--primary-foreground));
-    color: hsl(var(--primary));
+  background-color: hsl(var(--primary-foreground));
+  color: hsl(var(--primary));
 }
 
 /* ============================================================================
    Subscription Plan Card
    ============================================================================ */
 .mobooking-subscription-plan {
-    padding: 1.5rem;
-    margin-top: auto;
-    border-top: 1px solid hsl(var(--border));
-    background-color: hsl(var(--background));
+  padding: 1.5rem;
+  margin-top: auto;
+  border-top: 1px solid hsl(var(--border));
+  background-color: hsl(var(--background));
 }
 
 .mobooking-subscription-plan-box {
-    border-radius: var(--radius);
-    border: 1px solid hsl(var(--border));
-    background-color: hsl(var(--card));
-    padding: 1rem;
-    text-align: center;
-    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  border-radius: var(--radius);
+  border: 1px solid hsl(var(--border));
+  background-color: hsl(var(--card));
+  padding: 1rem;
+  text-align: center;
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
 }
 
 .mobooking-subscription-plan-box h4 {
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: hsl(var(--card-foreground));
-    margin: 0 0 0.5rem;
-    line-height: 1.25;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: hsl(var(--card-foreground));
+  margin: 0 0 0.5rem;
+  line-height: 1.25;
 }
 
 .mobooking-subscription-plan-box p {
-    font-size: 0.8125rem;
-    color: hsl(var(--muted-foreground));
-    margin: 0 0 1rem;
-    line-height: 1.4;
+  font-size: 0.8125rem;
+  color: hsl(var(--muted-foreground));
+  margin: 0 0 1rem;
+  line-height: 1.4;
 }
 
 .mobooking-subscription-plan-box .mobooking-btn {
-    width: 100%;
-    height: 2.25rem;
-    padding: 0 0.75rem;
-    font-size: 0.8125rem;
-    font-weight: 500;
-    border-radius: calc(var(--radius) - 2px);
-    background: linear-gradient(135deg, hsl(271 81% 56%), hsl(271 91% 65%));
-    color: hsl(var(--primary-foreground));
-    border: 1px solid transparent;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s;
-    cursor: pointer;
+  width: 100%;
+  height: 2.25rem;
+  padding: 0 0.75rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  border-radius: calc(var(--radius) - 2px);
+  background: linear-gradient(135deg, hsl(271 81% 56%), hsl(271 91% 65%));
+  color: hsl(var(--primary-foreground));
+  border: 1px solid transparent;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  cursor: pointer;
 }
 
 .mobooking-subscription-plan-box .mobooking-btn:hover {
-    background: linear-gradient(135deg, hsl(271 81% 56% / 0.9), hsl(271 91% 65% / 0.9));
-    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  background: linear-gradient(
+    135deg,
+    hsl(271 81% 56% / 0.9),
+    hsl(271 91% 65% / 0.9)
+  );
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
 }
 
 .mobooking-subscription-plan-box .mobooking-btn:focus-visible {
-    outline: 2px solid hsl(var(--ring));
-    outline-offset: 2px;
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
 }
 
 .mobooking-subscription-plan-box .mobooking-btn:active {
-    transform: scale(0.98);
+  transform: scale(0.98);
 }
 
 /* ============================================================================
    Mobile Responsive Design
    ============================================================================ */
 @media (max-width: 768px) {
-    .mobooking-dashboard-sidebar {
-        position: fixed;
-        left: -280px;
-        top: 0;
-        height: 100vh;
-        width: 280px;
-        z-index: 1000;
-        transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-    }
+  .mobooking-dashboard-sidebar {
+    position: fixed;
+    left: -280px;
+    top: 0;
+    height: 100vh;
+    width: 280px;
+    z-index: 1000;
+    transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1),
+      0 4px 6px -4px rgb(0 0 0 / 0.1);
+  }
 
-    .mobooking-dashboard-sidebar.open {
-        left: 0;
-    }
+  .mobooking-dashboard-sidebar.open {
+    left: 0;
+  }
 
-    /* Enhanced touch targets */
-    .mobooking-dashboard-sidebar .dashboard-nav li a {
-        padding: 0.75rem;
-        min-height: 2.75rem;
-    }
+  /* Enhanced touch targets */
+  .mobooking-dashboard-sidebar .dashboard-nav li a {
+    padding: 0.75rem;
+    min-height: 2.75rem;
+  }
 
-    .mobooking-dashboard-sidebar .dashboard-branding {
-        padding: 1rem 1.5rem;
-    }
+  .mobooking-dashboard-sidebar .dashboard-branding {
+    padding: 1rem 1.5rem;
+  }
 }
 
 /* ============================================================================
    Tablet Responsive Design
    ============================================================================ */
 @media (max-width: 1024px) and (min-width: 769px) {
-    .mobooking-dashboard-sidebar {
-        width: 260px;
-    }
+  .mobooking-dashboard-sidebar {
+    width: 260px;
+  }
 
-    .mobooking-dashboard-sidebar .dashboard-nav li {
-        padding: 0 0.5rem;
-    }
+  .mobooking-dashboard-sidebar .dashboard-nav li {
+    padding: 0 0.5rem;
+  }
 
-    .mobooking-subscription-plan {
-        padding: 1rem;
-    }
+  .mobooking-subscription-plan {
+    padding: 1rem;
+  }
 }
 
 /* ============================================================================
    Dark Mode Support (if needed)
    ============================================================================ */
 @media (prefers-color-scheme: dark) {
-    :root {
-        --background: 222.2 84% 4.9%;
-        --foreground: 210 40% 98%;
-        --card: 222.2 84% 4.9%;
-        --card-foreground: 210 40% 98%;
-        --popover: 222.2 84% 4.9%;
-        --popover-foreground: 210 40% 98%;
-        --primary: 210 40% 98%;
-        --primary-foreground: 222.2 84% 4.9%;
-        --secondary: 217.2 32.6% 17.5%;
-        --secondary-foreground: 210 40% 98%;
-        --muted: 217.2 32.6% 17.5%;
-        --muted-foreground: 215 20.2% 65.1%;
-        --accent: 217.2 32.6% 17.5%;
-        --accent-foreground: 210 40% 98%;
-        --destructive: 0 62.8% 30.6%;
-        --destructive-foreground: 210 40% 98%;
-        --border: 217.2 32.6% 17.5%;
-        --input: 217.2 32.6% 17.5%;
-        --ring: 212.7 26.8% 83.9%;
-    }
+  :root {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 84% 4.9%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+  }
 }
 
 /* ============================================================================
    Accessibility Enhancements
    ============================================================================ */
 @media (prefers-reduced-motion: reduce) {
-
-    .mobooking-dashboard-sidebar,
-    .mobooking-dashboard-sidebar *,
-    .mobooking-dashboard-sidebar *::before,
-    .mobooking-dashboard-sidebar *::after {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
-    }
+  .mobooking-dashboard-sidebar,
+  .mobooking-dashboard-sidebar *,
+  .mobooking-dashboard-sidebar *::before,
+  .mobooking-dashboard-sidebar *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 /* Focus management for keyboard navigation */
 .mobooking-dashboard-sidebar a:focus-visible,
 .mobooking-dashboard-sidebar button:focus-visible {
-    outline: 2px solid hsl(var(--ring));
-    outline-offset: 2px;
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
 }
 
 /* High contrast mode support */
 @media (prefers-contrast: high) {
-    .mobooking-dashboard-sidebar {
-        border-right: 2px solid hsl(var(--border));
-    }
+  .mobooking-dashboard-sidebar {
+    border-right: 2px solid hsl(var(--border));
+  }
 
-    .mobooking-dashboard-sidebar .dashboard-nav li a {
-        border: 1px solid transparent;
-    }
+  .mobooking-dashboard-sidebar .dashboard-nav li a {
+    border: 1px solid transparent;
+  }
 
-    .mobooking-dashboard-sidebar .dashboard-nav li a:hover {
-        border-color: hsl(var(--border));
-    }
+  .mobooking-dashboard-sidebar .dashboard-nav li a:hover {
+    border-color: hsl(var(--border));
+  }
 
-    .mobooking-dashboard-sidebar .dashboard-nav li.active a {
-        border-color: hsl(var(--primary));
-    }
+  .mobooking-dashboard-sidebar .dashboard-nav li.active a {
+    border-color: hsl(var(--primary));
+  }
 }

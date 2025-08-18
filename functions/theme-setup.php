@@ -64,7 +64,7 @@ function mobooking_scripts() {
     ];
 
     // Enqueue Google Fonts
-    wp_enqueue_style( 'mobooking-inter-font', 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap', array(), null );
+    wp_enqueue_style( 'mobooking-inter-font', 'https://fonts.googleapis.com/css2?family=Outfit:wght@100;200;300;400;500;600;700;800;900&display=swap', array(), null );
 
     // Enqueue CSS Reset first
     wp_enqueue_style( 'mobooking-reset', MOBOOKING_THEME_URI . 'assets/css/reset.css', array(), MOBOOKING_VERSION );

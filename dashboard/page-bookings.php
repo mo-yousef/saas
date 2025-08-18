@@ -174,7 +174,7 @@ $booking_statuses = [
                 </div>
             </div>
             <div class="mobooking-card-content">
-                <div class="text-3xl font-bold"><?php echo esc_html($kpi_data['bookings_month']); ?></div>
+                <div class="card-content-value text-2xl font-bold"><?php echo esc_html($kpi_data['bookings_month']); ?></div>
             </div>
         </div>
 
@@ -187,7 +187,7 @@ $booking_statuses = [
                 </div>
             </div>
             <div class="mobooking-card-content">
-                <div class="text-3xl font-bold"><?php echo esc_html($currency_symbol . number_format_i18n(floatval($kpi_data['revenue_month']), 2)); ?></div>
+                <div class="card-content-value text-2xl font-bold"><?php echo esc_html($currency_symbol . number_format_i18n(floatval($kpi_data['revenue_month']), 2)); ?></div>
             </div>
         </div>
         <?php endif; ?>
@@ -200,7 +200,7 @@ $booking_statuses = [
                 </div>
             </div>
             <div class="mobooking-card-content">
-                <div class="text-3xl font-bold"><?php echo esc_html($kpi_data['upcoming_count']); ?></div>
+                <div class="card-content-value text-2xl font-bold"><?php echo esc_html($kpi_data['upcoming_count']); ?></div>
             </div>
         </div>
     </div>
