@@ -146,9 +146,90 @@
     color: var(--mobk-muted-foreground);
 }
 
+.key-info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+    padding-bottom: 1.5rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid var(--mobk-border);
+}
+
+.key-info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.key-info-label {
+    font-size: 0.8125rem;
+    color: var(--mobk-muted-foreground);
+}
+
+.key-info-value {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--mobk-foreground);
+}
+
+.upcoming-appointment-details {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.5rem;
+    padding: 1rem;
+    background-color: var(--mobk-muted);
+    border-radius: var(--mobk-radius);
+}
+
+.upcoming-date {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--mobk-foreground);
+}
+
+.upcoming-time {
+    font-size: 1rem;
+    color: var(--mobk-muted-foreground);
+    margin-top: -0.5rem;
+}
+
 /* Responsive adjustments */
 @media (max-width: 960px) {
     .customer-details-grid {
         grid-template-columns: 1fr;
     }
+}
+
+/* Edit Form Styles */
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.form-group.form-group-full {
+    grid-column: 1 / -1;
+}
+
+.form-group label {
+    font-weight: 500;
+    font-size: 0.875rem;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--mobk-border);
+    border-radius: var(--mobk-radius);
+    background-color: var(--mobk-input);
+    color: var(--mobk-foreground);
 }
