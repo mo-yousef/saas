@@ -44,7 +44,7 @@ if ( ! $customer ) {
 }
 
 // Get booking history
-$bookings = $customers_manager->get_booking_overview($customer_id, $tenant_id);
+$bookings = $customers_manager->get_customer_bookings($customer_id, $tenant_id);
 
 ?>
 <div class="wrap mobooking-dashboard-wrap mobooking-customer-details-page">
