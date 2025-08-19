@@ -747,6 +747,37 @@ function mobooking_corrected_column_booking_handler() {
         $booking_id = $wpdb->insert_id;
         error_log('MoBooking Corrected Handler - Booking created successfully: ' . $booking_id);
 
+        // Create or update customer
+        if (class_exists('MoBooking\Classes\Customers')) {
+            $customers_manager = new \MoBooking\Classes\Customers();
+            $customer_data_for_manager = [
+                'full_name' => $customer_details['name'] ?? '',
+                'email' => $customer_details['email'] ?? '',
+                'phone_number' => $customer_details['phone'] ?? '',
+                'address_line_1' => $customer_details['address'] ?? '',
+            ];
+
+            $mob_customer_id = $customers_manager->create_or_update_customer_for_booking(
+                $tenant_id,
+                $customer_data_for_manager
+            );
+
+            if (!is_wp_error($mob_customer_id) && $mob_customer_id > 0) {
+                $customers_manager->update_customer_booking_stats($mob_customer_id, $booking_data['created_at']);
+
+                // Link customer to booking
+                $wpdb->update(
+                    $bookings_table,
+                    ['mob_customer_id' => $mob_customer_id],
+                    ['booking_id' => $booking_id],
+                    ['%d'],
+                    ['%d']
+                );
+            } else if (is_wp_error($mob_customer_id)) {
+                error_log("MoBooking Corrected Handler - Error creating/updating customer: " . $mob_customer_id->get_error_message());
+            }
+        }
+
         // Insert booking items with selected options for detailed display
 		$items_table = \MoBooking\Classes\Database::get_table_name('booking_items');
 		foreach ($valid_services as $vs) {
