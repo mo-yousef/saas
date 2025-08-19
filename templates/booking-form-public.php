@@ -1651,7 +1651,7 @@ function loadServices() {
     if (!container) return;
     
     const data = new FormData();
-    data.append('action', 'mobooking_get_services');
+    data.append('action', 'mobooking_get_public_services');
     data.append('nonce', MoBookingConfig.nonce);
     data.append('tenant_id', MoBookingConfig.tenant_id);
     
@@ -1661,8 +1661,8 @@ function loadServices() {
     })
     .then(response => response.json())
     .then(result => {
-        if (result.success && result.data) {
-            renderServices(result.data);
+        if (result.success && result.data && typeof result.data.services !== 'undefined') {
+            renderServices(result.data.services);
         } else {
             container.innerHTML = `
                 <div class="mobooking-feedback error" style="display: block;">
