@@ -416,18 +416,24 @@ $currency_symbol = get_option('mobooking_currency_symbol', '$');
                             $status_icon_html = function_exists('mobooking_get_status_badge_icon_svg') ? mobooking_get_status_badge_icon_svg($status_val) : '';
                         ?>
                             <a href="<?php echo esc_url($details_page_url); ?>" class="booking-item-link">
-                                <div class="booking-item">
-                                    <div class="booking-header">
-                                        <span class="booking-customer"><?php echo esc_html($booking['customer_name']); ?></span>
+                                <div class="booking-item compact">
+                                    <div class="booking-item-main">
+                                        <div class="booking-item-icon">
+                                            <?php echo mobooking_get_icon_svg('user'); ?>
+                                        </div>
+                                        <div class="booking-item-details">
+                                            <span class="booking-customer"><?php echo esc_html($booking['customer_name']); ?></span>
+                                            <div class="booking-meta">
+                                                <span><?php echo mobooking_get_icon_svg('calendar'); ?> <?php echo esc_html(date('M j, Y', strtotime($booking['booking_date']))); ?></span>
+                                                <span><?php echo mobooking_get_icon_svg('dollar-sign'); ?> <?php echo esc_html(number_format($booking['total_price'], 2)); ?></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="booking-item-status">
                                         <span class="status-badge status-<?php echo esc_attr($status_val); ?>">
                                             <?php echo $status_icon_html; ?>
                                             <span class="status-text"><?php echo esc_html($status_display); ?></span>
                                         </span>
-                                    </div>
-                                    <div class="booking-details">
-                                        <div><?php echo esc_html($booking['customer_email']); ?></div>
-                                        <div><?php echo esc_html(date('M j, Y', strtotime($booking['booking_date']))); ?> at <?php echo esc_html($booking['booking_time']); ?></div>
-                                        <div><?php echo esc_html($currency_symbol . number_format($booking['total_price'], 2)); ?> • <?php esc_html_e('Staff:', 'mobooking'); ?> <?php echo esc_html($booking['assigned_staff_name']); ?></div>
                                     </div>
                                 </div>
                             </a>
