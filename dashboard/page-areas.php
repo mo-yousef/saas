@@ -30,7 +30,7 @@ $current_user_id = get_current_user_id();
 
     <div class="mobooking-dashboard-content">
         <!-- City Selection Card -->
-        <div class="mobooking-card">
+        <div class="mobooking-card card-bs">
             <div class="mobooking-card-header">
                 <h3 class="mobooking-card-title">
                     <?php esc_html_e('Select Swedish Cities', 'mobooking'); ?>
