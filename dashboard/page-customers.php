@@ -20,7 +20,9 @@ $tenant_id = \MoBooking\Classes\Auth::get_effective_tenant_id_for_user($current_
 
 // Initial data for KPI cards
 $kpi_data = $customers_manager->get_kpi_data($tenant_id);
-$currency_symbol = \MoBooking\Classes\Utils::get_currency_symbol();
+$settings_manager = new \MoBooking\Classes\Settings();
+$currency_code = $settings_manager->get_setting($tenant_id, 'biz_currency_code', 'USD');
+$currency_symbol = \MoBooking\Classes\Utils::get_currency_symbol($currency_code);
 
 // Initial load of customers
 $initial_customers_args = [
