@@ -578,7 +578,16 @@ foreach ($calculated_service_items as $service_item) {
                     error_log("MoBooking: Error updating customer stats: " . $e->getMessage());
                 }
             }
-            $booking_data['mob_customer_id'] = is_wp_error($mob_customer_id) ? null : $mob_customer_id;
+
+            if (!is_wp_error($mob_customer_id) && $mob_customer_id > 0) {
+                $this->wpdb->update(
+                    $bookings_table,
+                    ['mob_customer_id' => $mob_customer_id],
+                    ['booking_id' => $new_booking_id],
+                    ['%d'],
+                    ['%d']
+                );
+            }
 
             // Update discount usage
             if ($validated_discount_info && isset($validated_discount_info['discount_id'])) {
