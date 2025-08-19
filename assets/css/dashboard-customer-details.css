@@ -76,6 +76,38 @@
     line-height: 1.5;
 }
 
+.mobooking-stats-list {
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.mobooking-stats-list div {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.875rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--mobk-border);
+}
+
+.mobooking-stats-list div:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.mobooking-stats-list dt {
+    color: var(--mobk-muted-foreground);
+}
+
+.mobooking-stats-list dd {
+    font-weight: 600;
+    color: var(--mobk-foreground);
+    margin: 0;
+}
+
 .text-muted {
     color: var(--mobk-muted-foreground);
 }
