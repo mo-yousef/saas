@@ -222,7 +222,7 @@ if ( ! empty( $bookings ) ) {
             <div class="mobooking-card">
                 <div class="mobooking-card-header">
                     <h3 class="mobooking-card-title"><?php esc_html_e('Notes', 'mobooking'); ?></h3>
-                    <button id="mobooking-add-note-btn" class="btn btn-outline btn-sm"><?php esc_html_e('Add Note', 'mobooking'); ?></button>
+                    <button id="mobooking-add-note-btn" class="btn btn-outline btn-sm" data-customer-id="<?php echo esc_attr($customer_id); ?>"><?php esc_html_e('Add Note', 'mobooking'); ?></button>
                 </div>
                 <div class="mobooking-card-content">
                     <div id="customer-notes-content">
