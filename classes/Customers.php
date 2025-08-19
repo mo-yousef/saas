@@ -227,18 +227,11 @@ class Customers {
      * @return int|WP_Error The customer ID (new or existing) or WP_Error on failure.
      */
     public function create_or_update_customer_for_booking($tenant_id, $customer_data) {
-        error_log('[MoBooking Debug] Starting create_or_update_customer_for_booking');
-        error_log('[MoBooking Debug] Tenant ID: ' . print_r($tenant_id, true));
-        error_log('[MoBooking Debug] Customer Data: ' . print_r($customer_data, true));
-
         if (empty($tenant_id) || empty($customer_data['email']) || empty($customer_data['full_name'])) {
-            error_log('[MoBooking Debug] Validation failed: Missing tenant_id, email, or full_name.');
             return new \WP_Error('missing_data', __('Tenant ID, customer email, and full name are required.', 'mobooking'));
         }
 
         $email = sanitize_email($customer_data['email']);
-        error_log('[MoBooking Debug] Sanitized Email: ' . $email);
-
         $existing_customer = $this->db->get_row(
             $this->db->prepare(
                 "SELECT id FROM {$this->table_name} WHERE tenant_id = %d AND email = %s",
@@ -246,12 +239,6 @@ class Customers {
                 $email
             )
         );
-
-        if ($existing_customer) {
-            error_log('[MoBooking Debug] Existing customer found with ID: ' . $existing_customer->id);
-        } else {
-            error_log('[MoBooking Debug] No existing customer found. A new one will be created.');
-        }
 
         $data_to_save = [
             'tenant_id' => $tenant_id,
@@ -273,34 +260,28 @@ class Customers {
             $data_format[] = '%d';
         }
 
-        error_log('[MoBooking Debug] Data to save: ' . print_r($data_to_save, true));
 
         if ($existing_customer) {
             // Update existing customer
-            error_log('[MoBooking Debug] Updating existing customer record.');
-            $result = $this->db->update($this->table_name, $data_to_save, ['id' => $existing_customer->id], $data_format, ['%d']);
-
-            if ($result === false) {
-                error_log('[MoBooking Debug] DB Update Error: ' . $this->db->last_error);
+            $this->db->update($this->table_name, $data_to_save, ['id' => $existing_customer->id], $data_format, ['%d']);
+            if ($this->db->last_error) {
+                error_log("MoBooking DB Error (update_customer): " . $this->db->last_error);
                 return new \WP_Error('db_error', __('Error updating customer.', 'mobooking'));
             }
-            error_log('[MoBooking Debug] Customer update successful. Rows affected: ' . $result);
             return $existing_customer->id;
         } else {
             // Create new customer
+            // Add default status and created_at for new entries
             $data_to_save['status'] = 'active';
             $data_format[] = '%s';
+            // created_at is handled by DB default
 
-            error_log('[MoBooking Debug] Inserting new customer record.');
-            $result = $this->db->insert($this->table_name, $data_to_save, $data_format);
-
-            if ($result === false) {
-                error_log('[MoBooking Debug] DB Insert Error: ' . $this->db->last_error);
+            $this->db->insert($this->table_name, $data_to_save, $data_format);
+            if ($this->db->last_error) {
+                error_log("MoBooking DB Error (insert_customer): " . $this->db->last_error);
                 return new \WP_Error('db_error', __('Error creating customer.', 'mobooking'));
             }
-            $new_customer_id = $this->db->insert_id;
-            error_log('[MoBooking Debug] New customer created successfully with ID: ' . $new_customer_id);
-            return $new_customer_id;
+            return $this->db->insert_id;
         }
     }
 

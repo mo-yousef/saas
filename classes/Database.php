@@ -156,6 +156,7 @@ class Database {
             zip_code VARCHAR(20),
             booking_date DATE NOT NULL,
             booking_time TIME NOT NULL,
+            total_duration INT,
             special_instructions TEXT,
             total_price DECIMAL(10,2) NOT NULL,
             discount_id BIGINT UNSIGNED,

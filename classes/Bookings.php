@@ -424,6 +424,7 @@ private function verify_database_tables() {
             // Validate and process services
             $calculated_service_items = [];
             $subtotal_server = 0;
+            $total_duration = 0;
 
             foreach ($selected_service_items as $item) {
                 $service_id = intval($item['service_id'] ?? 0);
@@ -456,6 +457,7 @@ private function verify_database_tables() {
 
                 $item_total = $service_price + $options_total;
                 $subtotal_server += $item_total;
+                $total_duration += intval($service_details['duration']);
 
                 $calculated_service_items[] = [
                     'service_id' => $service_id,
@@ -502,6 +504,7 @@ private function verify_database_tables() {
                 'zip_code' => sanitize_text_field($payload['zip_code']),
                 'booking_date' => sanitize_text_field($customer['date']),
                 'booking_time' => sanitize_text_field($time_slot),
+                'total_duration' => $total_duration,
                 'special_instructions' => sanitize_textarea_field($customer['instructions'] ?? ''),
                 'discount_amount' => $discount_amount,
                 'total_price' => $final_total_server,
