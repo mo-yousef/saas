@@ -1,99 +1,120 @@
 jQuery(document).ready(function($) {
     'use strict';
 
-    // --- Modal Handling ---
-    function openModal($modal) {
-        $modal.show();
-    }
-
-    function closeModal($modal) {
-        $modal.hide();
-    }
-
-    $('.mobooking-modal-close').on('click', function() {
-        closeModal($(this).closest('.mobooking-modal'));
-    });
-
-    $(window).on('click', function(event) {
-        if ($(event.target).is('.mobooking-modal')) {
-            closeModal($(event.target));
-        }
-    });
-
-    // --- Notes Modal ---
-    const $notesModal = $('#mobooking-notes-modal');
-    const $notesForm = $('#mobooking-notes-form');
-    const $notesContent = $('#customer-notes-content');
-
+    // --- Notes Modal Logic ---
     $('#mobooking-add-note-btn').on('click', function() {
-        openModal($notesModal);
-    });
+        const currentNotes = $('#customer-notes-content').text().trim();
+        const customerId = $('#mobooking-notes-form input[name="customer_id"]').val();
 
-    $notesForm.on('submit', function(e) {
-        e.preventDefault();
-        const $submitBtn = $(this).find('button[type="submit"]');
-        $submitBtn.prop('disabled', true).text('Saving...');
+        const notesDialog = new MoBookingDialog({
+            title: 'Customer Notes',
+            content: `
+                <form id="mobooking-dialog-notes-form">
+                    <textarea name="customer_notes" rows="8" style="width:100%;" class="mobooking-input">${currentNotes}</textarea>
+                </form>
+            `,
+            buttons: [
+                {
+                    label: 'Cancel',
+                    class: 'secondary',
+                    onClick: (dialog) => dialog.close()
+                },
+                {
+                    label: 'Save Notes',
+                    class: 'primary',
+                    onClick: (dialog) => {
+                        const newNotes = $(dialog.findElement('textarea[name="customer_notes"]')).val();
+                        const data = {
+                            action: 'mobooking_update_customer_note',
+                            nonce: mobooking_customers_params.nonce,
+                            customer_id: customerId,
+                            customer_notes: newNotes
+                        };
 
-        const data = {
-            action: 'mobooking_update_customer_note',
-            nonce: mobooking_customers_params.nonce, // Assuming this is available
-            customer_id: $(this).find('input[name="customer_id"]').val(),
-            customer_notes: $(this).find('textarea[name="customer_notes"]').val()
-        };
+                        // You can add a loading state to the button here
+                        const saveBtn = dialog.findElement('.btn-primary');
+                        saveBtn.textContent = 'Saving...';
+                        saveBtn.disabled = true;
 
-        $.post(mobooking_customers_params.ajax_url, data, function(response) {
-            if (response.success) {
-                const newNotes = data.customer_notes ? data.customer_notes.replace(/\n/g, '<br>') : '<p class="text-muted">No notes for this customer yet.</p>';
-                $notesContent.html(data.customer_notes ? `<p>${newNotes}</p>` : newNotes);
-                closeModal($notesModal);
-                // Maybe show a toast message here if available
-            } else {
-                alert('Error: ' + response.data.message);
-            }
-        }).fail(function() {
-            alert('An unknown error occurred.');
-        }).always(function() {
-            $submitBtn.prop('disabled', false).text('Save Notes');
+                        $.post(mobooking_customers_params.ajax_url, data)
+                            .done(function(response) {
+                                if (response.success) {
+                                    const notesContent = newNotes ? newNotes.replace(/\n/g, '<br>') : '<p class="text-muted">No notes for this customer yet.</p>';
+                                    $('#customer-notes-content').html(notesContent);
+                                    dialog.close();
+                                } else {
+                                    alert('Error: ' + (response.data.message || 'Could not save notes.'));
+                                }
+                            })
+                            .fail(function() {
+                                alert('An unknown error occurred.');
+                            })
+                            .always(function() {
+                                saveBtn.textContent = 'Save Notes';
+                                saveBtn.disabled = false;
+                            });
+                    }
+                }
+            ]
         });
+        notesDialog.show();
     });
 
-    // --- Edit Customer Modal ---
-    const $editCustomerModal = $('#mobooking-edit-customer-modal');
-    const $editCustomerForm = $('#mobooking-edit-customer-form');
-
+    // --- Edit Customer Modal Logic ---
     $('#mobooking-edit-customer-btn').on('click', function(e) {
         e.preventDefault();
-        openModal($editCustomerModal);
-    });
 
-    $editCustomerForm.on('submit', function(e) {
-        e.preventDefault();
-        const $submitBtn = $(this).find('button[type="submit"]');
-        $submitBtn.prop('disabled', true).text('Saving...');
+        // This is a bit verbose, but necessary to get the form fields into the dialog
+        const formHtml = $('#mobooking-edit-customer-form').html();
 
-        let formData = $(this).serializeArray();
-        let data = {
-            action: 'mobooking_update_customer_details',
-            nonce: mobooking_customers_params.nonce
-        };
+        const editDialog = new MoBookingDialog({
+            title: 'Edit Customer',
+            content: `<form id="mobooking-dialog-edit-form">${formHtml}</form>`,
+            buttons: [
+                {
+                    label: 'Cancel',
+                    class: 'secondary',
+                    onClick: (dialog) => dialog.close()
+                },
+                {
+                    label: 'Save Changes',
+                    class: 'primary',
+                    onClick: (dialog) => {
+                        const form = dialog.findElement('#mobooking-dialog-edit-form');
+                        const formData = $(form).serializeArray();
+                        let data = {
+                            action: 'mobooking_update_customer_details',
+                            nonce: mobooking_customers_params.nonce
+                        };
 
-        // Convert form data to a key-value object
-        formData.forEach(function(item) {
-            data[item.name] = item.value;
+                        formData.forEach(item => {
+                            data[item.name] = item.value;
+                        });
+
+                        const saveBtn = dialog.findElement('.btn-primary');
+                        saveBtn.textContent = 'Saving...';
+                        saveBtn.disabled = true;
+
+                        $.post(mobooking_customers_params.ajax_url, data)
+                            .done(function(response) {
+                                if (response.success) {
+                                    location.reload();
+                                } else {
+                                    alert('Error: ' + (response.data.message || 'Could not update customer.'));
+                                    saveBtn.textContent = 'Save Changes';
+                                    saveBtn.disabled = false;
+                                }
+                            })
+                            .fail(function() {
+                                alert('An unknown error occurred.');
+                                saveBtn.textContent = 'Save Changes';
+                                saveBtn.disabled = false;
+                            });
+                    }
+                }
+            ]
         });
-
-        $.post(mobooking_customers_params.ajax_url, data, function(response) {
-            if (response.success) {
-                // Easiest way to show all changes is to reload the page
-                location.reload();
-            } else {
-                alert('Error: ' . response.data.message);
-                $submitBtn.prop('disabled', false).text('Save Changes');
-            }
-        }).fail(function() {
-            alert('An unknown error occurred.');
-            $submitBtn.prop('disabled', false).text('Save Changes');
-        });
+        editDialog.show();
     });
 
 });
