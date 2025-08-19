@@ -3,8 +3,9 @@ jQuery(document).ready(function($) {
 
     // --- Notes Modal Logic ---
     $('#mobooking-add-note-btn').on('click', function() {
+        const $button = $(this);
+        const customerId = $button.data('customer-id');
         const currentNotes = $('#customer-notes-content').text().trim();
-        const customerId = $('#mobooking-notes-form input[name="customer_id"]').val();
 
         const notesDialog = new MoBookingDialog({
             title: 'Customer Notes',
