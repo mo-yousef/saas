@@ -1184,7 +1184,11 @@ function mobooking_override_handler() {
     ), ARRAY_A);
 
     if (empty($services)) {
-        wp_send_json_error(['message' => 'No services available']);
+        wp_send_json_success([
+            'services' => [],
+            'count' => 0
+        ]);
+        return;
     }
 
     $formatted_services = [];
