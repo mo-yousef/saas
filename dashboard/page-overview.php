@@ -408,20 +408,29 @@ $currency_symbol = get_option('mobooking_currency_symbol', '$');
                 </div>
                 <div class="mobooking-card-content">
                     <?php if (!empty($recent_bookings)) : ?>
-                        <?php foreach ($recent_bookings as $booking) : ?>
-                            <div class="booking-item">
-                                <div class="booking-header">
-                                    <span class="booking-customer"><?php echo esc_html($booking['customer_name']); ?></span>
-                                    <span class="booking-status status-<?php echo esc_attr($booking['status']); ?>">
-                                        <?php echo esc_html(ucfirst($booking['status'])); ?>
-                                    </span>
+                        <?php
+                        foreach ($recent_bookings as $booking) :
+                            $details_page_url = home_url('/dashboard/bookings/?action=view_booking&booking_id=' . $booking['booking_id']);
+                            $status_val = $booking['status'];
+                            $status_display = !empty($status_val) ? ucfirst(str_replace('-', ' ', $status_val)) : __('N/A', 'mobooking');
+                            $status_icon_html = function_exists('mobooking_get_status_badge_icon_svg') ? mobooking_get_status_badge_icon_svg($status_val) : '';
+                        ?>
+                            <a href="<?php echo esc_url($details_page_url); ?>" class="booking-item-link">
+                                <div class="booking-item">
+                                    <div class="booking-header">
+                                        <span class="booking-customer"><?php echo esc_html($booking['customer_name']); ?></span>
+                                        <span class="status-badge status-<?php echo esc_attr($status_val); ?>">
+                                            <?php echo $status_icon_html; ?>
+                                            <span class="status-text"><?php echo esc_html($status_display); ?></span>
+                                        </span>
+                                    </div>
+                                    <div class="booking-details">
+                                        <div><?php echo esc_html($booking['customer_email']); ?></div>
+                                        <div><?php echo esc_html(date('M j, Y', strtotime($booking['booking_date']))); ?> at <?php echo esc_html($booking['booking_time']); ?></div>
+                                        <div><?php echo esc_html($currency_symbol . number_format($booking['total_price'], 2)); ?> • <?php esc_html_e('Staff:', 'mobooking'); ?> <?php echo esc_html($booking['assigned_staff_name']); ?></div>
+                                    </div>
                                 </div>
-                                <div class="booking-details">
-                                    <div><?php echo esc_html($booking['customer_email']); ?></div>
-                                    <div><?php echo esc_html(date('M j, Y', strtotime($booking['booking_date']))); ?> at <?php echo esc_html($booking['booking_time']); ?></div>
-                                    <div><?php echo esc_html($currency_symbol . number_format($booking['total_price'], 2)); ?> • <?php esc_html_e('Staff:', 'mobooking'); ?> <?php echo esc_html($booking['assigned_staff_name']); ?></div>
-                                </div>
-                            </div>
+                            </a>
                         <?php endforeach; ?>
                     <?php else : ?>
                         <div class="empty-state">
