@@ -74,7 +74,6 @@ if ( ! empty( $bookings ) ) {
         </div>
         <div class="mobooking-page-header-actions">
             <a href="#" id="mobooking-edit-customer-btn" class="btn btn-secondary"><?php esc_html_e('Edit', 'mobooking'); ?></a>
-            <a href="#" class="btn btn-primary"><?php esc_html_e('New Booking', 'mobooking'); ?></a>
         </div>
     </div>
 
@@ -88,16 +87,25 @@ if ( ! empty( $bookings ) ) {
                 <div class="mobooking-card-content">
                     <div class="key-info-grid">
                         <div class="key-info-item">
-                            <span class="key-info-label"><?php esc_html_e('Lifetime Value', 'mobooking'); ?></span>
-                            <span class="key-info-value"><?php echo mobooking_format_price( $customer->booking_overview->total_spent ?? 0, $currency_symbol ); ?></span>
+                            <?php echo mobooking_get_feather_icon('dollar-sign'); ?>
+                            <div>
+                                <span class="key-info-label"><?php esc_html_e('Lifetime Value', 'mobooking'); ?></span>
+                                <span class="key-info-value"><?php echo mobooking_format_price( $customer->booking_overview->total_spent ?? 0, $currency_symbol ); ?></span>
+                            </div>
                         </div>
                         <div class="key-info-item">
-                            <span class="key-info-label"><?php esc_html_e('Customer Since', 'mobooking'); ?></span>
-                            <span class="key-info-value"><?php echo esc_html( date_i18n( get_option( 'date_format' ), strtotime( $customer->created_at ) ) ); ?></span>
+                            <?php echo mobooking_get_feather_icon('calendar'); ?>
+                            <div>
+                                <span class="key-info-label"><?php esc_html_e('Customer Since', 'mobooking'); ?></span>
+                                <span class="key-info-value"><?php echo esc_html( date_i18n( get_option( 'date_format' ), strtotime( $customer->created_at ) ) ); ?></span>
+                            </div>
                         </div>
                         <div class="key-info-item">
-                            <span class="key-info-label"><?php esc_html_e('Total Bookings', 'mobooking'); ?></span>
-                            <span class="key-info-value"><?php echo esc_html( $customer->booking_overview->total_bookings ?? 0 ); ?></span>
+                            <?php echo mobooking_get_feather_icon('hash'); ?>
+                            <div>
+                                <span class="key-info-label"><?php esc_html_e('Total Bookings', 'mobooking'); ?></span>
+                                <span class="key-info-value"><?php echo esc_html( $customer->booking_overview->total_bookings ?? 0 ); ?></span>
+                            </div>
                         </div>
                     </div>
                     <div class="customer-info-section">
@@ -218,22 +226,6 @@ if ( ! empty( $bookings ) ) {
                     <?php endif; ?>
                 </div>
             </div>
-            <!-- Customer Notes Card -->
-            <div class="mobooking-card">
-                <div class="mobooking-card-header">
-                    <h3 class="mobooking-card-title"><?php esc_html_e('Notes', 'mobooking'); ?></h3>
-                    <button id="mobooking-add-note-btn" class="btn btn-outline btn-sm" data-customer-id="<?php echo esc_attr($customer_id); ?>"><?php esc_html_e('Add Note', 'mobooking'); ?></button>
-                </div>
-                <div class="mobooking-card-content">
-                    <div id="customer-notes-content">
-                        <?php if ( ! empty( $customer->notes ) ) : ?>
-                            <p><?php echo nl2br(esc_html( $customer->notes ?? '' )); ?></p>
-                        <?php else : ?>
-                            <p class="text-muted"><?php esc_html_e('No notes for this customer yet.', 'mobooking'); ?></p>
-                        <?php endif; ?>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 </div>
@@ -289,9 +281,4 @@ if ( ! empty( $bookings ) ) {
             </div>
         </div>
     </form>
-</div>
-
-<!-- Hidden textarea for notes modal -->
-<div id="mobooking-notes-form-template" style="display:none;">
-    <textarea name="customer_notes" rows="8" style="width:100%;" class="mobooking-input"><?php echo esc_textarea( $customer->notes ?? '' ); ?></textarea>
 </div>
