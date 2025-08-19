@@ -118,34 +118,60 @@ $bookings = $customers_manager->get_customer_bookings($customer_id, $tenant_id);
             </div>
         </div>
         <div class="customer-details-sidebar">
+            <!-- Quick Actions Card -->
+            <div class="mobooking-card">
+                <div class="mobooking-card-header">
+                    <h3 class="mobooking-card-title"><?php esc_html_e('Quick Actions', 'mobooking'); ?></h3>
+                </div>
+                <div class="mobooking-card-content">
+                    <div class="quick-actions-buttons">
+                        <a href="mailto:<?php echo esc_attr( $customer->email ); ?>" class="btn btn-secondary">
+                            <?php echo mobooking_get_feather_icon('mail'); ?>
+                            <?php esc_html_e('Send Email', 'mobooking'); ?>
+                        </a>
+                        <a href="tel:<?php echo esc_attr( $customer->phone_number ); ?>" class="btn btn-secondary">
+                            <?php echo mobooking_get_feather_icon('phone'); ?>
+                            <?php esc_html_e('Call Customer', 'mobooking'); ?>
+                        </a>
+                    </div>
+                </div>
+            </div>
             <!-- Customer Information Card -->
             <div class="mobooking-card">
                 <div class="mobooking-card-header">
-                    <h3 class="mobooking-card-title"><?php esc_html_e('Customer Information', 'mobooking'); ?></h3>
+                    <h3 class="mobooking-card-title"><?php esc_html_e('Customer Details', 'mobooking'); ?></h3>
                 </div>
                 <div class="mobooking-card-content">
-                    <ul class="customer-info-list">
-                        <li>
-                            <?php echo mobooking_get_feather_icon('mail'); ?>
-                            <a href="mailto:<?php echo esc_attr( $customer->email ); ?>"><?php echo esc_html( $customer->email ); ?></a>
-                        </li>
-                        <li>
-                            <?php echo mobooking_get_feather_icon('phone'); ?>
-                            <span><?php echo esc_html( $customer->phone_number ?: __('N/A', 'mobooking') ); ?></span>
-                        </li>
-                        <li>
-                            <?php echo mobooking_get_feather_icon('map-pin'); ?>
-                            <address>
-                                <?php
-                                echo esc_html( $customer->address_line_1 ?: '' ) . '<br>';
-                                if ( $customer->address_line_2 ) {
-                                    echo esc_html( $customer->address_line_2 ) . '<br>';
-                                }
-                                echo esc_html( "{$customer->city}, {$customer->state} {$customer->zip_code}" );
-                                ?>
-                            </address>
-                        </li>
-                    </ul>
+                    <div class="customer-info-section">
+                        <h4><?php esc_html_e('Contact Information', 'mobooking'); ?></h4>
+                        <ul class="customer-info-list">
+                            <li>
+                                <?php echo mobooking_get_feather_icon('mail'); ?>
+                                <a href="mailto:<?php echo esc_attr( $customer->email ); ?>"><?php echo esc_html( $customer->email ); ?></a>
+                            </li>
+                            <li>
+                                <?php echo mobooking_get_feather_icon('phone'); ?>
+                                <span><?php echo esc_html( $customer->phone_number ?: __('N/A', 'mobooking') ); ?></span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="customer-info-section">
+                        <h4><?php esc_html_e('Address', 'mobooking'); ?></h4>
+                        <ul class="customer-info-list">
+                            <li>
+                                <?php echo mobooking_get_feather_icon('map-pin'); ?>
+                                <address>
+                                    <?php
+                                    echo esc_html( $customer->address_line_1 ?: '' ) . '<br>';
+                                    if ( ! empty($customer->address_line_2) ) {
+                                        echo esc_html( $customer->address_line_2 ) . '<br>';
+                                    }
+                                    echo esc_html( "{$customer->city}, {$customer->state} {$customer->zip_code}" );
+                                    ?>
+                                </address>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
             </div>
             <!-- Booking Stats Card -->
