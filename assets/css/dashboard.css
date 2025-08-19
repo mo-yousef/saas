@@ -221,8 +221,10 @@ body.wp-admin #wpbody-content .mobooking-overview-dashboard {
 
 .button svg,
 .btn svg {
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
+  min-width: 16px;
+  min-height: 16px;
 }
 
 /* KPI Grid - now just a generic grid */
@@ -973,6 +975,10 @@ a.quick-action:hover {
 #search-results-list {
   max-height: 300px;
   overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 20px;
 }
 
 /* User Menu */

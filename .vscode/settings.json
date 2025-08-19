@@ -1,0 +1,6 @@
+{
+  "intelephense.diagnostics.undefinedConstants": false,
+  "intelephense.diagnostics.undefinedClassConstants": false,
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode"
+}

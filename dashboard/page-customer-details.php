@@ -73,14 +73,14 @@ if ( ! empty( $bookings ) ) {
             </div>
         </div>
         <div class="mobooking-page-header-actions">
-            <a href="#" id="mobooking-edit-customer-btn" class="btn btn-secondary"><?php esc_html_e('Edit', 'mobooking'); ?></a>
+            <a href="#" id="mobooking-edit-customer-btn" class="btn btn-secondary"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg><?php esc_html_e('Edit', 'mobooking'); ?></a>
         </div>
     </div>
 
     <div class="customer-details-grid">
         <div class="customer-details-main">
             <!-- Key Information Card -->
-            <div class="mobooking-card">
+            <div class="mobooking-card card-bs">
                 <div class="mobooking-card-header">
                     <h3 class="mobooking-card-title"><?php esc_html_e('Key Information', 'mobooking'); ?></h3>
                 </div>
@@ -88,21 +88,21 @@ if ( ! empty( $bookings ) ) {
                     <div class="key-info-grid">
                         <div class="key-info-item">
                             <?php echo mobooking_get_feather_icon('dollar-sign'); ?>
-                            <div>
+                            <div class="key-info-content">
                                 <span class="key-info-label"><?php esc_html_e('Lifetime Value', 'mobooking'); ?></span>
                                 <span class="key-info-value"><?php echo mobooking_format_price( $customer->booking_overview->total_spent ?? 0, $currency_symbol ); ?></span>
                             </div>
                         </div>
                         <div class="key-info-item">
                             <?php echo mobooking_get_feather_icon('calendar'); ?>
-                            <div>
+                            <div class="key-info-content">
                                 <span class="key-info-label"><?php esc_html_e('Customer Since', 'mobooking'); ?></span>
                                 <span class="key-info-value"><?php echo esc_html( date_i18n( get_option( 'date_format' ), strtotime( $customer->created_at ) ) ); ?></span>
                             </div>
                         </div>
                         <div class="key-info-item">
                             <?php echo mobooking_get_feather_icon('hash'); ?>
-                            <div>
+                            <div class="key-info-content">
                                 <span class="key-info-label"><?php esc_html_e('Total Bookings', 'mobooking'); ?></span>
                                 <span class="key-info-value"><?php echo esc_html( $customer->booking_overview->total_bookings ?? 0 ); ?></span>
                             </div>
