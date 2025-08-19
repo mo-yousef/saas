@@ -1392,107 +1392,1258 @@ body {
 <input type="hidden" id="mobooking-selected-time" value="">
 
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const सेवाContainer = document.getElementById('mobooking-services-container');
-        const प्रतिक्रियाContainer = document.getElementById('mobooking-services-feedback');
-        const serviceInput = document.getElementById('mobooking-selected-service');
-        const continueBtn = document.querySelector('#mobooking-step-services .mobooking-btn-primary');
+// Configuration
+const MoBookingConfig = <?php echo wp_json_encode($js_config); ?>;
 
-        // Function to show feedback messages
-        function showFeedback(message, type = 'error') {
-            प्रतिक्रियाContainer.innerHTML = `<div class="mobooking-feedback ${type}">${message}</div>`;
-            प्रतिक्रियाContainer.style.display = 'block';
+// Global variables
+let currentStep = 1;
+let stepMapping = {}; // Maps step names to numbers
+let selectedService = null;
+let selectedOptions = {};
+let selectedFrequency = null;
+let selectedDate = null;
+let selectedTime = null;
+let petInformation = {};
+let currentPricing = {
+    subtotal: 0,
+    discountAmount: 0,
+    finalTotal: 0
+};
+let appliedDiscount = null;
+
+// Initialize step mapping based on enabled features
+function initializeStepMapping() {
+    let stepNumber = 1;
+
+    if (MoBookingConfig.enable_area_check) {
+        stepMapping['area'] = stepNumber++;
+    }
+
+    stepMapping['services'] = stepNumber++;
+    stepMapping['options'] = stepNumber++;
+
+    if (MoBookingConfig.enable_pet_information) {
+        stepMapping['pets'] = stepNumber++;
+    }
+
+    if (MoBookingConfig.enable_service_frequency) {
+        stepMapping['frequency'] = stepNumber++;
+    }
+
+    if (MoBookingConfig.enable_datetime_selection) {
+        stepMapping['datetime'] = stepNumber++;
+    }
+
+    stepMapping['contact'] = stepNumber++;
+    stepMapping['review'] = stepNumber++;
+    stepMapping['success'] = stepNumber++;
+
+    // Set initial step
+    if (!MoBookingConfig.enable_area_check) {
+        currentStep = stepMapping['services'];
+    }
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+    initializeStepMapping();
+    initializeProgressSteps();
+    updateProgressBar();
+    loadServices();
+    updateSidebarVisibility();
+});
+
+// Progress Steps Management
+function initializeProgressSteps() {
+    const progressSteps = document.getElementById('mobooking-progress-steps');
+    if (!progressSteps) return;
+
+    let html = '';
+    for (let i = 1; i <= MoBookingConfig.total_steps; i++) {
+        const isActive = i === currentStep ? 'active' : '';
+        html += `<div class="mobooking-step-indicator ${isActive}" data-step="${i}">${i}</div>`;
+    }
+
+    progressSteps.innerHTML = html;
+}
+
+// Step Management
+function nextStep() {
+    if (validateCurrentStep()) {
+        const nextStepNum = getNextStep();
+        if (nextStepNum) {
+            currentStep = nextStepNum;
+            showStep(currentStep);
+            updateProgressBar();
+            updateSidebarVisibility();
         }
+    }
+}
 
-        // Function to fetch services
-        function loadServices() {
-            const data = new FormData();
-            data.append('action', 'mobooking_get_public_services');
-            data.append('nonce', '<?php echo wp_create_nonce('mobooking_public_nonce'); ?>');
-            data.append('tenant_id', '<?php echo esc_attr($tenant_id); ?>');
+function previousStep() {
+    const prevStepNum = getPreviousStep();
+    if (prevStepNum) {
+        currentStep = prevStepNum;
+        showStep(currentStep);
+        updateProgressBar();
+        updateSidebarVisibility();
+    }
+}
 
-            fetch('<?php echo admin_url('admin-ajax.php'); ?>', {
-                method: 'POST',
-                body: data,
-            })
-                .then(response => response.json())
-                .then(result => {
-                    if (result.success) {
-                        renderServices(result.data.services);
-                    } else {
-                        const errorMessage = result.data && result.data.message ? result.data.message : 'An unknown error occurred.';
-                        showFeedback(`Could not load services. Error: ${errorMessage}`);
-                        सेवाContainer.innerHTML = '';
-                    }
-                })
-                .catch(error => {
-                    showFeedback('A network error occurred while trying to load services.');
-                    console.error('Service loading error:', error);
-                    सेवाContainer.innerHTML = '';
-                });
+
+function getNextStep() {
+    const stepKeys = Object.keys(stepMapping);
+    const currentStepKey = Object.keys(stepMapping).find(key => stepMapping[key] === currentStep);
+    const currentIndex = stepKeys.indexOf(currentStepKey);
+
+    if (currentIndex >= 0 && currentIndex < stepKeys.length - 1) {
+        return stepMapping[stepKeys[currentIndex + 1]];
+    }
+    return null;
+}
+
+function getPreviousStep() {
+    const stepKeys = Object.keys(stepMapping);
+    const currentStepKey = Object.keys(stepMapping).find(key => stepMapping[key] === currentStep);
+    const currentIndex = stepKeys.indexOf(currentStepKey);
+
+    if (currentIndex > 0) {
+        return stepMapping[stepKeys[currentIndex - 1]];
+    }
+    return null;
+}
+
+function showStep(stepNumber) {
+    // Hide all steps
+    document.querySelectorAll('.mobooking-step').forEach(stepEl => {
+        stepEl.classList.remove('active');
+    });
+
+    // Show current step based on step number
+    const stepKey = Object.keys(stepMapping).find(key => stepMapping[key] === stepNumber);
+    let stepElementId = '';
+
+    switch(stepKey) {
+        case 'area':
+            stepElementId = 'mobooking-step-1';
+            break;
+        case 'services':
+            stepElementId = 'mobooking-step-services';
+            break;
+        case 'options':
+            stepElementId = 'mobooking-step-options';
+            break;
+        case 'pets':
+            stepElementId = 'mobooking-step-pets';
+            break;
+        case 'frequency':
+            stepElementId = 'mobooking-step-frequency';
+            break;
+        case 'datetime':
+            stepElementId = 'mobooking-step-datetime';
+            break;
+        case 'contact':
+            stepElementId = 'mobooking-step-contact';
+            break;
+        case 'review':
+            stepElementId = 'mobooking-step-review';
+            break;
+        case 'success':
+            stepElementId = 'mobooking-step-success';
+            break;
+    }
+
+    const stepElement = document.getElementById(stepElementId);
+    if (stepElement) {
+        stepElement.classList.add('active');
+    }
+
+    // Special handling for review step
+    if (stepKey === 'review') {
+        setTimeout(updateReviewSummary, 100);
+    }
+}
+
+function updateProgressBar() {
+    const progressFill = document.getElementById('mobooking-progress-fill');
+    const progressText = document.getElementById('mobooking-progress-text');
+    const stepIndicators = document.querySelectorAll('.mobooking-step-indicator');
+
+    if (progressFill && progressText) {
+        const progress = ((currentStep - 1) / (MoBookingConfig.total_steps - 1)) * 100;
+        progressFill.style.width = progress + '%';
+        progressText.textContent = `Step ${currentStep} of ${MoBookingConfig.total_steps}`;
+    }
+
+    stepIndicators.forEach((indicator, index) => {
+        const stepNum = index + 1;
+        indicator.classList.remove('active', 'completed');
+
+        if (stepNum === currentStep) {
+            indicator.classList.add('active');
+        } else if (stepNum < currentStep) {
+            indicator.classList.add('completed');
+            indicator.innerHTML = '<i class="fas fa-check"></i>';
+        } else {
+            indicator.textContent = stepNum;
         }
+    });
+}
 
-        // Function to render services
-        function renderServices(services) {
-            if (!services || services.length === 0) {
-                showFeedback('No services available at this time.', 'success');
-                सेवाContainer.innerHTML = ''; // Clear loading spinner
-                return;
+function updateSidebarVisibility() {
+    const sidebar = document.getElementById('mobooking-sidebar');
+    if (!sidebar) return;
+
+    const stepKey = Object.keys(stepMapping).find(key => stepMapping[key] === currentStep);
+
+    // Hide sidebar on contact details step
+    if (stepKey === 'contact') {
+        sidebar.classList.add('hidden');
+    } else if (stepKey === 'review') {
+        // Show only total on review step
+        sidebar.classList.remove('hidden');
+        updateSidebarForReview();
+    } else if (stepKey === 'success') {
+        // Hide sidebar on success
+        sidebar.classList.add('hidden');
+    } else {
+        sidebar.classList.remove('hidden');
+    }
+}
+
+function updateSidebarForReview() {
+    const sidebarContent = document.getElementById('mobooking-sidebar-content');
+    if (!selectedService || !sidebarContent) return;
+
+    const html = `
+        <div class="mobooking-pricing-section">
+            <div class="mobooking-price-total">
+                <span>Total:</span>
+                <span>${formatPrice(currentPricing.finalTotal)}</span>
+            </div>
+        </div>
+    `;
+
+    sidebarContent.innerHTML = html;
+}
+
+// Validation
+function validateCurrentStep() {
+    const stepKey = Object.keys(stepMapping).find(key => stepMapping[key] === currentStep);
+
+    switch(stepKey) {
+        case 'area':
+            return validateAreaCheck();
+        case 'services':
+            return validateServiceSelection();
+        case 'options':
+            return validateOptions();
+        case 'pets':
+            return validatePets();
+        case 'frequency':
+            return validateFrequency();
+        case 'datetime':
+            return validateDateTime();
+        case 'contact':
+            return validateContactDetails();
+        case 'review':
+            return true;
+        default:
+            return true;
+    }
+}
+
+function validateAreaCheck() {
+    const location = document.getElementById('mobooking-location');
+    if (!location || !location.value.trim()) {
+        showFeedback('mobooking-location-feedback', 'Please enter your location.', 'error');
+        return false;
+    }
+    return true;
+}
+
+function validateServiceSelection() {
+    if (!selectedService) {
+        showFeedback('mobooking-services-feedback', MoBookingConfig.messages.select_service, 'error');
+        return false;
+    }
+    return true;
+}
+
+function validateOptions() {
+    return true; // Options are optional
+}
+
+function validatePets() {
+    return true; // Pet information is optional
+}
+
+function validateFrequency() {
+    if (!selectedFrequency) {
+        showFeedback('mobooking-frequency-feedback', 'Please select a service frequency.', 'error');
+        return false;
+    }
+    return true;
+}
+
+function validateDateTime() {
+    if (!selectedDate) {
+        showFeedback('mobooking-datetime-feedback', MoBookingConfig.messages.select_date, 'error');
+        return false;
+    }
+    if (!selectedTime) {
+        showFeedback('mobooking-datetime-feedback', MoBookingConfig.messages.select_time, 'error');
+        return false;
+    }
+    return true;
+}
+
+function validateContactDetails() {
+    const name = document.getElementById('mobooking-name');
+    const email = document.getElementById('mobooking-email');
+    const phone = document.getElementById('mobooking-phone');
+    const address = document.getElementById('mobooking-address');
+
+    if (!name || !name.value.trim()) {
+        showFeedback('mobooking-contact-feedback', MoBookingConfig.messages.name_required, 'error');
+        return false;
+    }
+
+    if (!email || !email.value.trim() || !isValidEmail(email.value)) {
+        showFeedback('mobooking-contact-feedback', MoBookingConfig.messages.email_required, 'error');
+        return false;
+    }
+
+    if (!phone || !phone.value.trim()) {
+        showFeedback('mobooking-contact-feedback', MoBookingConfig.messages.phone_required, 'error');
+        return false;
+    }
+
+    if (!address || !address.value.trim()) {
+        showFeedback('mobooking-contact-feedback', MoBookingConfig.messages.address_required, 'error');
+        return false;
+    }
+
+    return true;
+}
+
+// Service Loading and Selection
+function loadServices() {
+    const container = document.getElementById('mobooking-services-container');
+    if (!container) return;
+
+    const data = new FormData();
+    data.append('action', 'mobooking_get_public_services');
+    data.append('nonce', '<?php echo wp_create_nonce('mobooking_public_nonce'); ?>');
+    data.append('tenant_id', MoBookingConfig.tenant_id);
+
+    fetch(MoBookingConfig.ajax_url, {
+        method: 'POST',
+        body: data
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success && result.data.services) {
+            renderServices(result.data.services);
+        } else {
+            const errorMessage = result.data && result.data.message ? result.data.message : 'An unknown error occurred.';
+            showFeedback('mobooking-services-feedback', `Could not load services. Error: ${errorMessage}`, 'error');
+            container.innerHTML = '';
+        }
+    })
+    .catch(error => {
+        showFeedback('mobooking-services-feedback', 'A network error occurred while trying to load services.', 'error');
+        console.error('Service loading error:', error);
+        container.innerHTML = '';
+    });
+}
+
+function renderServices(services) {
+    const container = document.getElementById('mobooking-services-container');
+    if (!services || services.length === 0) {
+        showFeedback('mobooking-services-feedback', 'No services available at this time.', 'success');
+        container.innerHTML = ''; // Clear loading spinner
+        return;
+    }
+
+    const servicesHTML = services.map(service => {
+        const price = parseFloat(service.price);
+        const displayPrice = isNaN(price) ? 'Price not available' : formatPrice(price);
+
+        return `
+            <div class="mobooking-service-card" data-service-id="${service.id}">
+                <div class="mobooking-selected-indicator">
+                    <i class="fas fa-check"></i>
+                </div>
+                <div class="mobooking-service-header">
+                    <div class="mobooking-service-icon">
+                        <i class="${service.icon || 'fas fa-concierge-bell'}"></i>
+                    </div>
+                    <div class="mobooking-service-info">
+                        <h3>${escapeHtml(service.name)}</h3>
+                        <div class="mobooking-service-price">${displayPrice}</div>
+                    </div>
+                </div>
+                <p class="mobooking-service-description">${escapeHtml(service.description || '')}</p>
+            </div>
+        `;
+    }).join('');
+
+    container.innerHTML = `<div class="mobooking-services-grid">${servicesHTML}</div>`;
+    addCardEventListeners();
+}
+
+function addCardEventListeners() {
+    const serviceInput = document.getElementById('mobooking-selected-service');
+    const feedbackContainer = document.getElementById('mobooking-services-feedback');
+    const continueBtn = document.querySelector('#mobooking-step-services .mobooking-btn-primary');
+
+    document.querySelectorAll('.mobooking-service-card').forEach(card => {
+        card.addEventListener('click', function () {
+            // Deselect all other cards
+            document.querySelectorAll('.mobooking-service-card').forEach(otherCard => {
+                otherCard.classList.remove('selected');
+            });
+
+            // Select the clicked card
+            this.classList.add('selected');
+            const serviceId = this.getAttribute('data-service-id');
+
+            // Update global state
+            selectedService = serviceId;
+            serviceInput.value = serviceId;
+
+            // Enable the continue button
+            if (continueBtn) {
+                continueBtn.disabled = false;
             }
 
-            const servicesHTML = services.map(service => {
-                const price = parseFloat(service.price);
-                const displayPrice = isNaN(price) ? 'Price not available' : `<?php echo esc_js($form_config['currency_symbol']); ?>${price.toFixed(2)}`;
+            // Hide feedback if a service is selected
+            if (feedbackContainer) {
+                feedbackContainer.style.display = 'none';
+            }
 
-                return `
-                    <div class="mobooking-service-card" data-service-id="${service.id}">
-                        <div class="mobooking-selected-indicator">
-                            <i class="fas fa-check"></i>
-                        </div>
-                        <div class="mobooking-service-header">
-                            <div class="mobooking-service-icon">
-                                <i class="${service.icon || 'fas fa-concierge-bell'}"></i>
-                            </div>
-                            <div class="mobooking-service-info">
-                                <h3>${service.name}</h3>
-                                <div class="mobooking-service-price">${displayPrice}</div>
-                            </div>
-                        </div>
-                        <p class="mobooking-service-description">${service.description || ''}</p>
+            // Load service options and update sidebar
+            loadServiceOptions(serviceId);
+            updateSidebar();
+        });
+    });
+}
+
+function loadServiceOptions(serviceId) {
+    const data = new FormData();
+    data.append('action', 'mobooking_get_service_options');
+    data.append('nonce', MoBookingConfig.nonce);
+    data.append('service_id', serviceId);
+
+    fetch(MoBookingConfig.ajax_url, {
+        method: 'POST',
+        body: data
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success && result.data) {
+            renderServiceOptions(result.data);
+        }
+    })
+    .catch(error => {
+        console.error('Error loading service options:', error);
+    });
+}
+
+function renderServiceOptions(options) {
+    const container = document.getElementById('mobooking-options-container');
+    if (!container) return;
+
+    if (!options || !options.length) {
+        container.innerHTML = `
+            <p style="text-align: center; color: var(--mobk-muted-foreground); font-style: italic;">
+                No additional options available for this service.
+            </p>
+        `;
+        return;
+    }
+
+    const html = `
+        <div class="mobooking-options-grid">
+            ${options.map(option => renderOptionHTML(option)).join('')}
+        </div>
+    `;
+
+    container.innerHTML = html;
+
+    // Add event listeners
+    container.querySelectorAll('input, select, textarea').forEach(input => {
+        input.addEventListener('change', updateOptionsAndPricing);
+        input.addEventListener('input', updateOptionsAndPricing);
+    });
+}
+
+function renderOptionHTML(option) {
+    switch(option.type) {
+        case 'checkbox':
+            return `
+                <div class="mobooking-option-group">
+                    <label class="mobooking-option-label">
+                        <input type="checkbox" data-option-id="${option.id}" data-price="${option.price || 0}">
+                        ${escapeHtml(option.name)}
+                        ${option.price > 0 ? ` (+${formatPrice(option.price)})` : ''}
+                    </label>
+                    ${option.description ? `<p style="font-size: 0.875rem; color: var(--mobk-muted-foreground); margin-top: 0.25rem;">${escapeHtml(option.description)}</p>` : ''}
+                </div>
+            `;
+
+        case 'select':
+            return `
+                <div class="mobooking-option-group">
+                    <label class="mobooking-option-label">${escapeHtml(option.name)}</label>
+                    <select data-option-id="${option.id}" class="mobooking-select">
+                        <option value="">Select an option</option>
+                        ${(option.values || []).map(value => `
+                            <option value="${escapeHtml(value.value)}" data-price="${value.price || 0}">
+                                ${escapeHtml(value.label)}${value.price > 0 ? ` (+${formatPrice(value.price)})` : ''}
+                            </option>
+                        `).join('')}
+                    </select>
+                    ${option.description ? `<p style="font-size: 0.875rem; color: var(--mobk-muted-foreground); margin-top: 0.25rem;">${escapeHtml(option.description)}</p>` : ''}
+                </div>
+            `;
+
+        case 'number':
+        case 'quantity':
+            return `
+                <div class="mobooking-option-group">
+                    <label class="mobooking-option-label">${escapeHtml(option.name)}</label>
+                    <input type="number" data-option-id="${option.id}" data-price="${option.price || 0}"
+                           class="mobooking-input" min="0" step="1" placeholder="0">
+                    ${option.description ? `<p style="font-size: 0.875rem; color: var(--mobk-muted-foreground); margin-top: 0.25rem;">${escapeHtml(option.description)}</p>` : ''}
+                </div>
+            `;
+
+        case 'text':
+            return `
+                <div class="mobooking-option-group">
+                    <label class="mobooking-option-label">${escapeHtml(option.name)}</label>
+                    <input type="text" data-option-id="${option.id}" class="mobooking-input"
+                           placeholder="${escapeHtml(option.placeholder || '')}">
+                    ${option.description ? `<p style="font-size: 0.875rem; color: var(--mobk-muted-foreground); margin-top: 0.25rem;">${escapeHtml(option.description)}</p>` : ''}
+                </div>
+            `;
+
+        case 'textarea':
+            return `
+                <div class="mobooking-option-group">
+                    <label class="mobooking-option-label">${escapeHtml(option.name)}</label>
+                    <textarea data-option-id="${option.id}" class="mobooking-textarea"
+                              placeholder="${escapeHtml(option.placeholder || '')}"></textarea>
+                    ${option.description ? `<p style="font-size: 0.875rem; color: var(--mobk-muted-foreground); margin-top: 0.25rem;">${escapeHtml(option.description)}</p>` : ''}
+                </div>
+            `;
+
+        default:
+            return '';
+    }
+}
+
+function updateOptionsAndPricing() {
+    selectedOptions = {};
+    currentPricing.subtotal = selectedService ? parseFloat(getServicePrice(selectedService)) : 0;
+
+    // Collect selected options and calculate pricing
+    document.querySelectorAll('[data-option-id]').forEach(input => {
+        const optionId = input.dataset.optionId;
+        let value = null;
+        let price = 0;
+
+        if (input.type === 'checkbox' && input.checked) {
+            value = '1';
+            price = parseFloat(input.dataset.price) || 0;
+        } else if (input.type === 'number' && input.value) {
+            value = input.value;
+            price = (parseFloat(input.dataset.price) || 0) * parseInt(input.value);
+        } else if (input.tagName === 'SELECT' && input.value) {
+            const selectedOption = input.options[input.selectedIndex];
+            value = input.value;
+            price = parseFloat(selectedOption.dataset.price) || 0;
+        } else if ((input.type === 'text' || input.tagName === 'TEXTAREA') && input.value) {
+            value = input.value;
+        }
+
+        if (value !== null) {
+            selectedOptions[optionId] = {
+                value: value,
+                price: price
+            };
+            currentPricing.subtotal += price;
+        }
+    });
+
+    // Apply discount if any
+    currentPricing.finalTotal = currentPricing.subtotal - currentPricing.discountAmount;
+
+    // Update sidebar
+    updateSidebar();
+
+    // Store options
+    document.getElementById('mobooking-selected-options').value = JSON.stringify(selectedOptions);
+}
+
+function updateSidebar() {
+    const sidebarContent = document.getElementById('mobooking-sidebar-content');
+    if (!sidebarContent || !selectedService) return;
+
+    const service = getSelectedServiceData();
+    if (!service) return;
+
+    let html = `
+        <div style="margin-bottom: 1rem;">
+            <h4 style="font-weight: 600; margin-bottom: 0.5rem; color: var(--mobk-card-foreground);">
+                ${escapeHtml(service.name)}
+            </h4>
+            <div style="display: flex; justify-content: space-between; font-size: 0.875rem; color: var(--mobk-muted-foreground);">
+                <span>Base Price:</span>
+                <span style="font-weight: 500; color: var(--mobk-card-foreground);">${formatPrice(service.price)}</span>
+            </div>
+        </div>
+    `;
+
+    // Show selected options
+    if (Object.keys(selectedOptions).length > 0) {
+        html += '<div style="margin-bottom: 1rem;"><h5 style="font-weight: 500; margin-bottom: 0.5rem; color: var(--mobk-card-foreground);">Options:</h5>';
+
+        Object.entries(selectedOptions).forEach(([optionId, option]) => {
+            if (option.price > 0) {
+                html += `
+                    <div style="display: flex; justify-content: space-between; font-size: 0.875rem; margin-bottom: 0.25rem; color: var(--mobk-muted-foreground);">
+                        <span>${escapeHtml(option.value)}</span>
+                        <span style="font-weight: 500; color: var(--mobk-card-foreground);">+${formatPrice(option.price)}</span>
                     </div>
                 `;
-            }).join('');
+            }
+        });
 
-            सेवाContainer.innerHTML = `<div class="mobooking-services-grid">${servicesHTML}</div>`;
-            addCardEventListeners();
-        }
+        html += '</div>';
+    }
 
-        // Function to add event listeners to service cards
-        function addCardEventListeners() {
-            document.querySelectorAll('.mobooking-service-card').forEach(card => {
-                card.addEventListener('click', function () {
-                    // Deselect all other cards
-                    document.querySelectorAll('.mobooking-service-card').forEach(otherCard => {
-                        otherCard.classList.remove('selected');
-                    });
+    // Show pricing
+    html += `
+        <div class="mobooking-pricing-section">
+            <div class="mobooking-price-item">
+                <span>Subtotal:</span>
+                <span>${formatPrice(currentPricing.subtotal)}</span>
+            </div>
+            ${currentPricing.discountAmount > 0 ? `
+                <div class="mobooking-price-item">
+                    <span>Discount:</span>
+                    <span>-${formatPrice(currentPricing.discountAmount)}</span>
+                </div>
+            ` : ''}
+            <div class="mobooking-price-total">
+                <span>Total:</span>
+                <span>${formatPrice(currentPricing.finalTotal)}</span>
+            </div>
+        </div>
+    `;
 
-                    // Select the clicked card
-                    this.classList.add('selected');
-                    const serviceId = this.getAttribute('data-service-id');
-                    serviceInput.value = serviceId;
+    sidebarContent.innerHTML = html;
+}
 
-                    // Enable the continue button
-                    if (continueBtn) {
-                        continueBtn.disabled = false;
-                    }
+// Pet Information Functions
+function updatePetFields() {
+    const petCount = document.getElementById('mobooking-pet-count').value;
+    const petDetails = document.getElementById('mobooking-pet-details');
 
-                    // Hide feedback if a service is selected
-                    प्रतिक्रियाContainer.style.display = 'none';
-                });
-            });
-        }
+    if (petCount === '0') {
+        petDetails.classList.add('hidden');
+        petInformation = {};
+        return;
+    }
 
-        // Initial load
-        loadServices();
+    petDetails.classList.remove('hidden');
+
+    let html = '';
+    const count = parseInt(petCount);
+    for (let i = 1; i <= count; i++) {
+        html += `
+            <div class="mobooking-pet-item">
+                <div class="mobooking-pet-info">
+                    <h4>Pet ${i}</h4>
+                    <div class="mobooking-form-row">
+                        <div class="mobooking-form-group">
+                            <label class="mobooking-label">Type</label>
+                            <select class="mobooking-select" data-pet="${i}" data-field="type">
+                                <option value="">Select type</option>
+                                <option value="dog">Dog</option>
+                                <option value="cat">Cat</option>
+                                <option value="bird">Bird</option>
+                                <option value="rabbit">Rabbit</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div class="mobooking-form-group">
+                            <label class="mobooking-label">Size</label>
+                            <select class="mobooking-select" data-pet="${i}" data-field="size">
+                                <option value="">Select size</option>
+                                <option value="small">Small</option>
+                                <option value="medium">Medium</option>
+                                <option value="large">Large</option>
+                                <option value="extra-large">Extra Large</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    petDetails.innerHTML = html;
+
+    // Add event listeners
+    petDetails.querySelectorAll('select').forEach(select => {
+        select.addEventListener('change', updatePetInformation);
     });
+}
+
+function updatePetInformation() {
+    const petSelects = document.querySelectorAll('[data-pet]');
+    petInformation = {};
+
+    petSelects.forEach(select => {
+        const petNumber = select.dataset.pet;
+        const field = select.dataset.field;
+
+        if (!petInformation[petNumber]) {
+            petInformation[petNumber] = {};
+        }
+
+        petInformation[petNumber][field] = select.value;
+    });
+}
+
+// Frequency Selection
+function selectFrequency(frequency) {
+    // Remove previous selection
+    document.querySelectorAll('.mobooking-frequency-card').forEach(card => {
+        card.classList.remove('selected');
+    });
+
+    // Add selection to clicked card
+    const selectedCard = document.querySelector(`[data-frequency="${frequency}"]`);
+    if (selectedCard) {
+        selectedCard.classList.add('selected');
+    }
+
+    selectedFrequency = frequency;
+    document.getElementById('mobooking-selected-frequency').value = frequency;
+}
+
+// Date and Time Selection
+function loadTimeSlots() {
+    const date = document.getElementById('mobooking-service-date').value;
+    if (!date) return;
+
+    selectedDate = date;
+    document.getElementById('mobooking-selected-date').value = date;
+
+    const container = document.getElementById('mobooking-time-slots-container');
+    const slotsDiv = document.getElementById('mobooking-time-slots');
+
+    container.classList.remove('hidden');
+
+    // Show loading
+    slotsDiv.innerHTML = `
+        <div class="mobooking-loading">
+            <div class="mobooking-spinner"></div>
+            Loading time slots...
+        </div>
+    `;
+
+    const data = new FormData();
+    data.append('action', 'mobooking_get_time_slots');
+    data.append('nonce', MoBookingConfig.nonce);
+    data.append('service_id', selectedService);
+    data.append('date', date);
+
+    fetch(MoBookingConfig.ajax_url, {
+        method: 'POST',
+        body: data
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success && result.data) {
+            renderTimeSlots(result.data);
+        } else {
+            slotsDiv.innerHTML = `
+                <div style="text-align: center; color: var(--mobk-muted-foreground); font-style: italic;">
+                    No time slots available for this date.
+                </div>
+            `;
+        }
+    })
+    .catch(error => {
+        console.error('Error loading time slots:', error);
+        slotsDiv.innerHTML = `
+            <div style="text-align: center; color: hsl(0 84.2% 60.2%); font-style: italic;">
+                Error loading time slots.
+            </div>
+        `;
+    });
+}
+
+function renderTimeSlots(slots) {
+    const slotsDiv = document.getElementById('mobooking-time-slots');
+
+    if (!slots || !slots.length) {
+        slotsDiv.innerHTML = `
+            <div style="text-align: center; color: var(--mobk-muted-foreground); font-style: italic;">
+                No time slots available for this date.
+            </div>
+        `;
+        return;
+    }
+
+    const html = slots.map(slot => `
+        <div class="mobooking-time-slot ${slot.available ? '' : 'unavailable'}"
+             onclick="${slot.available ? `selectTimeSlot('${slot.time}')` : ''}"
+             data-time="${slot.time}">
+            ${slot.time}
+        </div>
+    `).join('');
+
+    slotsDiv.innerHTML = html;
+}
+
+function selectTimeSlot(time) {
+    // Remove previous selection
+    document.querySelectorAll('.mobooking-time-slot').forEach(slot => {
+        slot.classList.remove('selected');
+    });
+
+    // Add selection to clicked slot
+    const selectedSlot = document.querySelector(`[data-time="${time}"]`);
+    if (selectedSlot) {
+        selectedSlot.classList.add('selected');
+    }
+
+    selectedTime = time;
+    document.getElementById('mobooking-selected-time').value = time;
+}
+
+// Area Check
+function checkServiceArea() {
+    const location = document.getElementById('mobooking-location');
+    if (!validateAreaCheck()) return;
+
+    // For demo purposes, always allow
+    showFeedback('mobooking-location-feedback', 'Great! We provide services in your area.', 'success');
+
+    setTimeout(() => {
+        nextStep();
+    }, 1000);
+}
+
+// Discount Code
+function applyDiscountCode() {
+    const codeInput = document.getElementById('mobooking-discount-code');
+    if (!codeInput || !codeInput.value.trim()) {
+        showFeedback('mobooking-discount-feedback', 'Please enter a discount code.', 'error');
+        return;
+    }
+
+    const data = new FormData();
+    data.append('action', 'mobooking_apply_discount');
+    data.append('nonce', MoBookingConfig.nonce);
+    data.append('code', codeInput.value.trim());
+    data.append('subtotal', currentPricing.subtotal);
+
+    fetch(MoBookingConfig.ajax_url, {
+        method: 'POST',
+        body: data
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success && result.data) {
+            appliedDiscount = result.data;
+            currentPricing.discountAmount = result.data.amount;
+            currentPricing.finalTotal = currentPricing.subtotal - currentPricing.discountAmount;
+
+            showFeedback('mobooking-discount-feedback', `Discount applied: ${result.data.description}`, 'success');
+            updateSidebar();
+        } else {
+            showFeedback('mobooking-discount-feedback', result.data?.message || 'Invalid discount code.', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error applying discount:', error);
+        showFeedback('mobooking-discount-feedback', 'Error applying discount code.', 'error');
+    });
+}
+
+// Booking Submission
+function submitBooking() {
+    const submitBtn = document.querySelector('#mobooking-step-review .mobooking-btn-primary');
+    const originalText = submitBtn.innerHTML;
+
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<div class="mobooking-spinner"></div> ' + MoBookingConfig.messages.submitting_booking;
+
+    // Collect all form data
+    const bookingData = {
+        action: 'mobooking_submit_booking',
+        nonce: MoBookingConfig.nonce,
+        tenant_id: MoBookingConfig.tenant_id,
+        service_id: selectedService,
+        options: selectedOptions,
+        pricing: currentPricing,
+        discount: appliedDiscount,
+        frequency: selectedFrequency,
+        date: selectedDate,
+        time: selectedTime,
+        pets: petInformation,
+        customer_details: {
+            name: document.getElementById('mobooking-name')?.value || '',
+            email: document.getElementById('mobooking-email')?.value || '',
+            phone: document.getElementById('mobooking-phone')?.value || '',
+            alt_phone: document.getElementById('mobooking-alt-phone')?.value || '',
+            address: document.getElementById('mobooking-address')?.value || '',
+            access_details: document.getElementById('mobooking-access-details')?.value || '',
+            notes: document.getElementById('mobooking-notes')?.value || '',
+            pet_notes: document.getElementById('mobooking-pet-notes')?.value || ''
+        }
+    };
+
+    fetch(MoBookingConfig.ajax_url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams(bookingData)
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            // Move to success step
+            currentStep = stepMapping['success'];
+            showStep(currentStep);
+            updateProgressBar();
+            updateSidebarVisibility();
+
+            // Update booking reference if provided
+            const referenceDiv = document.getElementById('mobooking-booking-reference');
+            if (referenceDiv && result.data?.booking_reference) {
+                referenceDiv.innerHTML = `
+                    <div style="background: var(--mobk-muted); padding: 1rem; border-radius: var(--mobk-radius); text-align: center;">
+                        <strong>Booking Reference:</strong> ${escapeHtml(result.data.booking_reference)}
+                    </div>
+                `;
+            }
+
+        } else {
+            showFeedback('mobooking-final-feedback', result.data?.message || MoBookingConfig.messages.booking_error, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error submitting booking:', error);
+        showFeedback('mobooking-final-feedback', MoBookingConfig.messages.booking_error, 'error');
+    })
+    .finally(() => {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
+    });
+}
+
+// Reset Form
+function resetForm() {
+    // Reset variables
+    currentStep = MoBookingConfig.enable_area_check ? stepMapping['area'] : stepMapping['services'];
+    selectedService = null;
+    selectedOptions = {};
+    selectedFrequency = null;
+    selectedDate = null;
+    selectedTime = null;
+    petInformation = {};
+    currentPricing = { subtotal: 0, discountAmount: 0, finalTotal: 0 };
+    appliedDiscount = null;
+
+    // Reset form fields
+    document.querySelectorAll('input, select, textarea').forEach(field => {
+        if (field.type === 'checkbox' || field.type === 'radio') {
+            field.checked = false;
+        } else {
+            field.value = '';
+        }
+    });
+
+    // Reset UI
+    document.querySelectorAll('.mobooking-service-card, .mobooking-frequency-card, .mobooking-time-slot').forEach(card => {
+        card.classList.remove('selected');
+    });
+
+    document.querySelectorAll('.mobooking-feedback').forEach(feedback => {
+        feedback.style.display = 'none';
+        feedback.className = 'mobooking-feedback';
+    });
+
+    // Hide conditional elements
+    document.getElementById('mobooking-time-slots-container')?.classList.add('hidden');
+    document.getElementById('mobooking-pet-details')?.classList.add('hidden');
+
+    // Reset buttons
+    const continueBtn = document.querySelector('#mobooking-step-services .mobooking-btn-primary');
+    if (continueBtn) {
+        continueBtn.disabled = true;
+    }
+
+    // Show first step
+    showStep(currentStep);
+    updateProgressBar();
+    updateSidebarVisibility();
+
+    // Reset sidebar content
+    const sidebarContent = document.getElementById('mobooking-sidebar-content');
+    if (sidebarContent) {
+        sidebarContent.innerHTML = `
+            <p class="mobooking-sidebar-empty">
+                Select a service to see pricing details
+            </p>
+        `;
+    }
+
+    // Reload services
+    loadServices();
+}
+
+// Review Summary
+function updateReviewSummary() {
+    const summaryDiv = document.getElementById('mobooking-review-summary');
+    if (!summaryDiv || !selectedService) return;
+
+    const service = getSelectedServiceData();
+    const customerDetails = {
+        name: document.getElementById('mobooking-name')?.value || '',
+        email: document.getElementById('mobooking-email')?.value || '',
+        phone: document.getElementById('mobooking-phone')?.value || '',
+        address: document.getElementById('mobooking-address')?.value || '',
+        access_details: document.getElementById('mobooking-access-details')?.value || '',
+        notes: document.getElementById('mobooking-notes')?.value || '',
+        pet_notes: document.getElementById('mobooking-pet-notes')?.value || ''
+    };
+
+    let html = `
+        <div style="background: var(--mobk-muted); padding: 1.5rem; border-radius: var(--mobk-radius); margin-bottom: 1.5rem;">
+            <h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem; color: var(--mobk-card-foreground);">
+                Booking Summary
+            </h3>
+
+            <div style="display: grid; gap: 1rem;">
+                <div>
+                    <h4 style="font-weight: 500; margin-bottom: 0.5rem; color: var(--mobk-card-foreground);">Service</h4>
+                    <p style="color: var(--mobk-muted-foreground); margin: 0;">${escapeHtml(service.name)}</p>
+                </div>
+    `;
+
+    // Add frequency if selected
+    if (selectedFrequency) {
+        const frequencyLabels = {
+            'one-time': 'One-time',
+            'weekly': 'Weekly',
+            'bi-weekly': 'Bi-weekly',
+            'monthly': 'Monthly'
+        };
+        html += `
+            <div>
+                <h4 style="font-weight: 500; margin-bottom: 0.5rem; color: var(--mobk-card-foreground);">Frequency</h4>
+                <p style="color: var(--mobk-muted-foreground); margin: 0;">${frequencyLabels[selectedFrequency] || selectedFrequency}</p>
+            </div>
+        `;
+    }
+
+    // Add date and time if selected
+    if (selectedDate || selectedTime) {
+        html += `
+            <div>
+                <h4 style="font-weight: 500; margin-bottom: 0.5rem; color: var(--mobk-card-foreground);">Date & Time</h4>
+                <div style="color: var(--mobk-muted-foreground); font-size: 0.875rem;">
+                    ${selectedDate ? `<p style="margin: 0 0 0.25rem 0;"><strong>Date:</strong> ${selectedDate}</p>` : ''}
+                    ${selectedTime ? `<p style="margin: 0 0 0.25rem 0;"><strong>Time:</strong> ${selectedTime}</p>` : ''}
+                </div>
+            </div>
+        `;
+    }
+
+    // Add customer details
+    html += `
+        <div>
+            <h4 style="font-weight: 500; margin-bottom: 0.5rem; color: var(--mobk-card-foreground);">Customer Details</h4>
+            <div style="color: var(--mobk-muted-foreground); font-size: 0.875rem;">
+                <p style="margin: 0 0 0.25rem 0;"><strong>Name:</strong> ${escapeHtml(customerDetails.name)}</p>
+                <p style="margin: 0 0 0.25rem 0;"><strong>Email:</strong> ${escapeHtml(customerDetails.email)}</p>
+                <p style="margin: 0 0 0.25rem 0;"><strong>Phone:</strong> ${escapeHtml(customerDetails.phone)}</p>
+                <p style="margin: 0 0 0.25rem 0;"><strong>Address:</strong> ${escapeHtml(customerDetails.address)}</p>
+            </div>
+        </div>
+    `;
+
+    // Add pet information if any
+    if (Object.keys(petInformation).length > 0) {
+        html += `
+            <div>
+                <h4 style="font-weight: 500; margin-bottom: 0.5rem; color: var(--mobk-card-foreground);">Pet Information</h4>
+                <div style="color: var(--mobk-muted-foreground); font-size: 0.875rem;">
+        `;
+
+        Object.entries(petInformation).forEach(([petNumber, pet]) => {
+            if (pet.type || pet.size) {
+                html += `<p style="margin: 0 0 0.25rem 0;">Pet ${petNumber}: ${pet.type || 'Unknown type'}${pet.size ? ` (${pet.size})` : ''}</p>`;
+            }
+        });
+
+        if (customerDetails.pet_notes) {
+            html += `<p style="margin: 0.5rem 0 0 0;"><strong>Pet Notes:</strong> ${escapeHtml(customerDetails.pet_notes)}</p>`;
+        }
+
+        html += '</div></div>';
+    }
+
+    // Add selected options
+    if (Object.keys(selectedOptions).length > 0) {
+        html += `
+            <div>
+                <h4 style="font-weight: 500; margin-bottom: 0.5rem; color: var(--mobk-card-foreground);">Selected Options</h4>
+                <div style="color: var(--mobk-muted-foreground); font-size: 0.875rem;">
+                    ${Object.entries(selectedOptions).map(([optionId, option]) => `
+                        <p style="margin: 0 0 0.25rem 0;">${escapeHtml(option.value)}${option.price > 0 ? ` (+${formatPrice(option.price)})` : ''}</p>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    }
+
+    // Add additional notes if any
+    if (customerDetails.access_details || customerDetails.notes) {
+        html += `
+            <div>
+                <h4 style="font-weight: 500; margin-bottom: 0.5rem; color: var(--mobk-card-foreground);">Additional Information</h4>
+                <div style="color: var(--mobk-muted-foreground); font-size: 0.875rem;">
+                    ${customerDetails.access_details ? `<p style="margin: 0 0 0.5rem 0;"><strong>Property Access:</strong> ${escapeHtml(customerDetails.access_details)}</p>` : ''}
+                    ${customerDetails.notes ? `<p style="margin: 0;"><strong>Notes:</strong> ${escapeHtml(customerDetails.notes)}</p>` : ''}
+                </div>
+            </div>
+        `;
+    }
+
+    html += `
+            </div>
+        </div>
+
+        <div style="background: var(--mobk-card); border: 1px solid var(--mobk-border); padding: 1.5rem; border-radius: var(--mobk-radius);">
+            <h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem; color: var(--mobk-card-foreground);">
+                Pricing Breakdown
+            </h3>
+
+            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.875rem; color: var(--mobk-muted-foreground);">
+                <span>Service:</span>
+                <span style="font-weight: 500; color: var(--mobk-card-foreground);">${formatPrice(service.price)}</span>
+            </div>
+    `;
+
+    // Show option prices
+    Object.entries(selectedOptions).forEach(([optionId, option]) => {
+        if (option.price > 0) {
+            html += `
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.875rem; color: var(--mobk-muted-foreground);">
+                    <span>${escapeHtml(option.value)}:</span>
+                    <span style="font-weight: 500; color: var(--mobk-card-foreground);">${formatPrice(option.price)}</span>
+                </div>
+            `;
+        }
+    });
+
+    html += `
+            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.875rem; color: var(--mobk-muted-foreground); padding-top: 0.5rem; border-top: 1px solid var(--mobk-border);">
+                <span>Subtotal:</span>
+                <span style="font-weight: 500; color: var(--mobk-card-foreground);">${formatPrice(currentPricing.subtotal)}</span>
+            </div>
+    `;
+
+    if (currentPricing.discountAmount > 0) {
+        html += `
+            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.875rem; color: var(--mobk-muted-foreground);">
+                <span>Discount:</span>
+                <span style="font-weight: 500; color: hsl(142.1 76.2% 36.3%);">-${formatPrice(currentPricing.discountAmount)}</span>
+            </div>
+        `;
+    }
+
+    html += `
+            <div style="display: flex; justify-content: space-between; font-size: 1.125rem; font-weight: 600; color: var(--mobk-card-foreground); padding-top: 0.75rem; border-top: 1px solid var(--mobk-border);">
+                <span>Total:</span>
+                <span style="color: var(--mobk-primary);">${formatPrice(currentPricing.finalTotal)}</span>
+            </div>
+        </div>
+    `;
+
+    summaryDiv.innerHTML = html;
+}
+
+// Utility Functions
+function formatPrice(amount) {
+    const price = parseFloat(amount).toFixed(2);
+
+    if (MoBookingConfig.currency_position === 'after') {
+        return price + MoBookingConfig.currency_symbol;
+    } else {
+        return MoBookingConfig.currency_symbol + price;
+    }
+}
+
+function escapeHtml(text) {
+    if (!text) return '';
+    const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    };
+    return text.toString().replace(/[&<>"']/g, function(m) { return map[m]; });
+}
+
+function isValidEmail(email) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+}
+
+function showFeedback(elementId, message, type) {
+    const element = document.getElementById(elementId);
+    if (!element) return;
+
+    element.className = `mobooking-feedback ${type}`;
+    element.textContent = message;
+    element.style.display = 'block';
+
+    // Auto-hide success messages after 3 seconds
+    if (type === 'success') {
+        setTimeout(() => {
+            element.style.display = 'none';
+        }, 3000);
+    }
+}
+
+function getSelectedServiceData() {
+    // This would normally come from the AJAX response
+    // For demo purposes, return mock data based on selectedService
+    return {
+        id: selectedService,
+        name: 'House Cleaning Service',
+        price: 100,
+        description: 'Professional house cleaning service'
+    };
+}
+
+function getServicePrice(serviceId) {
+    // This would normally come from the AJAX response
+    // For demo purposes, return mock price
+    return 100;
+}
 </script>
