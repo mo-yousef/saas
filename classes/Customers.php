@@ -500,6 +500,52 @@ class Customers {
             'average_booking_value' => floatval( $result->average_booking_value ?? 0 )
         ];
     }
+
+    public function get_customer_bookings( $customer_id, $tenant_id, $args = [] ) {
+        $customer = $this->db->get_row(
+            $this->db->prepare(
+                "SELECT email FROM {$this->table_name} WHERE id = %d AND tenant_id = %d",
+                $customer_id,
+                $tenant_id
+            )
+        );
+
+        if ( ! $customer || empty( $customer->email ) ) {
+            return [];
+        }
+
+        $defaults = [
+            'limit' => 50,
+            'orderby' => 'booking_date',
+            'order' => 'DESC',
+        ];
+        $args = wp_parse_args($args, $defaults);
+
+        $bookings_table = Database::get_table_name('bookings');
+        $items_table = Database::get_table_name('booking_items');
+
+        $query = $this->db->prepare(
+            "SELECT b.*, GROUP_CONCAT(i.service_name SEPARATOR ', ') as service_name
+             FROM {$bookings_table} b
+             LEFT JOIN {$items_table} i ON b.booking_id = i.booking_id
+             WHERE b.customer_email = %s AND b.user_id = %d
+             GROUP BY b.booking_id
+             ORDER BY b." . esc_sql($args['orderby']) . " " . esc_sql($args['order']) . "
+             LIMIT %d",
+            $customer->email,
+            $tenant_id,
+            $args['limit']
+        );
+
+        $results = $this->db->get_results( $query );
+
+        if ( $this->db->last_error ) {
+            error_log( "MoBooking DB Error (get_customer_bookings): " . $this->db->last_error );
+            return [];
+        }
+
+        return $results;
+    }
 /**
  * Get customer insights for dashboard
  * Add this method to the Customers class
