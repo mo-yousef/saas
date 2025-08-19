@@ -228,7 +228,7 @@ body.wp-admin #wpbody-content .mobooking-overview-dashboard {
 /* KPI Grid - now just a generic grid */
 .kpi-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 1.5rem;
   margin-bottom: 2rem;
 }
@@ -492,7 +492,6 @@ table.mobooking-table {
 
 .booking-item:hover {
   background: hsl(var(--muted));
-  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.05);
 }
 
 .booking-header {

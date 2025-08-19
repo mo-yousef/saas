@@ -421,13 +421,13 @@ $currency_symbol = get_option('mobooking_currency_symbol', '$');
                                 <div class="booking-item compact">
                                     <div class="booking-item-main">
                                         <div class="booking-item-icon">
-                                            <?php echo mobooking_get_icon_svg('user'); ?>
+                                            <?php echo mobooking_get_feather_icon('user'); ?>
                                         </div>
                                         <div class="booking-item-details">
                                             <span class="booking-customer"><?php echo esc_html($booking['customer_name']); ?></span>
                                             <div class="booking-meta">
-                                                <span><?php echo mobooking_get_icon_svg('calendar'); ?> <?php echo esc_html(date('M j, Y', strtotime($booking['booking_date']))); ?></span>
-                                                <span><?php echo mobooking_get_icon_svg('dollar-sign'); ?> <?php echo esc_html(number_format($booking['total_price'], 2)); ?></span>
+                                                <span><?php echo mobooking_get_feather_icon('calendar'); ?> <?php echo esc_html(date('M j, Y', strtotime($booking['booking_date']))); ?></span>
+                                                <span><?php echo mobooking_get_feather_icon('dollar-sign'); ?> <?php echo esc_html(number_format($booking['total_price'], 2)); ?></span>
                                             </div>
                                         </div>
                                     </div>
