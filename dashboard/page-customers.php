@@ -122,20 +122,7 @@ $customer_statuses = [
                         </select>
                     </div>
                     <div class="mobooking-filter-actions">
-                        <button type="button" id="mobooking-toggle-more-filters-btn" class="btn btn-outline"><?php echo mobooking_get_feather_icon('sliders'); ?> <span class="btn-text"><?php esc_html_e('More', 'mobooking'); ?></span></button>
                         <button type="button" id="mobooking-clear-filters-btn" class="btn btn-outline" style="display: none;"><?php echo mobooking_get_feather_icon('x'); ?> <span class="btn-text"><?php esc_html_e('Clear', 'mobooking'); ?></span></button>
-                    </div>
-                </div>
-                <div class="mobooking-filters-secondary" style="display: none;">
-                    <div class="mobooking-filters-secondary-inner">
-                        <div class="mobooking-filter-item">
-                            <label for="mobooking-date-from-filter"><?php esc_html_e('Registered From:', 'mobooking'); ?></label>
-                            <input type="text" id="mobooking-date-from-filter" name="date_from_filter" class="mobooking-datepicker regular-text" placeholder="YYYY-MM-DD">
-                        </div>
-                        <div class="mobooking-filter-item">
-                            <label for="mobooking-date-to-filter"><?php esc_html_e('Registered To:', 'mobooking'); ?></label>
-                            <input type="text" id="mobooking-date-to-filter" name="date_to_filter" class="mobooking-datepicker regular-text" placeholder="YYYY-MM-DD">
-                        </div>
                     </div>
                 </div>
             </form>

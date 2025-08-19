@@ -12,8 +12,6 @@ jQuery(document).ready(function($) {
     let currentFilters = {
         search_query: '',
         status_filter: '',
-        date_from_filter: '',
-        date_to_filter: '',
         paged: 1,
         limit: 20
     };
@@ -168,8 +166,6 @@ jQuery(document).ready(function($) {
             ...currentFilters,
             search_query: $('#mobooking-search-query').val(),
             status_filter: $('#mobooking-status-filter').val(),
-            date_from_filter: $('#mobooking-date-from-filter').val(),
-            date_to_filter: $('#mobooking-date-to-filter').val(),
         };
         loadCustomers(1); // Reset to page 1 on filter change
     }
@@ -180,7 +176,7 @@ jQuery(document).ready(function($) {
     $('#mobooking-search-query').on('keyup', debounce(applyFilters, 500));
 
     // Other filters
-    $('#mobooking-status-filter, .mobooking-datepicker').on('change', applyFilters);
+    $('#mobooking-status-filter').on('change', applyFilters);
 
     // Form submission prevention
     filterForm.on('submit', function(e) {
@@ -205,27 +201,6 @@ jQuery(document).ready(function($) {
         }
     });
 
-    // Toggle more filters
-    $('#mobooking-toggle-more-filters-btn').on('click', function() {
-        const secondaryFilters = $('.mobooking-filters-secondary');
-        const button = $(this);
-        secondaryFilters.slideToggle(200, function() {
-            const text = $(this).is(':visible') ? (mobooking_customers_params.i18n.less_filters || 'Less') : (mobooking_customers_params.i18n.more_filters || 'More');
-            button.find('.btn-text').text(text);
-        });
-    });
-
-    // Initialize datepickers
-    if (typeof $.fn.datepicker === 'function') {
-        $('.mobooking-datepicker').datepicker({
-            dateFormat: 'yy-mm-dd',
-            changeMonth: true,
-            changeYear: true
-        });
-    } else {
-        // Fallback for browsers that support date type input
-        $('.mobooking-datepicker').attr('type', 'date');
-    }
 
     // Initial load is handled by PHP, so no initial `loadCustomers()` call here.
 });
