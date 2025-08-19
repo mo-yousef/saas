@@ -148,6 +148,40 @@ $bookings = $customers_manager->get_customer_bookings($customer_id, $tenant_id);
                     </ul>
                 </div>
             </div>
+            <!-- Booking Stats Card -->
+            <div class="mobooking-card">
+                <div class="mobooking-card-header">
+                    <h3 class="mobooking-card-title"><?php esc_html_e('Booking Stats', 'mobooking'); ?></h3>
+                </div>
+                <div class="mobooking-card-content">
+                    <dl class="mobooking-stats-list">
+                        <div>
+                            <dt><?php esc_html_e('Total Bookings', 'mobooking'); ?></dt>
+                            <dd><?php echo esc_html( $customer->booking_overview->total_bookings ?? 0 ); ?></dd>
+                        </div>
+                        <div>
+                            <dt><?php esc_html_e('Completed', 'mobooking'); ?></dt>
+                            <dd><?php echo esc_html( $customer->booking_overview->completed_bookings ?? 0 ); ?></dd>
+                        </div>
+                        <div>
+                            <dt><?php esc_html_e('Pending', 'mobooking'); ?></dt>
+                            <dd><?php echo esc_html( $customer->booking_overview->pending_bookings ?? 0 ); ?></dd>
+                        </div>
+                        <div>
+                            <dt><?php esc_html_e('Cancelled', 'mobooking'); ?></dt>
+                            <dd><?php echo esc_html( $customer->booking_overview->cancelled_bookings ?? 0 ); ?></dd>
+                        </div>
+                        <div>
+                            <dt><?php esc_html_e('Total Spent', 'mobooking'); ?></dt>
+                            <dd><?php echo mobooking_format_price( $customer->booking_overview->total_spent ?? 0, $currency_symbol ); ?></dd>
+                        </div>
+                        <div>
+                            <dt><?php esc_html_e('Avg. Order Value', 'mobooking'); ?></dt>
+                            <dd><?php echo mobooking_format_price( $customer->booking_overview->average_booking_value ?? 0, $currency_symbol ); ?></dd>
+                        </div>
+                    </dl>
+                </div>
+            </div>
             <!-- Customer Notes Card -->
             <div class="mobooking-card">
                 <div class="mobooking-card-header">
