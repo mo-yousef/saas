@@ -550,6 +550,116 @@ class Customers {
  * Get customer insights for dashboard
  * Add this method to the Customers class
  */
+public function update_customer_details( $customer_id, $tenant_id, $data ) {
+    // Verify that the customer belongs to the tenant for security
+    $customer = $this->db->get_row(
+        $this->db->prepare(
+            "SELECT id FROM {$this->table_name} WHERE id = %d AND tenant_id = %d",
+            $customer_id,
+            $tenant_id
+        )
+    );
+
+    if ( ! $customer ) {
+        return new \WP_Error('invalid_customer', __('Invalid customer or permission denied.', 'mobooking'));
+    }
+
+    $update_data = [];
+    $update_formats = [];
+
+    if (isset($data['full_name'])) {
+        $update_data['full_name'] = sanitize_text_field($data['full_name']);
+        $update_formats[] = '%s';
+    }
+    if (isset($data['email'])) {
+        $update_data['email'] = sanitize_email($data['email']);
+        $update_formats[] = '%s';
+    }
+    if (isset($data['phone_number'])) {
+        $update_data['phone_number'] = sanitize_text_field($data['phone_number']);
+        $update_formats[] = '%s';
+    }
+    if (isset($data['status'])) {
+        $update_data['status'] = sanitize_text_field($data['status']);
+        $update_formats[] = '%s';
+    }
+    if (isset($data['address_line_1'])) {
+        $update_data['address_line_1'] = sanitize_text_field($data['address_line_1']);
+        $update_formats[] = '%s';
+    }
+    if (isset($data['address_line_2'])) {
+        $update_data['address_line_2'] = sanitize_text_field($data['address_line_2']);
+        $update_formats[] = '%s';
+    }
+    if (isset($data['city'])) {
+        $update_data['city'] = sanitize_text_field($data['city']);
+        $update_formats[] = '%s';
+    }
+    if (isset($data['state'])) {
+        $update_data['state'] = sanitize_text_field($data['state']);
+        $update_formats[] = '%s';
+    }
+    if (isset($data['zip_code'])) {
+        $update_data['zip_code'] = sanitize_text_field($data['zip_code']);
+        $update_formats[] = '%s';
+    }
+    if (isset($data['country'])) {
+        $update_data['country'] = sanitize_text_field($data['country']);
+        $update_formats[] = '%s';
+    }
+
+    if (empty($update_data)) {
+        return new \WP_Error('no_data', __('No data provided to update.', 'mobooking'));
+    }
+
+    $result = $this->db->update(
+        $this->table_name,
+        $update_data,
+        ['id' => $customer_id],
+        $update_formats,
+        ['%d']
+    );
+
+    if ( false === $result ) {
+        return new \WP_Error('db_error', __('Could not update customer details.', 'mobooking'));
+    }
+
+    return true;
+}
+
+public function update_customer_note( $customer_id, $tenant_id, $notes ) {
+    $customer_id = absint( $customer_id );
+    $tenant_id = absint( $tenant_id );
+    $notes = sanitize_textarea_field( $notes );
+
+    // Verify that the customer belongs to the tenant for security
+    $customer = $this->db->get_row(
+        $this->db->prepare(
+            "SELECT id FROM {$this->table_name} WHERE id = %d AND tenant_id = %d",
+            $customer_id,
+            $tenant_id
+        )
+    );
+
+    if ( ! $customer ) {
+        return new \WP_Error('invalid_customer', __('Invalid customer or permission denied.', 'mobooking'));
+    }
+
+    $result = $this->db->update(
+        $this->table_name,
+        ['notes' => $notes],
+        ['id' => $customer_id],
+        ['%s'],
+        ['%d']
+    );
+
+    if ( false === $result ) {
+        return new \WP_Error('db_error', __('Could not update customer notes.', 'mobooking'));
+    }
+
+    return true;
+}
+
 public function get_customer_insights($tenant_id, $start_date = null, $end_date = null) {
     $customers_table = Database::get_table_name('customers');
     $bookings_table = Database::get_table_name('bookings');
