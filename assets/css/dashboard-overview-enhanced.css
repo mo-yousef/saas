@@ -314,9 +314,7 @@
 }
 
 .booking-item:hover {
-  background: hsl(var(--mobk-muted) / 0.6);
-  border-color: hsl(var(--mobk-primary) / 0.5);
-  transform: translateX(2px);
+  background: hsl(var(--border) / 0.4);
 }
 
 .booking-customer {
@@ -773,7 +771,7 @@
 }
 
 .text-2xl {
-  font-size: 1.5rem;
+  font-size: 1.4rem;
 }
 
 .text-3xl {
@@ -960,58 +958,69 @@
 }
 
 .booking-item.compact {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.75rem;
+  display: flex;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  margin: 0px;
 }
 
 .booking-item.compact .booking-item-main {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    flex-grow: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-grow: 1;
 }
 
 .booking-item.compact .booking-item-icon {
-    flex-shrink: 0;
+  flex-shrink: 0;
+  padding: 8px;
+  border-radius: 10px;
+  width: 35px;
+  height: 35px;
+  display: flex;
+  align-items: center;
+  border: 1px solid hsl(var(--border));
 }
 
 .booking-item.compact .booking-item-icon svg {
-    width: 24px;
-    height: 24px;
-    color: hsl(var(--mobk-primary));
+  width: 24px;
+  height: 24px;
+  color: hsl(var(--muted-foreground));
 }
 
 .booking-item.compact .booking-item-details {
-    display: flex;
-    flex-direction: column;
+  display: flex;
+  flex-direction: column;
 }
 
 .booking-item.compact .booking-customer {
-    font-weight: 600;
+  font-weight: 600;
 }
 
 .booking-item.compact .booking-meta {
-    display: flex;
-    gap: 1rem;
-    font-size: 0.8rem;
-    color: hsl(var(--mobk-muted-foreground));
+  display: flex;
+  gap: 1rem;
+  font-size: 0.8rem;
+  color: hsl(var(--mobk-muted-foreground));
 }
 
 .booking-item.compact .booking-meta span {
-    display: flex;
-    align-items: center;
-    gap: 0.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
 }
 
 .booking-item.compact .booking-meta svg {
-    width: 12px;
-    height: 12px;
+  width: 12px;
+  height: 12px;
 }
 
 .booking-item-link {
-    text-decoration: none;
-    color: inherit;
-    display: block;
+  text-decoration: none;
+  color: inherit;
+  display: block;
 }
