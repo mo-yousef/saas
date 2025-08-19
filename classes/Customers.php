@@ -51,10 +51,10 @@ class Customers {
             return;
         }
 
-        $page = isset($_POST['page']) ? absint($_POST['page']) : 1;
-        $per_page = isset($_POST['per_page']) ? absint($_POST['per_page']) : 20;
-        $search = isset($_POST['search']) ? sanitize_text_field($_POST['search']) : '';
-        $status_filter = isset($_POST['status']) ? sanitize_text_field($_POST['status']) : '';
+        $page = isset($_POST['paged']) ? absint($_POST['paged']) : 1;
+        $per_page = isset($_POST['limit']) ? absint($_POST['limit']) : 20;
+        $search = isset($_POST['search_query']) ? sanitize_text_field($_POST['search_query']) : '';
+        $status_filter = isset($_POST['status_filter']) ? sanitize_text_field($_POST['status_filter']) : '';
         $sort_by = isset($_POST['sort_by']) ? sanitize_key($_POST['sort_by']) : 'full_name';
         $sort_order = isset($_POST['sort_order']) ? strtoupper(sanitize_key($_POST['sort_order'])) : 'ASC';
 
