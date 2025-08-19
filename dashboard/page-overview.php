@@ -6,6 +6,8 @@
  */
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
+require_once __DIR__ . '/../functions/utilities.php';
+
 // Get current user and initialize managers
 $user = wp_get_current_user();
 $current_user_id = get_current_user_id();
