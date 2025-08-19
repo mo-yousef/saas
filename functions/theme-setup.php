@@ -364,6 +364,38 @@ if ( is_page_template('templates/booking-form-public.php') || $page_type_for_scr
             ));
         }
 
+        if ( $current_page_slug === 'customers' ) {
+            wp_enqueue_script('mobooking-dashboard-customers', MOBOOKING_THEME_URI . 'assets/js/dashboard-customers.js', array('jquery', 'jquery-ui-datepicker'), MOBOOKING_VERSION, true);
+            wp_localize_script('mobooking-dashboard-customers', 'mobooking_customers_params', [
+                'ajax_url' => admin_url('admin-ajax.php'),
+                'nonce' => wp_create_nonce('mobooking_dashboard_nonce'),
+                'details_page_base_url' => home_url('/dashboard/customer-details/'),
+                'i18n' => [
+                    'customer' => __('Customer', 'mobooking'),
+                    'contact' => __('Contact', 'mobooking'),
+                    'bookings' => __('Bookings', 'mobooking'),
+                    'last_booking' => __('Last Booking', 'mobooking'),
+                    'status' => __('Status', 'mobooking'),
+                    'actions' => __('Actions', 'mobooking'),
+                    'na' => __('N/A', 'mobooking'),
+                    'no_customers_found' => __('No customers found', 'mobooking'),
+                    'try_different_filters' => __('Try adjusting your filters or clearing them to see all customers.', 'mobooking'),
+                    'error_loading' => __('Error loading customers.', 'mobooking'),
+                    'less_filters' => __('Less', 'mobooking'),
+                    'more_filters' => __('More', 'mobooking'),
+                ],
+                'statuses' => [
+                    'active' => __('Active', 'mobooking'),
+                    'inactive' => __('Inactive', 'mobooking'),
+                    'lead' => __('Lead', 'mobooking'),
+                ],
+                'icons' => [
+                    'active' => mobooking_get_status_badge_icon_svg('active'),
+                    'inactive' => mobooking_get_status_badge_icon_svg('inactive'),
+                    'lead' => mobooking_get_status_badge_icon_svg('lead'),
+                ]
+            ]);
+        }
     }
 }
 add_action( 'wp_enqueue_scripts', 'mobooking_scripts' );
