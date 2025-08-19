@@ -33,7 +33,9 @@ if ( ! $customer_id ) {
 $customers_manager = new \MoBooking\Classes\Customers();
 $tenant_id = \MoBooking\Classes\Auth::get_effective_tenant_id_for_user( get_current_user_id() );
 $customer = $customers_manager->get_customer_by_id( $customer_id, $tenant_id );
-$currency_symbol = \MoBooking\Classes\Utils::get_currency_symbol();
+$settings_manager = new \MoBooking\Classes\Settings();
+$currency_code = $settings_manager->get_setting($tenant_id, 'biz_currency_code', 'USD');
+$currency_symbol = \MoBooking\Classes\Utils::get_currency_symbol($currency_code);
 
 // Handle customer not found
 if ( ! $customer ) {
