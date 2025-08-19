@@ -1651,7 +1651,7 @@ function loadServices() {
     if (!container) return;
     
     const data = new FormData();
-    data.append('action', 'mobooking_get_public_services');
+    data.append('action', 'mobooking_get_services');
     data.append('nonce', MoBookingConfig.nonce);
     data.append('tenant_id', MoBookingConfig.tenant_id);
     
