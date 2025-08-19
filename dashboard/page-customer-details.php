@@ -227,7 +227,7 @@ if ( ! empty( $bookings ) ) {
                 <div class="mobooking-card-content">
                     <div id="customer-notes-content">
                         <?php if ( ! empty( $customer->notes ) ) : ?>
-                            <p><?php echo nl2br(esc_html( $customer->notes )); ?></p>
+                            <p><?php echo nl2br(esc_html( $customer->notes ?? '' )); ?></p>
                         <?php else : ?>
                             <p class="text-muted"><?php esc_html_e('No notes for this customer yet.', 'mobooking'); ?></p>
                         <?php endif; ?>
@@ -238,87 +238,60 @@ if ( ! empty( $bookings ) ) {
     </div>
 </div>
 
-<!-- Edit Customer Modal -->
-<div id="mobooking-edit-customer-modal" class="mobooking-modal" style="display:none;">
-    <div class="mobooking-modal-content">
-        <div class="mobooking-modal-header">
-            <h3 class="mobooking-modal-title"><?php esc_html_e('Edit Customer', 'mobooking'); ?></h3>
-            <button class="mobooking-modal-close">&times;</button>
+<!-- Hidden form for editing, to be used by the dialog -->
+<div id="mobooking-edit-customer-form-template" style="display:none;">
+    <form id="mobooking-edit-customer-form">
+        <input type="hidden" name="customer_id" value="<?php echo esc_attr($customer_id); ?>">
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="edit-full-name"><?php esc_html_e('Full Name', 'mobooking'); ?></label>
+                <input type="text" id="edit-full-name" name="full_name" value="<?php echo esc_attr($customer->full_name); ?>">
+            </div>
+            <div class="form-group">
+                <label for="edit-email"><?php esc_html_e('Email Address', 'mobooking'); ?></label>
+                <input type="email" id="edit-email" name="email" value="<?php echo esc_attr($customer->email); ?>">
+            </div>
+            <div class="form-group">
+                <label for="edit-phone-number"><?php esc_html_e('Phone Number', 'mobooking'); ?></label>
+                <input type="tel" id="edit-phone-number" name="phone_number" value="<?php echo esc_attr($customer->phone_number); ?>">
+            </div>
+            <div class="form-group">
+                <label for="edit-status"><?php esc_html_e('Status', 'mobooking'); ?></label>
+                <select id="edit-status" name="status">
+                    <option value="active" <?php selected($customer->status, 'active'); ?>><?php esc_html_e('Active', 'mobooking'); ?></option>
+                    <option value="inactive" <?php selected($customer->status, 'inactive'); ?>><?php esc_html_e('Inactive', 'mobooking'); ?></option>
+                    <option value="lead" <?php selected($customer->status, 'lead'); ?>><?php esc_html_e('Lead', 'mobooking'); ?></option>
+                </select>
+            </div>
+            <div class="form-group form-group-full">
+                <label for="edit-address-1"><?php esc_html_e('Address Line 1', 'mobooking'); ?></label>
+                <input type="text" id="edit-address-1" name="address_line_1" value="<?php echo esc_attr($customer->address_line_1); ?>">
+            </div>
+            <div class="form-group form-group-full">
+                <label for="edit-address-2"><?php esc_html_e('Address Line 2', 'mobooking'); ?></label>
+                <input type="text" id="edit-address-2" name="address_line_2" value="<?php echo esc_attr($customer->address_line_2); ?>">
+            </div>
+            <div class="form-group">
+                <label for="edit-city"><?php esc_html_e('City', 'mobooking'); ?></label>
+                <input type="text" id="edit-city" name="city" value="<?php echo esc_attr($customer->city); ?>">
+            </div>
+            <div class="form-group">
+                <label for="edit-state"><?php esc_html_e('State / Province', 'mobooking'); ?></label>
+                <input type="text" id="edit-state" name="state" value="<?php echo esc_attr($customer->state); ?>">
+            </div>
+            <div class="form-group">
+                <label for="edit-zip-code"><?php esc_html_e('ZIP / Postal Code', 'mobooking'); ?></label>
+                <input type="text" id="edit-zip-code" name="zip_code" value="<?php echo esc_attr($customer->zip_code); ?>">
+            </div>
+            <div class="form-group">
+                <label for="edit-country"><?php esc_html_e('Country', 'mobooking'); ?></label>
+                <input type="text" id="edit-country" name="country" value="<?php echo esc_attr($customer->country); ?>">
+            </div>
         </div>
-        <div class="mobooking-modal-body">
-            <form id="mobooking-edit-customer-form">
-                <input type="hidden" name="customer_id" value="<?php echo esc_attr($customer_id); ?>">
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label for="edit-full-name"><?php esc_html_e('Full Name', 'mobooking'); ?></label>
-                        <input type="text" id="edit-full-name" name="full_name" value="<?php echo esc_attr($customer->full_name); ?>">
-                    </div>
-                    <div class="form-group">
-                        <label for="edit-email"><?php esc_html_e('Email Address', 'mobooking'); ?></label>
-                        <input type="email" id="edit-email" name="email" value="<?php echo esc_attr($customer->email); ?>">
-                    </div>
-                    <div class="form-group">
-                        <label for="edit-phone-number"><?php esc_html_e('Phone Number', 'mobooking'); ?></label>
-                        <input type="tel" id="edit-phone-number" name="phone_number" value="<?php echo esc_attr($customer->phone_number); ?>">
-                    </div>
-                    <div class="form-group">
-                        <label for="edit-status"><?php esc_html_e('Status', 'mobooking'); ?></label>
-                        <select id="edit-status" name="status">
-                            <option value="active" <?php selected($customer->status, 'active'); ?>><?php esc_html_e('Active', 'mobooking'); ?></option>
-                            <option value="inactive" <?php selected($customer->status, 'inactive'); ?>><?php esc_html_e('Inactive', 'mobooking'); ?></option>
-                            <option value="lead" <?php selected($customer->status, 'lead'); ?>><?php esc_html_e('Lead', 'mobooking'); ?></option>
-                        </select>
-                    </div>
-                    <div class="form-group form-group-full">
-                        <label for="edit-address-1"><?php esc_html_e('Address Line 1', 'mobooking'); ?></label>
-                        <input type="text" id="edit-address-1" name="address_line_1" value="<?php echo esc_attr($customer->address_line_1); ?>">
-                    </div>
-                    <div class="form-group form-group-full">
-                        <label for="edit-address-2"><?php esc_html_e('Address Line 2', 'mobooking'); ?></label>
-                        <input type="text" id="edit-address-2" name="address_line_2" value="<?php echo esc_attr($customer->address_line_2); ?>">
-                    </div>
-                    <div class="form-group">
-                        <label for="edit-city"><?php esc_html_e('City', 'mobooking'); ?></label>
-                        <input type="text" id="edit-city" name="city" value="<?php echo esc_attr($customer->city); ?>">
-                    </div>
-                    <div class="form-group">
-                        <label for="edit-state"><?php esc_html_e('State / Province', 'mobooking'); ?></label>
-                        <input type="text" id="edit-state" name="state" value="<?php echo esc_attr($customer->state); ?>">
-                    </div>
-                    <div class="form-group">
-                        <label for="edit-zip-code"><?php esc_html_e('ZIP / Postal Code', 'mobooking'); ?></label>
-                        <input type="text" id="edit-zip-code" name="zip_code" value="<?php echo esc_attr($customer->zip_code); ?>">
-                    </div>
-                    <div class="form-group">
-                        <label for="edit-country"><?php esc_html_e('Country', 'mobooking'); ?></label>
-                        <input type="text" id="edit-country" name="country" value="<?php echo esc_attr($customer->country); ?>">
-                    </div>
-                </div>
-            </form>
-        </div>
-        <div class="mobooking-modal-footer">
-            <button type="button" class="btn btn-secondary mobooking-modal-close"><?php esc_html_e('Cancel', 'mobooking'); ?></button>
-            <button type="submit" form="mobooking-edit-customer-form" class="btn btn-primary"><?php esc_html_e('Save Changes', 'mobooking'); ?></button>
-        </div>
-    </div>
+    </form>
 </div>
 
-<!-- Notes Modal -->
-<div id="mobooking-notes-modal" class="mobooking-modal" style="display:none;">
-    <div class="mobooking-modal-content">
-        <div class="mobooking-modal-header">
-            <h3 class="mobooking-modal-title"><?php esc_html_e('Customer Notes', 'mobooking'); ?></h3>
-            <button class="mobooking-modal-close">&times;</button>
-        </div>
-        <div class="mobooking-modal-body">
-            <form id="mobooking-notes-form">
-                <input type="hidden" name="customer_id" value="<?php echo esc_attr($customer_id); ?>">
-                <textarea name="customer_notes" rows="8" style="width:100%;"><?php echo esc_textarea( $customer->notes ); ?></textarea>
-            </form>
-        </div>
-        <div class="mobooking-modal-footer">
-            <button type="button" class="btn btn-secondary mobooking-modal-close"><?php esc_html_e('Cancel', 'mobooking'); ?></button>
-            <button type="submit" form="mobooking-notes-form" class="btn btn-primary"><?php esc_html_e('Save Notes', 'mobooking'); ?></button>
-        </div>
-    </div>
+<!-- Hidden textarea for notes modal -->
+<div id="mobooking-notes-form-template" style="display:none;">
+    <textarea name="customer_notes" rows="8" style="width:100%;" class="mobooking-input"><?php echo esc_textarea( $customer->notes ?? '' ); ?></textarea>
 </div>
