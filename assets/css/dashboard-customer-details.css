@@ -76,6 +76,40 @@
     line-height: 1.5;
 }
 
+.quick-actions-buttons {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.quick-actions-buttons .btn {
+    flex-grow: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.customer-info-section {
+    padding-bottom: 1rem;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid var(--mobk-border);
+}
+
+.customer-info-section:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.customer-info-section h4 {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--mobk-muted-foreground);
+    margin: 0 0 0.75rem 0;
+}
+
 .mobooking-stats-list {
     margin: 0;
     padding: 0;
