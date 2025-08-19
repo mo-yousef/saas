@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
         <div class="mobooking-search-container">
             <svg class="mobooking-search-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
             <input type="text" id="mobooking-live-search" placeholder="<?php esc_attr_e('Search bookings, customers, etc...', 'mobooking'); ?>">
-            <div id="mobooking-search-results" class="mobooking-search-results-dropdown" style="display: none;">
+            <div id="mobooking-search-results" class="mobooking-search-results-dropdown">
                 <div class="search-quick-links">
                     <a href="<?php echo esc_url(home_url('/dashboard/bookings/')); ?>"><span><?php esc_html_e('Bookings', 'mobooking'); ?></span><span class="shortcut">⌘B</span></a>
                     <a href="<?php echo esc_url(home_url('/dashboard/customers/')); ?>"><span><?php esc_html_e('Customers', 'mobooking'); ?></span><span class="shortcut">⌘C</span></a>
