@@ -157,8 +157,16 @@
 
 .key-info-item {
     display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.key-info-item svg {
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+    color: var(--mobk-muted-foreground);
+    margin-top: 4px;
 }
 
 .key-info-label {

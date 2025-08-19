@@ -627,38 +627,6 @@ public function update_customer_details( $customer_id, $tenant_id, $data ) {
     return true;
 }
 
-public function update_customer_note( $customer_id, $tenant_id, $notes ) {
-    $customer_id = absint( $customer_id );
-    $tenant_id = absint( $tenant_id );
-    $notes = sanitize_textarea_field( $notes );
-
-    // Verify that the customer belongs to the tenant for security
-    $customer = $this->db->get_row(
-        $this->db->prepare(
-            "SELECT id FROM {$this->table_name} WHERE id = %d AND tenant_id = %d",
-            $customer_id,
-            $tenant_id
-        )
-    );
-
-    if ( ! $customer ) {
-        return new \WP_Error('invalid_customer', __('Invalid customer or permission denied.', 'mobooking'));
-    }
-
-    $result = $this->db->update(
-        $this->table_name,
-        ['notes' => $notes],
-        ['id' => $customer_id],
-        ['%s'],
-        ['%d']
-    );
-
-    if ( false === $result ) {
-        return new \WP_Error('db_error', __('Could not update customer notes.', 'mobooking'));
-    }
-
-    return true;
-}
 
 public function get_customer_insights($tenant_id, $start_date = null, $end_date = null) {
     $customers_table = Database::get_table_name('customers');

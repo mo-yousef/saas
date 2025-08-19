@@ -1499,31 +1499,3 @@ if (!function_exists('mobooking_ajax_dashboard_live_search')) {
         wp_send_json_success(array('results' => $results));
     }
 }
-
-add_action('wp_ajax_mobooking_update_customer_note', 'mobooking_ajax_update_customer_note');
-if (!function_exists('mobooking_ajax_update_customer_note')) {
-    function mobooking_ajax_update_customer_note() {
-        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'mobooking_dashboard_nonce')) {
-            wp_send_json_error(['message' => 'Security check failed.'], 403);
-            return;
-        }
-
-        $customer_id = isset($_POST['customer_id']) ? absint($_POST['customer_id']) : 0;
-        $notes = isset($_POST['customer_notes']) ? sanitize_textarea_field($_POST['customer_notes']) : '';
-        $tenant_id = \MoBooking\Classes\Auth::get_effective_tenant_id_for_user(get_current_user_id());
-
-        if (!$customer_id || !$tenant_id) {
-            wp_send_json_error(['message' => 'Invalid request.'], 400);
-            return;
-        }
-
-        $customers_manager = new \MoBooking\Classes\Customers();
-        $result = $customers_manager->update_customer_note($customer_id, $tenant_id, $notes);
-
-        if (is_wp_error($result)) {
-            wp_send_json_error(['message' => $result->get_error_message()], 500);
-        } else {
-            wp_send_json_success(['message' => 'Customer notes updated successfully.']);
-        }
-    }
-}
