@@ -256,7 +256,9 @@ body.wp-admin #wpbody-content .mobooking-overview-dashboard {
   font-weight: 500;
   color: hsl(var(--card-foreground));
 }
-
+#mobooking-toggle-more-filters-btn {
+  min-width: 93px;
+}
 .mobooking-filter-item .regular-text,
 .mobooking-filter-item .mobooking-datepicker,
 .mobooking-filter-item .mobooking-filter-select,
@@ -269,6 +271,7 @@ body.wp-admin #wpbody-content .mobooking-overview-dashboard {
   background-color: hsl(var(--background));
   color: hsl(var(--foreground));
   box-shadow: none;
+  margin-bottom: 0px !important;
   transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 }
 
@@ -899,6 +902,7 @@ a.quick-action:hover {
   width: 100%;
   height: 36px;
   padding-left: 2.5rem;
+  margin-bottom: 0px !important;
   border-radius: var(--radius);
   border: 1px solid hsl(var(--input));
   background-color: hsl(var(--background));

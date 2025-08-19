@@ -1,152 +1,182 @@
 /* ShadCN Inspired Styles for Discounts Page */
 .mobooking-discounts-page .button-primary {
-    background-color: hsl(var(--primary));
-    color: hsl(var(--primary-foreground));
-    border: none;
-    padding: 0.5rem 1rem;
-    border-radius: var(--radius);
-    cursor: pointer;
-    font-size: 0.875rem;
-    font-weight: 500;
+  background-color: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
 }
 
 .mobooking-discounts-page .button-primary:hover {
-    background-color: hsl(var(--primary) / 0.9);
+  background-color: hsl(var(--primary) / 0.9);
 }
 
 .mobooking-discounts-page .wp-list-table {
-    border: 1px solid hsl(var(--border));
-    border-radius: var(--radius);
-    overflow: hidden;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  overflow: hidden;
 }
 
 .mobooking-discounts-page .wp-list-table thead th {
-    background-color: hsl(var(--muted));
-    border-bottom: 1px solid hsl(var(--border));
+  background-color: hsl(var(--muted));
+  border-bottom: 1px solid hsl(var(--border));
 }
 
 .mobooking-discounts-page .wp-list-table tbody tr:not(.no-items) {
-    border-bottom: 1px solid hsl(var(--border));
+  border-bottom: 1px solid hsl(var(--border));
 }
 
 .mobooking-discounts-page .wp-list-table tbody tr:last-child {
-    border-bottom: none;
+  border-bottom: none;
 }
 
 .mobooking-discounts-page .wp-list-table .button {
-    background-color: hsl(var(--secondary));
-    color: hsl(var(--secondary-foreground));
-    border: 1px solid hsl(var(--border));
-    border-radius: var(--radius);
-    padding: 0.25rem 0.5rem;
+  background-color: hsl(var(--secondary));
+  color: hsl(var(--secondary-foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  padding: 0.25rem 0.5rem;
 }
 
 .mobooking-discounts-page .wp-list-table .button:hover {
-    background-color: hsl(var(--accent));
+  background-color: hsl(var(--accent));
 }
 
 .mobooking-discounts-page .wp-list-table .button-link-delete {
-    color: hsl(var(--destructive));
-    border-color: transparent;
-    background: transparent;
+  color: hsl(var(--destructive));
+  border-color: transparent;
+  background: transparent;
 }
 
 .mobooking-discounts-page .wp-list-table .button-link-delete:hover {
-    color: hsl(var(--destructive-foreground));
-    background-color: hsl(var(--destructive));
+  color: hsl(var(--destructive-foreground));
+  background-color: hsl(var(--destructive));
 }
 
 .mobooking-discounts-page .status-active {
-    background-color: hsl(var(--accent));
-    color: hsl(var(--accent-foreground));
-    padding: 0.25rem 0.5rem;
-    border-radius: var(--radius);
-    font-weight: 500;
+  background-color: hsl(var(--accent));
+  color: hsl(var(--accent-foreground));
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius);
+  font-weight: 500;
 }
 
 /* Old modal styles are removed. New styles are in dialog.css */
 
 /* Radio Pills */
 .radio-pills {
-    display: inline-flex;
-    border-radius: var(--radius);
-    overflow: hidden;
-    border: 1px solid hsl(var(--border));
+  display: inline-flex;
+  height: 2.5rem;
+  align-items: center;
+  justify-content: center;
+  background-color: hsl(210 40% 98%);
+  padding: 0.25rem;
+  color: hsl(215.4 16.3% 46.9%);
+  margin-bottom: 0px !important;
+  border-radius: 0.375rem;
+  width: 100%;
+  border: 1px solid hsl(214.3 31.8% 91.4%);
 }
 
 .radio-pills label {
-    position: relative;
+  position: relative;
+  width: 100%;
+  text-align: center;
+  margin-bottom: 0px !important;
 }
 
 .radio-pills input[type="radio"] {
-    position: absolute;
-    opacity: 0;
-    width: 0;
-    height: 0;
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
 }
 
 .radio-pills span {
-    display: block;
-    padding: 0.5rem 1rem;
-    cursor: pointer;
-    background-color: hsl(var(--muted));
-    color: hsl(var(--muted-foreground));
-    transition: background-color 0.2s, color 0.2s;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  border-radius: 0.25rem;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  letter-spacing: 0px;
+  transition: all 0.15s ease-in-out;
+  text-decoration: none;
+  color: inherit;
+  width: 100%;
+  cursor: pointer;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 
 .radio-pills input[type="radio"]:checked + span {
-    background-color: hsl(var(--primary));
-    color: hsl(var(--primary-foreground));
+  background-color: hsl(0 0% 100%);
+  color: hsl(222.2 84% 4.9%);
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+}
+input#mobooking-discount-code {
+  margin: 0;
 }
 
+/* 
 .radio-pills label:not(:last-child) span {
-    border-right: 1px solid hsl(var(--border));
+  border-right: 1px solid hsl(var(--border));
+} */
+.form-grid {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: 1fr 1fr;
 }
-
+.form-grid input {
+  margin: 0px !important;
+}
 .form-group.full-width {
-    grid-column: span 2;
+  grid-column: span 2;
 }
 
 @media screen and (max-width: 768px) {
-    .mobooking-table-container {
-        overflow-x: auto;
-    }
+  .mobooking-table-container {
+    overflow-x: auto;
+  }
 
-    .wp-list-table thead,
-    .wp-list-table tfoot {
-        display: none;
-    }
+  .wp-list-table thead,
+  .wp-list-table tfoot {
+    display: none;
+  }
 
-    .wp-list-table tbody tr {
-        display: block;
-        margin-bottom: 1rem;
-        border: 1px solid hsl(var(--border));
-        border-radius: var(--radius);
-    }
+  .wp-list-table tbody tr {
+    display: block;
+    margin-bottom: 1rem;
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius);
+  }
 
-    .wp-list-table tbody td {
-        display: block;
-        text-align: right;
-        border-bottom: 1px solid hsl(var(--border));
-        position: relative;
-        padding-left: 50%;
-    }
+  .wp-list-table tbody td {
+    display: block;
+    text-align: right;
+    border-bottom: 1px solid hsl(var(--border));
+    position: relative;
+    padding-left: 50%;
+  }
 
-    .wp-list-table tbody td:before {
-        content: attr(data-label);
-        position: absolute;
-        left: 0;
-        width: 45%;
-        padding-left: 1rem;
-        font-weight: 600;
-        text-align: left;
-    }
+  .wp-list-table tbody td:before {
+    content: attr(data-label);
+    position: absolute;
+    left: 0;
+    width: 45%;
+    padding-left: 1rem;
+    font-weight: 600;
+    text-align: left;
+  }
 
-    .wp-list-table tbody td:last-child {
-        border-bottom: none;
-    }
+  .wp-list-table tbody td:last-child {
+    border-bottom: none;
+  }
 }

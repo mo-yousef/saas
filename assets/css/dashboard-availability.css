@@ -47,7 +47,27 @@
 .day-schedule:not(:last-child) {
   border-bottom: 1px solid hsl(var(--border));
 }
-
+label.copy-day-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: hsl(var(--secondary));
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius);
+  border: 1px solid hsl(var(--border));
+  margin: 0px;
+  cursor: pointer;
+}
+.copy-day-label input[type="checkbox"] {
+  margin: 0px;
+  cursor: pointer;
+}
+.copy-days-selection {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
 .day-header {
   display: flex;
   justify-content: space-between;
