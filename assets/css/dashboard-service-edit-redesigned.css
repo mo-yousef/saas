@@ -1,0 +1,374 @@
+/* ============================================================================
+   MoBooking Service Edit Page Redesign CSS
+   ============================================================================ */
+
+/* ============================================================================
+   CSS Variables - from dashboard-overview-enhanced.css
+   ============================================================================ */
+:root {
+  --mobk-background: 0 0% 100%;
+  --mobk-foreground: 222.2 84% 4.9%;
+  --mobk-card: 0 0% 100%;
+  --mobk-card-foreground: 222.2 84% 4.9%;
+  --mobk-primary: 221.2 83.2% 53.3%;
+  --mobk-primary-foreground: 210 40% 98%;
+  --mobk-secondary: 210 40% 96.1%;
+  --mobk-secondary-foreground: 222.2 84% 4.9%;
+  --mobk-muted: 210 40% 96.1%;
+  --mobk-muted-foreground: 215.4 16.3% 46.9%;
+  --mobk-accent: 210 40% 96.1%;
+  --mobk-accent-foreground: 222.2 84% 4.9%;
+  --mobk-destructive: 0 84.2% 60.2%;
+  --mobk-destructive-foreground: 210 40% 98%;
+  --mobk-border: 214.3 31.8% 91.4%;
+  --mobk-input: 214.3 31.8% 91.4%;
+  --mobk-ring: 221.2 83.2% 53.3%;
+  --mobk-radius: 0.5rem;
+  --mobk-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --mobk-background: 222.2 84% 4.9%;
+    --mobk-foreground: 210 40% 98%;
+    --mobk-card: 222.2 84% 4.9%;
+    --mobk-card-foreground: 210 40% 98%;
+    --mobk-primary: 217.2 91.2% 59.8%;
+    --mobk-primary-foreground: 222.2 84% 4.9%;
+    --mobk-secondary: 217.2 32.6% 17.5%;
+    --mobk-secondary-foreground: 210 40% 98%;
+    --mobk-muted: 217.2 32.6% 17.5%;
+    --mobk-muted-foreground: 215 20.2% 65.1%;
+    --mobk-border: 217.2 32.6% 17.5%;
+    --mobk-input: 217.2 32.6% 17.5%;
+    --mobk-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+/* ============================================================================
+   Page Layout & Header
+   ============================================================================ */
+.service-edit-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+.service-edit-header {
+  margin-bottom: 2rem;
+}
+
+.service-edit-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+  color: hsl(var(--mobk-muted-foreground));
+}
+
+.service-edit-breadcrumb a {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  color: hsl(var(--mobk-foreground));
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.service-edit-breadcrumb a:hover {
+  color: hsl(var(--mobk-primary));
+}
+
+.service-edit-header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.service-edit-title {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: hsl(var(--mobk-foreground));
+  margin: 0 0 0.25rem 0;
+}
+
+.service-edit-description {
+  color: hsl(var(--mobk-muted-foreground));
+  margin: 0;
+  max-width: 60ch;
+}
+
+.service-edit-header-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+/* ============================================================================
+   Tabs
+   ============================================================================ */
+.service-edit-tabs-list {
+  display: flex;
+  gap: 0.25rem;
+  border-bottom: 1px solid hsl(var(--mobk-border));
+  margin-bottom: 1.5rem;
+}
+
+.service-edit-tabs-trigger {
+  padding: 0.75rem 1rem;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: hsl(var(--mobk-muted-foreground));
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.service-edit-tabs-trigger:hover {
+  color: hsl(var(--mobk-primary));
+}
+
+.service-edit-tabs-trigger.active {
+  color: hsl(var(--mobk-primary));
+  border-bottom-color: hsl(var(--mobk-primary));
+}
+
+.service-edit-tabs-content {
+  display: none;
+}
+
+.service-edit-tabs-content.active {
+  display: block;
+}
+
+/* ============================================================================
+   Cards & Form Elements
+   ============================================================================ */
+.service-edit-card {
+  background: hsl(var(--mobk-card));
+  border: 1px solid hsl(var(--mobk-border));
+  border-radius: var(--mobk-radius);
+  margin-bottom: 1.5rem;
+}
+
+.service-edit-card-header {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid hsl(var(--mobk-border));
+}
+
+.service-edit-card-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: hsl(var(--mobk-card-foreground));
+  margin: 0;
+}
+
+.service-edit-card-description {
+  font-size: 0.875rem;
+  color: hsl(var(--mobk-muted-foreground));
+  margin-top: 0.25rem;
+}
+
+.service-edit-card-content {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.form-grid {
+  display: grid;
+  gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .form-grid-cols-2 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .form-grid-cols-3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .form-col-span-2 {
+    grid-column: span 2 / span 2;
+  }
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: hsl(var(--mobk-foreground));
+}
+
+.form-input,
+.form-textarea {
+  width: 100%;
+  padding: 0.625rem 0.75rem;
+  border: 1px solid hsl(var(--mobk-input));
+  border-radius: var(--mobk-radius);
+  background: hsl(var(--mobk-background));
+  color: hsl(var(--mobk-foreground));
+  transition: all 0.2s;
+}
+
+.form-input:focus,
+.form-textarea:focus {
+  outline: none;
+  border-color: hsl(var(--mobk-ring));
+  box-shadow: 0 0 0 1px hsl(var(--mobk-ring));
+}
+
+.form-description {
+  font-size: 0.8rem;
+  color: hsl(var(--mobk-muted-foreground));
+}
+
+/* ============================================================================
+   Buttons
+   ============================================================================ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: var(--mobk-radius);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+}
+
+.btn-primary {
+  background: hsl(var(--mobk-primary));
+  color: hsl(var(--mobk-primary-foreground));
+}
+.btn-primary:hover {
+  opacity: 0.9;
+}
+
+.btn-outline {
+  border-color: hsl(var(--mobk-border));
+  background: hsl(var(--mobk-card));
+  color: hsl(var(--mobk-card-foreground));
+}
+.btn-outline:hover {
+  background: hsl(var(--mobk-accent));
+}
+
+.btn-destructive {
+  background: hsl(var(--mobk-destructive));
+  color: hsl(var(--mobk-destructive-foreground));
+}
+.btn-destructive:hover {
+  opacity: 0.9;
+}
+
+.btn-ghost {
+  background: transparent;
+  color: hsl(var(--mobk-muted-foreground));
+}
+.btn-ghost:hover {
+  background: hsl(var(--mobk-accent));
+  color: hsl(var(--mobk-accent-foreground));
+}
+
+.btn-sm {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.8125rem;
+}
+
+.btn-icon {
+  padding: 0.5rem;
+}
+
+/* ============================================================================
+   Action Bar
+   ============================================================================ */
+.service-edit-action-bar {
+  position: sticky;
+  bottom: 0;
+  background: hsl(var(--mobk-background) / 0.8);
+  backdrop-filter: blur(8px);
+  border-top: 1px solid hsl(var(--mobk-border));
+  padding: 1rem 1.5rem;
+  margin-top: 2rem;
+  z-index: 10;
+}
+
+.service-edit-action-bar-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* ============================================================================
+   Responsive Design
+   ============================================================================ */
+
+@media (max-width: 768px) {
+  .service-edit-page {
+    padding: 1rem;
+  }
+
+  .service-edit-header-content {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .service-edit-title {
+    font-size: 1.5rem;
+  }
+
+  .form-grid-cols-2,
+  .form-grid-cols-3 {
+    grid-template-columns: 1fr;
+  }
+
+  .form-col-span-2 {
+    grid-column: span 1 / span 1;
+  }
+
+  .service-edit-tabs-list {
+    flex-wrap: wrap;
+  }
+
+  .service-edit-tabs-trigger {
+    flex-grow: 1;
+  }
+}
+
+@media (max-width: 480px) {
+  .service-edit-page {
+    padding: 0.75rem;
+  }
+
+  .service-edit-action-bar {
+    padding: 0.75rem;
+  }
+
+  .service-edit-action-bar-content {
+    flex-direction: column-reverse;
+    gap: 0.75rem;
+    align-items: stretch;
+  }
+
+  .service-edit-action-bar-content .btn {
+    width: 100%;
+  }
+}

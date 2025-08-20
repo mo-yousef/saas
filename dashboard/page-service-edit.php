@@ -822,380 +822,115 @@ if ( $edit_mode && $service_id > 0 ) {
 }
 </style>
 
-<div class="">
-    <!-- Page Header -->
-    <div class="page-header">
-        <div class="breadcrumb">
-            <a href="<?php echo esc_url($breadcrumb_services); ?>" class="breadcrumb-link">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
-                    <rect width="20" height="14" x="2" y="6" rx="2"></rect>
-                </svg>
-                <?php esc_html_e('Services', 'mobooking'); ?>
+<div class="service-edit-page">
+    <div class="service-edit-header">
+        <div class="service-edit-breadcrumb">
+            <a href="<?php echo esc_url($breadcrumb_services); ?>">
+                <?php echo mobooking_get_dashboard_menu_icon('services'); ?>
+                <span><?php esc_html_e('Services', 'mobooking'); ?></span>
             </a>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="breadcrumb-separator">
-                <polyline points="9 18 15 12 9 6"></polyline>
-            </svg>
-            <span class="breadcrumb-current"><?php echo esc_html($page_title); ?></span>
+            <span>/</span>
+            <span><?php echo esc_html($page_title); ?></span>
         </div>
-        
-        <div class="page-header-content">
-            <div class="page-header-text">
-                <h1 class="page-title"><?php echo esc_html($page_title); ?></h1>
-                <p class="page-description">
-                    <?php echo $edit_mode 
-                        ? esc_html__('Modify service details and customize options to fit your business needs.', 'mobooking')
-                        : esc_html__('Create a new service with pricing and customizable options for your customers.', 'mobooking'); ?>
+        <div class="service-edit-header-content">
+            <div>
+                <h1 class="service-edit-title"><?php echo esc_html($page_title); ?></h1>
+                <p class="service-edit-description">
+                    <?php echo $edit_mode ? esc_html__('Modify service details.', 'mobooking') : esc_html__('Create a new service.', 'mobooking'); ?>
                 </p>
             </div>
-            
-            <?php if ($edit_mode): ?>
-                <div class="page-header-actions">
-                    <button type="button" id="duplicate-service-btn" class="btn btn-outline btn-sm">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
-                            <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
-                        </svg>
-                        <?php esc_html_e('Duplicate', 'mobooking'); ?>
-                    </button>
-                    <button type="button" id="delete-service-btn" class="btn btn-destructive btn-sm">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M3 6h18"/>
-                            <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
-                            <path d="m19 6-1 14H6L5 6"/>
-                            <line x1="10" y1="11" x2="10" y2="17"/>
-                            <line x1="14" y1="11" x2="14" y2="17"/>
-                        </svg>
-                        <?php esc_html_e('Delete', 'mobooking'); ?>
-                    </button>
-                </div>
-            <?php endif; ?>
         </div>
     </div>
 
-    <!-- Error Message -->
-    <?php if (!empty($error_message)): ?>
-        <div class="alert alert-destructive">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="10"/>
-                <path d="m15 9-6 6"/>
-                <path d="m9 9 6 6"/>
-            </svg>
-            <span><?php echo esc_html($error_message); ?></span>
-        </div>
-    <?php endif; ?>
-
-    <!-- Alert Container -->
-    <div id="alert-container"></div>
-
-    <!-- Main Form -->
     <form id="mobooking-service-form" class="service-form">
         <?php wp_nonce_field('mobooking_services_nonce', 'nonce'); ?>
-        
         <?php if ($edit_mode): ?>
             <input type="hidden" name="service_id" value="<?php echo esc_attr($service_id); ?>">
         <?php endif; ?>
 
-        <!-- Tabs Navigation -->
-        <div class="tabs">
-            <div class="tabs-list" role="tablist">
-                <button type="button" class="tabs-trigger active" data-tab="service-info" role="tab" aria-selected="true">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
-                        <polyline points="14,2 14,8 20,8"/>
-                    </svg>
-                    <?php esc_html_e('Service Information', 'mobooking'); ?>
-                </button>
-                <button type="button" class="tabs-trigger" data-tab="service-options" role="tab" aria-selected="false">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="12" cy="12" r="3"/>
-                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1 1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-                    </svg>
-                    <?php esc_html_e('Service Options', 'mobooking'); ?>
-                    <?php if (!empty($service_options_data)): ?>
-                        <span class="badge badge-secondary"><?php echo count($service_options_data); ?></span>
-                    <?php endif; ?>
-                </button>
+        <div class="service-edit-tabs">
+            <div class="service-edit-tabs-list">
+                <button type="button" class="service-edit-tabs-trigger active" data-tab="info">Service Information</button>
+                <button type="button" class="service-edit-tabs-trigger" data-tab="options">Service Options</button>
             </div>
 
-            <!-- Tab Content: Service Information -->
-            <div class="tabs-content active" id="service-info">
-                <div class="space-y-6">
-                    <!-- Basic Information Card -->
-                    <div class="card">
-                        <div class="card-header">
-                            <h3 class="card-title">Basic Information</h3>
-                            <p class="card-description">Essential details about your service</p>
+            <div id="info" class="service-edit-tabs-content active">
+                <div class="service-edit-card">
+                    <div class="service-edit-card-header">
+                        <h3 class="service-edit-card-title">Basic Information</h3>
+                    </div>
+                    <div class="service-edit-card-content">
+                        <div class="form-grid form-grid-cols-3">
+                            <div class="form-group form-col-span-2">
+                                <label class="form-label" for="service-name">Service Name</label>
+                                <input type="text" id="service-name" name="name" class="form-input" value="<?php echo esc_attr($service_name); ?>" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Status</label>
+                                <label class="mobooking-switch">
+                                    <input type="checkbox" name="status" value="active" <?php checked($service_status, 'active'); ?>>
+                                    <span class="mobooking-slider"></span>
+                                </label>
+                            </div>
                         </div>
-                        <div class="card-content space-y-4">
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <div class="md:col-span-2">
-                                    <label class="form-label" for="service-name">
-                                        Service Name <span class="text-destructive">*</span>
-                                    </label>
-                                    <input
-                                        type="text"
-                                        id="service-name"
-                                        name="name"
-                                        class="form-input"
-                                        placeholder="e.g., Deep House Cleaning"
-                                        value="<?php echo esc_attr($service_name); ?>"
-                                        required
-                                    >
-                                    <p class="form-description">This is what customers will see when booking</p>
-                                </div>
-                                <div>
-                                    <label class="form-label">Status</label>
-                                    <div class="flex items-center space-x-2 mt-2">
-                                        <button type="button" class="switch <?php echo $service_status === 'active' ? 'switch-checked' : ''; ?>" data-switch="status">
-                                            <span class="switch-thumb"></span>
-                                        </button>
-                                        <span class="text-sm font-medium">
-                                            <?php echo $service_status === 'active' ? esc_html__('Active', 'mobooking') : esc_html__('Inactive', 'mobooking'); ?>
-                                        </span>
-                                        <input type="hidden" name="status" value="<?php echo esc_attr($service_status); ?>">
-                                    </div>
-                                    <p class="form-description">Only active services are bookable</p>
-                                </div>
-                            </div>
-
-                            <div>
-                                <label class="form-label" for="service-description">Description</label>
-                                <textarea 
-                                    id="service-description" 
-                                    name="description" 
-                                    class="form-textarea" 
-                                    rows="4"
-                                    placeholder="Describe your service in detail. What does it include? What makes it special?"
-                                ><?php echo esc_textarea($service_description); ?></textarea>
-                                <p class="form-description">Detailed description helps customers understand your service better</p>
-                            </div>
+                        <div class="form-group">
+                            <label class="form-label" for="service-description">Description</label>
+                            <textarea id="service-description" name="description" class="form-textarea" rows="4"><?php echo esc_textarea($service_description); ?></textarea>
                         </div>
                     </div>
-
-                    <!-- Pricing & Duration Card -->
-                    <div class="card">
-                        <div class="card-header">
-                            <h3 class="card-title">Pricing & Duration</h3>
-                            <p class="card-description">Set the base price and estimated time</p>
-                        </div>
-                        <div class="card-content">
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label class="form-label" for="service-price">
-                                        Base Price <span class="text-destructive">*</span>
-                                    </label>
-                                    <div class="relative">
-                                        <?php if ($currency_pos === 'before'): ?>
-                                            <span class="input-prefix"><?php echo esc_html($currency_symbol); ?></span>
-                                        <?php endif; ?>
-                                        <input
-                                            type="number"
-                                            id="service-price"
-                                            name="price"
-                                            class="form-input <?php echo $currency_pos === 'before' ? 'pl-10' : ($currency_pos === 'after' ? 'pr-10' : ''); ?>"
-                                            placeholder="0.00"
-                                            value="<?php echo esc_attr($service_price); ?>"
-                                            step="0.01"
-                                            min="0"
-                                            required
-                                        >
-                                        <?php if ($currency_pos === 'after'): ?>
-                                            <span class="input-suffix"><?php echo esc_html($currency_symbol); ?></span>
-                                        <?php endif; ?>
-                                    </div>
-                                    <p class="form-description">Starting price for this service</p>
-                                </div>
-
-                                <div>
-                                    <label class="form-label" for="service-duration">
-                                        Duration (minutes) <span class="text-destructive">*</span>
-                                    </label>
-                                    <input
-                                        type="number"
-                                        id="service-duration"
-                                        name="duration"
-                                        class="form-input"
-                                        placeholder="e.g., 120"
-                                        value="<?php echo esc_attr($service_duration); ?>"
-                                        min="15"
-                                        step="15"
-                                        required
-                                    >
-                                    <p class="form-description">Estimated time to complete</p>
-                                </div>
-                            </div>
-                        </div>
+                </div>
+                <div class="service-edit-card">
+                    <div class="service-edit-card-header">
+                        <h3 class="service-edit-card-title">Pricing & Duration</h3>
                     </div>
-
-                    <!-- Visual Settings Card -->
-                    <div class="card">
-                        <div class="card-header">
-                            <h3 class="card-title">Visual Settings</h3>
-                            <p class="card-description">Icon and image to represent your service</p>
-                        </div>
-                        <div class="card-content">
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <!-- Service Icon -->
-                                <div>
-                                    <label class="form-label">Service Icon</label>
-                                    <div class="icon-selector">
-                                        <div class="icon-preview">
-                                            <div id="current-icon" class="icon-display">
-                                                <?php if (!empty($service_icon)): ?>
-                                                    <?php echo wp_kses_post($service_icon); ?>
-                                                <?php else: ?>
-                                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
-                                                        <polyline points="3.27,6.96 12,12.01 20.73,6.96"/>
-                                                        <line x1="12" y1="22.08" x2="12" y2="12"/>
-                                                    </svg>
-                                                <?php endif; ?>
-                                            </div>
-                                        </div>
-                                        <button type="button" id="select-icon-btn" class="btn btn-outline btn-sm mt-2">
-                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                <circle cx="12" cy="12" r="3"/>
-                                                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1 1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-                                            </svg>
-                                            Choose Icon
-                                        </button>
-                                        <input type="hidden" id="service-icon" name="icon" value="<?php echo esc_attr($service_icon); ?>">
-                                    </div>
-                                </div>
-
-                                <!-- Service Image -->
-                                <div>
-                                    <label class="form-label">Service Image</label>
-                                    <div class="image-upload">
-                                        <div id="image-preview" class="image-preview <?php echo empty($service_image_url) ? 'empty' : ''; ?>">
-                                            <?php if (!empty($service_image_url)): ?>
-                                                <img src="<?php echo esc_url($service_image_url); ?>" alt="Service Image">
-                                                <button type="button" class="remove-image-btn">
-                                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                        <path d="M3 6h18"/>
-                                                        <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
-                                                        <path d="m19 6-1 14H6L5 6"/>
-                                                    </svg>
-                                                </button>
-                                            <?php else: ?>
-                                                <div class="upload-placeholder">
-                                                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                                                        <rect width="18" height="18" x="3" y="3" rx="2" ry="2"/>
-                                                        <circle cx="9" cy="9" r="2"/>
-                                                        <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
-                                                    </svg>
-                                                    <p>Click to upload image</p>
-                                                    <p class="text-xs text-muted-foreground">PNG, JPG up to 5MB</p>
-                                                </div>
-                                            <?php endif; ?>
-                                        </div>
-                                        <input type="file" id="service-image-upload" accept="image/*" style="display: none;">
-                                        <input type="hidden" id="service-image-url" name="image_url" value="<?php echo esc_attr($service_image_url); ?>">
-                                    </div>
-                                </div>
+                    <div class="service-edit-card-content">
+                        <div class="form-grid form-grid-cols-2">
+                            <div class="form-group">
+                                <label class="form-label" for="service-price">Base Price (<?php echo esc_html($currency_symbol); ?>)</label>
+                                <input type="number" id="service-price" name="price" class="form-input" value="<?php echo esc_attr($service_price); ?>" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="service-duration">Duration (minutes)</label>
+                                <input type="number" id="service-duration" name="duration" class="form-input" value="<?php echo esc_attr($service_duration); ?>" required>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Tab Content: Service Options -->
-            <div class="tabs-content" id="service-options">
-                <div class="card">
-                    <div class="card-header">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <h3 class="card-title">Service Options</h3>
-                                <p class="card-description">Add customization options for your service</p>
-                            </div>
-                            <button type="button" id="add-option-btn" class="btn btn-primary">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M5 12h14"/>
-                                    <path d="M12 5v14"/>
-                                </svg>
-                                Add Option
-                            </button>
-                        </div>
+            <div id="options" class="service-edit-tabs-content">
+                <div class="service-edit-card">
+                    <div class="service-edit-card-header">
+                        <h3 class="service-edit-card-title">Service Options</h3>
                     </div>
-<div class="card-content">
-                        <div id="options-container" class="options-container">
+                    <div class="service-edit-card-content">
+                        <div id="options-container">
                             <?php if (empty($service_options_data)): ?>
-                                <div class="empty-state">
-                                    <div class="empty-state-icon">
-                                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                                            <circle cx="12" cy="12" r="10"/>
-                                            <path d="M8 14s1.5 2 4 2 4-2 4-2"/>
-                                            <line x1="9" y1="9" x2="9.01" y2="9"/>
-                                            <line x1="15" y1="9" x2="15.01" y2="9"/>
-                                        </svg>
-                                    </div>
-                                    <h3 class="empty-state-title">No options added yet</h3>
-                                    <p class="empty-state-description">
-                                        Add customization options like room size, add-ons, or special requirements to make your service more flexible.
-                                    </p>
-                                    <button type="button" class="btn btn-primary add-first-option">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <path d="M5 12h14"/>
-                                            <path d="M12 5v14"/>
-                                        </svg>
-                                        Add Your First Option
-                                    </button>
-                                </div>
+                                <p>No options added yet.</p>
                             <?php else: ?>
                                 <?php foreach ($service_options_data as $index => $option): ?>
                                     <?php
-                                    // Pass variables to the template
                                     set_query_var('option', $option);
                                     set_query_var('option_index', $index);
                                     set_query_var('option_types', $option_types);
-                                    set_query_var('price_types', $price_types);
                                     set_query_var('price_impact_types', $price_impact_types);
-                                    
-                                    // Include the service option item template
                                     get_template_part('templates/service-option-item');
                                     ?>
                                 <?php endforeach; ?>
                             <?php endif; ?>
                         </div>
+                        <button type="button" id="add-option-btn" class="btn btn-outline">Add Option</button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Action Bar -->
-        <div class="action-bar">
-            <div class="action-bar-content">
-                <div class="flex items-center justify-between">
-                    <a href="<?php echo esc_url($breadcrumb_services); ?>" class="btn btn-ghost">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="m12 19-7-7 7-7"/>
-                            <path d="M19 12H5"/>
-                        </svg>
-                        Cancel
-                    </a>
-                    
-                    <div class="flex gap-2">
-                        <button type="button" class="btn btn-outline" id="save-draft-btn">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                                <polyline points="14,2 14,8 20,8"/>
-                                <line x1="16" y1="13" x2="8" y2="13"/>
-                                <line x1="16" y1="17" x2="8" y2="17"/>
-                                <polyline points="10,9 9,9 8,9"/>
-                            </svg>
-                            Save as Draft
-                        </button>
-                        <button type="submit" class="btn btn-primary" id="save-service-btn">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="m9 12 2 2 4-4"/>
-                                <path d="M21 12c.552 0 1-.448 1-1V5a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v6c0 .552.448 1 1 1h18z"/>
-                                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7"/>
-                            </svg>
-                            <?php echo $edit_mode ? esc_html__('Update Service', 'mobooking') : esc_html__('Create Service', 'mobooking'); ?>
-                        </button>
-                    </div>
-                </div>
+        <div class="service-edit-action-bar">
+            <div class="service-edit-action-bar-content">
+                <a href="<?php echo esc_url($breadcrumb_services); ?>" class="btn btn-ghost">Cancel</a>
+                <button type="submit" class="btn btn-primary" id="save-service-btn">
+                    <?php echo $edit_mode ? esc_html__('Update Service', 'mobooking') : esc_html__('Create Service', 'mobooking'); ?>
+                </button>
             </div>
         </div>
     </form>
