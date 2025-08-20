@@ -72,9 +72,9 @@ jQuery(function ($) {
 
       // Toggle option
       $container.on("click", ".toggle-option", function () {
-        const $optionElement = $(this).closest(".option-item");
+        const $optionElement = $(this).closest(".mobooking-option-item");
         $optionElement.toggleClass("expanded");
-        $optionElement.find(".option-content").slideToggle(200);
+        $optionElement.find(".mobooking-option-content").slideToggle(200);
       });
 
       // Delete option
@@ -85,10 +85,9 @@ jQuery(function ($) {
               "Are you sure you want to delete this option?"
           )
         ) {
-          $(this).closest(".option-item").remove();
-          self.updateOptionsBadge();
+          $(this).closest(".mobooking-option-item").remove();
 
-          if ($(".option-item").length === 0) {
+          if ($(".mobooking-option-item").length === 0) {
             self.showEmptyState();
           }
         }
@@ -97,7 +96,7 @@ jQuery(function ($) {
       // Update option name in header
       $container.on("input", ".option-name-input", function () {
         const $input = $(this);
-        const nameDisplay = $input.closest(".option-item").find(".option-name");
+        const nameDisplay = $input.closest(".mobooking-option-item").find(".mobooking-option-name");
         nameDisplay.text($input.val() || "New Option");
       });
 
@@ -461,8 +460,50 @@ jQuery(function ($) {
     },
 
     openIconSelector: function () {
-      // Implementation for icon selector would go here
-      console.log("Icon selector functionality not yet implemented");
+        const self = this;
+        const icons = {
+            copy: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-copy"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>',
+            plus: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus"><path d="M5 12h14"/><path d="M12 5v14"/></svg>',
+            trash: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trash-2"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>',
+            star: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24px" height="24px"><path d="M0 0h24v24H0z" fill="none"/><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>',
+            tools: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24px" height="24px"><path d="M0 0h24v24H0z" fill="none"/><path d="M21.69 18.56l-1.41-1.41c-.54-.54-1.29-.8-2.09-.69l-1.44.21c-.33.05-.6.31-.6.64v1.5c0 .28.22.5.5.5h.5c2.21 0 4-1.79 4-4v-.5c0-.33-.27-.59-.6-.54l-1.44.21c-.8.11-1.55.38-2.09.92L16.56 17H7.44l-1.41-1.41c-.54-.54-1.29-.8-2.09-.69l-1.44.21c-.33.05-.6.31-.6.64v1.5c0 .28.22.5.5.5h.5c2.21 0 4-1.79 4-4v-.5c0-.33-.27-.59-.6-.54l-1.44.21c-.8.11-1.55.38-2.09.92L1.94 17H1v-2.44l1.41-1.41c.54-.54.8-.1.69-2.09l-.21-1.44c-.05-.33.21-.6.54-.6h1.5c.28 0 .5.22.5.5v.5c0 2.21 1.79 4 4 4h.5c.33 0 .59-.27.54-.6l-.21-1.44c-.11-.8.15-1.55.92-2.09L12 7.44V1H9.56L8.14 2.41c-.54.54-.8 1.29-.69 2.09l.21 1.44c.05.33.31.6.64.6h1.5c.28 0 .5-.22.5-.5v-.5c0-2.21-1.79-4-4-4H1.5c-.33 0-.59.27-.54.6l.21 1.44c.11.8-.15 1.55-.92 2.09L-.44 7H-3v2.44l1.41 1.41c.54.54.8 1.29.69 2.09l-.21 1.44c-.05.33.21-.6.54-.6h1.5c.28 0 .5.22.5.5v.5c0 2.21 1.79 4 4 4h8c2.21 0 4-1.79 4-4v-.5c0-.28-.22-.5-.5-.5h-1.5c-.33 0-.6-.27-.6-.6l.21-1.44c.11-.8-.15-1.55-.92-2.09L14.56 10H12V7.44l1.41-1.41c.54-.54 1.29-.8 2.09-.69l1.44.21c.33.05.6.31.6.64v1.5c0 .28-.22.5-.5.5h-.5c-2.21 0-4 1.79-4 4v.5c0 .33.27.59.6.54l1.44-.21c.8-.11 1.55-.38 2.09-.92l1.41-1.41H21.69zM12 14c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/></svg>',
+        };
+
+        const iconGrid = document.createElement('div');
+        iconGrid.className = 'mobooking-icon-grid';
+
+        for (const [name, svg] of Object.entries(icons)) {
+            const iconWrapper = document.createElement('div');
+            iconWrapper.className = 'mobooking-icon-wrapper';
+            iconWrapper.dataset.iconName = name;
+            iconWrapper.innerHTML = svg;
+            iconGrid.appendChild(iconWrapper);
+        }
+
+        const dialog = new MoBookingDialog({
+            title: 'Choose an Icon',
+            content: iconGrid,
+            buttons: [
+                {
+                    label: 'Close',
+                    class: 'secondary',
+                    onClick: (dialog) => dialog.close(),
+                },
+            ],
+        });
+
+        dialog.show();
+
+        dialog.findElement('.mobooking-icon-grid').addEventListener('click', function (e) {
+            const wrapper = e.target.closest('.mobooking-icon-wrapper');
+            if (wrapper) {
+                const iconName = wrapper.dataset.iconName;
+                const iconSvg = icons[iconName];
+                $('#current-icon').html(iconSvg);
+                $('#service-icon').val(iconSvg);
+                dialog.close();
+            }
+        });
     },
 
     handleImageUpload: function (file) {
