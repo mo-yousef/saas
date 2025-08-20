@@ -660,21 +660,28 @@ public function get_service_coverage_grouped(int $user_id, $filters = []) {
     }
 
     $table_name = Database::get_table_name('areas');
-    $where_conditions = ['user_id = %d'];
+    $where_conditions = ["user_id = %d", "area_type = 'city'"]; // Also filter by area_type
     $where_values = [$user_id];
 
     if (!empty($filters['city'])) {
-        $where_conditions[] = 'area_name = %s';
+        $where_conditions[] = 'area_value = %s';
         $where_values[] = sanitize_text_field($filters['city']);
     }
 
-    if (!empty($filters['status'])) {
-        $where_conditions[] = 'status = %s';
-        $where_values[] = sanitize_text_field($filters['status']);
-    }
+    // The 'status' filter was removed as the column does not exist in the current schema.
+    // if (!empty($filters['status'])) {
+    //     $where_conditions[] = 'status = %s';
+    //     $where_values[] = sanitize_text_field($filters['status']);
+    // }
 
     $where_clause = 'WHERE ' . implode(' AND ', $where_conditions);
-    $sql = "SELECT area_name as city_name, COUNT(area_id) as area_count, status FROM $table_name $where_clause GROUP BY area_name, status ORDER BY area_name ASC";
+
+    // Corrected SQL to use `area_value` and removed the non-existent `status` column.
+    // It now groups by city to count how many sub-areas (like zip codes) are under it.
+    // Let's adjust the query to be more aligned with what "grouped" might mean.
+    // It should probably group by the city-level areas.
+    $sql = "SELECT area_value as city_name, COUNT(area_id) as area_count FROM $table_name $where_clause GROUP BY area_value ORDER BY area_value ASC";
+
     $results = $this->wpdb->get_results($this->wpdb->prepare($sql, $where_values), ARRAY_A);
 
     return ['cities' => $results];

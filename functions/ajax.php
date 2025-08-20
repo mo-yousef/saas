@@ -769,9 +769,15 @@ function mobooking_ajax_get_service_coverage_grouped() {
         return;
     }
 
+    $user_id = get_current_user_id();
+    if (!$user_id) {
+        wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403);
+        return;
+    }
+
     $areas_manager = new \MoBooking\Classes\Areas();
     $filters = isset($_POST['filters']) ? $_POST['filters'] : [];
-    $result = $areas_manager->get_service_coverage_grouped($filters);
+    $result = $areas_manager->get_service_coverage_grouped($user_id, $filters);
 
     if (is_wp_error($result)) {
         wp_send_json_error(array('message' => $result->get_error_message()), 500);
@@ -788,10 +794,22 @@ function mobooking_ajax_get_service_coverage() {
         return;
     }
 
+    $user_id = get_current_user_id();
+    if (!$user_id) {
+        wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403);
+        return;
+    }
+
     $areas_manager = new \MoBooking\Classes\Areas();
     $city = isset($_POST['city']) ? sanitize_text_field($_POST['city']) : '';
-    $limit = isset($_POST['limit']) ? intval($_POST['limit']) : -1;
-    $result = $areas_manager->get_service_coverage($city, $limit);
+
+    $filters = [];
+    if (!empty($city)) {
+        $filters['city'] = $city;
+    }
+
+    // Call the correct 'grouped' function with the correct arguments
+    $result = $areas_manager->get_service_coverage_grouped($user_id, $filters);
 
     if (is_wp_error($result)) {
         wp_send_json_error(array('message' => $result->get_error_message()), 500);
