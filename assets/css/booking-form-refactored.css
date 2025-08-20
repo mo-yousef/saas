@@ -37,18 +37,9 @@ body {
 }
 
 .mobooking-public-form-container {
-    max-width: 960px;
+    max-width: 800px;
     margin: 2rem auto;
-    display: grid;
-    grid-template-columns: 1fr;
     gap: 2rem;
-    align-items: flex-start;
-}
-
-@media (min-width: 1024px) {
-    .mobooking-public-form-container {
-        grid-template-columns: 2fr 1fr;
-    }
 }
 
 .mobooking-header {
@@ -70,7 +61,6 @@ body {
 
 /* Progress Bar */
 .mobooking-progress-container {
-    grid-column: 1 / -1;
     background: hsl(var(--card));
     padding: 1rem;
     border-radius: var(--radius);
@@ -201,7 +191,7 @@ body {
 }
 
 /* Buttons */
-.btn {
+.mobooking-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -216,30 +206,30 @@ body {
   user-select: none;
   border: 1px solid transparent;
 }
-.btn:focus-visible {
+.mobooking-btn:focus-visible {
   outline: 2px solid transparent;
   outline-offset: 2px;
   box-shadow: 0 0 0 2px hsl(var(--background)), 0 0 0 4px hsl(var(--ring));
 }
-.btn:disabled {
+.mobooking-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
-.btn-primary {
+.mobooking-btn-primary {
   background-color: hsl(var(--primary));
   color: hsl(var(--primary-foreground));
   border-color: hsl(var(--primary));
 }
-.btn-primary:hover:not(:disabled) {
+.mobooking-btn-primary:hover:not(:disabled) {
   background-color: hsl(221.2 83.2% 47.3%);
   border-color: hsl(221.2 83.2% 47.3%);
 }
-.btn-secondary {
+.mobooking-btn-secondary {
   background-color: hsl(var(--secondary));
   color: hsl(var(--secondary-foreground));
   border: 1px solid hsl(var(--input));
 }
-.btn-secondary:hover:not(:disabled) {
+.mobooking-btn-secondary:hover:not(:disabled) {
   background-color: hsl(var(--accent));
 }
 
@@ -326,8 +316,7 @@ body {
     border-radius: var(--radius);
     border: 1px solid hsl(var(--border));
     padding: 1.5rem;
-    position: sticky;
-    top: 2rem;
+    margin-top: 2rem;
 }
 .mobooking-summary-card h3 {
     font-size: 1.25rem;
