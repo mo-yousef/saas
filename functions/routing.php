@@ -108,7 +108,6 @@ function mobooking_enqueue_dashboard_scripts($current_page_slug = '') {
     // Specific to Service Edit page
     if ($current_page_slug === 'service-edit') {
         error_log('[MoBooking Debug] Correctly identified service-edit page. Enqueueing scripts.');
-        wp_enqueue_style('mobooking-dashboard-service-edit', MOBOOKING_THEME_URI . 'assets/css/dashboard-service-edit.css', array(), MOBOOKING_VERSION);
         wp_enqueue_script('mobooking-service-edit', MOBOOKING_THEME_URI . 'assets/js/dashboard-service-edit.js', array('jquery'), MOBOOKING_VERSION, true);
 
         $service_id = isset($_GET['service_id']) ? intval($_GET['service_id']) : 0;
