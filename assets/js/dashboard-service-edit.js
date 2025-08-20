@@ -498,7 +498,7 @@ jQuery(function ($) {
                 const iconName = wrapper.dataset.iconName;
                 const iconSvg = icons[iconName];
                 $('#current-icon').html(iconSvg);
-                $('#service-icon').val(iconSvg);
+                $('#service-icon').val(`preset:${iconName}.svg`);
                 dialog.close();
             }
         });
