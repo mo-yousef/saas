@@ -45,26 +45,26 @@ if (isset($option['choices'])) {
 $choices_visible = in_array($type, ['select', 'radio', 'checkbox']);
 
 ?>
-<div class="option-item" data-option-index="<?php echo esc_attr($option_index); ?>">
-    <div class="option-header">
-        <div class="drag-handle">
+<div class="mobooking-option-item" data-option-index="<?php echo esc_attr($option_index); ?>">
+    <div class="mobooking-option-header">
+        <div class="mobooking-option-drag-handle">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <circle cx="9" cy="12" r="1"/><circle cx="9" cy="5" r="1"/><circle cx="9" cy="19" r="1"/>
                 <circle cx="15" cy="12" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="19" r="1"/>
             </svg>
         </div>
-        <div class="option-summary">
-            <h4 class="option-name"><?php echo esc_html($name); ?></h4>
-            <div class="option-badges">
+        <div class="mobooking-option-summary">
+            <h4 class="mobooking-option-name"><?php echo esc_html($name); ?></h4>
+            <div class="mobooking-option-badges">
                 <span class="badge badge-outline"><?php echo esc_html($option_types[$type]['label'] ?? 'Unknown'); ?></span>
-                <?php if (!empty($price_type) && $price_type !== ''): ?>
+                <?php if (!empty($price_impact_type) && $price_impact_type !== ''): ?>
                     <span class="badge badge-accent">
-                        <?php echo esc_html($price_types[$price_type]['label'] ?? 'Price'); ?>
+                        <?php echo esc_html($price_impact_types[$price_impact_type]['label'] ?? 'Price'); ?>
                     </span>
                 <?php endif; ?>
             </div>
         </div>
-        <div class="option-actions">
+        <div class="mobooking-option-actions">
             <button type="button" class="btn-icon toggle-option">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="m6 9 6 6 6-6"/>
@@ -77,27 +77,27 @@ $choices_visible = in_array($type, ['select', 'radio', 'checkbox']);
             </button>
         </div>
     </div>
-    <div class="option-content" style="display: none;">
+    <div class="mobooking-option-content" style="display: none;">
         <input type="hidden" name="options[<?php echo esc_attr($option_index); ?>][option_id]" value="<?php echo esc_attr($option_id); ?>">
         <input type="hidden" name="options[<?php echo esc_attr($option_index); ?>][sort_order]" value="<?php echo esc_attr($sort_order); ?>" class="option-sort-order">
 
         <div class="space-y-4">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div class="md:col-span-2">
-                    <label class="form-label">
+                    <label class="mobooking-filter-item label">
                         Option Name <span class="text-destructive">*</span>
                     </label>
                     <input
                         type="text"
                         name="options[<?php echo esc_attr($option_index); ?>][name]"
-                        class="form-input option-name-input"
+                        class="regular-text option-name-input"
                         placeholder="e.g., Room Size"
                         value="<?php echo esc_attr($name); ?>"
                         required
                     >
                 </div>
                 <div>
-                    <label class="form-label">Required</label>
+                    <label class="mobooking-filter-item label">Required</label>
                     <div class="flex items-center space-x-2 mt-2">
                         <button type="button" class="switch <?php echo $is_required ? 'switch-checked' : ''; ?>" data-switch="required">
                             <span class="switch-thumb"></span>
@@ -109,10 +109,10 @@ $choices_visible = in_array($type, ['select', 'radio', 'checkbox']);
             </div>
 
             <div>
-                <label class="form-label">Description</label>
+                <label class="mobooking-filter-item label">Description</label>
                 <textarea
                     name="options[<?php echo esc_attr($option_index); ?>][description]"
-                    class="form-textarea"
+                    class="regular-text"
                     rows="2"
                     placeholder="Helpful description for customers..."
                 ><?php echo esc_textarea($description); ?></textarea>
@@ -121,7 +121,7 @@ $choices_visible = in_array($type, ['select', 'radio', 'checkbox']);
             <hr>
 
             <div>
-                <label class="form-label price-impact-label">
+                <label class="mobooking-filter-item label price-impact-label">
                     <?php if ($type === 'sqm'): ?>
                         <?php esc_html_e('Price per Square Meter', 'mobooking'); ?>
                     <?php elseif ($type === 'kilometers'): ?>
@@ -152,7 +152,7 @@ $choices_visible = in_array($type, ['select', 'radio', 'checkbox']);
                  <?php endif; ?>
 
                 <div class="price-impact-value-container mt-3" style="display: <?php echo !empty($price_impact_type) || in_array($type, ['sqm', 'kilometers']) ? 'block' : 'none'; ?>;">
-                    <label class="form-label" for="price-impact-value-<?php echo esc_attr($option_index); ?>">
+                    <label class="mobooking-filter-item label" for="price-impact-value-<?php echo esc_attr($option_index); ?>">
                         <?php if ($type === 'sqm'): ?>
                             <?php esc_html_e('Price per Square Meter', 'mobooking'); ?>
                         <?php elseif ($type === 'kilometers'): ?>
@@ -165,7 +165,7 @@ $choices_visible = in_array($type, ['select', 'radio', 'checkbox']);
                         type="number"
                         id="price-impact-value-<?php echo esc_attr($option_index); ?>"
                         name="options[<?php echo esc_attr($option_index); ?>][price_impact_value]"
-                        class="form-input"
+                        class="regular-text"
                         placeholder="e.g., 10.00"
                         value="<?php echo esc_attr($price_impact_value); ?>"
                         step="0.01"
@@ -176,7 +176,7 @@ $choices_visible = in_array($type, ['select', 'radio', 'checkbox']);
             <hr>
 
             <div>
-                <label class="form-label">Option Type</label>
+                <label class="mobooking-filter-item label">Option Type</label>
                 <p class="form-description text-xs mb-2">Select how the user will interact with this option.</p>
                 <div class="option-types-grid">
                     <?php foreach ($option_types as $type_key => $type_data): ?>
@@ -198,7 +198,7 @@ $choices_visible = in_array($type, ['select', 'radio', 'checkbox']);
             <div class="choices-container" style="display: <?php echo $choices_visible ? 'block' : 'none'; ?>;">
                 <hr>
                 <div class="mt-4">
-                    <label class="form-label">
+                    <label class="mobooking-filter-item label">
                         Choices
                     </label>
                     <p class="form-description text-xs mb-2">
@@ -209,8 +209,8 @@ $choices_visible = in_array($type, ['select', 'radio', 'checkbox']);
                             <?php foreach ($choices as $choice_index => $choice): ?>
 
                                     <div class="choice-item flex items-center gap-2">
-                                        <input type="text" name="options[<?php echo esc_attr($option_index); ?>][choices][<?php echo $choice_index; ?>][label]" class="form-input flex-1" placeholder="Choice Label" value="<?php echo esc_attr($choice['label'] ?? $choice); ?>">
-                                        <input type="number" name="options[<?php echo esc_attr($option_index); ?>][choices][<?php echo $choice_index; ?>][price]" class="form-input w-24" placeholder="Price" value="<?php echo esc_attr($choice['price'] ?? ''); ?>" step="0.01">
+                                        <input type="text" name="options[<?php echo esc_attr($option_index); ?>][choices][<?php echo $choice_index; ?>][label]" class="regular-text flex-1" placeholder="Choice Label" value="<?php echo esc_attr($choice['label'] ?? $choice); ?>">
+                                        <input type="number" name="options[<?php echo esc_attr($option_index); ?>][choices][<?php echo $choice_index; ?>][price]" class="regular-text w-24" placeholder="Price" value="<?php echo esc_attr($choice['price'] ?? ''); ?>" step="0.01">
                                         <button type="button" class="btn-icon remove-choice-btn">
                                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><path d="m19 6-1 14H6L5 6"/></svg>
                                         </button>

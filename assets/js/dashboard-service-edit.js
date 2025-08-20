@@ -5,7 +5,6 @@ jQuery(function ($) {
 
     init: function () {
       this.bindEvents();
-      this.initTabs();
       this.initSwitches();
       this.initExistingOptions(); // NEW: Initialize existing options properly
     },
@@ -49,12 +48,8 @@ jQuery(function ($) {
         self.saveService();
       });
 
-      // Save as draft
-      $("#save-draft-btn").on("click", () => this.saveService(true));
-
-      // Delete and duplicate
+      // Delete
       $("#delete-service-btn").on("click", () => this.deleteService());
-      $("#duplicate-service-btn").on("click", () => this.duplicateService());
 
       // Icon and image handling
       $("#select-icon-btn").on("click", () => this.openIconSelector());
@@ -228,18 +223,6 @@ jQuery(function ($) {
       });
     },
 
-    initTabs: function () {
-      $(".tabs-trigger").on("click", function () {
-        const tabId = $(this).data("tab");
-
-        $(".tabs-trigger").removeClass("active").attr("aria-selected", "false");
-        $(this).addClass("active").attr("aria-selected", "true");
-
-        $(".tabs-content").removeClass("active");
-        $("#" + tabId).addClass("active");
-      });
-    },
-
     initSwitches: function () {
       $(document).on("click", ".switch", function () {
         const $switchEl = $(this);
@@ -336,19 +319,6 @@ jQuery(function ($) {
                 </div>
             `;
       $("#options-container").html(emptyStateHtml);
-    },
-
-    updateOptionsBadge: function () {
-      const count = $(".option-item").length;
-      const $badge = $('.tabs-trigger[data-tab="service-options"] .badge');
-
-      if ($badge.length) {
-        $badge.text(count);
-      } else if (count > 0) {
-        $('.tabs-trigger[data-tab="service-options"]').append(
-          `<span class="badge badge-secondary">${count}</span>`
-        );
-      }
     },
 
     displaySaveError: function(errorMessage) {
