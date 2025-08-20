@@ -1189,3 +1189,77 @@ a.quick-action:hover {
     padding: 1.5rem;
     border-top: 1px solid hsl(var(--border));
 }
+
+.mobooking-option-content .form-label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: hsl(var(--foreground));
+    margin-bottom: 0.5rem;
+}
+
+.mobooking-option-content .form-input,
+.mobooking-option-content .form-textarea {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius);
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-size: 0.875rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.mobooking-option-content .form-input:focus,
+.mobooking-option-content .form-textarea:focus {
+    outline: none;
+    border-color: hsl(var(--ring));
+    box-shadow: 0 0 0 2px hsl(var(--ring) / 0.2);
+}
+
+.mobooking-option-content .grid {
+    display: grid;
+}
+
+.mobooking-option-content .grid-cols-1 {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+.mobooking-option-content .md\:grid-cols-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.mobooking-option-content .gap-4 {
+    gap: 1rem;
+}
+
+.mobooking-option-content .md\:col-span-2 {
+    grid-column: span 2 / span 2;
+}
+
+.mobooking-option-content .space-y-4 > * + * {
+    margin-top: 1rem;
+}
+
+.mobooking-icon-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+    gap: 1rem;
+    padding: 1rem;
+}
+
+.mobooking-icon-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem;
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s;
+}
+
+.mobooking-icon-wrapper:hover {
+    background-color: hsl(var(--accent));
+    border-color: hsl(var(--ring));
+}
