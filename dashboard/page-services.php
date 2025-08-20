@@ -93,64 +93,64 @@ function get_default_service_icon() {
                     </div>
                 <?php else: ?>
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="services-grid">
-                        <?php foreach ($services_list as $service): 
-                            $price_formatted = format_currency($service['price'], $currency_symbol, $currency_pos);
-                            $service_icon = !empty($service['icon']) 
-                                ? $services_manager->get_service_icon_html($service['icon'])
-                                : get_default_service_icon();
-                            $options_count = !empty($service['options']) ? count($service['options']) : 0;
-                        ?>
-                            <div class="card" data-service-id="<?php echo esc_attr($service['service_id']); ?>">
-                                <div class="card-header p-0 relative">
-                                    <?php if (!empty($service['image_url'])): ?>
-                                        <img src="<?php echo esc_url($service['image_url']); ?>" alt="<?php echo esc_attr($service['name']); ?>" class="w-full h-48 object-cover">
-                                    <?php else: ?>
-                                        <div class="w-full h-48 bg-muted flex items-center justify-center">
-                                            <svg class="w-12 h-12 text-muted-foreground" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
-                                        </div>
-                                    <?php endif; ?>
-                                    <div class="badge badge-<?php echo esc_attr($service['status']); ?> absolute top-2 right-2"><?php echo esc_html(ucfirst($service['status'])); ?></div>
-                                </div>
-                                <div class="card-content p-4">
-                                    <div class="flex items-start gap-4 mb-4">
-                                        <div class="text-primary"><?php echo $service_icon; ?></div>
-                                        <div>
-                                            <h3 class="font-semibold"><?php echo esc_html($service['name']); ?></h3>
-                                            <p class="text-primary font-bold"><?php echo esc_html($price_formatted); ?></p>
-                                        </div>
+                    <?php foreach ($services_list as $service):
+                        $price_formatted = format_currency($service['price'], $currency_symbol, $currency_pos);
+                        $service_icon = !empty($service['icon'])
+                            ? $services_manager->get_service_icon_html($service['icon'])
+                            : get_default_service_icon();
+                        $options_count = !empty($service['options']) ? count($service['options']) : 0;
+                    ?>
+                        <div class="service-card" data-service-id="<?php echo esc_attr($service['service_id']); ?>">
+                            <div class="service-card__image-wrapper">
+                                <?php if (!empty($service['image_url'])): ?>
+                                    <img src="<?php echo esc_url($service['image_url']); ?>" alt="<?php echo esc_attr($service['name']); ?>" class="service-card__image">
+                                <?php else: ?>
+                                    <div class="service-card__image-placeholder">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
                                     </div>
-                                    <?php if (!empty($service['description'])): ?>
-                                        <p class="text-sm text-muted-foreground mb-4 line-clamp-3"><?php echo esc_html($service['description']); ?></p>
-                                    <?php endif; ?>
-                                    <div class="text-xs text-muted-foreground space-y-2">
-                                        <div class="flex items-center gap-2">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                                            <span><?php echo esc_html($service['duration']); ?> <?php esc_html_e('min', 'mobooking'); ?></span>
-                                        </div>
-                                        <?php if ($options_count > 0): ?>
-                                        <div class="flex items-center gap-2">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M9 12l2 2 4-4"/><path d="M21 12c.552 0 1-.448 1-1V5c0-.552-.448-1-1-1H3c-.552 0-1 .448-1 1v6c0 .552.448 1 1 1h18z"/></svg>
-                                            <span><?php echo esc_html($options_count); ?> <?php esc_html_e('Options', 'mobooking'); ?></span>
-                                        </div>
-                                        <?php endif; ?>
+                                <?php endif; ?>
+                                <div class="service-card__status-badge status-<?php echo esc_attr($service['status']); ?>"><?php echo esc_html(ucfirst($service['status'])); ?></div>
+                            </div>
+                            <div class="service-card__content">
+                                <div class="service-card__header">
+                                    <div class="service-card__icon"><?php echo $service_icon; ?></div>
+                                    <div class="service-card__title-wrapper">
+                                        <h3 class="service-card__title"><?php echo esc_html($service['name']); ?></h3>
+                                        <p class="service-card__price"><?php echo esc_html($price_formatted); ?></p>
                                     </div>
                                 </div>
-                                <div class="card-footer p-4 flex gap-2">
-                                    <a href="<?php echo esc_url(site_url('/dashboard/service-edit/?service_id=' . $service['service_id'])); ?>" class="btn btn-primary w-full">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 mr-2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
-                                        <?php esc_html_e('View', 'mobooking'); ?>
-                                    </a>
-                                    <form method="POST" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" data-service-name="<?php echo esc_attr($service['name']); ?>">
-                                        <input type="hidden" name="action" value="mobooking_delete_service">
-                                        <input type="hidden" name="service_id" value="<?php echo esc_attr($service['service_id']); ?>">
-                                        <?php wp_nonce_field('mobooking_delete_service_nonce'); ?>
-                                        <button type="submit" class="btn btn-destructive">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
-                                        </button>
-                                    </form>
+                                <?php if (!empty($service['description'])): ?>
+                                    <p class="service-card__description"><?php echo esc_html($service['description']); ?></p>
+                                <?php endif; ?>
+                                <div class="service-card__meta">
+                                    <div class="service-card__meta-item">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                                        <span><?php echo esc_html($service['duration']); ?> <?php esc_html_e('min', 'mobooking'); ?></span>
+                                    </div>
+                                    <?php if ($options_count > 0): ?>
+                                    <div class="service-card__meta-item">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"/><path d="M21 12c.552 0 1-.448 1-1V5c0-.552-.448-1-1-1H3c-.552 0-1 .448-1 1v6c0 .552.448 1 1 1h18z"/></svg>
+                                        <span><?php echo esc_html($options_count); ?> <?php esc_html_e('Options', 'mobooking'); ?></span>
+                                    </div>
+                                    <?php endif; ?>
                                 </div>
                             </div>
-                        <?php endforeach; ?>
+                            <div class="service-card__footer">
+                                <a href="<?php echo esc_url(site_url('/dashboard/service-edit/?service_id=' . $service['service_id'])); ?>" class="btn btn-primary">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+                                    <?php esc_html_e('View', 'mobooking'); ?>
+                                </a>
+                                <form method="POST" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" data-service-name="<?php echo esc_attr($service['name']); ?>">
+                                    <input type="hidden" name="action" value="mobooking_delete_service">
+                                    <input type="hidden" name="service_id" value="<?php echo esc_attr($service['service_id']); ?>">
+                                    <?php wp_nonce_field('mobooking_delete_service_nonce'); ?>
+                                    <button type="submit" class="btn btn-destructive">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
                     </div>
                     <?php if ($total_pages > 1): ?>
                         <div class="flex justify-center mt-6">
