@@ -104,10 +104,10 @@ jQuery(function ($) {
       $container.on("change", ".option-type-radio", function () {
         const $radio = $(this);
         const type = $radio.val();
-        const $optionItem = $radio.closest(".option-item");
+        const $optionItem = $radio.closest(".mobooking-option-item");
 
         // Update badge
-        const badge = $optionItem.find(".option-badges .badge-outline");
+        const badge = $optionItem.find(".mobooking-option-badges .badge-outline");
         const typeLabel = $radio
           .closest(".option-type-card")
           .find(".option-type-title")
@@ -121,13 +121,11 @@ jQuery(function ($) {
         const $choicesList = $optionItem.find(".choices-list");
         const choiceTypes = ["select", "radio", "checkbox"];
 
-        // Always clear choices when the type changes, to avoid mismatched inputs.
-        $choicesList.empty();
-
         if (choiceTypes.includes(type)) {
-          $choicesContainer.slideDown(200);
+            $choicesContainer.slideDown(200);
         } else {
-          $choicesContainer.slideUp(200);
+            $choicesContainer.slideUp(200);
+            $choicesList.empty(); // Clear choices only when hiding
         }
 
         // Handle SQM/Kilometers specific UI
@@ -507,8 +505,31 @@ jQuery(function ($) {
     },
 
     handleImageUpload: function (file) {
-      // Implementation for image upload would go here
-      console.log("Image upload functionality not yet implemented");
+        const self = this;
+        const formData = new FormData();
+        formData.append('service_image', file);
+        formData.append('action', 'mobooking_upload_service_image');
+        formData.append('nonce', mobooking_service_edit_params.nonce);
+
+        $.ajax({
+            url: mobooking_service_edit_params.ajax_url,
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (response) {
+                if (response.success) {
+                    const $preview = $('#image-preview');
+                    $preview.html(`<img src="${response.data.image_url}" alt="Service Image"><button type="button" class="remove-image-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><path d="m19 6-1 14H6L5 6"/></svg></button>`);
+                    $('#service-image-url').val(response.data.image_url);
+                } else {
+                    alert(response.data.message);
+                }
+            },
+            error: function () {
+                alert('AJAX error occurred while uploading image.');
+            },
+        });
     },
 
     removeImage: function () {
