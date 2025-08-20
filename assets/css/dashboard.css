@@ -1297,3 +1297,77 @@ a.quick-action:hover {
 .switch.switch-checked .switch-thumb {
     transform: translateX(1.375rem);
 }
+
+/* Option Types Grid */
+.option-types-grid,
+.price-types-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 0.75rem;
+}
+
+.option-type-card,
+.price-type-card {
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius);
+    padding: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+}
+
+.option-type-card:hover,
+.price-type-card:hover {
+    border-color: hsl(var(--ring));
+    background: hsl(var(--accent));
+}
+
+.option-type-card.selected,
+.price-type-card.selected {
+    border-color: hsl(var(--primary));
+    background: hsl(var(--primary) / 0.1);
+    box-shadow: 0 0 0 2px hsl(var(--ring) / 0.2);
+}
+
+.option-type-label,
+.price-type-label {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    cursor: pointer;
+}
+
+.option-type-icon,
+.price-type-icon {
+    color: hsl(var(--muted-foreground));
+}
+
+.option-type-content,
+.price-type-content {
+    display: flex;
+    flex-direction: column;
+}
+
+.option-type-title,
+.price-type-title {
+    font-weight: 500;
+    color: hsl(var(--foreground));
+    font-size: 0.875rem;
+}
+
+.choices-container {
+    margin-top: 1rem;
+}
+
+.choices-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.choice-item {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    align-items: center;
+    gap: 0.75rem;
+}
