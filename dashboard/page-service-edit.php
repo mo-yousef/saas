@@ -184,11 +184,11 @@ if ( $edit_mode && $service_id > 0 ) {
 			</div>
 		</div>
 		<div class="mobooking-page-header-actions">
+			<a href="<?php echo esc_url( $breadcrumb_services ); ?>" class="btn btn-secondary btn-sm">
+				<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+				<?php esc_html_e( 'Back', 'mobooking' ); ?>
+			</a>
 			<?php if ( $edit_mode ) : ?>
-				<button type="button" id="duplicate-service-btn" class="btn btn-secondary btn-sm">
-					<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
-					<?php esc_html_e( 'Duplicate', 'mobooking' ); ?>
-				</button>
 				<button type="button" id="delete-service-btn" class="btn btn-destructive btn-sm">
 					<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><path d="m19 6-1 14H6L5 6"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
 					<?php esc_html_e( 'Delete', 'mobooking' ); ?>
@@ -225,7 +225,7 @@ if ( $edit_mode && $service_id > 0 ) {
 					</div>
 					<div class="mobooking-card-content space-y-4">
 						<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-							<div class="md:col-span-2">
+							<div class="md:col-span-3">
 								<label class="mobooking-filter-item label" for="service-name">
 									<?php esc_html_e( 'Service Name', 'mobooking' ); ?> <span class="text-destructive">*</span>
 								</label>
@@ -238,18 +238,6 @@ if ( $edit_mode && $service_id > 0 ) {
 									value="<?php echo esc_attr( $service_name ); ?>"
 									required
 								>
-							</div>
-							<div>
-								<label class="mobooking-filter-item label"><?php esc_html_e( 'Status', 'mobooking' ); ?></label>
-								<div class="flex items-center space-x-2 mt-2">
-									<button type="button" class="switch <?php echo 'active' === $service_status ? 'switch-checked' : ''; ?>" data-switch="status">
-										<span class="switch-thumb"></span>
-									</button>
-									<span class="text-sm font-medium">
-										<?php echo 'active' === $service_status ? esc_html__( 'Active', 'mobooking' ) : esc_html__( 'Inactive', 'mobooking' ); ?>
-									</span>
-									<input type="hidden" name="status" value="<?php echo esc_attr( $service_status ); ?>">
-								</div>
 							</div>
 						</div>
 
@@ -361,33 +349,35 @@ if ( $edit_mode && $service_id > 0 ) {
 			</div>
 
 			<div class="mobooking-sidebar">
+				<!-- Actions Card -->
+				<div class="mobooking-card">
+					<div class="mobooking-card-header">
+						<h3 class="mobooking-card-title"><?php esc_html_e( 'Actions', 'mobooking' ); ?></h3>
+					</div>
+					<div class="mobooking-card-content">
+						<button type="submit" class="btn btn-primary w-full" id="save-service-btn">
+							<?php echo $edit_mode ? esc_html__( 'Update Service', 'mobooking' ) : esc_html__( 'Create Service', 'mobooking' ); ?>
+						</button>
+						<div class="flex items-center justify-between mt-4">
+							<label class="mobooking-filter-item label"><?php esc_html_e( 'Status', 'mobooking' ); ?></label>
+							<div class="flex items-center space-x-2">
+								<button type="button" class="switch <?php echo 'active' === $service_status ? 'switch-checked' : ''; ?>" data-switch="status">
+									<span class="switch-thumb"></span>
+								</button>
+								<span class="text-sm font-medium">
+									<?php echo 'active' === $service_status ? esc_html__( 'Active', 'mobooking' ) : esc_html__( 'Inactive', 'mobooking' ); ?>
+								</span>
+								<input type="hidden" name="status" value="<?php echo esc_attr( $service_status ); ?>">
+							</div>
+						</div>
+					</div>
+				</div>
 				<!-- Visual Settings Card -->
 				<div class="mobooking-card">
 					<div class="mobooking-card-header">
 						<h3 class="mobooking-card-title"><?php esc_html_e( 'Visuals', 'mobooking' ); ?></h3>
 					</div>
 					<div class="mobooking-card-content space-y-6">
-						<!-- Service Icon -->
-						<div>
-							<label class="mobooking-filter-item label"><?php esc_html_e( 'Service Icon', 'mobooking' ); ?></label>
-							<div class="mobooking-icon-selector">
-								<div class="mobooking-icon-preview">
-									<div id="current-icon" class="mobooking-icon-display">
-										<?php if ( ! empty( $service_icon ) ) : ?>
-											<?php echo wp_kses_post( $service_icon ); ?>
-										<?php else : ?>
-											<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27,6.96 12,12.01 20.73,6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
-										<?php endif; ?>
-									</div>
-								</div>
-								<button type="button" id="select-icon-btn" class="btn btn-outline btn-sm mt-2">
-									<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1 1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-									<?php esc_html_e( 'Choose Icon', 'mobooking' ); ?>
-								</button>
-								<input type="hidden" id="service-icon" name="icon" value="<?php echo esc_attr( $service_icon ); ?>">
-							</div>
-						</div>
-
 						<!-- Service Image -->
 						<div>
 							<label class="mobooking-filter-item label"><?php esc_html_e( 'Service Image', 'mobooking' ); ?></label>
@@ -410,33 +400,31 @@ if ( $edit_mode && $service_id > 0 ) {
 								<input type="hidden" id="service-image-url" name="image_url" value="<?php echo esc_attr( $service_image_url ); ?>">
 							</div>
 						</div>
+						<!-- Service Icon -->
+						<div class="service-icon-section">
+							<label class="mobooking-filter-item label"><?php esc_html_e( 'Service Icon', 'mobooking' ); ?></label>
+							<div class="mobooking-icon-selector">
+								<div class="mobooking-icon-preview">
+									<div id="current-icon" class="mobooking-icon-display">
+										<?php if ( ! empty( $service_icon ) ) : ?>
+											<?php echo wp_kses_post( $service_icon ); ?>
+										<?php else : ?>
+											<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27,6.96 12,12.01 20.73,6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+										<?php endif; ?>
+									</div>
+								</div>
+								<button type="button" id="select-icon-btn" class="btn btn-outline btn-sm mt-2">
+									<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1 1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+									<?php esc_html_e( 'Choose Icon', 'mobooking' ); ?>
+								</button>
+								<input type="hidden" id="service-icon" name="icon" value="<?php echo esc_attr( $service_icon ); ?>">
+							</div>
+						</div>
 					</div>
 				</div>
 			</div>
 		</div>
 
-		<!-- Action Bar -->
-		<div class="action-bar">
-			<div class="action-bar-content">
-				<div class="flex items-center justify-between">
-					<a href="<?php echo esc_url( $breadcrumb_services ); ?>" class="btn btn-ghost">
-						<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
-						<?php esc_html_e( 'Cancel', 'mobooking' ); ?>
-					</a>
-
-					<div class="flex gap-2">
-						<button type="button" class="btn btn-outline" id="save-draft-btn">
-							<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10,9 9,9 8,9"/></svg>
-							<?php esc_html_e( 'Save as Draft', 'mobooking' ); ?>
-						</button>
-						<button type="submit" class="btn btn-primary" id="save-service-btn">
-							<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 12 2 2 4-4"/><path d="M21 12c.552 0 1-.448 1-1V5a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v6c0 .552.448 1 1 1h18z"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7"/></svg>
-							<?php echo $edit_mode ? esc_html__( 'Update Service', 'mobooking' ) : esc_html__( 'Create Service', 'mobooking' ); ?>
-						</button>
-					</div>
-				</div>
-			</div>
-		</div>
 	</form>
 </div>
 
