@@ -47,47 +47,47 @@ $currency_pos        = $biz_settings['biz_currency_position'];
 // Define option types.
 $option_types = array(
 	'checkbox'   => array(
-		'label'       => __( 'Checkbox', 'mobooking' ),
+		'label'       => __( 'Option Toggle / Yes or No', 'mobooking' ),
 		'description' => __( 'Simple yes/no choice', 'mobooking' ),
 		'icon'        => 'check-square',
 	),
 	'text'       => array(
-		'label'       => __( 'Text Input', 'mobooking' ),
+		'label'       => __( 'Short Answer', 'mobooking' ),
 		'description' => __( 'Short text field', 'mobooking' ),
 		'icon'        => 'type',
 	),
 	'number'     => array(
-		'label'       => __( 'Number', 'mobooking' ),
+		'label'       => __( 'Number Field', 'mobooking' ),
 		'description' => __( 'Numeric input only', 'mobooking' ),
 		'icon'        => 'hash',
 	),
 	'select'     => array(
-		'label'       => __( 'Dropdown', 'mobooking' ),
+		'label'       => __( 'Select from List', 'mobooking' ),
 		'description' => __( 'Choose one from list', 'mobooking' ),
 		'icon'        => 'chevron-down',
 	),
 	'radio'      => array(
-		'label'       => __( 'Radio Buttons', 'mobooking' ),
+		'label'       => __( 'Single Choice', 'mobooking' ),
 		'description' => __( 'Single choice selection', 'mobooking' ),
 		'icon'        => 'circle',
 	),
 	'textarea'   => array(
-		'label'       => __( 'Text Area', 'mobooking' ),
+		'label'       => __( 'Long Answer / Additional Notes', 'mobooking' ),
 		'description' => __( 'Multi-line text', 'mobooking' ),
 		'icon'        => 'file-text',
 	),
 	'quantity'   => array(
-		'label'       => __( 'Quantity', 'mobooking' ),
+		'label'       => __( 'Item Quantity / Number of Items', 'mobooking' ),
 		'description' => __( 'Number with +/- buttons', 'mobooking' ),
 		'icon'        => 'plus-minus',
 	),
 	'sqm'        => array(
-		'label'       => __( 'Square Meter', 'mobooking' ),
+		'label'       => __( 'Area (m²)', 'mobooking' ),
 		'description' => __( 'Area calculation', 'mobooking' ),
 		'icon'        => 'square',
 	),
 	'kilometers' => array(
-		'label'       => __( 'Kilometers', 'mobooking' ),
+		'label'       => __( 'Distance (km)', 'mobooking' ),
 		'description' => __( 'Distance calculation', 'mobooking' ),
 		'icon'        => 'truck',
 	),
