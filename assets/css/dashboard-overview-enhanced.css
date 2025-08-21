@@ -552,6 +552,7 @@
 }
 
 @keyframes pulse {
+
   0%,
   100% {
     opacity: 1;
@@ -564,12 +565,10 @@
 
 /* Skeleton loading for cards */
 .card.skeleton {
-  background: linear-gradient(
-    90deg,
-    hsl(var(--mobk-muted)) 25%,
-    hsl(var(--mobk-muted) / 0.5) 50%,
-    hsl(var(--mobk-muted)) 75%
-  );
+  background: linear-gradient(90deg,
+      hsl(var(--mobk-muted)) 25%,
+      hsl(var(--mobk-muted) / 0.5) 50%,
+      hsl(var(--mobk-muted)) 75%);
   background-size: 200% 100%;
   animation: shimmer 2s infinite;
 }
@@ -811,7 +810,7 @@
 }
 
 .text-destructive {
-  color: hsl(var(--mobk-destructive));
+  color: red;
 }
 
 .hidden {
@@ -935,6 +934,7 @@
    Reduced Motion Support
    ============================================================================ */
 @media (prefers-reduced-motion: reduce) {
+
   *,
   ::before,
   ::after {

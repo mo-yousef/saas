@@ -241,19 +241,11 @@ if ( $edit_mode && $service_id > 0 ) {
 								id="service-description"
 								name="description"
 								class="regular-text"
-								rows="4"
+								rows="2"
 								placeholder="<?php esc_attr_e( 'Describe your service in detail. What does it include? What makes it special?', 'mobooking' ); ?>"
 							><?php echo esc_textarea( $service_description ); ?></textarea>
 						</div>
-					</div>
-				</div>
 
-				<!-- Pricing & Duration Card -->
-				<div class="mobooking-card">
-					<div class="mobooking-card-header">
-						<h3 class="mobooking-card-title"><?php esc_html_e( 'Pricing & Duration', 'mobooking' ); ?></h3>
-					</div>
-					<div class="mobooking-card-content">
 						<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 							<div>
 								<label class="mobooking-filter-item label" for="service-price">

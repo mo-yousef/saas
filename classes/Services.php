@@ -503,7 +503,8 @@ class Services {
                 wp_send_json_error(['message' => __('Could not delete the image file.', 'mobooking')], 500);
             }
         } else {
-            wp_send_json_error(['message' => __('Image file not found at specified path.', 'mobooking')], 404);
+            // Idempotent delete: if the file is already missing, consider it deleted successfully
+            wp_send_json_success(['message' => __('Image already removed.', 'mobooking')]);
         }
     }
 
