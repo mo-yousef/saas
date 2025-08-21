@@ -571,8 +571,9 @@ jQuery(function ($) {
                   // It's a new service, so we redirect to the new edit page.
                   if (response.data && response.data.service_id) {
                       const newServiceId = response.data.service_id;
-                      // Build the redirect URL. We assume the admin URL structure.
-                      const redirectUrl = `admin.php?page=mobooking-service-edit&service_id=${newServiceId}`;
+                      // Build the redirect URL using the localized admin_base_url
+                      const baseUrl = mobooking_service_edit_params.admin_base_url || 'admin.php';
+                      const redirectUrl = `${baseUrl}?page=mobooking-service-edit&service_id=${newServiceId}`;
                       window.location.href = redirectUrl;
                   } else {
                       // Fallback in case the service_id is not returned, just reload.
@@ -699,8 +700,14 @@ jQuery(function ($) {
 
     fetchPresetIcons: function(dialog) {
         const self = this;
+        console.log("Fetching preset icons...");
         const grid = dialog.findElement('#dialog-preset-icons-grid');
-        if (!grid) return;
+
+        if (!grid) {
+            console.error("Could not find the icon grid element in the dialog.");
+            return;
+        }
+        console.log("Icon grid element found:", grid);
 
         $.ajax({
             url: mobooking_service_edit_params.ajax_url,
@@ -710,9 +717,12 @@ jQuery(function ($) {
                 nonce: mobooking_service_edit_params.nonce
             },
             success: function(response) {
-                if (response.success && response.data.icons) {
+                console.log("AJAX response received:", response);
+                if (response.success && response.data.icons && Object.keys(response.data.icons).length > 0) {
                     grid.innerHTML = ''; // Clear loading
+                    console.log("Icons data is valid, starting to render icons.");
                     for (const name in response.data.icons) {
+                        console.log("Rendering icon:", name);
                         const item = document.createElement('div');
                         item.className = 'mobooking-icon-grid-item';
                         item.dataset.iconId = 'preset:' + name;
@@ -721,11 +731,13 @@ jQuery(function ($) {
                         grid.appendChild(item);
                     }
                 } else {
-                    grid.innerHTML = '<p>Could not load icons.</p>';
+                    grid.innerHTML = '<p>Could not load icons or no icons found.</p>';
+                    console.error("Failed to load icons from server or response contained no icons.", response);
                 }
             },
-            error: function() {
+            error: function(xhr, status, error) {
                 grid.innerHTML = '<p>Error loading icons.</p>';
+                console.error("AJAX error loading icons:", status, error);
             }
         });
     },
