@@ -656,13 +656,6 @@ jQuery(function ($) {
                         <div class="icon-grid-loading"><p>Loading icons...</p></div>
                     </div>
                 </div>
-                <hr class="my-4">
-                <div class="custom-icon-section">
-                    <h4 class="section-title">Upload Custom Icon</h4>
-                    <p class="section-description">Upload your own SVG icon. For best results, use a simple, single-color SVG.</p>
-                    <input type="file" id="dialog-custom-icon-upload" accept=".svg" class="mt-2">
-                    <div id="dialog-custom-icon-upload-feedback" class="text-sm mt-2"></div>
-                </div>
             </div>
         `;
 
@@ -697,15 +690,6 @@ jQuery(function ($) {
                 const setButton = dialog.findElement('.btn-primary');
                 if (setButton) {
                     setButton.disabled = true;
-                }
-
-                const uploadInput = dialog.findElement('#dialog-custom-icon-upload');
-                if (uploadInput) {
-                    uploadInput.addEventListener('change', (e) => {
-                        if (e.target.files[0]) {
-                            this.handleCustomIconUpload(e.target.files[0], dialog);
-                        }
-                    });
                 }
             }
         });
@@ -762,55 +746,6 @@ jQuery(function ($) {
         }
     },
 
-    handleCustomIconUpload: function (file, dialog) {
-      const self = this;
-      const feedback = dialog.findElement("#dialog-custom-icon-upload-feedback");
-      if (!file || !file.type === "image/svg+xml") {
-        feedback.textContent = "Please select a valid SVG file.";
-        feedback.className = "text-sm mt-2 error";
-        return;
-      }
-
-      feedback.textContent = "Uploading...";
-      feedback.className = "text-sm mt-2";
-
-      const formData = new FormData();
-      formData.append("action", "mobooking_upload_service_icon");
-      formData.append("nonce", mobooking_service_edit_params.nonce);
-      formData.append("service_icon_svg", file);
-      const serviceId = $("input[name='service_id']").val();
-      if (serviceId) {
-        formData.append("service_id", serviceId);
-      }
-
-      $.ajax({
-        url: mobooking_service_edit_params.ajax_url,
-        type: "POST",
-        data: formData,
-        processData: false,
-        contentType: false,
-        success: function (response) {
-          if (response.success && response.data.icon_url) {
-            feedback.textContent = "Upload successful! Click 'Set Icon' to use it.";
-            feedback.className = "text-sm mt-2 success";
-            self.selectedIconIdentifier = response.data.icon_url;
-            self.selectedIconHtml = `<img src="${response.data.icon_url}" alt="Custom Icon" class="mobooking-custom-icon"/>`;
-            const setButton = dialog.findElement('.btn-primary');
-            if (setButton) {
-                setButton.disabled = false;
-            }
-          } else {
-            feedback.textContent = response.data?.message || "Upload failed.";
-            feedback.className = "text-sm mt-2 error";
-          }
-        },
-        error: function () {
-            feedback.textContent = "An AJAX error occurred.";
-            feedback.className = "text-sm mt-2 error";
-        },
-      });
-    },
-
     setIcon: function () {
       if (this.selectedIconIdentifier && this.selectedIconHtml) {
         $("#service-icon").val(this.selectedIconIdentifier);
@@ -819,31 +754,9 @@ jQuery(function ($) {
     },
 
     removeIcon: function () {
-      const currentIcon = $("#service-icon").val();
-      const $currentIconDisplay = $("#current-icon");
-
-      // If the icon is a custom uploaded one (a URL), we should delete it from the server.
-      if (currentIcon && currentIcon.startsWith("http")) {
-        $.ajax({
-          url: mobooking_service_edit_params.ajax_url,
-          type: "POST",
-          data: {
-            action: "mobooking_delete_service_icon",
-            nonce: mobooking_service_edit_params.nonce,
-            icon_url: currentIcon,
-          },
-          success: function (response) {
-            if (!response.success) {
-              // Non-critical error, we still clear it from the UI.
-              console.error("Could not delete custom icon from server:", response.data?.message);
-            }
-          },
-        });
-      }
-
       // Clear the icon from the form and UI
       $("#service-icon").val("");
-      $currentIconDisplay.html(
+      $("#current-icon").html(
         '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27,6.96 12,12.01 20.73,6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>'
       );
     },
