@@ -802,18 +802,32 @@ function mobooking_ajax_get_service_coverage() {
 
     $areas_manager = new \MoBooking\Classes\Areas();
     $city = isset($_POST['city']) ? sanitize_text_field($_POST['city']) : '';
+    $limit = isset($_POST['limit']) ? intval($_POST['limit']) : 20;
 
-    $filters = [];
-    if (!empty($city)) {
-        $filters['city'] = $city;
+    $args = [];
+    if ($limit === -1) {
+        // Use a large number to effectively get all records, as the frontend expects
+        $args['limit'] = 9999;
+    } else {
+        $args['limit'] = $limit;
     }
 
-    // Call the correct 'grouped' function with the correct arguments
-    $result = $areas_manager->get_service_coverage_grouped($user_id, $filters);
+    if (!empty($city)) {
+        $args['city'] = $city;
+    }
+
+    // Call the correct function to get detailed area data, not grouped data
+    $result = $areas_manager->get_service_coverage($user_id, $args);
 
     if (is_wp_error($result)) {
         wp_send_json_error(array('message' => $result->get_error_message()), 500);
         return;
+    }
+
+    // The frontend JS expects an 'areas' key, but the backend returns 'coverage'
+    if (isset($result['coverage'])) {
+        $result['areas'] = $result['coverage'];
+        unset($result['coverage']);
     }
 
     wp_send_json_success($result);

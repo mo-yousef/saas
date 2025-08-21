@@ -114,35 +114,7 @@ $current_user_id = get_current_user_id();
     </div>
 </div>
 
-<!-- Area Selection Modal -->
-<div id="area-selection-modal" class="modal-overlay" style="display: none;">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h4 class="modal-title">
-                <?php esc_html_e('Select Areas for', 'mobooking'); ?> <span id="modal-city-name"></span>
-            </h4>
-            <button type="button" class="modal-close-btn">&times;</button>
-        </div>
-        <div class="modal-body">
-            <div class="areas-selection-controls">
-                <button type="button" id="modal-select-all" class="btn btn-link"><?php esc_html_e('Select All', 'mobooking'); ?></button>
-                <button type="button" id="modal-deselect-all" class="btn btn-link"><?php esc_html_e('Deselect All', 'mobooking'); ?></button>
-            </div>
-            <div id="modal-areas-grid" class="modal-areas-grid">
-                <!-- Areas for the selected city will be loaded here -->
-            </div>
-        </div>
-        <div class="modal-footer">
-            <div id="modal-feedback" class="mobooking-feedback" style="display: none;"></div>
-            <button type="button" id="modal-cancel-btn" class="btn btn-secondary">
-                <?php esc_html_e('Cancel', 'mobooking'); ?>
-            </button>
-            <button type="button" id="modal-save-btn" class="btn btn-primary">
-                <?php esc_html_e('Save Areas', 'mobooking'); ?>
-            </button>
-        </div>
-    </div>
-</div>
+<!-- The Area Selection Modal is now handled by the MoBookingDialog component -->
 
 <script>
 // Enhanced localization for JavaScript
