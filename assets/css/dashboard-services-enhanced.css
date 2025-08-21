@@ -197,3 +197,29 @@
   width: 32px;
   height: 32px;
 }
+
+/* Styles for the icon preview on the main page */
+.mobooking-icon-preview {
+    border: 2px dashed var(--border);
+    border-radius: var(--radius);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 12rem; /* Same as image preview */
+    background-color: var(--muted);
+    color: var(--muted-foreground);
+    transition: all 0.2s ease-in-out;
+}
+
+.mobooking-icon-display {
+    width: 64px;
+    height: 64px;
+}
+
+.mobooking-icon-display svg,
+.mobooking-icon-display img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
