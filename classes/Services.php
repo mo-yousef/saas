@@ -22,8 +22,8 @@ class Services {
         global $wpdb;
         $this->wpdb = $wpdb;
         $this->service_options_manager = new ServiceOptions();
-        // Define the path to the preset icons directory. MOBOOKING_PLUGIN_DIR should be defined in the main plugin file.
-        self::$preset_icons_path = defined('MOBOOKING_PLUGIN_DIR') ? MOBOOKING_PLUGIN_DIR . 'assets/svg-icons/presets/' : plugin_dir_path(__FILE__) . '../../assets/svg-icons/presets/';
+        // Define the path to the preset icons directory using the theme directory constant.
+        self::$preset_icons_path = MOBOOKING_THEME_DIR . 'assets/svg-icons/presets/';
     }
 
     public static function get_preset_icon_svg(string $filename): ?string {
