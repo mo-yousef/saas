@@ -6,14 +6,19 @@ jQuery(function ($) {
     init: function () {
       this.bindEvents();
       this.initSwitches();
-      this.initExistingOptions(); // NEW: Initialize existing options properly
+      this.initExistingOptions();
+      this.initSortable(); // Initialize sortable functionality
+      this.fixOptionIndices(); // Fix indices on load
     },
 
-    // NEW: Initialize existing options to show proper state
+    // Initialize existing options to show proper state
     initExistingOptions: function () {
       $(".option-item").each(function () {
         const $option = $(this);
         const selectedType = $option.find(".option-type-radio:checked").val();
+        const selectedPriceType = $option
+          .find(".price-impact-type-radio:checked")
+          .val();
 
         if (selectedType) {
           // Update the choices container visibility based on existing type
@@ -26,6 +31,96 @@ jQuery(function ($) {
             $choicesContainer.hide();
           }
         }
+
+        // Show price impact value container if price type is selected or for special types
+        const $valueContainer = $option.find(".price-impact-value-container");
+        if (
+          selectedPriceType ||
+          selectedType === "sqm" ||
+          selectedType === "kilometers"
+        ) {
+          $valueContainer.show();
+        }
+      });
+    },
+
+    // Initialize sortable functionality for options
+    initSortable: function () {
+      const self = this;
+      const $container = $("#options-container");
+
+      // Check if jQuery UI Sortable is available
+      if (typeof $.fn.sortable === "function") {
+        $container.sortable({
+          items: ".option-item",
+          handle: ".mobooking-option-drag-handle",
+          placeholder: "sortable-placeholder",
+          cursor: "grabbing",
+          tolerance: "pointer",
+          start: function (e, ui) {
+            ui.placeholder.height(ui.item.height());
+            ui.placeholder.css({
+              "background-color": "hsl(var(--muted))",
+              border: "2px dashed hsl(var(--border))",
+              "border-radius": "var(--radius)",
+              "margin-bottom": "1rem",
+            });
+          },
+          stop: function (e, ui) {
+            // Fix indices after sorting
+            self.fixOptionIndices();
+
+            // Update sort order values
+            $container.find(".option-item").each(function (index) {
+              $(this)
+                .find('input[name*="[sort_order]"]')
+                .val(index + 1);
+            });
+          },
+        });
+      } else {
+        console.warn(
+          "jQuery UI Sortable not available. Option sorting disabled."
+        );
+      }
+    },
+    fixOptionIndices: function () {
+      $("#options-container .option-item").each(function (index) {
+        const $option = $(this);
+        const newIndex = index;
+
+        // Update the data attribute
+        $option.attr("data-option-index", newIndex);
+
+        // Update all input names within this option
+        $option.find("input, select, textarea").each(function () {
+          const $input = $(this);
+          const name = $input.attr("name");
+          if (name && name.startsWith("options[")) {
+            const newName = name.replace(
+              /options\[\d+\]/,
+              `options[${newIndex}]`
+            );
+            $input.attr("name", newName);
+          }
+        });
+
+        // Update choice indices
+        $option.find(".choice-item").each(function (choiceIndex) {
+          $(this)
+            .find("input")
+            .each(function () {
+              const $input = $(this);
+              const name = $input.attr("name");
+              if (name && name.includes("[choices][")) {
+                const newName = name.replace(
+                  /\[choices\]\[\d+\]/,
+                  `[choices][${choiceIndex}]`
+                );
+                $input.attr("name", newName);
+              }
+            });
+        });
       });
     },
 
@@ -85,76 +180,57 @@ jQuery(function ($) {
               "Are you sure you want to delete this option?"
           )
         ) {
-          $(this).closest(".mobooking-option-item").remove();
-
-          if ($(".mobooking-option-item").length === 0) {
-            self.showEmptyState();
-          }
+          $(this).closest(".option-item").remove();
+          self.updateOptionsBadge();
+          self.fixOptionIndices(); // Fix indices after deletion
+          self.showEmptyStateIfNeeded();
         }
       });
 
-      // Update option name in header
-      $container.on("input", ".option-name-input", function () {
+      // Option name change
+      $container.on("blur", ".option-name-input", function () {
         const $input = $(this);
-        const nameDisplay = $input.closest(".mobooking-option-item").find(".mobooking-option-name");
-        nameDisplay.text($input.val() || "New Option");
+        const newName = $input.val().trim() || "Unnamed Option";
+        $input.closest(".option-item").find(".option-name").text(newName);
       });
 
-      // Update option type badge and show/hide choices
+      // Option type change
       $container.on("change", ".option-type-radio", function () {
         const $radio = $(this);
-        const type = $radio.val();
-        const $optionItem = $radio.closest(".mobooking-option-item");
-
-        // Update badge
-        const badge = $optionItem.find(".mobooking-option-badges .badge-outline");
-        const typeLabel = $radio
-          .closest(".option-type-card")
-          .find(".option-type-title")
-          .text();
-        if (badge.length) {
-          badge.text(typeLabel);
-        }
-
-        // Show/hide choices container and clear existing choices on type change
-        const $choicesContainer = $optionItem.find(".choices-container");
-        const $choicesList = $optionItem.find(".choices-list");
+        const $optionItem = $radio.closest(".option-item");
+        const selectedType = $radio.val();
         const choiceTypes = ["select", "radio", "checkbox"];
-
-        if (choiceTypes.includes(type)) {
-            $choicesContainer.slideDown(200);
-        } else {
-            $choicesContainer.slideUp(200);
-            $choicesList.empty(); // Clear choices only when hiding
-        }
-
-        // Handle SQM/Kilometers specific UI
-        const $priceImpactContainer = $optionItem.find(
-          ".price-impact-value-container"
-        );
+        const $choicesContainer = $optionItem.find(".choices-container");
         const $priceTypesGrid = $optionItem.find(".price-types-grid");
         const $priceImpactDescription = $optionItem.find(
           ".price-impact-description"
         );
         const $priceImpactLabel = $optionItem.find(".price-impact-label");
-        const $priceImpactValueLabel = $priceImpactContainer.find("label");
+        const $priceImpactValueLabel = $optionItem.find(
+          ".price-impact-value-label"
+        );
 
-        if (type === "sqm" || type === "kilometers") {
-          $priceImpactContainer.slideDown(200);
+        // Show/hide choices container
+        if (choiceTypes.includes(selectedType)) {
+          $choicesContainer.slideDown(200);
+        } else {
+          $choicesContainer.slideUp(200);
+        }
+
+        // Handle special types (sqm, kilometers)
+        if (selectedType === "sqm" || selectedType === "kilometers") {
           $priceTypesGrid.slideUp(200);
           $priceImpactDescription.hide();
           const labelText =
-            type === "sqm"
+            selectedType === "sqm"
               ? mobooking_service_edit_params.i18n.price_per_sqm ||
                 "Price per Square Meter"
               : mobooking_service_edit_params.i18n.price_per_km ||
                 "Price per Kilometer";
           $priceImpactLabel.text(labelText);
           $priceImpactValueLabel.text(labelText);
-          // Ensure price impact type is set to 'fixed'
           $optionItem.find(".price-impact-type-input").val("fixed");
         } else {
-          // Restore default view for other types
           $priceTypesGrid.slideDown(200);
           $priceImpactDescription.show();
           $priceImpactLabel.text(
@@ -177,37 +253,72 @@ jQuery(function ($) {
         const $optionItem = $btn.closest(".option-item");
         const optionIndex = $optionItem.data("option-index");
         const choiceIndex = $list.children().length;
-        const optionType = $optionItem.find(".option-type-radio:checked").val();
 
-        let newChoiceHtml = "";
-
-        newChoiceHtml = `
-                        <div class="choice-item flex items-center gap-2">
-                            <input type="text" name="options[${optionIndex}][choices][${choiceIndex}][label]" class="form-input flex-1" placeholder="Choice Label">
-                            <input type="number" name="options[${optionIndex}][choices][${choiceIndex}][price]" class="form-input w-24" placeholder="Price" step="0.01">
-                            <button type="button" class="btn-icon remove-choice-btn">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><path d="m19 6-1 14H6L5 6"/></svg>
-                            </button>
-                        </div>
-                    `;
+        let newChoiceHtml = `
+          <div class="choice-item flex items-center gap-2">
+              <input type="text" 
+                     name="options[${optionIndex}][choices][${choiceIndex}][label]" 
+                     class="form-input flex-1" 
+                     placeholder="Choice Label"
+                     required>
+              <input type="number" 
+                     name="options[${optionIndex}][choices][${choiceIndex}][price]" 
+                     class="form-input w-24" 
+                     placeholder="Price" 
+                     step="0.01"
+                     value="0">
+              <button type="button" class="btn-icon remove-choice-btn">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M3 6h18"/>
+                      <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                      <path d="m19 6-1 14H6L5 6"/>
+                  </svg>
+              </button>
+          </div>
+        `;
 
         $list.append(newChoiceHtml);
+
+        // Focus on the new choice label input
+        $list.find('.choice-item:last-child input[type="text"]').focus();
       });
 
       // Remove choice
       $container.on("click", ".remove-choice-btn", function () {
-        $(this).closest(".choice-item").remove();
+        const $choiceItem = $(this).closest(".choice-item");
+        const $optionItem = $choiceItem.closest(".option-item");
+
+        $choiceItem.remove();
+
+        // Re-index remaining choices
+        $optionItem.find(".choice-item").each(function (index) {
+          const optionIndex = $optionItem.data("option-index");
+          $(this)
+            .find("input")
+            .each(function () {
+              const $input = $(this);
+              const name = $input.attr("name");
+              if (name && name.includes("[choices][")) {
+                const newName = name.replace(
+                  /\[choices\]\[\d+\]/,
+                  `[choices][${index}]`
+                );
+                $input.attr("name", newName);
+              }
+            });
+        });
       });
 
-      // Update price impact value visibility
+      // Price impact type change
       $container.on("change", ".price-impact-type-radio", function () {
         const $radio = $(this);
-        const impactType = $radio.val();
         const $optionItem = $radio.closest(".option-item");
+        const impactType = $radio.val();
         const $valueContainer = $optionItem.find(
           ".price-impact-value-container"
         );
 
+        // Always show the price input when a price impact type is selected
         if (impactType) {
           $valueContainer.slideDown(200);
         } else {
@@ -217,27 +328,54 @@ jQuery(function ($) {
         // Update card selection visually
         $optionItem.find(".price-type-card").removeClass("selected");
         $radio.closest(".price-type-card").addClass("selected");
+
+        // Update hidden input
+        $optionItem.find(".price-impact-type-input").val($radio.val());
+      });
+
+      // Switch toggles
+      $container.on("click", ".switch", function () {
+        const $switch = $(this);
+        const isChecked = $switch.hasClass("switch-checked");
+        const newValue = isChecked ? "0" : "1";
+
+        $switch.toggleClass("switch-checked");
+        $switch.siblings("input[type=hidden]").val(newValue);
+
+        if ($switch.data("switch") === "required") {
+          const $label = $switch.parent().find(".text-sm");
+          if ($label.length) {
+            $label.text(newValue === "1" ? "Required option" : "Optional");
+          }
+        }
+
+        if ($switch.data("switch") === "status") {
+          const $label = $switch.parent().find(".text-sm");
+          if ($label.length) {
+            $label.text(newValue === "1" ? "Active" : "Inactive");
+          }
+        }
       });
     },
 
     initSwitches: function () {
-      $(document).on("click", ".switch", function () {
+      $(".switch").each(function () {
         const $switchEl = $(this);
-        const $hiddenInput = $switchEl.parent().find('input[type="hidden"]');
+        const $hiddenInput = $switchEl.siblings("input[type=hidden]");
+        const currentValue = $hiddenInput.val();
+        const isChecked = currentValue === "1";
 
-        $switchEl.toggleClass("switch-checked");
-        const isChecked = $switchEl.hasClass("switch-checked");
+        if (isChecked) {
+          $switchEl.addClass("switch-checked");
+        } else {
+          $switchEl.removeClass("switch-checked");
+        }
 
-        if ($hiddenInput.length) {
-          $hiddenInput.val(
-            $switchEl.data("switch") === "status"
-              ? isChecked
-                ? "active"
-                : "inactive"
-              : isChecked
-              ? "1"
-              : "0"
-          );
+        if ($switchEl.data("switch") === "required") {
+          const $label = $switchEl.parent().find(".text-sm");
+          if ($label.length) {
+            $label.text(isChecked ? "Required option" : "Optional");
+          }
         }
 
         if ($switchEl.data("switch") === "status") {
@@ -283,151 +421,197 @@ jQuery(function ($) {
 
       this.updateOptionsBadge();
       this.optionIndex++;
+      this.fixOptionIndices(); // Fix indices after adding
+      this.refreshSortable(); // Refresh sortable after adding new option
     },
 
     showEmptyState: function () {
       const i18n = mobooking_service_edit_params.i18n;
       const emptyStateHtml = `
-                <div class="empty-state">
-                    <div class="empty-state-icon">
-                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                            <circle cx="12" cy="12" r="10"/>
-                            <path d="M8 14s1.5 2 4 2 4-2 4-2"/>
-                            <line x1="9" y1="9" x2="9.01" y2="9"/>
-                            <line x1="15" y1="9" x2="15.01" y2="9"/>
-                        </svg>
-                    </div>
-                    <h3 class="empty-state-title">${
-                      i18n.no_options_yet || "No options added yet"
-                    }</h3>
-                    <p class="empty-state-description">
-                        ${
-                          i18n.add_options_prompt ||
-                          "Add customization options like room size, add-ons, or special requirements to make your service more flexible."
-                        }
-                    </p>
-                    <button type="button" class="btn btn-primary add-first-option">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M5 12h14"/>
-                            <path d="M12 5v14"/>
-                        </svg>
-                        Add Your First Option
-                    </button>
-                </div>
-            `;
+        <div class="empty-state">
+            <div class="empty-state-icon">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <circle cx="12" cy="12" r="10"/>
+                    <path d="M8 14s1.5 2 4 2 4-2 4-2"/>
+                    <line x1="9" y1="9" x2="9.01" y2="9"/>
+                    <line x1="15" y1="9" x2="15.01" y2="9"/>
+                </svg>
+            </div>
+            <h3 class="empty-state-title">${
+              i18n.no_options_yet || "No options added yet"
+            }</h3>
+            <p class="empty-state-description">
+                ${
+                  i18n.add_options_prompt ||
+                  "Add customization options like room size, add-ons, or special requirements to make your service more flexible."
+                }
+            </p>
+            <button type="button" class="btn btn-primary add-first-option">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+                ${i18n.add_first_option || "Add Your First Option"}
+            </button>
+        </div>
+      `;
       $("#options-container").html(emptyStateHtml);
     },
 
-    displaySaveError: function(errorMessage) {
-        // This regex now looks for the option name and is more flexible about the prefix.
-        const optionMatch = errorMessage.match(/'([^']+)':\s*(Range \d+:.*)/);
-        let errorHandled = false;
-
-        if (optionMatch && optionMatch[1] && optionMatch[2]) {
-            const optionName = optionMatch[1];
-            const cleanMessage = optionMatch[2]; // The part of the message after the name.
-
-            $('.option-name-input').each(function() {
-                if ($(this).val() === optionName) {
-                    $(this).closest('.option-item').find('.option-feedback').text(cleanMessage);
-                    errorHandled = true;
-                    return false; // break loop
-                }
-            });
-        }
-
-        // Fallback to a general alert if we couldn't place the error message
-        if (!errorHandled) {
-            // A more generic fallback that doesn't rely on the regex
-            const generalErrorContainer = $('#alert-container');
-            if (generalErrorContainer.length) {
-                const alertHtml = `<div class="alert alert-destructive"><span>${errorMessage}</span></div>`;
-                generalErrorContainer.html(alertHtml);
-            } else {
-                alert(errorMessage);
-            }
-        }
+    showEmptyStateIfNeeded: function () {
+      const $container = $("#options-container");
+      if ($container.find(".option-item").length === 0) {
+        this.showEmptyState();
+      }
     },
 
-    saveService: function (isDraft = false) {
-        const self = this;
-        const $form = $("#mobooking-service-form");
-        const $submitBtn = $form.find('button[type="submit"]');
-        const originalText = $submitBtn.text();
+    updateOptionsBadge: function () {
+      const count = $("#options-container .option-item").length;
+      const $badge = $("#options-count-badge");
+      if (count > 0) {
+        $badge.text(count).removeClass("hidden");
+      } else {
+        $badge.addClass("hidden");
+      }
+    },
 
-        // Show loading state
-        $submitBtn
-            .prop("disabled", true)
-            .text(mobooking_service_edit_params.i18n.saving || "Saving...");
+    saveService: function () {
+      const self = this;
+      const $form = $("#mobooking-service-form");
+      const $submitBtn = $form.find('button[type="submit"]');
+      const originalText = $submitBtn.text();
 
-        // Clear all previous option-level and global feedback messages
-        $('.option-feedback').empty();
-        $('#alert-container').empty();
+      // Fix indices before submission
+      this.fixOptionIndices();
 
-        // Add draft status if saving as draft
-        if (isDraft) {
-            $("<input>")
-                .attr({ type: "hidden", name: "status", value: "inactive" })
-                .appendTo($form);
+      // Validate that all choice labels are filled
+      let hasEmptyChoices = false;
+      let hasEmptyOptionNames = false;
+
+      // Check for empty choice labels (only visible ones)
+      $form.find('.choice-item:visible input[type="text"]').each(function () {
+        if ($(this).val().trim() === "") {
+          hasEmptyChoices = true;
+          $(this).addClass("error").css("border-color", "#ef4444");
+        } else {
+          $(this).removeClass("error").css("border-color", "");
         }
+      });
 
-        // Serialize form data
-        const formData = new FormData($form[0]);
-        formData.append("action", "mobooking_save_service");
-        formData.append("nonce", mobooking_service_edit_params.nonce);
+      // Check for empty option names
+      $form.find(".option-name-input").each(function () {
+        if ($(this).val().trim() === "") {
+          hasEmptyOptionNames = true;
+          $(this).addClass("error").css("border-color", "#ef4444");
+        } else {
+          $(this).removeClass("error").css("border-color", "");
+        }
+      });
 
-        $.ajax({
-            url: mobooking_service_edit_params.ajax_url,
-            type: "POST",
-            data: formData,
-            processData: false,
-            contentType: false,
-            success: function (response) {
-                if (response.success) {
-                    // Success logic remains the same
-                    setTimeout(() => {
-                        window.location.href = mobooking_service_edit_params.redirect_url;
-                    }, 1000);
+      // Remove required attribute from hidden price inputs to prevent validation errors
+      $form.find('input[name*="price_impact_value"]').each(function () {
+        const $input = $(this);
+        const $container = $input.closest(".price-impact-value-container");
+        if ($container.is(":hidden")) {
+          $input.removeAttr("required");
+        }
+      });
+
+      if (hasEmptyChoices) {
+        alert("Please fill in all choice labels or remove empty choices.");
+        return;
+      }
+
+      if (hasEmptyOptionNames) {
+        alert("Please fill in all option names.");
+        return;
+      }
+
+      // Show loading state
+      $submitBtn
+        .prop("disabled", true)
+        .text(mobooking_service_edit_params.i18n.saving || "Saving...");
+
+      // Collect form data
+      const formData = new FormData($form[0]);
+      formData.append("action", "mobooking_save_service");
+      formData.append("nonce", mobooking_service_edit_params.nonce);
+
+      // Debug: Log form data
+      console.log("Form data being submitted:");
+      for (let [key, value] of formData.entries()) {
+        console.log(key, value);
+      }
+
+      $.ajax({
+        url: mobooking_service_edit_params.ajax_url,
+        type: "POST",
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function (response) {
+          // On success, show toast and stay on page
+          if (response && response.success) {
+            const message =
+              (response.data && response.data.message) ||
+              (mobooking_service_edit_params.i18n &&
+                mobooking_service_edit_params.i18n.service_saved) ||
+              "Service saved successfully.";
+            if (typeof window.showToast === "function") {
+              window.showToast({ type: "success", title: "Success", message });
+            }
+
+            // If backend returns updated service data, reflect key fields
+            if (response.data && response.data.service) {
+              const svc = response.data.service;
+              if (svc.service_id) {
+                if (!$("input[name='service_id']").length) {
+                  $(
+                    '<input type="hidden" name="service_id" value="' +
+                      svc.service_id +
+                      '" />'
+                  ).appendTo("#mobooking-service-form");
                 } else {
-                    // Handle non-400 errors that have success:false
-                    self.displaySaveError(response.data.message || mobooking_service_edit_params.i18n.error_saving_service);
+                  $("input[name='service_id']").val(svc.service_id);
                 }
-            },
-            error: function (xhr, status, error) {
-                let errorMessage = mobooking_service_edit_params.i18n.error_ajax || "An AJAX error occurred.";
-                try {
-                    const response = JSON.parse(xhr.responseText);
-                    if (response.data && response.data.message) {
-                        errorMessage = response.data.message;
-                    }
-                } catch (e) {
-                    errorMessage = xhr.responseText || errorMessage;
-                }
-                self.displaySaveError(errorMessage);
-            },
-            complete: function () {
-                // Restore button state
-                $submitBtn.prop("disabled", false).text(originalText);
-                if (isDraft) {
-                    $form.find('input[name="status"][value="inactive"]').remove();
-                }
-            },
-        });
+              }
+              if (svc.image_url) {
+                $("#service-image-url").val(svc.image_url);
+              }
+            }
+          } else {
+            const message =
+              (response && response.data && response.data.message) ||
+              (mobooking_service_edit_params.i18n &&
+                mobooking_service_edit_params.i18n.error_saving_service) ||
+              "Error saving service. Please check your input and try again.";
+            if (typeof window.showToast === "function") {
+              window.showToast({ type: "error", title: "Error", message });
+            }
+          }
+        },
+        error: function (xhr, status, error) {
+          const message =
+            (mobooking_service_edit_params.i18n &&
+              mobooking_service_edit_params.i18n.error_ajax) ||
+            "An AJAX error occurred. Please try again.";
+          if (typeof window.showToast === "function") {
+            window.showToast({ type: "error", title: "Error", message });
+          }
+        },
+        complete: function () {
+          // Reset button state
+          $submitBtn.prop("disabled", false).text(originalText);
+        },
+      });
     },
 
     deleteService: function () {
+      const serviceId = $("#service_id").val();
       if (
+        !serviceId ||
         !confirm(
           mobooking_service_edit_params.i18n.confirm_delete ||
             "Are you sure you want to delete this service? This action cannot be undone."
         )
       ) {
-        return;
-      }
-
-      const serviceId = $('input[name="service_id"]').val();
-      if (!serviceId) {
-        alert("Service ID not found.");
         return;
       }
 
@@ -441,104 +625,148 @@ jQuery(function ($) {
         },
         success: function (response) {
           if (response.success) {
+            alert("Service deleted successfully.");
             window.location.href = mobooking_service_edit_params.redirect_url;
           } else {
-            alert(response.data.message || "Error deleting service.");
+            alert(response.data?.message || "Error deleting service.");
           }
         },
         error: function () {
-          alert("AJAX error occurred while deleting service.");
+          alert("An error occurred while deleting the service.");
         },
       });
     },
 
-    duplicateService: function () {
-      // Implementation for duplicating service would go here
-      console.log("Duplicate service functionality not yet implemented");
-    },
-
     openIconSelector: function () {
-        const self = this;
-        const icons = {
-            copy: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-copy"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>',
-            plus: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus"><path d="M5 12h14"/><path d="M12 5v14"/></svg>',
-            trash: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trash-2"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>',
-            star: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24px" height="24px"><path d="M0 0h24v24H0z" fill="none"/><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>',
-            tools: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24px" height="24px"><path d="M0 0h24v24H0z" fill="none"/><path d="M21.69 18.56l-1.41-1.41c-.54-.54-1.29-.8-2.09-.69l-1.44.21c-.33.05-.6.31-.6.64v1.5c0 .28.22.5.5.5h.5c2.21 0 4-1.79 4-4v-.5c0-.33-.27-.59-.6-.54l-1.44.21c-.8.11-1.55.38-2.09.92L16.56 17H7.44l-1.41-1.41c-.54-.54-1.29-.8-2.09-.69l-1.44.21c-.33.05-.6.31-.6.64v1.5c0 .28.22.5.5.5h.5c2.21 0 4-1.79 4-4v-.5c0-.33-.27-.59-.6-.54l-1.44.21c-.8.11-1.55.38-2.09.92L1.94 17H1v-2.44l1.41-1.41c.54-.54.8-.1.69-2.09l-.21-1.44c-.05-.33.21-.6.54-.6h1.5c.28 0 .5.22.5.5v.5c0 2.21 1.79 4 4 4h.5c.33 0 .59-.27.54-.6l-.21-1.44c-.11-.8.15-1.55.92-2.09L12 7.44V1H9.56L8.14 2.41c-.54.54-.8 1.29-.69 2.09l.21 1.44c.05.33.31.6.64.6h1.5c.28 0 .5-.22.5-.5v-.5c0-2.21-1.79-4-4-4H1.5c-.33 0-.59.27-.54.6l.21 1.44c.11.8-.15 1.55-.92 2.09L-.44 7H-3v2.44l1.41 1.41c.54.54.8 1.29.69 2.09l-.21 1.44c-.05.33.21-.6.54-.6h1.5c.28 0 .5.22.5.5v.5c0 2.21 1.79 4 4 4h8c2.21 0 4-1.79 4-4v-.5c0-.28-.22-.5-.5-.5h-1.5c-.33 0-.6-.27-.6-.6l.21-1.44c.11-.8-.15-1.55-.92-2.09L14.56 10H12V7.44l1.41-1.41c.54-.54 1.29-.8 2.09-.69l1.44.21c.33.05.6.31.6.64v1.5c0 .28-.22.5-.5.5h-.5c-2.21 0-4 1.79-4 4v.5c0 .33.27.59.6.54l1.44-.21c.8-.11 1.55-.38 2.09-.92l1.41-1.41H21.69zM12 14c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/></svg>',
-        };
-
-        const iconGrid = document.createElement('div');
-        iconGrid.className = 'mobooking-icon-grid';
-
-        for (const [name, svg] of Object.entries(icons)) {
-            const iconWrapper = document.createElement('div');
-            iconWrapper.className = 'mobooking-icon-wrapper';
-            iconWrapper.dataset.iconName = name;
-            iconWrapper.innerHTML = svg;
-            iconGrid.appendChild(iconWrapper);
-        }
-
-        const dialog = new MoBookingDialog({
-            title: 'Choose an Icon',
-            content: iconGrid,
-            buttons: [
-                {
-                    label: 'Close',
-                    class: 'secondary',
-                    onClick: (dialog) => dialog.close(),
-                },
-            ],
-        });
-
-        dialog.show();
-
-        dialog.findElement('.mobooking-icon-grid').addEventListener('click', function (e) {
-            const wrapper = e.target.closest('.mobooking-icon-wrapper');
-            if (wrapper) {
-                const iconName = wrapper.dataset.iconName;
-                const iconSvg = icons[iconName];
-                $('#current-icon').html(iconSvg);
-                $('#service-icon').val(`preset:${iconName}.svg`);
-                dialog.close();
-            }
-        });
+      // Implementation for icon selector
+      console.log("Icon selector opened");
     },
 
     handleImageUpload: function (file) {
-        const self = this;
-        const formData = new FormData();
-        formData.append('service_image', file);
-        formData.append('action', 'mobooking_upload_service_image');
-        formData.append('nonce', mobooking_service_edit_params.nonce);
+      const maxSizeBytes = 5 * 1024 * 1024; // 5MB
+      if (!file || !file.type.startsWith("image/")) {
+        alert("Please select a valid image file.");
+        return;
+      }
+      if (file.size > maxSizeBytes) {
+        alert("Image is too large. Maximum size is 5MB.");
+        return;
+      }
 
-        $.ajax({
-            url: mobooking_service_edit_params.ajax_url,
-            type: 'POST',
-            data: formData,
-            processData: false,
-            contentType: false,
-            success: function (response) {
-                if (response.success) {
-                    const $preview = $('#image-preview');
-                    $preview.html(`<img src="${response.data.image_url}" alt="Service Image"><button type="button" class="remove-image-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><path d="m19 6-1 14H6L5 6"/></svg></button>`);
-                    $('#service-image-url').val(response.data.image_url);
-                } else {
-                    alert(response.data.message);
-                }
-            },
-            error: function () {
-                alert('AJAX error occurred while uploading image.');
-            },
-        });
+      const $preview = $("#image-preview");
+      const originalHtml = $preview.html();
+      $preview.addClass("uploading");
+
+      const formData = new FormData();
+      formData.append("action", "mobooking_upload_service_image");
+      formData.append("nonce", mobooking_service_edit_params.nonce);
+      formData.append("service_image", file);
+
+      $.ajax({
+        url: mobooking_service_edit_params.ajax_url,
+        type: "POST",
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function (response) {
+          if (
+            response &&
+            response.success &&
+            response.data &&
+            response.data.image_url
+          ) {
+            const imageUrl = response.data.image_url;
+            $("#service-image-url").val(imageUrl);
+
+            const removeBtnSvg =
+              '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><path d="m19 6-1 14H6L5 6"/></svg>';
+
+            $preview
+              .removeClass("empty")
+              .html(
+                '<img src="' +
+                  imageUrl +
+                  '" alt="Service Image">' +
+                  '<button type="button" class="remove-image-btn">' +
+                  removeBtnSvg +
+                  "</button>"
+              );
+          } else {
+            const msg =
+              (response && response.data && response.data.message) ||
+              (mobooking_service_edit_params.i18n &&
+                mobooking_service_edit_params.i18n.error_uploading_image) ||
+              "Failed to upload image.";
+            alert(msg);
+            $preview.html(originalHtml);
+          }
+        },
+        error: function () {
+          alert(
+            (mobooking_service_edit_params.i18n &&
+              mobooking_service_edit_params.i18n.error_uploading_image) ||
+              "Failed to upload image"
+          );
+          $preview.html(originalHtml);
+        },
+        complete: function () {
+          $preview.removeClass("uploading");
+        },
+      });
     },
 
     removeImage: function () {
-      $("#image-preview").find("img").remove();
-      $("#service-image-upload").val("");
-      console.log("Image removed");
+      const imageUrl = $("#service-image-url").val();
+      const $preview = $("#image-preview");
+
+      if (!imageUrl) {
+        // Nothing to delete on server; just reset UI
+        $preview
+          .addClass("empty")
+          .html(
+            '<div class="mobooking-image-placeholder">' +
+              '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>' +
+              "<p>Click to upload image</p>" +
+              '<p class="text-xs text-muted-foreground">PNG, JPG up to 5MB</p>' +
+              "</div>"
+          );
+        return;
+      }
+
+      $.ajax({
+        url: mobooking_service_edit_params.ajax_url,
+        type: "POST",
+        data: {
+          action: "mobooking_delete_service_image",
+          nonce: mobooking_service_edit_params.nonce,
+          image_url_to_delete: imageUrl,
+        },
+        success: function (response) {
+          if (response && response.success) {
+            $("#service-image-url").val("");
+            $preview
+              .addClass("empty")
+              .html(
+                '<div class="mobooking-image-placeholder">' +
+                  '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>' +
+                  "<p>Click to upload image</p>" +
+                  '<p class="text-xs text-muted-foreground">PNG, JPG up to 5MB</p>' +
+                  "</div>"
+              );
+          } else {
+            alert(
+              (response && response.data && response.data.message) ||
+                "Could not delete image."
+            );
+          }
+        },
+        error: function () {
+          alert("An error occurred while deleting the image.");
+        },
+      });
     },
   };
 
-  // Initialize the service edit functionality
+  // Initialize on document ready
   ServiceEdit.init();
 });

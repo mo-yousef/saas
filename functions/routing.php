@@ -105,10 +105,11 @@ function mobooking_enqueue_dashboard_scripts($current_page_slug = '') {
         wp_localize_script('mobooking-dashboard-services', 'mobooking_services_params', $services_params);
     }
 
-    // Specific to Service Edit page
+// Specific to Service Edit page
     if ($current_page_slug === 'service-edit') {
         error_log('[MoBooking Debug] Correctly identified service-edit page. Enqueueing scripts.');
-        wp_enqueue_script('mobooking-service-edit', MOBOOKING_THEME_URI . 'assets/js/dashboard-service-edit.js', array('jquery'), MOBOOKING_VERSION, true);
+        // FIXED: Added jquery-ui-sortable dependency for drag and drop functionality
+        wp_enqueue_script('mobooking-service-edit', MOBOOKING_THEME_URI . 'assets/js/dashboard-service-edit.js', array('jquery', 'jquery-ui-sortable'), MOBOOKING_VERSION, true);
 
         $service_id = isset($_GET['service_id']) ? intval($_GET['service_id']) : 0;
         $option_count = 0;
@@ -137,6 +138,13 @@ function mobooking_enqueue_dashboard_scripts($current_page_slug = '') {
                 'service_duplicated' => __('Service duplicated successfully', 'mobooking'),
                 'error_duplicating_service' => __('Failed to duplicate service', 'mobooking'),
                 'error_uploading_image' => __('Failed to upload image', 'mobooking'),
+                'price_per_sqm' => __('Price per Square Meter', 'mobooking'),
+                'price_per_km' => __('Price per Kilometer', 'mobooking'),
+                'price_impact' => __('Price Impact', 'mobooking'),
+                'price_value' => __('Price Value', 'mobooking'),
+                'no_options_yet' => __('No options added yet', 'mobooking'),
+                'add_options_prompt' => __('Add customization options like room size, add-ons, or special requirements to make your service more flexible.', 'mobooking'),
+                'add_first_option' => __('Add Your First Option', 'mobooking'),
             ]
         ]);
     }
