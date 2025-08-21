@@ -477,6 +477,7 @@ jQuery(function ($) {
       const $form = $("#mobooking-service-form");
       const $submitBtn = $form.find('button[type="submit"]');
       const originalText = $submitBtn.text();
+      const isUpdating = $("input[name='service_id']").length > 0 && $("input[name='service_id']").val() > 0;
 
       // Fix indices before submission
       this.fixOptionIndices();
@@ -547,35 +548,31 @@ jQuery(function ($) {
         processData: false,
         contentType: false,
         success: function (response) {
-          // On success, show toast and stay on page
           if (response && response.success) {
-            const message =
-              (response.data && response.data.message) ||
-              (mobooking_service_edit_params.i18n &&
-                mobooking_service_edit_params.i18n.service_saved) ||
-              "Service saved successfully.";
-            if (typeof window.showToast === "function") {
-              window.showToast({ type: "success", title: "Success", message });
-            }
+              const message =
+                  response.data?.message ||
+                  (mobooking_service_edit_params.i18n?.service_saved) ||
+                  "Service saved successfully.";
 
-            // If backend returns updated service data, reflect key fields
-            if (response.data && response.data.service) {
-              const svc = response.data.service;
-              if (svc.service_id) {
-                if (!$("input[name='service_id']").length) {
-                  $(
-                    '<input type="hidden" name="service_id" value="' +
-                      svc.service_id +
-                      '" />'
-                  ).appendTo("#mobooking-service-form");
-                } else {
-                  $("input[name='service_id']").val(svc.service_id);
-                }
+              if (typeof window.showToast === "function") {
+                  window.showToast({ type: "success", title: "Success", message });
               }
-              if (svc.image_url) {
-                $("#service-image-url").val(svc.image_url);
+
+              if (isUpdating) {
+                  // It's an update, so we reload the page after a short delay to allow the toast to be seen.
+                  setTimeout(() => location.reload(), 500);
+              } else {
+                  // It's a new service, so we redirect to the new edit page.
+                  if (response.data && response.data.service_id) {
+                      const newServiceId = response.data.service_id;
+                      // Build the redirect URL. We assume the admin URL structure.
+                      const redirectUrl = `admin.php?page=mobooking-service-edit&service_id=${newServiceId}`;
+                      window.location.href = redirectUrl;
+                  } else {
+                      // Fallback in case the service_id is not returned, just reload.
+                      setTimeout(() => location.reload(), 500);
+                  }
               }
-            }
           } else {
             const message =
               (response && response.data && response.data.message) ||
@@ -597,8 +594,10 @@ jQuery(function ($) {
           }
         },
         complete: function () {
-          // Reset button state
-          $submitBtn.prop("disabled", false).text(originalText);
+          // Reset button state only if not redirecting/reloading
+          if (!isUpdating) {
+             $submitBtn.prop("disabled", false).text(originalText);
+          }
         },
       });
     },
@@ -718,6 +717,7 @@ jQuery(function ($) {
     removeImage: function () {
       const imageUrl = $("#service-image-url").val();
       const $preview = $("#image-preview");
+      const serviceId = $("input[name='service_id']").val(); // Get service ID
 
       if (!imageUrl) {
         // Nothing to delete on server; just reset UI
@@ -733,6 +733,22 @@ jQuery(function ($) {
         return;
       }
 
+      // If there's no serviceId, it means the service hasn't been saved yet.
+      // In this case, we only need to remove the image from the UI, not the server.
+      if (!serviceId) {
+          $("#service-image-url").val("");
+           $preview
+              .addClass("empty")
+              .html(
+                '<div class="mobooking-image-placeholder">' +
+                  '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>' +
+                  "<p>Click to upload image</p>" +
+                  '<p class="text-xs text-muted-foreground">PNG, JPG up to 5MB</p>' +
+                  "</div>"
+              );
+          return;
+      }
+
       $.ajax({
         url: mobooking_service_edit_params.ajax_url,
         type: "POST",
@@ -740,6 +756,7 @@ jQuery(function ($) {
           action: "mobooking_delete_service_image",
           nonce: mobooking_service_edit_params.nonce,
           image_url_to_delete: imageUrl,
+          service_id: serviceId, // Pass the service ID to the backend
         },
         success: function (response) {
           if (response && response.success) {

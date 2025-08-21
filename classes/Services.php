@@ -468,9 +468,21 @@ class Services {
         }
 
         $image_url_to_delete = isset($_POST['image_url_to_delete']) ? esc_url_raw($_POST['image_url_to_delete']) : '';
+        $service_id = isset($_POST['service_id']) ? intval($_POST['service_id']) : 0;
+
         if (empty($image_url_to_delete)) {
             wp_send_json_error(['message' => __('Image URL is required for deletion.', 'mobooking')], 400);
             return;
+        }
+
+        if (empty($service_id)) {
+            wp_send_json_error(['message' => __('Service ID is required to delete an image.', 'mobooking')], 400);
+            return;
+        }
+
+        // Verify ownership before proceeding
+        if ( !$this->_verify_service_ownership($service_id, $user_id) ) {
+            return new \WP_Error('not_owner', __('You do not own this service.', 'mobooking'));
         }
 
         $upload_dir_info = wp_upload_dir();
@@ -496,15 +508,29 @@ class Services {
             return;
         }
 
+        $file_deleted = false;
         if (file_exists($file_path)) {
-            if (wp_delete_file($file_path)) { // wp_delete_file is generally preferred
-                wp_send_json_success(['message' => __('Image deleted successfully.', 'mobooking')]);
+            if (wp_delete_file($file_path)) {
+                $file_deleted = true;
             } else {
                 wp_send_json_error(['message' => __('Could not delete the image file.', 'mobooking')], 500);
+                return;
             }
         } else {
-            // Idempotent delete: if the file is already missing, consider it deleted successfully
-            wp_send_json_success(['message' => __('Image already removed.', 'mobooking')]);
+            // If the file is already gone, we can still proceed to update the database
+            $file_deleted = true;
+        }
+
+        if ($file_deleted) {
+            $update_result = $this->update_service($service_id, $user_id, ['image_url' => '']);
+            if (is_wp_error($update_result)) {
+                // The file was deleted, but the DB update failed. This is not ideal.
+                // We should probably log this and maybe inform the user.
+                error_log("Failed to clear image_url for service {$service_id} after deleting the file. Error: " . $update_result->get_error_message());
+                wp_send_json_error(['message' => __('Image file deleted, but failed to update the service record. Please refresh.', 'mobooking')], 500);
+            } else {
+                wp_send_json_success(['message' => __('Image deleted successfully.', 'mobooking')]);
+            }
         }
     }
 
