@@ -1,6 +1,44 @@
 # Nord Booking Theme
 
-This theme provides booking functionalities for businesses.
+This is a WordPress theme designed to provide booking and service management functionalities for businesses. It operates on a multi-tenant model where "Business Owners" can manage their own services, bookings, and customers.
+
+## Core Features
+
+-   **Service Management:** Create and manage services with detailed options, pricing, and visuals.
+-   **Booking and Scheduling:** A public-facing booking form that allows customers to book services based on the business's availability.
+-   **Customer Management:** A dashboard area to view and manage customer information.
+-   **Multi-tenancy:** Designed for multiple "Business Owner" user roles, each with their own set of data.
+
+---
+
+## Service Management Details
+
+Services are the core of the booking system. They can be configured extensively from the "Services" section of the dashboard.
+
+### Creating & Updating Services
+
+-   **Basic Information:** Each service has a name, description, and base price.
+-   **Duration:** The duration of the service can be set in minutes, with a **minimum duration of 30 minutes** enforced by the system.
+-   **Service Options:** Add custom options to services to allow for customer choices. The available option types include:
+    -   `Option Toggle / Yes or No`
+    -   `Short Answer`
+    -   `Number Field`
+    -   `Select from List`
+    -   `Single Choice`
+    -   `Long Answer / Additional Notes`
+    -   `Item Quantity / Number of Items`
+    -   `Area (m²)`
+    -   `Distance (km)`
+-   **Service Visuals:** Each service can have a main image and an icon.
+
+### Service Icons
+
+The theme includes an icon selector that allows business owners to assign a visual icon to each service.
+
+-   **Preset Icons:** The selector uses a predefined set of SVG icons.
+-   **Adding New Presets:** To add a new icon to the list of presets, simply add a new `.svg` file to the `assets/svg-icons/presets/` directory. The system will automatically detect it and display it in the icon selector dialog.
+
+---
 
 ## Feature: Business Slug for Public Booking URLs
 
@@ -8,58 +46,69 @@ This feature allows for user-friendly URLs for the public booking form, structur
 
 ### 1. Setting the Business Slug for a Business Owner
 
-Each user with the "Business Owner" role (a custom role provided by this theme) can have a unique "Business Slug" associated with their account. This slug is used to generate their specific public booking form URL.
+Each user with the "Business Owner" role can have a unique "Business Slug" associated with their account.
 
-- **How to Set/Edit the Business Slug:**
+- **How to Set/Edit:**
+  1.  Navigate to **Users** in the WordPress Admin Dashboard.
+  2.  Edit the profile of a "Business Owner" user.
+  3.  Scroll down to the **"Nord Booking Settings"** section and find the **"Business Slug"** field.
+  4.  Enter a unique, URL-friendly slug (e.g., `acme-cleaning`).
+  5.  Click **"Update Profile"** to save.
 
-  1.  Log in to your WordPress Admin Dashboard.
-  2.  Navigate to **Users**.
-  3.  Find the user account that has the "Business Owner" role and click on their username to edit their profile.
-  4.  Scroll down to the **"Nord Booking Settings"** section.
-  5.  You will see a field labeled **"Business Slug"**.
-  6.  Enter a unique, URL-friendly slug for this business.
-      - **Examples:** `acme-cleaning`, `johns-bakery`, `alpha-consulting`
-      - **Allowed characters:** Lowercase letters (a-z), numbers (0-9), and hyphens (-). Spaces and other special characters will be automatically converted or removed.
-  7.  Click **"Update Profile"** (or "Update User") at the bottom of the page to save the changes.
+- **Important Notes:**
+  - **Uniqueness:** Slugs must be unique.
+  - **URL Friendliness:** The system automatically sanitizes the input.
+  - **Changing Slugs:** Changing a slug will break the old URL.
 
-- **Important Notes on Slugs:**
-  - **Uniqueness:** Each business slug must be unique across all users. If you try to save a slug that is already in use by another business owner, the system will prevent it and show an error message on the profile page.
-  - **URL Friendliness:** The system will automatically sanitize the input to ensure it's suitable for URLs (e.g., "My Awesome Business" will become "my-awesome-business").
-  - **Changing Slugs:** If you change a slug, the old URL using the previous slug will no longer work. Make sure to update any links you have shared.
-  - **Empty Slug:** If you leave the slug field empty and save, any existing slug for that user will be removed, and they will not have a slug-based booking URL.
+### 2. The New URL Structure
 
-### 2. The New Public Booking Form URL Structure
+Once a slug is set, the public booking form is accessible via: `https://yourdomain.com/<business-slug>/booking/`
 
-Once a business slug is set for a Business Owner user, their public booking form will be accessible via:
+### 3. Flushing Rewrite Rules (Permalinks)
 
-`https://yourdomain.com/<business-slug>/booking/`
+If the new URLs result in a "Page Not Found" (404) error, you must flush WordPress's rewrite rules.
 
-Replace `<business-slug>` with the actual slug you set in the user's profile.
-
-- **Example:** If a business owner has the slug `premiere-event-planners`, their public booking form URL will be:
-  `https://yourdomain.com/premiere-event-planners/booking/`
-
-### 3. Flushing Rewrite Rules (Permalinks) - IMPORTANT for Setup/Troubleshooting
-
-WordPress uses rewrite rules to understand custom URL structures like the one used for the business slug booking pages. If you find that the new URLs (e.g., `https://yourdomain.com/your-slug/booking/`) are not working and are leading to a "Page Not Found" (404) error, you likely need to flush WordPress's rewrite rules.
-
-- **How to Flush Rewrite Rules:**
-
-  1.  Log in to your WordPress Admin Dashboard.
-  2.  Navigate to **Settings > Permalinks**.
-  3.  You **do not** need to make any changes on this page.
-  4.  Simply click the **"Save Changes"** button.
-
-  This action will regenerate the rewrite rules, and WordPress should then recognize the new URL structure. This is typically needed once after the theme is activated or updated with new rewrite rules.
-
-### 4. Fallback `?tid=` Method
-
-If you have a generic page (e.g., a page at `/booking/`) that uses the "Public Booking Form" template, it can still be accessed using the `?tid=` parameter:
-
-`https://yourdomain.com/booking/?tid=<tenant_id>`
-
-Replace `<tenant_id>` with the numerical User ID of the Business Owner. This method remains functional for direct access if needed, but the slug-based URL is generally preferred for public sharing.
+- **How to Flush:**
+  1.  Navigate to **Settings > Permalinks**.
+  2.  Click the **"Save Changes"** button (no changes are needed).
 
 ---
 
-_This guidance was added based on the implementation of the business slug URL feature._
+## Development Notes
+
+### Asset Versioning & Cache Busting
+
+The theme uses a `MOBOOKING_VERSION` constant defined in `functions.php` to version its CSS and JavaScript assets. If you make changes to any `.js` or `.css` files, you should **increment this version number** to ensure users' browsers download the new files instead of using a cached version.
+
+```php
+// functions.php
+define( 'MOBOOKING_VERSION', '0.1.5' );
+```
+
+### Dialog Component
+
+The theme includes a universal dialog component located in `assets/js/dialog.js`. To maintain a consistent UI, use this component for any new modals or dialogs.
+
+-   **Usage Example:**
+    ```javascript
+    const myDialog = new MoBookingDialog({
+      title: 'Confirm Action',
+      content: '<p>Are you sure you want to proceed?</p>',
+      buttons: [
+        {
+          label: 'Cancel',
+          class: 'secondary',
+          onClick: (dialog) => dialog.close()
+        },
+        {
+          label: 'Confirm',
+          class: 'primary',
+          onClick: (dialog) => {
+            console.log('Confirmed!');
+            dialog.close();
+          }
+        }
+      ]
+    });
+    myDialog.show();
+    ```
