@@ -342,7 +342,13 @@ if ( $edit_mode && $service_id > 0 ) {
 					</div>
 					<div class="mobooking-card-content">
 						<button type="submit" class="btn btn-primary w-full" id="save-service-btn">
-							<?php echo $edit_mode ? esc_html__( 'Update Service', 'mobooking' ) : esc_html__( 'Create Service', 'mobooking' ); ?>
+							<?php if ( $edit_mode ) : ?>
+								<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><path d="M20 6L9 17l-5-5"/></svg>
+								<?php esc_html_e( 'Update Service', 'mobooking' ); ?>
+							<?php else : ?>
+								<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+								<?php esc_html_e( 'Create Service', 'mobooking' ); ?>
+							<?php endif; ?>
 						</button>
 						<div class="flex items-center justify-between mt-4">
 							<label class="mobooking-filter-item label"><?php esc_html_e( 'Status', 'mobooking' ); ?></label>
@@ -438,41 +444,3 @@ if ( $edit_mode && ! empty( $service_options_data ) ) {
 	// This script is no longer needed as the tabbed interface has been removed.
 }
 ?>
-<!-- Icon Selector Modal -->
-<div id="mobooking-icon-modal" class="mobooking-modal" style="display: none;">
-	<div class="mobooking-modal-backdrop"></div>
-	<div class="mobooking-modal-content">
-		<div class="mobooking-modal-header">
-			<h3 class="mobooking-modal-title"><?php esc_html_e( 'Choose an Icon', 'mobooking' ); ?></h3>
-			<button type="button" class="mobooking-modal-close">
-				<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-			</button>
-		</div>
-		<div class="mobooking-modal-body">
-			<!-- Preset Icons Section -->
-			<div class="preset-icons-section">
-				<h4 class="section-title"><?php esc_html_e( 'Preset Icons', 'mobooking' ); ?></h4>
-				<div id="preset-icons-grid" class="mobooking-icon-grid">
-					<!-- Icons will be loaded here by JavaScript -->
-					<div class="icon-grid-loading">
-						<p><?php esc_html_e( 'Loading icons...', 'mobooking' ); ?></p>
-					</div>
-				</div>
-			</div>
-			<hr class="my-4">
-			<!-- Custom Icon Section -->
-			<div class="custom-icon-section">
-				<h4 class="section-title"><?php esc_html_e( 'Upload Custom Icon', 'mobooking' ); ?></h4>
-				<p class="section-description"><?php esc_html_e( 'Upload your own SVG icon. For best results, use a simple, single-color SVG.', 'mobooking' ); ?></p>
-				<input type="file" id="custom-icon-upload" accept=".svg" class="mt-2">
-				<div id="custom-icon-upload-feedback" class="text-sm mt-2"></div>
-			</div>
-		</div>
-		<div class="mobooking-modal-footer">
-			<button type="button" id="remove-icon-btn" class="btn btn-destructive"><?php esc_html_e( 'Remove Icon', 'mobooking' ); ?></button>
-			<div class="flex-grow"></div>
-			<button type="button" class="btn btn-secondary mobooking-modal-close"><?php esc_html_e( 'Cancel', 'mobooking' ); ?></button>
-			<button type="button" id="set-icon-btn" class="btn btn-primary" disabled><?php esc_html_e( 'Set Icon', 'mobooking' ); ?></button>
-		</div>
-	</div>
-</div>
