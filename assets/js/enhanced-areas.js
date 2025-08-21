@@ -18,16 +18,8 @@
     const $coverageSearch = $("#coverage-search");
     const $clearFiltersBtn = $("#clear-coverage-filters-btn");
 
-    // Modal elements
-    const $modal = $("#area-selection-modal");
-    const $modalCityName = $("#modal-city-name");
-    const $modalAreasGrid = $("#modal-areas-grid");
-    const $modalSaveBtn = $("#modal-save-btn");
-    const $modalCancelBtn = $("#modal-cancel-btn");
-    const $modalCloseBtn = $(".mobooking-modal-close-btn");
-    const $modalSelectAll = $("#modal-select-all");
-    const $modalDeselectAll = $("#modal-deselect-all");
-    const $modalFeedback = $("#modal-feedback");
+    // Dialog instance
+    let areaDialog = null;
 
     // i18n shorthand
     const i18n = mobooking_areas_params.i18n || {};
@@ -47,13 +39,6 @@
     function bindEvents() {
         // City selection
         $citiesGridContainer.on("click", ".city-card", handleCityClick);
-
-        // Modal actions
-        $modalCancelBtn.on("click", closeModal);
-        $modalCloseBtn.on("click", closeModal);
-        $modalSaveBtn.on("click", handleSaveAreas);
-        $modalSelectAll.on("click", () => $modalAreasGrid.find("input[type='checkbox']").prop("checked", true));
-        $modalDeselectAll.on("click", () => $modalAreasGrid.find("input[type='checkbox']").prop("checked", false));
 
         // Coverage management
         $coverageSearch.on("input", debounce(loadServiceCoverage, 500));
@@ -153,23 +138,67 @@
     }
 
     /**
-     * Open and prepare the area selection modal
+     * Open and prepare the area selection dialog
      */
     function openModal() {
-        $modalCityName.text(currentCity.name);
-        $modalAreasGrid.html(`<div class="mobooking-loading-state"><div class="mobooking-spinner"></div><p>${i18n.loading_areas}</p></div>`);
-        $modal.fadeIn(200);
+        const dialogContent = `
+            <div class="areas-selection-controls">
+                <button type="button" id="dialog-select-all" class="btn btn-link">${i18n.select_all || 'Select All'}</button>
+                <button type="button" id="dialog-deselect-all" class="btn btn-link">${i18n.deselect_all || 'Deselect All'}</button>
+            </div>
+            <div id="dialog-areas-grid" class="modal-areas-grid">
+                <div class="mobooking-loading-state"><div class="mobooking-spinner"></div><p>${i18n.loading_areas}</p></div>
+            </div>
+        `;
 
-        // Fetch areas for the city
+        areaDialog = new MoBookingDialog({
+            title: `${i18n.select_areas || 'Select Areas for'} ${currentCity.name}`,
+            content: dialogContent,
+            buttons: [
+                {
+                    label: i18n.cancel || 'Cancel',
+                    class: 'secondary',
+                    onClick: (dialog) => dialog.close(),
+                },
+                {
+                    label: i18n.save_areas || 'Save Areas',
+                    class: 'primary',
+                    onClick: handleSaveAreas,
+                }
+            ],
+            onOpen: () => {
+                // Bind select/deselect all buttons
+                const dialogEl = areaDialog.getElement();
+                $(dialogEl).on('click', '#dialog-select-all', () => $('#dialog-areas-grid input[type="checkbox"]').prop('checked', true));
+                $(dialogEl).on('click', '#dialog-deselect-all', () => $('#dialog-areas-grid input[type="checkbox"]').prop('checked', false));
+
+                // Fetch areas
+                fetchAndDisplayAreas();
+            },
+            onClose: () => {
+                currentCity = null;
+                areaDialog = null;
+            }
+        });
+
+        areaDialog.show();
+    }
+
+    /**
+     * Fetch areas and display them in the dialog
+     */
+    function fetchAndDisplayAreas() {
+        const $grid = $('#dialog-areas-grid');
         $.when(
             getAreasForCity(currentCity.code),
             getSavedAreasForCity(currentCity.code)
         ).done(function(areasResponse, savedAreasResponse) {
             const allAreas = areasResponse[0].data.areas;
-            const savedAreas = savedAreasResponse[0].data.areas.map(a => a.area_value);
+            const savedAreasData = savedAreasResponse[0].data.areas || [];
+            const savedAreas = savedAreasData.map(a => a.area_value);
             displayAreasInModal(allAreas, savedAreas);
         }).fail(function() {
-            $modalAreasGrid.html(`<div class="mobooking-error-state"><p>${i18n.error}</p></div>`);
+            $grid.html(`<div class="mobooking-error-state"><p>${i18n.error}</p></div>`);
         });
     }
 
@@ -193,7 +222,6 @@
      * Get already saved/enabled areas for a city
      */
     function getSavedAreasForCity(cityCode) {
-        console.log("Getting saved areas for city:", cityCode);
         return $.ajax({
             url: mobooking_areas_params.ajax_url,
             type: "POST",
@@ -204,29 +232,21 @@
                 limit: -1, // Get all
             },
             success: function(response) {
-                console.log("Saved areas response:", response);
+                console.log("Successfully fetched saved areas for city:", cityCode, response);
             },
             error: function(xhr) {
-                console.error("Error getting saved areas:", xhr.responseText);
+                console.error("Error fetching saved areas for city:", cityCode, xhr.responseText);
             }
         });
     }
 
     /**
-     * Close the area selection modal
-     */
-    function closeModal() {
-        $modal.fadeOut(200);
-        currentCity = null;
-        $modalFeedback.hide();
-    }
-
-    /**
-     * Display areas in the modal
+     * Display areas in the dialog
      */
     function displayAreasInModal(areas, savedAreas) {
+        const $grid = $('#dialog-areas-grid');
         if (!areas || !areas.length) {
-            $modalAreasGrid.html(`<div class="mobooking-empty-state"><p>${i18n.no_areas_available}</p></div>`);
+            $grid.html(`<div class="mobooking-empty-state"><p>${i18n.no_areas_available}</p></div>`);
             return;
         }
 
@@ -241,15 +261,17 @@
                 </label>
             `;
         });
-        $modalAreasGrid.html(html);
+        $grid.html(html);
     }
 
     /**
-     * Handle saving areas from the modal
+     * Handle saving areas from the dialog
      */
-    function handleSaveAreas() {
+    function handleSaveAreas(dialog) {
         const selectedAreas = [];
-        $modalAreasGrid.find("input[type='checkbox']:checked").each(function () {
+        const $grid = $(dialog.getElement()).find('#dialog-areas-grid');
+
+        $grid.find("input[type='checkbox']:checked").each(function () {
             selectedAreas.push({
                 area_name: $(this).data("area-name"),
                 area_zipcode: $(this).val(),
@@ -259,8 +281,9 @@
             });
         });
 
-        const originalBtnText = $modalSaveBtn.html();
-        $modalSaveBtn.prop("disabled", true).html(`<div class="mobooking-spinner mobooking-spinner-sm"></div> ${i18n.saving}`);
+        const $saveBtn = $(dialog.findElement('.btn-primary'));
+        const originalBtnText = $saveBtn.text();
+        $saveBtn.prop("disabled", true).html(`<div class="mobooking-spinner mobooking-spinner-sm"></div> ${i18n.saving}`);
 
         $.ajax({
             url: mobooking_areas_params.ajax_url,
@@ -273,31 +296,22 @@
             },
             success: function (response) {
                 if (response.success) {
-                    showModalFeedback(i18n.areas_saved_success.replace('%s', currentCity.name), "success");
+                    window.showAlert(i18n.areas_saved_success.replace('%s', currentCity.name), "success");
                     setTimeout(() => {
-                        closeModal();
+                        dialog.close();
                         loadServiceCoverage(); // Refresh coverage list
                     }, 1500);
                 } else {
-                    showModalFeedback(response.data?.message || i18n.error_saving, "error");
+                    window.showAlert(response.data?.message || i18n.error_saving, "error");
                 }
             },
             error: function () {
-                showModalFeedback(i18n.error_saving, "error");
+                window.showAlert(i18n.error_saving, "error");
             },
             complete: function () {
-                $modalSaveBtn.prop("disabled", false).html(originalBtnText);
+                $saveBtn.prop("disabled", false).html(originalBtnText);
             }
         });
-    }
-
-    /**
-     * Show feedback message inside the modal
-     */
-    function showModalFeedback(message, type = 'success') {
-        window.showAlert(message, type);
-        $modalFeedback.removeClass('success error').addClass(type).html(message).fadeIn();
-        setTimeout(() => $modalFeedback.fadeOut(), 5000);
     }
 
     /**
