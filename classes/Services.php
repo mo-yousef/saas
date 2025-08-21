@@ -1151,6 +1151,13 @@ public function handle_get_public_services_ajax() {
                 return;
             }
 
+        $duration_from_post = isset($_POST['duration']) ? intval($_POST['duration']) : 0;
+        if ($duration_from_post < 30) {
+            if (ob_get_length()) ob_clean();
+            wp_send_json_error(['message' => __('Duration must be at least 30 minutes.', 'mobooking')], 400);
+            return;
+        }
+
         // Prepare data, converting empty optional strings to null
         $icon_from_post = isset($_POST['icon']) ? trim($_POST['icon']) : '';
         $image_url_from_post = isset($_POST['image_url']) ? trim($_POST['image_url']) : '';
