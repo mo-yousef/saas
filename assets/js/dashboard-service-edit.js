@@ -147,7 +147,10 @@ jQuery(function ($) {
       $("#delete-service-btn").on("click", () => this.deleteService());
 
       // Icon and image handling
-      $("#select-icon-btn").on("click", () => this.openIconSelector());
+      $("#select-icon-btn").on("click", (e) => {
+        e.preventDefault();
+        this.openIconSelector();
+      });
       $("#image-preview").on("click", function () {
         if (!$(this).find("img").length) {
           $("#service-image-upload").click();
@@ -162,6 +165,38 @@ jQuery(function ($) {
         e.stopPropagation();
         self.removeImage();
       });
+
+      // --- Icon Modal Events ---
+      $(".mobooking-modal-close").on("click", (e) => {
+        e.preventDefault();
+        this.closeIconSelector();
+      });
+
+      $("#set-icon-btn").on("click", (e) => {
+        e.preventDefault();
+        this.setIcon();
+      });
+
+      // Note: The remove icon button in the sidebar is different from the one in the modal
+      $("#mobooking-icon-modal #remove-icon-btn").on("click", (e) => {
+          e.preventDefault();
+          this.removeIcon();
+      });
+
+      $("#preset-icons-grid").on(
+        "click",
+        ".mobooking-icon-grid-item",
+        function () {
+          self.handleIconSelection($(this));
+        }
+      );
+
+      $("#custom-icon-upload").on("change", function (e) {
+        if (e.target.files[0]) {
+          self.handleCustomIconUpload(e.target.files[0]);
+        }
+      });
+      // --- End Icon Modal Events ---
 
       // --- Delegated Option Events ---
 
@@ -636,10 +671,175 @@ jQuery(function ($) {
       });
     },
 
+    // --- Icon Selector Logic ---
+    selectedIconIdentifier: null,
+    selectedIconHtml: null,
+    presetIconsLoaded: false,
+
     openIconSelector: function () {
-      // Implementation for icon selector
-      console.log("Icon selector opened");
+      const $modal = $("#mobooking-icon-modal");
+      $modal.show();
+      $("body").addClass("modal-open");
+
+      if (!this.presetIconsLoaded) {
+        this.fetchPresetIcons();
+      }
+
+      // Reset selection state
+      this.selectedIconIdentifier = null;
+      this.selectedIconHtml = null;
+      $modal.find(".mobooking-icon-grid-item").removeClass("selected");
+      $modal.find("#set-icon-btn").prop("disabled", true);
+      $("#custom-icon-upload-feedback").text("").removeClass("error success");
+      $("#custom-icon-upload").val("");
     },
+
+    closeIconSelector: function () {
+      const $modal = $("#mobooking-icon-modal");
+      $modal.hide();
+      $("body").removeClass("modal-open");
+    },
+
+    fetchPresetIcons: function () {
+      const self = this;
+      const $grid = $("#preset-icons-grid");
+
+      $.ajax({
+        url: mobooking_service_edit_params.ajax_url,
+        type: "POST",
+        data: {
+          action: "mobooking_get_preset_icons",
+          nonce: mobooking_service_edit_params.nonce,
+        },
+        success: function (response) {
+          if (response.success && response.data.icons) {
+            $grid.empty(); // Clear loading message
+            $.each(response.data.icons, function (name, svg) {
+              const $item = $(
+                '<div class="mobooking-icon-grid-item" data-icon-id="preset:' +
+                  name +
+                  '"></div>'
+              ).html(svg);
+              $grid.append($item);
+            });
+            self.presetIconsLoaded = true;
+          } else {
+            $grid.html("<p>Could not load preset icons.</p>");
+          }
+        },
+        error: function () {
+          $grid.html("<p>Error loading preset icons.</p>");
+        },
+      });
+    },
+
+    handleIconSelection: function ($item) {
+      $("#preset-icons-grid .mobooking-icon-grid-item").removeClass("selected");
+      $item.addClass("selected");
+
+      this.selectedIconIdentifier = $item.data("icon-id");
+      this.selectedIconHtml = $item.html();
+      $("#set-icon-btn").prop("disabled", false);
+    },
+
+    handleCustomIconUpload: function (file) {
+      const self = this;
+      const $feedback = $("#custom-icon-upload-feedback");
+      if (!file || !file.type === "image/svg+xml") {
+        $feedback.text("Please select a valid SVG file.").addClass("error");
+        return;
+      }
+
+      $feedback.text("Uploading...").removeClass("error success");
+
+      const formData = new FormData();
+      formData.append("action", "mobooking_upload_service_icon");
+      formData.append("nonce", mobooking_service_edit_params.nonce);
+      formData.append("service_icon_svg", file);
+      // Pass service_id if available for better file naming
+      const serviceId = $("input[name='service_id']").val();
+      if (serviceId) {
+        formData.append("service_id", serviceId);
+      }
+
+      $.ajax({
+        url: mobooking_service_edit_params.ajax_url,
+        type: "POST",
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function (response) {
+          if (response.success && response.data.icon_url) {
+            $feedback
+              .text("Upload successful! Click 'Set Icon' to use it.")
+              .addClass("success")
+              .removeClass("error");
+            self.selectedIconIdentifier = response.data.icon_url;
+            // For custom uploads, the preview is just the URL
+            self.selectedIconHtml =
+              '<img src="' +
+              response.data.icon_url +
+              '" alt="Custom Icon" class="mobooking-custom-icon"/>';
+            $("#set-icon-btn").prop("disabled", false);
+          } else {
+            $feedback
+              .text(response.data?.message || "Upload failed.")
+              .addClass("error")
+              .removeClass("success");
+          }
+        },
+        error: function () {
+          $feedback
+            .text("An AJAX error occurred.")
+            .addClass("error")
+            .removeClass("success");
+        },
+      });
+    },
+
+    setIcon: function () {
+      if (this.selectedIconIdentifier && this.selectedIconHtml) {
+        $("#service-icon").val(this.selectedIconIdentifier);
+        $("#current-icon").html(this.selectedIconHtml);
+      }
+      this.closeIconSelector();
+    },
+
+    removeIcon: function () {
+      const currentIcon = $("#service-icon").val();
+      const $currentIconDisplay = $("#current-icon");
+
+      // If the icon is a custom uploaded one (a URL), we should delete it from the server.
+      if (currentIcon && currentIcon.startsWith("http")) {
+        $.ajax({
+          url: mobooking_service_edit_params.ajax_url,
+          type: "POST",
+          data: {
+            action: "mobooking_delete_service_icon",
+            nonce: mobooking_service_edit_params.nonce,
+            icon_url: currentIcon,
+          },
+          success: function (response) {
+            if (!response.success) {
+              // Non-critical error, we still clear it from the UI.
+              console.error("Could not delete custom icon from server:", response.data?.message);
+            }
+          },
+        });
+      }
+
+      // Clear the icon from the form and UI
+      $("#service-icon").val("");
+      $currentIconDisplay.html(
+        '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27,6.96 12,12.01 20.73,6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>'
+      );
+
+      // If the modal is open, close it
+      if ($("#mobooking-icon-modal").is(":visible")) {
+        this.closeIconSelector();
+      }
+    },
+    // --- End Icon Selector Logic ---
 
     handleImageUpload: function (file) {
       const maxSizeBytes = 5 * 1024 * 1024; // 5MB
