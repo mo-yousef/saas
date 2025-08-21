@@ -123,6 +123,7 @@ function mobooking_enqueue_dashboard_scripts($current_page_slug = '') {
 
         wp_localize_script('mobooking-service-edit', 'mobooking_service_edit_params', [
             'ajax_url' => admin_url('admin-ajax.php'),
+            'admin_base_url' => admin_url('admin.php'),
             'nonce' => wp_create_nonce('mobooking_services_nonce'),
             'option_count' => $option_count,
             'redirect_url' => home_url('/dashboard/services'),
