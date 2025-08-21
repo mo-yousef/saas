@@ -169,6 +169,31 @@ jQuery(function ($) {
         self.removeImage();
       });
 
+      // General switch handler for the entire form
+      $(document).on("click", ".service-form .switch", function() {
+          const $switch = $(this);
+          const $hiddenInput = $switch.siblings("input[type=hidden]");
+          const isChecked = $switch.hasClass("switch-checked");
+          const switchType = $switch.data("switch");
+
+          $switch.toggleClass("switch-checked");
+
+          if (switchType === 'status') {
+              const newValue = isChecked ? 'inactive' : 'active';
+              $hiddenInput.val(newValue);
+              $switch.parent().find(".text-sm").text(isChecked ? 'Inactive' : 'Active');
+          } else { // Handle other switches like 'is_required'
+              const newValue = isChecked ? '0' : '1';
+              $hiddenInput.val(newValue);
+               if (switchType === "required") {
+                  const $label = $switch.parent().find(".text-sm");
+                  if ($label.length) {
+                    $label.text(newValue === "1" ? "Required option" : "Optional");
+                  }
+                }
+          }
+      });
+
       // --- Delegated Option Events ---
 
       // Toggle option
@@ -338,30 +363,6 @@ jQuery(function ($) {
         // Update hidden input
         $optionItem.find(".price-impact-type-input").val($radio.val());
       });
-
-      // Switch toggles
-      $container.on("click", ".switch", function () {
-        const $switch = $(this);
-        const isChecked = $switch.hasClass("switch-checked");
-        const newValue = isChecked ? "0" : "1";
-
-        $switch.toggleClass("switch-checked");
-        $switch.siblings("input[type=hidden]").val(newValue);
-
-        if ($switch.data("switch") === "required") {
-          const $label = $switch.parent().find(".text-sm");
-          if ($label.length) {
-            $label.text(newValue === "1" ? "Required option" : "Optional");
-          }
-        }
-
-        if ($switch.data("switch") === "status") {
-          const $label = $switch.parent().find(".text-sm");
-          if ($label.length) {
-            $label.text(newValue === "1" ? "Active" : "Inactive");
-          }
-        }
-      });
     },
 
     initSwitches: function () {
@@ -369,26 +370,28 @@ jQuery(function ($) {
         const $switchEl = $(this);
         const $hiddenInput = $switchEl.siblings("input[type=hidden]");
         const currentValue = $hiddenInput.val();
-        const isChecked = currentValue === "1";
 
-        if (isChecked) {
-          $switchEl.addClass("switch-checked");
-        } else {
-          $switchEl.removeClass("switch-checked");
-        }
+        if ($switchEl.data("switch") === 'status') {
+            if (currentValue === 'active') {
+                $switchEl.addClass("switch-checked");
+            } else {
+                $switchEl.removeClass("switch-checked");
+            }
+            $switchEl.parent().find(".text-sm").text(currentValue === 'active' ? 'Active' : 'Inactive');
+        } else { // Handle other switches like 'is_required'
+            const isChecked = currentValue === "1";
+            if (isChecked) {
+              $switchEl.addClass("switch-checked");
+            } else {
+              $switchEl.removeClass("switch-checked");
+            }
 
-        if ($switchEl.data("switch") === "required") {
-          const $label = $switchEl.parent().find(".text-sm");
-          if ($label.length) {
-            $label.text(isChecked ? "Required option" : "Optional");
-          }
-        }
-
-        if ($switchEl.data("switch") === "status") {
-          const $label = $switchEl.parent().find(".text-sm");
-          if ($label.length) {
-            $label.text(isChecked ? "Active" : "Inactive");
-          }
+            if ($switchEl.data("switch") === "required") {
+              const $label = $switchEl.parent().find(".text-sm");
+              if ($label.length) {
+                $label.text(isChecked ? "Required option" : "Optional");
+              }
+            }
         }
       });
     },
