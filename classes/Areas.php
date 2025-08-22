@@ -33,6 +33,13 @@ class Areas {
         // Public ZIP code checking
         add_action('wp_ajax_nopriv_mobooking_check_zip_availability', [$this, 'handle_check_zip_code_public_ajax']);
         add_action('wp_ajax_mobooking_check_zip_availability', [$this, 'handle_check_zip_code_public_ajax']);
+
+        // Enhanced Area Management AJAX actions
+        add_action('wp_ajax_mobooking_get_service_coverage', [$this, 'handle_get_service_coverage_ajax']);
+        add_action('wp_ajax_mobooking_toggle_area_status', [$this, 'handle_toggle_area_status_ajax']);
+        add_action('wp_ajax_mobooking_remove_country_coverage', [$this, 'handle_remove_country_coverage_ajax']);
+        add_action('wp_ajax_mobooking_save_city_areas', [$this, 'handle_save_city_areas_ajax']);
+        add_action('wp_ajax_mobooking_remove_city_coverage', [$this, 'handle_remove_city_coverage_ajax']);
     }
 
     /**
@@ -857,15 +864,7 @@ public function handle_toggle_area_status_ajax() {
 }
 
 public function handle_save_city_areas_ajax() {
-    error_log('[MoBooking Save Areas] AJAX handler started.');
-
-    $nonce = isset($_POST['nonce']) ? $_POST['nonce'] : '';
-    if (!wp_verify_nonce($nonce, 'mobooking_dashboard_nonce')) {
-        error_log('[MoBooking Save Areas] Nonce verification FAILED. Nonce received: ' . $nonce);
-        wp_send_json_error(['message' => 'Nonce verification failed.'], 403);
-        return;
-    }
-    error_log('[MoBooking Save Areas] Nonce verification PASSED.');
+    check_ajax_referer('mobooking_dashboard_nonce', 'nonce');
 
     $user_id = get_current_user_id();
     if (!$user_id) {
@@ -1010,17 +1009,6 @@ public function handle_remove_country_coverage_ajax() {
     wp_send_json_success(['message' => $message, 'deleted_count' => $result]);
 }
 
-/**
- * Enhanced register_ajax_actions method - ADD THESE TO YOUR EXISTING METHOD
- */
-public function register_enhanced_ajax_actions() {
-    // Add these to your existing register_ajax_actions method
-    add_action('wp_ajax_mobooking_get_service_coverage', [$this, 'handle_get_service_coverage_ajax']);
-    add_action('wp_ajax_mobooking_toggle_area_status', [$this, 'handle_toggle_area_status_ajax']);
-    add_action('wp_ajax__remove_country_coverage', [$this, 'handle_remove_country_coverage_ajax']);
-        add_action('wp_ajax_mobooking_save_city_areas', [$this, 'handle_save_city_areas_ajax']);
-        add_action('wp_ajax_mobooking_remove_city_coverage', [$this, 'handle_remove_city_coverage_ajax']);
-}
 
 /**
  * Update database schema to support status column (run this once)
