@@ -142,6 +142,9 @@
      */
     function openModal() {
         const dialogContent = `
+            <div class="dialog-search-wrapper">
+                <input type="search" id="dialog-area-search" placeholder="Search areas..." class="mobooking-dialog-search-input">
+            </div>
             <div class="areas-selection-controls">
                 <button type="button" id="dialog-select-all" class="btn btn-link">${i18n.select_all || 'Select All'}</button>
                 <button type="button" id="dialog-deselect-all" class="btn btn-link">${i18n.deselect_all || 'Deselect All'}</button>
@@ -176,6 +179,21 @@
                 // Bind expand/collapse toggle
                 $(dialogEl).on('click', '.area-zip-toggle', function() {
                     $(this).closest('.modal-area-item').toggleClass('is-expanded');
+                });
+
+                // Bind search input
+                $(dialogEl).on('input', '#dialog-area-search', function() {
+                    const searchTerm = $(this).val().toLowerCase();
+                    const $items = $(dialogEl).find('.modal-area-item');
+
+                    $items.each(function() {
+                        const areaName = $(this).find('.area-name').text().toLowerCase();
+                        if (areaName.includes(searchTerm)) {
+                            $(this).show();
+                        } else {
+                            $(this).hide();
+                        }
+                    });
                 });
 
                 // Fetch areas
@@ -258,13 +276,30 @@
             return;
         }
 
-        let html = "";
-        placeNames.sort().forEach(function (placeName) {
+        const savedPlaceNames = [];
+        const unsavedPlaceNames = [];
+
+        placeNames.forEach(function(placeName) {
             const locations = areas[placeName];
             const locationZips = locations.map(loc => loc.zipcode);
             const allZipsSaved = locationZips.every(zip => savedAreas.includes(zip));
+            if (allZipsSaved) {
+                savedPlaceNames.push(placeName);
+            } else {
+                unsavedPlaceNames.push(placeName);
+            }
+        });
+
+        savedPlaceNames.sort();
+        unsavedPlaceNames.sort();
+
+        const sortedPlaceNames = [...savedPlaceNames, ...unsavedPlaceNames];
+
+        let html = "";
+        sortedPlaceNames.forEach(function (placeName) {
+            const locations = areas[placeName];
+            const allZipsSaved = savedPlaceNames.includes(placeName); // We already know this, just reuse for the checkbox
             const areaData = escapeHtml(JSON.stringify(locations));
-            const zipCodesDisplay = locations.map(l => l.zipcode).join(', ');
 
             html += `
                 <div class="modal-area-item">
