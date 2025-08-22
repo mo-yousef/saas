@@ -202,7 +202,7 @@ if (!function_exists('mobooking_get_status_badge_icon_svg')) {
                         <option value="0"><?php esc_html_e('-- Unassign --', 'mobooking'); ?></option>
                         <?php if (!empty($workers)) : ?>
                             <?php foreach ($workers as $worker) : ?>
-                                <option value="<?php echo esc_attr($worker->ID); ?>" <?php selected(isset($booking['assigned_staff_id']) ? $booking['assigned_staff_id'] : 0,.ID); ?>>
+                                <option value="<?php echo esc_attr($worker->ID); ?>" <?php selected(isset($booking['assigned_staff_id']) ? $booking['assigned_staff_id'] : 0, $worker->ID); ?>>
                                     <?php echo esc_html($worker->display_name); ?> (<?php echo esc_html($worker->user_email); ?>)
                                 </option>
                             <?php endforeach; ?>
