@@ -279,14 +279,9 @@
         const $grid = $(dialog.getElement()).find('#dialog-areas-grid');
 
         $grid.find("input[type='checkbox']:checked").each(function () {
-            const areaDataString = $(this).data('area-object');
-            if (areaDataString) {
-                try {
-                    const locations = JSON.parse(areaDataString);
-                    selectedAreas.push(...locations);
-                } catch (e) {
-                    console.error('Error parsing area data:', e);
-                }
+            const locations = $(this).data('area-object');
+            if (locations && Array.isArray(locations)) {
+                selectedAreas.push(...locations);
             }
         });
 
