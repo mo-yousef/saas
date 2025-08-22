@@ -63,27 +63,35 @@ $current_user_id = get_current_user_id();
             </div>
 
             <!-- Search and Filter Controls -->
-            <div class="mobooking-table-controls">
-                <div class="mobooking-search-filter-row">
-                    <div class="mobooking-search-group">
-                        <div class="mobooking-search-input-wrapper">
-                            <input type="text" id="coverage-search" class="mobooking-search-input" placeholder="<?php esc_attr_e('Search cities or areas...', 'mobooking'); ?>">
+            <div class="mobooking-filters-wrapper" style="margin-bottom: 1.5rem;">
+                <form id="mobooking-areas-filter-form" class="mobooking-filters-form">
+                    <div class="mobooking-filters-main">
+                        <div class="mobooking-filter-item mobooking-filter-item-search">
+                            <label for="coverage-search"><?php esc_html_e('Search', 'mobooking'); ?></label>
+                            <input type="search" id="coverage-search" class="regular-text" placeholder="<?php esc_attr_e('Search cities...', 'mobooking'); ?>">
+                        </div>
+                        <div class="mobooking-filter-item">
+                            <label for="city-filter"><?php esc_html_e('City', 'mobooking'); ?></label>
+                            <select id="city-filter" class="mobooking-filter-select">
+                                <option value=""><?php esc_html_e('All Cities', 'mobooking'); ?></option>
+                            </select>
+                        </div>
+                        <div class="mobooking-filter-item">
+                            <label for="status-filter"><?php esc_html_e('Status', 'mobooking'); ?></label>
+                            <select id="status-filter" class="mobooking-filter-select">
+                                <option value=""><?php esc_html_e('All Statuses', 'mobooking'); ?></option>
+                                <option value="active"><?php esc_html_e('Active', 'mobooking'); ?></option>
+                                <option value="inactive"><?php esc_html_e('Inactive', 'mobooking'); ?></option>
+                            </select>
+                        </div>
+                        <div class="mobooking-filter-actions">
+                            <button type="button" id="clear-coverage-filters-btn" class="btn btn-outline">
+                                <?php echo mobooking_get_feather_icon('x'); ?>
+                                <span class="btn-text"><?php esc_html_e('Clear', 'mobooking'); ?></span>
+                            </button>
                         </div>
                     </div>
-                    <div class="mobooking-filter-group">
-                        <select id="city-filter" class="mobooking-form-select mobooking-form-select-sm">
-                            <option value=""><?php esc_html_e('All Cities', 'mobooking'); ?></option>
-                        </select>
-                        <select id="status-filter" class="mobooking-form-select mobooking-form-select-sm">
-                            <option value=""><?php esc_html_e('All Statuses', 'mobooking'); ?></option>
-                            <option value="active"><?php esc_html_e('Active', 'mobooking'); ?></option>
-                            <option value="inactive"><?php esc_html_e('Inactive', 'mobooking'); ?></option>
-                        </select>
-                        <button type="button" id="clear-coverage-filters-btn" class="btn btn-secondary btn-sm">
-                            <?php esc_html_e('Clear', 'mobooking'); ?>
-                        </button>
-                    </div>
-                </div>
+                </form>
             </div>
 
             <!-- Service Coverage Display -->
