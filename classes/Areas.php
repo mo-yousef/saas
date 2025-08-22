@@ -143,22 +143,22 @@ class Areas {
             return [];
         }
 
-        $areas = [];
+        $grouped_areas = [];
         foreach ($data as $location) {
             if (
                 isset($location['country_code']) && $location['country_code'] === $country_code &&
                 isset($location['state']) && $location['state'] === $city_code &&
                 isset($location['zipcode']) && isset($location['place'])
             ) {
-                // To avoid duplicate zipcode/place combinations, we can use a key
-                $key = $location['zipcode'] . '|' . $location['place'];
-                if (!isset($areas[$key])) {
-                    $areas[$key] = $location;
+                $place_name = $location['place'];
+                if (!isset($grouped_areas[$place_name])) {
+                    $grouped_areas[$place_name] = [];
                 }
+                $grouped_areas[$place_name][] = $location;
             }
         }
 
-        return array_values($areas); // Return a simple indexed array
+        return $grouped_areas;
     }
 
     /**
