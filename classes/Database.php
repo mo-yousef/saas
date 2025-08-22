@@ -226,6 +226,7 @@ class Database {
             area_type VARCHAR(50) NOT NULL,
             area_value VARCHAR(255) NOT NULL,
             country_code VARCHAR(10),
+            area_data JSON,
             created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY (area_id),
             INDEX user_id_idx (user_id)

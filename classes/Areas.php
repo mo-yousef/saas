@@ -153,11 +153,7 @@ class Areas {
                 // To avoid duplicate zipcode/place combinations, we can use a key
                 $key = $location['zipcode'] . '|' . $location['place'];
                 if (!isset($areas[$key])) {
-                    $areas[$key] = [
-                        'name' => $location['place'],
-                        'zip_code' => $location['zipcode'],
-                        'code' => $location['zipcode']
-                    ];
+                    $areas[$key] = $location;
                 }
             }
         }
@@ -173,8 +169,8 @@ class Areas {
             return new \WP_Error('invalid_user', __('Invalid user.', 'mobooking'));
         }
 
-    if (!is_array($areas_data)) {
-        return new \WP_Error('invalid_data', __('Invalid areas data. Must be an array.', 'mobooking'));
+        if (!is_array($areas_data)) {
+            return new \WP_Error('invalid_data', __('Invalid areas data. Must be an array.', 'mobooking'));
         }
 
         $table_name = Database::get_table_name('areas');
@@ -183,27 +179,19 @@ class Areas {
         $errors = [];
 
         foreach ($areas_data as $area_data) {
-            // Validate required fields
-            if (empty($area_data['area_zipcode']) || empty($area_data['country_name'])) {
-                $errors[] = __('Missing required fields for one or more areas.', 'mobooking');
+            // Validate required fields from the full location object
+            if (empty($area_data['zipcode']) || empty($area_data['country_code'])) {
+                $errors[] = __('Missing zipcode or country_code for one or more areas.', 'mobooking');
                 continue;
             }
 
-            $country_name = sanitize_text_field($area_data['country_name']);
-            $area_zipcode = sanitize_text_field(str_replace(' ', '', strtoupper($area_data['area_zipcode'])));
-
-            // Get country code
-            $db_country_code = '';
-            if (!empty($area_data['country_code'])) {
-                $db_country_code = sanitize_text_field(strtoupper($area_data['country_code']));
-            } else {
-                $db_country_code = $this->get_country_code_from_name($country_name);
-            }
+            $area_zipcode = sanitize_text_field(str_replace(' ', '', strtoupper($area_data['zipcode'])));
+            $country_code = sanitize_text_field(strtoupper($area_data['country_code']));
 
             // Check for duplicates
             $existing = $this->wpdb->get_var($this->wpdb->prepare(
                 "SELECT area_id FROM $table_name WHERE user_id = %d AND area_value = %s AND country_code = %s",
-                $user_id, $area_zipcode, $db_country_code
+                $user_id, $area_zipcode, $country_code
             ));
 
             if ($existing) {
@@ -216,22 +204,22 @@ class Areas {
                 'user_id' => $user_id,
                 'area_type' => 'zip_code',
                 'area_value' => $area_zipcode,
-                'country_code' => $db_country_code,
+                'country_code' => $country_code,
+                'area_data' => wp_json_encode($area_data),
                 'created_at' => current_time('mysql', 1)
             ];
 
             $inserted = $this->wpdb->insert(
                 $table_name,
                 $insert_data,
-                ['%d', '%s', '%s', '%s', '%s']
+                ['%d', '%s', '%s', '%s', '%s', '%s']
             );
 
             if ($inserted) {
                 $added_count++;
             } else {
                 $errors[] = sprintf(
-                __('Failed to insert area: %s (%s). Error: %s', 'mobooking'),
-                    esc_html($country_name),
+                    __('Failed to insert area: %s. Error: %s', 'mobooking'),
                     esc_html($area_zipcode),
                     esc_html($this->wpdb->last_error)
                 );
