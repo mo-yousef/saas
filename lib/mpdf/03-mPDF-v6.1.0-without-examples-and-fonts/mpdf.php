@@ -2144,7 +2144,7 @@ class mPDF
 
 	/* -- BACKGROUNDS -- */
 
-	function _resizeBackgroundImage($imw, $imh, $cw, $ch, $resize = 0, $repx, $repy, $pba = array(), $size = array())
+function _resizeBackgroundImage($imw, $imh, $cw, $ch, $resize = 0, $repx = true, $repy = true, $pba = array(), $size = array())
 	{
 		// pba is background positioning area (from CSS background-origin) may not always be set [x,y,w,h]
 		// size is from CSS3 background-size - takes precendence over old resize
@@ -4688,7 +4688,7 @@ class mPDF
 			for ($c = 0; $c < count($cOTLdata); $c++) {
 				for ($i = 0; $i < strlen($cOTLdata[$c]['group']); $i++) {
 
-					if ($cOTLdata[$c]['group']{$i} == 'S') {
+					if ($cOTLdata[$c]['group'][$i] == 'S') {
 						// Save from last word
 						if ($max_kashida_in_word) {
 							$k_ctr++;
@@ -5635,7 +5635,7 @@ class mPDF
 
 				// Get YPlacement from next Base character
 				$nextbase = $i + 1;
-				while ($OTLdata['group']{$nextbase} != 'C') {
+				while ($OTLdata['group'][$nextbase] != 'C') {
 					$nextbase++;
 				}
 				if (isset($GPOSinfo[$nextbase]) && isset($GPOSinfo[$nextbase]['YPlacement']) && $GPOSinfo[$nextbase]['YPlacement']) {
@@ -26605,7 +26605,7 @@ class mPDF
 			for ($i = 1; $i <= 19; ++$i) {
 				$key = '';
 				for ($j = 0; $j < $len; ++$j) {
-					$key .= chr(ord($owner_RC4_key{$j}) ^ $i);
+					$key .= chr(ord($owner_RC4_key[$j]) ^ $i);
 				}
 				$enc = $this->_RC4($key, $enc);
 			}
@@ -26623,7 +26623,7 @@ class mPDF
 			for ($i = 1; $i <= 19; ++$i) {
 				$key = '';
 				for ($j = 0; $j < $len; ++$j) {
-					$key .= chr(ord($this->encryption_key{$j}) ^ $i);
+					$key .= chr(ord($this->encryption_key[$j]) ^ $i);
 				}
 				$enc = $this->_RC4($key, $enc);
 			}
@@ -26680,7 +26680,7 @@ class mPDF
 			++$len;
 		}
 		for ($i = 0; $i < $len; $i += 2) {
-			$s .= chr(hexdec($hs{$i} . $hs{($i + 1)}));
+			$s .= chr(hexdec($hs[$i] . $hs[($i + 1)]));
 		}
 		return $s;
 	}
