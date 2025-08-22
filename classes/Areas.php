@@ -694,30 +694,74 @@ public function get_service_coverage_grouped(int $user_id, $filters = []) {
         return ['cities' => []];
     }
 
+    // 1. Get all saved ZIP codes for the user.
     $table_name = Database::get_table_name('areas');
-    $where_conditions = ["user_id = %d", "area_type = 'city'"]; // Also filter by area_type
+    $where_conditions = ["user_id = %d", "area_type = 'zip_code'"];
     $where_values = [$user_id];
+    $where_clause = 'WHERE ' . implode(' AND ', $where_conditions);
+    $sql = "SELECT area_value FROM $table_name $where_clause";
+    $saved_zips = $this->wpdb->get_col($this->wpdb->prepare($sql, $where_values));
 
-    if (!empty($filters['city'])) {
-        $where_conditions[] = 'area_value = %s';
-        $where_values[] = sanitize_text_field($filters['city']);
+    if (empty($saved_zips)) {
+        return ['cities' => []];
     }
 
-    // The 'status' filter was removed as the column does not exist in the current schema.
-    // if (!empty($filters['status'])) {
-    //     $where_conditions[] = 'status = %s';
-    //     $where_values[] = sanitize_text_field($filters['status']);
-    // }
+    // 2. Load the JSON data to map zips to cities.
+    $area_data = $this->load_area_data_from_json();
+    if (is_wp_error($area_data)) {
+        return ['cities' => []]; // Cannot proceed without this data.
+    }
 
-    $where_clause = 'WHERE ' . implode(' AND ', $where_conditions);
+    // 3. Create a reverse map from ZIP -> City.
+    $zip_to_city_map = [];
+    $country_code = 'SE'; // Hardcoded as per the rest of the feature.
+    if (isset($area_data[$country_code]['cities'])) {
+        foreach ($area_data[$country_code]['cities'] as $city_name => $city_data) {
+            foreach ($city_data as $area_info) {
+                if (isset($area_info['zip'])) {
+                    $zip_to_city_map[$area_info['zip']] = $city_name;
+                }
+            }
+        }
+    }
 
-    // Corrected SQL to use `area_value` and removed the non-existent `status` column.
-    // It now groups by city to count how many sub-areas (like zip codes) are under it.
-    // Let's adjust the query to be more aligned with what "grouped" might mean.
-    // It should probably group by the city-level areas.
-    $sql = "SELECT area_value as city_name, COUNT(area_id) as area_count FROM $table_name $where_clause GROUP BY area_value ORDER BY area_value ASC";
+    // 4. Group saved zips by city and count them.
+    $city_counts = [];
+    foreach ($saved_zips as $zip) {
+        if (isset($zip_to_city_map[$zip])) {
+            $city_name = $zip_to_city_map[$zip];
+            if (!isset($city_counts[$city_name])) {
+                $city_counts[$city_name] = 0;
+            }
+            $city_counts[$city_name]++;
+        }
+    }
 
-    $results = $this->wpdb->get_results($this->wpdb->prepare($sql, $where_values), ARRAY_A);
+    // 5. Format the output to match what the frontend expects, applying filters.
+    $results = [];
+    foreach ($city_counts as $city_name => $count) {
+        // Apply text search filter (from the main search bar)
+        if (!empty($filters['search']) && stripos($city_name, $filters['search']) === false) {
+            continue;
+        }
+
+        // Apply city dropdown filter
+        if (!empty($filters['city']) && $filters['city'] !== $city_name) {
+            continue;
+        }
+
+        $results[] = [
+            'city_name' => $city_name,
+            'city_code' => $city_name, // Use name as code, consistent with other parts.
+            'area_count' => $count,
+            'status' => 'active' // Hardcoding status as we don't have this concept per city yet.
+        ];
+    }
+
+    // Sort the final results alphabetically by city name
+    usort($results, function($a, $b) {
+        return strcmp($a['city_name'], $b['city_name']);
+    });
 
     return ['cities' => $results];
 }
