@@ -221,10 +221,6 @@ class BookingFormRouter {
         }
 
 
-        // Enqueue scripts specific to the dashboard page being loaded
-        if (function_exists('mobooking_enqueue_dashboard_scripts')) {
-            mobooking_enqueue_dashboard_scripts($dashboard_page_slug);
-        }
 
         $dashboard_shell_template = $theme_dir . 'dashboard/dashboard-shell.php';
         if (file_exists($dashboard_shell_template)) {

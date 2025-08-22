@@ -293,125 +293,54 @@ if ( is_page_template('templates/booking-form-public.php') || $page_type_for_scr
 }
 
 
-    // FIXED: Get current dashboard page slug if we're on a dashboard page
-    // This prevents the undefined variable error
-    $current_page_slug = '';
-    if (strpos($_SERVER['REQUEST_URI'] ?? '', '/dashboard/') !== false) {
-        // Try to get from query vars first (set by router)
-        $current_page_slug = get_query_var('mobooking_dashboard_page');
-
-        // Fallback to global variable
-        if (empty($current_page_slug)) {
-            $current_page_slug = isset($GLOBALS['mobooking_current_dashboard_view']) ? $GLOBALS['mobooking_current_dashboard_view'] : '';
-        }
-
-        // Parse from URL as final fallback
-        if (empty($current_page_slug)) {
-            $request_uri = $_SERVER['REQUEST_URI'] ?? '';
-            $path = trim(parse_url($request_uri, PHP_URL_PATH), '/');
-            $path_segments = explode('/', $path);
-
-            if (isset($path_segments[0]) && $path_segments[0] === 'dashboard') {
-                $current_page_slug = isset($path_segments[1]) && !empty($path_segments[1]) ? sanitize_title($path_segments[1]) : 'overview';
-            }
-        }
-
-        // Final fallback to overview
-        if (empty($current_page_slug)) {
-            $current_page_slug = 'overview';
-        }
-    }
-
-    // Dashboard-specific scripts (only load if we're actually on a dashboard page)
-    if (!empty($current_page_slug)) {
-        // Enqueue the main dashboard stylesheet
-        wp_enqueue_style('mobooking-dashboard-main', MOBOOKING_THEME_URI . 'assets/css/dashboard-main.css', array('mobooking-style'), MOBOOKING_VERSION);
-
-        // Enqueue the single booking page stylesheet if we are on the single booking page
-        if ($current_page_slug === 'bookings' && isset($_GET['action']) && $_GET['action'] === 'view_booking') {
-            wp_enqueue_style('mobooking-dashboard-booking-single', MOBOOKING_THEME_URI . 'assets/css/dashboard-booking-single.css', array('mobooking-dashboard-main'), MOBOOKING_VERSION);
-        }
-
-        // Enqueue scripts
-        wp_enqueue_script('mobooking-dialog', MOBOOKING_THEME_URI . 'assets/js/dialog.js', array(), MOBOOKING_VERSION, true);
-        wp_enqueue_script('mobooking-toast', MOBOOKING_THEME_URI . 'assets/js/toast.js', array('jquery'), MOBOOKING_VERSION, true);
-        wp_enqueue_script('mobooking-dashboard-header', MOBOOKING_THEME_URI . 'assets/js/dashboard-header.js', array('jquery'), MOBOOKING_VERSION, true);
-        wp_localize_script('mobooking-dashboard-header', 'mobooking_dashboard_params', [
-            'ajax_url' => admin_url('admin-ajax.php'),
-            'nonce' => wp_create_nonce('mobooking_dashboard_nonce')
-        ]);
-
-        if ( $current_page_slug === 'services' ) {
-            wp_enqueue_style('mobooking-dashboard-services-redesigned', MOBOOKING_THEME_URI . 'assets/css/dashboard-services-redesigned.css', array('mobooking-dashboard-main'), MOBOOKING_VERSION);
-            wp_enqueue_script('mobooking-dashboard-services', MOBOOKING_THEME_URI . 'assets/js/dashboard-services.js', array('jquery'), MOBOOKING_VERSION, true);
-            wp_localize_script('mobooking-dashboard-services', 'mobooking_services_params', [
-                'ajax_url' => admin_url('admin-ajax.php'),
-                'nonce' => wp_create_nonce('mobooking_services_nonce'),
-                'i18n' => [
-                    'loading_services' => __('Loading...', 'mobooking'),
-                    'no_services_found' => __('No services found.', 'mobooking'),
-                    'confirm_delete_service' => __('Are you sure you want to delete this service?', 'mobooking'),
-                ],
-            ]);
-        }
-
-        if ( $current_page_slug === 'workers' ) {
-            wp_enqueue_script( 'mobooking-dashboard-workers', MOBOOKING_THEME_URI . 'assets/js/dashboard-workers.js', array( 'jquery', 'mobooking-dialog' ), MOBOOKING_VERSION, true );
-            wp_localize_script( 'mobooking-dashboard-workers', 'mobooking_workers_params', array(
-                'ajax_url' => admin_url( 'admin-ajax.php' ),
-                'i18n' => array(
-                    'error_occurred' => __( 'An error occurred. Please try again.', 'mobooking' ),
-                    'error_ajax' => __( 'An AJAX error occurred. Please check your connection.', 'mobooking' ),
-                    'confirm_delete' => __( 'Are you sure you want to revoke access for this worker? This action cannot be undone.', 'mobooking' ),
-                    'error_deleting_worker' => __( 'Error deleting worker.', 'mobooking' ),
-                    'error_saving_worker' => __( 'Error saving worker details.', 'mobooking' ),
-                    'no_name_set' => __( 'No name set', 'mobooking' ),
-                ),
-            ));
-        }
-
-        if ( $current_page_slug === 'customers' || $current_page_slug === 'customer-details' ) {
-            $customer_params = [
-                'ajax_url' => admin_url('admin-ajax.php'),
-                'nonce' => wp_create_nonce('mobooking_dashboard_nonce'),
-                'details_page_base_url' => home_url('/dashboard/customer-details/'),
-                 'i18n' => [
-                    'customer' => __('Customer', 'mobooking'),
-                    'contact' => __('Contact', 'mobooking'),
-                    'bookings' => __('Bookings', 'mobooking'),
-                    'last_booking' => __('Last Booking', 'mobooking'),
-                    'status' => __('Status', 'mobooking'),
-                    'actions' => __('Actions', 'mobooking'),
-                    'na' => __('N/A', 'mobooking'),
-                    'no_customers_found' => __('No customers found', 'mobooking'),
-                    'try_different_filters' => __('Try adjusting your filters or clearing them to see all customers.', 'mobooking'),
-                    'error_loading' => __('Error loading customers.', 'mobooking'),
-                    'less_filters' => __('Less', 'mobooking'),
-                    'more_filters' => __('More', 'mobooking'),
-                ],
-                'statuses' => [
-                    'active' => __('Active', 'mobooking'),
-                    'inactive' => __('Inactive', 'mobooking'),
-                    'lead' => __('Lead', 'mobooking'),
-                ],
-                'icons' => [
-                    'active' => mobooking_get_status_badge_icon_svg('active'),
-                    'inactive' => mobooking_get_status_badge_icon_svg('inactive'),
-                    'lead' => mobooking_get_status_badge_icon_svg('lead'),
-                ]
-            ];
-
-            if ($current_page_slug === 'customers') {
-                wp_enqueue_script('mobooking-dashboard-customers', MOBOOKING_THEME_URI . 'assets/js/dashboard-customers.js', array('jquery', 'jquery-ui-datepicker'), MOBOOKING_VERSION, true);
-                wp_localize_script('mobooking-dashboard-customers', 'mobooking_customers_params', $customer_params);
-            }
-
-            if ($current_page_slug === 'customer-details') {
-                wp_enqueue_script('mobooking-dashboard-customer-details', MOBOOKING_THEME_URI . 'assets/js/dashboard-customer-details.js', array('jquery'), MOBOOKING_VERSION, true);
-                wp_localize_script('mobooking-dashboard-customer-details', 'mobooking_customers_params', $customer_params);
-            }
-        }
-    }
 }
 add_action( 'wp_enqueue_scripts', 'mobooking_scripts' );
+
+function mobooking_admin_scripts($hook) {
+    // Only load on our specific admin pages
+    if (strpos($hook, 'mobooking') === false) {
+        // A better check could be to use the page slug from the router, but this is a start
+        // Example: $screen = get_current_screen(); if ($screen->id !== 'toplevel_page_mobooking-dashboard') return;
+    }
+
+    $current_page_slug = isset($_GET['page']) ? sanitize_key($_GET['page']) : '';
+    if (empty($current_page_slug)) {
+        // Fallback for custom router
+        $current_page_slug = get_query_var('mobooking_dashboard_page', 'overview');
+    }
+
+    // General dashboard assets
+    wp_enqueue_style('mobooking-dashboard-main', MOBOOKING_THEME_URI . 'assets/css/dashboard-main.css', array(), MOBOOKING_VERSION);
+    wp_enqueue_script('mobooking-dialog', MOBOOKING_THEME_URI . 'assets/js/dialog.js', array(), MOBOOKING_VERSION, true);
+    wp_enqueue_script('mobooking-toast', MOBOOKING_THEME_URI . 'assets/js/toast.js', array('jquery'), MOBOOKING_VERSION, true);
+    wp_enqueue_script('mobooking-dashboard-header', MOBOOKING_THEME_URI . 'assets/js/dashboard-header.js', array('jquery'), MOBOOKING_VERSION, true);
+     wp_localize_script('mobooking-dashboard-header', 'mobooking_dashboard_params', [
+        'ajax_url' => admin_url('admin-ajax.php'),
+        'nonce' => wp_create_nonce('mobooking_dashboard_nonce')
+    ]);
+
+    // Specific to Booking Form Settings page
+    if ($current_page_slug === 'mobooking-booking-form') {
+        wp_enqueue_script('wp-color-picker');
+        wp_enqueue_style('wp-color-picker');
+        wp_enqueue_script(
+            'mobooking-dashboard-booking-form-settings',
+            MOBOOKING_THEME_URI . 'assets/js/dashboard-booking-form-settings.js',
+            array('jquery', 'wp-color-picker'),
+            MOBOOKING_VERSION,
+            true
+        );
+        wp_localize_script('mobooking-dashboard-booking-form-settings', 'mobooking_bf_settings_params', [
+            'ajax_url' => admin_url('admin-ajax.php'),
+            'nonce' => wp_create_nonce('mobooking_dashboard_nonce'),
+            'site_url' => site_url('/'),
+            'i18n' => [
+                'saving' => __('Saving...', 'mobooking'),
+                'save_success' => __('Settings saved successfully.', 'mobooking'),
+                'error_saving' => __('Error saving settings.', 'mobooking'),
+            ]
+        ]);
+    }
+}
+add_action('admin_enqueue_scripts', 'mobooking_admin_scripts');
 ?>
