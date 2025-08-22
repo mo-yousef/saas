@@ -857,7 +857,15 @@ public function handle_toggle_area_status_ajax() {
 }
 
 public function handle_save_city_areas_ajax() {
-    check_ajax_referer('mobooking_dashboard_nonce', 'nonce');
+    error_log('[MoBooking Save Areas] AJAX handler started.');
+
+    $nonce = isset($_POST['nonce']) ? $_POST['nonce'] : '';
+    if (!wp_verify_nonce($nonce, 'mobooking_dashboard_nonce')) {
+        error_log('[MoBooking Save Areas] Nonce verification FAILED. Nonce received: ' . $nonce);
+        wp_send_json_error(['message' => 'Nonce verification failed.'], 403);
+        return;
+    }
+    error_log('[MoBooking Save Areas] Nonce verification PASSED.');
 
     $user_id = get_current_user_id();
     if (!$user_id) {
