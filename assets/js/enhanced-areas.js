@@ -167,10 +167,16 @@
                 }
             ],
             onOpen: () => {
-                // Bind select/deselect all buttons
                 const dialogEl = areaDialog.getElement();
+
+                // Bind select/deselect all buttons
                 $(dialogEl).on('click', '#dialog-select-all', () => $('#dialog-areas-grid input[type="checkbox"]').prop('checked', true));
                 $(dialogEl).on('click', '#dialog-deselect-all', () => $('#dialog-areas-grid input[type="checkbox"]').prop('checked', false));
+
+                // Bind expand/collapse toggle
+                $(dialogEl).on('click', '.area-zip-toggle', function() {
+                    $(this).closest('.modal-area-item').toggleClass('is-expanded');
+                });
 
                 // Fetch areas
                 fetchAndDisplayAreas();
@@ -261,11 +267,18 @@
             const zipCodesDisplay = locations.map(l => l.zipcode).join(', ');
 
             html += `
-                <label class="modal-area-item">
-                    <input type="checkbox" value="${escapeHtml(placeName)}" data-area-object='${areaData}' ${allZipsSaved ? "checked" : ""}>
-                    <span class="area-name">${escapeHtml(placeName)}</span>
-                    <span class="area-zip">${escapeHtml(zipCodesDisplay)}</span>
-                </label>
+                <div class="modal-area-item">
+                    <label class="modal-area-item-main">
+                        <input type="checkbox" value="${escapeHtml(placeName)}" data-area-object='${areaData}' ${allZipsSaved ? "checked" : ""}>
+                        <span class="area-name">${escapeHtml(placeName)}</span>
+                        <button type="button" class="area-zip-toggle">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-down"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        </button>
+                    </label>
+                    <div class="area-zip-list">
+                        ${locations.map(l => `<span class="area-zip">${escapeHtml(l.zipcode)}</span>`).join('')}
+                    </div>
+                </div>
             `;
         });
         $grid.html(html);
@@ -373,10 +386,10 @@
                         <span class="city-stats">${city.area_count} areas</span>
                     </div>
                     <div class="city-actions">
-                        <button type="button" class="toggle-city-btn mobooking-btn mobooking-btn-secondary mobooking-btn-sm" data-status="${city.status}">
+                        <button type="button" class="toggle-city-btn mobooking-btn mobooking-btn-secondary mobooking-btn-sm" data-city-code="${escapeHtml(city.city_code)}" data-status="${escapeHtml(city.status)}">
                             ${city.status === 'active' ? 'Disable' : 'Enable'}
                         </button>
-                        <button type="button" class="remove-city-btn mobooking-btn mobooking-btn-danger mobooking-btn-sm">
+                        <button type="button" class="remove-city-btn mobooking-btn mobooking-btn-danger mobooking-btn-sm" data-city-code="${escapeHtml(city.city_code)}">
                             Remove
                         </button>
                     </div>
@@ -391,7 +404,36 @@
      * Handle toggling a city's service status
      */
     function handleToggleCity() {
-        // Future implementation
+        const $btn = $(this);
+        const cityCode = $btn.data('city-code');
+        const currentStatus = $btn.data('status');
+        const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
+
+        $btn.prop('disabled', true).html('<div class="mobooking-spinner mobooking-spinner-sm"></div>');
+
+        $.ajax({
+            url: mobooking_areas_params.ajax_url,
+            type: 'POST',
+            data: {
+                action: 'mobooking_update_city_status',
+                nonce: mobooking_areas_params.nonce,
+                city_code: cityCode,
+                status: newStatus,
+            },
+            success: function(response) {
+                if (response.success) {
+                    window.showAlert(response.data.message || 'Status updated.', 'success');
+                    loadServiceCoverage(); // Reload the list to show changes
+                } else {
+                    window.showAlert(response.data.message || 'Error updating status.', 'error');
+                    $btn.prop('disabled', false).text(currentStatus === 'active' ? 'Disable' : 'Enable');
+                }
+            },
+            error: function() {
+                window.showAlert('An unknown error occurred.', 'error');
+                $btn.prop('disabled', false).text(currentStatus === 'active' ? 'Disable' : 'Enable');
+            }
+        });
     }
 
     /**
