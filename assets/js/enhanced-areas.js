@@ -245,20 +245,26 @@
      */
     function displayAreasInModal(areas, savedAreas) {
         const $grid = $('#dialog-areas-grid');
-        if (!areas || !areas.length) {
+        const placeNames = Object.keys(areas);
+
+        if (!placeNames.length) {
             $grid.html(`<div class="mobooking-empty-state"><p>${i18n.no_areas_available}</p></div>`);
             return;
         }
 
         let html = "";
-        areas.forEach(function (area) {
-            const isChecked = savedAreas.includes(area.zipcode);
-            const areaData = escapeHtml(JSON.stringify(area));
+        placeNames.sort().forEach(function (placeName) {
+            const locations = areas[placeName];
+            const locationZips = locations.map(loc => loc.zipcode);
+            const allZipsSaved = locationZips.every(zip => savedAreas.includes(zip));
+            const areaData = escapeHtml(JSON.stringify(locations));
+            const zipCodesDisplay = locations.map(l => l.zipcode).join(', ');
+
             html += `
                 <label class="modal-area-item">
-                    <input type="checkbox" value="${escapeHtml(area.zipcode)}" data-area-object='${areaData}' ${isChecked ? "checked" : ""}>
-                    <span class="area-name">${escapeHtml(area.place)}</span>
-                    <span class="area-zip">${escapeHtml(area.zipcode)}</span>
+                    <input type="checkbox" value="${escapeHtml(placeName)}" data-area-object='${areaData}' ${allZipsSaved ? "checked" : ""}>
+                    <span class="area-name">${escapeHtml(placeName)}</span>
+                    <span class="area-zip">${escapeHtml(zipCodesDisplay)}</span>
                 </label>
             `;
         });
@@ -276,7 +282,8 @@
             const areaDataString = $(this).data('area-object');
             if (areaDataString) {
                 try {
-                    selectedAreas.push(JSON.parse(areaDataString));
+                    const locations = JSON.parse(areaDataString);
+                    selectedAreas.push(...locations);
                 } catch (e) {
                     console.error('Error parsing area data:', e);
                 }
