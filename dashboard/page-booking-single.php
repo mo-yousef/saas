@@ -121,158 +121,6 @@ if (!function_exists('mobooking_get_status_badge_icon_svg')) {
     }
 }
 ?>
-<style>
-    .mobooking-single-booking-page-wrapper { max-width: 900px; margin: 20px auto; }
-    .mobooking-sbs-panel { background-color: #fff; border: 1px solid var(--border, #e0e0e0); border-radius: var(--radius, 0.5rem); margin-bottom: 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-    .mobooking-sbs-panel-header { padding: 1rem 1.5rem; border-bottom: 1px solid var(--border, #e0e0e0); display: flex; align-items: center; gap: 0.75rem;}
-    .mobooking-sbs-panel-header h2, .mobooking-sbs-panel-header h3 { margin: 0; font-size: 1.25rem; color: var(--foreground); }
-    .mobooking-sbs-panel-header .feather { color: var(--primary); }
-    .mobooking-sbs-panel-content { padding: 1.5rem; }
-    .mobooking-sbs-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; }
-    .mobooking-sbs-item { margin-bottom: 0.75rem; }
-    .mobooking-sbs-item strong { display: block; font-weight: 600; color: var(--foreground); margin-bottom: 0.25rem; font-size:0.9rem; }
-    .mobooking-sbs-item span, .mobooking-sbs-item a { color: var(--muted-foreground); font-size:0.95rem; }
-    .mobooking-sbs-item a { color: var(--primary); text-decoration: none !important; }
-    .mobooking-sbs-item a:hover { text-decoration: underline !important; }
-    .mobooking-status-update-section { margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed var(--border, #e0e0e0); }
-    .mobooking-status-form { display: flex; align-items: center; gap: 0.75rem; margin-top: 0.5rem; flex-wrap: wrap; }
-    .mobooking-status-form label { font-weight: 600; display: inline-flex; align-items: center; gap: 0.25rem;}
-    .mobooking-service-items-list { list-style: none; padding: 0; }
-    .mobooking-service-items-list > li { padding: 0.75rem 0; border-bottom: 1px dashed var(--border, #e0e0e0); }
-    .mobooking-service-items-list > li:last-child { border-bottom: none; }
-    .mobooking-service-options-list { list-style: disc; padding-left: 1.5rem; margin-top: 0.5rem; font-size: 0.9em; }
-    .mobooking-service-options-list li { margin-bottom: 0.25rem; }
-    .mobooking-pricing-summary p { margin: 0.5rem 0; display: flex; justify-content: space-between; }
-    .mobooking-pricing-summary strong.final-total { font-size: 1.2em; color: var(--primary); }
-    .mobooking-meta-info { font-size: 0.8rem; color: var(--muted-foreground); text-align: right; margin-top: 1rem; }
-    /* New Status Badge Styles (ShadCN Inspired) */
-    .status-badge {
-        display: inline-flex;
-        align-items: center;
-        padding: 0.25em 0.6em; /* Keep similar padding */
-        font-size: 0.85em;     /* Keep similar font size */
-        font-weight: 500;      /* ShadCN uses medium weight */
-        border-radius: var(--radius, 0.5rem);
-        border: 1px solid transparent;
-        line-height: 1.2;      /* Ensure consistent line height */
-    }
-
-    .status-badge .feather {
-        width: 1em;
-        height: 1em;
-        margin-right: 0.4em;
-        stroke-width: 2.5;
-    }
-
-    .status-badge.status-pending {
-        background-color: hsl(var(--muted)); /* Light gray */
-        color: hsl(var(--muted-foreground)); /* Darker gray text */
-        border-color: hsl(var(--border));    /* Subtle border */
-    }
-    .status-badge.status-pending .feather {
-        color: hsl(var(--muted-foreground));
-    }
-
-    .status-badge.status-confirmed {
-        background-color: hsl(var(--primary));
-        color: hsl(var(--primary-foreground));
-        border-color: hsl(var(--primary));
-    }
-    .status-badge.status-confirmed .feather {
-        color: hsl(var(--primary-foreground));
-    }
-
-    .status-badge.status-processing {
-        background-color: hsl(200, 80%, 95%); /* Lighter Blue */
-        color: hsl(200, 70%, 40%);            /* Darker Blue text */
-        border-color: hsl(200, 70%, 70%);     /* Blue border */
-    }
-    .status-badge.status-processing .feather {
-        color: hsl(200, 70%, 40%);
-    }
-
-    .status-badge.status-on-hold {
-        background-color: hsl(45, 100%, 95%); /* Lighter Yellow/Amber */
-        color: hsl(45, 100%, 25%);            /* Darker text for yellow */
-        border-color: hsl(45, 100%, 70%);     /* Yellow/Amber border */
-    }
-    .status-badge.status-on-hold .feather {
-        color: hsl(45, 100%, 25%);
-    }
-
-    .status-badge.status-completed {
-        background-color: hsl(145, 63%, 95%); /* Lighter Green */
-        color: hsl(145, 63%, 22%);            /* Darker Green text */
-        border-color: hsl(145, 63%, 72%);     /* Green border */
-    }
-    .status-badge.status-completed .feather {
-        color: hsl(145, 63%, 22%);
-    }
-
-    .status-badge.status-cancelled {
-        background-color: hsl(var(--destructive) / 0.1); /* Lighter Destructive Background */
-        color: hsl(var(--destructive));                  /* Destructive Text Color */
-        border-color: hsl(var(--destructive) / 0.3);     /* Destructive Border Color */
-    }
-    .status-badge.status-cancelled .feather {
-        color: hsl(var(--destructive));
-    }
-    /* End New Status Badge Styles */
-
-    .mobooking-page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
-    .mobooking-page-header h1 { font-size: 1.8rem; margin:0; color: var(--foreground); }
-
-    .mobooking-status-feedback.success { color: green; margin-top: 0.5rem; }
-    .mobooking-status-feedback.error { color: red; margin-top: 0.5rem; }
-
-    /* Responsive Table for Services/Options */
-    .mobooking-services-table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
-    .mobooking-services-table th, .mobooking-services-table td {
-        padding: 0.75rem;
-        text-align: left;
-        border-bottom: 1px solid var(--border, #e0e0e0);
-    }
-    .mobooking-services-table th {
-        background-color: hsl(var(--muted)/0.5);
-        font-weight: 600;
-        font-size: 0.9em;
-    }
-    .mobooking-services-table .service-name-cell { font-weight: 600; }
-    .mobooking-services-table .option-row td { padding-left: 2.5rem; font-size: 0.9em; }
-    .mobooking-services-table .option-name { color: var(--muted-foreground); }
-    .mobooking-services-table .price-cell { text-align: right; white-space: nowrap; }
-
-    @media (max-width: 768px) {
-        .mobooking-sbs-grid { grid-template-columns: 1fr; }
-        .mobooking-services-table thead { display: none; } /* Hide table headers on mobile */
-        .mobooking-services-table tr { display: block; margin-bottom: 1rem; border: 1px solid var(--border, #e0e0e0); border-radius: var(--radius, 0.5rem); }
-        .mobooking-services-table td { display: block; text-align: right; padding-left: 50%; position: relative; border-bottom: 1px dashed var(--border, #e0e0e0); }
-        .mobooking-services-table td:last-child { border-bottom: none; }
-        .mobooking-services-table td::before {
-            content: attr(data-label);
-            position: absolute;
-            left: 0.75rem;
-            width: calc(50% - 1.5rem); /* 50% minus padding */
-            padding-right: 0.75rem;
-            font-weight: 600;
-            text-align: left;
-            white-space: nowrap;
-        }
-        .mobooking-services-table .option-row td { padding-left: 1.5rem; /* Adjust for stacked mobile */ }
-        .mobooking-services-table .option-row td::before { padding-left: 1.5rem; /* Indent data label for options */ }
-        .mobooking-services-table .price-cell { text-align: right !important; } /* Ensure price is right aligned */
-        .mobooking-services-table td.service-name-cell { font-weight: bold; background-color: hsl(var(--muted)/0.3); padding-top: 1rem; padding-bottom: 1rem; text-align: left; padding-left: 0.75rem;}
-        .mobooking-services-table td.service-name-cell::before { display: none; } /* No data-label for the main service name cell */
-
-    }
-
-    @media (max-width: 480px) {
-        .mobooking-services-table td { padding-left: 40%; } /* Adjust for very small screens */
-        .mobooking-services-table td::before { width: calc(40% - 1.5rem); }
-        .mobooking-page-header { flex-direction: column; align-items: flex-start; gap: 1rem; }
-    }
-
-</style>
 
 <div class="mobooking-single-booking-page-wrapper">
     <div class="mobooking-page-header">
@@ -280,53 +128,57 @@ if (!function_exists('mobooking_get_status_badge_icon_svg')) {
         <a href="<?php echo esc_url($main_bookings_page_url); ?>" class="button"><?php esc_html_e('&laquo; Back to Bookings List', 'mobooking'); ?></a>
     </div>
 
-    <!-- Booking & Customer Details Panel -->
-    <div class="mobooking-sbs-panel">
-        <div class="mobooking-sbs-panel-header">
-            <?php echo mobooking_get_feather_icon('info'); ?>
-            <h3><?php esc_html_e('Booking & Customer Details', 'mobooking'); ?></h3>
+    <!-- Booking & Customer Details Card -->
+    <div class="mobooking-card card-bs">
+        <div class="mobooking-card-header">
+            <div class="mobooking-card-title-group">
+                <span class="mobooking-card-icon"><?php echo mobooking_get_feather_icon('info'); ?></span>
+                <h3 class="mobooking-card-title"><?php esc_html_e('Booking & Customer Details', 'mobooking'); ?></h3>
+            </div>
         </div>
-        <div class="mobooking-sbs-panel-content">
-            <div class="mobooking-sbs-grid">
+        <div class="mobooking-card-content">
+            <div class="kpi-grid">
                 <div>
-                    <div class="mobooking-sbs-item"><strong><?php esc_html_e('Reference:', 'mobooking'); ?></strong> <span><?php echo esc_html($booking['booking_reference']); ?></span></div>
-                    <div class="mobooking-sbs-item"><strong><?php echo mobooking_get_feather_icon('calendar', 'width="16" height="16" style="vertical-align:middle; margin-right:0.25rem;"'); ?> <?php esc_html_e('Date:', 'mobooking'); ?></strong> <span><?php echo esc_html($booking_date_formatted); ?></span></div>
-                    <div class="mobooking-sbs-item"><strong><?php echo mobooking_get_feather_icon('clock', 'width="16" height="16" style="vertical-align:middle; margin-right:0.25rem;"'); ?> <?php esc_html_e('Time:', 'mobooking'); ?></strong> <span><?php echo esc_html($booking_time_formatted); ?></span></div>
+                    <div class="mb-3"><strong class="block font-semibold text-sm mb-1"><?php esc_html_e('Reference:', 'mobooking'); ?></strong> <span class="text-sm text-muted-foreground"><?php echo esc_html($booking['booking_reference']); ?></span></div>
+                    <div class="mb-3"><strong class="block font-semibold text-sm mb-1"><?php echo mobooking_get_feather_icon('calendar', 'width="16" height="16" style="vertical-align:middle; margin-right:0.25rem;"'); ?> <?php esc_html_e('Date:', 'mobooking'); ?></strong> <span class="text-sm text-muted-foreground"><?php echo esc_html($booking_date_formatted); ?></span></div>
+                    <div class="mb-3"><strong class="block font-semibold text-sm mb-1"><?php echo mobooking_get_feather_icon('clock', 'width="16" height="16" style="vertical-align:middle; margin-right:0.25rem;"'); ?> <?php esc_html_e('Time:', 'mobooking'); ?></strong> <span class="text-sm text-muted-foreground"><?php echo esc_html($booking_time_formatted); ?></span></div>
                 </div>
                 <div>
-                    <div class="mobooking-sbs-item"><strong><?php echo mobooking_get_feather_icon('user', 'width="16" height="16" style="vertical-align:middle; margin-right:0.25rem;"'); ?> <?php esc_html_e('Customer:', 'mobooking'); ?></strong> <span><?php echo esc_html($booking['customer_name']); ?></span></div>
-                    <div class="mobooking-sbs-item"><strong><?php echo mobooking_get_feather_icon('mail', 'width="16" height="16" style="vertical-align:middle; margin-right:0.25rem;"'); ?> <?php esc_html_e('Email:', 'mobooking'); ?></strong> <a href="mailto:<?php echo esc_attr($booking['customer_email']); ?>"><?php echo esc_html($booking['customer_email']); ?></a></div>
-                    <div class="mobooking-sbs-item"><strong><?php echo mobooking_get_feather_icon('phone', 'width="16" height="16" style="vertical-align:middle; margin-right:0.25rem;"'); ?> <?php esc_html_e('Phone:', 'mobooking'); ?></strong> <span><?php echo esc_html($booking['customer_phone'] ? $booking['customer_phone'] : 'N/A'); ?></span></div>
+                    <div class="mb-3"><strong class="block font-semibold text-sm mb-1"><?php echo mobooking_get_feather_icon('user', 'width="16" height="16" style="vertical-align:middle; margin-right:0.25rem;"'); ?> <?php esc_html_e('Customer:', 'mobooking'); ?></strong> <span class="text-sm text-muted-foreground"><?php echo esc_html($booking['customer_name']); ?></span></div>
+                    <div class="mb-3"><strong class="block font-semibold text-sm mb-1"><?php echo mobooking_get_feather_icon('mail', 'width="16" height="16" style="vertical-align:middle; margin-right:0.25rem;"'); ?> <?php esc_html_e('Email:', 'mobooking'); ?></strong> <a href="mailto:<?php echo esc_attr($booking['customer_email']); ?>" class="text-sm text-primary hover:underline"><?php echo esc_html($booking['customer_email']); ?></a></div>
+                    <div class="mb-3"><strong class="block font-semibold text-sm mb-1"><?php echo mobooking_get_feather_icon('phone', 'width="16" height="16" style="vertical-align:middle; margin-right:0.25rem;"'); ?> <?php esc_html_e('Phone:', 'mobooking'); ?></strong> <span class="text-sm text-muted-foreground"><?php echo esc_html($booking['customer_phone'] ? $booking['customer_phone'] : 'N/A'); ?></span></div>
                 </div>
             </div>
-             <div class="mobooking-sbs-item" style="margin-top:1rem;"><strong><?php echo mobooking_get_feather_icon('map-pin', 'width="16" height="16" style="vertical-align:middle; margin-right:0.25rem;"'); ?> <?php esc_html_e('Service Address:', 'mobooking'); ?></strong> <span><?php echo nl2br(esc_html($booking['service_address'])); ?><?php if (!empty($booking['zip_code'])) { echo ', ' . esc_html($booking['zip_code']); } ?></span></div>
+             <div class="mt-4"><strong class="block font-semibold text-sm mb-1"><?php echo mobooking_get_feather_icon('map-pin', 'width="16" height="16" style="vertical-align:middle; margin-right:0.25rem;"'); ?> <?php esc_html_e('Service Address:', 'mobooking'); ?></strong> <span class="text-sm text-muted-foreground"><?php echo nl2br(esc_html($booking['service_address'])); ?><?php if (!empty($booking['zip_code'])) { echo ', ' . esc_html($booking['zip_code']); } ?></span></div>
         </div>
     </div>
 
-    <!-- Status & Admin Actions Panel -->
-    <div class="mobooking-sbs-panel">
-        <div class="mobooking-sbs-panel-header">
-            <?php echo mobooking_get_feather_icon('activity'); ?>
-            <h3><?php esc_html_e('Status & Actions', 'mobooking'); ?></h3>
+    <!-- Status & Admin Actions Card -->
+    <div class="mobooking-card card-bs">
+        <div class="mobooking-card-header">
+            <div class="mobooking-card-title-group">
+                <span class="mobooking-card-icon"><?php echo mobooking_get_feather_icon('activity'); ?></span>
+                <h3 class="mobooking-card-title"><?php esc_html_e('Status & Actions', 'mobooking'); ?></h3>
+            </div>
         </div>
-        <div class="mobooking-sbs-panel-content">
-            <div class="mobooking-status-update-section" style="border-top:none; margin-top:0; padding-top:0;">
-                <p class="mobooking-sbs-item"><strong><?php esc_html_e('Current Status:', 'mobooking'); ?></strong>
+        <div class="mobooking-card-content">
+            <div class="border-b border-dashed pb-4 mb-4">
+                <div class="mb-3"><strong class="block font-semibold text-sm mb-1"><?php esc_html_e('Current Status:', 'mobooking'); ?></strong>
                     <span id="mobooking-current-status-display" class="status-badge status-<?php echo esc_attr($booking['status']); ?>">
                         <?php echo mobooking_get_status_badge_icon_svg($booking['status']); ?>
                         <span class="status-text"><?php echo esc_html($status_display); ?></span>
                     </span>
-                </p>
-                <div class="mobooking-status-form">
-                    <label for="mobooking-single-booking-status-select"><?php echo mobooking_get_feather_icon('edit', 'width="16" height="16" style="vertical-align:middle; margin-right:0.25rem;"'); ?> <?php esc_html_e('Change Status:', 'mobooking'); ?></label>
-                    <select id="mobooking-single-booking-status-select" data-booking-id="<?php echo esc_attr($booking['booking_id']); ?>">
+                </div>
+                <div class="flex items-center gap-3 flex-wrap">
+                    <label for="mobooking-single-booking-status-select" class="font-semibold text-sm flex items-center gap-1"><?php echo mobooking_get_feather_icon('edit', 'width="16" height="16"'); ?> <?php esc_html_e('Change Status:', 'mobooking'); ?></label>
+                    <select id="mobooking-single-booking-status-select" data-booking-id="<?php echo esc_attr($booking['booking_id']); ?>" class="mobooking-filter-select">
                         <?php foreach ($booking_statuses_for_select as $value => $label) : ?>
                             <option value="<?php echo esc_attr($value); ?>" <?php selected($booking['status'], $value); ?>><?php echo esc_html($label); ?></option>
                         <?php endforeach; ?>
                     </select>
-                    <button id="mobooking-single-save-status-btn" class="button button-primary button-small"><?php esc_html_e('Save Status', 'mobooking'); ?></button>
+                    <button id="mobooking-single-save-status-btn" class="btn btn-primary btn-sm"><?php esc_html_e('Save Status', 'mobooking'); ?></button>
                 </div>
-                <div id="mobooking-single-status-feedback" class="mobooking-status-feedback"></div>
+                <div id="mobooking-single-status-feedback" class="text-sm mt-2"></div>
             </div>
 
             <!-- Staff Assignment Section -->
@@ -338,19 +190,19 @@ if (!function_exists('mobooking_get_status_badge_icon_svg')) {
                     'role__in'   => [\MoBooking\Classes\Auth::ROLE_WORKER_STAFF],
                 ]);
             ?>
-            <div class="mobooking-staff-assignment-section" style="margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed var(--border, #e0e0e0);">
-                <p class="mobooking-sbs-item"><strong><?php esc_html_e('Assigned Staff:', 'mobooking'); ?></strong>
-                    <span id="mobooking-current-assigned-staff">
+            <div class="pt-4">
+                <div class="mb-3"><strong class="block font-semibold text-sm mb-1"><?php esc_html_e('Assigned Staff:', 'mobooking'); ?></strong>
+                    <span id="mobooking-current-assigned-staff" class="text-sm text-muted-foreground">
                         <?php echo isset($booking['assigned_staff_name']) ? esc_html($booking['assigned_staff_name']) : esc_html__('Unassigned', 'mobooking'); ?>
                     </span>
-                </p>
-                <div class="mobooking-staff-assignment-form" style="display: flex; align-items: center; gap: 0.75rem; margin-top: 0.5rem; flex-wrap: wrap;">
-                    <label for="mobooking-single-assign-staff-select"><?php echo mobooking_get_feather_icon('user-plus', 'width="16" height="16" style="vertical-align:middle; margin-right:0.25rem;"'); ?> <?php esc_html_e('Assign to Staff:', 'mobooking'); ?></label>
-                    <select id="mobooking-single-assign-staff-select" data-booking-id="<?php echo esc_attr($booking['booking_id']); ?>">
+                </div>
+                <div class="flex items-center gap-3 flex-wrap">
+                    <label for="mobooking-single-assign-staff-select" class="font-semibold text-sm flex items-center gap-1"><?php echo mobooking_get_feather_icon('user-plus', 'width="16" height="16"'); ?> <?php esc_html_e('Assign to Staff:', 'mobooking'); ?></label>
+                    <select id="mobooking-single-assign-staff-select" data-booking-id="<?php echo esc_attr($booking['booking_id']); ?>" class="mobooking-filter-select">
                         <option value="0"><?php esc_html_e('-- Unassign --', 'mobooking'); ?></option>
                         <?php if (!empty($workers)) : ?>
                             <?php foreach ($workers as $worker) : ?>
-                                <option value="<?php echo esc_attr($worker->ID); ?>" <?php selected(isset($booking['assigned_staff_id']) ? $booking['assigned_staff_id'] : 0, $worker->ID); ?>>
+                                <option value="<?php echo esc_attr($worker->ID); ?>" <?php selected(isset($booking['assigned_staff_id']) ? $booking['assigned_staff_id'] : 0,.ID); ?>>
                                     <?php echo esc_html($worker->display_name); ?> (<?php echo esc_html($worker->user_email); ?>)
                                 </option>
                             <?php endforeach; ?>
@@ -358,26 +210,28 @@ if (!function_exists('mobooking_get_status_badge_icon_svg')) {
                             <option value="" disabled><?php esc_html_e('No staff available for this business.', 'mobooking'); ?></option>
                         <?php endif; ?>
                     </select>
-                    <button id="mobooking-single-save-staff-assignment-btn" class="button button-primary button-small"><?php esc_html_e('Save Assignment', 'mobooking'); ?></button>
+                    <button id="mobooking-single-save-staff-assignment-btn" class="btn btn-primary btn-sm"><?php esc_html_e('Save Assignment', 'mobooking'); ?></button>
                 </div>
-                <div id="mobooking-single-staff-assignment-feedback" class="mobooking-status-feedback"></div>
+                <div id="mobooking-single-staff-assignment-feedback" class="text-sm mt-2"></div>
             </div>
             <?php endif; ?>
             <!-- End Staff Assignment Section -->
 
-             <div class="mobooking-meta-info">
+             <div class="text-xs text-muted-foreground text-right mt-4">
                 <p><?php esc_html_e('Created:', 'mobooking'); ?> <?php echo esc_html($created_at_formatted); ?> | <?php esc_html_e('Last Updated:', 'mobooking'); ?> <?php echo esc_html($updated_at_formatted); ?></p>
             </div>
         </div>
     </div>
 
-    <!-- Services & Pricing Panel -->
-    <div class="mobooking-sbs-panel">
-        <div class="mobooking-sbs-panel-header">
-             <?php echo mobooking_get_feather_icon('list'); ?>
-            <h3><?php esc_html_e('Services & Pricing', 'mobooking'); ?></h3>
+    <!-- Services & Pricing Card -->
+    <div class="mobooking-card card-bs">
+        <div class="mobooking-card-header">
+            <div class="mobooking-card-title-group">
+                <span class="mobooking-card-icon"><?php echo mobooking_get_feather_icon('list'); ?></span>
+                <h3 class="mobooking-card-title"><?php esc_html_e('Services & Pricing', 'mobooking'); ?></h3>
+            </div>
         </div>
-        <div class="mobooking-sbs-panel-content">
+        <div class="mobooking-card-content">
             <?php if (isset($booking['items']) && is_array($booking['items']) && !empty($booking['items'])): ?>
                 <table class="mobooking-services-table">
                     <thead>
@@ -488,35 +342,37 @@ if (!function_exists('mobooking_get_status_badge_icon_svg')) {
         </div>
     </div>
 
-    <div class="mobooking-sbs-panel">
-        <div class="mobooking-sbs-panel-header">
-            <?php echo mobooking_get_feather_icon('info'); ?>
-            <h3><?php esc_html_e('Advanced Details', 'mobooking'); ?></h3>
+    <div class="mobooking-card card-bs">
+        <div class="mobooking-card-header">
+            <div class="mobooking-card-title-group">
+                <span class="mobooking-card-icon"><?php echo mobooking_get_feather_icon('info'); ?></span>
+                <h3 class="mobooking-card-title"><?php esc_html_e('Advanced Details', 'mobooking'); ?></h3>
+            </div>
         </div>
-        <div class="mobooking-sbs-panel-content">
-            <div class="mobooking-sbs-grid">
-                <div class="mobooking-sbs-item">
-                    <strong><?php esc_html_e('Service Frequency:', 'mobooking'); ?></strong>
-                    <span><?php echo esc_html(ucfirst($booking['service_frequency'] ?? 'one-time')); ?></span>
+        <div class="mobooking-card-content">
+            <div class="kpi-grid">
+                <div class="mb-3">
+                    <strong class="block font-semibold text-sm mb-1"><?php esc_html_e('Service Frequency:', 'mobooking'); ?></strong>
+                    <span class="text-sm text-muted-foreground"><?php echo esc_html(ucfirst($booking['service_frequency'] ?? 'one-time')); ?></span>
                 </div>
-                <div class="mobooking-sbs-item">
-                    <strong><?php esc_html_e('Has Pets:', 'mobooking'); ?></strong>
-                    <span><?php echo ($booking['has_pets'] ?? false) ? 'Yes' : 'No'; ?></span>
+                <div class="mb-3">
+                    <strong class="block font-semibold text-sm mb-1"><?php esc_html_e('Has Pets:', 'mobooking'); ?></strong>
+                    <span class="text-sm text-muted-foreground"><?php echo ($booking['has_pets'] ?? false) ? 'Yes' : 'No'; ?></span>
                 </div>
                 <?php if ($booking['has_pets'] ?? false): ?>
-                <div class="mobooking-sbs-item">
-                    <strong><?php esc_html_e('Pet Details:', 'mobooking'); ?></strong>
-                    <span><?php echo nl2br(esc_html($booking['pet_details'] ?? '')); ?></span>
+                <div class="mb-3">
+                    <strong class="block font-semibold text-sm mb-1"><?php esc_html_e('Pet Details:', 'mobooking'); ?></strong>
+                    <span class="text-sm text-muted-foreground"><?php echo nl2br(esc_html($booking['pet_details'] ?? '')); ?></span>
                 </div>
                 <?php endif; ?>
-                <div class="mobooking-sbs-item">
-                    <strong><?php esc_html_e('Property Access Method:', 'mobooking'); ?></strong>
-                    <span><?php echo esc_html(ucfirst($booking['property_access_method'] ?? 'N/A')); ?></span>
+                <div class="mb-3">
+                    <strong class="block font-semibold text-sm mb-1"><?php esc_html_e('Property Access Method:', 'mobooking'); ?></strong>
+                    <span class="text-sm text-muted-foreground"><?php echo esc_html(ucfirst($booking['property_access_method'] ?? 'N/A')); ?></span>
                 </div>
                 <?php if (!empty($booking['property_access_details'])): ?>
-                <div class="mobooking-sbs-item">
-                    <strong><?php esc_html_e('Property Access Details:', 'mobooking'); ?></strong>
-                    <span><?php echo nl2br(esc_html($booking['property_access_details'])); ?></span>
+                <div class="mb-3">
+                    <strong class="block font-semibold text-sm mb-1"><?php esc_html_e('Property Access Details:', 'mobooking'); ?></strong>
+                    <span class="text-sm text-muted-foreground"><?php echo nl2br(esc_html($booking['property_access_details'])); ?></span>
                 </div>
                 <?php endif; ?>
             </div>
@@ -524,12 +380,14 @@ if (!function_exists('mobooking_get_status_badge_icon_svg')) {
     </div>
 
     <?php if (!empty($booking['special_instructions'])): ?>
-    <div class="mobooking-sbs-panel">
-        <div class="mobooking-sbs-panel-header">
-            <?php echo mobooking_get_feather_icon('message-square'); ?>
-            <h3><?php esc_html_e('Special Instructions', 'mobooking'); ?></h3>
+    <div class="mobooking-card card-bs">
+        <div class="mobooking-card-header">
+            <div class="mobooking-card-title-group">
+                <span class="mobooking-card-icon"><?php echo mobooking_get_feather_icon('message-square'); ?></span>
+                <h3 class="mobooking-card-title"><?php esc_html_e('Special Instructions', 'mobooking'); ?></h3>
+            </div>
         </div>
-        <div class="mobooking-sbs-panel-content">
+        <div class="mobooking-card-content">
             <p><?php echo nl2br(esc_html($booking['special_instructions'])); ?></p>
         </div>
     </div>
