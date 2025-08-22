@@ -10,12 +10,10 @@ jQuery(document).ready(function ($) {
 
     const form = $(this);
     const saveButton = $("#mobooking-save-bf-settings-btn");
-    const feedbackDiv = $("#mobooking-settings-feedback");
     const originalButtonText = saveButton.text();
 
     // Disable form and show loading state
     saveButton.prop("disabled", true).text("Saving...");
-    feedbackDiv.hide().removeClass("notice-success notice-error");
 
     // Enhanced data collection function
     function collectFormData() {
@@ -104,49 +102,130 @@ jQuery(document).ready(function ($) {
     });
   });
 
-  // Helper function to update shareable links
-  function updateShareableLinks(slug) {
-    if (!slug) return;
+    // Share & Embed logic
+    const businessSlugInput = $('#bf_business_slug');
+    const publicLinkInput = $('#mobooking-public-link');
+    const embedCodeTextarea = $('#mobooking-embed-code');
+    const copyLinkBtn = $('#mobooking-copy-public-link-btn');
+    const copyEmbedBtn = $('#mobooking-copy-embed-code-btn');
 
-    const baseUrl =
-      window.mobooking_bf_settings_params.site_url ||
-      window.location.origin + "/";
-    const publicUrl = baseUrl + "bookings/" + slug + "/";
-    const embedUrl = baseUrl + "bookings/" + slug + "/embed/";
+    let baseSiteUrl = (typeof mobooking_bf_settings_params !== 'undefined' && mobooking_bf_settings_params.site_url)
+        ? mobooking_bf_settings_params.site_url
+        : window.location.origin + '/';
 
-    // Update public link
-    $("#bf-public-link").attr("href", publicUrl).text(publicUrl);
-
-    // Update embed code
-    const embedCode = `<iframe src="${embedUrl}" width="100%" height="600" frameborder="0"></iframe>`;
-    $("#bf-embed-code").val(embedCode);
-
-    // Update QR code if present
-    const qrContainer = $("#qr-code-container");
-    if (qrContainer.length) {
-      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(
-        publicUrl
-      )}`;
-      qrContainer.html(`<img src="${qrUrl}" alt="QR Code" />`);
+    if (baseSiteUrl.slice(-1) !== '/') {
+        baseSiteUrl += '/';
     }
-  }
 
-  // Real-time slug sanitization for better UX
-  $("input[name='bf_business_slug']").on("input", function () {
-    const input = $(this);
-    let value = input.val();
+    function updateShareableLinks(slug) {
+        const sanitizedSlug = slug.trim().toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, '');
+        if (sanitizedSlug) {
+            const publicLink = baseSiteUrl + 'booking/' + sanitizedSlug + '/';
+            const embedCode = `<iframe src="${publicLink}" title="Booking Form" style="width:100%; height:800px; border:1px solid #ccc;"></iframe>`;
 
-    // Sanitize slug in real-time
-    value = value
-      .toLowerCase()
-      .replace(/[^a-z0-9\-]/g, "")
-      .replace(/\-+/g, "-")
-      .replace(/^\-|\-$/g, "");
+            publicLinkInput.val(publicLink);
+            embedCodeTextarea.val(embedCode);
+            copyLinkBtn.prop('disabled', false);
+            copyEmbedBtn.prop('disabled', false);
 
-    if (input.val() !== value) {
-      input.val(value);
+            const previewLink = publicLinkInput.closest('.input-group').find('a.btn-outline');
+            if (previewLink.length) {
+                previewLink.attr('href', publicLink).show();
+            } else {
+                 publicLinkInput.closest('.input-group').append(`<a href="${publicLink}" target="_blank" class="btn btn-outline">Preview</a>`);
+            }
+
+        } else {
+            publicLinkInput.val('').attr('placeholder', 'Link will appear here once slug is saved.');
+            embedCodeTextarea.val('').attr('placeholder', 'Embed code will appear here once slug is saved.');
+            copyLinkBtn.prop('disabled', true);
+            copyEmbedBtn.prop('disabled', true);
+            publicLinkInput.closest('.input-group').find('a.btn-outline').hide();
+        }
     }
-  });
+
+    if (businessSlugInput.length) {
+        businessSlugInput.on('input', function() {
+            updateShareableLinks($(this).val());
+        });
+        updateShareableLinks(businessSlugInput.val());
+    }
+
+    function copyToClipboard(text, button) {
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(text).then(() => showCopySuccess(button), () => fallbackCopyTextToClipboard(text, button));
+        } else {
+            fallbackCopyTextToClipboard(text, button);
+        }
+    }
+
+    function fallbackCopyTextToClipboard(text, button) {
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        try {
+            document.execCommand('copy');
+            showCopySuccess(button);
+        } catch (err) {
+            window.showAlert('Failed to copy text.', 'error');
+        }
+        document.body.removeChild(textArea);
+    }
+
+    function showCopySuccess(button) {
+        const originalText = button.text();
+        button.text('Copied!').addClass('btn-primary').removeClass('btn-secondary');
+        setTimeout(() => {
+            button.text(originalText).removeClass('btn-primary').addClass('btn-secondary');
+        }, 2000);
+    }
+
+    copyLinkBtn.on('click', () => copyToClipboard(publicLinkInput.val(), copyLinkBtn));
+    copyEmbedBtn.on('click', () => copyToClipboard(embedCodeTextarea.val(), copyEmbedBtn));
+
+    // Form state management
+    $('#bf_form_enabled').on('change', function() {
+        const isEnabled = $(this).is(':checked');
+        const maintenanceField = $('#bf_maintenance_message').closest('.form-group');
+        if (isEnabled) {
+            maintenanceField.hide();
+        } else {
+            maintenanceField.show();
+        }
+    }).trigger('change');
+
+    // Flush rewrite rules
+    $('#mobooking-flush-rewrite-rules-btn').on('click', function(e) {
+        e.preventDefault();
+        const button = $(this);
+        button.prop('disabled', true).text('Flushing...');
+
+        $.ajax({
+            url: window.mobooking_bf_settings_params.ajax_url,
+            type: 'POST',
+            data: {
+                action: 'mobooking_flush_rewrite_rules',
+                nonce: window.mobooking_bf_settings_params.nonce
+            },
+            success: function(response) {
+                if (response.success) {
+                    window.showAlert(response.data.message || 'Rewrite rules flushed successfully.', 'success');
+                } else {
+                    window.showAlert(response.data.message || 'Failed to flush rewrite rules.', 'error');
+                }
+            },
+            error: function() {
+                window.showAlert('An error occurred while flushing rewrite rules.', 'error');
+            },
+            complete: function() {
+                button.prop('disabled', false).text('Flush Rewrite Rules');
+            }
+        });
+    });
 
   // Initialize color pickers if available
   if (typeof $.fn.wpColorPicker === "function") {
@@ -187,6 +266,24 @@ jQuery(document).ready(function ($) {
       targetTab.trigger("click");
     }
   }
+
+  // Modern Toggle Switch handler
+  function updateSwitchState(input) {
+    const switchLabel = $(input).closest('.switch');
+    if ($(input).is(':checked')) {
+      switchLabel.addClass('switch-checked');
+    } else {
+      switchLabel.removeClass('switch-checked');
+    }
+  }
+
+  $('.switch input[type="checkbox"]').each(function () {
+    updateSwitchState(this);
+  });
+
+  $('.switch input[type="checkbox"]').on('change', function () {
+    updateSwitchState(this);
+  });
 });
 
 // Backup parameter initialization if not properly localized

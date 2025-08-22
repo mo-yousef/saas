@@ -62,6 +62,68 @@ class BookingFormAjax {
         
         add_action('wp_ajax_nopriv_mobooking_create_booking', [$this, 'handle_create_booking_public_ajax']);
         add_action('wp_ajax_mobooking_create_booking', [$this, 'handle_create_booking_public_ajax']);
+
+        // Dashboard settings AJAX handlers
+        add_action('wp_ajax_mobooking_save_booking_form_settings', [$this, 'handle_save_booking_form_settings']);
+        add_action('wp_ajax_mobooking_flush_rewrite_rules', [$this, 'handle_flush_rewrite_rules']);
+    }
+
+    /**
+     * Handle saving booking form settings from the dashboard
+     */
+    public function handle_save_booking_form_settings() {
+        if (!current_user_can('manage_options') || !check_ajax_referer('mobooking_dashboard_nonce', 'nonce', false)) {
+            wp_send_json_error(['message' => __('Security check failed.', 'mobooking')], 403);
+            return;
+        }
+
+        $settings = isset($_POST['settings']) && is_array($_POST['settings']) ? $_POST['settings'] : [];
+        if (empty($settings)) {
+            wp_send_json_error(['message' => __('No settings data received.', 'mobooking')], 400);
+            return;
+        }
+
+        try {
+            $settings_manager = new Settings();
+            $user_id = get_current_user_id();
+
+            // Sanitize all settings before saving
+            $sanitized_settings = $settings_manager->sanitize_booking_form_settings($settings);
+
+            // Save the settings
+            $result = $settings_manager->save_booking_form_settings($user_id, $sanitized_settings);
+
+            if ($result) {
+                // After saving, especially if the slug changed, flush rewrite rules
+                if (isset($sanitized_settings['bf_business_slug'])) {
+                    flush_rewrite_rules();
+                }
+                wp_send_json_success(['message' => __('Booking form settings saved successfully!', 'mobooking')]);
+            } else {
+                wp_send_json_error(['message' => __('Failed to save settings. Please try again.', 'mobooking')], 500);
+            }
+        } catch (\Exception $e) {
+            error_log('MoBooking - Save settings error: ' . $e->getMessage());
+            wp_send_json_error(['message' => __('An unexpected error occurred while saving settings.', 'mobooking')], 500);
+        }
+    }
+
+    /**
+     * Handle flushing rewrite rules from the dashboard
+     */
+    public function handle_flush_rewrite_rules() {
+        if (!current_user_can('manage_options') || !check_ajax_referer('mobooking_dashboard_nonce', 'nonce', false)) {
+            wp_send_json_error(['message' => __('Security check failed.', 'mobooking')], 403);
+            return;
+        }
+
+        try {
+            flush_rewrite_rules();
+            wp_send_json_success(['message' => __('Rewrite rules have been flushed successfully.', 'mobooking')]);
+        } catch (\Exception $e) {
+            error_log('MoBooking - Flush rewrite rules error: ' . $e->getMessage());
+            wp_send_json_error(['message' => __('An error occurred while flushing rewrite rules.', 'mobooking')], 500);
+        }
     }
 
     /**
