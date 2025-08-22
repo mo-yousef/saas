@@ -40,6 +40,7 @@ class Areas {
         add_action('wp_ajax_mobooking_remove_country_coverage', [$this, 'handle_remove_country_coverage_ajax']);
         add_action('wp_ajax_mobooking_save_city_areas', [$this, 'handle_save_city_areas_ajax']);
         add_action('wp_ajax_mobooking_remove_city_coverage', [$this, 'handle_remove_city_coverage_ajax']);
+        add_action('wp_ajax_mobooking_update_city_status', [$this, 'handle_update_status_for_city_ajax']);
     }
 
     /**
@@ -649,16 +650,12 @@ public function get_service_coverage(int $user_id, $args = []) {
             return ['coverage' => [], 'total_count' => 0, 'per_page' => 0, 'current_page' => 1];
         }
 
-        // Assuming a fixed country for now, as per the frontend's implementation.
-        $country_code = 'SE';
         $city_name = sanitize_text_field($args['city']);
         $city_zips = [];
 
-        if (isset($area_data[$country_code]['cities'][$city_name])) {
-            foreach ($area_data[$country_code]['cities'][$city_name] as $area_info) {
-                if (isset($area_info['zip'])) {
-                    $city_zips[] = $area_info['zip'];
-                }
+        foreach ($area_data as $location) {
+            if (isset($location['state']) && $location['state'] === $city_name && isset($location['zipcode'])) {
+                $city_zips[] = $location['zipcode'];
             }
         }
 
@@ -687,15 +684,15 @@ public function get_service_coverage_grouped(int $user_id, $filters = []) {
         return ['cities' => []];
     }
 
-    // 1. Get all saved ZIP codes for the user.
+    // 1. Get all saved areas (zip and status) for the user.
     $table_name = Database::get_table_name('areas');
     $where_conditions = ["user_id = %d", "area_type = 'zip_code'"];
     $where_values = [$user_id];
     $where_clause = 'WHERE ' . implode(' AND ', $where_conditions);
-    $sql = "SELECT area_value FROM $table_name $where_clause";
-    $saved_zips = $this->wpdb->get_col($this->wpdb->prepare($sql, $where_values));
+    $sql = "SELECT area_value, status FROM $table_name $where_clause";
+    $saved_areas = $this->wpdb->get_results($this->wpdb->prepare($sql, $where_values), OBJECT_K);
 
-    if (empty($saved_zips)) {
+    if (empty($saved_areas)) {
         return ['cities' => []];
     }
 
@@ -709,25 +706,29 @@ public function get_service_coverage_grouped(int $user_id, $filters = []) {
     $zip_to_state_map = [];
     foreach ($area_data as $location) {
         if (isset($location['zipcode']) && isset($location['state'])) {
-            $zip_to_state_map[$location['zipcode']] = $location['state'];
+            // Sanitize the zip from the file to match the format in the DB
+            $sanitized_zip = str_replace(' ', '', $location['zipcode']);
+            $zip_to_state_map[$sanitized_zip] = $location['state'];
         }
     }
 
-    // 4. Group saved zips by state and count them.
-    $state_counts = [];
-    foreach ($saved_zips as $zip) {
-        if (isset($zip_to_state_map[$zip])) {
-            $state_name = $zip_to_state_map[$zip];
-            if (!isset($state_counts[$state_name])) {
-                $state_counts[$state_name] = 0;
+    // 4. Group saved areas by state, count them, and determine collective status.
+    $state_groups = [];
+    foreach ($saved_areas as $zip => $area_details) {
+        $sanitized_zip = str_replace(' ', '', $zip);
+        if (isset($zip_to_state_map[$sanitized_zip])) {
+            $state_name = $zip_to_state_map[$sanitized_zip];
+            if (!isset($state_groups[$state_name])) {
+                $state_groups[$state_name] = ['area_count' => 0, 'statuses' => []];
             }
-            $state_counts[$state_name]++;
+            $state_groups[$state_name]['area_count']++;
+            $state_groups[$state_name]['statuses'][] = $area_details->status;
         }
     }
 
     // 5. Format the output to match what the frontend expects, applying filters.
     $results = [];
-    foreach ($state_counts as $state_name => $count) {
+    foreach ($state_groups as $state_name => $group_details) {
         // Apply text search filter
         if (!empty($filters['search']) && stripos($state_name, $filters['search']) === false) {
             continue;
@@ -738,11 +739,15 @@ public function get_service_coverage_grouped(int $user_id, $filters = []) {
             continue;
         }
 
+        // Determine overall status: 'inactive' only if all areas are inactive.
+        $unique_statuses = array_unique($group_details['statuses']);
+        $status = (count($unique_statuses) === 1 && $unique_statuses[0] === 'inactive') ? 'inactive' : 'active';
+
         $results[] = [
             'city_name' => $state_name,
             'city_code' => $state_name,
-            'area_count' => $count,
-            'status' => 'active' // Hardcoding status as it's not part of the current data model.
+            'area_count' => $group_details['area_count'],
+            'status' => $status
         ];
     }
 
@@ -1074,4 +1079,75 @@ public function get_areas_count_by_user(int $user_id): int {
 
     return (int) $count;
 }
+
+
+    public function update_status_for_city(int $user_id, string $city_name, string $new_status) {
+        if (empty($user_id) || empty($city_name) || !in_array($new_status, ['active', 'inactive'])) {
+            return new \WP_Error('invalid_params', __('Invalid parameters.', 'mobooking'));
+        }
+
+        // First, get all the zip codes that belong to this city from the JSON file.
+        $area_data = $this->load_area_data_from_json();
+        if (is_wp_error($area_data)) {
+            return $area_data;
+        }
+
+        $city_zips = [];
+        foreach ($area_data as $location) {
+            if (isset($location['state']) && $location['state'] === $city_name && isset($location['zipcode'])) {
+                // Sanitize the zip to match the DB format
+                $city_zips[] = str_replace(' ', '', $location['zipcode']);
+            }
+        }
+
+        if (empty($city_zips)) {
+            // No zips found for this city, nothing to update.
+            return 0;
+        }
+
+        // Now, update the status for all of these zips for the given user.
+        $table_name = Database::get_table_name('areas');
+        $placeholders = implode(', ', array_fill(0, count($city_zips), '%s'));
+
+        $updated_count = $this->wpdb->query($this->wpdb->prepare(
+            "UPDATE $table_name SET status = %s WHERE user_id = %d AND area_type = 'zip_code' AND area_value IN ($placeholders)",
+            array_merge([$new_status, $user_id], $city_zips)
+        ));
+
+        if (false === $updated_count) {
+            return new \WP_Error('db_error', __('Could not update statuses for the city.', 'mobooking'));
+        }
+
+        return $updated_count;
+    }
+
+    public function handle_update_status_for_city_ajax() {
+        check_ajax_referer('mobooking_dashboard_nonce', 'nonce');
+
+        $user_id = get_current_user_id();
+        if (!$user_id) {
+            wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403);
+            return;
+        }
+
+        $city_name = isset($_POST['city_code']) ? sanitize_text_field($_POST['city_code']) : '';
+        $new_status = isset($_POST['status']) ? sanitize_text_field($_POST['status']) : '';
+
+        if (empty($city_name) || empty($new_status)) {
+            wp_send_json_error(['message' => __('City code and status are required.', 'mobooking')], 400);
+            return;
+        }
+
+        $result = $this->update_status_for_city($user_id, $city_name, $new_status);
+
+        if (is_wp_error($result)) {
+            wp_send_json_error(['message' => $result->get_error_message()], 500);
+            return;
+        }
+
+        wp_send_json_success([
+            'message' => sprintf(__('Successfully updated %d areas in %s.', 'mobooking'), $result, $city_name),
+            'updated_count' => $result
+        ]);
+    }
 }

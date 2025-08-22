@@ -160,15 +160,15 @@
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 1rem;
   margin-top: 1rem;
+  max-height: 450px;
+  overflow-y: auto;
+  padding-right: 0.5rem; /* Space for scrollbar */
 }
 
 .modal-area-item {
-  display: flex;
-  align-items: flex-start;
   padding: 0.75rem;
   border: 1px solid var(--dialog-border);
   border-radius: var(--dialog-radius);
-  cursor: pointer;
   transition: background-color 0.2s, border-color 0.2s;
 }
 
@@ -176,8 +176,14 @@
   background-color: var(--dialog-secondary);
 }
 
+.modal-area-item-main {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  width: 100%;
+}
+
 .modal-area-item input[type="checkbox"] {
-  margin-top: 4px;
   margin-right: 0.75rem;
   accent-color: var(--dialog-primary);
 }
@@ -185,12 +191,49 @@
 .modal-area-item .area-name {
   font-weight: 500;
   color: var(--dialog-foreground);
-  display: block;
+  flex-grow: 1;
 }
 
-.modal-area-item .area-zip {
+.area-zip-toggle {
+  background: none;
+  border: none;
+  padding: 0.25rem;
+  margin-left: 0.5rem;
+  cursor: pointer;
+  border-radius: 50%;
+  color: var(--dialog-muted-foreground);
+  transition: background-color 0.2s, transform 0.2s ease-in-out;
+}
+
+.area-zip-toggle:hover {
+  background-color: hsl(210 40% 90%);
+}
+
+.area-zip-toggle svg {
+  display: block;
+  transition: transform 0.2s ease-in-out;
+}
+
+.modal-area-item.is-expanded .area-zip-toggle svg {
+  transform: rotate(180deg);
+}
+
+.area-zip-list {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease-in-out, margin-top 0.3s ease-in-out;
+  padding-left: 28px; /* Align with text after checkbox */
+}
+
+.modal-area-item.is-expanded .area-zip-list {
+  max-height: 200px; /* Adjust as needed */
+  margin-top: 0.75rem;
+  overflow-y: auto;
+}
+
+.area-zip-list .area-zip {
+  display: block;
   font-size: 0.875rem;
   color: var(--dialog-muted-foreground);
-  display: block;
-  margin-top: 0.25rem;
+  padding: 0.25rem 0;
 }

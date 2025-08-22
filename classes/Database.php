@@ -225,11 +225,13 @@ class Database {
             user_id BIGINT UNSIGNED NOT NULL,
             area_type VARCHAR(50) NOT NULL,
             area_value VARCHAR(255) NOT NULL,
+            status VARCHAR(20) NOT NULL DEFAULT 'active',
             country_code VARCHAR(10),
             area_data JSON,
             created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY (area_id),
-            INDEX user_id_idx (user_id)
+            INDEX user_id_idx (user_id),
+            INDEX status_idx (status)
         ) $charset_collate;";
         error_log('[MoBooking DB Debug] SQL for areas table: ' . preg_replace('/\s+/', ' ', $sql_areas));
         $dbDelta_results['areas'] = dbDelta( $sql_areas );
