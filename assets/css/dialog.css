@@ -154,6 +154,29 @@
   animation: slideOut 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+/* Styles for the search input in the dialog */
+.dialog-search-wrapper {
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--dialog-border);
+  margin-bottom: 1rem;
+}
+
+.mobooking-dialog-search-input {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--dialog-border);
+  border-radius: var(--dialog-radius);
+  font-size: 1rem;
+  background-color: var(--dialog-secondary);
+  color: var(--dialog-foreground);
+}
+
+.mobooking-dialog-search-input:focus {
+  outline: 2px solid var(--dialog-primary);
+  outline-offset: 1px;
+  border-color: transparent;
+}
+
 /* Styles for the areas selection grid inside the dialog */
 .modal-areas-grid {
   display: grid;
