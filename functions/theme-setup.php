@@ -327,6 +327,11 @@ if ( is_page_template('templates/booking-form-public.php') || $page_type_for_scr
         // Enqueue the main dashboard stylesheet
         wp_enqueue_style('mobooking-dashboard-main', MOBOOKING_THEME_URI . 'assets/css/dashboard-main.css', array('mobooking-style'), MOBOOKING_VERSION);
 
+        // Enqueue the single booking page stylesheet if we are on the single booking page
+        if ($current_page_slug === 'bookings' && isset($_GET['action']) && $_GET['action'] === 'view_booking') {
+            wp_enqueue_style('mobooking-dashboard-booking-single', MOBOOKING_THEME_URI . 'assets/css/dashboard-booking-single.css', array('mobooking-dashboard-main'), MOBOOKING_VERSION);
+        }
+
         // Enqueue scripts
         wp_enqueue_script('mobooking-dialog', MOBOOKING_THEME_URI . 'assets/js/dialog.js', array(), MOBOOKING_VERSION, true);
         wp_enqueue_script('mobooking-toast', MOBOOKING_THEME_URI . 'assets/js/toast.js', array('jquery'), MOBOOKING_VERSION, true);
