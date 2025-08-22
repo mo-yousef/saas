@@ -102,24 +102,27 @@ class Areas {
     }
 
     /**
-     * Get cities for a country
+     * Get cities (states) for a country from the new JSON format.
      */
     public function get_cities_for_country($country_code) {
         $data = $this->load_area_data_from_json();
-        if (is_wp_error($data)) {
-            return $data;
+        if (is_wp_error($data) || !is_array($data)) {
+            return [];
+        }
+
+        $states = [];
+        foreach ($data as $location) {
+            if (isset($location['country_code']) && $location['country_code'] === $country_code && isset($location['state'])) {
+                $states[$location['state']] = true;
+            }
         }
 
         $cities = [];
-        
-        // FIXED: Access $data[$country_code] directly, not $data['countries'][$country_code]
-        if (isset($data[$country_code]['cities']) && is_array($data[$country_code]['cities'])) {
-            foreach ($data[$country_code]['cities'] as $city_name => $areas_in_city) {
-                $cities[] = [
-                    'code' => $city_name, // Use city name as the code
-                    'name' => $city_name  // City name is the display name
-                ];
-            }
+        foreach (array_keys($states) as $state_name) {
+            $cities[] = [
+                'code' => $state_name,
+                'name' => $state_name,
+            ];
         }
 
         // Sort cities by name
@@ -132,33 +135,35 @@ class Areas {
 
 
     /**
-     * Get areas for a specific city
+     * Get areas (places/zipcodes) for a specific city (state) from the new JSON format.
      */
-public function get_areas_for_city($country_code, $city_code) {
-    $data = $this->load_area_data_from_json();
-    if (is_wp_error($data)) {
-        return $data;
-    }
+    public function get_areas_for_city($country_code, $city_code) {
+        $data = $this->load_area_data_from_json();
+        if (is_wp_error($data) || !is_array($data)) {
+            return [];
+        }
 
-    $areas = [];
-    
-    // FIXED: Access $data[$country_code]['cities'][$city_code] directly
-    if (isset($data[$country_code]['cities'][$city_code]) &&
-        is_array($data[$country_code]['cities'][$city_code])) {
-        
-        foreach ($data[$country_code]['cities'][$city_code] as $area_data_item) {
-            if (is_array($area_data_item) && isset($area_data_item['name']) && isset($area_data_item['zip'])) {
-                $areas[] = [
-                    'name' => $area_data_item['name'],
-                    'zip_code' => $area_data_item['zip'],
-                    'code' => $area_data_item['zip']
-                ];
+        $areas = [];
+        foreach ($data as $location) {
+            if (
+                isset($location['country_code']) && $location['country_code'] === $country_code &&
+                isset($location['state']) && $location['state'] === $city_code &&
+                isset($location['zipcode']) && isset($location['place'])
+            ) {
+                // To avoid duplicate zipcode/place combinations, we can use a key
+                $key = $location['zipcode'] . '|' . $location['place'];
+                if (!isset($areas[$key])) {
+                    $areas[$key] = [
+                        'name' => $location['place'],
+                        'zip_code' => $location['zipcode'],
+                        'code' => $location['zipcode']
+                    ];
+                }
             }
         }
-    }
 
-    return $areas;
-}
+        return array_values($areas); // Return a simple indexed array
+    }
 
     /**
      * Add multiple areas at once (bulk operation)
@@ -706,59 +711,54 @@ public function get_service_coverage_grouped(int $user_id, $filters = []) {
         return ['cities' => []];
     }
 
-    // 2. Load the JSON data to map zips to cities.
+    // 2. Load the new JSON data to map zips to states (cities).
     $area_data = $this->load_area_data_from_json();
-    if (is_wp_error($area_data)) {
-        return ['cities' => []]; // Cannot proceed without this data.
+    if (is_wp_error($area_data) || !is_array($area_data)) {
+        return ['cities' => []];
     }
 
-    // 3. Create a reverse map from ZIP -> City.
-    $zip_to_city_map = [];
-    $country_code = 'SE'; // Hardcoded as per the rest of the feature.
-    if (isset($area_data[$country_code]['cities'])) {
-        foreach ($area_data[$country_code]['cities'] as $city_name => $city_data) {
-            foreach ($city_data as $area_info) {
-                if (isset($area_info['zip'])) {
-                    $zip_to_city_map[$area_info['zip']] = $city_name;
-                }
-            }
+    // 3. Create a reverse map from ZIP -> State.
+    $zip_to_state_map = [];
+    foreach ($area_data as $location) {
+        if (isset($location['zipcode']) && isset($location['state'])) {
+            $zip_to_state_map[$location['zipcode']] = $location['state'];
         }
     }
 
-    // 4. Group saved zips by city and count them.
-    $city_counts = [];
+    // 4. Group saved zips by state and count them.
+    $state_counts = [];
     foreach ($saved_zips as $zip) {
-        if (isset($zip_to_city_map[$zip])) {
-            $city_name = $zip_to_city_map[$zip];
-            if (!isset($city_counts[$city_name])) {
-                $city_counts[$city_name] = 0;
+        if (isset($zip_to_state_map[$zip])) {
+            $state_name = $zip_to_state_map[$zip];
+            if (!isset($state_counts[$state_name])) {
+                $state_counts[$state_name] = 0;
             }
-            $city_counts[$city_name]++;
+            $state_counts[$state_name]++;
         }
     }
 
     // 5. Format the output to match what the frontend expects, applying filters.
     $results = [];
-    foreach ($city_counts as $city_name => $count) {
-        // Apply text search filter (from the main search bar)
-        if (!empty($filters['search']) && stripos($city_name, $filters['search']) === false) {
+    foreach ($state_counts as $state_name => $count) {
+        // Apply text search filter
+        if (!empty($filters['search']) && stripos($state_name, $filters['search']) === false) {
             continue;
         }
 
-        // Apply city dropdown filter
-        if (!empty($filters['city']) && $filters['city'] !== $city_name) {
+        // Apply city/state dropdown filter
+        if (!empty($filters['city']) && $filters['city'] !== $state_name) {
             continue;
         }
 
         $results[] = [
-            'city_name' => $city_name,
-            'city_code' => $city_name, // Use name as code, consistent with other parts.
+            'city_name' => $state_name,
+            'city_code' => $state_name,
             'area_count' => $count,
-            'status' => 'active' // Hardcoding status as we don't have this concept per city yet.
+            'status' => 'active' // Hardcoding status as it's not part of the current data model.
         ];
     }
 
-    // Sort the final results alphabetically by city name
+    // Sort the final results alphabetically by state name
     usort($results, function($a, $b) {
         return strcmp($a['city_name'], $b['city_name']);
     });
@@ -916,40 +916,36 @@ public function handle_save_city_areas_ajax() {
         return;
     }
 
-    $city_name = isset($_POST['city_code']) ? sanitize_text_field($_POST['city_code']) : '';
+    $state_name = isset($_POST['city_code']) ? sanitize_text_field($_POST['city_code']) : '';
     $areas_data = isset($_POST['areas_data']) ? $_POST['areas_data'] : [];
 
-    if (empty($city_name)) {
-        wp_send_json_error(['message' => __('City code is required.', 'mobooking')], 400);
+    if (empty($state_name)) {
+        wp_send_json_error(['message' => __('State (City) code is required.', 'mobooking')], 400);
         return;
     }
 
-    // Get all ZIP codes for the specified city from the JSON file.
+    // Get all ZIP codes for the specified state from the new JSON file.
     $area_data = $this->load_area_data_from_json();
-    if (is_wp_error($area_data)) {
+    if (is_wp_error($area_data) || !is_array($area_data)) {
         wp_send_json_error(['message' => 'Could not load area data file.'], 500);
         return;
     }
 
-    $country_code = 'SE'; // Hardcoded as per frontend
-    $city_zips = [];
-    if (isset($area_data[$country_code]['cities'][$city_name])) {
-        foreach ($area_data[$country_code]['cities'][$city_name] as $area_info) {
-            if (isset($area_info['zip'])) {
-                $city_zips[] = $area_info['zip'];
-            }
+    $state_zips = [];
+    foreach ($area_data as $location) {
+        if (isset($location['state']) && $location['state'] === $state_name && isset($location['zipcode'])) {
+            $state_zips[] = $location['zipcode'];
         }
     }
 
-    // Delete all existing database entries for this user for any of the city's ZIP codes.
-    if (!empty($city_zips)) {
+    // Delete all existing database entries for this user for any of the state's ZIP codes.
+    if (!empty($state_zips)) {
         $table_name = Database::get_table_name('areas');
-
-        $placeholders = implode(', ', array_fill(0, count($city_zips), '%s'));
+        $placeholders = implode(', ', array_fill(0, count($state_zips), '%s'));
 
         $this->wpdb->query($this->wpdb->prepare(
             "DELETE FROM $table_name WHERE user_id = %d AND area_type = 'zip_code' AND area_value IN ($placeholders)",
-            array_merge([$user_id], $city_zips)
+            array_merge([$user_id], $state_zips)
         ));
     }
 
