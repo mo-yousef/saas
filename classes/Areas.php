@@ -172,13 +172,12 @@ public function get_areas_for_city($country_code, $city_code) {
 
         foreach ($areas_data as $area_data) {
             // Validate required fields
-            if (empty($area_data['area_name']) || empty($area_data['area_zipcode']) || empty($area_data['country_name'])) {
+            if (empty($area_data['area_zipcode']) || empty($area_data['country_name'])) {
                 $errors[] = __('Missing required fields for one or more areas.', 'mobooking');
                 continue;
             }
 
             $country_name = sanitize_text_field($area_data['country_name']);
-            $area_name = sanitize_text_field($area_data['area_name']);
             $area_zipcode = sanitize_text_field(str_replace(' ', '', strtoupper($area_data['area_zipcode'])));
 
             // Get country code
@@ -204,7 +203,6 @@ public function get_areas_for_city($country_code, $city_code) {
             $insert_data = [
                 'user_id' => $user_id,
                 'area_type' => 'zip_code',
-                'area_name' => $area_name,
                 'area_value' => $area_zipcode,
                 'country_code' => $db_country_code,
                 'created_at' => current_time('mysql', 1)
@@ -213,16 +211,15 @@ public function get_areas_for_city($country_code, $city_code) {
             $inserted = $this->wpdb->insert(
                 $table_name,
                 $insert_data,
-                ['%d', '%s', '%s', '%s', '%s', '%s']
+                ['%d', '%s', '%s', '%s', '%s']
             );
 
             if ($inserted) {
                 $added_count++;
             } else {
                 $errors[] = sprintf(
-                    __('Failed to insert area: %s, %s (%s). Error: %s', 'mobooking'),
+                __('Failed to insert area: %s (%s). Error: %s', 'mobooking'),
                     esc_html($country_name),
-                    esc_html($area_name),
                     esc_html($area_zipcode),
                     esc_html($this->wpdb->last_error)
                 );
@@ -259,8 +256,7 @@ public function get_areas_for_city($country_code, $city_code) {
         // Add search filter
         if (!empty($args['search'])) {
             $search_term = '%' . $this->wpdb->esc_like($args['search']) . '%';
-            $where_conditions[] = '(area_name LIKE %s OR area_value LIKE %s OR country_code LIKE %s)';
-            $where_values[] = $search_term;
+            $where_conditions[] = '(area_value LIKE %s OR country_code LIKE %s)';
             $where_values[] = $search_term;
             $where_values[] = $search_term;
         }
@@ -282,7 +278,7 @@ public function get_areas_for_city($country_code, $city_code) {
         $total_count = $this->wpdb->get_var($this->wpdb->prepare($total_count_sql, $where_values));
 
         // Get paginated results
-        $sql = "SELECT * FROM $table_name $where_clause ORDER BY country_code ASC, area_name ASC LIMIT %d OFFSET %d";
+        $sql = "SELECT * FROM $table_name $where_clause ORDER BY country_code ASC, area_value ASC LIMIT %d OFFSET %d";
         $areas = $this->wpdb->get_results(
             $this->wpdb->prepare($sql, array_merge($where_values, [$limit, $offset])), 
             ARRAY_A
@@ -622,22 +618,15 @@ public function get_service_coverage(int $user_id, $args = []) {
     }
 
     $table_name = Database::get_table_name('areas');
-    $paged = isset($args['paged']) ? max(1, intval($args['paged'])) : 1;
-    $limit = isset($args['limit']) ? max(1, intval($args['limit'])) : 20;
-    $offset = ($paged - 1) * $limit;
-    $where_conditions = ['user_id = %d'];
+
+    // Base query to get all saved ZIP codes for the user
+    $where_conditions = ["user_id = %d", "area_type = 'zip_code'"];
     $where_values = [$user_id];
 
     if (!empty($args['search'])) {
         $search_term = '%' . $this->wpdb->esc_like($args['search']) . '%';
-        $where_conditions[] = '(area_name LIKE %s OR area_value LIKE %s)';
+        $where_conditions[] = 'area_value LIKE %s';
         $where_values[] = $search_term;
-        $where_values[] = $search_term;
-    }
-
-    if (!empty($args['city'])) {
-        $where_conditions[] = 'area_name = %s';
-        $where_values[] = sanitize_text_field($args['city']);
     }
 
     if (!empty($args['status'])) {
@@ -646,12 +635,51 @@ public function get_service_coverage(int $user_id, $args = []) {
     }
 
     $where_clause = 'WHERE ' . implode(' AND ', $where_conditions);
-    $total_count_sql = "SELECT COUNT(area_id) FROM $table_name $where_clause";
-    $total_count = $this->wpdb->get_var($this->wpdb->prepare($total_count_sql, $where_values));
-    $sql = "SELECT * FROM $table_name $where_clause ORDER BY area_name ASC, area_value ASC LIMIT %d OFFSET %d";
-    $coverage = $this->wpdb->get_results($this->wpdb->prepare($sql, array_merge($where_values, [$limit, $offset])), ARRAY_A);
+    $sql = "SELECT * FROM $table_name $where_clause ORDER BY area_value ASC";
+    $all_user_areas = $this->wpdb->get_results($this->wpdb->prepare($sql, $where_values), ARRAY_A);
 
-    return ['coverage' => $coverage, 'total_count' => (int) $total_count, 'per_page' => $limit, 'current_page' => $paged];
+    $final_areas = $all_user_areas;
+
+    // If a city filter is applied, we must filter the results in PHP
+    // because the database does not link ZIP codes to cities.
+    if (!empty($args['city'])) {
+        $area_data = $this->load_area_data_from_json();
+        if (is_wp_error($area_data)) {
+            // If we can't load the JSON, we can't filter, so return empty.
+            return ['coverage' => [], 'total_count' => 0, 'per_page' => 0, 'current_page' => 1];
+        }
+
+        // Assuming a fixed country for now, as per the frontend's implementation.
+        $country_code = 'SE';
+        $city_name = sanitize_text_field($args['city']);
+        $city_zips = [];
+
+        if (isset($area_data[$country_code]['cities'][$city_name])) {
+            foreach ($area_data[$country_code]['cities'][$city_name] as $area_info) {
+                if (isset($area_info['zip'])) {
+                    $city_zips[] = $area_info['zip'];
+                }
+            }
+        }
+
+        // Filter the database results to include only ZIPs that exist in the specified city
+        $final_areas = array_filter($all_user_areas, function($area) use ($city_zips) {
+            return in_array($area['area_value'], $city_zips);
+        });
+    }
+
+    // Apply pagination to the final, filtered list of areas
+    $paged = isset($args['paged']) ? max(1, intval($args['paged'])) : 1;
+    $limit = isset($args['limit']) ? intval($args['limit']) : 20;
+    if ($limit === -1 || $limit > 9000) { // Handle "get all" case
+        $limit = count($final_areas);
+    }
+    $offset = ($paged - 1) * $limit;
+
+    $total_count = count($final_areas);
+    $paginated_areas = array_slice($final_areas, $offset, $limit);
+
+    return ['coverage' => $paginated_areas, 'total_count' => (int) $total_count, 'per_page' => $limit, 'current_page' => $paged];
 }
 
 public function get_service_coverage_grouped(int $user_id, $filters = []) {
@@ -837,22 +865,44 @@ public function handle_save_city_areas_ajax() {
         return;
     }
 
-    $city_code = isset($_POST['city_code']) ? sanitize_text_field($_POST['city_code']) : '';
+    $city_name = isset($_POST['city_code']) ? sanitize_text_field($_POST['city_code']) : '';
     $areas_data = isset($_POST['areas_data']) ? $_POST['areas_data'] : [];
 
-    if (empty($city_code)) {
+    if (empty($city_name)) {
         wp_send_json_error(['message' => __('City code is required.', 'mobooking')], 400);
         return;
     }
 
-    // First, remove all existing areas for this city
-    $this->wpdb->delete(
-        Database::get_table_name('areas'),
-        ['user_id' => $user_id, 'area_name' => $city_code],
-        ['%d', '%s']
-    );
+    // Get all ZIP codes for the specified city from the JSON file.
+    $area_data = $this->load_area_data_from_json();
+    if (is_wp_error($area_data)) {
+        wp_send_json_error(['message' => 'Could not load area data file.'], 500);
+        return;
+    }
 
-    // Now, add the new areas
+    $country_code = 'SE'; // Hardcoded as per frontend
+    $city_zips = [];
+    if (isset($area_data[$country_code]['cities'][$city_name])) {
+        foreach ($area_data[$country_code]['cities'][$city_name] as $area_info) {
+            if (isset($area_info['zip'])) {
+                $city_zips[] = $area_info['zip'];
+            }
+        }
+    }
+
+    // Delete all existing database entries for this user for any of the city's ZIP codes.
+    if (!empty($city_zips)) {
+        $table_name = Database::get_table_name('areas');
+
+        $placeholders = implode(', ', array_fill(0, count($city_zips), '%s'));
+
+        $this->wpdb->query($this->wpdb->prepare(
+            "DELETE FROM $table_name WHERE user_id = %d AND area_type = 'zip_code' AND area_value IN ($placeholders)",
+            array_merge([$user_id], $city_zips)
+        ));
+    }
+
+    // Add the new areas from the submission.
     $result = $this->add_bulk_areas($user_id, $areas_data);
 
     if (is_wp_error($result)) {
@@ -872,25 +922,50 @@ public function handle_remove_city_coverage_ajax() {
         return;
     }
 
-    $city_code = isset($_POST['city_code']) ? sanitize_text_field($_POST['city_code']) : '';
+    $city_name = isset($_POST['city_code']) ? sanitize_text_field($_POST['city_code']) : '';
 
-    if (empty($city_code)) {
+    if (empty($city_name)) {
         wp_send_json_error(['message' => __('City code is required.', 'mobooking')], 400);
         return;
     }
 
-    $deleted = $this->wpdb->delete(
-        Database::get_table_name('areas'),
-        ['user_id' => $user_id, 'area_name' => $city_code],
-        ['%d', '%s']
-    );
+    // Get all ZIP codes for the specified city from the JSON file.
+    $area_data = $this->load_area_data_from_json();
+    if (is_wp_error($area_data)) {
+        wp_send_json_error(['message' => 'Could not load area data file.'], 500);
+        return;
+    }
 
-    if (false === $deleted) {
+    $country_code = 'SE'; // Hardcoded as per frontend
+    $city_zips = [];
+    if (isset($area_data[$country_code]['cities'][$city_name])) {
+        foreach ($area_data[$country_code]['cities'][$city_name] as $area_info) {
+            if (isset($area_info['zip'])) {
+                $city_zips[] = $area_info['zip'];
+            }
+        }
+    }
+
+    $deleted_count = 0;
+    if (!empty($city_zips)) {
+        $table_name = Database::get_table_name('areas');
+        $placeholders = implode(', ', array_fill(0, count($city_zips), '%s'));
+
+        $deleted_count = $this->wpdb->query($this->wpdb->prepare(
+            "DELETE FROM $table_name WHERE user_id = %d AND area_type = 'zip_code' AND area_value IN ($placeholders)",
+            array_merge([$user_id], $city_zips)
+        ));
+    }
+
+    if (false === $deleted_count) {
         wp_send_json_error(['message' => __('Could not remove city coverage.', 'mobooking')], 500);
         return;
     }
 
-    wp_send_json_success(['deleted_count' => $deleted]);
+    wp_send_json_success([
+        'message' => sprintf(__('%d service areas removed for %s.', 'mobooking'), $deleted_count, $city_name),
+        'deleted_count' => $deleted_count
+    ]);
 }
 
 /**
