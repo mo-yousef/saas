@@ -1,22 +1,93 @@
-{
-  "SE": {
-    "name": "Sweden",
-    "cities": {
-      "Stockholm": [
-        {"name": "Norrmalm", "zip": "11120"},
-        {"name": "Södermalm", "zip": "11620"},
-        {"name": "Kungsholmen", "zip": "11220"},
-        {"name": "Östermalm", "zip": "11420"}
-      ],
-      "Gothenburg": [
-        {"name": "Majorna", "zip": "41450"},
-        {"name": "Linné", "zip": "41304"},
-        {"name": "Hisingen", "zip": "41700"}
-      ],
-      "Malmo": [
-        {"name": "Västra Hamnen", "zip": "21110"},
-        {"name": "Gamla Staden", "zip": "21122"}
-      ]
-    }
+[
+  {
+    "country_code": "SE",
+    "zipcode": "11120",
+    "place": "Norrmalm",
+    "state": "Stockholm",
+    "state_code": "AB",
+    "province": "Stockholm",
+    "province_code": "0180",
+    "community": "Stockholm",
+    "community_code": "0180",
+    "latitude": "59.3328",
+    "longitude": "18.0645"
+  },
+  {
+    "country_code": "SE",
+    "zipcode": "11620",
+    "place": "Södermalm",
+    "state": "Stockholm",
+    "state_code": "AB",
+    "province": "Stockholm",
+    "province_code": "0180",
+    "community": "Stockholm",
+    "community_code": "0180",
+    "latitude": "59.3149",
+    "longitude": "18.0723"
+  },
+  {
+    "country_code": "SE",
+    "zipcode": "41450",
+    "place": "Majorna",
+    "state": "Gothenburg",
+    "state_code": "O",
+    "province": "Västra Götaland",
+    "province_code": "1480",
+    "community": "Göteborg",
+    "community_code": "1480",
+    "latitude": "57.6961",
+    "longitude": "11.9346"
+  },
+  {
+    "country_code": "SE",
+    "zipcode": "41304",
+    "place": "Linné",
+    "state": "Gothenburg",
+    "state_code": "O",
+    "province": "Västra Götaland",
+    "province_code": "1480",
+    "community": "Göteborg",
+    "community_code": "1480",
+    "latitude": "57.6942",
+    "longitude": "11.9542"
+  },
+  {
+    "country_code": "SE",
+    "zipcode": "21110",
+    "place": "Västra Hamnen",
+    "state": "Malmo",
+    "state_code": "M",
+    "province": "Skåne",
+    "province_code": "1280",
+    "community": "Malmö",
+    "community_code": "1280",
+    "latitude": "55.6132",
+    "longitude": "12.982"
+  },
+  {
+    "country_code": "SE",
+    "zipcode": "74171",
+    "place": "Knivsta",
+    "state": "Uppsala",
+    "state_code": "C",
+    "province": "Uppsala",
+    "province_code": "0380",
+    "community": "Knivsta",
+    "community_code": "0330",
+    "latitude": "59.7256",
+    "longitude": "17.7875"
+  },
+  {
+    "country_code": "SE",
+    "zipcode": "75323",
+    "place": "Fjärdingen",
+    "state": "Uppsala",
+    "state_code": "C",
+    "province": "Uppsala",
+    "province_code": "0380",
+    "community": "Uppsala",
+    "community_code": "0380",
+    "latitude": "59.8581",
+    "longitude": "17.636"
   }
-}
+]

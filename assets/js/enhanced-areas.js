@@ -252,12 +252,13 @@
 
         let html = "";
         areas.forEach(function (area) {
-            const isChecked = savedAreas.includes(area.zip_code);
+            const isChecked = savedAreas.includes(area.zipcode);
+            const areaData = escapeHtml(JSON.stringify(area));
             html += `
                 <label class="modal-area-item">
-                    <input type="checkbox" value="${escapeHtml(area.zip_code)}" data-area-name="${escapeHtml(area.name)}" ${isChecked ? "checked" : ""}>
-                    <span class="area-name">${escapeHtml(area.name)}</span>
-                    <span class="area-zip">${escapeHtml(area.zip_code)}</span>
+                    <input type="checkbox" value="${escapeHtml(area.zipcode)}" data-area-object='${areaData}' ${isChecked ? "checked" : ""}>
+                    <span class="area-name">${escapeHtml(area.place)}</span>
+                    <span class="area-zip">${escapeHtml(area.zipcode)}</span>
                 </label>
             `;
         });
@@ -272,13 +273,14 @@
         const $grid = $(dialog.getElement()).find('#dialog-areas-grid');
 
         $grid.find("input[type='checkbox']:checked").each(function () {
-            selectedAreas.push({
-                area_name: $(this).data("area-name"),
-                area_zipcode: $(this).val(),
-                country_code: mobooking_areas_params.country_code,
-                country_name: 'Sweden',
-                city_name: currentCity.name,
-            });
+            const areaDataString = $(this).data('area-object');
+            if (areaDataString) {
+                try {
+                    selectedAreas.push(JSON.parse(areaDataString));
+                } catch (e) {
+                    console.error('Error parsing area data:', e);
+                }
+            }
         });
 
         const $saveBtn = $(dialog.findElement('.btn-primary'));
