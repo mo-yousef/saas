@@ -15,6 +15,20 @@ if ( ! isset( $single_booking_id ) || ! is_numeric( $single_booking_id ) ||
     return;
 }
 
+// Handle invoice download request
+if ( isset( $_GET['download_invoice'] ) && $_GET['download_invoice'] === 'true' ) {
+    $invoice_template_path = get_template_directory() . '/includes/invoice-generator.php';
+    if ( file_exists( $invoice_template_path ) ) {
+        // The included file will have access to variables in the current scope,
+        // such as $single_booking_id, $bookings_manager, $currency_symbol, etc.
+        include $invoice_template_path;
+        exit; // Stop further execution to prevent rendering the HTML page
+    } else {
+        // Optional: handle case where invoice template is missing
+        wp_die( 'Invoice template not found. Please contact support.' );
+    }
+}
+
 $booking_id_to_fetch = $single_booking_id;
 $user_id_for_permission_check = $current_user_id;
 
@@ -97,6 +111,7 @@ if (!function_exists('mobooking_get_feather_icon')) {
             case 'check-square': $svg = '<svg xmlns="http://www.w3.org/2000/svg" '.$attrs.' viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>'; break;
             case 'x-circle': $svg = '<svg xmlns="http://www.w3.org/2000/svg" '.$attrs.' viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>'; break;
             case 'user-plus': $svg = '<svg xmlns="http://www.w3.org/2000/svg" '.$attrs.' viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="17" y1="11" x2="23" y2="11"></line></svg>'; break;
+            case 'download': $svg = '<svg xmlns="http://www.w3.org/2000/svg" '.$attrs.' viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>'; break;
             default: $svg = '<!-- icon not found: '.esc_attr($icon_name).' -->'; break;
         }
         return $svg;
@@ -179,6 +194,15 @@ if (!function_exists('mobooking_get_status_badge_icon_svg')) {
                     <button id="mobooking-single-save-status-btn" class="btn btn-primary btn-sm"><?php esc_html_e('Save Status', 'mobooking'); ?></button>
                 </div>
                 <div id="mobooking-single-status-feedback" class="text-sm mt-2"></div>
+            </div>
+
+            <!-- Download Invoice Button -->
+            <div class="pt-4 border-b border-dashed pb-4 mb-4">
+                <strong class="block font-semibold text-sm mb-2"><?php esc_html_e('Downloads', 'mobooking'); ?></strong>
+                <a href="<?php echo esc_url( add_query_arg( 'download_invoice', 'true' ) ); ?>" class="btn btn-secondary" target="_blank">
+                    <?php echo mobooking_get_feather_icon('download', 'width="16" height="16" style="vertical-align:middle; margin-right:0.25rem;"'); ?>
+                    <?php esc_html_e('Download Invoice', 'mobooking'); ?>
+                </a>
             </div>
 
             <!-- Staff Assignment Section -->
