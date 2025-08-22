@@ -161,8 +161,8 @@ public function get_areas_for_city($country_code, $city_code) {
             return new \WP_Error('invalid_user', __('Invalid user.', 'mobooking'));
         }
 
-        if (empty($areas_data) || !is_array($areas_data)) {
-            return new \WP_Error('invalid_data', __('Invalid areas data.', 'mobooking'));
+    if (!is_array($areas_data)) {
+        return new \WP_Error('invalid_data', __('Invalid areas data. Must be an array.', 'mobooking'));
         }
 
         $table_name = Database::get_table_name('areas');
