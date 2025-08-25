@@ -63,7 +63,7 @@ $current_user_id = get_current_user_id();
             </div>
 
             <!-- Search and Filter Controls -->
-            <div class="mobooking-filters-wrapper" style="margin-bottom: 1.5rem;">
+            <div class="mobooking-filters-wrapper">
                 <form id="mobooking-areas-filter-form" class="mobooking-filters-form">
                     <div class="mobooking-filters-main">
                         <div class="mobooking-filter-item mobooking-filter-item-search">

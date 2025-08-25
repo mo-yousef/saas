@@ -15,7 +15,7 @@
 
 .cities-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 1.5rem;
 }
 
@@ -29,6 +29,8 @@
     cursor: pointer;
     transition: all 0.2s ease;
     background-color: #fff;
+    flex-direction: column;
+    gap: 8px;
 }
 
 .city-card:hover {
@@ -40,17 +42,39 @@
 .city-card .city-name {
     font-size: 1.1rem;
     font-weight: 600;
-    color: #343a40;
+    color: var(--mobk-card-foreground);
+    margin: 0px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    line-height: 1;
+    flex-direction: column;
+}
+
+span.city-name svg {
+    width: 20px;
+    height: 20px;
+    color: var(--mobk-primary);
 }
 
 .city-card .city-action-link {
-    font-size: 0.9rem;
+    font-size: 13px;
     font-weight: 500;
-    color: #007bff;
+    color: hsl(var(--muted-foreground));
     transition: color 0.2s ease;
 }
 
-/* Old modal styles are removed. New styles are in dialog.css */
+.areas-selection-controls {
+    display: flex;
+    gap: 16px;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--dialog-border);
+    margin-bottom: 1rem;
+}
+
+.areas-selection-controls .btn {
+    width: 100%;
+}
 
 .country-badge {
     display: inline-block;
@@ -275,7 +299,7 @@
 
 /* Coverage List Styles */
 .coverage-cities-list {
-    padding: 1rem;
+    padding: 2rem;
 }
 
 .coverage-city-item {
@@ -307,23 +331,37 @@
 
 /* Animations */
 @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
 }
 
 @keyframes slideInDown {
-    from { transform: translateY(-30px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
+    from {
+        transform: translateY(-30px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
 }
 
 @media (max-width: 768px) {
     .cities-grid {
         grid-template-columns: 1fr;
     }
+
     .modal-areas-grid {
         grid-template-columns: 1fr;
     }
 }
+
 /* ==================== SERVICE COVERAGE DISPLAY ==================== */
 
 .service-coverage-container {
