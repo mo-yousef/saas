@@ -36,439 +36,383 @@ if (!empty($current_slug)) {
 }
 
 ?>
-<div id="mobooking-booking-form-settings-page" class="wrap">
+<div id="mobooking-booking-form-settings-page" class="wrap mobooking-settings-page">
     <div class="mobooking-page-header">
         <div class="mobooking-page-header-heading">
             <span class="mobooking-page-header-icon">
                 <?php echo mobooking_get_dashboard_menu_icon('booking_form'); ?>
             </span>
-            <h1><?php esc_html_e('Booking Form Settings', 'mobooking'); ?></h1>
+            <div class="heading-wrapper">
+                <h1><?php esc_html_e('Booking Form Settings', 'mobooking'); ?></h1>
+                <p class="dashboard-subtitle"><?php esc_html_e('Customize the appearance and behavior of your public booking form.', 'mobooking'); ?></p>
+            </div>
+        </div>
+        <div class="mobooking-page-header-actions">
+            <button type="submit" form="mobooking-booking-form-settings-form" name="save_booking_form_settings" id="mobooking-save-bf-settings-btn" class="btn btn-primary"><?php esc_html_e('Save Changes', 'mobooking'); ?></button>
         </div>
     </div>
-    <p><?php esc_html_e('Customize the appearance and behavior of your public booking form.', 'mobooking'); ?></p>
 
-    <form id="mobooking-booking-form-settings-form" method="post">
+    <?php if (!empty($public_booking_url)): ?>
+    <div class="mobooking-public-link-display">
+        <span class="link-label"><?php esc_html_e('Your Booking Form is live at:', 'mobooking'); ?></span>
+        <a href="<?php echo esc_url($public_booking_url); ?>" target="_blank" id="bf-public-link"><?php echo esc_url($public_booking_url); ?></a>
+        <button class="btn btn-sm btn-icon" id="mobooking-copy-public-link-btn" title="<?php esc_attr_e('Copy link', 'mobooking'); ?>">
+            <?php echo mobooking_get_icon('copy', 16, 16); ?>
+        </button>
+    </div>
+    <?php endif; ?>
+
+    <form id="mobooking-booking-form-settings-form" method="post" class="mobooking-settings-form">
         <?php wp_nonce_field('mobooking_dashboard_nonce', 'mobooking_dashboard_nonce_field'); ?>
-        <div id="mobooking-settings-feedback" style="margin-bottom:15px; margin-top:10px;"></div>
 
-        <h2 class="nav-tab-wrapper" style="margin-bottom:20px;">
-            <a href="#mobooking-general-settings-tab" class="nav-tab nav-tab-active" data-tab="general"><?php esc_html_e('General Settings', 'mobooking'); ?></a>
-            <a href="#mobooking-form-control-settings-tab" class="nav-tab" data-tab="form-control"><?php esc_html_e('Form Control', 'mobooking'); ?></a>
-            <a href="#mobooking-design-settings-tab" class="nav-tab" data-tab="design"><?php esc_html_e('Design & Styling', 'mobooking'); ?></a>
-            <a href="#mobooking-advanced-settings-tab" class="nav-tab" data-tab="advanced"><?php esc_html_e('Advanced', 'mobooking'); ?></a>
-            <a href="#mobooking-share-embed-settings-tab" class="nav-tab" data-tab="share-embed"><?php esc_html_e('Share & Embed', 'mobooking'); ?></a>
-        </h2>
+        <div class="mobooking-settings-tabs">
+            <a href="#general" class="mobooking-tab-item active" data-tab="general"><?php esc_html_e('General', 'mobooking'); ?></a>
+            <a href="#form-control" class="mobooking-tab-item" data-tab="form-control"><?php esc_html_e('Form Control', 'mobooking'); ?></a>
+            <a href="#design" class="mobooking-tab-item" data-tab="design"><?php esc_html_e('Design', 'mobooking'); ?></a>
+            <a href="#advanced" class="mobooking-tab-item" data-tab="advanced"><?php esc_html_e('Advanced', 'mobooking'); ?></a>
+            <a href="#share-embed" class="mobooking-tab-item" data-tab="share-embed"><?php esc_html_e('Share & Embed', 'mobooking'); ?></a>
+        </div>
 
-        <!-- General Settings Tab -->
-        <div id="mobooking-general-settings-tab" class="mobooking-settings-tab-content">
-            <h3><?php esc_html_e('General Settings', 'mobooking'); ?></h3>
-            <table class="form-table">
-                <tr valign="top">
-                    <th scope="row"><label for="bf_business_slug"><?php esc_html_e('Business Slug', 'mobooking'); ?></label></th>
-                    <td>
-                        <input name="bf_business_slug" type="text" id="bf_business_slug" value="<?php echo esc_attr($current_slug); ?>" class="regular-text">
-                        <p class="description">
-                            <?php esc_html_e('Unique slug for your public booking page URL (e.g., your-business-name). It will be used like: ', 'mobooking'); ?>
-                            <code><?php echo trailingslashit(site_url()); ?>booking/your-business-slug/</code>
-                        </p>
-                        <p class="description"><?php esc_html_e('Changing this will change your public booking form URL. Only use lowercase letters, numbers, and hyphens.', 'mobooking'); ?></p>
-                        <?php if (!empty($public_booking_url)): ?>
+        <div class="mobooking-settings-content">
+            <!-- General Settings Tab -->
+            <div id="general" class="mobooking-settings-tab-pane active">
+                <div class="mobooking-card">
+                    <div class="mobooking-card-header">
+                        <h3 class="mobooking-card-title"><?php esc_html_e('Basic Information', 'mobooking'); ?></h3>
+                    </div>
+                    <div class="mobooking-card-content">
+                        <div class="form-group">
+                            <label for="bf_business_slug"><?php esc_html_e('Business Slug', 'mobooking'); ?></label>
+                            <input name="bf_business_slug" type="text" id="bf_business_slug" value="<?php echo esc_attr($current_slug); ?>" class="form-input">
                             <p class="description">
-                                <strong><?php esc_html_e('Current URL:', 'mobooking'); ?></strong> 
-                                <a href="<?php echo esc_url($public_booking_url); ?>" target="_blank"><?php echo esc_url($public_booking_url); ?></a>
+                                <?php esc_html_e('Unique slug for your public booking page URL (e.g., your-business-name).', 'mobooking'); ?>
+                                <br>
+                                <?php esc_html_e('Changing this will change your public booking form URL. Only use lowercase letters, numbers, and hyphens.', 'mobooking'); ?>
                             </p>
-                        <?php endif; ?>
-                    </td>
-                </tr>
-                <tr valign="top">
-                    <th scope="row"><label for="bf_header_text"><?php esc_html_e('Form Header Text', 'mobooking'); ?></label></th>
-                    <td>
-                        <input name="bf_header_text" type="text" id="bf_header_text" value="<?php echo mobooking_get_setting_value($bf_settings, 'bf_header_text', 'Book Our Services Online'); ?>" class="regular-text">
-                        <p class="description"><?php esc_html_e('The main title displayed at the top of your public booking form.', 'mobooking'); ?></p>
-                    </td>
-                </tr>
-                <tr valign="top">
-                    <th scope="row"><label for="bf_show_progress_bar"><?php esc_html_e('Show Progress Bar', 'mobooking'); ?></label></th>
-                    <td>
-                        <label class="mobooking-toggle-switch">
-                            <input name="bf_show_progress_bar" type="checkbox" id="bf_show_progress_bar" value="1" <?php echo mobooking_is_setting_checked($bf_settings, 'bf_show_progress_bar', true); ?>>
-                            <span class="slider"></span>
-                        </label>
-                        <label for="bf_show_progress_bar" class="toggle-label"><?php esc_html_e( 'Show Progress Bar', 'mobooking' ); ?></label>
-                    </td>
-                </tr>
-                <tr valign="top">
-                    <th scope="row"><label for="bf_terms_conditions_url"><?php esc_html_e('Terms & Conditions URL', 'mobooking'); ?></label></th>
-                    <td>
-                        <input name="bf_terms_conditions_url" type="url" id="bf_terms_conditions_url" value="<?php echo mobooking_get_setting_value($bf_settings, 'bf_terms_conditions_url'); ?>" class="regular-text" placeholder="https://example.com/terms">
-                        <p class="description"><?php esc_html_e('Link to your terms and conditions page. If provided, a checkbox agreeing to terms may be shown.', 'mobooking'); ?></p>
-                    </td>
-                </tr>
-                <tr valign="top">
-                    <th scope="row"><label for="bf_success_message"><?php esc_html_e('Success Message', 'mobooking'); ?></label></th>
-                    <td>
-                        <textarea name="bf_success_message" id="bf_success_message" class="large-text" rows="4"><?php echo mobooking_get_setting_textarea($bf_settings, 'bf_success_message', 'Thank you for your booking! We will contact you soon to confirm the details. A confirmation email has been sent to you.'); ?></textarea>
-                        <p class="description"><?php esc_html_e('Message displayed to customer after successful booking (on Step 6).', 'mobooking'); ?></p>
-                    </td>
-                </tr>
-            </table>
-        </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="bf_header_text"><?php esc_html_e('Form Header Text', 'mobooking'); ?></label>
+                            <input name="bf_header_text" type="text" id="bf_header_text" value="<?php echo mobooking_get_setting_value($bf_settings, 'bf_header_text', 'Book Our Services Online'); ?>" class="form-input">
+                            <p class="description"><?php esc_html_e('The main title displayed at the top of your public booking form.', 'mobooking'); ?></p>
+                        </div>
+                        <div class="form-group">
+                            <label for="bf_success_message"><?php esc_html_e('Success Message', 'mobooking'); ?></label>
+                            <textarea name="bf_success_message" id="bf_success_message" class="form-textarea" rows="4"><?php echo mobooking_get_setting_textarea($bf_settings, 'bf_success_message', 'Thank you for your booking! We will contact you soon to confirm the details. A confirmation email has been sent to you.'); ?></textarea>
+                            <p class="description"><?php esc_html_e('Message displayed to customer after successful booking.', 'mobooking'); ?></p>
+                        </div>
+                    </div>
+                </div>
 
-        <!-- Form Control Tab -->
-        <div id="mobooking-form-control-settings-tab" class="mobooking-settings-tab-content" style="display:none;">
-            <h3><?php esc_html_e('Form Control & Features', 'mobooking'); ?></h3>
-            <table class="form-table">
-                <tr valign="top">
-                    <th scope="row"><label for="bf_form_enabled"><?php esc_html_e('Enable Booking Form', 'mobooking'); ?></label></th>
-                    <td>
-                        <label class="mobooking-toggle-switch">
-                            <input name="bf_form_enabled" type="checkbox" id="bf_form_enabled" value="1" <?php echo mobooking_is_setting_checked($bf_settings, 'bf_form_enabled', true); ?>>
-                            <span class="slider"></span>
-                        </label>
-                        <label for="bf_form_enabled" class="toggle-label"><?php esc_html_e( 'Enable Booking Form', 'mobooking' ); ?></label>
-                        <p class="description"><?php esc_html_e('When disabled, the form will show a maintenance message instead of allowing bookings.', 'mobooking'); ?></p>
-                    </td>
-                </tr>
-                <tr valign="top">
-                    <th scope="row"><label for="bf_maintenance_message"><?php esc_html_e('Maintenance Message', 'mobooking'); ?></label></th>
-                    <td>
-                        <textarea name="bf_maintenance_message" id="bf_maintenance_message" class="large-text" rows="3"><?php echo mobooking_get_setting_textarea($bf_settings, 'bf_maintenance_message', 'We are temporarily not accepting new bookings. Please check back later or contact us directly.'); ?></textarea>
-                        <p class="description"><?php esc_html_e('Message shown when the booking form is disabled.', 'mobooking'); ?></p>
-                    </td>
-                </tr>
-                <tr valign="top">
-                    <th scope="row"><?php esc_html_e('Form Features', 'mobooking'); ?></th>
-                    <td>
-                        <fieldset>
-                            <legend class="screen-reader-text"><span><?php esc_html_e('Form Features', 'mobooking'); ?></span></legend>
-                            <label for="bf_allow_service_selection">
-                                <label class="mobooking-toggle-switch">
-                                    <input name="bf_allow_service_selection" type="checkbox" id="bf_allow_service_selection" value="1" <?php echo mobooking_is_setting_checked($bf_settings, 'bf_allow_service_selection', true); ?>>
-                                    <span class="slider"></span>
-                                </label>
-                                <label for="bf_allow_service_selection" class="toggle-label"><?php esc_html_e( 'Allow service selection', 'mobooking' ); ?></label>
-                            </label><br><br>
-                            <label for="bf_enable_pet_information">
-                                <label class="mobooking-toggle-switch">
-                                    <input name="bf_enable_pet_information" type="checkbox" id="bf_enable_pet_information" value="1" <?php echo mobooking_is_setting_checked($bf_settings, 'bf_enable_pet_information', true); ?>>
-                                    <span class="slider"></span>
-                                </label>
-                                <label for="bf_enable_pet_information" class="toggle-label"><?php esc_html_e('Enable pet information step', 'mobooking'); ?></label>
+                <div class="mobooking-card">
+                    <div class="mobooking-card-header">
+                        <h3 class="mobooking-card-title"><?php esc_html_e('Legal & Compliance', 'mobooking'); ?></h3>
+                    </div>
+                    <div class="mobooking-card-content">
+                        <div class="form-group">
+                            <label for="bf_terms_conditions_url"><?php esc_html_e('Terms & Conditions URL', 'mobooking'); ?></label>
+                            <input name="bf_terms_conditions_url" type="url" id="bf_terms_conditions_url" value="<?php echo mobooking_get_setting_value($bf_settings, 'bf_terms_conditions_url'); ?>" class="form-input" placeholder="https://example.com/terms">
+                            <p class="description"><?php esc_html_e('If provided, customers must agree to your terms before booking.', 'mobooking'); ?></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form Control Tab -->
+            <div id="form-control" class="mobooking-settings-tab-pane">
+                <div class="mobooking-card">
+                    <div class="mobooking-card-header">
+                        <h3 class="mobooking-card-title"><?php esc_html_e('Form Availability', 'mobooking'); ?></h3>
+                    </div>
+                    <div class="mobooking-card-content">
+                        <div class="form-group form-group-toggle">
+                            <label class="mobooking-toggle-switch">
+                                <input name="bf_form_enabled" type="checkbox" id="bf_form_enabled" value="1" <?php echo mobooking_is_setting_checked($bf_settings, 'bf_form_enabled', true); ?>>
+                                <span class="slider"></span>
                             </label>
-                            <p class="description" style="margin-left:22px; margin-top:0; margin-bottom:10px;"><?php esc_html_e('Ask customers about pets before booking.', 'mobooking'); ?></p><br><br>
+                            <div class="toggle-label-group">
+                                <label for="bf_form_enabled" class="toggle-label"><?php esc_html_e( 'Enable Booking Form', 'mobooking' ); ?></label>
+                                <p class="description"><?php esc_html_e('When disabled, the form will show a maintenance message instead of allowing bookings.', 'mobooking'); ?></p>
+                            </div>
+                        </div>
+                        <div class="form-group" id="maintenance-message-group" style="<?php echo mobooking_is_setting_checked($bf_settings, 'bf_form_enabled', true) ? 'display:none;' : ''; ?>">
+                            <label for="bf_maintenance_message"><?php esc_html_e('Maintenance Message', 'mobooking'); ?></label>
+                            <textarea name="bf_maintenance_message" id="bf_maintenance_message" class="form-textarea" rows="3"><?php echo mobooking_get_setting_textarea($bf_settings, 'bf_maintenance_message', 'We are temporarily not accepting new bookings. Please check back later or contact us directly.'); ?></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="mobooking-card">
+                    <div class="mobooking-card-header">
+                        <h3 class="mobooking-card-title"><?php esc_html_e('Booking Steps & Features', 'mobooking'); ?></h3>
+                    </div>
+                    <div class="mobooking-card-content">
+                        <div class="form-group-grid two-cols">
+                            <?php
+                                $features = [
+                                    'bf_show_progress_bar' => __('Show Progress Bar', 'mobooking'),
+                                    'bf_allow_service_selection' => __('Allow service selection', 'mobooking'),
+                                    'bf_enable_pet_information' => __('Enable pet information step', 'mobooking'),
+                                    'bf_enable_service_frequency' => __('Enable service frequency selection', 'mobooking'),
+                                    'bf_enable_datetime_selection' => __('Enable date & time selection', 'mobooking'),
+                                    'bf_enable_property_access' => __('Enable property access options', 'mobooking'),
+                                    'bf_enable_location_check' => __('Enable location check', 'mobooking'),
+                                    'bf_allow_date_time_selection' => __('Allow date and time selection', 'mobooking'),
+                                    'bf_require_phone' => __('Require phone number', 'mobooking'),
+                                    'bf_allow_special_instructions' => __('Allow special instructions', 'mobooking'),
+                                    'bf_show_pricing' => __('Show pricing information', 'mobooking'),
+                                    'bf_allow_discount_codes' => __('Allow discount codes', 'mobooking'),
+                                ];
+                                foreach($features as $key => $label): ?>
+                                <div class="form-group form-group-toggle small">
+                                    <label class="mobooking-toggle-switch">
+                                        <input name="<?php echo $key; ?>" type="checkbox" id="<?php echo $key; ?>" value="1" <?php echo mobooking_is_setting_checked($bf_settings, $key, true); ?>>
+                                        <span class="slider"></span>
+                                    </label>
+                                    <div class="toggle-label-group">
+                                        <label for="<?php echo $key; ?>" class="toggle-label"><?php echo $label; ?></label>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                </div>
+                 <div class="mobooking-card">
+                    <div class="mobooking-card-header">
+                        <h3 class="mobooking-card-title"><?php esc_html_e('Booking Window', 'mobooking'); ?></h3>
+                    </div>
+                    <div class="mobooking-card-content">
+                        <div class="form-group-grid two-cols">
+                            <div class="form-group">
+                                <label for="bf_booking_lead_time_hours"><?php esc_html_e('Minimum Lead Time (Hours)', 'mobooking'); ?></label>
+                                <input name="bf_booking_lead_time_hours" type="number" id="bf_booking_lead_time_hours" value="<?php echo mobooking_get_setting_value($bf_settings, 'bf_booking_lead_time_hours', '24'); ?>" min="0" max="168" class="form-input">
+                                <p class="description"><?php esc_html_e('Minimum hours in advance customers must book.', 'mobooking'); ?></p>
+                            </div>
+                             <div class="form-group">
+                                <label for="bf_max_booking_days_ahead"><?php esc_html_e('Maximum Days Ahead', 'mobooking'); ?></label>
+                                <input name="bf_max_booking_days_ahead" type="number" id="bf_max_booking_days_ahead" value="<?php echo mobooking_get_setting_value($bf_settings, 'bf_max_booking_days_ahead', '30'); ?>" min="1" max="365" class="form-input">
+                                <p class="description"><?php esc_html_e('Farthest day in the future a customer can book.', 'mobooking'); ?></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-                            <label for="bf_enable_service_frequency">
-                                <label class="mobooking-toggle-switch">
-                                    <input name="bf_enable_service_frequency" type="checkbox" id="bf_enable_service_frequency" value="1" <?php echo mobooking_is_setting_checked($bf_settings, 'bf_enable_service_frequency', true); ?>>
-                                    <span class="slider"></span>
-                                </label>
-                                <label for="bf_enable_service_frequency" class="toggle-label"><?php esc_html_e('Enable service frequency selection', 'mobooking'); ?></label>
-                            </label>
-                            <p class="description" style="margin-left:22px; margin-top:0; margin-bottom:10px;"><?php esc_html_e('Allow customers to choose between one-time, daily, weekly, or monthly service.', 'mobooking'); ?></p><br><br>
+            <!-- Design & Styling Tab -->
+            <div id="design" class="mobooking-settings-tab-pane">
+                <div class="mobooking-card">
+                    <div class="mobooking-card-header">
+                        <h3 class="mobooking-card-title"><?php esc_html_e('Color Scheme', 'mobooking'); ?></h3>
+                    </div>
+                    <div class="mobooking-card-content">
+                        <div class="form-group-grid three-cols">
+                            <div class="form-group">
+                                <label for="bf_theme_color"><?php esc_html_e('Primary Theme Color', 'mobooking'); ?></label>
+                                <input name="bf_theme_color" type="color" id="bf_theme_color" value="<?php echo mobooking_get_setting_value($bf_settings, 'bf_theme_color', '#1abc9c'); ?>" class="mobooking-color-picker">
+                                <p class="description"><?php esc_html_e('Main color for buttons and accents.', 'mobooking'); ?></p>
+                            </div>
+                            <div class="form-group">
+                                <label for="bf_secondary_color"><?php esc_html_e('Secondary Color', 'mobooking'); ?></label>
+                                <input name="bf_secondary_color" type="color" id="bf_secondary_color" value="<?php echo mobooking_get_setting_value($bf_settings, 'bf_secondary_color', '#34495e'); ?>" class="mobooking-color-picker">
+                                <p class="description"><?php esc_html_e('Color for borders and secondary elements.', 'mobooking'); ?></p>
+                            </div>
+                            <div class="form-group">
+                                <label for="bf_background_color"><?php esc_html_e('Background Color', 'mobooking'); ?></label>
+                                <input name="bf_background_color" type="color" id="bf_background_color" value="<?php echo mobooking_get_setting_value($bf_settings, 'bf_background_color', '#ffffff'); ?>" class="mobooking-color-picker">
+                                <p class="description"><?php esc_html_e('Background of the form container.', 'mobooking'); ?></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mobooking-card">
+                    <div class="mobooking-card-header">
+                        <h3 class="mobooking-card-title"><?php esc_html_e('Typography & Layout', 'mobooking'); ?></h3>
+                    </div>
+                    <div class.mobooking-card-content">
+                        <div class="form-group-grid two-cols">
+                            <div class="form-group">
+                                <label for="bf_font_family"><?php esc_html_e('Font Family', 'mobooking'); ?></label>
+                                <select name="bf_font_family" id="bf_font_family" class="form-select">
+                                    <option value="system-ui" <?php selected(mobooking_get_setting_value($bf_settings, 'bf_font_family', 'system-ui'), 'system-ui'); ?>><?php esc_html_e('System Default', 'mobooking'); ?></option>
+                                    <option value="Arial, sans-serif" <?php selected(mobooking_get_setting_value($bf_settings, 'bf_font_family'), 'Arial, sans-serif'); ?>><?php esc_html_e('Arial', 'mobooking'); ?></option>
+                                    <option value="Helvetica, sans-serif" <?php selected(mobooking_get_setting_value($bf_settings, 'bf_font_family'), 'Helvetica, sans-serif'); ?>><?php esc_html_e('Helvetica', 'mobooking'); ?></option>
+                                    <option value="Georgia, serif" <?php selected(mobooking_get_setting_value($bf_settings, 'bf_font_family'), 'Georgia, serif'); ?>><?php esc_html_e('Georgia', 'mobooking'); ?></option>
+                                    <option value="'Times New Roman', serif" <?php selected(mobooking_get_setting_value($bf_settings, 'bf_font_family'), "'Times New Roman', serif"); ?>><?php esc_html_e('Times New Roman', 'mobooking'); ?></option>
+                                </select>
+                                <p class="description"><?php esc_html_e('Font for the booking form text.', 'mobooking'); ?></p>
+                            </div>
+                            <div class="form-group">
+                                <label for="bf_border_radius"><?php esc_html_e('Border Radius (px)', 'mobooking'); ?></label>
+                                <input name="bf_border_radius" type="number" id="bf_border_radius" value="<?php echo mobooking_get_setting_value($bf_settings, 'bf_border_radius', '8'); ?>" min="0" max="50" class="form-input">
+                                <p class="description"><?php esc_html_e('Roundness of form elements.', 'mobooking'); ?></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mobooking-card">
+                    <div class="mobooking-card-header">
+                        <h3 class="mobooking-card-title"><?php esc_html_e('Custom CSS', 'mobooking'); ?></h3>
+                    </div>
+                    <div class="mobooking-card-content">
+                        <div class="form-group">
+                            <label for="bf_custom_css"><?php esc_html_e('Custom CSS Rules', 'mobooking'); ?></label>
+                            <textarea name="bf_custom_css" id="bf_custom_css" class="form-textarea code" rows="8" placeholder="<?php esc_attr_e('/* Your custom CSS rules here */', 'mobooking'); ?>"><?php echo mobooking_get_setting_textarea($bf_settings, 'bf_custom_css'); ?></textarea>
+                            <p class="description"><strong><?php esc_html_e('Tip:', 'mobooking'); ?></strong> <?php esc_html_e('Use <code>.mobooking-form</code> as the main selector to target form elements.', 'mobooking'); ?></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-                            <label for="bf_enable_datetime_selection">
-                                <label class="mobooking-toggle-switch">
-                                    <input name="bf_enable_datetime_selection" type="checkbox" id="bf_enable_datetime_selection" value="1" <?php echo mobooking_is_setting_checked($bf_settings, 'bf_enable_datetime_selection', true); ?>>
-                                    <span class="slider"></span>
-                                </label>
-                                <label for="bf_enable_datetime_selection" class="toggle-label"><?php esc_html_e('Enable date & time selection', 'mobooking'); ?></label>
-                            </label>
-                            <p class="description" style="margin-left:22px; margin-top:0; margin-bottom:10px;"><?php esc_html_e('Allow customers to select preferred date and time.', 'mobooking'); ?></p><br><br>
-
-                            <label for="bf_enable_property_access">
-                                <label class="mobooking-toggle-switch">
-                                    <input name="bf_enable_property_access" type="checkbox" id="bf_enable_property_access" value="1" <?php echo mobooking_is_setting_checked($bf_settings, 'bf_enable_property_access', true); ?>>
-                                    <span class="slider"></span>
-                                </label>
-                                <label for="bf_enable_property_access" class="toggle-label"><?php esc_html_e('Enable property access options', 'mobooking'); ?></label>
-                            </label>
-                            <p class="description" style="margin-left:22px; margin-top:0; margin-bottom:10px;"><?php esc_html_e('Ask customers how service providers can access their property.', 'mobooking'); ?></p><br><br>
-
-                            <label for="bf_enable_location_check">
-                                <label class="mobooking-toggle-switch">
-                                    <input name="bf_enable_location_check" type="checkbox" id="bf_enable_location_check" value="1" <?php echo mobooking_is_setting_checked($bf_settings, 'bf_enable_location_check', true); ?>>
-                                    <span class="slider"></span>
-                                </label>
-                                <label for="bf_enable_location_check" class="toggle-label"><?php esc_html_e( 'Enable location check', 'mobooking' ); ?></label>
-                            </label>
-                            <p class="description" style="margin-left:22px; margin-top:0; margin-bottom:10px;"><?php esc_html_e('If unchecked, Step 1 (Location Check) will be skipped. Services will be assumed available everywhere.', 'mobooking'); ?></p>
-                            
-                            <label for="bf_allow_date_time_selection">
-                                <label class="mobooking-toggle-switch">
-                                    <input name="bf_allow_date_time_selection" type="checkbox" id="bf_allow_date_time_selection" value="1" <?php echo mobooking_is_setting_checked($bf_settings, 'bf_allow_date_time_selection', true); ?>>
-                                    <span class="slider"></span>
-                                </label>
-                                <label for="bf_allow_date_time_selection" class="toggle-label"><?php esc_html_e( 'Allow date and time selection', 'mobooking' ); ?></label>
-                            </label><br><br>
-                            
-                            <label for="bf_require_phone">
-                                <label class="mobooking-toggle-switch">
-                                    <input name="bf_require_phone" type="checkbox" id="bf_require_phone" value="1" <?php echo mobooking_is_setting_checked($bf_settings, 'bf_require_phone', true); ?>>
-                                    <span class="slider"></span>
-                                </label>
-                                <label for="bf_require_phone" class="toggle-label"><?php esc_html_e( 'Require phone number', 'mobooking' ); ?></label>
-                            </label><br><br>
-                            
-                            <label for="bf_allow_special_instructions">
-                                <label class="mobooking-toggle-switch">
-                                    <input name="bf_allow_special_instructions" type="checkbox" id="bf_allow_special_instructions" value="1" <?php echo mobooking_is_setting_checked($bf_settings, 'bf_allow_special_instructions', true); ?>>
-                                    <span class="slider"></span>
-                                </label>
-                                <label for="bf_allow_special_instructions" class="toggle-label"><?php esc_html_e( 'Allow special instructions', 'mobooking' ); ?></label>
-                            </label><br><br>
-                            
-                            <label for="bf_show_pricing">
-                                <label class="mobooking-toggle-switch">
-                                    <input name="bf_show_pricing" type="checkbox" id="bf_show_pricing" value="1" <?php echo mobooking_is_setting_checked($bf_settings, 'bf_show_pricing', true); ?>>
-                                    <span class="slider"></span>
-                                </label>
-                                <label for="bf_show_pricing" class="toggle-label"><?php esc_html_e( 'Show pricing information', 'mobooking' ); ?></label>
-                            </label><br><br>
-                            
-                            <label for="bf_allow_discount_codes">
-                                <label class="mobooking-toggle-switch">
-                                    <input name="bf_allow_discount_codes" type="checkbox" id="bf_allow_discount_codes" value="1" <?php echo mobooking_is_setting_checked($bf_settings, 'bf_allow_discount_codes', true); ?>>
-                                    <span class="slider"></span>
-                                </label>
-                                <label for="bf_allow_discount_codes" class="toggle-label"><?php esc_html_e( 'Allow discount codes', 'mobooking' ); ?></label>
-                            </label>
-                        </fieldset>
-                    </td>
-                </tr>
-                <tr valign="top">
-                    <th scope="row"><label for="bf_booking_lead_time_hours"><?php esc_html_e('Minimum Lead Time (Hours)', 'mobooking'); ?></label></th>
-                    <td>
-                        <input name="bf_booking_lead_time_hours" type="number" id="bf_booking_lead_time_hours" value="<?php echo mobooking_get_setting_value($bf_settings, 'bf_booking_lead_time_hours', '24'); ?>" min="0" max="168" class="small-text">
-                        <p class="description"><?php esc_html_e('Minimum hours in advance customers must book (0-168 hours = 1 week max).', 'mobooking'); ?></p>
-                    </td>
-                </tr>
-                <tr valign="top">
-                    <th scope="row"><label for="bf_max_booking_days_ahead"><?php esc_html_e('Maximum Days Ahead', 'mobooking'); ?></label></th>
-                    <td>
-                        <input name="bf_max_booking_days_ahead" type="number" id="bf_max_booking_days_ahead" value="<?php echo mobooking_get_setting_value($bf_settings, 'bf_max_booking_days_ahead', '30'); ?>" min="1" max="365" class="small-text">
-                        <p class="description"><?php esc_html_e('Maximum number of days in advance customers can book (1-365 days).', 'mobooking'); ?></p>
-                    </td>
-                </tr>
-            </table>
-        </div>
-
-        <!-- Design & Styling Tab -->
-        <div id="mobooking-design-settings-tab" class="mobooking-settings-tab-content" style="display:none;">
-            <h3><?php esc_html_e('Design & Appearance', 'mobooking'); ?></h3>
-            <table class="form-table">
-                <tr valign="top">
-                    <th scope="row"><label for="bf_theme_color"><?php esc_html_e('Primary Theme Color', 'mobooking'); ?></label></th>
-                    <td>
-                        <input name="bf_theme_color" type="text" id="bf_theme_color" value="<?php echo mobooking_get_setting_value($bf_settings, 'bf_theme_color', '#1abc9c'); ?>" class="mobooking-color-picker" data-default-color="#1abc9c" data-alpha-enabled="true">
-                        <p class="description"><?php esc_html_e('Main color for buttons and progress bar accents.', 'mobooking'); ?></p>
-                    </td>
-                </tr>
-                <tr valign="top">
-                    <th scope="row"><label for="bf_secondary_color"><?php esc_html_e('Secondary Color', 'mobooking'); ?></label></th>
-                    <td>
-                        <input name="bf_secondary_color" type="text" id="bf_secondary_color" value="<?php echo mobooking_get_setting_value($bf_settings, 'bf_secondary_color', '#34495e'); ?>" class="mobooking-color-picker" data-default-color="#34495e" data-alpha-enabled="true">
-                        <p class="description"><?php esc_html_e('Color for borders, icons, and secondary elements.', 'mobooking'); ?></p>
-                    </td>
-                </tr>
-                <tr valign="top">
-                    <th scope="row"><label for="bf_background_color"><?php esc_html_e('Background Color', 'mobooking'); ?></label></th>
-                    <td>
-                        <input name="bf_background_color" type="text" id="bf_background_color" value="<?php echo mobooking_get_setting_value($bf_settings, 'bf_background_color', '#ffffff'); ?>" class="mobooking-color-picker" data-default-color="#ffffff" data-alpha-enabled="true">
-                        <p class="description"><?php esc_html_e('Background color for the form container.', 'mobooking'); ?></p>
-                    </td>
-                </tr>
-                <tr valign="top">
-                    <th scope="row"><label for="bf_font_family"><?php esc_html_e('Font Family', 'mobooking'); ?></label></th>
-                    <td>
-                        <select name="bf_font_family" id="bf_font_family">
-                            <option value="system-ui" <?php selected(mobooking_get_setting_value($bf_settings, 'bf_font_family', 'system-ui'), 'system-ui'); ?>><?php esc_html_e('System Default', 'mobooking'); ?></option>
-                            <option value="Arial, sans-serif" <?php selected(mobooking_get_setting_value($bf_settings, 'bf_font_family'), 'Arial, sans-serif'); ?>><?php esc_html_e('Arial', 'mobooking'); ?></option>
-                            <option value="Helvetica, sans-serif" <?php selected(mobooking_get_setting_value($bf_settings, 'bf_font_family'), 'Helvetica, sans-serif'); ?>><?php esc_html_e('Helvetica', 'mobooking'); ?></option>
-                            <option value="Georgia, serif" <?php selected(mobooking_get_setting_value($bf_settings, 'bf_font_family'), 'Georgia, serif'); ?>><?php esc_html_e('Georgia', 'mobooking'); ?></option>
-                            <option value="'Times New Roman', serif" <?php selected(mobooking_get_setting_value($bf_settings, 'bf_font_family'), "'Times New Roman', serif"); ?>><?php esc_html_e('Times New Roman', 'mobooking'); ?></option>
-                        </select>
-                        <p class="description"><?php esc_html_e('Font family for the booking form text.', 'mobooking'); ?></p>
-                    </td>
-                </tr>
-                <tr valign="top">
-                    <th scope="row"><label for="bf_border_radius"><?php esc_html_e('Border Radius (px)', 'mobooking'); ?></label></th>
-                    <td>
-                        <input name="bf_border_radius" type="number" id="bf_border_radius" value="<?php echo mobooking_get_setting_value($bf_settings, 'bf_border_radius', '8'); ?>" min="0" max="50" class="small-text">
-                        <p class="description"><?php esc_html_e('Roundness of form elements (0 = square, higher = more rounded).', 'mobooking'); ?></p>
-                    </td>
-                </tr>
-                <tr valign="top">
-                    <th scope="row"><label for="bf_custom_css"><?php esc_html_e('Custom CSS', 'mobooking'); ?></label></th>
-                    <td>
-                        <textarea name="bf_custom_css" id="bf_custom_css" class="large-text code" rows="8" placeholder="<?php esc_attr_e('/* Your custom CSS rules here */', 'mobooking'); ?>"><?php echo mobooking_get_setting_textarea($bf_settings, 'bf_custom_css'); ?></textarea>
-                        <p class="description"><?php esc_html_e('Apply custom styles to the public booking form. Use with caution.', 'mobooking'); ?></p>
-                        <p class="description"><strong><?php esc_html_e('Tip:', 'mobooking'); ?></strong> <?php esc_html_e('Use .mobooking-form as the main selector to target form elements.', 'mobooking'); ?></p>
-                    </td>
-                </tr>
-            </table>
-        </div>
-
-        <!-- Advanced Settings Tab -->
-        <div id="mobooking-advanced-settings-tab" class="mobooking-settings-tab-content" style="display:none;">
-            <h3><?php esc_html_e('Advanced Settings', 'mobooking'); ?></h3>
-            <table class="form-table">
-                <tr valign="top">
-                    <th scope="row"><label for="bf_allow_cancellation_hours"><?php esc_html_e('Cancellation Lead Time (Hours)', 'mobooking'); ?></label></th>
-                    <td>
-                        <input name="bf_allow_cancellation_hours" type="number" id="bf_allow_cancellation_hours" value="<?php echo mobooking_get_setting_value($bf_settings, 'bf_allow_cancellation_hours', '24'); ?>" min="0" class="small-text">
-                        <p class="description"><?php esc_html_e('Minimum hours before booking time a customer can cancel. Enter 0 if cancellation via form is not allowed or handled differently.', 'mobooking'); ?></p>
-                    </td>
-                </tr>
-                <tr valign="top">
-                    <th scope="row"><label for="bf_time_slot_duration"><?php esc_html_e('Time Slot Duration (Minutes)', 'mobooking'); ?></label></th>
-                    <td>
-                        <select name="bf_time_slot_duration" id="bf_time_slot_duration">
-                            <option value="15" <?php selected(mobooking_get_setting_value($bf_settings, 'bf_time_slot_duration', '30'), '15'); ?>><?php esc_html_e('15 minutes', 'mobooking'); ?></option>
-                            <option value="30" <?php selected(mobooking_get_setting_value($bf_settings, 'bf_time_slot_duration', '30'), '30'); ?>><?php esc_html_e('30 minutes', 'mobooking'); ?></option>
-                            <option value="60" <?php selected(mobooking_get_setting_value($bf_settings, 'bf_time_slot_duration', '30'), '60'); ?>><?php esc_html_e('1 hour', 'mobooking'); ?></option>
-                            <option value="120" <?php selected(mobooking_get_setting_value($bf_settings, 'bf_time_slot_duration', '30'), '120'); ?>><?php esc_html_e('2 hours', 'mobooking'); ?></option>
-                        </select>
-                        <p class="description"><?php esc_html_e('Interval between available time slots.', 'mobooking'); ?></p>
-                    </td>
-                </tr>
-                <tr valign="top">
-                    <th scope="row"><label for="bf_google_analytics_id"><?php esc_html_e('Google Analytics ID', 'mobooking'); ?></label></th>
-                    <td>
-                        <input name="bf_google_analytics_id" type="text" id="bf_google_analytics_id" value="<?php echo mobooking_get_setting_value($bf_settings, 'bf_google_analytics_id'); ?>" class="regular-text" placeholder="GA4-XXXXXXXXXX">
-                        <p class="description"><?php esc_html_e('Track booking form interactions with Google Analytics (optional).', 'mobooking'); ?></p>
-                    </td>
-                </tr>
-                <tr valign="top">
-                    <th scope="row"><label for="bf_webhook_url"><?php esc_html_e('Webhook URL', 'mobooking'); ?></label></th>
-                    <td>
-                        <input name="bf_webhook_url" type="url" id="bf_webhook_url" value="<?php echo mobooking_get_setting_value($bf_settings, 'bf_webhook_url'); ?>" class="regular-text" placeholder="https://your-system.com/webhook">
-                        <p class="description"><?php esc_html_e('Optional webhook to receive booking data in real-time (for integrations).', 'mobooking'); ?></p>
-                    </td>
-                </tr>
-                <tr valign="top">
-                    <th scope="row"><?php esc_html_e('Advanced Options', 'mobooking'); ?></th>
-                    <td>
-                        <fieldset>
-                            <legend class="screen-reader-text"><span><?php esc_html_e('Advanced Options', 'mobooking'); ?></span></legend>
-                            <label for="bf_enable_recaptcha">
+            <!-- Advanced Settings Tab -->
+            <div id="advanced" class="mobooking-settings-tab-pane">
+                <div class="mobooking-card">
+                    <div class="mobooking-card-header">
+                        <h3 class="mobooking-card-title"><?php esc_html_e('Booking Logic', 'mobooking'); ?></h3>
+                    </div>
+                    <div class="mobooking-card-content">
+                         <div class="form-group-grid two-cols">
+                            <div class="form-group">
+                                <label for="bf_allow_cancellation_hours"><?php esc_html_e('Cancellation Lead Time (Hours)', 'mobooking'); ?></label>
+                                <input name="bf_allow_cancellation_hours" type="number" id="bf_allow_cancellation_hours" value="<?php echo mobooking_get_setting_value($bf_settings, 'bf_allow_cancellation_hours', '24'); ?>" min="0" class="form-input">
+                                <p class="description"><?php esc_html_e('Minimum hours before booking a customer can cancel.', 'mobooking'); ?></p>
+                            </div>
+                            <div class="form-group">
+                                <label for="bf_time_slot_duration"><?php esc_html_e('Time Slot Duration', 'mobooking'); ?></label>
+                                <select name="bf_time_slot_duration" id="bf_time_slot_duration" class="form-select">
+                                    <option value="15" <?php selected(mobooking_get_setting_value($bf_settings, 'bf_time_slot_duration', '30'), '15'); ?>><?php esc_html_e('15 minutes', 'mobooking'); ?></option>
+                                    <option value="30" <?php selected(mobooking_get_setting_value($bf_settings, 'bf_time_slot_duration', '30'), '30'); ?>><?php esc_html_e('30 minutes', 'mobooking'); ?></option>
+                                    <option value="60" <?php selected(mobooking_get_setting_value($bf_settings, 'bf_time_slot_duration', '30'), '60'); ?>><?php esc_html_e('1 hour', 'mobooking'); ?></option>
+                                    <option value="120" <?php selected(mobooking_get_setting_value($bf_settings, 'bf_time_slot_duration', '30'), '120'); ?>><?php esc_html_e('2 hours', 'mobooking'); ?></option>
+                                </select>
+                                <p class="description"><?php esc_html_e('The interval between available time slots.', 'mobooking'); ?></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mobooking-card">
+                    <div class="mobooking-card-header">
+                        <h3 class="mobooking-card-title"><?php esc_html_e('Integrations & Security', 'mobooking'); ?></h3>
+                    </div>
+                    <div class="mobooking-card-content">
+                        <div class="form-group">
+                            <label for="bf_google_analytics_id"><?php esc_html_e('Google Analytics ID', 'mobooking'); ?></label>
+                            <input name="bf_google_analytics_id" type="text" id="bf_google_analytics_id" value="<?php echo mobooking_get_setting_value($bf_settings, 'bf_google_analytics_id'); ?>" class="form-input" placeholder="GA4-XXXXXXXXXX">
+                            <p class="description"><?php esc_html_e('Track booking form interactions with Google Analytics.', 'mobooking'); ?></p>
+                        </div>
+                        <div class="form-group">
+                            <label for="bf_webhook_url"><?php esc_html_e('Webhook URL', 'mobooking'); ?></label>
+                            <input name="bf_webhook_url" type="url" id="bf_webhook_url" value="<?php echo mobooking_get_setting_value($bf_settings, 'bf_webhook_url'); ?>" class="form-input" placeholder="https://your-system.com/webhook">
+                            <p class="description"><?php esc_html_e('Receive booking data in real-time for integrations.', 'mobooking'); ?></p>
+                        </div>
+                        <div class="form-group-grid three-cols">
+                            <div class="form-group form-group-toggle small">
                                 <label class="mobooking-toggle-switch">
                                     <input name="bf_enable_recaptcha" type="checkbox" id="bf_enable_recaptcha" value="1" <?php echo mobooking_is_setting_checked($bf_settings, 'bf_enable_recaptcha', false); ?>>
                                     <span class="slider"></span>
                                 </label>
-                                <label for="bf_enable_recaptcha" class="toggle-label"><?php esc_html_e( 'Enable reCAPTCHA', 'mobooking' ); ?></label>
-                            </label><br><br>
-                            
-                            <label for="bf_enable_ssl_required">
+                                <div class="toggle-label-group">
+                                    <label for="bf_enable_recaptcha" class="toggle-label"><?php esc_html_e( 'Enable reCAPTCHA', 'mobooking' ); ?></label>
+                                </div>
+                            </div>
+                             <div class="form-group form-group-toggle small">
                                 <label class="mobooking-toggle-switch">
                                     <input name="bf_enable_ssl_required" type="checkbox" id="bf_enable_ssl_required" value="1" <?php echo mobooking_is_setting_checked($bf_settings, 'bf_enable_ssl_required', true); ?>>
                                     <span class="slider"></span>
                                 </label>
-                                <label for="bf_enable_ssl_required" class="toggle-label"><?php esc_html_e( 'Require SSL for submission', 'mobooking' ); ?></label>
-                            </label><br><br>
-                            
-                            <label for="bf_debug_mode">
+                                <div class="toggle-label-group">
+                                    <label for="bf_enable_ssl_required" class="toggle-label"><?php esc_html_e( 'Require SSL', 'mobooking' ); ?></label>
+                                </div>
+                            </div>
+                            <div class="form-group form-group-toggle small">
                                 <label class="mobooking-toggle-switch">
                                     <input name="bf_debug_mode" type="checkbox" id="bf_debug_mode" value="1" <?php echo mobooking_is_setting_checked($bf_settings, 'bf_debug_mode', false); ?>>
                                     <span class="slider"></span>
                                 </label>
-                                <label for="bf_debug_mode" class="toggle-label"><?php esc_html_e( 'Enable Debug Mode', 'mobooking' ); ?></label>
-                            </label>
-                        </fieldset>
-                    </td>
-                </tr>
-                <tr valign="top">
-                    <th scope="row"><?php esc_html_e('Rewrite Rules', 'mobooking'); ?></th>
-                    <td>
-                        <button type="button" id="mobooking-flush-rewrite-rules-btn" class="btn btn-secondary"><?php esc_html_e('Flush Rewrite Rules', 'mobooking'); ?></button>
-                        <p class="description"><?php esc_html_e('If your booking form URLs are not working (e.g., showing a 404 error or homepage), flushing rewrite rules might help. This is especially needed after plugin activation or changes to URL structures.', 'mobooking'); ?></p>
-                        <div id="mobooking-flush-rules-feedback" style="margin-top:10px;"></div>
-                    </td>
-                </tr>
-            </table>
-        </div>
-
-        <!-- Share & Embed Tab -->
-        <div id="mobooking-share-embed-settings-tab" class="mobooking-settings-tab-content" style="display:none;">
-            <h3><?php esc_html_e('Share Your Booking Form', 'mobooking'); ?></h3>
-            <table class="form-table">
-                <tr valign="top">
-                    <th scope="row"><label for="mobooking-public-link"><?php esc_html_e('Your Public Link', 'mobooking'); ?></label></th>
-                    <td>
-                        <div style="display: flex; gap: 10px; align-items: center;">
-                            <input type="text" id="mobooking-public-link" value="<?php echo esc_url($public_booking_url); ?>" readonly class="regular-text" style="flex: 1;" placeholder="<?php esc_attr_e('Link will appear here once slug is saved.', 'mobooking'); ?>">
-                            <button type="button" id="mobooking-copy-public-link-btn" class="btn btn-secondary" <?php echo empty($public_booking_url) ? 'disabled' : ''; ?>><?php esc_html_e('Copy Link', 'mobooking'); ?></button>
-                            <?php if (!empty($public_booking_url)): ?>
-                                <a href="<?php echo esc_url($public_booking_url); ?>" target="_blank" class="btn btn-outline"><?php esc_html_e('Preview', 'mobooking'); ?></a>
-                            <?php endif; ?>
+                                <div class="toggle-label-group">
+                                    <label for="bf_debug_mode" class="toggle-label"><?php esc_html_e( 'Debug Mode', 'mobooking' ); ?></label>
+                                </div>
+                            </div>
                         </div>
-                        <p class="description"><?php esc_html_e('Share this link with your customers so they can book your services online.', 'mobooking'); ?></p>
-                    </td>
-                </tr>
-                <tr valign="top">
-                    <th scope="row"><label for="mobooking-embed-code"><?php esc_html_e('Embed Code', 'mobooking'); ?></label></th>
-                    <td>
-                        <div style="display: flex; flex-direction: column; gap: 10px;">
-                            <textarea id="mobooking-embed-code" readonly class="large-text code" rows="4" placeholder="<?php esc_attr_e('Embed code will appear here once slug is saved.', 'mobooking'); ?>"><?php 
+                    </div>
+                </div>
+
+                <div class="mobooking-card">
+                    <div class="mobooking-card-header">
+                        <h3 class="mobooking-card-title"><?php esc_html_e('System Tools', 'mobooking'); ?></h3>
+                    </div>
+                    <div class="mobooking-card-content">
+                        <div class="form-group">
+                            <label><?php esc_html_e('Rewrite Rules', 'mobooking'); ?></label>
+                            <button type="button" id="mobooking-flush-rewrite-rules-btn" class="btn btn-secondary"><?php esc_html_e('Flush Rewrite Rules', 'mobooking'); ?></button>
+                            <p class="description"><?php esc_html_e('If your booking form URLs are not working, flushing rewrite rules might help.', 'mobooking'); ?></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Share & Embed Tab -->
+            <div id="share-embed" class="mobooking-settings-tab-pane">
+                 <div class="mobooking-card">
+                    <div class="mobooking-card-header">
+                        <h3 class="mobooking-card-title"><?php esc_html_e('Direct Link, Embed & QR Code', 'mobooking'); ?></h3>
+                    </div>
+                    <div class="mobooking-card-content">
+                        <div class="form-group">
+                            <label for="mobooking-public-link-input"><?php esc_html_e('Your Public Link', 'mobooking'); ?></label>
+                            <div class="input-group">
+                                <input type="text" id="mobooking-public-link-input" value="<?php echo esc_url($public_booking_url); ?>" readonly class="form-input" placeholder="<?php esc_attr_e('Link will appear here once slug is saved.', 'mobooking'); ?>">
+                                <button type="button" id="mobooking-copy-public-link-btn-2" class="btn btn-secondary" <?php echo empty($public_booking_url) ? 'disabled' : ''; ?>><?php esc_html_e('Copy', 'mobooking'); ?></button>
+                                <?php if (!empty($public_booking_url)): ?>
+                                    <a href="<?php echo esc_url($public_booking_url); ?>" target="_blank" class="btn btn-outline"><?php esc_html_e('Preview', 'mobooking'); ?></a>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="mobooking-embed-code"><?php esc_html_e('Embed Code', 'mobooking'); ?></label>
+                             <textarea id="mobooking-embed-code" readonly class="form-textarea code" rows="3" placeholder="<?php esc_attr_e('Embed code will appear here once slug is saved.', 'mobooking'); ?>"><?php
                             if (!empty($public_booking_url)) {
                                 echo esc_textarea('<iframe src="' . esc_url($public_booking_url) . '" title="' . esc_attr__('Booking Form', 'mobooking') . '" style="width:100%; height:800px; border:1px solid #ccc;"></iframe>');
                             }
                             ?></textarea>
-                            <div style="display: flex; gap: 10px;">
-                                <button type="button" id="mobooking-copy-embed-code-btn" class="btn btn-secondary" <?php echo empty($public_booking_url) ? 'disabled' : ''; ?>><?php esc_html_e('Copy Embed Code', 'mobooking'); ?></button>
-                                <button type="button" id="mobooking-customize-embed-btn" class="btn btn-secondary"><?php esc_html_e('Customize Embed', 'mobooking'); ?></button>
+                            <div class="button-group">
+                                <button type="button" id="mobooking-copy-embed-code-btn" class="btn btn-secondary" <?php echo empty($public_booking_url) ? 'disabled' : ''; ?>><?php esc_html_e('Copy Code', 'mobooking'); ?></button>
+                                <button type="button" id="mobooking-customize-embed-btn" class="btn btn-outline"><?php esc_html_e('Customize', 'mobooking'); ?></button>
                             </div>
                         </div>
-                        <p class="description"><?php esc_html_e('Copy this code and paste it into any website where you want to embed your booking form.', 'mobooking'); ?></p>
-                    </td>
-                </tr>
-                <tr valign="top" id="embed-customization-row" style="display: none;">
-                    <th scope="row"><?php esc_html_e('Embed Customization', 'mobooking'); ?></th>
-                    <td>
-                        <table class="widefat" style="max-width: 600px;">
-                            <tr>
-                                <td><label for="embed-width"><?php esc_html_e('Width:', 'mobooking'); ?></label></td>
-                                <td><input type="text" id="embed-width" value="100%" class="small-text"> <span class="description"><?php esc_html_e('(e.g., 100%, 800px)', 'mobooking'); ?></span></td>
-                            </tr>
-                            <tr>
-                                <td><label for="embed-height"><?php esc_html_e('Height:', 'mobooking'); ?></label></td>
-                                <td><input type="text" id="embed-height" value="800px" class="small-text"> <span class="description"><?php esc_html_e('(e.g., 800px, 100vh)', 'mobooking'); ?></span></td>
-                            </tr>
-                            <tr>
-                                <td><label for="embed-border"><?php esc_html_e('Border:', 'mobooking'); ?></label></td>
-                                <td><input type="text" id="embed-border" value="1px solid #ccc" class="regular-text"> <span class="description"><?php esc_html_e('(e.g., none, 1px solid #ccc)', 'mobooking'); ?></span></td>
-                            </tr>
-                            <tr>
-                                <td colspan="2">
-                                    <button type="button" id="update-embed-code-btn" class="btn btn-primary"><?php esc_html_e('Update Embed Code', 'mobooking'); ?></button>
-                                </td>
-                            </tr>
-                        </table>
-                    </td>
-                </tr>
-                <tr valign="top">
-                    <th scope="row"><?php esc_html_e('QR Code', 'mobooking'); ?></th>
-                    <td>
-                        <div id="qr-code-container" style="margin: 10px 0;">
-                            <?php if (!empty($public_booking_url)): ?>
-                                <img id="qr-code-image" src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=<?php echo urlencode($public_booking_url); ?>" alt="<?php esc_attr_e('QR Code for Booking Form', 'mobooking'); ?>" style="border: 1px solid #ddd; padding: 10px; background: white;">
-                            <?php else: ?>
-                                <div style="width: 150px; height: 150px; border: 1px solid #ddd; display: flex; align-items: center; justify-content: center; background: #f9f9f9; color: #666;">
-                                    <?php esc_html_e('QR Code will appear here', 'mobooking'); ?>
+                        <div id="embed-customization-row" style="display: none;">
+                            <div class="form-group-grid three-cols">
+                                <div class="form-group">
+                                    <label for="embed-width"><?php esc_html_e('Width', 'mobooking'); ?></label>
+                                    <input type="text" id="embed-width" value="100%" class="form-input">
                                 </div>
+                                <div class="form-group">
+                                    <label for="embed-height"><?php esc_html_e('Height', 'mobooking'); ?></label>
+                                    <input type="text" id="embed-height" value="800px" class="form-input">
+                                </div>
+                                <div class="form-group">
+                                    <label for="embed-border"><?php esc_html_e('Border', 'mobooking'); ?></label>
+                                    <input type="text" id="embed-border" value="1px solid #ccc" class="form-input">
+                                </div>
+                            </div>
+                            <button type="button" id="update-embed-code-btn" class="btn btn-primary"><?php esc_html_e('Update Embed Code', 'mobooking'); ?></button>
+                        </div>
+                    </div>
+                    <div class="mobooking-card-footer">
+                        <div id="qr-code-container">
+                             <?php if (!empty($public_booking_url)): ?>
+                                <img id="qr-code-image" src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=<?php echo urlencode($public_booking_url); ?>" alt="<?php esc_attr_e('QR Code for Booking Form', 'mobooking'); ?>">
+                            <?php else: ?>
+                                <div class="qr-placeholder"><?php esc_html_e('QR Code will appear here', 'mobooking'); ?></div>
                             <?php endif; ?>
                         </div>
-                        <p class="description"><?php esc_html_e('Print this QR code on business cards, flyers, or display it in your physical location.', 'mobooking'); ?></p>
-                        <?php if (!empty($public_booking_url)): ?>
-                            <button type="button" id="download-qr-btn" class="btn btn-secondary"><?php esc_html_e('Download QR Code', 'mobooking'); ?></button>
-                        <?php endif; ?>
-                    </td>
-                </tr>
-            </table>
+                        <div class="qr-code-info">
+                            <p><?php esc_html_e('Scan this QR code on a mobile device to open the booking form directly.', 'mobooking'); ?></p>
+                             <?php if (!empty($public_booking_url)): ?>
+                                <button type="button" id="download-qr-btn" class="btn btn-secondary"><?php esc_html_e('Download QR Code', 'mobooking'); ?></button>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-
-        <p class="submit" style="margin-top:20px;">
-            <button type="submit" name="save_booking_form_settings" id="mobooking-save-bf-settings-btn" class="btn btn-primary"><?php esc_html_e('Save Booking Form Settings', 'mobooking'); ?></button>
-        </p>
     </form>
 </div>
 
