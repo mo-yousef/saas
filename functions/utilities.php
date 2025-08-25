@@ -258,4 +258,31 @@ if (!function_exists('mobooking_get_status_badge_icon_svg')) { // Check if funct
         return mobooking_get_feather_icon($icon_name, $attrs);
     }
 }
+
+function mobooking_get_booking_form_tab_icon(string $key): string {
+    $icon_svg = '';
+    $icon_path = MOBOOKING_THEME_DIR . 'assets/svg-icons/' . $key . '.svg';
+    $presets_path = MOBOOKING_THEME_DIR . 'assets/svg-icons/presets/' . $key . '.svg';
+
+    if (file_exists($icon_path)) {
+        $icon_svg = file_get_contents($icon_path);
+    } elseif (file_exists($presets_path)) {
+        $icon_svg = file_get_contents($presets_path);
+    }
+
+    // Fallback for keys that might not have a file but we want to provide an icon for
+    if (empty($icon_svg)) {
+        switch ($key) {
+            case 'general':
+                // Using a generic settings/cog icon
+                $icon_svg = '<svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.25C8.66,5.49,8.13,5.81,7.63,6.19L5.24,5.23C5.02,5.16,4.77,5.23,4.65,5.45l-1.92,3.32 c-0.12,0.2-0.07,0.47,0.12,0.61L4.9,11.06C4.85,11.36,4.82,11.68,4.82,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.44 c0.04,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.44c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0.01,0.59-0.22l1.92-3.32c0.12-0.2,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>';
+                break;
+            case 'design':
+                 $icon_svg = '<svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M12,17.27L18.18,21l-1.64-7.03L22,9.24l-7.19-0.61L12,2L9.19,8.63L2,9.24l5.46,4.73L5.82,21L12,17.27z"/></svg>';
+                break;
+        }
+    }
+
+    return $icon_svg;
+}
 ?>
