@@ -261,7 +261,7 @@ if ($current_page_slug === 'booking-form') {
     wp_enqueue_script(
         'mobooking-dashboard-booking-form-settings',
         MOBOOKING_THEME_URI . 'assets/js/dashboard-booking-form-settings.js',
-        array('jquery'),
+        array('jquery', 'wp-color-picker'),
         MOBOOKING_VERSION,
         true
     );
