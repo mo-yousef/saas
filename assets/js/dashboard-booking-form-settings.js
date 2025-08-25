@@ -20,7 +20,7 @@ jQuery(document).ready(function ($) {
         panes.removeClass('active');
 
         const activeTab = tabs.filter(`[data-tab="${tabId}"]`);
-        const activePane = panes.filter(`#${tabId}`);
+        const activePane = $(`#${tabId}`);
 
         activeTab.addClass('active');
         activePane.addClass('active');
