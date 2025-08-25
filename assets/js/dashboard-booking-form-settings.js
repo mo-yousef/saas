@@ -260,14 +260,19 @@ jQuery(document).ready(function ($) {
   });
 
   // --- Color Picker Initialization ---
-  if (typeof $.fn.wpColorPicker === "function") {
-    $(".mobooking-color-picker").wpColorPicker({
-      change: function (event, ui) {
-        // Optional: Add live preview functionality here
-        const color = ui.color.toString();
-        $(this).trigger("colorchange", [color]);
-      },
-    });
+  try {
+    if (typeof $.fn.wpColorPicker === "function") {
+      $(".mobooking-color-picker").wpColorPicker({
+        change: function (event, ui) {
+          const color = ui.color.toString();
+          $(this).trigger("colorchange", [color]);
+        },
+      });
+    } else {
+      console.warn("wpColorPicker script not loaded. Color fields will not be interactive.");
+    }
+  } catch (e) {
+    console.error("An error occurred while initializing the color picker.", e);
   }
 
   // --- Toggle Switch for Form Enabled/Disabled ---
