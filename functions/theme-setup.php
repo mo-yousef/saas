@@ -355,11 +355,6 @@ if ( is_page_template('templates/booking-form-public.php') || $page_type_for_scr
             ]);
         }
 
-        if ( $current_page_slug === 'booking-form' ) {
-            wp_enqueue_style( 'mobooking-booking-form-modern', MOBOOKING_THEME_URI . 'assets/css/booking-form-modern.css', array('mobooking-dashboard-main'), MOBOOKING_VERSION );
-            wp_enqueue_script( 'mobooking-dashboard-booking-form-settings', MOBOOKING_THEME_URI . 'assets/js/dashboard-booking-form-settings.js', array( 'jquery' ), MOBOOKING_VERSION, true );
-        }
-
         if ( $current_page_slug === 'workers' ) {
             wp_enqueue_script( 'mobooking-dashboard-workers', MOBOOKING_THEME_URI . 'assets/js/dashboard-workers.js', array( 'jquery', 'mobooking-dialog' ), MOBOOKING_VERSION, true );
             wp_localize_script( 'mobooking-dashboard-workers', 'mobooking_workers_params', array(
