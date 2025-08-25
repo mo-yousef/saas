@@ -67,21 +67,38 @@ if (!empty($current_slug)) {
     </div>
     <?php endif; ?>
 
-    <form id="mobooking-booking-form-settings-form" method="post" class="mobooking-settings-form">
-        <?php wp_nonce_field('mobooking_dashboard_nonce', 'mobooking_dashboard_nonce_field'); ?>
+    <div class="mobooking-settings-grid">
+        <div class="mobooking-settings-main">
+            <form id="mobooking-booking-form-settings-form" method="post" class="mobooking-settings-form">
+                <?php wp_nonce_field('mobooking_dashboard_nonce', 'mobooking_dashboard_nonce_field'); ?>
 
-        <!-- Tab Navigation -->
-        <div class="mobooking-settings-tabs" role="tablist" aria-label="<?php esc_attr_e('Booking Form Settings', 'mobooking'); ?>">
-            <a href="#general" class="mobooking-tab-item active" data-tab="general" role="tab"><?php esc_html_e('General', 'mobooking'); ?></a>
-            <a href="#form-control" class="mobooking-tab-item" data-tab="form-control" role="tab"><?php esc_html_e('Form Control', 'mobooking'); ?></a>
-            <a href="#design" class="mobooking-tab-item" data-tab="design" role="tab"><?php esc_html_e('Design', 'mobooking'); ?></a>
-            <a href="#advanced" class="mobooking-tab-item" data-tab="advanced" role="tab"><?php esc_html_e('Advanced', 'mobooking'); ?></a>
-            <a href="#share-embed" class="mobooking-tab-item" data-tab="share-embed" role="tab"><?php esc_html_e('Share & Embed', 'mobooking'); ?></a>
-        </div>
+                <!-- Tab Navigation -->
+                <div class="mobooking-settings-tabs" role="tablist" aria-label="<?php esc_attr_e('Booking Form Settings', 'mobooking'); ?>">
+                    <a href="#general" class="mobooking-tab-item active" data-tab="general" role="tab">
+                        <?php echo mobooking_get_booking_form_tab_icon('cog'); ?>
+                        <span><?php esc_html_e('General', 'mobooking'); ?></span>
+                    </a>
+                    <a href="#form-control" class="mobooking-tab-item" data-tab="form-control" role="tab">
+                        <?php echo mobooking_get_booking_form_tab_icon('toggle'); ?>
+                        <span><?php esc_html_e('Form Control', 'mobooking'); ?></span>
+                    </a>
+                    <a href="#design" class="mobooking-tab-item" data-tab="design" role="tab">
+                        <?php echo mobooking_get_booking_form_tab_icon('star'); ?>
+                        <span><?php esc_html_e('Design', 'mobooking'); ?></span>
+                    </a>
+                    <a href="#advanced" class="mobooking-tab-item" data-tab="advanced" role="tab">
+                        <?php echo mobooking_get_booking_form_tab_icon('tools'); ?>
+                        <span><?php esc_html_e('Advanced', 'mobooking'); ?></span>
+                    </a>
+                    <a href="#share-embed" class="mobooking-tab-item" data-tab="share-embed" role="tab">
+                        <?php echo mobooking_get_booking_form_tab_icon('share'); ?>
+                        <span><?php esc_html_e('Share & Embed', 'mobooking'); ?></span>
+                    </a>
+                </div>
 
-        <div class="mobooking-settings-content">
-            <!-- General Settings Tab -->
-            <div id="general" class="mobooking-settings-tab-pane active" role="tabpanel">
+                <div class="mobooking-settings-content">
+                    <!-- General Settings Tab -->
+                    <div id="general" class="mobooking-settings-tab-pane active" role="tabpanel">
                 <div class="mobooking-card">
                     <div class="mobooking-card-header">
                         <h3 class="mobooking-card-title"><?php esc_html_e('Basic Information', 'mobooking'); ?></h3>
@@ -383,8 +400,40 @@ if (!empty($current_slug)) {
                     </div>
                 </div>
             </div>
-        </div>
-    </form>
+                </div>
+            </form>
+        </div><!-- /.mobooking-settings-main -->
+
+        <div class="mobooking-settings-sidebar">
+            <div class="mobooking-preview-box">
+                <h3 class="preview-box-title"><?php esc_html_e('Live Preview', 'mobooking'); ?></h3>
+                <div class="mobooking-form-preview-wrapper">
+                    <div class="mobooking-form-preview">
+                        <div class="preview-header">
+                            <h2 id="preview-header-text"><?php echo esc_html(mobooking_get_setting_value($bf_settings, 'bf_header_text', 'Book Our Services Online')); ?></h2>
+                            <p id="preview-description"><?php echo esc_html(mobooking_get_setting_value($bf_settings, 'bf_description')); ?></p>
+                        </div>
+                        <div class="preview-progress-bar" style="<?php echo mobooking_is_setting_checked($bf_settings, 'bf_show_progress_bar', true) ? '' : 'display: none;'; ?>">
+                            <div class="preview-progress-fill"></div>
+                        </div>
+                        <div class="preview-form-content">
+                            <div class="preview-form-group">
+                                <label><?php esc_html_e('Your Name', 'mobooking'); ?></label>
+                                <input type="text" readonly>
+                            </div>
+                            <div class="preview-form-group">
+                                <label><?php esc_html_e('Your Email', 'mobooking'); ?></label>
+                                <input type="email" readonly>
+                            </div>
+                            <div class="preview-form-group">
+                                <button type="button" class="preview-button"><?php esc_html_e('Continue', 'mobooking'); ?></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div><!-- /.mobooking-settings-sidebar -->
+    </div><!-- /.mobooking-settings-grid -->
 </div>
 
 <!-- Success/Error Messages Container -->
@@ -470,6 +519,138 @@ if (!empty($current_slug)) {
     outline: 2px solid hsl(var(--ring));
     outline-offset: 2px;
     z-index: 1;
+}
+
+/* Tab icons */
+.mobooking-tab-item svg {
+    width: 16px;
+    height: 16px;
+    margin-right: 8px;
+    vertical-align: middle;
+    display: inline-block;
+    opacity: 0.7;
+    transition: opacity 0.2s ease-in-out;
+}
+.mobooking-tab-item:hover svg,
+.mobooking-tab-item.active svg {
+    opacity: 1;
+}
+.mobooking-tab-item span {
+    vertical-align: middle;
+    display: inline-block;
+}
+
+.mobooking-settings-grid {
+    display: grid;
+    grid-template-columns: 1fr; /* Default to single column */
+    gap: 2rem;
+}
+
+@media (min-width: 1024px) {
+    .mobooking-settings-grid {
+        grid-template-columns: 1fr 400px;
+    }
+}
+
+.mobooking-settings-sidebar {
+    position: sticky;
+    top: 2rem;
+    height: fit-content;
+}
+
+.mobooking-preview-box {
+    background-color: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius-lg);
+}
+
+.preview-box-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid hsl(var(--border));
+}
+
+.mobooking-form-preview-wrapper {
+    padding: 1.5rem;
+}
+
+.mobooking-form-preview {
+    background-color: var(--preview-bg, #ffffff);
+    color: var(--preview-text, #333333);
+    border-radius: var(--preview-radius, 8px);
+    padding: 1.5rem;
+    border: 1px solid #e5e7eb;
+    transition: all 0.3s ease;
+}
+
+.preview-header {
+    text-align: center;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--preview-border, #e5e7eb);
+}
+
+.preview-header h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--preview-primary, #1abc9c);
+    margin-bottom: 0.5rem;
+    word-wrap: break-word;
+}
+
+.preview-header p {
+    font-size: 0.9rem;
+    word-wrap: break-word;
+}
+
+.preview-progress-bar {
+    width: 100%;
+    height: 8px;
+    background-color: #e5e7eb;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+}
+
+.preview-progress-fill {
+    width: 25%;
+    height: 100%;
+    background-color: var(--preview-primary, #1abc9c);
+    transition: background-color 0.3s ease;
+}
+
+.preview-form-group {
+    margin-bottom: 1rem;
+}
+
+.preview-form-group label {
+    display: block;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+}
+
+.preview-form-group input,
+.preview-button {
+    width: 100%;
+    padding: 0.65rem 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: var(--preview-radius, 8px);
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.preview-form-group input {
+    background-color: #f9fafb;
+}
+
+.preview-button {
+    border: none;
+    color: #fff;
+    background-color: var(--preview-primary, #1abc9c);
+    font-weight: 600;
+    cursor: not-allowed;
 }
 
 /* Responsive adjustments */
