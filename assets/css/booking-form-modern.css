@@ -2756,12 +2756,12 @@ Booking Form Settings Page - Modern Redesign
     border-bottom-color: hsl(var(--background));
 }
 
-.mobooking-settings-tab-pane {
+.mobooking-settings-content .mobooking-settings-tab-pane {
     display: none;
     animation: fadeIn 0.3s ease;
 }
 
-.mobooking-settings-tab-pane.active {
+.mobooking-settings-content .mobooking-settings-tab-pane.active {
     display: block;
 }
 
