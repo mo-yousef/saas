@@ -1,206 +1,209 @@
-// Enhanced AJAX save functionality for booking form settings
-// Add this to assets/js/dashboard-booking-form-settings.js or update existing code
-
 jQuery(document).ready(function ($) {
-  "use strict";
+    "use strict";
 
-  // Form submission handler with improved data collection
-  $("#mobooking-booking-form-settings-form").on("submit", function (e) {
-    e.preventDefault();
-
-    const form = $(this);
-    const saveButton = $("#mobooking-save-bf-settings-btn");
-    const feedbackDiv = $("#mobooking-settings-feedback");
-    const originalButtonText = saveButton.text();
-
-    // Disable form and show loading state
-    saveButton.prop("disabled", true).text("Saving...");
-    feedbackDiv.hide().removeClass("notice-success notice-error");
-
-    // Enhanced data collection function
-    function collectFormData() {
-      const settingsData = {};
-
-      // Get all form fields
-      form.find("input, textarea, select").each(function () {
-        const field = $(this);
-        const name = field.attr("name");
-
-        if (!name || name === "save_booking_form_settings") return; // Skip submit button
-
-        // Handle different field types
-        if (field.is(":checkbox")) {
-          settingsData[name] = field.is(":checked") ? "1" : "0";
-        } else if (field.is(":radio")) {
-          if (field.is(":checked")) {
-            settingsData[name] = field.val();
-          }
-        } else if (field.hasClass("wp-color-picker")) {
-          // Handle WordPress color picker
-          settingsData[name] = field.val() || field.data("default-color") || "";
-        } else {
-          settingsData[name] = field.val() || "";
-        }
-      });
-
-      return settingsData;
+    // --- Toast Notification Function (assuming it exists) ---
+    // Make sure a global function `window.showAlert(message, type)` is available.
+    // Example: window.showAlert = (message, type = 'info') => { console.log(`${type}: ${message}`); };
+    if (typeof window.showAlert !== 'function') {
+        window.showAlert = (message, type = 'info') => {
+            console.warn("No toast handler found. Implement `window.showAlert`.", { message, type });
+            alert(`${type.toUpperCase()}: ${message}`);
+        };
     }
 
-    const settingsData = collectFormData();
+    // --- Tab Navigation ---
+    const tabs = $('.mobooking-tab-item');
+    const panes = $('.mobooking-settings-tab-pane');
 
-    // Validate required parameters
-    if (
-      !window.mobooking_bf_settings_params ||
-      !window.mobooking_bf_settings_params.ajax_url ||
-      !window.mobooking_bf_settings_params.nonce
-    ) {
-      feedbackDiv
-        .text("Configuration error: Missing AJAX parameters.")
-        .addClass("notice notice-error")
-        .show();
+    function activateTab(tabId) {
+        tabs.removeClass('active');
+        panes.removeClass('active');
 
-      saveButton.prop("disabled", false).text(originalButtonText);
-      return;
+        const activeTab = tabs.filter(`[data-tab="${tabId}"]`);
+        const activePane = panes.filter(`#${tabId}`);
+
+        activeTab.addClass('active');
+        activePane.addClass('active');
+
+        if (history.replaceState) {
+            history.replaceState(null, null, `#${tabId}`);
+        }
     }
 
-    // Perform AJAX request
-    $.ajax({
-      url: window.mobooking_bf_settings_params.ajax_url,
-      type: "POST",
-      dataType: "json",
-      data: {
-        action: "mobooking_save_booking_form_settings",
-        nonce: window.mobooking_bf_settings_params.nonce,
-        settings: settingsData,
-      },
-      success: function (response) {
-        if (response && response.success) {
-          window.showAlert(response.data?.message || "Settings saved successfully.", 'success');
-
-          // Update shareable links if slug was saved
-          if (settingsData.bf_business_slug) {
-            updateShareableLinks(settingsData.bf_business_slug);
-          }
-        } else {
-          window.showAlert(response?.data?.message || "Failed to save settings.", 'error');
-        }
-      },
-      error: function (xhr, status, error) {
-        console.error("AJAX Error:", { xhr, status, error });
-
-        let errorMessage = "Network error occurred.";
-        if (xhr.responseJSON?.data?.message) {
-          errorMessage = xhr.responseJSON.data.message;
-        } else if (xhr.responseText) {
-          errorMessage = "Server error: " + error;
-        }
-
-        window.showAlert(errorMessage, 'error');
-      },
-      complete: function () {
-        // Re-enable form
-        saveButton.prop("disabled", false).text(originalButtonText);
-      },
+    tabs.on('click', function (e) {
+        e.preventDefault();
+        const tabId = $(this).data('tab');
+        activateTab(tabId);
     });
-  });
 
-  // Helper function to update shareable links
-  function updateShareableLinks(slug) {
-    if (!slug) return;
-
-    const baseUrl =
-      window.mobooking_bf_settings_params.site_url ||
-      window.location.origin + "/";
-    const publicUrl = baseUrl + "bookings/" + slug + "/";
-    const embedUrl = baseUrl + "bookings/" + slug + "/embed/";
-
-    // Update public link
-    $("#bf-public-link").attr("href", publicUrl).text(publicUrl);
-
-    // Update embed code
-    const embedCode = `<iframe src="${embedUrl}" width="100%" height="600" frameborder="0"></iframe>`;
-    $("#bf-embed-code").val(embedCode);
-
-    // Update QR code if present
-    const qrContainer = $("#qr-code-container");
-    if (qrContainer.length) {
-      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(
-        publicUrl
-      )}`;
-      qrContainer.html(`<img src="${qrUrl}" alt="QR Code" />`);
+    // Activate tab from URL hash on page load
+    const urlHash = window.location.hash.substring(1);
+    if (urlHash && panes.filter(`#${urlHash}`).length > 0) {
+        activateTab(urlHash);
+    } else {
+        // Fallback to the first tab if hash is invalid or not present
+        activateTab(tabs.first().data('tab'));
     }
-  }
 
-  // Real-time slug sanitization for better UX
-  $("input[name='bf_business_slug']").on("input", function () {
-    const input = $(this);
-    let value = input.val();
+    // --- Form Submission ---
+    $("#mobooking-booking-form-settings-form").on("submit", function (e) {
+        e.preventDefault();
+        const form = $(this);
+        const saveButton = $("#mobooking-save-bf-settings-btn");
+        const originalButtonText = saveButton.text();
+        const spinner = `<span class="spinner"></span>`;
 
-    // Sanitize slug in real-time
-    value = value
-      .toLowerCase()
-      .replace(/[^a-z0-9\-]/g, "")
-      .replace(/\-+/g, "-")
-      .replace(/^\-|\-$/g, "");
+        saveButton.prop("disabled", true).html(spinner + ' Saving...');
 
-    if (input.val() !== value) {
-      input.val(value);
-    }
-  });
+        const settingsData = {};
+        form.find("input, textarea, select").each(function () {
+            const field = $(this);
+            const name = field.attr("name");
+            if (!name || name.startsWith("save_")) return;
 
-  // Initialize color pickers if available
-  if (typeof $.fn.wpColorPicker === "function") {
-    $(".mobooking-color-picker").wpColorPicker({
-      change: function (event, ui) {
-        // Trigger change event for real-time updates if needed
-        $(this).trigger("input");
-      },
+            if (field.is(":checkbox")) {
+                settingsData[name] = field.is(":checked") ? "1" : "0";
+            } else {
+                settingsData[name] = field.val();
+            }
+        });
+
+        // Use localized params if available, otherwise fallback
+        const ajaxUrl = (window.mobooking_params?.ajax_url) || ajaxurl;
+        const nonce = (window.mobooking_params?.nonce) || form.find('[name="mobooking_dashboard_nonce_field"]').val();
+
+        $.ajax({
+            url: ajaxUrl,
+            type: "POST",
+            dataType: "json",
+            data: {
+                action: "mobooking_save_booking_form_settings",
+                nonce: nonce,
+                settings: settingsData,
+            },
+            success: function (response) {
+                if (response.success) {
+                    showAlert(response.data?.message || "Settings saved successfully.", 'success');
+                    // Potentially update UI elements like the public link if slug changes
+                    if (settingsData.bf_business_slug) {
+                        const newUrl = `${(window.mobooking_params?.site_url || '')}booking/${settingsData.bf_business_slug}/`;
+                        $('#bf-public-link').attr('href', newUrl).text(newUrl);
+                        $('#mobooking-public-link-input').val(newUrl);
+                    }
+                } else {
+                    showAlert(response.data?.message || "Failed to save settings.", 'error');
+                }
+            },
+            error: function (xhr) {
+                const errorMsg = xhr.responseJSON?.data?.message || "A network error occurred.";
+                showAlert(errorMsg, 'error');
+            },
+            complete: function () {
+                saveButton.prop("disabled", false).text(originalButtonText);
+            }
+        });
     });
-  }
 
-  // Tab navigation improvement
-  $(".nav-tab-wrapper .nav-tab").on("click", function (e) {
-    e.preventDefault();
+    // --- Real-time Interactions ---
 
-    const tab = $(this);
-    const tabId = tab.data("tab");
+    // Slug sanitization
+    $("input[name='bf_business_slug']").on("input", function () {
+        const input = $(this);
+        const sanitized = input.val()
+            .toLowerCase()
+            .replace(/\s+/g, '-') // Replace spaces with -
+            .replace(/[^a-z0-9-]/g, '') // Remove all non-alphanumeric chars except -
+            .replace(/-+/g, '-'); // Replace multiple - with single -
+        if (input.val() !== sanitized) {
+            input.val(sanitized);
+        }
+    });
 
-    // Update active states
-    $(".nav-tab").removeClass("nav-tab-active");
-    tab.addClass("nav-tab-active");
+    // Toggle maintenance message field based on form enabled status
+    $('#bf_form_enabled').on('change', function() {
+        const isChecked = $(this).is(':checked');
+        $('#maintenance-message-group').toggle(!isChecked);
+    }).trigger('change'); // Trigger on load
 
-    // Show/hide tab content
-    $(".mobooking-settings-tab-content").hide();
-    $("#mobooking-" + tabId + "-settings-tab").show();
+    // --- Share & Embed Section ---
 
-    // Update URL hash without scrolling
-    if (history.replaceState) {
-      history.replaceState(null, null, "#" + tabId);
+    // Copy to clipboard
+    function copyToClipboard(text, successMessage) {
+        if (!navigator.clipboard) {
+            showAlert("Clipboard API not available.", "error");
+            return;
+        }
+        navigator.clipboard.writeText(text).then(() => {
+            showAlert(successMessage, 'success');
+        }).catch(err => {
+            showAlert("Failed to copy.", "error");
+            console.error('Could not copy text: ', err);
+        });
     }
-  });
 
-  // Initialize active tab from URL hash
-  const urlHash = window.location.hash.substring(1);
-  if (urlHash) {
-    const targetTab = $(".nav-tab[data-tab='" + urlHash + "']");
-    if (targetTab.length) {
-      targetTab.trigger("click");
+    $('#mobooking-copy-public-link-btn, #mobooking-copy-public-link-btn-2').on('click', function() {
+        copyToClipboard($('#mobooking-public-link-input').val(), 'Public link copied!');
+    });
+
+    $('#mobooking-copy-embed-code-btn').on('click', function() {
+        copyToClipboard($('#mobooking-embed-code').val(), 'Embed code copied!');
+    });
+
+    // Embed customization
+    $('#mobooking-customize-embed-btn').on('click', function() {
+        $('#embed-customization-row').slideToggle();
+    });
+
+    $('#update-embed-code-btn').on('click', function() {
+        const width = $('#embed-width').val() || '100%';
+        const height = $('#embed-height').val() || '800px';
+        const border = $('#embed-border').val() || '1px solid #ccc';
+        const baseUrl = $('#mobooking-public-link-input').val();
+
+        if (baseUrl) {
+            const iframe = `<iframe src="${baseUrl}" title="Booking Form" style="width:${width}; height:${height}; border:${border};"></iframe>`;
+            $('#mobooking-embed-code').val(iframe);
+            showAlert('Embed code updated.', 'success');
+        }
+    });
+
+    // QR Code download
+    $('#download-qr-btn').on('click', function() {
+        const qrUrl = $('#qr-code-image').attr('src');
+        if (qrUrl) {
+            const link = document.createElement('a');
+            link.href = qrUrl;
+            link.download = 'booking-form-qr-code.png';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    });
+
+    // Flush rewrite rules
+    $('#mobooking-flush-rewrite-rules-btn').on('click', function() {
+        const button = $(this);
+        button.prop('disabled', true).text('Flushing...');
+
+        $.post(ajaxurl, { action: 'mobooking_flush_rewrite_rules', nonce: window.mobooking_params.nonce })
+            .done(response => {
+                if (response.success) {
+                    showAlert('Rewrite rules flushed successfully.', 'success');
+                } else {
+                    showAlert(response.data?.message || 'Failed to flush rewrite rules.', 'error');
+                }
+            })
+            .fail(() => showAlert('An error occurred while flushing rules.', 'error'))
+            .always(() => button.prop('disabled', false).text('Flush Rewrite Rules'));
+    });
+
+    // Initialize color pickers if WP color picker is available
+    if (typeof $.fn.wpColorPicker === 'function') {
+        $('.mobooking-color-picker').each(function() {
+            // Check if it's a native color picker, if so, don't initialize wpColorPicker
+            if (this.type !== 'color') {
+                $(this).wpColorPicker();
+            }
+        });
     }
-  }
 });
-
-// Backup parameter initialization if not properly localized
-if (typeof window.mobooking_bf_settings_params === "undefined") {
-  console.warn("mobooking_bf_settings_params not found. Using fallback.");
-  window.mobooking_bf_settings_params = {
-    ajax_url: window.ajaxurl || "/wp-admin/admin-ajax.php",
-    nonce: "",
-    site_url: window.location.origin + "/",
-    i18n: {
-      saving: "Saving...",
-      save_success: "Settings saved successfully.",
-      error_saving: "Error saving settings.",
-      error_ajax: "Network error occurred.",
-    },
-  };
-}
