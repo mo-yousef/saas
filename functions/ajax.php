@@ -1531,38 +1531,3 @@ if (!function_exists('mobooking_ajax_dashboard_live_search')) {
         wp_send_json_success(array('results' => $results));
     }
 }
-
-add_action('wp_ajax_mobooking_save_booking_form_settings', 'mobooking_ajax_save_booking_form_settings');
-function mobooking_ajax_save_booking_form_settings() {
-    if (!check_ajax_referer('mobooking_dashboard_nonce', 'nonce', false)) {
-        wp_send_json_error(['message' => __('Security check failed.', 'mobooking')], 403);
-        return;
-    }
-
-    $user_id = get_current_user_id();
-    if (!$user_id) {
-        wp_send_json_error(['message' => __('User not authenticated.', 'mobooking')], 403);
-        return;
-    }
-
-    $settings_data = isset($_POST['settings']) ? (array) $_POST['settings'] : [];
-
-    if (empty($settings_data)) {
-        wp_send_json_error(['message' => __('No settings data received.', 'mobooking')], 400);
-        return;
-    }
-
-    if (!class_exists('MoBooking\Classes\Settings')) {
-        wp_send_json_error(['message' => __('Settings class not available.', 'mobooking')], 500);
-        return;
-    }
-
-    $settings_manager = new \MoBooking\Classes\Settings();
-    $result = $settings_manager->save_booking_form_settings($user_id, $settings_data);
-
-    if ($result) {
-        wp_send_json_success(['message' => __('Booking form settings saved successfully.', 'mobooking')]);
-    } else {
-        wp_send_json_error(['message' => __('Failed to save settings. Please try again.', 'mobooking')], 500);
-    }
-}
