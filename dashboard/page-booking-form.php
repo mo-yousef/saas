@@ -68,16 +68,16 @@ if (!empty($current_slug)) {
         <?php wp_nonce_field('mobooking_dashboard_nonce', 'mobooking_dashboard_nonce_field'); ?>
 
         <div class="mobooking-settings-tabs">
-            <a href="#general" class="mobooking-tab-item active" data-tab="general"><?php esc_html_e('General', 'mobooking'); ?></a>
-            <a href="#form-control" class="mobooking-tab-item" data-tab="form-control"><?php esc_html_e('Form Control', 'mobooking'); ?></a>
-            <a href="#design" class="mobooking-tab-item" data-tab="design"><?php esc_html_e('Design', 'mobooking'); ?></a>
-            <a href="#advanced" class="mobooking-tab-item" data-tab="advanced"><?php esc_html_e('Advanced', 'mobooking'); ?></a>
-            <a href="#share-embed" class="mobooking-tab-item" data-tab="share-embed"><?php esc_html_e('Share & Embed', 'mobooking'); ?></a>
+            <a href="#general" class="mobooking-tab-item active" data-tab="mobooking-general-settings-tab"><?php esc_html_e('General', 'mobooking'); ?></a>
+            <a href="#form-control" class="mobooking-tab-item" data-tab="mobooking-form-control-settings-tab"><?php esc_html_e('Form Control', 'mobooking'); ?></a>
+            <a href="#design" class="mobooking-tab-item" data-tab="mobooking-design-settings-tab"><?php esc_html_e('Design', 'mobooking'); ?></a>
+            <a href="#advanced" class="mobooking-tab-item" data-tab="mobooking-advanced-settings-tab"><?php esc_html_e('Advanced', 'mobooking'); ?></a>
+            <a href="#share-embed" class="mobooking-tab-item" data-tab="mobooking-share-embed-settings-tab"><?php esc_html_e('Share & Embed', 'mobooking'); ?></a>
         </div>
 
         <div class="mobooking-settings-content">
             <!-- General Settings Tab -->
-            <div id="general" class="mobooking-settings-tab-pane active">
+            <div id="mobooking-general-settings-tab" class="mobooking-settings-tab-pane active">
                 <div class="mobooking-card">
                     <div class="mobooking-card-header">
                         <h3 class="mobooking-card-title"><?php esc_html_e('Basic Information', 'mobooking'); ?></h3>
@@ -120,7 +120,7 @@ if (!empty($current_slug)) {
             </div>
 
             <!-- Form Control Tab -->
-            <div id="form-control" class="mobooking-settings-tab-pane">
+            <div id="mobooking-form-control-settings-tab" class="mobooking-settings-tab-pane">
                 <div class="mobooking-card">
                     <div class="mobooking-card-header">
                         <h3 class="mobooking-card-title"><?php esc_html_e('Form Availability', 'mobooking'); ?></h3>
@@ -199,7 +199,7 @@ if (!empty($current_slug)) {
             </div>
 
             <!-- Design & Styling Tab -->
-            <div id="design" class="mobooking-settings-tab-pane">
+            <div id="mobooking-design-settings-tab" class="mobooking-settings-tab-pane">
                 <div class="mobooking-card">
                     <div class="mobooking-card-header">
                         <h3 class="mobooking-card-title"><?php esc_html_e('Color Scheme', 'mobooking'); ?></h3>
@@ -264,7 +264,7 @@ if (!empty($current_slug)) {
             </div>
 
             <!-- Advanced Settings Tab -->
-            <div id="advanced" class="mobooking-settings-tab-pane">
+            <div id="mobooking-advanced-settings-tab" class="mobooking-settings-tab-pane">
                 <div class="mobooking-card">
                     <div class="mobooking-card-header">
                         <h3 class="mobooking-card-title"><?php esc_html_e('Booking Logic', 'mobooking'); ?></h3>
@@ -351,7 +351,7 @@ if (!empty($current_slug)) {
             </div>
 
             <!-- Share & Embed Tab -->
-            <div id="share-embed" class="mobooking-settings-tab-pane">
+            <div id="mobooking-share-embed-settings-tab" class="mobooking-settings-tab-pane">
                  <div class="mobooking-card">
                     <div class="mobooking-card-header">
                         <h3 class="mobooking-card-title"><?php esc_html_e('Direct Link, Embed & QR Code', 'mobooking'); ?></h3>
