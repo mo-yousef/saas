@@ -418,5 +418,64 @@ jQuery(document).ready(function ($) {
     targetPane.attr("aria-hidden", "false");
   });
 
+  // --- Live Preview ---
+  const preview = {
+    form: $('.mobooking-form-preview'),
+    headerText: $('#preview-header-text'),
+    description: $('#preview-description'),
+    progressBar: $('.preview-progress-bar'),
+    progressFill: $('.preview-progress-fill'),
+    button: $('.preview-button'),
+    inputs: $('.preview-form-group input')
+  };
+
+  const formInputs = {
+    headerText: $('#bf_header_text'),
+    description: $('#bf_description'),
+    themeColor: $('#bf_theme_color'),
+    backgroundColor: $('#bf_background_color'),
+    textColor: $('#bf_text_color'),
+    borderRadius: $('#bf_border_radius'),
+    showProgressBar: $('#bf_show_progress_bar')
+  };
+
+  function updatePreview() {
+    const themeColor = formInputs.themeColor.val() || '#1abc9c';
+    const backgroundColor = formInputs.backgroundColor.val() || '#ffffff';
+    const textColor = formInputs.textColor.val() || '#333333';
+    const borderRadius = (formInputs.borderRadius.val() || 8) + 'px';
+
+    // Update content
+    preview.headerText.text(formInputs.headerText.val() || 'Book Our Services Online');
+    preview.description.text(formInputs.description.val());
+
+    // Update styles
+    preview.form.css({
+      '--preview-bg': backgroundColor,
+      '--preview-text': textColor,
+      '--preview-primary': themeColor,
+      '--preview-radius': borderRadius
+    });
+
+    // Toggle progress bar
+    if (formInputs.showProgressBar.is(':checked')) {
+      preview.progressBar.show();
+    } else {
+      preview.progressBar.hide();
+    }
+  }
+
+  // Bind events
+  Object.values(formInputs).forEach(input => {
+    input.on('input change', updatePreview);
+  });
+
+  // Also trigger for color picker changes
+  $('.mobooking-color-picker').on('colorchange', updatePreview);
+
+
+  // Initial call
+  updatePreview();
+
   console.log("MoBooking Booking Form Settings initialized successfully");
 });
