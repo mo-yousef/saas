@@ -1,4 +1,3 @@
-alert('test');
 jQuery(document).ready(function ($) {
   "use strict";
   console.log("form js dashboard");
