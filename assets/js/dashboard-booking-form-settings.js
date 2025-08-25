@@ -1,209 +1,422 @@
 jQuery(document).ready(function ($) {
-    "use strict";
+  "use strict";
+  console.log("form js dashboard");
+  // --- Toast Notification Function ---
+  if (typeof window.showAlert !== "function") {
+    window.showAlert = (message, type = "info") => {
+      console.warn("No toast handler found. Implement `window.showAlert`.", {
+        message,
+        type,
+      });
+      alert(`${type.toUpperCase()}: ${message}`);
+    };
+  }
 
-    // --- Toast Notification Function (assuming it exists) ---
-    // Make sure a global function `window.showAlert(message, type)` is available.
-    // Example: window.showAlert = (message, type = 'info') => { console.log(`${type}: ${message}`); };
-    if (typeof window.showAlert !== 'function') {
-        window.showAlert = (message, type = 'info') => {
-            console.warn("No toast handler found. Implement `window.showAlert`.", { message, type });
-            alert(`${type.toUpperCase()}: ${message}`);
-        };
+  // --- Tab Navigation (Fixed) ---
+  const tabs = $(".mobooking-tab-item");
+  const panes = $(".mobooking-settings-tab-pane");
+
+  function activateTab(tabId) {
+    // Remove active class from all tabs and panes
+    tabs.removeClass("active");
+    panes.removeClass("active");
+
+    // Add active class to selected tab and pane
+    const activeTab = tabs.filter(`[data-tab="${tabId}"]`);
+    const activePane = $(`#${tabId}`);
+
+    if (activeTab.length && activePane.length) {
+      activeTab.addClass("active");
+      activePane.addClass("active");
+
+      // Update URL hash
+      if (history.replaceState) {
+        history.replaceState(null, null, `#${tabId}`);
+      }
     }
+  }
 
-    // --- Tab Navigation ---
-    const tabs = $('.mobooking-tab-item');
-    const panes = $('.mobooking-settings-tab-pane');
-
-    function activateTab(tabId) {
-        tabs.removeClass('active');
-        panes.removeClass('active');
-
-        const activeTab = tabs.filter(`[data-tab="${tabId}"]`);
-        const activePane = $(`#${tabId}`);
-
-        activeTab.addClass('active');
-        activePane.addClass('active');
-
-        if (history.replaceState) {
-            history.replaceState(null, null, `#${tabId}`);
-        }
+  // Tab click handler
+  tabs.on("click", function (e) {
+    e.preventDefault();
+    const tabId = $(this).data("tab");
+    if (tabId) {
+      activateTab(tabId);
     }
+  });
 
-    tabs.on('click', function (e) {
-        e.preventDefault();
-        const tabId = $(this).data('tab');
-        activateTab(tabId);
-    });
-
-    // Activate tab from URL hash on page load
+  // Initialize tabs on page load
+  function initializeTabs() {
     const urlHash = window.location.hash.substring(1);
+    let targetTab = null;
+
+    // Check if URL hash corresponds to an existing tab pane
     if (urlHash && panes.filter(`#${urlHash}`).length > 0) {
-        activateTab(urlHash);
+      targetTab = urlHash;
     } else {
-        // Fallback to the first tab if hash is invalid or not present
-        activateTab(tabs.first().data('tab'));
+      // Fallback to the first tab
+      const firstTab = tabs.first();
+      if (firstTab.length) {
+        targetTab = firstTab.data("tab");
+      }
     }
 
-    // --- Form Submission ---
-    $("#mobooking-booking-form-settings-form").on("submit", function (e) {
+    if (targetTab) {
+      activateTab(targetTab);
+    }
+  }
+
+  // Initialize tabs
+  initializeTabs();
+
+  // --- Form Submission ---
+  $("#mobooking-booking-form-settings-form").on("submit", function (e) {
+    e.preventDefault();
+    const form = $(this);
+    const saveButton = $("#mobooking-save-bf-settings-btn");
+    const originalButtonText = saveButton.text();
+    const spinner = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>`;
+
+    // Check if form has required fields filled
+    let isValid = true;
+    form
+      .find("input[required], textarea[required], select[required]")
+      .each(function () {
+        if (!$(this).val().trim()) {
+          isValid = false;
+          $(this).addClass("is-invalid");
+          return false;
+        } else {
+          $(this).removeClass("is-invalid");
+        }
+      });
+
+    if (!isValid) {
+      window.showAlert("Please fill in all required fields.", "error");
+      return;
+    }
+
+    saveButton.prop("disabled", true).html(spinner + " Saving...");
+
+    const settingsData = {};
+    form.find("input, textarea, select").each(function () {
+      const field = $(this);
+      const name = field.attr("name");
+      if (
+        !name ||
+        name.startsWith("save_") ||
+        name === "mobooking_dashboard_nonce_field"
+      )
+        return;
+
+      if (field.is(":checkbox")) {
+        settingsData[name] = field.is(":checked") ? "1" : "0";
+      } else if (field.is(":radio")) {
+        if (field.is(":checked")) {
+          settingsData[name] = field.val();
+        }
+      } else {
+        settingsData[name] = field.val();
+      }
+    });
+
+    // Get nonce value
+    const nonce = $('input[name="mobooking_dashboard_nonce_field"]').val();
+
+    // AJAX submission
+    $.ajax({
+      url: mobooking_bf_settings_params?.ajax_url || ajaxurl,
+      type: "POST",
+      dataType: "json",
+      data: {
+        action: "mobooking_save_booking_form_settings",
+        nonce: nonce,
+        settings: settingsData,
+      },
+      success: function (response) {
+        if (response.success) {
+          window.showAlert(
+            response.data?.message || "Settings saved successfully!",
+            "success"
+          );
+
+          // Update public booking URL if business slug changed
+          if (settingsData.bf_business_slug) {
+            updatePublicBookingURL(settingsData.bf_business_slug);
+          }
+        } else {
+          window.showAlert(
+            response.data?.message || "Failed to save settings.",
+            "error"
+          );
+        }
+      },
+      error: function (xhr, status, error) {
+        console.error("AJAX Error:", error);
+        window.showAlert("An error occurred while saving settings.", "error");
+      },
+      complete: function () {
+        saveButton.prop("disabled", false).html(originalButtonText);
+      },
+    });
+  });
+
+  // --- Dynamic Public Link and Embed Code Updates ---
+  const businessSlugInput = $("#bf_business_slug");
+  const publicLinkDisplay = $("#bf-public-link");
+  const copyLinkBtn = $("#mobooking-copy-public-link-btn");
+
+  function updatePublicBookingURL(slug) {
+    if (!slug) return;
+
+    const siteUrl =
+      mobooking_bf_settings_params?.site_url || window.location.origin;
+    const newUrl = siteUrl.replace(/\/$/, "") + "/booking/" + slug + "/";
+
+    if (publicLinkDisplay.length) {
+      publicLinkDisplay.attr("href", newUrl).text(newUrl);
+    }
+
+    // Update embed code if exists
+    const embedCodeTextarea = $("#mobooking-embed-code");
+    if (embedCodeTextarea.length) {
+      const embedCode = `<iframe src="${newUrl}" width="100%" height="600" frameborder="0" scrolling="auto"></iframe>`;
+      embedCodeTextarea.val(embedCode);
+    }
+  }
+
+  // Update URL when slug changes
+  businessSlugInput.on("input", function () {
+    const slug = $(this)
+      .val()
+      .replace(/[^a-z0-9-]/g, "")
+      .replace(/--+/g, "-");
+    $(this).val(slug);
+    updatePublicBookingURL(slug);
+  });
+
+  // --- Copy to Clipboard Functionality ---
+  function copyToClipboard(text, button) {
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard
+        .writeText(text)
+        .then(function () {
+          showCopySuccess(button);
+        })
+        .catch(function () {
+          fallbackCopyToClipboard(text, button);
+        });
+    } else {
+      fallbackCopyToClipboard(text, button);
+    }
+  }
+
+  function fallbackCopyToClipboard(text, button) {
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    textArea.style.position = "fixed";
+    textArea.style.left = "-999999px";
+    textArea.style.top = "-999999px";
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+
+    try {
+      document.execCommand("copy");
+      showCopySuccess(button);
+    } catch (err) {
+      console.error("Fallback copy failed:", err);
+      window.showAlert("Copy failed. Please copy manually.", "error");
+    }
+
+    document.body.removeChild(textArea);
+  }
+
+  function showCopySuccess(button) {
+    const originalHtml = button.html();
+    button.html(
+      '<svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/></svg>'
+    );
+    setTimeout(() => {
+      button.html(originalHtml);
+    }, 2000);
+    window.showAlert("Copied to clipboard!", "success");
+  }
+
+  // Copy public link
+  copyLinkBtn.on("click", function () {
+    const linkUrl = publicLinkDisplay.attr("href") || publicLinkDisplay.text();
+    if (linkUrl) {
+      copyToClipboard(linkUrl, $(this));
+    }
+  });
+
+  // Copy embed code
+  $("#mobooking-copy-embed-code-btn").on("click", function () {
+    const embedCode = $("#mobooking-embed-code").val();
+    if (embedCode) {
+      copyToClipboard(embedCode, $(this));
+    }
+  });
+
+  // --- Color Picker Initialization ---
+  if (typeof $.fn.wpColorPicker === "function") {
+    $(".mobooking-color-picker").wpColorPicker({
+      change: function (event, ui) {
+        // Optional: Add live preview functionality here
+        const color = ui.color.toString();
+        $(this).trigger("colorchange", [color]);
+      },
+    });
+  }
+
+  // --- Toggle Switch for Form Enabled/Disabled ---
+  const formEnabledToggle = $("#bf_form_enabled");
+  const maintenanceMessageGroup = $("#maintenance-message-group");
+
+  function toggleMaintenanceMessage() {
+    if (formEnabledToggle.is(":checked")) {
+      maintenanceMessageGroup.slideUp(200);
+    } else {
+      maintenanceMessageGroup.slideDown(200);
+    }
+  }
+
+  formEnabledToggle.on("change", toggleMaintenanceMessage);
+
+  // Initialize on page load
+  toggleMaintenanceMessage();
+
+  // --- QR Code Download ---
+  $("#download-qr-btn").on("click", function () {
+    const publicUrl =
+      publicLinkDisplay.attr("href") || publicLinkDisplay.text();
+    if (!publicUrl) {
+      window.showAlert("No public booking URL available.", "error");
+      return;
+    }
+
+    // Simple QR code generation using a free service
+    const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(
+      publicUrl
+    )}`;
+
+    // Create a temporary link to download the QR code
+    const link = document.createElement("a");
+    link.href = qrApiUrl;
+    link.download = "booking-form-qr-code.png";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    window.showAlert("QR code download started.", "success");
+  });
+
+  // --- Form Validation Enhancement ---
+  $('input[type="email"]').on("blur", function () {
+    const email = $(this).val();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (email && !emailRegex.test(email)) {
+      $(this).addClass("is-invalid");
+      $(this).next(".invalid-feedback").remove();
+      $(this).after(
+        '<div class="invalid-feedback">Please enter a valid email address.</div>'
+      );
+    } else {
+      $(this).removeClass("is-invalid");
+      $(this).next(".invalid-feedback").remove();
+    }
+  });
+
+  $('input[type="url"]').on("blur", function () {
+    const url = $(this).val();
+    const urlRegex = /^https?:\/\/.+/;
+    if (url && !urlRegex.test(url)) {
+      $(this).addClass("is-invalid");
+      $(this).next(".invalid-feedback").remove();
+      $(this).after(
+        '<div class="invalid-feedback">Please enter a valid URL (starting with http:// or https://).</div>'
+      );
+    } else {
+      $(this).removeClass("is-invalid");
+      $(this).next(".invalid-feedback").remove();
+    }
+  });
+
+  // --- Accessibility Enhancements ---
+
+  // Add proper ARIA attributes to tabs
+  tabs.each(function (index) {
+    const tabId = $(this).data("tab");
+    const paneId = `${tabId}`;
+
+    $(this).attr({
+      role: "tab",
+      "aria-controls": paneId,
+      "aria-selected": $(this).hasClass("active") ? "true" : "false",
+      tabindex: $(this).hasClass("active") ? "0" : "-1",
+    });
+  });
+
+  panes.each(function () {
+    $(this).attr({
+      role: "tabpanel",
+      "aria-hidden": $(this).hasClass("active") ? "false" : "true",
+    });
+  });
+
+  // Keyboard navigation for tabs
+  tabs.on("keydown", function (e) {
+    const currentIndex = tabs.index(this);
+    let targetIndex = currentIndex;
+
+    switch (e.key) {
+      case "ArrowRight":
+      case "ArrowDown":
         e.preventDefault();
-        const form = $(this);
-        const saveButton = $("#mobooking-save-bf-settings-btn");
-        const originalButtonText = saveButton.text();
-        const spinner = `<span class="spinner"></span>`;
-
-        saveButton.prop("disabled", true).html(spinner + ' Saving...');
-
-        const settingsData = {};
-        form.find("input, textarea, select").each(function () {
-            const field = $(this);
-            const name = field.attr("name");
-            if (!name || name.startsWith("save_")) return;
-
-            if (field.is(":checkbox")) {
-                settingsData[name] = field.is(":checked") ? "1" : "0";
-            } else {
-                settingsData[name] = field.val();
-            }
-        });
-
-        // Use localized params if available, otherwise fallback
-        const ajaxUrl = (window.mobooking_params?.ajax_url) || ajaxurl;
-        const nonce = (window.mobooking_params?.nonce) || form.find('[name="mobooking_dashboard_nonce_field"]').val();
-
-        $.ajax({
-            url: ajaxUrl,
-            type: "POST",
-            dataType: "json",
-            data: {
-                action: "mobooking_save_booking_form_settings",
-                nonce: nonce,
-                settings: settingsData,
-            },
-            success: function (response) {
-                if (response.success) {
-                    showAlert(response.data?.message || "Settings saved successfully.", 'success');
-                    // Potentially update UI elements like the public link if slug changes
-                    if (settingsData.bf_business_slug) {
-                        const newUrl = `${(window.mobooking_params?.site_url || '')}booking/${settingsData.bf_business_slug}/`;
-                        $('#bf-public-link').attr('href', newUrl).text(newUrl);
-                        $('#mobooking-public-link-input').val(newUrl);
-                    }
-                } else {
-                    showAlert(response.data?.message || "Failed to save settings.", 'error');
-                }
-            },
-            error: function (xhr) {
-                const errorMsg = xhr.responseJSON?.data?.message || "A network error occurred.";
-                showAlert(errorMsg, 'error');
-            },
-            complete: function () {
-                saveButton.prop("disabled", false).text(originalButtonText);
-            }
-        });
-    });
-
-    // --- Real-time Interactions ---
-
-    // Slug sanitization
-    $("input[name='bf_business_slug']").on("input", function () {
-        const input = $(this);
-        const sanitized = input.val()
-            .toLowerCase()
-            .replace(/\s+/g, '-') // Replace spaces with -
-            .replace(/[^a-z0-9-]/g, '') // Remove all non-alphanumeric chars except -
-            .replace(/-+/g, '-'); // Replace multiple - with single -
-        if (input.val() !== sanitized) {
-            input.val(sanitized);
-        }
-    });
-
-    // Toggle maintenance message field based on form enabled status
-    $('#bf_form_enabled').on('change', function() {
-        const isChecked = $(this).is(':checked');
-        $('#maintenance-message-group').toggle(!isChecked);
-    }).trigger('change'); // Trigger on load
-
-    // --- Share & Embed Section ---
-
-    // Copy to clipboard
-    function copyToClipboard(text, successMessage) {
-        if (!navigator.clipboard) {
-            showAlert("Clipboard API not available.", "error");
-            return;
-        }
-        navigator.clipboard.writeText(text).then(() => {
-            showAlert(successMessage, 'success');
-        }).catch(err => {
-            showAlert("Failed to copy.", "error");
-            console.error('Could not copy text: ', err);
-        });
+        targetIndex = (currentIndex + 1) % tabs.length;
+        break;
+      case "ArrowLeft":
+      case "ArrowUp":
+        e.preventDefault();
+        targetIndex = (currentIndex - 1 + tabs.length) % tabs.length;
+        break;
+      case "Home":
+        e.preventDefault();
+        targetIndex = 0;
+        break;
+      case "End":
+        e.preventDefault();
+        targetIndex = tabs.length - 1;
+        break;
+      case "Enter":
+      case " ":
+        e.preventDefault();
+        $(this).trigger("click");
+        return;
     }
 
-    $('#mobooking-copy-public-link-btn, #mobooking-copy-public-link-btn-2').on('click', function() {
-        copyToClipboard($('#mobooking-public-link-input').val(), 'Public link copied!');
-    });
-
-    $('#mobooking-copy-embed-code-btn').on('click', function() {
-        copyToClipboard($('#mobooking-embed-code').val(), 'Embed code copied!');
-    });
-
-    // Embed customization
-    $('#mobooking-customize-embed-btn').on('click', function() {
-        $('#embed-customization-row').slideToggle();
-    });
-
-    $('#update-embed-code-btn').on('click', function() {
-        const width = $('#embed-width').val() || '100%';
-        const height = $('#embed-height').val() || '800px';
-        const border = $('#embed-border').val() || '1px solid #ccc';
-        const baseUrl = $('#mobooking-public-link-input').val();
-
-        if (baseUrl) {
-            const iframe = `<iframe src="${baseUrl}" title="Booking Form" style="width:${width}; height:${height}; border:${border};"></iframe>`;
-            $('#mobooking-embed-code').val(iframe);
-            showAlert('Embed code updated.', 'success');
-        }
-    });
-
-    // QR Code download
-    $('#download-qr-btn').on('click', function() {
-        const qrUrl = $('#qr-code-image').attr('src');
-        if (qrUrl) {
-            const link = document.createElement('a');
-            link.href = qrUrl;
-            link.download = 'booking-form-qr-code.png';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-    });
-
-    // Flush rewrite rules
-    $('#mobooking-flush-rewrite-rules-btn').on('click', function() {
-        const button = $(this);
-        button.prop('disabled', true).text('Flushing...');
-
-        $.post(ajaxurl, { action: 'mobooking_flush_rewrite_rules', nonce: window.mobooking_params.nonce })
-            .done(response => {
-                if (response.success) {
-                    showAlert('Rewrite rules flushed successfully.', 'success');
-                } else {
-                    showAlert(response.data?.message || 'Failed to flush rewrite rules.', 'error');
-                }
-            })
-            .fail(() => showAlert('An error occurred while flushing rules.', 'error'))
-            .always(() => button.prop('disabled', false).text('Flush Rewrite Rules'));
-    });
-
-    // Initialize color pickers if WP color picker is available
-    if (typeof $.fn.wpColorPicker === 'function') {
-        $('.mobooking-color-picker').each(function() {
-            // Check if it's a native color picker, if so, don't initialize wpColorPicker
-            if (this.type !== 'color') {
-                $(this).wpColorPicker();
-            }
-        });
+    if (targetIndex !== currentIndex) {
+      tabs.eq(targetIndex).focus().trigger("click");
     }
+  });
+
+  // Update ARIA attributes when tabs change
+  tabs.on("click", function () {
+    tabs.attr({
+      "aria-selected": "false",
+      tabindex: "-1",
+    });
+    panes.attr("aria-hidden", "true");
+
+    $(this).attr({
+      "aria-selected": "true",
+      tabindex: "0",
+    });
+
+    const targetPane = $(`#${$(this).data("tab")}`);
+    targetPane.attr("aria-hidden", "false");
+  });
+
+  console.log("MoBooking Booking Form Settings initialized successfully");
 });
