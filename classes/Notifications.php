@@ -9,6 +9,45 @@ class Notifications {
         // Constructor can be used if we need to load settings or helpers
     }
 
+    public static function get_dummy_data_for_preview(): array {
+        return [
+            '{{customer_name}}' => 'John Doe',
+            '{{customer_email}}' => 'john.doe@example.com',
+            '{{customer_phone}}' => '555-123-4567',
+            '{{booking_id}}' => 'BOOK-12345',
+            '{{booking_date}}' => 'December 25, 2023',
+            '{{booking_time}}' => '10:00 AM',
+            '{{booking_date_time}}' => 'December 25, 2023 at 10:00 AM',
+            '{{service_name}}' => 'Deluxe Cleaning',
+            '{{service_names}}' => 'Deluxe Cleaning, Window Washing',
+            '{{service_duration}}' => '120 minutes',
+            '{{service_price}}' => '$150.00',
+            '{{service_address}}' => "123 Main St\nAnytown, USA 12345",
+            '{{special_instructions}}' => 'Please use the back door. The dog is friendly.',
+            '{{discount}}' => '$15.00',
+            '{{total_price}}' => '$135.00',
+            '{{company_name}}' => 'Your Company Inc.',
+            '{{business_name}}' => 'Your Company Inc.',
+            '{{company_logo}}' => 'https://via.placeholder.com/150',
+            '{{company_email}}' => 'contact@yourcompany.com',
+            '{{company_phone}}' => '800-555-0199',
+            '{{company_address}}' => "456 Business Ave\nSuite 100\nMetropolis, USA 54321",
+            '{{staff_name}}' => 'Jane Smith',
+            '{{staff_dashboard_link}}' => '#',
+            '{{old_status}}' => 'Pending',
+            '{{new_status}}' => 'Confirmed',
+            '{{updater_name}}' => 'Admin',
+            '{{dashboard_link}}' => '#',
+            '{{booking_link}}' => '#',
+            '{{admin_booking_link}}' => '#',
+            '{{worker_email}}' => 'new.worker@example.com',
+            '{{worker_role}}' => 'Cleaner',
+            '{{inviter_name}}' => 'Jane Smith (Manager)',
+            '{{registration_link}}' => '#',
+            '{{booking_reference}}' => 'REF-XYZ-789',
+        ];
+    }
+
     /**
      * Wraps email content in a standardized HTML template.
      * @param string $subject The email subject.
@@ -16,21 +55,7 @@ class Notifications {
      * @param string $body_content The main HTML content of the email.
      * @return string The full HTML email.
      */
-    private function hex_to_rgba($hex, $alpha = 0.1) {
-        $hex = str_replace('#', '', $hex);
-        if (strlen($hex) == 3) {
-            $r = hexdec(substr($hex, 0, 1) . substr($hex, 0, 1));
-            $g = hexdec(substr($hex, 1, 1) . substr($hex, 1, 1));
-            $b = hexdec(substr($hex, 2, 1) . substr($hex, 2, 1));
-        } else {
-            $r = hexdec(substr($hex, 0, 2));
-            $g = hexdec(substr($hex, 2, 2));
-            $b = hexdec(substr($hex, 4, 2));
-        }
-        return "rgba($r, $g, $b, $alpha)";
-    }
-
-    private function get_styled_email_html(string $subject, string $header_title, string $body_content, int $user_id): string {
+    private function get_styled_email_html(string $subject, string $header_title, string $body_content): string {
         $template_path = get_template_directory() . '/templates/email/base-email-template.php';
 
         if (!file_exists($template_path)) {
@@ -38,30 +63,16 @@ class Notifications {
             return "<h1>{$header_title}</h1>{$body_content}";
         }
 
-        $settings_manager = new Settings();
-        $biz_settings = $settings_manager->get_business_settings($user_id);
-        $booking_form_settings = $settings_manager->get_booking_form_settings($user_id);
-
         ob_start();
         include $template_path;
         $template = ob_get_clean();
 
-        $logo_html = !empty($biz_settings['biz_logo_url'])
-            ? '<img src="' . esc_url($biz_settings['biz_logo_url']) . '" alt="' . esc_attr($biz_settings['biz_name']) . '" style="max-width: 150px; height: auto;">'
-            : '<h1 style="font-size: 24px; margin: 0; color: #333;">' . esc_html($biz_settings['biz_name']) . '</h1>';
-
         $replacements = [
-            '{{SUBJECT}}'          => $subject,
-            '{{BODY_CONTENT}}'     => $body_content,
-            '{{LOGO_HTML}}'        => $logo_html,
-            '{{SITE_NAME}}'        => esc_html($biz_settings['biz_name']),
-            '{{SITE_URL}}'         => home_url('/'),
-            '{{BIZ_NAME}}'         => esc_html($biz_settings['biz_name']),
-            '{{BIZ_ADDRESS}}'      => esc_html($biz_settings['biz_address']),
-            '{{BIZ_PHONE}}'        => esc_html($biz_settings['biz_phone']),
-            '{{BIZ_EMAIL}}'        => esc_html($biz_settings['biz_email']),
-            '{{THEME_COLOR}}'      => esc_attr($booking_form_settings['bf_theme_color']),
-            '{{THEME_COLOR_LIGHT}}'=> $this->hex_to_rgba($booking_form_settings['bf_theme_color'], 0.1),
+            '{{SUBJECT}}'      => $subject,
+            '{{HEADER_TITLE}}' => $header_title,
+            '{{BODY_CONTENT}}' => $body_content,
+            '{{SITE_NAME}}'    => get_bloginfo('name'),
+            '{{SITE_URL}}'     => home_url('/'),
         ];
 
         return str_replace(array_keys($replacements), array_values($replacements), $template);
@@ -172,41 +183,21 @@ class Notifications {
 
         $subject = sprintf(__('Your Booking Confirmation with %s - Ref: %s', 'mobooking'), $tenant_business_name, $ref);
 
-        $subject_template = $settings_manager->get_setting($tenant_user_id, 'email_booking_conf_subj_customer', 'Your Booking Confirmation - Ref: {{booking_reference}}');
-        $body_template = $settings_manager->get_setting($tenant_user_id, 'email_booking_conf_body_customer', "Dear {{customer_name}},
+        $body_content  = '<h2>' . __('Booking Confirmed!', 'mobooking') . '</h2>';
+        $body_content .= "<p>" . sprintf(__('Dear %s,', 'mobooking'), $customer_name) . "</p>";
+        $body_content .= "<p>" . sprintf(__('Thank you for your booking with %s. Your booking (Ref: %s) is confirmed.', 'mobooking'), "<strong>{$tenant_business_name}</strong>", "<strong>{$ref}</strong>") . "</p>";
+        $body_content .= '<div class="booking-details">';
+        $body_content .= "<h3>" . __('Booking Summary:', 'mobooking') . "</h3>";
+        $body_content .= "<ul>";
+        $body_content .= "<li><strong>" . __('Services:', 'mobooking') . "</strong> " . $services . "</li>";
+        $body_content .= "<li><strong>" . __('Date & Time:', 'mobooking') . "</strong> " . $datetime . "</li>";
+        $body_content .= "<li><strong>" . __('Service Address:', 'mobooking') . "</strong><br>" . $address . "</li>";
+        $body_content .= "<li><strong>" . __('Total Price:', 'mobooking') . "</strong> " . $price_display . "</li>";
+        $body_content .= "</ul>";
+        $body_content .= '</div>';
+        $body_content .= "<p>" . sprintf(__('If you have any questions, please contact %s.', 'mobooking'), $tenant_business_name) . "</p>";
 
-Thank you for your booking with {{business_name}}. Your booking (Ref: {{booking_reference}}) is confirmed.
-
-Booking Summary:
-Services: {{service_names}}
-Date & Time: {{booking_date_time}}
-Service Address:
-{{service_address}}
-Total Price: {{total_price}}
-
-If you have any questions, please contact {{business_name}}.
-
-Thank you,
-{{business_name}}");
-
-        $replacements = [
-            '{{customer_name}}' => $customer_name,
-            '{{business_name}}' => $tenant_business_name,
-            '{{booking_reference}}' => $ref,
-            '{{service_names}}' => $services,
-            '{{booking_date_time}}' => $datetime,
-            '{{total_price}}' => $price_display,
-            '{{service_address}}' => $address,
-            '{{special_instructions}}' => '', // Not available in this context
-        ];
-
-        $subject = str_replace(array_keys($replacements), array_values($replacements), $subject_template);
-
-        $body_json = $settings_manager->get_setting($tenant_user_id, 'email_booking_conf_body_customer');
-        $body_content = $this->render_email_body_from_json($body_json);
-        $body_content = str_replace(array_keys($replacements), array_values($replacements), $body_content);
-
-        $full_email_html = $this->get_styled_email_html($subject, $tenant_business_name, $body_content, $tenant_user_id);
+        $full_email_html = $this->get_styled_email_html($subject, $tenant_business_name, $body_content);
 
         $headers = $this->get_email_headers($tenant_user_id);
         $email_sent = wp_mail($customer_email, $subject, $full_email_html, $headers);
@@ -286,46 +277,30 @@ Thank you,
         $biz_currency_code = $settings_manager->get_setting($tenant_user_id, 'biz_currency_code', 'USD');
         $price_display = $biz_currency_code . ' ' . number_format_i18n($raw_total_price, 2);
 
-        $subject_template = $settings_manager->get_setting($tenant_user_id, 'email_booking_conf_subj_admin', 'New Booking Received - Ref: {{booking_reference}} for {{customer_name}}');
-        $body_template = $settings_manager->get_setting($tenant_user_id, 'email_booking_conf_body_admin', "You have received a new booking (Ref: {{booking_reference}}).
+        // Subject and message using translated strings
+        $subject = sprintf(__('New Booking Received - Ref: %s - %s', 'mobooking'), $ref, $customer_name);
 
-Customer Details:
-Name: {{customer_name}}
-Email: {{customer_email}}
-Phone: {{customer_phone}}
+        $body_content  = '<h2>' . __('New Booking Received!', 'mobooking') . '</h2>';
+        $body_content .= "<p>" . sprintf(__('You have received a new booking (Ref: %s).', 'mobooking'), "<strong>{$ref}</strong>") . "</p>";
+        $body_content .= '<div class="booking-details">';
+        $body_content .= "<h3>" . __('Customer Details:', 'mobooking') . "</h3>";
+        $body_content .= "<ul>";
+        $body_content .= "<li><strong>" . __('Name:', 'mobooking') . "</strong> " . $customer_name . "</li>";
+        $body_content .= "<li><strong>" . __('Email:', 'mobooking') . "</strong> " . $customer_email_val . "</li>";
+        $body_content .= "<li><strong>" . __('Phone:', 'mobooking') . "</strong> " . $customer_phone . "</li>";
+        $body_content .= "</ul>";
+        $body_content .= "<h3>" . __('Booking Details:', 'mobooking') . "</h3>";
+        $body_content .= "<ul>";
+        $body_content .= "<li><strong>" . __('Services:', 'mobooking') . "</strong> " . $services . "</li>";
+        $body_content .= "<li><strong>" . __('Date & Time:', 'mobooking') . "</strong> " . $datetime . "</li>";
+        $body_content .= "<li><strong>" . __('Service Address:', 'mobooking') . "</strong><br>" . $address . "</li>";
+        $body_content .= "<li><strong>" . __('Total Price:', 'mobooking') . "</strong> " . $price_display . "</li>";
+        $body_content .= "<li><strong>" . __('Special Instructions:', 'mobooking') . "</strong><br>" . $instructions . "</li>";
+        $body_content .= "</ul>";
+        $body_content .= '</div>';
+        $body_content .= '<p style="text-align:center; margin-top: 24px;"><a href="' . esc_url(home_url('/dashboard/bookings/')) . '" class="button">' . __('View in Dashboard', 'mobooking') . '</a></p>';
 
-Booking Details:
-Services: {{service_names}}
-Date & Time: {{booking_date_time}}
-Service Address:
-{{service_address}}
-Total Price: {{total_price}}
-Special Instructions:
-{{special_instructions}}
-
-Please review this booking in your dashboard: {{admin_booking_link}}");
-
-        $replacements = [
-            '{{customer_name}}' => $customer_name,
-            '{{customer_email}}' => $customer_email_val,
-            '{{customer_phone}}' => $customer_phone,
-            '{{business_name}}' => $tenant_business_name,
-            '{{booking_reference}}' => $ref,
-            '{{service_names}}' => $services,
-            '{{booking_date_time}}' => $datetime,
-            '{{total_price}}' => $price_display,
-            '{{service_address}}' => $address,
-            '{{special_instructions}}' => $instructions,
-            '{{admin_booking_link}}' => esc_url(home_url('/dashboard/bookings/')),
-        ];
-
-        $subject = str_replace(array_keys($replacements), array_values($replacements), $subject_template);
-
-        $body_json = $settings_manager->get_setting($tenant_user_id, 'email_booking_conf_body_admin');
-        $body_content = $this->render_email_body_from_json($body_json);
-        $body_content = str_replace(array_keys($replacements), array_values($replacements), $body_content);
-
-        $full_email_html = $this->get_styled_email_html($subject, $tenant_business_name, $body_content, $tenant_user_id);
+        $full_email_html = $this->get_styled_email_html($subject, $tenant_business_name, $body_content);
 
         $headers = $this->get_email_headers($tenant_user_id);
         $email_sent = wp_mail($admin_email, $subject, $full_email_html, $headers);
@@ -392,31 +367,21 @@ Please review this booking in your dashboard: {{admin_booking_link}}");
                     __('N/A', 'mobooking');
         $dashboard_link = home_url('/dashboard/my-assigned-bookings/'); // Or a direct link to the booking if preferred.
 
-        $subject_template = $settings_manager->get_setting($tenant_user_id, 'email_staff_assign_subj', 'New Booking Assignment - Ref: {{booking_reference}}');
-        $body_template = $settings_manager->get_setting($tenant_user_id, 'email_staff_assign_body', "Hi {{staff_name}},
+        $subject = sprintf(__('New Booking Assignment - Ref: %s - %s', 'mobooking'), $ref, $tenant_business_name);
 
-You have been assigned a new booking (Ref: {{booking_reference}}).
+        $body_content  = '<h2>' . __('New Booking Assignment', 'mobooking') . '</h2>';
+        $body_content .= "<p>" . sprintf(__('Hi %s,', 'mobooking'), esc_html($staff_user->display_name)) . "</p>";
+        $body_content .= "<p>" . sprintf(__('You have been assigned a new booking (Ref: %s) for %s.', 'mobooking'), "<strong>{$ref}</strong>", "<strong>{$tenant_business_name}</strong>") . "</p>";
+        $body_content .= '<div class="booking-details">';
+        $body_content .= "<h3>" . __('Booking Details:', 'mobooking') . "</h3>";
+        $body_content .= "<ul>";
+        $body_content .= "<li><strong>" . __('Customer:', 'mobooking') . "</strong> " . $customer_name . "</li>";
+        $body_content .= "<li><strong>" . __('Date & Time:', 'mobooking') . "</strong> " . $datetime . "</li>";
+        $body_content .= "</ul>";
+        $body_content .= '</div>';
+        $body_content .= '<p style="text-align:center; margin-top: 24px;"><a href="' . esc_url($dashboard_link) . '" class="button">' . __('View Your Assignments', 'mobooking') . '</a></p>';
 
-Customer: {{customer_name}}
-Date & Time: {{booking_date_time}}
-
-Please review this assignment in your dashboard: {{staff_dashboard_link}}");
-
-        $replacements = [
-            '{{staff_name}}' => esc_html($staff_user->display_name),
-            '{{customer_name}}' => $customer_name,
-            '{{booking_reference}}' => $ref,
-            '{{booking_date_time}}' => $datetime,
-            '{{staff_dashboard_link}}' => esc_url($dashboard_link),
-        ];
-
-        $subject = str_replace(array_keys($replacements), array_values($replacements), $subject_template);
-
-        $body_json = $settings_manager->get_setting($tenant_user_id, 'email_staff_assign_body');
-        $body_content = $this->render_email_body_from_json($body_json);
-        $body_content = str_replace(array_keys($replacements), array_values($replacements), $body_content);
-
-        $full_email_html = $this->get_styled_email_html($subject, $tenant_business_name, $body_content, $tenant_user_id);
+        $full_email_html = $this->get_styled_email_html($subject, $tenant_business_name, $body_content);
 
         $headers = $this->get_email_headers($tenant_user_id); // From the perspective of the business
         $email_sent = wp_mail($staff_user->user_email, $subject, $full_email_html, $headers);
@@ -476,23 +441,20 @@ Please review this assignment in your dashboard: {{staff_dashboard_link}}");
         $ref = isset($booking_details['booking_reference']) ? esc_html($booking_details['booking_reference']) : __('N/A', 'mobooking');
         $dashboard_link = home_url('/dashboard/bookings/?action=view_booking&booking_id=' . $booking_id);
 
-        $subject_template = $settings_manager->get_setting($tenant_user_id, 'email_admin_status_change_subj', 'Booking Status Updated - Ref: {{booking_reference}}');
-        $body_template = $settings_manager->get_setting($tenant_user_id, 'email_admin_status_change_body', "The status for booking (Ref: {{booking_reference}}) has been updated from {{old_status}} to {{new_status}} by {{updater_name}}.");
+        $subject = sprintf(__('Booking Status Updated - Ref: %s - %s', 'mobooking'), $ref, $tenant_business_name);
 
-        $replacements = [
-            '{{booking_reference}}' => $ref,
-            '{{old_status}}' => esc_html(ucfirst($old_status)),
-            '{{new_status}}' => esc_html(ucfirst($new_status)),
-            '{{updater_name}}' => esc_html($updater_name),
-        ];
+        $body_content  = '<h2>' . __('Booking Status Updated', 'mobooking') . '</h2>';
+        $body_content .= "<p>" . sprintf(__('The status for booking reference %s has been updated.', 'mobooking'), "<strong>{$ref}</strong>") . "</p>";
+        $body_content .= '<div class="booking-details">';
+        $body_content .= "<ul>";
+        $body_content .= "<li><strong>" . __('Old Status:', 'mobooking') . "</strong> " . esc_html(ucfirst($old_status)) . "</li>";
+        $body_content .= "<li><strong>" . __('New Status:', 'mobooking') . "</strong> " . esc_html(ucfirst($new_status)) . "</li>";
+        $body_content .= "<li><strong>" . __('Updated By:', 'mobooking') . "</strong> " . esc_html($updater_name) . " (ID: {$updated_by_user_id})</li>";
+        $body_content .= "</ul>";
+        $body_content .= '</div>';
+        $body_content .= '<p style="text-align:center; margin-top: 24px;"><a href="' . esc_url($dashboard_link) . '" class="button">' . __('View Booking Details', 'mobooking') . '</a></p>';
 
-        $subject = str_replace(array_keys($replacements), array_values($replacements), $subject_template);
-
-        $body_json = $settings_manager->get_setting($tenant_user_id, 'email_admin_status_change_body');
-        $body_content = $this->render_email_body_from_json($body_json);
-        $body_content = str_replace(array_keys($replacements), array_values($replacements), $body_content);
-
-        $full_email_html = $this->get_styled_email_html($subject, $tenant_business_name, $body_content, $tenant_user_id);
+        $full_email_html = $this->get_styled_email_html($subject, $tenant_business_name, $body_content);
 
         $headers = $this->get_email_headers($tenant_user_id);
         $email_sent = wp_mail($admin_user->user_email, $subject, $full_email_html, $headers);
@@ -522,27 +484,15 @@ Please review this assignment in your dashboard: {{staff_dashboard_link}}");
         }
         $user_email = $user_info->user_email;
 
-        $settings_manager = new Settings();
-        $subject_template = $settings_manager->get_setting($user_id, 'email_welcome_subj', 'Welcome to {{company_name}}!');
-        $body_template = $settings_manager->get_setting($user_id, 'email_welcome_body', "Hi {{customer_name}},
+        $subject = sprintf(__('Welcome to %s, %s!', 'mobooking'), get_bloginfo('name'), $display_name);
 
-Thanks for joining {{company_name}}! We're excited to have you.
+        $body_content = '<h2>' . sprintf(__('Welcome, %s!', 'mobooking'), $display_name) . '</h2>';
+        $body_content .= '<p>' . sprintf(__('Thank you for registering with %s. We are excited to have you on board!', 'mobooking'), get_bloginfo('name')) . '</p>';
+        $body_content .= '<p>' . __('You can access your dashboard to get started managing your business and bookings.', 'mobooking') . '</p>';
+        $body_content .= '<p style="text-align:center; margin-top: 24px;"><a href="' . esc_url(home_url('/dashboard/')) . '" class="button">' . __('Go to Your Dashboard', 'mobooking') . '</a></p>';
+        $body_content .= '<p>' . __('If you have any questions, feel free to contact our support team.', 'mobooking') . '</p>';
 
-You can access your dashboard here: {{dashboard_link}}");
-
-        $replacements = [
-            '{{customer_name}}' => $display_name,
-            '{{company_name}}' => get_bloginfo('name'),
-            '{{dashboard_link}}' => esc_url(home_url('/dashboard/')),
-        ];
-
-        $subject = str_replace(array_keys($replacements), array_values($replacements), $subject_template);
-
-        $body_json = $settings_manager->get_setting($user_id, 'email_welcome_body');
-        $body_content = $this->render_email_body_from_json($body_json);
-        $body_content = str_replace(array_keys($replacements), array_values($replacements), $body_content);
-
-        $full_email_html = $this->get_styled_email_html($subject, get_bloginfo('name'), $body_content, $user_id);
+        $full_email_html = $this->get_styled_email_html($subject, get_bloginfo('name'), $body_content);
 
         $headers = $this->get_email_headers();
         $email_sent = wp_mail($user_email, $subject, $full_email_html, $headers);
@@ -563,84 +513,20 @@ You can access your dashboard here: {{dashboard_link}}");
      * @return bool
      */
     public function send_invitation_email(string $worker_email, string $assigned_role, string $inviter_name, string $registration_link): bool {
-        $settings_manager = new Settings();
-        $user_id = get_current_user_id();
-        $subject_template = $settings_manager->get_setting($user_id, 'email_invitation_subj', 'You have been invited to join {{company_name}}');
-        $body_template = $settings_manager->get_setting($user_id, 'email_invitation_body', "Hi {{worker_email}},
+        $subject = sprintf(__('You have been invited to %s', 'mobooking'), get_bloginfo('name'));
 
-You've been invited to join {{company_name}} as a {{worker_role}} by {{inviter_name}}.
+        $role_display_name = ucfirst(str_replace('mobooking_worker_', '', $assigned_role));
 
-Click here to register: {{registration_link}}");
+        $body_content = '<h2>' . __('You\'re Invited!', 'mobooking') . '</h2>';
+        $body_content .= '<p>' . sprintf(__('Hi %s,', 'mobooking'), $worker_email) . '</p>';
+        $body_content .= '<p>' . sprintf(__('You have been invited to join %s as a %s by %s.', 'mobooking'), '<strong>' . get_bloginfo('name') . '</strong>', '<strong>' . $role_display_name . '</strong>', '<strong>' . $inviter_name . '</strong>') . '</p>';
+        $body_content .= '<p>' . __('To accept this invitation and complete your registration, please click the button below. This link is valid for 7 days.', 'mobooking') . '</p>';
+        $body_content .= '<p style="text-align:center; margin-top: 24px;"><a href="' . esc_url($registration_link) . '" class="button">' . __('Accept Invitation & Register', 'mobooking') . '</a></p>';
+        $body_content .= '<p style="font-size: 12px; color: #718096;">' . __('If you were not expecting this invitation, please ignore this email.', 'mobooking') . '</p>';
 
-        $replacements = [
-            '{{worker_email}}' => $worker_email,
-            '{{worker_role}}' => ucfirst(str_replace('mobooking_worker_', '', $assigned_role)),
-            '{{inviter_name}}' => $inviter_name,
-            '{{registration_link}}' => esc_url($registration_link),
-            '{{company_name}}' => get_bloginfo('name'),
-        ];
-
-        $subject = str_replace(array_keys($replacements), array_values($replacements), $subject_template);
-
-        $body_json = $settings_manager->get_setting($user_id, 'email_invitation_body');
-        $body_content = $this->render_email_body_from_json($body_json);
-        $body_content = str_replace(array_keys($replacements), array_values($replacements), $body_content);
-
-        $full_email_html = $this->get_styled_email_html($subject, get_bloginfo('name'), $body_content, $user_id);
+        $full_email_html = $this->get_styled_email_html($subject, get_bloginfo('name'), $body_content);
 
         $headers = $this->get_email_headers();
         return wp_mail($worker_email, $subject, $full_email_html, $headers);
-    }
-
-    public function send_test_email(int $user_id) {
-        $user_info = get_userdata($user_id);
-        if (!$user_info) {
-            return false;
-        }
-        $user_email = $user_info->user_email;
-
-        $settings_manager = new Settings();
-        $biz_settings = $settings_manager->get_business_settings($user_id);
-
-        $subject = sprintf(__('Test Email from %s', 'mobooking'), $biz_settings['biz_name']);
-
-        $body_content = '<h2>' . __('This is a Test Email', 'mobooking') . '</h2>';
-        $body_content .= '<p>' . __('This is a test email to preview your email template settings.', 'mobooking') . '</p>';
-        $body_content .= '<p>' . __('The logo, colors, and footer should reflect your current settings.', 'mobooking') . '</p>';
-
-        $full_email_html = $this->get_styled_email_html($subject, $biz_settings['biz_name'], $body_content, $user_id);
-
-        $headers = $this->get_email_headers($user_id);
-        return wp_mail($user_email, $subject, $full_email_html, $headers);
-    }
-
-    public function render_email_body_from_json($json_string) {
-        $data = json_decode($json_string, true);
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            return '';
-        }
-
-        $html = '';
-        if (!empty($data['greeting'])) {
-            $html .= '<h2>' . esc_html($data['greeting']) . '</h2>';
-        }
-        if (!empty($data['main_content'])) {
-            $html .= '<p>' . nl2br(esc_html($data['main_content'])) . '</p>';
-        }
-        if (!empty($data['summary_fields'])) {
-            $html .= '<table class="table" style="width: 100%; border-collapse: collapse;">';
-            foreach ($data['summary_fields'] as $field) {
-                $html .= '<tr><td style="padding: 8px; border: 1px solid #ddd;"><strong>' . esc_html($field['label']) . '</strong></td><td style="padding: 8px; border: 1px solid #ddd;">' . esc_html($field['variable']) . '</td></tr>';
-            }
-            $html .= '</table>';
-        }
-        if (!empty($data['button_text'])) {
-            $html .= '<p style="text-align: center; margin-top: 20px;"><a href="' . esc_url($data['button_link'] ?? '#') . '" class="button">' . esc_html($data['button_text']) . '</a></p>';
-        }
-        if (!empty($data['closing_content'])) {
-            $html .= '<p>' . nl2br(esc_html($data['closing_content'])) . '</p>';
-        }
-
-        return $html;
     }
 }
