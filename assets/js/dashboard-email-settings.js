@@ -1,6 +1,11 @@
 jQuery(document).ready(function($) {
     'use strict';
 
+    if (typeof mobooking_email_settings_params === 'undefined') {
+        console.error('Email settings parameters are not available.');
+        return;
+    }
+
     const EmailEditor = {
         // DOM Elements
         selector: $('#email-template-selector'),
@@ -17,40 +22,20 @@ jQuery(document).ready(function($) {
         isInitialized: false,
 
         // Config
-        componentRenderers: {
-            'header': (component) => `<div class="email-component" data-type="header">
-                                        <span class="drag-handle"></span>
-                                        <input type="text" class="component-input" value="${component.text || ''}" placeholder="Header Text">
-                                        <button class="delete-component"></button>
-                                     </div>`,
-            'text': (component) => `<div class="email-component" data-type="text">
-                                        <span class="drag-handle"></span>
-                                        <textarea class="component-input" placeholder="Paragraph text...">${component.text || ''}</textarea>
-                                        <button class="delete-component"></button>
-                                     </div>`,
-            'button': (component) => `<div class="email-component" data-type="button">
-                                        <span class="drag-handle"></span>
-                                        <input type="text" class="component-input" value="${component.text || ''}" placeholder="Button Text">
-                                        <input type="text" class="component-url-input" value="${component.url || ''}" placeholder="Button URL">
-                                        <button class="delete-component"></button>
-                                     </div>`,
-            'spacer': (component) => `<div class="email-component" data-type="spacer">
-                                        <span class="drag-handle"></span>
-                                        <span>Spacer</span>
-                                        <button class="delete-component"></button>
-                                     </div>`,
-        },
+        i18n: mobooking_email_settings_params.i18n || {},
 
+        componentRenderers: {}, // Will be initialized in init()
         previewRenderers: {
-             'header': (component) => `<h2 style="font-family: sans-serif; color: #333;">${component.text}</h2>`,
-             'text': (component) => `<p style="font-family: sans-serif; color: #555; line-height: 1.6;">${component.text.replace(/\n/g, '<br>')}</p>`,
-             'button': (component) => `<table border="0" cellpadding="0" cellspacing="0" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: auto;"><tbody><tr><td style="font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #3498db; border-radius: 5px; text-align: center;"><a href="${component.url}" target="_blank" style="display: inline-block; color: #ffffff; background-color: #3498db; border: solid 1px #3498db; border-radius: 5px; box-sizing: border-box; cursor: pointer; text-decoration: none; font-size: 14px; font-weight: bold; margin: 0; padding: 12px 25px; text-transform: capitalize; border-color: #3498db;">${component.text}</a></td></tr></tbody></table>`,
+             'header': (component) => `<h2>${component.text}</h2>`,
+             'text': (component) => `<p style="white-space: pre-wrap;">${component.text}</p>`,
+             'button': (component) => `<table border="0" cellpadding="0" cellspacing="0"><tr><td style="background-color: #3498db; border-radius: 5px; text-align: center;"><a href="${component.url}" target="_blank" style="display: inline-block; color: #ffffff; background-color: #3498db; border: solid 1px #3498db; border-radius: 5px; box-sizing: border-box; cursor: pointer; text-decoration: none; padding: 12px 25px;">${component.text}</a></td></tr></table>`,
              'spacer': () => `<div style="height: 20px;"></div>`,
         },
 
         init: function() {
-            if (!this.selector.length) return; // Don't run if not on settings page
+            if (!this.selector.length) return;
 
+            this.initializeRenderers();
             this.parseInitialData();
             this.bindEvents();
             this.fetchBaseTemplate();
@@ -58,6 +43,32 @@ jQuery(document).ready(function($) {
             this.currentTemplateKey = this.selector.val();
             this.loadTemplateIntoEditor();
             this.isInitialized = true;
+        },
+
+        initializeRenderers: function() {
+            this.componentRenderers = {
+                'header': (component) => `<div class="email-component" data-type="header">
+                                            <span class="drag-handle"></span>
+                                            <input type="text" class="component-input" value="${component.text || ''}" placeholder="${this.i18n.header_placeholder}">
+                                            <button class="delete-component" title="${this.i18n.delete_component_title}"></button>
+                                         </div>`,
+                'text': (component) => `<div class="email-component" data-type="text">
+                                            <span class="drag-handle"></span>
+                                            <textarea class="component-input" placeholder="${this.i18n.text_placeholder}">${component.text || ''}</textarea>
+                                            <button class="delete-component" title="${this.i18n.delete_component_title}"></button>
+                                         </div>`,
+                'button': (component) => `<div class="email-component" data-type="button">
+                                            <span class="drag-handle"></span>
+                                            <input type="text" class="component-input" value="${component.text || ''}" placeholder="${this.i18n.button_placeholder}">
+                                            <input type="text" class="component-url-input" value="${component.url || ''}" placeholder="${this.i18n.button_url_placeholder}">
+                                            <button class="delete-component" title="${this.i18n.delete_component_title}"></button>
+                                         </div>`,
+                'spacer': (component) => `<div class="email-component" data-type="spacer">
+                                            <span class="drag-handle"></span>
+                                            <span>${this.i18n.spacer_text}</span>
+                                            <button class="delete-component" title="${this.i18n.delete_component_title}"></button>
+                                         </div>`,
+            }
         },
 
         parseInitialData: function() {
@@ -68,9 +79,8 @@ jQuery(document).ready(function($) {
                 const subject = self.hiddenDataContainer.find(`#hidden-subject-${key}`).val();
                 let body = [];
                 try {
-                    // Use .val() for textareas to get correct content
                     const parsedBody = JSON.parse(textarea.val());
-                    if (Array.isArray(parsedBody)) {
+                    if (Array.isArray(parsedBody) && parsedBody.length > 0) {
                         body = parsedBody;
                     }
                 } catch (e) {
@@ -84,29 +94,24 @@ jQuery(document).ready(function($) {
             $.get(mobooking_email_settings_params.base_template_url, (data) => {
                 this.baseEmailTemplateHtml = data;
                 this.updatePreview();
-            }).fail(() => {
-                console.error("Failed to fetch base email template.");
-            });
+            }).fail(() => console.error("Failed to fetch base email template."));
         },
 
         bindEvents: function() {
-            // Template selection change
             this.selector.on('change', () => {
                 this.currentTemplateKey = this.selector.val();
                 this.loadTemplateIntoEditor();
             });
 
-            // Subject input change
-            this.subjectInput.on('input', () => {
+            this.subjectInput.on('input', this.debounce(() => {
                 this.saveSubject();
                 this.updatePreview();
-            });
+            }, 300));
 
-            // Body component changes (delegated)
-            this.bodyContainer.on('input', '.component-input, .component-url-input', () => {
+            this.bodyContainer.on('input', '.component-input, .component-url-input', this.debounce((e) => {
                 this.saveBodyState();
                 this.updatePreview();
-            });
+            }, 300));
 
             this.bodyContainer.on('click', '.delete-component', (e) => {
                 $(e.target).closest('.email-component').remove();
@@ -114,51 +119,50 @@ jQuery(document).ready(function($) {
                 this.updatePreview();
             });
 
-            // Init SortableJS
-            new Sortable(this.bodyContainer[0], {
-                animation: 150,
-                handle: '.drag-handle',
-                onEnd: () => {
-                    this.saveBodyState();
-                    this.updatePreview();
-                }
+            this.variablesList.on('click', 'li', function() {
+                navigator.clipboard.writeText($(this).text());
+                const originalText = $(this).text();
+                $(this).text('Copied!');
+                setTimeout(() => $(this).text(originalText), 1000);
             });
+
+            if (typeof Sortable !== 'undefined') {
+                new Sortable(this.bodyContainer[0], {
+                    animation: 150,
+                    handle: '.drag-handle',
+                    onEnd: () => {
+                        this.saveBodyState();
+                        this.updatePreview();
+                    }
+                });
+            }
         },
 
         loadTemplateIntoEditor: function() {
             if (!this.currentTemplateKey) return;
-
             const data = this.templatesData[this.currentTemplateKey];
             if (!data) return;
 
-            // Load subject
             this.subjectInput.val(data.subject);
-
-            // Load body
             this.bodyContainer.empty();
             if (data.body && data.body.length > 0) {
                 data.body.forEach(component => {
                     if (this.componentRenderers[component.type]) {
-                        const componentHtml = this.componentRenderers[component.type](component);
-                        this.bodyContainer.append(componentHtml);
+                        this.bodyContainer.append(this.componentRenderers[component.type](component));
                     }
                 });
             }
 
-            // Load variables
             this.loadVariablesList();
-
-            // Update preview
-            if (this.isInitialized) {
-                this.updatePreview();
-            }
+            if (this.isInitialized) this.updatePreview();
         },
 
         loadVariablesList: function() {
             const templateInfo = mobooking_email_settings_params.templates[this.currentTemplateKey];
             if (templateInfo && templateInfo.variables) {
-                const variablesHtml = templateInfo.variables.map(v => `<li>${v}</li>`).join('');
-                this.variablesList.html(variablesHtml);
+                this.variablesList.html(templateInfo.variables.map(v => `<li>${v}</li>`).join(''));
+            } else {
+                this.variablesList.empty();
             }
         },
 
@@ -173,66 +177,51 @@ jQuery(document).ready(function($) {
             if (!this.currentTemplateKey) return;
             const newBody = [];
             this.bodyContainer.find('.email-component').each(function() {
-                const componentEl = $(this);
-                const type = componentEl.data('type');
+                const el = $(this);
+                const type = el.data('type');
                 const componentData = { type };
-
                 if (type === 'header' || type === 'text') {
-                    componentData.text = componentEl.find('.component-input').val();
+                    componentData.text = el.find('.component-input').val();
                 } else if (type === 'button') {
-                    componentData.text = componentEl.find('.component-input').val();
-                    componentData.url = componentEl.find('.component-url-input').val();
+                    componentData.text = el.find('.component-input').val();
+                    componentData.url = el.find('.component-url-input').val();
                 }
                 newBody.push(componentData);
             });
-
             this.templatesData[this.currentTemplateKey].body = newBody;
-            const jsonString = JSON.stringify(newBody, null, 2);
-            $(`#hidden-body-${this.currentTemplateKey}`).val(jsonString);
+            $(`#hidden-body-${this.currentTemplateKey}`).val(JSON.stringify(newBody));
         },
 
         renderBodyForPreview: function() {
             if (!this.currentTemplateKey) return '';
             const bodyData = this.templatesData[this.currentTemplateKey].body;
-            return bodyData.map(component => {
-                return this.previewRenderers[component.type] ? this.previewRenderers[component.type](component) : '';
-            }).join('');
+            return bodyData.map(c => this.previewRenderers[c.type] ? this.previewRenderers[c.type](c) : '').join('');
         },
 
         updatePreview: function() {
             if (!this.baseEmailTemplateHtml || !this.currentTemplateKey) return;
-
-            const data = this.templatesData[this.currentTemplateKey];
-            const bizSettings = mobooking_email_settings_params.biz_settings || {};
-
             let previewHtml = this.baseEmailTemplateHtml;
             const bodyHtml = this.renderBodyForPreview();
-
-            // Replace main content
-            previewHtml = previewHtml.replace(/{{SUBJECT}}/g, data.subject);
             previewHtml = previewHtml.replace(/{{BODY_CONTENT}}/g, bodyHtml);
 
-            // Replace branding variables
-            previewHtml = previewHtml.replace(/{{LOGO_URL}}/g, bizSettings.biz_logo_url || '');
-            previewHtml = previewHtml.replace(/{{THEME_COLOR}}/g, bizSettings.bf_theme_color || '#1abc9c');
+            const allVars = { ...mobooking_email_settings_params.biz_settings, ...mobooking_email_settings_params.dummy_data };
+            allVars['{{SUBJECT}}'] = this.templatesData[this.currentTemplateKey].subject;
 
-            // Replace business info
-            previewHtml = previewHtml.replace(/{{SITE_NAME}}/g, bizSettings.biz_name || 'Your Company');
-            previewHtml = previewHtml.replace(/{{SITE_URL}}/g, mobooking_email_settings_params.site_url || '#');
-            previewHtml = previewHtml.replace(/{{BIZ_NAME}}/g, bizSettings.biz_name || 'Your Company');
-            previewHtml = previewHtml.replace(/{{BIZ_ADDRESS}}/g, bizSettings.biz_address || '');
-            previewHtml = previewHtml.replace(/{{BIZ_PHONE}}/g, bizSettings.biz_phone || '');
-            previewHtml = previewHtml.replace(/{{BIZ_EMAIL}}/g, bizSettings.biz_email || '');
-
-            // Replace all other dummy variables
-            const dummyData = mobooking_email_settings_params.dummy_data || {};
-             for (const [key, value] of Object.entries(dummyData)) {
-                // Ensure we create a global regex to replace all occurrences
+            for (const [key, value] of Object.entries(allVars)) {
                 const regex = new RegExp(key.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'), 'g');
-                previewHtml = previewHtml.replace(regex, value);
+                previewHtml = previewHtml.replace(regex, value || '');
             }
 
             this.previewIframe.attr('srcdoc', previewHtml);
+        },
+
+        debounce: function(func, wait) {
+            let timeout;
+            return function(...args) {
+                const context = this;
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(context, args), wait);
+            };
         }
     };
 

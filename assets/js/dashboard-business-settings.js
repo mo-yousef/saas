@@ -1,7 +1,12 @@
 jQuery(document).ready(function($) {
     'use strict';
 
-    // Tab navigation
+    if (typeof mobooking_biz_settings_params === 'undefined') {
+        console.error('Business settings parameters are not available.');
+        return;
+    }
+
+    // --- Tab Navigation ---
     const navTabs = $('.nav-tab-wrapper .nav-tab');
     const tabContents = $('.settings-tab-content');
 
@@ -15,7 +20,6 @@ jQuery(document).ready(function($) {
         tabContents.hide();
         $('#' + tabId + '-tab').show();
 
-        // Update URL hash without jumping
         if (history.pushState) {
             history.pushState(null, null, '#' + tabId);
         } else {
@@ -23,17 +27,21 @@ jQuery(document).ready(function($) {
         }
     });
 
-    // Check for hash on page load to activate correct tab
+    // Activate tab based on URL hash on page load
     if (window.location.hash) {
         const activeTab = navTabs.filter('[href="' + window.location.hash + '"]');
         if (activeTab.length) {
             activeTab.trigger('click');
         }
+    } else {
+        // Default to the first tab if no hash is present
+        navTabs.first().trigger('click');
     }
 
-    const form = $('#mobooking-business-settings-form');
-    const feedbackDiv = $('#mobooking-settings-feedback');
-    const saveButton = $('#mobooking-save-biz-settings-btn');
+    // --- Color Picker ---
+    $('.mobooking-color-picker').wpColorPicker();
+
+    // --- Logo Uploader ---
     const logoFileInput = $('#mobooking-logo-file-input');
     const uploadLogoBtn = $('#mobooking-upload-logo-btn');
     const removeLogoBtn = $('#mobooking-remove-logo-btn');
@@ -41,21 +49,17 @@ jQuery(document).ready(function($) {
     const progressBarWrapper = $('.progress-bar-wrapper');
     const progressBar = $('.progress-bar');
 
-    // Trigger file input click
-    uploadLogoBtn.on('click', function(e) {
+    uploadLogoBtn.on('click', (e) => {
         e.preventDefault();
         logoFileInput.click();
     });
 
-    // Handle file selection
     logoFileInput.on('change', function() {
-        const file = this.files[0];
-        if (file) {
-            uploadLogo(file);
+        if (this.files[0]) {
+            uploadLogo(this.files[0]);
         }
     });
 
-    // Handle logo upload
     function uploadLogo(file) {
         const formData = new FormData();
         formData.append('logo', file);
@@ -70,98 +74,54 @@ jQuery(document).ready(function($) {
             processData: false,
             xhr: function() {
                 const xhr = new window.XMLHttpRequest();
-                xhr.upload.addEventListener('progress', function(evt) {
+                xhr.upload.addEventListener('progress', (evt) => {
                     if (evt.lengthComputable) {
-                        const percentComplete = evt.loaded / evt.total;
-                        const percent = Math.round(percentComplete * 100);
+                        const percent = Math.round((evt.loaded / evt.total) * 100);
                         progressBar.width(percent + '%');
                     }
                 }, false);
                 return xhr;
             },
-            beforeSend: function() {
+            beforeSend: () => {
                 progressBar.width('0%');
                 progressBarWrapper.show();
             },
-            success: function(response) {
+            success: (response) => {
                 if (response.success) {
                     $('#biz_logo_url').val(response.data.url);
-                    logoPreview.html('<img src="' + response.data.url + '" alt="Company Logo">');
+                    logoPreview.html(`<img src="${response.data.url}" alt="Company Logo">`);
                     removeLogoBtn.show();
                     window.showAlert('Logo uploaded successfully.', 'success');
                 } else {
                     window.showAlert(response.data.message || 'Error uploading logo.', 'error');
                 }
             },
-            error: function() {
-                window.showAlert('AJAX error.', 'error');
-            },
-            complete: function() {
-                progressBarWrapper.hide();
-            }
+            error: () => window.showAlert('AJAX error.', 'error'),
+            complete: () => progressBarWrapper.hide()
         });
     }
 
-    // Handle logo removal
-    removeLogoBtn.on('click', function(e) {
+    removeLogoBtn.on('click', (e) => {
         e.preventDefault();
         $('#biz_logo_url').val('');
         logoPreview.html('<div class="logo-placeholder"><span>No Logo</span></div>');
         $(this).hide();
     });
 
-    // Handle send test email
-    $('#mobooking-send-test-email-btn').on('click', function() {
-        const $btn = $(this);
-        const originalText = $btn.text();
-        $btn.prop('disabled', true).text('Sending...');
+    // --- Main Form Submission ---
+    const form = $('#mobooking-business-settings-form');
+    const saveButtons = $('#mobooking-save-biz-settings-btn, #mobooking-save-biz-settings-btn-footer');
 
-        $.ajax({
-            url: mobooking_biz_settings_params.ajax_url,
-            type: 'POST',
-            data: {
-                action: 'mobooking_send_test_email',
-                nonce: mobooking_biz_settings_params.nonce
-            },
-            success: function(response) {
-                if (response.success) {
-                    window.showAlert(response.data.message, 'success');
-                } else {
-                    window.showAlert(response.data.message, 'error');
-                }
-            },
-            error: function() {
-                window.showAlert('AJAX error.', 'error');
-            },
-            complete: function() {
-                $btn.prop('disabled', false).text(originalText);
-            }
-        });
-    });
-
-    // Form submission
     form.on('submit', function(e) {
         e.preventDefault();
+        const originalButtonText = saveButtons.first().text();
+        saveButtons.prop('disabled', true).text(mobooking_biz_settings_params.i18n.saving || 'Saving...');
 
-        // Trigger a custom event for the email builder to save its state
-        $(document).trigger('mobooking:save-email-builder');
-
-        feedbackDiv.empty().removeClass('notice-success notice-error').hide();
-        const originalButtonText = saveButton.text();
-        saveButton.prop('disabled', true).text(mobooking_biz_settings_params.i18n.saving || 'Saving...');
-
-        let settingsData = {};
-        form.find(':input:not([type="submit"])').each(function() {
-            const $field = $(this);
-            const name = $field.attr('name');
-            if (!name) return;
-
-            if ($field.is(':checkbox')) {
-                settingsData[name] = $field.is(':checked') ? '1' : '0';
-            } else {
-                settingsData[name] = $field.val();
-            }
-        });
+        // Serialize form data, including dynamically updated hidden fields from the email editor
+        let settingsData = $(this).serializeArray().reduce((obj, item) => {
+            obj[item.name] = item.value;
+            return obj;
+        }, {});
 
         $.ajax({
             url: mobooking_biz_settings_params.ajax_url,
@@ -171,24 +131,19 @@ jQuery(document).ready(function($) {
                 nonce: mobooking_biz_settings_params.nonce,
                 settings: settingsData
             },
-            success: function(response) {
+            success: (response) => {
                 if (response.success) {
-                    window.showAlert(response.data.message || mobooking_biz_settings_params.i18n.save_success || 'Settings saved.', 'success');
+                    window.showAlert(response.data.message || mobooking_biz_settings_params.i18n.save_success, 'success');
                 } else {
-                    window.showAlert(response.data.message || mobooking_biz_settings_params.i18n.error_saving || 'Error saving.', 'error');
+                    window.showAlert(response.data.message || mobooking_biz_settings_params.i18n.error_saving, 'error');
                 }
             },
-            error: function() {
-                window.showAlert(mobooking_biz_settings_params.i18n.error_ajax || 'AJAX error.', 'error');
+            error: () => {
+                window.showAlert(mobooking_biz_settings_params.i18n.error_ajax, 'error');
             },
-            complete: function() {
-                saveButton.prop('disabled', false).text(originalButtonText);
+            complete: () => {
+                saveButtons.prop('disabled', false).text(originalButtonText);
             }
         });
     });
-
-    if (typeof mobooking_biz_settings_params === 'undefined') {
-        console.error('mobooking_biz_settings_params is not defined. Please ensure it is localized.');
-        window.mobooking_biz_settings_params = { nonce: '', ajax_url: '', i18n: {} };
-    }
 });
