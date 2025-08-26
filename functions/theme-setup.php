@@ -369,6 +369,21 @@ if ( is_page_template('templates/booking-form-public.php') || $page_type_for_scr
                 ),
             ));
         }
+        if ($current_page_slug === 'settings') {
+            wp_enqueue_style('mobooking-dashboard-settings', MOBOOKING_THEME_URI . 'assets/css/dashboard-settings.css', array('mobooking-dashboard-main'), MOBOOKING_VERSION);
+            wp_enqueue_script('mobooking-dashboard-business-settings', MOBOOKING_THEME_URI . 'assets/js/dashboard-business-settings.js', array('jquery', 'wp-mediaelement'), MOBOOKING_VERSION, true);
+            wp_localize_script('mobooking-dashboard-business-settings', 'mobooking_biz_settings_params', [
+                'ajax_url' => admin_url('admin-ajax.php'),
+                'nonce' => wp_create_nonce('mobooking_dashboard_nonce'),
+                'i18n' => [
+                    'saving' => __('Saving...', 'mobooking'),
+                    'save_success' => __('Settings saved successfully.', 'mobooking'),
+                    'error_saving' => __('Error saving settings.', 'mobooking'),
+                    'error_ajax' => __('An AJAX error occurred.', 'mobooking'),
+                ]
+            ]);
+            wp_enqueue_media();
+        }
 
         if ( $current_page_slug === 'customers' || $current_page_slug === 'customer-details' ) {
             $customer_params = [
