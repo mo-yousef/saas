@@ -166,24 +166,40 @@
     margin-bottom: 1rem;
 }
 
-/* Email Builder Layout */
-.email-builder-layout {
+/* Email Settings Layout */
+.email-settings-layout {
     display: grid;
-    grid-template-columns: 250px 1fr 350px;
+    grid-template-columns: 1fr 1fr;
     gap: 2rem;
 }
 
 @media (max-width: 1280px) {
-    .email-builder-layout {
+    .email-settings-layout {
         grid-template-columns: 1fr;
     }
 }
 
-.email-builder-sidebar,
-.email-builder-main {
+.email-editor-column,
+.email-preview-column {
     display: flex;
     flex-direction: column;
     gap: 2rem;
+}
+
+.sortable-item {
+    padding: 10px;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    margin-bottom: 5px;
+    cursor: grab;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.sortable-item input {
+    flex-grow: 1;
+    margin-right: 10px;
 }
 
 #component-palette .component-item {
