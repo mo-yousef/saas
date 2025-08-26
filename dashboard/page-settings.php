@@ -9,6 +9,8 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 $settings_manager = new \MoBooking\Classes\Settings();
 $user_id = get_current_user_id();
 $biz_settings = $settings_manager->get_business_settings($user_id);
+$bf_settings = $settings_manager->get_booking_form_settings($user_id);
+
 
 // Helper functions
 function mobooking_get_biz_setting_value($settings, $key, $default = '') {
@@ -37,6 +39,7 @@ function mobooking_select_biz_setting_value($settings, $key, $value, $default_va
 
     <h2 class="nav-tab-wrapper" style="margin-bottom:20px;">
         <a href="#general" class="nav-tab nav-tab-active" data-tab="general"><?php esc_html_e('General Settings', 'mobooking'); ?></a>
+        <a href="#branding" class="nav-tab" data-tab="branding"><?php esc_html_e('Branding', 'mobooking'); ?></a>
         <a href="#email-notifications" class="nav-tab" data-tab="email-notifications"><?php esc_html_e('Email Notifications', 'mobooking'); ?></a>
     </h2>
 
@@ -107,8 +110,12 @@ function mobooking_select_biz_setting_value($settings, $key, $value, $default_va
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
 
-                <!-- Right Column -->
+        <div id="branding-tab" class="settings-tab-content" style="display:none;">
+            <p class="page-description"><?php esc_html_e('Customize the look and feel of your booking form and emails.', 'mobooking'); ?></p>
+            <div class="settings-layout">
                 <div class="settings-column">
                     <!-- Logo Card -->
                     <div class="mobooking-card">
@@ -140,6 +147,28 @@ function mobooking_select_biz_setting_value($settings, $key, $value, $default_va
                                     <div class="progress-bar"></div>
                                 </div>
                                 <p class="description"><?php esc_html_e('Upload a logo for your emails and booking form.', 'mobooking'); ?></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="settings-column">
+                    <!-- Theme Colors Card -->
+                    <div class="mobooking-card">
+                        <div class="mobooking-card-header">
+                            <h3 class="mobooking-card-title"><?php esc_html_e('Theme Colors', 'mobooking'); ?></h3>
+                        </div>
+                        <div class="mobooking-card-content">
+                            <div class="form-group">
+                                <label for="bf_theme_color"><?php esc_html_e('Primary Color', 'mobooking'); ?></label>
+                                <input name="bf_theme_color" type="text" id="bf_theme_color" value="<?php echo mobooking_get_biz_setting_value($bf_settings, 'bf_theme_color', '#1abc9c'); ?>" class="form-input mobooking-color-picker">
+                            </div>
+                            <div class="form-group">
+                                <label for="bf_secondary_color"><?php esc_html_e('Secondary Color', 'mobooking'); ?></label>
+                                <input name="bf_secondary_color" type="text" id="bf_secondary_color" value="<?php echo mobooking_get_biz_setting_value($bf_settings, 'bf_secondary_color', '#34495e'); ?>" class="form-input mobooking-color-picker">
+                            </div>
+                            <div class="form-group">
+                                <label for="bf_background_color"><?php esc_html_e('Background Color', 'mobooking'); ?></label>
+                                <input name="bf_background_color" type="text" id="bf_background_color" value="<?php echo mobooking_get_biz_setting_value($bf_settings, 'bf_background_color', '#ffffff'); ?>" class="form-input mobooking-color-picker">
                             </div>
                         </div>
                     </div>
@@ -180,7 +209,7 @@ function mobooking_select_biz_setting_value($settings, $key, $value, $default_va
                                         </div>
                                         <div class="form-group">
                                             <label for="<?php echo esc_attr($body_key); ?>-editor-fields"><?php esc_html_e('Body', 'mobooking'); ?></label>
-                                            <div id="<?php echo esc_attr($body_key); ?>-editor-fields">
+                                            <div id="<?php echo esc_attr($body_key); ?>-editor-fields" class="email-editor-fields-wrapper">
                                                 <!-- Dynamic fields will be loaded here -->
                                             </div>
                                             <input type="hidden" name="<?php echo esc_attr($body_key); ?>" id="<?php echo esc_attr($body_key); ?>" value="">

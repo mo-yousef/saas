@@ -2,7 +2,6 @@ jQuery(document).ready(function($) {
     'use strict';
 
     const selector = $('#email-template-selector');
-    const editorFieldsContainer = $('#email-editor-fields');
     const variablesList = $('#email-variables-list');
     const previewIframe = $('#email-preview-iframe');
 
@@ -42,22 +41,37 @@ jQuery(document).ready(function($) {
         const editorFields = $(`#${bodyKey}-editor-fields`);
         editorFields.html('');
 
-        if (state.greeting) {
+        if (state.greeting !== undefined) {
             editorFields.append(`<div class="form-group"><label>Greeting</label><input type="text" class="regular-text email-body-field" data-key="greeting" value="${state.greeting}"></div>`);
         }
-        if (state.main_content) {
+        if (state.main_content !== undefined) {
             editorFields.append(`<div class="form-group"><label>Main Content</label><textarea class="large-text email-body-field" data-key="main_content" rows="5">${state.main_content}</textarea></div>`);
         }
-        if (state.summary_fields) {
+        if (state.summary_fields !== undefined) {
             let fieldsHtml = '<div class="form-group"><label>Summary Fields</label><ul class="sortable-list">';
             state.summary_fields.forEach(field => {
                 fieldsHtml += `<li class="sortable-item"><input type="text" class="regular-text" value="${field.label}"><span>${field.variable}</span></li>`;
             });
             fieldsHtml += '</ul></div>';
             editorFields.append(fieldsHtml);
-            new Sortable(editorFields.find('.sortable-list')[0], { animation: 150 });
+            const sortableList = editorFields.find('.sortable-list')[0];
+            if (sortableList) {
+                new Sortable(sortableList, {
+                    animation: 150,
+                    onUpdate: function () {
+                        const newOrder = [];
+                        $(sortableList).find('.sortable-item').each(function() {
+                            const label = $(this).find('input').val();
+                            const variable = $(this).find('span').text();
+                            newOrder.push({ label, variable });
+                        });
+                        emailState.summary_fields = newOrder;
+                        updatePreview();
+                    }
+                });
+            }
         }
-        if (state.button_text) {
+        if (state.button_text !== undefined) {
             editorFields.append(`<div class="form-group"><label>Button Text</label><input type="text" class="regular-text email-body-field" data-key="button_text" value="${state.button_text}"></div>`);
         }
     }
@@ -65,17 +79,6 @@ jQuery(document).ready(function($) {
     $(document).on('keyup change', '.email-body-field', function() {
         const key = $(this).data('key');
         emailState[key] = $(this).val();
-        updatePreview();
-    });
-
-    $(document).on('sortupdate', '.sortable-list', function() {
-        const newOrder = [];
-        $(this).find('.sortable-item').each(function() {
-            const label = $(this).find('input').val();
-            const variable = $(this).find('span').text();
-            newOrder.push({ label, variable });
-        });
-        emailState.summary_fields = newOrder;
         updatePreview();
     });
 
@@ -136,4 +139,7 @@ jQuery(document).ready(function($) {
 
         previewIframe.attr('srcdoc', previewHtml);
     }
+
+    // Load initial template
+    loadTemplate(selector.val());
 });
