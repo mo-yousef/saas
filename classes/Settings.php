@@ -56,12 +56,11 @@ class Settings {
         'bf_debug_mode'               => '0', // Enable debug mode
 
         // Business Settings (prefix biz_ or email_)
-        'biz_name'                            => '', // Tenant's business name
+        'biz_name'                            => 'My Business', // Default business name
         'biz_email'                           => '', // Tenant's primary business email (dynamic default: user's registration email)
         'biz_phone'                           => '',
         'biz_address'                         => '', // Multiline address
         'biz_logo_url'                        => '', // URL to business logo
-        'biz_hours_json'                      => '{}', // JSON string for business hours, e.g., {"monday":{"open":"09:00","close":"17:00","is_closed":false}, ...}
         'biz_currency_code'                   => 'USD', // Uppercase, 3 characters
         'biz_user_language'                   => 'en_US', // Format like xx_XX
 
@@ -777,28 +776,19 @@ public function save_booking_form_settings(int $user_id, array $settings_data): 
         $settings_instance = new self();
         $user_info = get_userdata($user_id);
 
-        foreach (self::$default_tenant_settings as $key => $default_value) {
-            $value_to_set = $default_value;
+        // Define a structured approach for setting initial values
+        $initial_settings = self::$default_tenant_settings;
 
-            if ($user_info) {
-                if ($key === 'biz_email' && empty($default_value)) {
-                    $value_to_set = $user_info->user_email;
-                }
-                if ($key === 'email_from_name' && empty($default_value)) {
-                    $biz_name_val = $settings_instance->get_setting($user_id, 'biz_name');
-                    if (empty($biz_name_val)) $biz_name_val = isset(self::$default_tenant_settings['biz_name']) ? self::$default_tenant_settings['biz_name'] : '';
-                    if (empty($biz_name_val)) $biz_name_val = $user_info->display_name;
+        if ($user_info) {
+            // Set dynamic defaults based on user info
+            $initial_settings['biz_name'] = 'My Business'; // A clear default business name
+            $initial_settings['biz_email'] = $user_info->user_email;
+            $initial_settings['email_from_name'] = $initial_settings['biz_name'];
+            $initial_settings['email_from_address'] = $user_info->user_email;
+        }
 
-                    $value_to_set = !empty($biz_name_val) ? $biz_name_val : get_bloginfo('name');
-                }
-                if ($key === 'email_from_address' && empty($default_value)) {
-                    $biz_email_val = $settings_instance->get_setting($user_id, 'biz_email');
-                    if (empty($biz_email_val)) $biz_email_val = $user_info->user_email;
-                    if (empty($biz_email_val)) $biz_email_val = get_option('admin_email');
-                    $value_to_set = $biz_email_val;
-                }
-            }
-
+        foreach ($initial_settings as $key => $value_to_set) {
+            // Only update if the value is not null to avoid clearing settings with null
             if (!is_null($value_to_set)) {
                 $settings_instance->update_setting($user_id, $key, $value_to_set);
             }

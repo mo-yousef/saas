@@ -4,46 +4,39 @@ jQuery(document).ready(function($) {
     const form = $('#mobooking-business-settings-form');
     const feedbackDiv = $('#mobooking-settings-feedback');
     const saveButton = $('#mobooking-save-biz-settings-btn');
+    let mediaUploader;
 
-    // Tab navigation
-    const navTabs = $('.nav-tab-wrapper .nav-tab');
-    const tabContents = $('.mobooking-settings-tab-content');
-
-    navTabs.on('click', function(e) {
+    // Logo Uploader Logic
+    $('#mobooking-upload-logo-btn').on('click', function(e) {
         e.preventDefault();
-        const tabId = $(this).data('tab');
-
-        navTabs.removeClass('nav-tab-active');
-        $(this).addClass('nav-tab-active');
-
-        tabContents.hide();
-        $('#mobooking-' + tabId + '-tab').show();
-
-        // Update URL hash without jumping
-        if (history.pushState) {
-            history.pushState(null, null, '#' + tabId + '-tab');
-        } else {
-            location.hash = '#' + tabId + '-tab';
+        if (mediaUploader) {
+            mediaUploader.open();
+            return;
         }
+        mediaUploader = wp.media.frames.file_frame = wp.media({
+            title: 'Choose Logo',
+            button: {
+                text: 'Choose Logo'
+            },
+            multiple: false
+        });
+        mediaUploader.on('select', function() {
+            const attachment = mediaUploader.state().get('selection').first().toJSON();
+            $('#biz_logo_url').val(attachment.url);
+            $('.logo-preview').html('<img src="' + attachment.url + '" alt="Company Logo">');
+            $('#mobooking-remove-logo-btn').show();
+        });
+        mediaUploader.open();
     });
 
-    // Check for hash on page load to activate correct tab
-    if (window.location.hash) {
-        const activeTab = navTabs.filter('[href="' + window.location.hash + '"]');
-        if (activeTab.length) {
-            activeTab.trigger('click');
-        } else {
-            // Default to first tab if hash is invalid or doesn't match
-             navTabs.first().trigger('click');
-        }
-    } else {
-        // Default to first tab if no hash
-        navTabs.first().trigger('click');
-    }
+    $('#mobooking-remove-logo-btn').on('click', function(e) {
+        e.preventDefault();
+        $('#biz_logo_url').val('');
+        $('.logo-preview').html('<div class="logo-placeholder"><span>No Logo</span></div>');
+        $(this).hide();
+    });
 
-    // Initial settings are now loaded by PHP.
-    // The loadSettings() and populateForm() functions are no longer needed for initial load.
-
+    // Form submission
     form.on('submit', function(e) {
         e.preventDefault();
         feedbackDiv.empty().removeClass('notice-success notice-error').hide();
@@ -63,18 +56,6 @@ jQuery(document).ready(function($) {
             }
         });
 
-        // Validate JSON for biz_hours_json before sending (optional, server validates too)
-        if(settingsData.biz_hours_json && settingsData.biz_hours_json.trim() !== ""){
-            try {
-                JSON.parse(settingsData.biz_hours_json);
-            } catch(e) {
-                feedbackDiv.text(mobooking_biz_settings_params.i18n.invalid_json || 'Business Hours JSON is not valid.').addClass('notice notice-error').show();
-                saveButton.prop('disabled', false).text(originalButtonText);
-                return;
-            }
-        }
-
-
         $.ajax({
             url: mobooking_biz_settings_params.ajax_url,
             type: 'POST',
@@ -86,10 +67,6 @@ jQuery(document).ready(function($) {
             success: function(response) {
                 if (response.success) {
                     window.showAlert(response.data.message || mobooking_biz_settings_params.i18n.save_success || 'Settings saved.', 'success');
-                    // Force page reload on successful save to apply new settings (like language), after a short delay
-                    setTimeout(function() {
-                        location.reload();
-                    }, 1500);
                 } else {
                     window.showAlert(response.data.message || mobooking_biz_settings_params.i18n.error_saving || 'Error saving.', 'error');
                 }
@@ -99,17 +76,12 @@ jQuery(document).ready(function($) {
             },
             complete: function() {
                 saveButton.prop('disabled', false).text(originalButtonText);
-                setTimeout(function() { feedbackDiv.fadeOut(function(){ $(this).empty().removeClass('notice-success notice-error'); }); }, 5000);
             }
         });
     });
 
-    // Initial load by JavaScript is removed. PHP handles populating the form.
-    // Ensure mobooking_biz_settings_params (especially nonce, ajax_url, and i18n strings)
-    // are correctly localized in your plugin's PHP enqueue script.
     if (typeof mobooking_biz_settings_params === 'undefined') {
         console.error('mobooking_biz_settings_params is not defined. Please ensure it is localized.');
-        // Provide a fallback to prevent JS errors if params are missing.
         window.mobooking_biz_settings_params = { nonce: '', ajax_url: '', i18n: {} };
     }
 });
