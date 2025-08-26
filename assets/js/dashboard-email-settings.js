@@ -1,133 +1,240 @@
 jQuery(document).ready(function($) {
     'use strict';
 
-    const selector = $('#email-template-selector');
-    const editorFields = $('#email-editor-fields');
-    const variablesList = $('#email-variables-list');
-    const previewIframe = $('#email-preview-iframe');
+    const EmailEditor = {
+        // DOM Elements
+        selector: $('#email-template-selector'),
+        subjectInput: $('#email-editor-subject'),
+        bodyContainer: $('#email-editor-body'),
+        variablesList: $('#email-variables-list'),
+        previewIframe: $('#email-preview-iframe'),
+        hiddenDataContainer: $('.mobooking-hidden-email-data'),
 
-    const emailTemplates = mobooking_email_settings_params.templates || {};
-    const bizSettings = mobooking_email_settings_params.biz_settings || {};
-    let baseEmailTemplate = '';
+        // State
+        currentTemplateKey: null,
+        templatesData: {},
+        baseEmailTemplateHtml: '',
+        isInitialized: false,
 
-    // Fetch the base email template
-    $.get(mobooking_email_settings_params.base_template_url, function(data) {
-        baseEmailTemplate = data;
-        loadTemplate(selector.val());
-    });
+        // Config
+        componentRenderers: {
+            'header': (component) => `<div class="email-component" data-type="header">
+                                        <span class="drag-handle"></span>
+                                        <input type="text" class="component-input" value="${component.text || ''}" placeholder="Header Text">
+                                        <button class="delete-component"></button>
+                                     </div>`,
+            'text': (component) => `<div class="email-component" data-type="text">
+                                        <span class="drag-handle"></span>
+                                        <textarea class="component-input" placeholder="Paragraph text...">${component.text || ''}</textarea>
+                                        <button class="delete-component"></button>
+                                     </div>`,
+            'button': (component) => `<div class="email-component" data-type="button">
+                                        <span class="drag-handle"></span>
+                                        <input type="text" class="component-input" value="${component.text || ''}" placeholder="Button Text">
+                                        <input type="text" class="component-url-input" value="${component.url || ''}" placeholder="Button URL">
+                                        <button class="delete-component"></button>
+                                     </div>`,
+            'spacer': (component) => `<div class="email-component" data-type="spacer">
+                                        <span class="drag-handle"></span>
+                                        <span>Spacer</span>
+                                        <button class="delete-component"></button>
+                                     </div>`,
+        },
 
-    selector.on('change', function() {
-        loadTemplate($(this).val());
-    });
+        previewRenderers: {
+             'header': (component) => `<h2 style="font-family: sans-serif; color: #333;">${component.text}</h2>`,
+             'text': (component) => `<p style="font-family: sans-serif; color: #555; line-height: 1.6;">${component.text.replace(/\n/g, '<br>')}</p>`,
+             'button': (component) => `<table border="0" cellpadding="0" cellspacing="0" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: auto;"><tbody><tr><td style="font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #3498db; border-radius: 5px; text-align: center;"><a href="${component.url}" target="_blank" style="display: inline-block; color: #ffffff; background-color: #3498db; border: solid 1px #3498db; border-radius: 5px; box-sizing: border-box; cursor: pointer; text-decoration: none; font-size: 14px; font-weight: bold; margin: 0; padding: 12px 25px; text-transform: capitalize; border-color: #3498db;">${component.text}</a></td></tr></tbody></table>`,
+             'spacer': () => `<div style="height: 20px;"></div>`,
+        },
 
-    function loadTemplate(templateKey) {
-        const template = emailTemplates[templateKey];
-        if (!template) return;
+        init: function() {
+            if (!this.selector.length) return; // Don't run if not on settings page
 
-        // Show/hide editor fields
-        $('.email-template-editor').hide();
-        $('#' + templateKey + '-editor').show();
+            this.parseInitialData();
+            this.bindEvents();
+            this.fetchBaseTemplate();
 
-        // Populate variables list
-        variablesList.html(template.variables.map(v => `<li>${v}</li>`).join(''));
+            this.currentTemplateKey = this.selector.val();
+            this.loadTemplateIntoEditor();
+            this.isInitialized = true;
+        },
 
-        updatePreview();
-    }
+        parseInitialData: function() {
+            const self = this;
+            this.hiddenDataContainer.find('textarea.hidden-body-json').each(function() {
+                const textarea = $(this);
+                const key = textarea.attr('id').replace('hidden-body-', '');
+                const subject = self.hiddenDataContainer.find(`#hidden-subject-${key}`).val();
+                let body = [];
+                try {
+                    // Use .val() for textareas to get correct content
+                    const parsedBody = JSON.parse(textarea.val());
+                    if (Array.isArray(parsedBody)) {
+                        body = parsedBody;
+                    }
+                } catch (e) {
+                    console.error(`Could not parse JSON for ${key}:`, textarea.val());
+                }
+                self.templatesData[key] = { subject, body };
+            });
+        },
 
-    $(document).on('keyup change', '.email-template-field', function() {
-        updatePreview();
-    });
+        fetchBaseTemplate: function() {
+            $.get(mobooking_email_settings_params.base_template_url, (data) => {
+                this.baseEmailTemplateHtml = data;
+                this.updatePreview();
+            }).fail(() => {
+                console.error("Failed to fetch base email template.");
+            });
+        },
 
-    // Handle TinyMCE updates
-    $(document).on('tinymce-editor-init', function(event, editor) {
-        editor.on('keyup change', function() {
-            updatePreview();
-        });
-    });
+        bindEvents: function() {
+            // Template selection change
+            this.selector.on('change', () => {
+                this.currentTemplateKey = this.selector.val();
+                this.loadTemplateIntoEditor();
+            });
 
-    variablesList.on('click', 'li', function() {
-        const variableText = $(this).text();
-        navigator.clipboard.writeText(variableText).then(() => {
-            const originalText = $(this).text();
-            $(this).text('Copied!');
-            setTimeout(() => {
-                $(this).text(originalText);
-            }, 1000);
-        });
-    });
+            // Subject input change
+            this.subjectInput.on('input', () => {
+                this.saveSubject();
+                this.updatePreview();
+            });
 
-    function updatePreview() {
-        if (!baseEmailTemplate) return;
+            // Body component changes (delegated)
+            this.bodyContainer.on('input', '.component-input, .component-url-input', () => {
+                this.saveBodyState();
+                this.updatePreview();
+            });
 
-        const activeEditorId = selector.val();
-        const subject = $(`#${emailTemplates[activeEditorId].subject_key}`).val();
-        let body = '';
-        if (typeof tinymce !== 'undefined' && tinymce.get(emailTemplates[activeEditorId].body_key)) {
-            body = tinymce.get(emailTemplates[activeEditorId].body_key).getContent();
-        } else {
-            body = $(`#${emailTemplates[activeEditorId].body_key}`).val();
+            this.bodyContainer.on('click', '.delete-component', (e) => {
+                $(e.target).closest('.email-component').remove();
+                this.saveBodyState();
+                this.updatePreview();
+            });
+
+            // Init SortableJS
+            new Sortable(this.bodyContainer[0], {
+                animation: 150,
+                handle: '.drag-handle',
+                onEnd: () => {
+                    this.saveBodyState();
+                    this.updatePreview();
+                }
+            });
+        },
+
+        loadTemplateIntoEditor: function() {
+            if (!this.currentTemplateKey) return;
+
+            const data = this.templatesData[this.currentTemplateKey];
+            if (!data) return;
+
+            // Load subject
+            this.subjectInput.val(data.subject);
+
+            // Load body
+            this.bodyContainer.empty();
+            if (data.body && data.body.length > 0) {
+                data.body.forEach(component => {
+                    if (this.componentRenderers[component.type]) {
+                        const componentHtml = this.componentRenderers[component.type](component);
+                        this.bodyContainer.append(componentHtml);
+                    }
+                });
+            }
+
+            // Load variables
+            this.loadVariablesList();
+
+            // Update preview
+            if (this.isInitialized) {
+                this.updatePreview();
+            }
+        },
+
+        loadVariablesList: function() {
+            const templateInfo = mobooking_email_settings_params.templates[this.currentTemplateKey];
+            if (templateInfo && templateInfo.variables) {
+                const variablesHtml = templateInfo.variables.map(v => `<li>${v}</li>`).join('');
+                this.variablesList.html(variablesHtml);
+            }
+        },
+
+        saveSubject: function() {
+            if (!this.currentTemplateKey) return;
+            const newSubject = this.subjectInput.val();
+            this.templatesData[this.currentTemplateKey].subject = newSubject;
+            $(`#hidden-subject-${this.currentTemplateKey}`).val(newSubject);
+        },
+
+        saveBodyState: function() {
+            if (!this.currentTemplateKey) return;
+            const newBody = [];
+            this.bodyContainer.find('.email-component').each(function() {
+                const componentEl = $(this);
+                const type = componentEl.data('type');
+                const componentData = { type };
+
+                if (type === 'header' || type === 'text') {
+                    componentData.text = componentEl.find('.component-input').val();
+                } else if (type === 'button') {
+                    componentData.text = componentEl.find('.component-input').val();
+                    componentData.url = componentEl.find('.component-url-input').val();
+                }
+                newBody.push(componentData);
+            });
+
+            this.templatesData[this.currentTemplateKey].body = newBody;
+            const jsonString = JSON.stringify(newBody, null, 2);
+            $(`#hidden-body-${this.currentTemplateKey}`).val(jsonString);
+        },
+
+        renderBodyForPreview: function() {
+            if (!this.currentTemplateKey) return '';
+            const bodyData = this.templatesData[this.currentTemplateKey].body;
+            return bodyData.map(component => {
+                return this.previewRenderers[component.type] ? this.previewRenderers[component.type](component) : '';
+            }).join('');
+        },
+
+        updatePreview: function() {
+            if (!this.baseEmailTemplateHtml || !this.currentTemplateKey) return;
+
+            const data = this.templatesData[this.currentTemplateKey];
+            const bizSettings = mobooking_email_settings_params.biz_settings || {};
+
+            let previewHtml = this.baseEmailTemplateHtml;
+            const bodyHtml = this.renderBodyForPreview();
+
+            // Replace main content
+            previewHtml = previewHtml.replace(/{{SUBJECT}}/g, data.subject);
+            previewHtml = previewHtml.replace(/{{BODY_CONTENT}}/g, bodyHtml);
+
+            // Replace branding variables
+            previewHtml = previewHtml.replace(/{{LOGO_URL}}/g, bizSettings.biz_logo_url || '');
+            previewHtml = previewHtml.replace(/{{THEME_COLOR}}/g, bizSettings.bf_theme_color || '#1abc9c');
+
+            // Replace business info
+            previewHtml = previewHtml.replace(/{{SITE_NAME}}/g, bizSettings.biz_name || 'Your Company');
+            previewHtml = previewHtml.replace(/{{SITE_URL}}/g, mobooking_email_settings_params.site_url || '#');
+            previewHtml = previewHtml.replace(/{{BIZ_NAME}}/g, bizSettings.biz_name || 'Your Company');
+            previewHtml = previewHtml.replace(/{{BIZ_ADDRESS}}/g, bizSettings.biz_address || '');
+            previewHtml = previewHtml.replace(/{{BIZ_PHONE}}/g, bizSettings.biz_phone || '');
+            previewHtml = previewHtml.replace(/{{BIZ_EMAIL}}/g, bizSettings.biz_email || '');
+
+            // Replace all other dummy variables
+            const dummyData = mobooking_email_settings_params.dummy_data || {};
+             for (const [key, value] of Object.entries(dummyData)) {
+                // Ensure we create a global regex to replace all occurrences
+                const regex = new RegExp(key.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'), 'g');
+                previewHtml = previewHtml.replace(regex, value);
+            }
+
+            this.previewIframe.attr('srcdoc', previewHtml);
         }
+    };
 
-
-        let previewHtml = baseEmailTemplate;
-
-        const dummyData = {
-            '{{customer_name}}': 'John Doe',
-            '{{customer_email}}': 'john.doe@example.com',
-            '{{booking_id}}': 'BOOK-12345',
-            '{{booking_date}}': '2023-12-25',
-            '{{service_name}}': 'Deluxe Cleaning',
-            '{{service_duration}}': '120 minutes',
-            '{{service_price}}': '$150.00',
-            '{{discount}}': '$15.00',
-            '{{total_price}}': '$135.00',
-            '{{company_name}}': bizSettings.biz_name || 'Your Company',
-            '{{company_logo}}': bizSettings.biz_logo_url || '',
-            '{{company_email}}': bizSettings.biz_email || '',
-            '{{company_phone}}': bizSettings.biz_phone || '',
-            '{{company_address}}': bizSettings.biz_address || '',
-            '{{staff_name}}': 'Jane Smith',
-            '{{staff_dashboard_link}}': '#',
-            '{{old_status}}': 'Pending',
-            '{{new_status}}': 'Confirmed',
-            '{{updater_name}}': 'Admin',
-            '{{dashboard_link}}': '#',
-            '{{worker_email}}': 'worker@example.com',
-            '{{worker_role}}': 'Cleaner',
-            '{{inviter_name}}': 'Admin',
-            '{{registration_link}}': '#',
-            '{{admin_booking_link}}': '#',
-            '{{business_name}}': bizSettings.biz_name || 'Your Company',
-            '{{booking_reference}}': 'BOOK-12345',
-            '{{service_names}}': 'Deluxe Cleaning, Window Cleaning',
-            '{{booking_date_time}}': '2023-12-25 10:00 AM',
-            '{{service_address}}': '123 Main St, Anytown, USA',
-            '{{special_instructions}}': 'Please use the back door.',
-        };
-
-        let processedBody = body;
-        for (const [key, value] of Object.entries(dummyData)) {
-            processedBody = processedBody.replace(new RegExp(key, 'g'), value);
-        }
-
-        const replacements = {
-            '{{SUBJECT}}': subject,
-            '{{BODY_CONTENT}}': processedBody,
-            '{{LOGO_URL}}': bizSettings.biz_logo_url || '',
-            '{{SITE_NAME}}': bizSettings.biz_name || 'Your Company',
-            '{{SITE_URL}}': mobooking_email_settings_params.site_url || '#',
-            '{{BIZ_NAME}}': bizSettings.biz_name || 'Your Company',
-            '{{BIZ_ADDRESS}}': bizSettings.biz_address || '',
-            '{{BIZ_PHONE}}': bizSettings.biz_phone || '',
-            '{{BIZ_EMAIL}}': bizSettings.biz_email || '',
-            '{{THEME_COLOR}}': bizSettings.bf_theme_color || '#1abc9c',
-            '{{THEME_COLOR_LIGHT}}': 'rgba(26, 188, 156, 0.1)',
-        };
-
-        for (const [key, value] of Object.entries(replacements)) {
-            previewHtml = previewHtml.replace(new RegExp(key, 'g'), value);
-        }
-
-        previewIframe.attr('srcdoc', previewHtml);
-    }
+    EmailEditor.init();
 });
