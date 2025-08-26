@@ -166,6 +166,51 @@
     margin-bottom: 1rem;
 }
 
+/* Email Settings Layout */
+.email-settings-layout {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+}
+
+@media (min-width: 1280px) {
+    .email-settings-layout {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+.email-editor-column,
+.email-preview-column {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+#email-preview-iframe {
+    width: 100%;
+    height: 600px;
+    border: 1px solid #E5E7EB;
+    border-radius: 0.5rem;
+}
+
+#email-variables-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+#email-variables-list li {
+    background-color: #F3F4F6;
+    color: #4B5563;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-family: monospace;
+    font-size: 0.875rem;
+}
+
 .mobooking-page-header-actions .btn {
     padding: 0.625rem 1.25rem;
     font-size: 0.875rem;
