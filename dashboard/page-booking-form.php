@@ -229,6 +229,37 @@ if (!empty($current_slug)) {
                                 </div>
                                 <div class="mobooking-card">
                                     <div class="mobooking-card-header">
+                                        <h3 class="mobooking-card-title"><?php esc_html_e('Theme Colors', 'mobooking'); ?></h3>
+                                    </div>
+                                    <div class="mobooking-card-content">
+                                        <div class="form-group-grid two-cols">
+                                            <div class="form-group">
+                                                <label for="bf_theme_color"><?php esc_html_e('Primary Color', 'mobooking'); ?></label>
+                                                <input name="bf_theme_color" type="text" id="bf_theme_color" value="<?php echo mobooking_get_setting_value($bf_settings, 'bf_theme_color', '#1abc9c'); ?>" class="form-input mobooking-color-picker">
+                                                <p class="description"><?php esc_html_e('Main color used for buttons and accents.', 'mobooking'); ?></p>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="bf_background_color"><?php esc_html_e('Background Color', 'mobooking'); ?></label>
+                                                <input name="bf_background_color" type="text" id="bf_background_color" value="<?php echo mobooking_get_setting_value($bf_settings, 'bf_background_color', '#ffffff'); ?>" class="form-input mobooking-color-picker">
+                                                <p class="description"><?php esc_html_e('Background color of the form.', 'mobooking'); ?></p>
+                                            </div>
+                                        </div>
+                                        <div class="form-group-grid two-cols">
+                                            <div class="form-group">
+                                                <label for="bf_text_color"><?php esc_html_e('Text Color', 'mobooking'); ?></label>
+                                                <input name="bf_text_color" type="text" id="bf_text_color" value="<?php echo mobooking_get_setting_value($bf_settings, 'bf_text_color', '#333333'); ?>" class="form-input mobooking-color-picker">
+                                                <p class="description"><?php esc_html_e('Primary text color.', 'mobooking'); ?></p>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="bf_border_radius"><?php esc_html_e('Border Radius (px)', 'mobooking'); ?></label>
+                                                <input name="bf_border_radius" type="number" id="bf_border_radius" value="<?php echo mobooking_get_setting_value($bf_settings, 'bf_border_radius', '8'); ?>" min="0" max="50" class="form-input">
+                                                <p class="description"><?php esc_html_e('Roundness of form elements.', 'mobooking'); ?></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mobooking-card">
+                                    <div class="mobooking-card-header">
                                         <h3 class="mobooking-card-title"><?php esc_html_e('Custom CSS', 'mobooking'); ?></h3>
                                     </div>
                                     <div class="mobooking-card-content">
