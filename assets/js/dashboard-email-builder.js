@@ -32,12 +32,7 @@ jQuery(document).ready(function($) {
         editorWrapper.show();
 
         const bodyKey = template.body_key;
-        const bodyJson = emailBodies[templateKey] || '{}';
-        try {
-            emailState = JSON.parse(bodyJson);
-        } catch (e) {
-            emailState = {};
-        }
+        emailState = emailBodies[templateKey] || {};
 
         renderEditor(bodyKey, emailState);
         updatePreview();
