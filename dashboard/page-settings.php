@@ -38,7 +38,7 @@ function mobooking_select_biz_setting_value($settings, $key, $value, $default_va
     </div>
 
     <h2 class="nav-tab-wrapper" style="margin-bottom:20px;">
-        <a href="#general" class="nav-tab nav-tab-active" data-tab="general"><?php esc_html_e('General Settings', 'mobooking'); ?></a>
+        <a href="#general" class="nav-tab nav-tab-active" data-tab="general"><?php esc_html_e('General', 'mobooking'); ?></a>
         <a href="#branding" class="nav-tab" data-tab="branding"><?php esc_html_e('Branding', 'mobooking'); ?></a>
         <a href="#email-notifications" class="nav-tab" data-tab="email-notifications"><?php esc_html_e('Email Notifications', 'mobooking'); ?></a>
     </h2>
@@ -79,7 +79,9 @@ function mobooking_select_biz_setting_value($settings, $key, $value, $default_va
                             </div>
                         </div>
                     </div>
-
+                </div>
+                 <!-- Right Column -->
+                <div class="settings-column">
                     <!-- Localization Card -->
                     <div class="mobooking-card">
                         <div class="mobooking-card-header">
@@ -198,7 +200,7 @@ function mobooking_select_biz_setting_value($settings, $key, $value, $default_va
                             <div id="email-editor-container">
                                 <div class="form-group">
                                     <label for="email-editor-subject"><?php esc_html_e('Subject', 'mobooking'); ?></label>
-                                    <input type="text" id="email-editor-subject" class="regular-text" placeholder="Email subject">
+                                    <input type="text" id="email-editor-subject" class="regular-text" placeholder="<?php esc_attr_e('Email subject', 'mobooking'); ?>">
                                 </div>
                                 <div class="form-group">
                                     <label><?php esc_html_e('Body Components', 'mobooking'); ?></label>
@@ -214,6 +216,7 @@ function mobooking_select_biz_setting_value($settings, $key, $value, $default_va
                             <h3 class="mobooking-card-title"><?php esc_html_e('Available Variables', 'mobooking'); ?></h3>
                         </div>
                         <div class="mobooking-card-content">
+                            <p class="description"><?php esc_html_e('Click any variable to copy it to your clipboard.', 'mobooking'); ?></p>
                             <ul id="email-variables-list">
                                 <!-- Variables will be loaded by JS -->
                             </ul>
@@ -255,7 +258,9 @@ function mobooking_select_biz_setting_value($settings, $key, $value, $default_va
             </div>
         </div>
 
-        <!-- Hidden submit button for form context, main button is in header -->
-        <button type="submit" style="display:none;"></button>
+        <!-- This button is outside the tabs for global save -->
+        <p class="submit" style="margin-top:20px;">
+             <button type="submit" form="mobooking-business-settings-form" name="save_business_settings" id="mobooking-save-biz-settings-btn-footer" class="btn btn-primary"><?php esc_html_e('Save All Settings', 'mobooking'); ?></button>
+        </p>
     </form>
 </div>

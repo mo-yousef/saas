@@ -5,146 +5,114 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
 class Settings {
     private $wpdb;
-    private static $default_tenant_settings = null;
 
-    public static function get_default_settings() {
-        if (self::$default_tenant_settings === null) {
-            self::$default_tenant_settings = [
-                // Booking Form Settings (prefix bf_)
-                'bf_theme_color'              => '#1abc9c',
-                'bf_secondary_color'          => '#34495e',
-                'bf_background_color'         => '#ffffff',
-                'bf_font_family'              => 'system-ui',
-                'bf_border_radius'            => '8',
-                'bf_header_text'              => 'Book Our Services Online',
-                'bf_show_progress_bar'        => '1', // '1' for true, '0' for false
-                'bf_allow_cancellation_hours' => '24',  // Integer hours, 0 for no cancellation allowed
-                'bf_custom_css'               => '',
-                'bf_terms_conditions_url'     => '',
-                'bf_business_slug'            => '', // New setting for business slug
-                'bf_step_1_title'             => 'Step 1: Location & Date',
-                'bf_step_2_title'             => 'Step 2: Choose Services',
-                'bf_step_3_title'             => 'Step 3: Service Options',
-                'bf_step_4_title'             => 'Pet Information',
-                'bf_step_5_title'             => 'Service Frequency',
-                'bf_step_6_title'             => 'Date & Time',
-                'bf_step_7_title'             => 'Contact & Access Details',
-                'bf_step_8_title'             => 'Booking Confirmed',
-                'bf_success_message'          => 'Thank you for your booking! We will contact you soon to confirm the details. A confirmation email has been sent to you.',
+    // Combined default settings for all tenant-specific configurations
+    private static $default_tenant_settings = [
+        // Booking Form Settings (prefix bf_)
+        'bf_theme_color'              => '#1abc9c',
+        'bf_secondary_color'          => '#34495e',
+        'bf_background_color'         => '#ffffff',
+        'bf_font_family'              => 'system-ui',
+        'bf_border_radius'            => '8',
+        'bf_header_text'              => 'Book Our Services Online',
+        'bf_show_progress_bar'        => '1', // '1' for true, '0' for false
+        'bf_allow_cancellation_hours' => '24',  // Integer hours, 0 for no cancellation allowed
+        'bf_custom_css'               => '',
+        'bf_terms_conditions_url'     => '',
+        'bf_business_slug'            => '', // New setting for business slug
+        'bf_step_1_title'             => 'Step 1: Location & Date',
+        'bf_step_2_title'             => 'Step 2: Choose Services',
+        'bf_step_3_title'             => 'Step 3: Service Options',
+        'bf_step_4_title'             => 'Pet Information',
+        'bf_step_5_title'             => 'Service Frequency',
+        'bf_step_6_title'             => 'Date & Time',
+        'bf_step_7_title'             => 'Contact & Access Details',
+        'bf_step_8_title'             => 'Booking Confirmed',
+        'bf_success_message'          => 'Thank you for your booking! We will contact you soon to confirm the details. A confirmation email has been sent to you.',
 
-                // Form Control Settings
-                'bf_enable_pet_information'     => '1', // Enable/disable Step 4
-                'bf_enable_service_frequency'   => '1', // Enable/disable Step 5
-                'bf_enable_datetime_selection'  => '1', // Enable/disable Step 6
-                'bf_enable_property_access'     => '1', // Enable/disable Step 7
-                'bf_form_enabled'             => '1', // Enable/disable entire form
-                'bf_maintenance_message'      => 'We are temporarily not accepting new bookings. Please check back later or contact us directly.',
-                'bf_allow_service_selection'  => '1', // Allow customers to select services
-                'bf_allow_date_time_selection'=> '1', // Allow customers to select date and time
-                'bf_require_phone'            => '1', // Require phone number
-                'bf_allow_special_instructions'=> '1', // Allow special instructions/notes
-                'bf_show_pricing'             => '1', // Show pricing information
-                'bf_allow_discount_codes'     => '1', // Allow discount code application
-                'bf_booking_lead_time_hours'  => '24', // Minimum lead time for bookings
-                'bf_max_booking_days_ahead'   => '30', // Maximum days ahead for bookings
-                'bf_time_slot_duration'       => '30', // Time slot duration in minutes
-                'bf_enable_location_check'    => '1', // '1' to enable Step 1 (Location), '0' to disable
+        // Form Control Settings
+        'bf_enable_pet_information'     => '1', // Enable/disable Step 4
+        'bf_enable_service_frequency'   => '1', // Enable/disable Step 5
+        'bf_enable_datetime_selection'  => '1', // Enable/disable Step 6
+        'bf_enable_property_access'     => '1', // Enable/disable Step 7
+        'bf_form_enabled'             => '1', // Enable/disable entire form
+        'bf_maintenance_message'      => 'We are temporarily not accepting new bookings. Please check back later or contact us directly.',
+        'bf_allow_service_selection'  => '1', // Allow customers to select services
+        'bf_allow_date_time_selection'=> '1', // Allow customers to select date and time
+        'bf_require_phone'            => '1', // Require phone number
+        'bf_allow_special_instructions'=> '1', // Allow special instructions/notes
+        'bf_show_pricing'             => '1', // Show pricing information
+        'bf_allow_discount_codes'     => '1', // Allow discount code application
+        'bf_booking_lead_time_hours'  => '24', // Minimum lead time for bookings
+        'bf_max_booking_days_ahead'   => '30', // Maximum days ahead for bookings
+        'bf_time_slot_duration'       => '30', // Time slot duration in minutes
+        'bf_enable_location_check'    => '1', // '1' to enable Step 1 (Location), '0' to disable
 
-                // Advanced Form Settings
-                'bf_google_analytics_id'      => '', // Google Analytics tracking ID
-                'bf_webhook_url'              => '', // Webhook URL for integrations
-                'bf_enable_recaptcha'         => '0', // Enable reCAPTCHA protection
-                'bf_enable_ssl_required'      => '1', // Require SSL/HTTPS
-                'bf_debug_mode'               => '0', // Enable debug mode
+        // Advanced Form Settings
+        'bf_google_analytics_id'      => '', // Google Analytics tracking ID
+        'bf_webhook_url'              => '', // Webhook URL for integrations
+        'bf_enable_recaptcha'         => '0', // Enable reCAPTCHA protection
+        'bf_enable_ssl_required'      => '1', // Require SSL/HTTPS
+        'bf_debug_mode'               => '0', // Enable debug mode
 
-                // Business Settings (prefix biz_ or email_)
-                'biz_name'                            => 'My Business', // Default business name
-                'biz_email'                           => '', // Tenant's primary business email (dynamic default: user's registration email)
-                'biz_phone'                           => '',
-                'biz_address'                         => '', // Multiline address
-                'biz_logo_url'                        => '', // URL to business logo
-                'biz_currency_code'                   => 'USD', // Uppercase, 3 characters
-                'biz_user_language'                   => 'en_US', // Format like xx_XX
+        // Business Settings (prefix biz_ or email_)
+        'biz_name'                            => '', // Tenant's business name
+        'biz_email'                           => '', // Tenant's primary business email (dynamic default: user's registration email)
+        'biz_phone'                           => '',
+        'biz_address'                         => '', // Multiline address
+        'biz_logo_url'                        => '', // URL to business logo
+        'biz_hours_json'                      => '{}', // JSON string for business hours
+        'biz_currency_code'                   => 'USD', // Uppercase, 3 characters
+        'biz_user_language'                   => 'en_US', // Format like xx_XX
 
-                // Email Sender Settings
-                'email_from_name'                     => '', // Name for outgoing emails (dynamic default: biz_name or site title)
-                'email_from_address'                  => '', // Email address for outgoing emails (dynamic default: biz_email or site admin email)
+        // Email Sender Settings
+        'email_from_name'                     => '', // Name for outgoing emails
+        'email_from_address'                  => '', // Email address for outgoing emails
 
-                // Email Template Settings (Customer Confirmation)
-                'email_booking_conf_subj_customer'    => 'Your Booking Confirmation - Ref: {{booking_reference}}',
-                'email_booking_conf_body_customer'    => json_encode([
-                    'greeting' => 'Dear {{customer_name}},',
-                    'main_content' => 'Thank you for your booking with {{business_name}}. Your booking (Ref: {{booking_reference}}) is confirmed.',
-                    'summary_fields' => [
-                        ['label' => 'Services', 'variable' => '{{service_names}}'],
-                        ['label' => 'Date & Time', 'variable' => '{{booking_date_time}}'],
-                        ['label' => 'Service Address', 'variable' => '{{service_address}}'],
-                        ['label' => 'Total Price', 'variable' => '{{total_price}}'],
-                    ],
-                    'closing_content' => 'If you have any questions, please contact {{business_name}}.',
-                    'button_text' => 'View Booking',
-                    'button_link' => '{{booking_link}}',
-                ]),
+        // --- COMPONENT-BASED EMAIL TEMPLATES ---
 
-                // Email Template Settings (Admin Notification)
-                'email_booking_conf_subj_admin'       => 'New Booking Received - Ref: {{booking_reference}} for {{customer_name}}',
-                'email_booking_conf_body_admin'       => json_encode([
-                    'greeting' => 'New Booking Received!',
-                    'main_content' => 'You have received a new booking (Ref: {{booking_reference}}).',
-                    'summary_fields' => [
-                        ['label' => 'Customer Name', 'variable' => '{{customer_name}}'],
-                        ['label' => 'Customer Email', 'variable' => '{{customer_email}}'],
-                        ['label' => 'Customer Phone', 'variable' => '{{customer_phone}}'],
-                        ['label' => 'Services', 'variable' => '{{service_names}}'],
-                        ['label' => 'Date & Time', 'variable' => '{{booking_date_time}}'],
-                        ['label' => 'Service Address', 'variable' => '{{service_address}}'],
-                        ['label' => 'Total Price', 'variable' => '{{total_price}}'],
-                        ['label' => 'Special Instructions', 'variable' => '{{special_instructions}}'],
-                    ],
-                    'button_text' => 'View in Dashboard',
-                    'button_link' => '{{admin_booking_link}}',
-                ]),
+        // Customer Booking Confirmation
+        'email_booking_conf_subj_customer'    => 'Your Booking Confirmation - Ref: {{booking_reference}}',
+        'email_booking_conf_body_customer'    => json_encode([
+            ['type' => 'header', 'text' => 'Booking Confirmed!'],
+            ['type' => 'text', 'text' => "Dear {{customer_name}},\n\nThank you for your booking with {{business_name}}. This email confirms that your booking (Ref: {{booking_reference}}) is confirmed."],
+            ['type' => 'text', 'text' => "Services: {{service_names}}\nDate & Time: {{booking_date_time}}\nTotal Price: {{total_price}}"],
+            ['type' => 'button', 'text' => 'View Booking Details', 'url' => '{{booking_link}}']
+        ]),
 
-                // Staff Assignment Notification
-                'email_staff_assign_subj'             => 'New Booking Assignment - Ref: {{booking_reference}}',
-                'email_staff_assign_body'             => json_encode([
-                    'greeting' => 'Hi {{staff_name}},',
-                    'main_content' => 'You have been assigned a new booking (Ref: {{booking_reference}}).',
-                    'summary_fields' => [
-                        ['label' => 'Customer', 'variable' => '{{customer_name}}'],
-                        ['label' => 'Date & Time', 'variable' => '{{booking_date_time}}'],
-                    ],
-                    'button_text' => 'View Your Assignments',
-                    'button_link' => '{{staff_dashboard_link}}',
-                ]),
+        // Admin New Booking Notification
+        'email_booking_conf_subj_admin'       => 'New Booking Received - Ref: {{booking_reference}}',
+        'email_booking_conf_body_admin'       => json_encode([
+            ['type' => 'header', 'text' => 'New Booking Received!'],
+            ['type' => 'text', 'text' => "A new booking has been made by {{customer_name}} ({{customer_email}})."],
+            ['type' => 'text', 'text' => "Services: {{service_names}}\nDate & Time: {{booking_date_time}}\nTotal Price: {{total_price}}"],
+            ['type' => 'button', 'text' => 'View in Dashboard', 'url' => '{{admin_booking_link}}']
+        ]),
 
-                // Admin Status Change Notification
-                'email_admin_status_change_subj'      => 'Booking Status Updated - Ref: {{booking_reference}}',
-                'email_admin_status_change_body'      => json_encode([
-                    'main_content' => 'The status for booking (Ref: {{booking_reference}}) has been updated from {{old_status}} to {{new_status}} by {{updater_name}}.',
-                ]),
+        // Staff Assignment Notification
+        'email_staff_assign_subj'             => 'New Booking Assignment - Ref: {{booking_reference}}',
+        'email_staff_assign_body'             => json_encode([
+            ['type' => 'header', 'text' => 'New Assignment'],
+            ['type' => 'text', 'text' => "Hi {{staff_name}},\n\nYou have been assigned to a new booking for {{customer_name}} on {{booking_date_time}}."],
+            ['type' => 'button', 'text' => 'View Your Assignments', 'url' => '{{staff_dashboard_link}}']
+        ]),
 
-                // Welcome Email
-                'email_welcome_subj'                  => 'Welcome to {{company_name}}!',
-                'email_welcome_body'                  => json_encode([
-                    'greeting' => 'Hi {{customer_name}},',
-                    'main_content' => "Thanks for joining {{company_name}}! We're excited to have you.",
-                    'button_text' => 'Go to Your Dashboard',
-                    'button_link' => '{{dashboard_link}}',
-                ]),
+        // Customer Welcome Email
+        'email_welcome_subj'                  => 'Welcome to {{company_name}}!',
+        'email_welcome_body'                  => json_encode([
+            ['type' => 'header', 'text' => 'Welcome!'],
+            ['type' => 'text', 'text' => "Hi {{customer_name}},\n\nThanks for creating an account with us. We're excited to have you!"],
+            ['type' => 'button', 'text' => 'Go to Your Dashboard', 'url' => '{{dashboard_link}}']
+        ]),
 
-                // Invitation Email
-                'email_invitation_subj'               => 'You have been invited to join {{company_name}}',
-                'email_invitation_body'               => json_encode([
-                    'greeting' => 'Hi {{worker_email}},',
-                    'main_content' => "You've been invited to join {{company_name}} as a {{worker_role}} by {{inviter_name}}.",
-                    'button_text' => 'Accept Invitation & Register',
-                    'button_link' => '{{registration_link}}',
-                ]),
-            ];
-        }
-        return self::$default_tenant_settings;
-    }
+        // Staff Invitation Email
+        'email_invitation_subj'               => 'You have been invited to join {{company_name}}',
+        'email_invitation_body'               => json_encode([
+            ['type' => 'header', 'text' => 'You\'re Invited!'],
+            ['type' => 'text', 'text' => "Hi there,\n\n{{inviter_name}} has invited you to join {{company_name}} as a {{worker_role}}."],
+            ['type' => 'button', 'text' => 'Accept & Register', 'url' => '{{registration_link}}']
+        ]),
+    ];
 
     public function __construct() {
         global $wpdb;
@@ -159,58 +127,9 @@ class Settings {
         // Business Settings
         add_action('wp_ajax_mobooking_get_business_settings', [$this, 'handle_get_business_settings_ajax']);
         add_action('wp_ajax_mobooking_save_business_settings', [$this, 'handle_save_business_settings_ajax']);
-        add_action('wp_ajax_mobooking_upload_logo', [$this, 'handle_upload_logo_ajax']);
-        add_action('wp_ajax_mobooking_send_test_email', [$this, 'handle_send_test_email_ajax']);
 
         // Utility Actions
         add_action('wp_ajax_mobooking_flush_rewrite_rules', [$this, 'handle_flush_rewrite_rules_ajax']);
-    }
-
-    public function handle_send_test_email_ajax() {
-        check_ajax_referer('mobooking_dashboard_nonce', 'nonce');
-        $user_id = get_current_user_id();
-        if (!$user_id) {
-            wp_send_json_error(['message' => __('User not authenticated.', 'mobooking')], 403);
-            return;
-        }
-
-        $notifications = new \MoBooking\Classes\Notifications();
-        $result = $notifications->send_test_email($user_id);
-
-        if ($result) {
-            wp_send_json_success(['message' => __('Test email sent successfully.', 'mobooking')]);
-        } else {
-            wp_send_json_error(['message' => __('Failed to send test email.', 'mobooking')], 500);
-        }
-    }
-
-    public function handle_upload_logo_ajax() {
-        check_ajax_referer('mobooking_dashboard_nonce', 'nonce');
-        $user_id = get_current_user_id();
-        if (!$user_id) {
-            wp_send_json_error(['message' => __('User not authenticated.', 'mobooking')], 403);
-            return;
-        }
-
-        if (!function_exists('wp_handle_upload')) {
-            require_once(ABSPATH . 'wp-admin/includes/file.php');
-        }
-
-        if (empty($_FILES['logo'])) {
-            wp_send_json_error(['message' => __('No file was uploaded.', 'mobooking')], 400);
-            return;
-        }
-
-        $uploaded_file = $_FILES['logo'];
-        $upload_overrides = ['test_form' => false];
-        $move_file = wp_handle_upload($uploaded_file, $upload_overrides);
-
-        if ($move_file && !isset($move_file['error'])) {
-            $this->update_setting($user_id, 'biz_logo_url', $move_file['url']);
-            wp_send_json_success(['url' => $move_file['url']]);
-        } else {
-            wp_send_json_error(['message' => $move_file['error']], 500);
-        }
     }
 
     public function handle_flush_rewrite_rules_ajax() {
@@ -685,9 +604,8 @@ private function ensure_unique_slug($slug, $user_id = null) {
     }
 
     public function get_setting(int $user_id, string $setting_name, $default_value = null) {
-        $defaults = self::get_default_settings();
         if (empty($user_id) && $user_id !== 0) {
-             return array_key_exists($setting_name, $defaults) ? $defaults[$setting_name] : $default_value;
+             return array_key_exists($setting_name, self::$default_tenant_settings) ? self::$default_tenant_settings[$setting_name] : $default_value;
         }
 
         $table_name = Database::get_table_name('tenant_settings');
@@ -697,8 +615,8 @@ private function ensure_unique_slug($slug, $user_id = null) {
         ));
 
         if (is_null($value)) {
-            return array_key_exists($setting_name, $defaults) ?
-                $defaults[$setting_name] : $default_value;
+            return array_key_exists($setting_name, self::$default_tenant_settings) ?
+                self::$default_tenant_settings[$setting_name] : $default_value;
         }
         return maybe_unserialize($value);
     }
@@ -746,17 +664,17 @@ private function ensure_unique_slug($slug, $user_id = null) {
     }
 
     public function get_booking_form_settings(int $user_id): array {
-        $booking_form_defaults = array_filter(self::get_default_settings(), function($key) {
+        $booking_form_defaults = array_filter(self::$default_tenant_settings, function($key) {
             return strpos($key, 'bf_') === 0;
         }, ARRAY_FILTER_USE_KEY);
         return $this->get_settings_by_prefix_or_keys($user_id, $booking_form_defaults);
     }
 
     public function get_business_settings(int $user_id): array {
-        $business_setting_keys = array_filter(array_keys(self::get_default_settings()), function($key) {
+        $business_setting_keys = array_filter(array_keys(self::$default_tenant_settings), function($key) {
             return strpos($key, 'biz_') === 0 || strpos($key, 'email_') === 0;
         });
-        $business_defaults = array_intersect_key(self::get_default_settings(), array_flip($business_setting_keys));
+        $business_defaults = array_intersect_key(self::$default_tenant_settings, array_flip($business_setting_keys));
 
         $parsed_settings = $this->get_settings_by_prefix_or_keys($user_id, $business_defaults);
 
@@ -852,10 +770,10 @@ public function save_booking_form_settings(int $user_id, array $settings_data): 
 }
 
     public function save_business_settings(int $user_id, array $settings_data): bool {
-        $business_setting_keys = array_filter(array_keys(self::get_default_settings()), function($key) {
+        $business_setting_keys = array_filter(array_keys(self::$default_tenant_settings), function($key) {
             return strpos($key, 'biz_') === 0 || strpos($key, 'email_') === 0;
         });
-        $business_defaults = array_intersect_key(self::get_default_settings(), array_flip($business_setting_keys));
+        $business_defaults = array_intersect_key(self::$default_tenant_settings, array_flip($business_setting_keys));
         return $this->save_settings_group($user_id, $settings_data, $business_defaults);
     }
 
@@ -865,19 +783,28 @@ public function save_booking_form_settings(int $user_id, array $settings_data): 
         $settings_instance = new self();
         $user_info = get_userdata($user_id);
 
-        // Define a structured approach for setting initial values
-        $initial_settings = self::get_default_settings();
+        foreach (self::$default_tenant_settings as $key => $default_value) {
+            $value_to_set = $default_value;
 
-        if ($user_info) {
-            // Set dynamic defaults based on user info
-            $initial_settings['biz_name'] = 'My Business'; // A clear default business name
-            $initial_settings['biz_email'] = $user_info->user_email;
-            $initial_settings['email_from_name'] = $initial_settings['biz_name'];
-            $initial_settings['email_from_address'] = $user_info->user_email;
-        }
+            if ($user_info) {
+                if ($key === 'biz_email' && empty($default_value)) {
+                    $value_to_set = $user_info->user_email;
+                }
+                if ($key === 'email_from_name' && empty($default_value)) {
+                    $biz_name_val = $settings_instance->get_setting($user_id, 'biz_name');
+                    if (empty($biz_name_val)) $biz_name_val = isset(self::$default_tenant_settings['biz_name']) ? self::$default_tenant_settings['biz_name'] : '';
+                    if (empty($biz_name_val)) $biz_name_val = $user_info->display_name;
 
-        foreach ($initial_settings as $key => $value_to_set) {
-            // Only update if the value is not null to avoid clearing settings with null
+                    $value_to_set = !empty($biz_name_val) ? $biz_name_val : get_bloginfo('name');
+                }
+                if ($key === 'email_from_address' && empty($default_value)) {
+                    $biz_email_val = $settings_instance->get_setting($user_id, 'biz_email');
+                    if (empty($biz_email_val)) $biz_email_val = $user_info->user_email;
+                    if (empty($biz_email_val)) $biz_email_val = get_option('admin_email');
+                    $value_to_set = $biz_email_val;
+                }
+            }
+
             if (!is_null($value_to_set)) {
                 $settings_instance->update_setting($user_id, $key, $value_to_set);
             }
@@ -927,7 +854,7 @@ public function save_booking_form_settings(int $user_id, array $settings_data): 
      * Get all default settings (useful for initialization)
      */
     public static function get_all_default_settings(): array {
-        return self::get_default_settings();
+        return self::$default_tenant_settings;
     }
 
     public function get_email_templates(): array {
@@ -936,7 +863,7 @@ public function save_booking_form_settings(int $user_id, array $settings_data): 
                 'name' => __('Customer Booking Confirmation', 'mobooking'),
                 'subject_key' => 'email_booking_conf_subj_customer',
                 'body_key' => 'email_booking_conf_body_customer',
-                'variables' => ['{{customer_name}}', '{{business_name}}', '{{booking_reference}}', '{{service_names}}', '{{booking_date_time}}', '{{total_price}}', '{{service_address}}', '{{special_instructions}}']
+                'variables' => ['{{customer_name}}', '{{business_name}}', '{{booking_reference}}', '{{service_names}}', '{{booking_date_time}}', '{{total_price}}', '{{service_address}}', '{{special_instructions}}', '{{booking_link}}']
             ],
             'booking_confirmation_admin' => [
                 'name' => __('Admin New Booking Notification', 'mobooking'),
@@ -949,12 +876,6 @@ public function save_booking_form_settings(int $user_id, array $settings_data): 
                 'subject_key' => 'email_staff_assign_subj',
                 'body_key' => 'email_staff_assign_body',
                 'variables' => ['{{staff_name}}', '{{customer_name}}', '{{booking_reference}}', '{{booking_date_time}}', '{{staff_dashboard_link}}']
-            ],
-            'admin_status_change' => [
-                'name' => __('Admin Status Change Notification', 'mobooking'),
-                'subject_key' => 'email_admin_status_change_subj',
-                'body_key' => 'email_admin_status_change_body',
-                'variables' => ['{{booking_reference}}', '{{old_status}}', '{{new_status}}', '{{updater_name}}']
             ],
             'welcome' => [
                 'name' => __('Welcome Email', 'mobooking'),
