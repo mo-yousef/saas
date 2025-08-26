@@ -209,6 +209,12 @@
     border-radius: 0.25rem;
     font-family: monospace;
     font-size: 0.875rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+#email-variables-list li:hover {
+    background-color: #E5E7EB;
 }
 
 .mobooking-page-header-actions .btn {
