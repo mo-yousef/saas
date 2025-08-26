@@ -169,7 +169,20 @@
 /* Email Builder Layout */
 .email-builder-layout {
     display: grid;
-    grid-template-columns: 200px 1fr 300px 1fr;
+    grid-template-columns: 250px 1fr 350px;
+    gap: 2rem;
+}
+
+@media (max-width: 1280px) {
+    .email-builder-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+.email-builder-sidebar,
+.email-builder-main {
+    display: flex;
+    flex-direction: column;
     gap: 2rem;
 }
 

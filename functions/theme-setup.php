@@ -387,8 +387,14 @@ if ( is_page_template('templates/booking-form-public.php') || $page_type_for_scr
             wp_enqueue_script('sortable-js', 'https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.6/Sortable.min.js', array(), '1.15.6', true);
             wp_enqueue_script('mobooking-dashboard-email-builder', MOBOOKING_THEME_URI . 'assets/js/dashboard-email-builder.js', array('jquery', 'sortable-js'), MOBOOKING_VERSION, true);
             $settings_manager = new \MoBooking\Classes\Settings();
+            $email_bodies = [];
+            $email_templates = $settings_manager->get_email_templates();
+            foreach ($email_templates as $key => $template) {
+                $email_bodies[$key] = $settings_manager->get_setting(get_current_user_id(), $template['body_key']);
+            }
             wp_localize_script('mobooking-dashboard-email-builder', 'mobooking_email_builder_params', [
-                'templates' => $settings_manager->get_email_templates(),
+                'templates' => $email_templates,
+                'email_bodies' => $email_bodies,
                 'biz_settings' => $settings_manager->get_business_settings(get_current_user_id()),
                 'base_template_url' => MOBOOKING_THEME_URI . 'templates/email/base-email-template.php',
                 'site_url' => home_url('/'),
