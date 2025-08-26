@@ -57,6 +57,7 @@
                 <p>{{BIZ_ADDRESS}}</p>
                 <p>{{BIZ_PHONE}} | <a href="mailto:{{BIZ_EMAIL}}">{{BIZ_EMAIL}}</a></p>
                 <p><a href="{{SITE_URL}}">Visit our website</a></p>
+                <p style="margin-top: 20px; font-size: 10px; color: #999;">Powered by <a href="https://nordbooking.se" style="color: #999; text-decoration: none;">Nord Booking</a></p>
             </td>
         </tr>
     </table>
