@@ -14,12 +14,22 @@ jQuery(document).ready(function($) {
     // Fetch the base email template
     $.get(mobooking_email_builder_params.base_template_url, function(data) {
         baseEmailTemplate = data;
+        initEditors();
         loadTemplate(selector.val());
     });
 
     selector.on('change', function() {
         loadTemplate($(this).val());
     });
+
+    function initEditors() {
+        for (const key in emailTemplates) {
+            const template = emailTemplates[key];
+            const bodyKey = template.body_key;
+            const state = emailBodies[key] || {};
+            renderEditor(bodyKey, state);
+        }
+    }
 
     function loadTemplate(templateKey) {
         const template = emailTemplates[templateKey];
@@ -33,7 +43,8 @@ jQuery(document).ready(function($) {
         const bodyKey = template.body_key;
         emailState = emailBodies[templateKey] || {};
 
-        renderEditor(bodyKey, emailState);
+        variablesList.html(template.variables.map(v => `<li>${v}</li>`).join(''));
+
         updatePreview();
     }
 
@@ -94,10 +105,31 @@ jQuery(document).ready(function($) {
     });
 
     $(document).on('mobooking:save-email-builder', function() {
-        const activeTemplateKey = selector.val();
-        if (activeTemplateKey) {
-            const bodyKey = emailTemplates[activeTemplateKey].body_key;
-            $(`#${bodyKey}`).val(JSON.stringify(emailState));
+        // Loop through all templates and save their state
+        for (const key in emailTemplates) {
+            const template = emailTemplates[key];
+            const bodyKey = template.body_key;
+            const editorWrapper = $('#' + key + '-editor');
+            const state = {};
+
+            const greeting = editorWrapper.find('[data-key="greeting"]').val();
+            if(greeting !== undefined) state.greeting = greeting;
+
+            const main_content = editorWrapper.find('[data-key="main_content"]').val();
+            if(main_content !== undefined) state.main_content = main_content;
+
+            const button_text = editorWrapper.find('[data-key="button_text"]').val();
+            if(button_text !== undefined) state.button_text = button_text;
+
+            const summary_fields = [];
+            editorWrapper.find('.sortable-item').each(function() {
+                const label = $(this).find('input').val();
+                const variable = $(this).find('span').text();
+                summary_fields.push({ label, variable });
+            });
+            if(summary_fields.length > 0) state.summary_fields = summary_fields;
+
+            $(`#${bodyKey}`).val(JSON.stringify(state));
         }
     });
 
