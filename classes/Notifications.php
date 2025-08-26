@@ -201,7 +201,10 @@ Thank you,
         ];
 
         $subject = str_replace(array_keys($replacements), array_values($replacements), $subject_template);
-        $body_content = nl2br(str_replace(array_keys($replacements), array_values($replacements), $body_template));
+
+        $body_json = $settings_manager->get_setting($tenant_user_id, 'email_booking_conf_body_customer');
+        $body_content = $this->render_email_body_from_json($body_json);
+        $body_content = str_replace(array_keys($replacements), array_values($replacements), $body_content);
 
         $full_email_html = $this->get_styled_email_html($subject, $tenant_business_name, $body_content, $tenant_user_id);
 
@@ -317,7 +320,10 @@ Please review this booking in your dashboard: {{admin_booking_link}}");
         ];
 
         $subject = str_replace(array_keys($replacements), array_values($replacements), $subject_template);
-        $body_content = nl2br(str_replace(array_keys($replacements), array_values($replacements), $body_template));
+
+        $body_json = $settings_manager->get_setting($tenant_user_id, 'email_booking_conf_body_admin');
+        $body_content = $this->render_email_body_from_json($body_json);
+        $body_content = str_replace(array_keys($replacements), array_values($replacements), $body_content);
 
         $full_email_html = $this->get_styled_email_html($subject, $tenant_business_name, $body_content, $tenant_user_id);
 
@@ -405,7 +411,10 @@ Please review this assignment in your dashboard: {{staff_dashboard_link}}");
         ];
 
         $subject = str_replace(array_keys($replacements), array_values($replacements), $subject_template);
-        $body_content = nl2br(str_replace(array_keys($replacements), array_values($replacements), $body_template));
+
+        $body_json = $settings_manager->get_setting($tenant_user_id, 'email_staff_assign_body');
+        $body_content = $this->render_email_body_from_json($body_json);
+        $body_content = str_replace(array_keys($replacements), array_values($replacements), $body_content);
 
         $full_email_html = $this->get_styled_email_html($subject, $tenant_business_name, $body_content, $tenant_user_id);
 
@@ -478,7 +487,10 @@ Please review this assignment in your dashboard: {{staff_dashboard_link}}");
         ];
 
         $subject = str_replace(array_keys($replacements), array_values($replacements), $subject_template);
-        $body_content = nl2br(str_replace(array_keys($replacements), array_values($replacements), $body_template));
+
+        $body_json = $settings_manager->get_setting($tenant_user_id, 'email_admin_status_change_body');
+        $body_content = $this->render_email_body_from_json($body_json);
+        $body_content = str_replace(array_keys($replacements), array_values($replacements), $body_content);
 
         $full_email_html = $this->get_styled_email_html($subject, $tenant_business_name, $body_content, $tenant_user_id);
 
@@ -525,7 +537,10 @@ You can access your dashboard here: {{dashboard_link}}");
         ];
 
         $subject = str_replace(array_keys($replacements), array_values($replacements), $subject_template);
-        $body_content = nl2br(str_replace(array_keys($replacements), array_values($replacements), $body_template));
+
+        $body_json = $settings_manager->get_setting($user_id, 'email_welcome_body');
+        $body_content = $this->render_email_body_from_json($body_json);
+        $body_content = str_replace(array_keys($replacements), array_values($replacements), $body_content);
 
         $full_email_html = $this->get_styled_email_html($subject, get_bloginfo('name'), $body_content, $user_id);
 
@@ -566,7 +581,10 @@ Click here to register: {{registration_link}}");
         ];
 
         $subject = str_replace(array_keys($replacements), array_values($replacements), $subject_template);
-        $body_content = nl2br(str_replace(array_keys($replacements), array_values($replacements), $body_template));
+
+        $body_json = $settings_manager->get_setting($user_id, 'email_invitation_body');
+        $body_content = $this->render_email_body_from_json($body_json);
+        $body_content = str_replace(array_keys($replacements), array_values($replacements), $body_content);
 
         $full_email_html = $this->get_styled_email_html($subject, get_bloginfo('name'), $body_content, $user_id);
 
@@ -597,40 +615,30 @@ Click here to register: {{registration_link}}");
     }
 
     public function render_email_body_from_json($json_string) {
-        $components = json_decode($json_string, true);
+        $data = json_decode($json_string, true);
         if (json_last_error() !== JSON_ERROR_NONE) {
             return '';
         }
 
         $html = '';
-        foreach ($components as $component) {
-            switch ($component['type']) {
-                case 'header':
-                    $html .= '<h2>' . esc_html($component['content']) . '</h2>';
-                    break;
-                case 'paragraph':
-                    $html .= '<p>' . nl2br(esc_html($component['content'])) . '</p>';
-                    break;
-                case 'list':
-                    $html .= '<ul>';
-                    foreach ($component['items'] as $item) {
-                        $html .= '<li>' . esc_html($item) . '</li>';
-                    }
-                    $html .= '</ul>';
-                    break;
-                case 'button':
-                    $html .= '<p style="text-align: center;"><a href="' . esc_url($component['link']) . '" class="button">' . esc_html($component['content']) . '</a></p>';
-                    break;
-                case 'link':
-                    $html .= '<p><a href="' . esc_url($component['link']) . '">' . esc_html($component['content']) . '</a></p>';
-                    break;
-                case 'divider':
-                    $html .= '<hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">';
-                    break;
-                case 'footer':
-                    // Footer is handled by the main template
-                    break;
+        if (!empty($data['greeting'])) {
+            $html .= '<h2>' . esc_html($data['greeting']) . '</h2>';
+        }
+        if (!empty($data['main_content'])) {
+            $html .= '<p>' . nl2br(esc_html($data['main_content'])) . '</p>';
+        }
+        if (!empty($data['summary_fields'])) {
+            $html .= '<table class="table" style="width: 100%; border-collapse: collapse;">';
+            foreach ($data['summary_fields'] as $field) {
+                $html .= '<tr><td style="padding: 8px; border: 1px solid #ddd;"><strong>' . esc_html($field['label']) . '</strong></td><td style="padding: 8px; border: 1px solid #ddd;">' . esc_html($field['variable']) . '</td></tr>';
             }
+            $html .= '</table>';
+        }
+        if (!empty($data['button_text'])) {
+            $html .= '<p style="text-align: center; margin-top: 20px;"><a href="' . esc_url($data['button_link'] ?? '#') . '" class="button">' . esc_html($data['button_text']) . '</a></p>';
+        }
+        if (!empty($data['closing_content'])) {
+            $html .= '<p>' . nl2br(esc_html($data['closing_content'])) . '</p>';
         }
 
         return $html;

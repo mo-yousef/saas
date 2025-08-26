@@ -2,52 +2,20 @@ jQuery(document).ready(function($) {
     'use strict';
 
     const selector = $('#email-template-selector');
-    const palette = document.getElementById('component-palette');
-    const inspector = document.getElementById('inspector-content');
-    const previewIframe = $('#email-preview-iframe');
+    const editorFieldsContainer = $('#email-editor-fields');
     const variablesList = $('#email-variables-list');
+    const previewIframe = $('#email-preview-iframe');
 
     const emailTemplates = mobooking_email_builder_params.templates || {};
-    let emailState = [];
-    let selectedComponent = null;
-    let activeCanvas = null;
+    const emailBodies = mobooking_email_builder_params.email_bodies || {};
+    const bizSettings = mobooking_email_builder_params.biz_settings || {};
+    let baseEmailTemplate = '';
+    let emailState = {};
 
-    function initBuilder(templateKey) {
-        const template = emailTemplates[templateKey];
-        if (!template) return;
-
-        // Init SortableJS on the canvas
-        const canvasEl = document.getElementById(`${template.body_key}-builder`);
-        if (canvasEl) {
-            activeCanvas = new Sortable(canvasEl, {
-                group: 'shared',
-                animation: 150,
-                onAdd: function (evt) {
-                    const itemEl = evt.item;
-                    const type = itemEl.dataset.type;
-                    const newComponent = createComponent(type);
-                    const newIndex = evt.newIndex;
-
-                    emailState.splice(newIndex, 0, newComponent);
-                    renderCanvas();
-                },
-                onUpdate: function (evt) {
-                    const item = emailState.splice(evt.oldIndex, 1)[0];
-                    emailState.splice(evt.newIndex, 0, item);
-                    renderCanvas();
-                },
-            });
-        }
-    }
-
-    new Sortable(palette, {
-        group: {
-            name: 'shared',
-            pull: 'clone',
-            put: false
-        },
-        sort: false,
-        animation: 150
+    // Fetch the base email template
+    $.get(mobooking_email_builder_params.base_template_url, function(data) {
+        baseEmailTemplate = data;
+        loadTemplate(selector.val());
     });
 
     selector.on('change', function() {
@@ -60,130 +28,59 @@ jQuery(document).ready(function($) {
 
         // Show/hide editor fields
         $('.email-template-editor').hide();
-        $('#' + templateKey + '-editor').show();
+        const editorWrapper = $('#' + templateKey + '-editor');
+        editorWrapper.show();
 
-        // Populate variables list
-        variablesList.html(template.variables.map(v => `<li>${v}</li>`).join(''));
-
-        // Initialize emailState from localized data
         const bodyKey = template.body_key;
-        const bodyJson = mobooking_email_builder_params.email_bodies[templateKey] || '[]';
+        const bodyJson = emailBodies[templateKey] || '{}';
         try {
             emailState = JSON.parse(bodyJson);
         } catch (e) {
-            emailState = [];
+            emailState = {};
         }
 
-        initBuilder(templateKey);
-        renderCanvas();
-    }
-
-    // Load initial template
-    loadTemplate(selector.val());
-
-    $(document).on('mobooking:save-email-builder', function() {
-        const activeTemplateKey = selector.val();
-        if (activeTemplateKey) {
-            const bodyKey = emailTemplates[activeTemplateKey].body_key;
-            $(`#${bodyKey}`).val(JSON.stringify(emailState));
-        }
-    });
-
-    function createComponent(type) {
-        const id = 'comp-' + Date.now();
-        switch (type) {
-            case 'header':
-                return { id, type, content: 'Header Text' };
-            case 'paragraph':
-                return { id, type, content: 'This is a paragraph.' };
-            case 'list':
-                return { id, type, items: ['Item 1', 'Item 2'] };
-            case 'table':
-                return { id, type, rows: [['Row 1, Col 1', 'Row 1, Col 2'], ['Row 2, Col 1', 'Row 2, Col 2']] };
-            case 'button':
-                return { id, type, content: 'Button Text', link: '#' };
-            case 'link':
-                return { id, type, content: 'Link Text', link: '#' };
-            case 'divider':
-                return { id, type };
-            default:
-                return null;
-        }
-    }
-
-    function renderCanvas() {
-        const activeTemplateKey = selector.val();
-        const canvasEl = document.getElementById(`${emailTemplates[activeTemplateKey].body_key}-builder`);
-        if (!canvasEl) return;
-
-        canvasEl.innerHTML = '';
-        emailState.forEach(comp => {
-            const compEl = document.createElement('div');
-            compEl.className = 'canvas-component';
-            compEl.dataset.id = comp.id;
-            compEl.innerHTML = `
-                <div class="component-label">${comp.type}</div>
-                <div class="component-controls">
-                    <button class="edit-btn">Edit</button>
-                    <button class="delete-btn">Delete</button>
-                </div>
-            `;
-            canvasEl.appendChild(compEl);
-        });
+        renderEditor(bodyKey, emailState);
         updatePreview();
     }
 
-    $(document).on('click', '.edit-btn', function() {
-        const compId = $(this).closest('.canvas-component').data('id');
-        selectedComponent = emailState.find(c => c.id === compId);
-        renderInspector();
-    });
+    function renderEditor(bodyKey, state) {
+        const editorFields = $(`#${bodyKey}-editor-fields`);
+        editorFields.html('');
 
-    $(document).on('click', '.delete-btn', function() {
-        const compId = $(this).closest('.canvas-component').data('id');
-        emailState = emailState.filter(c => c.id !== compId);
-        renderCanvas();
-    });
-
-    function renderInspector() {
-        inspector.innerHTML = '';
-        if (!selectedComponent) return;
-
-        let fields = '';
-        switch (selectedComponent.type) {
-            case 'header':
-            case 'paragraph':
-                fields = `<div class="form-group"><label>Content</label><textarea class="inspector-field" data-prop="content">${selectedComponent.content}</textarea></div>`;
-                break;
-            case 'button':
-            case 'link':
-                fields = `
-                    <div class="form-group"><label>Text</label><input type="text" class="inspector-field" data-prop="content" value="${selectedComponent.content}"></div>
-                    <div class="form-group"><label>Link URL</label><input type="text" class="inspector-field" data-prop="link" value="${selectedComponent.link}"></div>
-                `;
-                break;
-            case 'list':
-                fields = `<div class="form-group"><label>Items (one per line)</label><textarea class="inspector-field" data-prop="items" rows="5">${selectedComponent.items.join('\\n')}</textarea></div>`;
-                break;
-            case 'table':
-                fields = `<div class="form-group"><label>Rows (CSV format)</label><textarea class="inspector-field" data-prop="rows" rows="5">${selectedComponent.rows.map(row => row.join(',')).join('\\n')}</textarea></div>`;
-                break;
+        if (state.greeting) {
+            editorFields.append(`<div class="form-group"><label>Greeting</label><input type="text" class="regular-text email-body-field" data-key="greeting" value="${state.greeting}"></div>`);
         }
-        inspector.innerHTML = fields;
+        if (state.main_content) {
+            editorFields.append(`<div class="form-group"><label>Main Content</label><textarea class="large-text email-body-field" data-key="main_content" rows="5">${state.main_content}</textarea></div>`);
+        }
+        if (state.summary_fields) {
+            let fieldsHtml = '<div class="form-group"><label>Summary Fields</label><ul class="sortable-list">';
+            state.summary_fields.forEach(field => {
+                fieldsHtml += `<li class="sortable-item"><input type="text" class="regular-text" value="${field.label}"><span>${field.variable}</span></li>`;
+            });
+            fieldsHtml += '</ul></div>';
+            editorFields.append(fieldsHtml);
+            new Sortable(editorFields.find('.sortable-list')[0], { animation: 150 });
+        }
+        if (state.button_text) {
+            editorFields.append(`<div class="form-group"><label>Button Text</label><input type="text" class="regular-text email-body-field" data-key="button_text" value="${state.button_text}"></div>`);
+        }
     }
 
-    $(inspector).on('keyup change', '.inspector-field', function() {
-        if (!selectedComponent) return;
-        const prop = $(this).data('prop');
-        let value = $(this).val();
+    $(document).on('keyup change', '.email-body-field', function() {
+        const key = $(this).data('key');
+        emailState[key] = $(this).val();
+        updatePreview();
+    });
 
-        if (prop === 'items') {
-            value = value.split('\\n');
-        } else if (prop === 'rows') {
-            value = value.split('\\n').map(row => row.split(','));
-        }
-
-        selectedComponent[prop] = value;
+    $(document).on('sortupdate', '.sortable-list', function() {
+        const newOrder = [];
+        $(this).find('.sortable-item').each(function() {
+            const label = $(this).find('input').val();
+            const variable = $(this).find('span').text();
+            newOrder.push({ label, variable });
+        });
+        emailState.summary_fields = newOrder;
         updatePreview();
     });
 
@@ -198,70 +95,50 @@ jQuery(document).ready(function($) {
         });
     });
 
+    $(document).on('mobooking:save-email-builder', function() {
+        const activeTemplateKey = selector.val();
+        if (activeTemplateKey) {
+            const bodyKey = emailTemplates[activeTemplateKey].body_key;
+            $(`#${bodyKey}`).val(JSON.stringify(emailState));
+        }
+    });
+
     function updatePreview() {
-        if (!mobooking_email_builder_params.base_template_url) return;
+        if (!baseEmailTemplate) return;
 
-        $.get(mobooking_email_builder_params.base_template_url, function(baseEmailTemplate) {
-            let bodyHtml = '';
-            emailState.forEach(comp => {
-                switch (comp.type) {
-                    case 'header':
-                        bodyHtml += `<h2>${comp.content}</h2>`;
-                        break;
-                    case 'paragraph':
-                        bodyHtml += `<p>${comp.content.replace(/\\n/g, '<br>')}</p>`;
-                        break;
-                    case 'list':
-                        bodyHtml += '<ul>';
-                        comp.items.forEach(item => {
-                            bodyHtml += `<li>${item}</li>`;
-                        });
-                        bodyHtml += '</ul>';
-                        break;
-                    case 'table':
-                        bodyHtml += '<table class="table">';
-                        comp.rows.forEach(row => {
-                            bodyHtml += '<tr>';
-                            row.forEach(cell => {
-                                bodyHtml += `<td>${cell}</td>`;
-                            });
-                            bodyHtml += '</tr>';
-                        });
-                        bodyHtml += '</table>';
-                        break;
-                    case 'button':
-                        bodyHtml += `<p style="text-align: center;"><a href="${comp.link}" class="button">${comp.content}</a></p>`;
-                        break;
-                    case 'link':
-                        bodyHtml += `<p><a href="${comp.link}">${comp.content}</a></p>`;
-                        break;
-                    case 'divider':
-                        bodyHtml += '<hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">';
-                        break;
-                }
+        let bodyHtml = '';
+        if (emailState.greeting) bodyHtml += `<h2>${emailState.greeting}</h2>`;
+        if (emailState.main_content) bodyHtml += `<p>${emailState.main_content.replace(/\\n/g, '<br>')}</p>`;
+        if (emailState.summary_fields) {
+            bodyHtml += '<table class="table">';
+            emailState.summary_fields.forEach(field => {
+                bodyHtml += `<tr><td><strong>${field.label}</strong></td><td>${field.variable}</td></tr>`;
             });
+            bodyHtml += '</table>';
+        }
+        if (emailState.button_text) {
+            bodyHtml += `<p style="text-align: center;"><a href="#" class="button">${emailState.button_text}</a></p>`;
+        }
 
-            const bizSettings = mobooking_email_builder_params.biz_settings;
-            const replacements = {
-                '{{SUBJECT}}': 'Email Preview',
-                '{{BODY_CONTENT}}': bodyHtml,
-                '{{LOGO_HTML}}': bizSettings.biz_logo_url ? `<img src="${bizSettings.biz_logo_url}" alt="${bizSettings.biz_name}" style="max-width: 150px; height: auto;">` : `<h1 style="font-size: 24px; margin: 0; color: #333;">${bizSettings.biz_name}</h1>`,
-                '{{SITE_NAME}}': bizSettings.biz_name || 'Your Company',
-                '{{SITE_URL}}': mobooking_email_builder_params.site_url || '#',
-                '{{BIZ_NAME}}': bizSettings.biz_name || 'Your Company',
-                '{{BIZ_ADDRESS}}': bizSettings.biz_address || '',
-                '{{BIZ_PHONE}}': bizSettings.biz_phone || '',
-                '{{BIZ_EMAIL}}': bizSettings.biz_email || '',
-                '{{THEME_COLOR}}': bizSettings.bf_theme_color || '#1abc9c',
-                '{{THEME_COLOR_LIGHT}}': 'rgba(26, 188, 156, 0.1)',
-            };
+        const replacements = {
+            '{{SUBJECT}}': 'Email Preview',
+            '{{BODY_CONTENT}}': bodyHtml,
+            '{{LOGO_HTML}}': bizSettings.biz_logo_url ? `<img src="${bizSettings.biz_logo_url}" alt="${bizSettings.biz_name}" style="max-width: 150px; height: auto;">` : `<h1 style="font-size: 24px; margin: 0; color: #333;">${bizSettings.biz_name}</h1>`,
+            '{{SITE_NAME}}': bizSettings.biz_name || 'Your Company',
+            '{{SITE_URL}}': mobooking_email_builder_params.site_url || '#',
+            '{{BIZ_NAME}}': bizSettings.biz_name || 'Your Company',
+            '{{BIZ_ADDRESS}}': bizSettings.biz_address || '',
+            '{{BIZ_PHONE}}': bizSettings.biz_phone || '',
+            '{{BIZ_EMAIL}}': bizSettings.biz_email || '',
+            '{{THEME_COLOR}}': bizSettings.bf_theme_color || '#1abc9c',
+            '{{THEME_COLOR_LIGHT}}': 'rgba(26, 188, 156, 0.1)',
+        };
 
-            let previewHtml = baseEmailTemplate;
-            for (const [key, value] of Object.entries(replacements)) {
-                previewHtml = previewHtml.replace(new RegExp(key, 'g'), value);
-            }
+        let previewHtml = baseEmailTemplate;
+        for (const [key, value] of Object.entries(replacements)) {
+            previewHtml = previewHtml.replace(new RegExp(key, 'g'), value);
+        }
 
-            previewIframe.attr('srcdoc', previewHtml);
-        });
+        previewIframe.attr('srcdoc', previewHtml);
     }
 });
