@@ -105,6 +105,37 @@ Special Instructions:
 {{special_instructions}}
 
 Please review this booking in your dashboard: {{admin_booking_link}}",
+
+        // Staff Assignment Notification
+        'email_staff_assign_subj'             => 'New Booking Assignment - Ref: {{booking_reference}}',
+        'email_staff_assign_body'             => "Hi {{staff_name}},
+
+You have been assigned a new booking (Ref: {{booking_reference}}).
+
+Customer: {{customer_name}}
+Date & Time: {{booking_date_time}}
+
+Please review this assignment in your dashboard: {{staff_dashboard_link}}",
+
+        // Admin Status Change Notification
+        'email_admin_status_change_subj'      => 'Booking Status Updated - Ref: {{booking_reference}}',
+        'email_admin_status_change_body'      => "The status for booking (Ref: {{booking_reference}}) has been updated from {{old_status}} to {{new_status}} by {{updater_name}}.",
+
+        // Welcome Email
+        'email_welcome_subj'                  => 'Welcome to {{company_name}}!',
+        'email_welcome_body'                  => "Hi {{customer_name}},
+
+Thanks for joining {{company_name}}! We're excited to have you.
+
+You can access your dashboard here: {{dashboard_link}}",
+
+        // Invitation Email
+        'email_invitation_subj'               => 'You have been invited to join {{company_name}}',
+        'email_invitation_body'               => "Hi {{worker_email}},
+
+You've been invited to join {{company_name}} as a {{worker_role}} by {{inviter_name}}.
+
+Click here to register: {{registration_link}}",
     ];
 
     public function __construct() {
@@ -888,6 +919,48 @@ public function save_booking_form_settings(int $user_id, array $settings_data): 
      */
     public static function get_all_default_settings(): array {
         return self::$default_tenant_settings;
+    }
+
+    public function get_email_templates(): array {
+        $templates = [
+            'booking_confirmation_customer' => [
+                'name' => __('Customer Booking Confirmation', 'mobooking'),
+                'subject_key' => 'email_booking_conf_subj_customer',
+                'body_key' => 'email_booking_conf_body_customer',
+                'variables' => ['{{customer_name}}', '{{business_name}}', '{{booking_reference}}', '{{service_names}}', '{{booking_date_time}}', '{{total_price}}', '{{service_address}}', '{{special_instructions}}']
+            ],
+            'booking_confirmation_admin' => [
+                'name' => __('Admin New Booking Notification', 'mobooking'),
+                'subject_key' => 'email_booking_conf_subj_admin',
+                'body_key' => 'email_booking_conf_body_admin',
+                'variables' => ['{{customer_name}}', '{{customer_email}}', '{{customer_phone}}', '{{business_name}}', '{{booking_reference}}', '{{service_names}}', '{{booking_date_time}}', '{{total_price}}', '{{service_address}}', '{{special_instructions}}', '{{admin_booking_link}}']
+            ],
+            'staff_assignment' => [
+                'name' => __('Staff Assignment Notification', 'mobooking'),
+                'subject_key' => 'email_staff_assign_subj',
+                'body_key' => 'email_staff_assign_body',
+                'variables' => ['{{staff_name}}', '{{customer_name}}', '{{booking_reference}}', '{{booking_date_time}}', '{{staff_dashboard_link}}']
+            ],
+            'admin_status_change' => [
+                'name' => __('Admin Status Change Notification', 'mobooking'),
+                'subject_key' => 'email_admin_status_change_subj',
+                'body_key' => 'email_admin_status_change_body',
+                'variables' => ['{{booking_reference}}', '{{old_status}}', '{{new_status}}', '{{updater_name}}']
+            ],
+            'welcome' => [
+                'name' => __('Welcome Email', 'mobooking'),
+                'subject_key' => 'email_welcome_subj',
+                'body_key' => 'email_welcome_body',
+                'variables' => ['{{customer_name}}', '{{company_name}}', '{{dashboard_link}}']
+            ],
+            'invitation' => [
+                'name' => __('Invitation Email', 'mobooking'),
+                'subject_key' => 'email_invitation_subj',
+                'body_key' => 'email_invitation_body',
+                'variables' => ['{{worker_email}}', '{{worker_role}}', '{{inviter_name}}', '{{registration_link}}']
+            ]
+        ];
+        return $templates;
     }
 
     public function get_setup_progress(int $user_id): array {

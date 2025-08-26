@@ -371,7 +371,8 @@ if ( is_page_template('templates/booking-form-public.php') || $page_type_for_scr
         }
         if ($current_page_slug === 'settings') {
             wp_enqueue_style('mobooking-dashboard-settings', MOBOOKING_THEME_URI . 'assets/css/dashboard-settings.css', array('mobooking-dashboard-main'), MOBOOKING_VERSION);
-            wp_enqueue_script('mobooking-dashboard-business-settings', MOBOOKING_THEME_URI . 'assets/js/dashboard-business-settings.js', array('jquery', 'wp-mediaelement'), MOBOOKING_VERSION, true);
+
+            wp_enqueue_script('mobooking-dashboard-business-settings', MOBOOKING_THEME_URI . 'assets/js/dashboard-business-settings.js', array('jquery'), MOBOOKING_VERSION, true);
             wp_localize_script('mobooking-dashboard-business-settings', 'mobooking_biz_settings_params', [
                 'ajax_url' => admin_url('admin-ajax.php'),
                 'nonce' => wp_create_nonce('mobooking_dashboard_nonce'),
@@ -382,7 +383,19 @@ if ( is_page_template('templates/booking-form-public.php') || $page_type_for_scr
                     'error_ajax' => __('An AJAX error occurred.', 'mobooking'),
                 ]
             ]);
-            wp_enqueue_media();
+
+            wp_enqueue_script('mobooking-dashboard-email-settings', MOBOOKING_THEME_URI . 'assets/js/dashboard-email-settings.js', array('jquery'), MOBOOKING_VERSION, true);
+            $settings_manager = new \MoBooking\Classes\Settings();
+            wp_localize_script('mobooking-dashboard-email-settings', 'mobooking_email_settings_params', [
+                'templates' => $settings_manager->get_email_templates(),
+                'biz_settings' => $settings_manager->get_business_settings(get_current_user_id()),
+                'base_template_url' => MOBOOKING_THEME_URI . 'templates/email/base-email-template.php',
+                'site_url' => home_url('/'),
+                'i18n' => [
+                    'subject' => __('Subject', 'mobooking'),
+                    'body' => __('Body', 'mobooking'),
+                ]
+            ]);
         }
 
         if ( $current_page_slug === 'customers' || $current_page_slug === 'customer-details' ) {
