@@ -79,7 +79,9 @@ jQuery(document).ready(function($) {
                 const subject = self.hiddenDataContainer.find(`#hidden-subject-${key}`).val();
                 let body = [];
                 try {
-                    const parsedBody = JSON.parse(textarea.val());
+                    // Strip slashes that might be added by WordPress's data sanitization
+                    const cleanJson = textarea.val().replace(/\\/g, '');
+                    const parsedBody = JSON.parse(cleanJson);
                     if (Array.isArray(parsedBody) && parsedBody.length > 0) {
                         body = parsedBody;
                     }
