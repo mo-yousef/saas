@@ -46,10 +46,14 @@ class Notifications {
         include $template_path;
         $template = ob_get_clean();
 
+        $logo_html = !empty($biz_settings['biz_logo_url'])
+            ? '<img src="' . esc_url($biz_settings['biz_logo_url']) . '" alt="' . esc_attr($biz_settings['biz_name']) . '" style="max-width: 150px; height: auto;">'
+            : '<h1 style="font-size: 24px; margin: 0; color: #333;">' . esc_html($biz_settings['biz_name']) . '</h1>';
+
         $replacements = [
             '{{SUBJECT}}'          => $subject,
             '{{BODY_CONTENT}}'     => $body_content,
-            '{{LOGO_URL}}'         => esc_url($biz_settings['biz_logo_url']),
+            '{{LOGO_HTML}}'        => $logo_html,
             '{{SITE_NAME}}'        => esc_html($biz_settings['biz_name']),
             '{{SITE_URL}}'         => home_url('/'),
             '{{BIZ_NAME}}'         => esc_html($biz_settings['biz_name']),
@@ -590,5 +594,45 @@ Click here to register: {{registration_link}}");
 
         $headers = $this->get_email_headers($user_id);
         return wp_mail($user_email, $subject, $full_email_html, $headers);
+    }
+
+    public function render_email_body_from_json($json_string) {
+        $components = json_decode($json_string, true);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            return '';
+        }
+
+        $html = '';
+        foreach ($components as $component) {
+            switch ($component['type']) {
+                case 'header':
+                    $html .= '<h2>' . esc_html($component['content']) . '</h2>';
+                    break;
+                case 'paragraph':
+                    $html .= '<p>' . nl2br(esc_html($component['content'])) . '</p>';
+                    break;
+                case 'list':
+                    $html .= '<ul>';
+                    foreach ($component['items'] as $item) {
+                        $html .= '<li>' . esc_html($item) . '</li>';
+                    }
+                    $html .= '</ul>';
+                    break;
+                case 'button':
+                    $html .= '<p style="text-align: center;"><a href="' . esc_url($component['link']) . '" class="button">' . esc_html($component['content']) . '</a></p>';
+                    break;
+                case 'link':
+                    $html .= '<p><a href="' . esc_url($component['link']) . '">' . esc_html($component['content']) . '</a></p>';
+                    break;
+                case 'divider':
+                    $html .= '<hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">';
+                    break;
+                case 'footer':
+                    // Footer is handled by the main template
+                    break;
+            }
+        }
+
+        return $html;
     }
 }
