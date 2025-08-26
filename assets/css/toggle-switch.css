@@ -20,7 +20,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: hsl(var(--input));
+    background-color: #d2d6d9;
     transition: background-color 0.2s ease;
     border-radius: 20px;
 }

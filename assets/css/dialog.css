@@ -228,6 +228,7 @@ input#dialog-area-search {
   font-weight: 500;
   color: var(--dialog-foreground);
   flex-grow: 1;
+  font-size: 15px !important;
 }
 
 .area-zip-toggle {

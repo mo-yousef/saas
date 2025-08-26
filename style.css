@@ -654,8 +654,8 @@ span.mobooking-menu-icon {
 }
 
 .mobooking-dashboard-sidebar .dashboard-nav li.active a {
-  background: hsl(210 40% 98%);
-  color: hsl(222.2 84% 4.9%);
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
   font-weight: 500;
 }
 

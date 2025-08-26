@@ -524,13 +524,6 @@ if (!empty($current_slug)) {
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* Focus management for accessibility */
-.mobooking-tab-item:focus {
-    outline: 2px solid hsl(var(--ring));
-    outline-offset: 2px;
-    z-index: 1;
-}
-
 /* Tab icons */
 .mobooking-tab-item svg {
     width: 16px;
