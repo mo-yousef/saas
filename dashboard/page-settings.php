@@ -195,27 +195,17 @@ function mobooking_select_biz_setting_value($settings, $key, $value, $default_va
                                     ?>
                                 </select>
                             </div>
-                            <div id="email-editor-fields">
-                                <?php
-                                foreach ($email_templates as $key => $template) :
-                                    $subject_key = $template['subject_key'];
-                                    $body_key = $template['body_key'];
-                                    $subject = mobooking_get_biz_setting_value($biz_settings, $subject_key);
-                                ?>
-                                    <div class="email-template-editor" id="<?php echo esc_attr($key); ?>-editor" style="display:none;">
-                                        <div class="form-group">
-                                            <label for="<?php echo esc_attr($subject_key); ?>"><?php esc_html_e('Subject', 'mobooking'); ?></label>
-                                            <input type="text" id="<?php echo esc_attr($subject_key); ?>" name="<?php echo esc_attr($subject_key); ?>" value="<?php echo esc_attr($subject); ?>" class="regular-text email-template-field" data-key="subject">
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="<?php echo esc_attr($body_key); ?>-editor-fields"><?php esc_html_e('Body', 'mobooking'); ?></label>
-                                            <div id="<?php echo esc_attr($body_key); ?>-editor-fields" class="email-editor-fields-wrapper">
-                                                <!-- Dynamic fields will be loaded here -->
-                                            </div>
-                                            <input type="hidden" name="<?php echo esc_attr($body_key); ?>" id="<?php echo esc_attr($body_key); ?>" value="">
-                                        </div>
+                            <div id="email-editor-container">
+                                <div class="form-group">
+                                    <label for="email-editor-subject"><?php esc_html_e('Subject', 'mobooking'); ?></label>
+                                    <input type="text" id="email-editor-subject" class="regular-text" placeholder="Email subject">
+                                </div>
+                                <div class="form-group">
+                                    <label><?php esc_html_e('Body Components', 'mobooking'); ?></label>
+                                    <div id="email-editor-body" class="email-editor-fields-wrapper">
+                                        <!-- JS will render sortable components here -->
                                     </div>
-                                <?php endforeach; ?>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -240,6 +230,28 @@ function mobooking_select_biz_setting_value($settings, $key, $value, $default_va
                         </div>
                     </div>
                 </div>
+            </div>
+
+            <!-- Hidden data store for form submission -->
+            <div class="mobooking-hidden-email-data" style="display: none;">
+            <?php
+            foreach ($email_templates as $key => $template) {
+                $subject_key = $template['subject_key'];
+                $body_key = $template['body_key'];
+                $subject = mobooking_get_biz_setting_value($biz_settings, $subject_key);
+                $body_json = mobooking_get_biz_setting_value($biz_settings, $body_key);
+            ?>
+                <input type="hidden"
+                       id="hidden-subject-<?php echo esc_attr($key); ?>"
+                       name="<?php echo esc_attr($subject_key); ?>"
+                       value="<?php echo esc_attr($subject); ?>">
+
+                <textarea class="hidden-body-json"
+                          id="hidden-body-<?php echo esc_attr($key); ?>"
+                          name="<?php echo esc_attr($body_key); ?>"><?php echo esc_textarea($body_json); ?></textarea>
+            <?php
+            }
+            ?>
             </div>
         </div>
 
