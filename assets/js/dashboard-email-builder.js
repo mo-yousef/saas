@@ -65,9 +65,9 @@ jQuery(document).ready(function($) {
         // Populate variables list
         variablesList.html(template.variables.map(v => `<li>${v}</li>`).join(''));
 
-        // Initialize emailState from hidden input
+        // Initialize emailState from localized data
         const bodyKey = template.body_key;
-        const bodyJson = $(`#${bodyKey}`).val();
+        const bodyJson = mobooking_email_builder_params.email_bodies[templateKey] || '[]';
         try {
             emailState = JSON.parse(bodyJson);
         } catch (e) {
