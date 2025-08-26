@@ -252,7 +252,7 @@ function mobooking_select_biz_setting_value($settings, $key, $value, $default_va
 
                 <textarea class="hidden-body-json"
                           id="hidden-body-<?php echo esc_attr($key); ?>"
-                          name="<?php echo esc_attr($body_key); ?>"><?php echo esc_textarea($body_json); ?></textarea>
+                          name="<?php echo esc_attr($body_key); ?>"><?php echo $body_json; ?></textarea>
             <?php
             }
             ?>
