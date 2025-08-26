@@ -1,6 +1,36 @@
 jQuery(document).ready(function($) {
     'use strict';
 
+    // Tab navigation
+    const navTabs = $('.nav-tab-wrapper .nav-tab');
+    const tabContents = $('.settings-tab-content');
+
+    navTabs.on('click', function(e) {
+        e.preventDefault();
+        const tabId = $(this).data('tab');
+
+        navTabs.removeClass('nav-tab-active');
+        $(this).addClass('nav-tab-active');
+
+        tabContents.hide();
+        $('#' + tabId + '-settings-tab').show();
+
+        // Update URL hash without jumping
+        if (history.pushState) {
+            history.pushState(null, null, '#' + tabId);
+        } else {
+            location.hash = '#' + tabId;
+        }
+    });
+
+    // Check for hash on page load to activate correct tab
+    if (window.location.hash) {
+        const activeTab = navTabs.filter('[href="' + window.location.hash + '"]');
+        if (activeTab.length) {
+            activeTab.trigger('click');
+        }
+    }
+
     const form = $('#mobooking-business-settings-form');
     const feedbackDiv = $('#mobooking-settings-feedback');
     const saveButton = $('#mobooking-save-biz-settings-btn');
