@@ -390,7 +390,8 @@ if ( is_page_template('templates/booking-form-public.php') || $page_type_for_scr
             $email_bodies = [];
             $email_templates = $settings_manager->get_email_templates();
             foreach ($email_templates as $key => $template) {
-                $email_bodies[$key] = $settings_manager->get_setting(get_current_user_id(), $template['body_key']);
+                $body_json = $settings_manager->get_setting(get_current_user_id(), $template['body_key']);
+                $email_bodies[$key] = json_decode($body_json, true);
             }
             wp_localize_script('mobooking-dashboard-email-builder', 'mobooking_email_builder_params', [
                 'templates' => $email_templates,

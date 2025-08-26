@@ -172,7 +172,6 @@ function mobooking_select_biz_setting_value($settings, $key, $value, $default_va
                                     $subject_key = $template['subject_key'];
                                     $body_key = $template['body_key'];
                                     $subject = mobooking_get_biz_setting_value($biz_settings, $subject_key);
-                                    $body = mobooking_get_biz_setting_textarea($biz_settings, $body_key);
                                 ?>
                                     <div class="email-template-editor" id="<?php echo esc_attr($key); ?>-editor" style="display:none;">
                                         <div class="form-group">
@@ -180,11 +179,11 @@ function mobooking_select_biz_setting_value($settings, $key, $value, $default_va
                                             <input type="text" id="<?php echo esc_attr($subject_key); ?>" name="<?php echo esc_attr($subject_key); ?>" value="<?php echo esc_attr($subject); ?>" class="regular-text email-template-field" data-key="subject">
                                         </div>
                                         <div class="form-group">
-                                            <label for="<?php echo esc_attr($body_key); ?>"><?php esc_html_e('Body', 'mobooking'); ?></label>
-                                            <input type="hidden" name="<?php echo esc_attr($body_key); ?>" id="<?php echo esc_attr($body_key); ?>" value="">
+                                            <label for="<?php echo esc_attr($body_key); ?>-editor-fields"><?php esc_html_e('Body', 'mobooking'); ?></label>
                                             <div id="<?php echo esc_attr($body_key); ?>-editor-fields">
                                                 <!-- Dynamic fields will be loaded here -->
                                             </div>
+                                            <input type="hidden" name="<?php echo esc_attr($body_key); ?>" id="<?php echo esc_attr($body_key); ?>" value="">
                                         </div>
                                     </div>
                                 <?php endforeach; ?>
