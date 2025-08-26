@@ -13,7 +13,7 @@ jQuery(document).ready(function($) {
         $(this).addClass('nav-tab-active');
 
         tabContents.hide();
-        $('#' + tabId + '-settings-tab').show();
+        $('#' + tabId + '-tab').show();
 
         // Update URL hash without jumping
         if (history.pushState) {
