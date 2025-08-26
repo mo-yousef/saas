@@ -16,7 +16,21 @@ class Notifications {
      * @param string $body_content The main HTML content of the email.
      * @return string The full HTML email.
      */
-    private function get_styled_email_html(string $subject, string $header_title, string $body_content): string {
+    private function hex_to_rgba($hex, $alpha = 0.1) {
+        $hex = str_replace('#', '', $hex);
+        if (strlen($hex) == 3) {
+            $r = hexdec(substr($hex, 0, 1) . substr($hex, 0, 1));
+            $g = hexdec(substr($hex, 1, 1) . substr($hex, 1, 1));
+            $b = hexdec(substr($hex, 2, 1) . substr($hex, 2, 1));
+        } else {
+            $r = hexdec(substr($hex, 0, 2));
+            $g = hexdec(substr($hex, 2, 2));
+            $b = hexdec(substr($hex, 4, 2));
+        }
+        return "rgba($r, $g, $b, $alpha)";
+    }
+
+    private function get_styled_email_html(string $subject, string $header_title, string $body_content, int $user_id): string {
         $template_path = get_template_directory() . '/templates/email/base-email-template.php';
 
         if (!file_exists($template_path)) {
@@ -24,16 +38,26 @@ class Notifications {
             return "<h1>{$header_title}</h1>{$body_content}";
         }
 
+        $settings_manager = new Settings();
+        $biz_settings = $settings_manager->get_business_settings($user_id);
+        $booking_form_settings = $settings_manager->get_booking_form_settings($user_id);
+
         ob_start();
         include $template_path;
         $template = ob_get_clean();
 
         $replacements = [
-            '{{SUBJECT}}'      => $subject,
-            '{{HEADER_TITLE}}' => $header_title,
-            '{{BODY_CONTENT}}' => $body_content,
-            '{{SITE_NAME}}'    => get_bloginfo('name'),
-            '{{SITE_URL}}'     => home_url('/'),
+            '{{SUBJECT}}'          => $subject,
+            '{{BODY_CONTENT}}'     => $body_content,
+            '{{LOGO_URL}}'         => esc_url($biz_settings['biz_logo_url']),
+            '{{SITE_NAME}}'        => esc_html($biz_settings['biz_name']),
+            '{{SITE_URL}}'         => home_url('/'),
+            '{{BIZ_NAME}}'         => esc_html($biz_settings['biz_name']),
+            '{{BIZ_ADDRESS}}'      => esc_html($biz_settings['biz_address']),
+            '{{BIZ_PHONE}}'        => esc_html($biz_settings['biz_phone']),
+            '{{BIZ_EMAIL}}'        => esc_html($biz_settings['biz_email']),
+            '{{THEME_COLOR}}'      => esc_attr($booking_form_settings['bf_theme_color']),
+            '{{THEME_COLOR_LIGHT}}'=> $this->hex_to_rgba($booking_form_settings['bf_theme_color'], 0.1),
         ];
 
         return str_replace(array_keys($replacements), array_values($replacements), $template);
@@ -158,7 +182,7 @@ class Notifications {
         $body_content .= '</div>';
         $body_content .= "<p>" . sprintf(__('If you have any questions, please contact %s.', 'mobooking'), $tenant_business_name) . "</p>";
 
-        $full_email_html = $this->get_styled_email_html($subject, $tenant_business_name, $body_content);
+        $full_email_html = $this->get_styled_email_html($subject, $tenant_business_name, $body_content, $tenant_user_id);
 
         $headers = $this->get_email_headers($tenant_user_id);
         $email_sent = wp_mail($customer_email, $subject, $full_email_html, $headers);
@@ -261,7 +285,7 @@ class Notifications {
         $body_content .= '</div>';
         $body_content .= '<p style="text-align:center; margin-top: 24px;"><a href="' . esc_url(home_url('/dashboard/bookings/')) . '" class="button">' . __('View in Dashboard', 'mobooking') . '</a></p>';
 
-        $full_email_html = $this->get_styled_email_html($subject, $tenant_business_name, $body_content);
+        $full_email_html = $this->get_styled_email_html($subject, $tenant_business_name, $body_content, $tenant_user_id);
 
         $headers = $this->get_email_headers($tenant_user_id);
         $email_sent = wp_mail($admin_email, $subject, $full_email_html, $headers);
@@ -342,7 +366,7 @@ class Notifications {
         $body_content .= '</div>';
         $body_content .= '<p style="text-align:center; margin-top: 24px;"><a href="' . esc_url($dashboard_link) . '" class="button">' . __('View Your Assignments', 'mobooking') . '</a></p>';
 
-        $full_email_html = $this->get_styled_email_html($subject, $tenant_business_name, $body_content);
+        $full_email_html = $this->get_styled_email_html($subject, $tenant_business_name, $body_content, $tenant_user_id);
 
         $headers = $this->get_email_headers($tenant_user_id); // From the perspective of the business
         $email_sent = wp_mail($staff_user->user_email, $subject, $full_email_html, $headers);
@@ -415,7 +439,7 @@ class Notifications {
         $body_content .= '</div>';
         $body_content .= '<p style="text-align:center; margin-top: 24px;"><a href="' . esc_url($dashboard_link) . '" class="button">' . __('View Booking Details', 'mobooking') . '</a></p>';
 
-        $full_email_html = $this->get_styled_email_html($subject, $tenant_business_name, $body_content);
+        $full_email_html = $this->get_styled_email_html($subject, $tenant_business_name, $body_content, $tenant_user_id);
 
         $headers = $this->get_email_headers($tenant_user_id);
         $email_sent = wp_mail($admin_user->user_email, $subject, $full_email_html, $headers);
@@ -453,7 +477,7 @@ class Notifications {
         $body_content .= '<p style="text-align:center; margin-top: 24px;"><a href="' . esc_url(home_url('/dashboard/')) . '" class="button">' . __('Go to Your Dashboard', 'mobooking') . '</a></p>';
         $body_content .= '<p>' . __('If you have any questions, feel free to contact our support team.', 'mobooking') . '</p>';
 
-        $full_email_html = $this->get_styled_email_html($subject, get_bloginfo('name'), $body_content);
+        $full_email_html = $this->get_styled_email_html($subject, get_bloginfo('name'), $body_content, $user_id);
 
         $headers = $this->get_email_headers();
         $email_sent = wp_mail($user_email, $subject, $full_email_html, $headers);
@@ -485,9 +509,31 @@ class Notifications {
         $body_content .= '<p style="text-align:center; margin-top: 24px;"><a href="' . esc_url($registration_link) . '" class="button">' . __('Accept Invitation & Register', 'mobooking') . '</a></p>';
         $body_content .= '<p style="font-size: 12px; color: #718096;">' . __('If you were not expecting this invitation, please ignore this email.', 'mobooking') . '</p>';
 
-        $full_email_html = $this->get_styled_email_html($subject, get_bloginfo('name'), $body_content);
+        $full_email_html = $this->get_styled_email_html($subject, get_bloginfo('name'), $body_content, get_current_user_id());
 
         $headers = $this->get_email_headers();
         return wp_mail($worker_email, $subject, $full_email_html, $headers);
+    }
+
+    public function send_test_email(int $user_id) {
+        $user_info = get_userdata($user_id);
+        if (!$user_info) {
+            return false;
+        }
+        $user_email = $user_info->user_email;
+
+        $settings_manager = new Settings();
+        $biz_settings = $settings_manager->get_business_settings($user_id);
+
+        $subject = sprintf(__('Test Email from %s', 'mobooking'), $biz_settings['biz_name']);
+
+        $body_content = '<h2>' . __('This is a Test Email', 'mobooking') . '</h2>';
+        $body_content .= '<p>' . __('This is a test email to preview your email template settings.', 'mobooking') . '</p>';
+        $body_content .= '<p>' . __('The logo, colors, and footer should reflect your current settings.', 'mobooking') . '</p>';
+
+        $full_email_html = $this->get_styled_email_html($subject, $biz_settings['biz_name'], $body_content, $user_id);
+
+        $headers = $this->get_email_headers($user_id);
+        return wp_mail($user_email, $subject, $full_email_html, $headers);
     }
 }

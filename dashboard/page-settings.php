@@ -100,6 +100,19 @@ function mobooking_select_biz_setting_value($settings, $key, $value, $default_va
                         </div>
                     </div>
                 </div>
+
+                <!-- Email Preview Card -->
+                <div class="mobooking-card">
+                    <div class="mobooking-card-header">
+                        <h3 class="mobooking-card-title"><?php esc_html_e('Email Preview', 'mobooking'); ?></h3>
+                    </div>
+                    <div class="mobooking-card-content">
+                        <div class="form-group">
+                            <p class="description"><?php esc_html_e('Send a test email to yourself to see how it looks. This will use your saved settings.', 'mobooking'); ?></p>
+                            <button type="button" class="btn btn-secondary" id="mobooking-send-test-email-btn"><?php esc_html_e('Send Test Email', 'mobooking'); ?></button>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Right Column -->
@@ -124,11 +137,15 @@ function mobooking_select_biz_setting_value($settings, $key, $value, $default_va
                                     <?php endif; ?>
                                 </div>
                                 <div class="logo-uploader-actions">
+                                    <input type="file" id="mobooking-logo-file-input" accept="image/png, image/jpeg, image/gif" style="display: none;">
                                     <button type="button" class="btn btn-secondary" id="mobooking-upload-logo-btn"><?php esc_html_e('Upload Logo', 'mobooking'); ?></button>
                                     <button type="button" class="btn btn-link" id="mobooking-remove-logo-btn" style="<?php echo empty($logo_url) ? 'display:none;' : ''; ?>"><?php esc_html_e('Remove', 'mobooking'); ?></button>
                                 </div>
                             </div>
                             <input name="biz_logo_url" type="hidden" id="biz_logo_url" value="<?php echo esc_url($logo_url); ?>">
+                            <div class="progress-bar-wrapper" style="display:none;">
+                                <div class="progress-bar"></div>
+                            </div>
                             <p class="description"><?php esc_html_e('Upload a logo for your emails and booking form.', 'mobooking'); ?></p>
                         </div>
                     </div>

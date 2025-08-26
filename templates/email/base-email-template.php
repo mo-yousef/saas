@@ -4,31 +4,61 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{SUBJECT}}</title>
-    <style type="text/css">
-        <?php
-        // It's better to file_get_contents than include, to avoid executing PHP in CSS file.
-        // Also, ensure the path is correct relative to the theme root.
-        $css_path = get_template_directory() . '/assets/css/email.css';
-        if (file_exists($css_path)) {
-            echo file_get_contents($css_path);
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
         }
-        ?>
+        .email-wrapper {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            border: 1px solid #ddd;
+        }
+        .email-header {
+            background-color: #f8f8f8;
+            padding: 20px;
+            text-align: center;
+        }
+        .email-header img {
+            max-width: 200px;
+            height: auto;
+        }
+        .email-body {
+            padding: 20px;
+        }
+        .email-footer {
+            background-color: #f8f8f8;
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #777;
+        }
     </style>
 </head>
 <body>
-    <div class="email-wrapper">
-        <div class="email-container">
-            <div class="email-header">
-                <h1>{{HEADER_TITLE}}</h1>
-            </div>
-            <div class="email-body">
+    <table class="email-wrapper" width="100%" cellpadding="0" cellspacing="0" role="presentation">
+        <tr>
+            <td class="email-header" style="background-color: {{THEME_COLOR_LIGHT}};">
+                <a href="{{SITE_URL}}" style="display:inline-block;">
+                    <img src="{{LOGO_URL}}" alt="{{SITE_NAME}}">
+                </a>
+            </td>
+        </tr>
+        <tr>
+            <td class="email-body">
                 {{BODY_CONTENT}}
-            </div>
-            <div class="email-footer">
-                <p>&copy; <?php echo date('Y'); ?> {{SITE_NAME}}. All rights reserved.</p>
-                <p><a href="{{SITE_URL}}">{{SITE_URL}}</a></p>
-            </div>
-        </div>
-    </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="email-footer">
+                <p>{{BIZ_NAME}}</p>
+                <p>{{BIZ_ADDRESS}}</p>
+                <p>{{BIZ_PHONE}} | <a href="mailto:{{BIZ_EMAIL}}">{{BIZ_EMAIL}}</a></p>
+                <p><a href="{{SITE_URL}}">Visit our website</a></p>
+            </td>
+        </tr>
+    </table>
 </body>
 </html>
