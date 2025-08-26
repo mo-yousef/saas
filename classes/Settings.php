@@ -120,9 +120,58 @@ Please review this booking in your dashboard: {{admin_booking_link}}",
         // Business Settings
         add_action('wp_ajax_mobooking_get_business_settings', [$this, 'handle_get_business_settings_ajax']);
         add_action('wp_ajax_mobooking_save_business_settings', [$this, 'handle_save_business_settings_ajax']);
+        add_action('wp_ajax_mobooking_upload_logo', [$this, 'handle_upload_logo_ajax']);
+        add_action('wp_ajax_mobooking_send_test_email', [$this, 'handle_send_test_email_ajax']);
 
         // Utility Actions
         add_action('wp_ajax_mobooking_flush_rewrite_rules', [$this, 'handle_flush_rewrite_rules_ajax']);
+    }
+
+    public function handle_send_test_email_ajax() {
+        check_ajax_referer('mobooking_dashboard_nonce', 'nonce');
+        $user_id = get_current_user_id();
+        if (!$user_id) {
+            wp_send_json_error(['message' => __('User not authenticated.', 'mobooking')], 403);
+            return;
+        }
+
+        $notifications = new \MoBooking\Classes\Notifications();
+        $result = $notifications->send_test_email($user_id);
+
+        if ($result) {
+            wp_send_json_success(['message' => __('Test email sent successfully.', 'mobooking')]);
+        } else {
+            wp_send_json_error(['message' => __('Failed to send test email.', 'mobooking')], 500);
+        }
+    }
+
+    public function handle_upload_logo_ajax() {
+        check_ajax_referer('mobooking_dashboard_nonce', 'nonce');
+        $user_id = get_current_user_id();
+        if (!$user_id) {
+            wp_send_json_error(['message' => __('User not authenticated.', 'mobooking')], 403);
+            return;
+        }
+
+        if (!function_exists('wp_handle_upload')) {
+            require_once(ABSPATH . 'wp-admin/includes/file.php');
+        }
+
+        if (empty($_FILES['logo'])) {
+            wp_send_json_error(['message' => __('No file was uploaded.', 'mobooking')], 400);
+            return;
+        }
+
+        $uploaded_file = $_FILES['logo'];
+        $upload_overrides = ['test_form' => false];
+        $move_file = wp_handle_upload($uploaded_file, $upload_overrides);
+
+        if ($move_file && !isset($move_file['error'])) {
+            $this->update_setting($user_id, 'biz_logo_url', $move_file['url']);
+            wp_send_json_success(['url' => $move_file['url']]);
+        } else {
+            wp_send_json_error(['message' => $move_file['error']], 500);
+        }
     }
 
     public function handle_flush_rewrite_rules_ajax() {

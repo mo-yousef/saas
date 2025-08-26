@@ -4,36 +4,109 @@ jQuery(document).ready(function($) {
     const form = $('#mobooking-business-settings-form');
     const feedbackDiv = $('#mobooking-settings-feedback');
     const saveButton = $('#mobooking-save-biz-settings-btn');
-    let mediaUploader;
+    const logoFileInput = $('#mobooking-logo-file-input');
+    const uploadLogoBtn = $('#mobooking-upload-logo-btn');
+    const removeLogoBtn = $('#mobooking-remove-logo-btn');
+    const logoPreview = $('.logo-preview');
+    const progressBarWrapper = $('.progress-bar-wrapper');
+    const progressBar = $('.progress-bar');
 
-    // Logo Uploader Logic
-    $('#mobooking-upload-logo-btn').on('click', function(e) {
+    // Trigger file input click
+    uploadLogoBtn.on('click', function(e) {
         e.preventDefault();
-        if (mediaUploader) {
-            mediaUploader.open();
-            return;
-        }
-        mediaUploader = wp.media.frames.file_frame = wp.media({
-            title: 'Choose Logo',
-            button: {
-                text: 'Choose Logo'
-            },
-            multiple: false
-        });
-        mediaUploader.on('select', function() {
-            const attachment = mediaUploader.state().get('selection').first().toJSON();
-            $('#biz_logo_url').val(attachment.url);
-            $('.logo-preview').html('<img src="' + attachment.url + '" alt="Company Logo">');
-            $('#mobooking-remove-logo-btn').show();
-        });
-        mediaUploader.open();
+        logoFileInput.click();
     });
 
-    $('#mobooking-remove-logo-btn').on('click', function(e) {
+    // Handle file selection
+    logoFileInput.on('change', function() {
+        const file = this.files[0];
+        if (file) {
+            uploadLogo(file);
+        }
+    });
+
+    // Handle logo upload
+    function uploadLogo(file) {
+        const formData = new FormData();
+        formData.append('logo', file);
+        formData.append('action', 'mobooking_upload_logo');
+        formData.append('nonce', mobooking_biz_settings_params.nonce);
+
+        $.ajax({
+            url: mobooking_biz_settings_params.ajax_url,
+            type: 'POST',
+            data: formData,
+            contentType: false,
+            processData: false,
+            xhr: function() {
+                const xhr = new window.XMLHttpRequest();
+                xhr.upload.addEventListener('progress', function(evt) {
+                    if (evt.lengthComputable) {
+                        const percentComplete = evt.loaded / evt.total;
+                        const percent = Math.round(percentComplete * 100);
+                        progressBar.width(percent + '%');
+                    }
+                }, false);
+                return xhr;
+            },
+            beforeSend: function() {
+                progressBar.width('0%');
+                progressBarWrapper.show();
+            },
+            success: function(response) {
+                if (response.success) {
+                    $('#biz_logo_url').val(response.data.url);
+                    logoPreview.html('<img src="' + response.data.url + '" alt="Company Logo">');
+                    removeLogoBtn.show();
+                    window.showAlert('Logo uploaded successfully.', 'success');
+                } else {
+                    window.showAlert(response.data.message || 'Error uploading logo.', 'error');
+                }
+            },
+            error: function() {
+                window.showAlert('AJAX error.', 'error');
+            },
+            complete: function() {
+                progressBarWrapper.hide();
+            }
+        });
+    }
+
+    // Handle logo removal
+    removeLogoBtn.on('click', function(e) {
         e.preventDefault();
         $('#biz_logo_url').val('');
-        $('.logo-preview').html('<div class="logo-placeholder"><span>No Logo</span></div>');
+        logoPreview.html('<div class="logo-placeholder"><span>No Logo</span></div>');
         $(this).hide();
+    });
+
+    // Handle send test email
+    $('#mobooking-send-test-email-btn').on('click', function() {
+        const $btn = $(this);
+        const originalText = $btn.text();
+        $btn.prop('disabled', true).text('Sending...');
+
+        $.ajax({
+            url: mobooking_biz_settings_params.ajax_url,
+            type: 'POST',
+            data: {
+                action: 'mobooking_send_test_email',
+                nonce: mobooking_biz_settings_params.nonce
+            },
+            success: function(response) {
+                if (response.success) {
+                    window.showAlert(response.data.message, 'success');
+                } else {
+                    window.showAlert(response.data.message, 'error');
+                }
+            },
+            error: function() {
+                window.showAlert('AJAX error.', 'error');
+            },
+            complete: function() {
+                $btn.prop('disabled', false).text(originalText);
+            }
+        });
     });
 
     // Form submission
