@@ -148,11 +148,11 @@ function mobooking_select_biz_setting_value($settings, $key, $value, $default_va
         </div>
 
         <div id="email-notifications-tab" class="settings-tab-content" style="display:none;">
-            <div class="email-settings-layout">
-                <div class="email-editor-column">
+            <div class="email-builder-layout">
+                <div class="email-builder-main">
                     <div class="mobooking-card">
                         <div class="mobooking-card-header">
-                            <h3 class="mobooking-card-title"><?php esc_html_e('Edit Email Template', 'mobooking'); ?></h3>
+                             <h3 class="mobooking-card-title"><?php esc_html_e('Email Templates', 'mobooking'); ?></h3>
                         </div>
                         <div class="mobooking-card-content">
                             <div class="form-group">
@@ -168,7 +168,6 @@ function mobooking_select_biz_setting_value($settings, $key, $value, $default_va
                             </div>
                             <div id="email-editor-fields">
                                 <?php
-                                $email_templates = $settings_manager->get_email_templates();
                                 foreach ($email_templates as $key => $template) :
                                     $subject_key = $template['subject_key'];
                                     $body_key = $template['body_key'];
@@ -181,15 +180,40 @@ function mobooking_select_biz_setting_value($settings, $key, $value, $default_va
                                             <input type="text" id="<?php echo esc_attr($subject_key); ?>" name="<?php echo esc_attr($subject_key); ?>" value="<?php echo esc_attr($subject); ?>" class="regular-text email-template-field" data-key="subject">
                                         </div>
                                         <div class="form-group">
-                                            <label for="<?php echo esc_attr($body_key); ?>"><?php esc_html_e('Body', 'mobooking'); ?></label>
-                                            <?php wp_editor($body, $body_key, ['textarea_name' => $body_key, 'textarea_rows' => 10, 'editor_class' => 'email-template-field']); ?>
+                                            <label for="<?php echo esc_attr($body_key); ?>-builder"><?php esc_html_e('Body', 'mobooking'); ?></label>
+                                            <div id="<?php echo esc_attr($body_key); ?>-builder" class="email-builder-canvas"></div>
+                                            <input type="hidden" name="<?php echo esc_attr($body_key); ?>" id="<?php echo esc_attr($body_key); ?>" value="<?php echo esc_attr($body); ?>">
                                         </div>
                                     </div>
                                 <?php endforeach; ?>
                             </div>
                         </div>
                     </div>
-                    <div class="mobooking-card">
+                </div>
+                <div class="email-builder-sidebar">
+                    <div id="component-palette" class="mobooking-card">
+                        <div class="mobooking-card-header">
+                            <h3 class="mobooking-card-title"><?php esc_html_e('Components', 'mobooking'); ?></h3>
+                        </div>
+                        <div class="mobooking-card-content">
+                            <div class="component-item" data-type="header">Header</div>
+                            <div class="component-item" data-type="paragraph">Paragraph</div>
+                            <div class="component-item" data-type="list">List</div>
+                            <div class="component-item" data-type="table">Table</div>
+                            <div class="component-item" data-type="button">Button</div>
+                            <div class="component-item" data-type="link">Link</div>
+                            <div class="component-item" data-type="divider">Divider</div>
+                        </div>
+                    </div>
+                    <div id="inspector-wrapper" class="mobooking-card">
+                        <div class="mobooking-card-header">
+                            <h3 class="mobooking-card-title"><?php esc_html_e('Component Settings', 'mobooking'); ?></h3>
+                        </div>
+                        <div id="inspector-content" class="mobooking-card-content">
+                            <!-- Settings for the selected component will be shown here -->
+                        </div>
+                    </div>
+                     <div class="mobooking-card">
                         <div class="mobooking-card-header">
                             <h3 class="mobooking-card-title"><?php esc_html_e('Available Variables', 'mobooking'); ?></h3>
                         </div>
@@ -200,15 +224,13 @@ function mobooking_select_biz_setting_value($settings, $key, $value, $default_va
                         </div>
                     </div>
                 </div>
-                <div class="email-preview-column">
-                    <div class="mobooking-card">
-                        <div class="mobooking-card-header">
-                            <h3 class="mobooking-card-title"><?php esc_html_e('Live Preview', 'mobooking'); ?></h3>
-                        </div>
-                        <div class="mobooking-card-content">
-                            <iframe id="email-preview-iframe" src="about:blank"></iframe>
-                        </div>
-                    </div>
+            </div>
+            <div id="email-preview-wrapper" class="mobooking-card">
+                 <div class="mobooking-card-header">
+                    <h3 class="mobooking-card-title"><?php esc_html_e('Live Preview', 'mobooking'); ?></h3>
+                </div>
+                <div class="mobooking-card-content">
+                    <iframe id="email-preview-iframe" src="about:blank"></iframe>
                 </div>
             </div>
         </div>

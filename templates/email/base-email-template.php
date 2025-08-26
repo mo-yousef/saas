@@ -43,7 +43,7 @@
                     <tr>
                         <td align="center" style="padding: 20px; background-color: {{THEME_COLOR_LIGHT}};">
                             <a href="{{SITE_URL}}">
-                                <img src="{{LOGO_URL}}" alt="{{SITE_NAME}}" style="max-width: 150px; height: auto;">
+                        {{LOGO_HTML}}
                             </a>
                         </td>
                     </tr>
