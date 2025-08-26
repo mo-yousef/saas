@@ -24,20 +24,9 @@ jQuery(document).ready(function($) {
         const template = emailTemplates[templateKey];
         if (!template) return;
 
-        // Populate editor fields
-        const subject = bizSettings[template.subject_key] || '';
-        const body = bizSettings[template.body_key] || '';
-
-        editorFields.html(`
-            <div class="form-group">
-                <label for="${template.subject_key}">${mobooking_email_settings_params.i18n.subject}</label>
-                <input type="text" id="${template.subject_key}" name="${template.subject_key}" value="${subject}" class="regular-text email-template-field" data-key="subject">
-            </div>
-            <div class="form-group">
-                <label for="${template.body_key}">${mobooking_email_settings_params.i18n.body}</label>
-                <textarea id="${template.body_key}" name="${template.body_key}" rows="10" class="large-text email-template-field" data-key="body">${body}</textarea>
-            </div>
-        `);
+        // Show/hide editor fields
+        $('.email-template-editor').hide();
+        $('#' + templateKey + '-editor').show();
 
         // Populate variables list
         variablesList.html(template.variables.map(v => `<li>${v}</li>`).join(''));
@@ -49,11 +38,36 @@ jQuery(document).ready(function($) {
         updatePreview();
     });
 
+    // Handle TinyMCE updates
+    $(document).on('tinymce-editor-init', function(event, editor) {
+        editor.on('keyup change', function() {
+            updatePreview();
+        });
+    });
+
+    variablesList.on('click', 'li', function() {
+        const variableText = $(this).text();
+        navigator.clipboard.writeText(variableText).then(() => {
+            const originalText = $(this).text();
+            $(this).text('Copied!');
+            setTimeout(() => {
+                $(this).text(originalText);
+            }, 1000);
+        });
+    });
+
     function updatePreview() {
         if (!baseEmailTemplate) return;
 
-        const subject = editorFields.find('[data-key="subject"]').val();
-        const body = editorFields.find('[data-key="body"]').val();
+        const activeEditorId = selector.val();
+        const subject = $(`#${emailTemplates[activeEditorId].subject_key}`).val();
+        let body = '';
+        if (typeof tinymce !== 'undefined' && tinymce.get(emailTemplates[activeEditorId].body_key)) {
+            body = tinymce.get(emailTemplates[activeEditorId].body_key).getContent();
+        } else {
+            body = $(`#${emailTemplates[activeEditorId].body_key}`).val();
+        }
+
 
         let previewHtml = baseEmailTemplate;
 
@@ -91,7 +105,7 @@ jQuery(document).ready(function($) {
             '{{special_instructions}}': 'Please use the back door.',
         };
 
-        let processedBody = body.replace(/\\n/g, '<br>');
+        let processedBody = body;
         for (const [key, value] of Object.entries(dummyData)) {
             processedBody = processedBody.replace(new RegExp(key, 'g'), value);
         }

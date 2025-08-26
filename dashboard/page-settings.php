@@ -44,7 +44,7 @@ function mobooking_select_biz_setting_value($settings, $key, $value, $default_va
         <?php wp_nonce_field('mobooking_dashboard_nonce', 'mobooking_dashboard_nonce_field'); ?>
         <div id="mobooking-settings-feedback" style="margin-bottom:15px; margin-top:10px;"></div>
 
-        <div id="general-settings-tab" class="settings-tab-content">
+        <div id="general-tab" class="settings-tab-content">
             <p class="page-description"><?php esc_html_e('Manage your core business information and localization.', 'mobooking'); ?></p>
             <div class="settings-layout">
                 <!-- Left Column -->
@@ -167,7 +167,25 @@ function mobooking_select_biz_setting_value($settings, $key, $value, $default_va
                                 </select>
                             </div>
                             <div id="email-editor-fields">
-                                <!-- Fields will be loaded by JS -->
+                                <?php
+                                $email_templates = $settings_manager->get_email_templates();
+                                foreach ($email_templates as $key => $template) :
+                                    $subject_key = $template['subject_key'];
+                                    $body_key = $template['body_key'];
+                                    $subject = mobooking_get_biz_setting_value($biz_settings, $subject_key);
+                                    $body = mobooking_get_biz_setting_textarea($biz_settings, $body_key);
+                                ?>
+                                    <div class="email-template-editor" id="<?php echo esc_attr($key); ?>-editor" style="display:none;">
+                                        <div class="form-group">
+                                            <label for="<?php echo esc_attr($subject_key); ?>"><?php esc_html_e('Subject', 'mobooking'); ?></label>
+                                            <input type="text" id="<?php echo esc_attr($subject_key); ?>" name="<?php echo esc_attr($subject_key); ?>" value="<?php echo esc_attr($subject); ?>" class="regular-text email-template-field" data-key="subject">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="<?php echo esc_attr($body_key); ?>"><?php esc_html_e('Body', 'mobooking'); ?></label>
+                                            <?php wp_editor($body, $body_key, ['textarea_name' => $body_key, 'textarea_rows' => 10, 'editor_class' => 'email-template-field']); ?>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
                             </div>
                         </div>
                     </div>
