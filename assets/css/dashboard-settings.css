@@ -166,11 +166,29 @@
     margin-bottom: 1rem;
 }
 
-/* Email Settings Layout */
-.email-settings-layout {
+/* Email Builder Layout */
+.email-builder-layout {
     display: grid;
-    grid-template-columns: 1fr;
+    grid-template-columns: 200px 1fr 300px 1fr;
     gap: 2rem;
+}
+
+#component-palette .component-item {
+    padding: 10px;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    margin-bottom: 10px;
+    cursor: grab;
+}
+
+#editor-canvas {
+    min-height: 400px;
+    border: 1px dashed #ddd;
+    padding: 20px;
+}
+
+#inspector-content .form-group {
+    margin-bottom: 15px;
 }
 
 @media (min-width: 1280px) {
