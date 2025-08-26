@@ -142,6 +142,10 @@ jQuery(document).ready(function($) {
     // Form submission
     form.on('submit', function(e) {
         e.preventDefault();
+
+        // Trigger a custom event for the email builder to save its state
+        $(document).trigger('mobooking:save-email-builder');
+
         feedbackDiv.empty().removeClass('notice-success notice-error').hide();
         const originalButtonText = saveButton.text();
         saveButton.prop('disabled', true).text(mobooking_biz_settings_params.i18n.saving || 'Saving...');

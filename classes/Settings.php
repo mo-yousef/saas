@@ -70,72 +70,56 @@ class Settings {
 
         // Email Template Settings (Customer Confirmation)
         'email_booking_conf_subj_customer'    => 'Your Booking Confirmation - Ref: {{booking_reference}}',
-        'email_booking_conf_body_customer'    => "Dear {{customer_name}},
-
-Thank you for your booking with {{business_name}}. Your booking (Ref: {{booking_reference}}) is confirmed.
-
-Booking Summary:
-Services: {{service_names}}
-Date & Time: {{booking_date_time}}
-Service Address:
-{{service_address}}
-Total Price: {{total_price}}
-
-If you have any questions, please contact {{business_name}}.
-
-Thank you,
-{{business_name}}",
+        'email_booking_conf_body_customer'    => json_encode([
+            ['type' => 'paragraph', 'content' => 'Dear {{customer_name}},'],
+            ['type' => 'paragraph', 'content' => 'Thank you for your booking with {{business_name}}. Your booking (Ref: {{booking_reference}}) is confirmed.'],
+            ['type' => 'paragraph', 'content' => 'Booking Summary:'],
+            ['type' => 'list', 'items' => ['Services: {{service_names}}', 'Date & Time: {{booking_date_time}}', 'Service Address:\n{{service_address}}', 'Total Price: {{total_price}}']],
+            ['type' => 'paragraph', 'content' => 'If you have any questions, please contact {{business_name}}.'],
+            ['type' => 'paragraph', 'content' => 'Thank you,\n{{business_name}}'],
+        ]),
 
         // Email Template Settings (Admin Notification)
         'email_booking_conf_subj_admin'       => 'New Booking Received - Ref: {{booking_reference}} for {{customer_name}}',
-        'email_booking_conf_body_admin'       => "You have received a new booking (Ref: {{booking_reference}}).
-
-Customer Details:
-Name: {{customer_name}}
-Email: {{customer_email}}
-Phone: {{customer_phone}}
-
-Booking Details:
-Services: {{service_names}}
-Date & Time: {{booking_date_time}}
-Service Address:
-{{service_address}}
-Total Price: {{total_price}}
-Special Instructions:
-{{special_instructions}}
-
-Please review this booking in your dashboard: {{admin_booking_link}}",
+        'email_booking_conf_body_admin'       => json_encode([
+            ['type' => 'paragraph', 'content' => 'You have received a new booking (Ref: {{booking_reference}}).'],
+            ['type' => 'paragraph', 'content' => 'Customer Details:'],
+            ['type' => 'list', 'items' => ['Name: {{customer_name}}', 'Email: {{customer_email}}', 'Phone: {{customer_phone}}']],
+            ['type' => 'paragraph', 'content' => 'Booking Details:'],
+            ['type' => 'list', 'items' => ['Services: {{service_names}}', 'Date & Time: {{booking_date_time}}', 'Service Address:\n{{service_address}}', 'Total Price: {{total_price}}', 'Special Instructions:\n{{special_instructions}}']],
+            ['type' => 'button', 'content' => 'View in Dashboard', 'link' => '{{admin_booking_link}}'],
+        ]),
 
         // Staff Assignment Notification
         'email_staff_assign_subj'             => 'New Booking Assignment - Ref: {{booking_reference}}',
-        'email_staff_assign_body'             => "Hi {{staff_name}},
-
-You have been assigned a new booking (Ref: {{booking_reference}}).
-
-Customer: {{customer_name}}
-Date & Time: {{booking_date_time}}
-
-Please review this assignment in your dashboard: {{staff_dashboard_link}}",
+        'email_staff_assign_body'             => json_encode([
+            ['type' => 'paragraph', 'content' => 'Hi {{staff_name}},'],
+            ['type' => 'paragraph', 'content' => 'You have been assigned a new booking (Ref: {{booking_reference}}).'],
+            ['type' => 'list', 'items' => ['Customer: {{customer_name}}', 'Date & Time: {{booking_date_time}}']],
+            ['type' => 'button', 'content' => 'View Your Assignments', 'link' => '{{staff_dashboard_link}}'],
+        ]),
 
         // Admin Status Change Notification
         'email_admin_status_change_subj'      => 'Booking Status Updated - Ref: {{booking_reference}}',
-        'email_admin_status_change_body'      => "The status for booking (Ref: {{booking_reference}}) has been updated from {{old_status}} to {{new_status}} by {{updater_name}}.",
+        'email_admin_status_change_body'      => json_encode([
+            ['type' => 'paragraph', 'content' => 'The status for booking (Ref: {{booking_reference}}) has been updated from {{old_status}} to {{new_status}} by {{updater_name}}.'],
+        ]),
 
         // Welcome Email
         'email_welcome_subj'                  => 'Welcome to {{company_name}}!',
-        'email_welcome_body'                  => "Hi {{customer_name}},
-
-Thanks for joining {{company_name}}! We're excited to have you.
-
-You can access your dashboard here: {{dashboard_link}}",
+        'email_welcome_body'                  => json_encode([
+            ['type' => 'paragraph', 'content' => 'Hi {{customer_name}},'],
+            ['type' => 'paragraph', 'content' => 'Thanks for joining {{company_name}}! We\'re excited to have you.'],
+            ['type' => 'button', 'content' => 'Go to Your Dashboard', 'link' => '{{dashboard_link}}'],
+        ]),
 
         // Invitation Email
         'email_invitation_subj'               => 'You have been invited to join {{company_name}}',
-        'email_invitation_body'               => "Hi {{worker_email}},
-
-You've been invited to join {{company_name}} as a {{worker_role}} by {{inviter_name}}.
-
-Click here to register: {{registration_link}}",
+        'email_invitation_body'               => json_encode([
+            ['type' => 'paragraph', 'content' => 'Hi {{worker_email}},'],
+            ['type' => 'paragraph', 'content' => 'You\'ve been invited to join {{company_name}} as a {{worker_role}} by {{inviter_name}}.'],
+            ['type' => 'button', 'content' => 'Accept Invitation & Register', 'link' => '{{registration_link}}'],
+        ]),
     ];
 
     public function __construct() {
