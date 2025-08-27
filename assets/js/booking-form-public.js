@@ -101,6 +101,11 @@ jQuery(document).ready(function ($) {
   function showStep(step) {
     state.currentStep = step;
 
+    // Add active step class to the form card
+    els.layout.find(".mobooking-form-card").removeClass (function (index, className) {
+        return (className.match (/(^|\s)step-active-\S+/g) || []).join(' ');
+    }).addClass(`step-active-${step}`);
+
     els.steps.removeClass("active").hide();
     $(`#mobooking-step-${step}`).addClass("active").show();
 
@@ -123,6 +128,13 @@ jQuery(document).ready(function ($) {
     if (step === 3) ensureOptionsLoaded();
     if (step === 6) initDatePicker();
     if (step === 8) renderConfirmationSummary();
+
+    // Compact summary for customer details step
+    if (step === 7) {
+        els.liveSummaryContainer.addClass("summary-compact");
+    } else {
+        els.liveSummaryContainer.removeClass("summary-compact");
+    }
 
     updateLiveSummary();
   }
@@ -830,11 +842,11 @@ jQuery(document).ready(function ($) {
   $(document).on("change", 'input[name="has_pets"]', function () {
     const val = $(this).val();
     const show = val === "yes";
-    if (show)
-      $("#mobooking-pet-details-container")
-        .removeClass("hidden")
-        .removeClass("mobooking-collapsed");
-    else $("#mobooking-pet-details-container").addClass("mobooking-collapsed");
+    if (show) {
+      $("#mobooking-pet-details-container").removeClass("is-collapsed");
+    } else {
+      $("#mobooking-pet-details-container").addClass("is-collapsed");
+    }
   });
 
   // ==========================================
@@ -1083,6 +1095,7 @@ jQuery(document).ready(function ($) {
   // Add collapsible classes
   els.timeSlotsWrap.addClass("mobooking-collapsible is-collapsed");
   $("#mobooking-custom-access-details").addClass("mobooking-collapsible is-collapsed");
+  $("#mobooking-pet-details-container").addClass("mobooking-collapsible is-collapsed");
 
   showStep(startStep);
 
