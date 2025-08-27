@@ -341,11 +341,13 @@ if ( is_page_template('templates/booking-form-public.php') || $page_type_for_scr
             'nonce' => wp_create_nonce('mobooking_dashboard_nonce')
         ]);
 
-        if ( $current_page_slug === 'settings' ) {
+        if ( $current_page_slug === 'settings' || $current_page_slug === 'booking-form' ) {
             // Enqueue styles for color picker
             wp_enqueue_style( 'wp-color-picker' );
             // Enqueue the settings page specific CSS
             wp_enqueue_style( 'mobooking-dashboard-settings', MOBOOKING_THEME_URI . 'assets/css/dashboard-settings.css', array('mobooking-dashboard-main'), MOBOOKING_VERSION );
+
+            wp_enqueue_script( 'mobooking-dashboard-booking-form-settings', MOBOOKING_THEME_URI . 'assets/js/dashboard-booking-form-settings.js', array('jquery', 'wp-color-picker'), MOBOOKING_VERSION, true );
 
             // Enqueue SortableJS for the email builder
             wp_enqueue_script( 'sortable-js', 'https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js', array(), '1.15.0', true );
