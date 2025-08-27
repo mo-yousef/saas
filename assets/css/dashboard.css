@@ -777,8 +777,7 @@ a.quick-action:hover {
   justify-content: space-between;
   padding: 1rem 1.25rem;
   border-bottom: 1px solid var(--mobk-border);
-  align-items: flex-start;
-  flex-direction: column;
+  flex-direction: row;
   gap: 8px;
 }
 
