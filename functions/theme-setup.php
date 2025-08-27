@@ -97,7 +97,7 @@ function mobooking_scripts() {
 $page_type_for_scripts = get_query_var('mobooking_page_type');
 if ( is_page_template('templates/booking-form-public.php') || $page_type_for_scripts === 'public_booking' || $page_type_for_scripts === 'embed_booking' ) {
     // Enqueue the new modern booking form CSS
-    wp_enqueue_style( 'mobooking-booking-form-refactored', MOBOOKING_THEME_URI . 'assets/css/booking-form-refactored.css', array('mobooking-style'), MOBOOKING_VERSION );
+    wp_enqueue_style( 'mobooking-booking-form-redesigned', MOBOOKING_THEME_URI . 'assets/css/booking-form-redesigned.css', array('mobooking-style'), MOBOOKING_VERSION );
 
     wp_enqueue_style( 'flatpickr', 'https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css', array(), '4.6.9' );
     wp_enqueue_script( 'flatpickr', 'https://cdn.jsdelivr.net/npm/flatpickr', array(), '4.6.9', true );
