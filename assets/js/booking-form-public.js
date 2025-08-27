@@ -117,19 +117,6 @@ jQuery(document).ready(function ($) {
     const progress = ((idx - 1) / Math.max(1, totalInd - 1)) * 100;
     els.progressFill.css("width", `${progress}%`);
 
-    // Show/hide summary sidebar
-    if (step > 1) {
-        els.layout.addClass("summary-visible");
-    } else {
-        els.layout.removeClass("summary-visible");
-    }
-
-    // Compact summary for customer details step
-    if (step === 7) {
-        els.liveSummaryContainer.addClass("summary-compact");
-    } else {
-        els.liveSummaryContainer.removeClass("summary-compact");
-    }
 
     // Step-specific hooks
     if (step === 2) loadServices();
@@ -517,6 +504,10 @@ jQuery(document).ready(function ($) {
         state.pricing.base = parseFloat(svc.price) || 0;
         recalcTotal();
         updateLiveSummary();
+
+        // Show summary smoothly
+        els.liveSummaryContainer.slideDown();
+
         // Auto advance to options
         setTimeout(() => showStep(3), 200);
       });
@@ -884,9 +875,9 @@ jQuery(document).ready(function ($) {
 
   function collapseTimeSlots(collapsed) {
     if (collapsed) {
-      els.timeSlotsWrap.addClass("mobooking-collapsed");
+      els.timeSlotsWrap.addClass("is-collapsed");
     } else {
-      els.timeSlotsWrap.removeClass("mobooking-collapsed");
+      els.timeSlotsWrap.removeClass("is-collapsed");
     }
   }
 
@@ -952,11 +943,11 @@ jQuery(document).ready(function ($) {
       $(this).closest(".mobooking-radio-option").addClass("active");
     const val = $(this).val();
     state.propertyAccess.method = val;
-    if (val === "other")
-      els.accessDetailsWrap
-        .removeClass("hidden")
-        .removeClass("mobooking-collapsed");
-    else els.accessDetailsWrap.addClass("mobooking-collapsed");
+    if (val === "other") {
+        $("#mobooking-custom-access-details").removeClass("is-collapsed");
+    } else {
+        $("#mobooking-custom-access-details").addClass("is-collapsed");
+    }
   });
 
   // ==========================================
@@ -1088,6 +1079,11 @@ jQuery(document).ready(function ($) {
 
   // If step 1 is disabled, start at step 2
   const startStep = $("#mobooking-step-1").length ? 1 : 2;
+
+  // Add collapsible classes
+  els.timeSlotsWrap.addClass("mobooking-collapsible is-collapsed");
+  $("#mobooking-custom-access-details").addClass("mobooking-collapsible is-collapsed");
+
   showStep(startStep);
 
   // Pets step active styling for radios
