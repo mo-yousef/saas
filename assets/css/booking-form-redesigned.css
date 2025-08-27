@@ -335,6 +335,38 @@ body.mobooking-body {
 }
 
 
+/* Date & Time Picker */
+.flatpickr-calendar {
+    border-radius: var(--radius-lg);
+    border: 1px solid hsl(var(--border));
+    box-shadow: var(--shadow-lg);
+    width: 100% !important;
+}
+.flatpickr-day.selected, .flatpickr-day.today {
+    background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+    border-color: hsl(var(--primary));
+}
+.flatpickr-day:hover {
+    background: hsl(var(--accent));
+}
+#mobooking-time-slots {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 0.75rem;
+}
+.mobooking-time-slot {
+    background-color: hsl(var(--secondary));
+    border: 1px solid hsl(var(--border));
+    color: hsl(var(--secondary-foreground));
+    font-weight: 500;
+}
+.mobooking-time-slot.selected {
+    background-color: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+    border-color: hsl(var(--primary));
+}
+
 /* Responsive */
 @media (max-width: 991px) {
     .mobooking-public-form-container {
