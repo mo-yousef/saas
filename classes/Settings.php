@@ -52,6 +52,7 @@ class Settings {
                 'bf_enable_recaptcha'         => '0',
                 'bf_enable_ssl_required'      => '1',
                 'bf_debug_mode'               => '0',
+                'bf_service_card_display'     => 'image',
 
                 // Business Settings
                 'biz_name'                            => '',
