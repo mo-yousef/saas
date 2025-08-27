@@ -417,30 +417,6 @@ $script_data = [
         </div>
     </div>
 
-    <!-- Debug Section (Development Only) -->
-    <?php //if (defined('WP_DEBUG') && WP_DEBUG): ?>
-    <div class="mobooking-debug" id="mobooking-debug-section">
-        <details>
-            <summary style="cursor: pointer; font-weight: bold; margin-bottom: 10px;">
-                🔧 <?php _e('Debug Information (Development)', 'mobooking'); ?>
-            </summary>
-            <div style="display: grid; gap: 15px;">
-                <div>
-                    <h4 style="font-weight: bold;"><?php _e('Form Configuration:', 'mobooking'); ?></h4>
-                    <pre id="mobooking-debug-config" style="font-size: 11px; background: white; padding: 10px; border-radius: 4px; border: 1px solid #ccc; overflow: auto; max-height: 200px;"></pre>
-                </div>
-                <div>
-                    <h4 style="font-weight: bold;"><?php _e('Form Data:', 'mobooking'); ?></h4>
-                    <pre id="mobooking-debug-data" style="font-size: 11px; background: white; padding: 10px; border-radius: 4px; border: 1px solid #ccc; overflow: auto; max-height: 200px;"></pre>
-                </div>
-                <div>
-                    <h4 style="font-weight: bold;"><?php _e('API Responses:', 'mobooking'); ?></h4>
-                    <pre id="mobooking-debug-responses" style="font-size: 11px; background: white; padding: 10px; border-radius: 4px; border: 1px solid #ccc; overflow: auto; max-height: 200px;"></pre>
-                </div>
-            </div>
-        </details>
-    </div>
-    <?php //endif; ?>
 </div>
 
 
@@ -459,5 +435,5 @@ if (!empty($bf_settings['bf_custom_css'])) {
 }
 
 // Load WordPress footer
-get_footer();
+get_footer('booking');
 ?>
