@@ -173,3 +173,38 @@
     border: 1px solid #ddd;
     border-radius: 4px;
 }
+
+/* Radio Group Cards */
+.mobooking-radio-group-cards {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+.mobooking-radio-group-cards label {
+    position: relative;
+}
+.mobooking-radio-group-cards input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+.mobooking-radio-group-cards .card-content {
+    padding: 1rem;
+    border: 2px solid hsl(var(--border));
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+    font-weight: 500;
+}
+.mobooking-radio-group-cards input[type="radio"]:checked + .card-content {
+    border-color: hsl(var(--primary));
+    background-color: hsl(var(--primary) / 0.1);
+    color: hsl(var(--primary));
+    box-shadow: 0 0 0 3px hsl(var(--primary) / 0.2);
+}
+.mobooking-radio-group-cards input[type="radio"]:focus + .card-content {
+    border-color: hsl(var(--ring));
+    box-shadow: 0 0 0 3px hsl(var(--ring) / 0.2);
+}
