@@ -135,19 +135,43 @@ body.mobooking-body {
     color: hsl(var(--foreground));
     margin: 0 0 1rem 0;
 }
-#mobooking-summary-content .summary-item {
-    display: flex;
-    justify-content: space-between;
-    padding: 0.75rem 0;
-    border-bottom: 1px solid hsl(var(--border));
+#mobooking-summary-content {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0.75rem 1.5rem;
 }
+
+#mobooking-summary-content .summary-item {
+    grid-column: 1 / -1;
+    display: contents; /* Allows the children to participate in the parent grid */
+}
+
+#mobooking-summary-content .summary-item > span:first-child {
+    text-align: left;
+}
+
+#mobooking-summary-content .summary-item > span:last-child {
+    text-align: right;
+    font-weight: 500;
+}
+
 #mobooking-summary-content .summary-total {
-    display: flex;
-    justify-content: space-between;
-    font-weight: 700;
-    font-size: 1.1rem;
+    grid-column: 1 / -1;
+    display: contents;
+}
+
+#mobooking-summary-content .summary-total > strong {
+    margin-top: 1rem;
     padding-top: 1rem;
-    margin-top: 0.5rem;
+    border-top: 1px solid hsl(var(--border));
+}
+
+#mobooking-summary-content .summary-total > strong:first-child {
+    text-align: left;
+}
+#mobooking-summary-content .summary-total > strong:last-child {
+    text-align: right;
+    font-size: 1.25rem;
 }
 
 /* Compact Summary */
