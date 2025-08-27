@@ -472,13 +472,11 @@ jQuery(document).ready(function ($) {
       )}' style="position:absolute;opacity:0;pointer-events:none;">
           <div class="mobooking-service-header">
             ${
-              svc.icon
-                ? `<div class="mobooking-service-icon"><img src="${
-                    svc.icon
-                  }" alt="${escapeHtml(
-                    svc.name
-                  )}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;"></div>`
-                : ""
+              (CONFIG.settings.service_card_display === 'icon' && svc.icon)
+                ? `<div class="mobooking-service-icon"><img src="${svc.icon}" alt="${escapeHtml(svc.name)}"></div>`
+                : (svc.image_url)
+                ? `<div class="mobooking-service-image"><img src="${svc.image_url}" alt="${escapeHtml(svc.name)}"></div>`
+                : ''
             }
             <div style="flex:1;">
               <div class="mobooking-service-title">${escapeHtml(svc.name)}</div>

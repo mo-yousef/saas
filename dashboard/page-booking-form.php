@@ -225,6 +225,20 @@ if (!empty($current_slug)) {
                                                 <p class="description"><?php esc_html_e('Display a progress indicator showing the current step in the booking process.', 'mobooking'); ?></p>
                                             </div>
                                         </div>
+                                        <div class="form-group">
+                                            <label><?php esc_html_e('Service Card Display', 'mobooking'); ?></label>
+                                            <div class="mobooking-radio-group">
+                                                <label>
+                                                    <input type="radio" name="bf_service_card_display" value="image" <?php checked(mobooking_get_setting_value($bf_settings, 'bf_service_card_display', 'image'), 'image'); ?>>
+                                                    <?php esc_html_e('Show Image', 'mobooking'); ?>
+                                                </label>
+                                                <label>
+                                                    <input type="radio" name="bf_service_card_display" value="icon" <?php checked(mobooking_get_setting_value($bf_settings, 'bf_service_card_display', 'image'), 'icon'); ?>>
+                                                    <?php esc_html_e('Show Icon', 'mobooking'); ?>
+                                                </label>
+                                            </div>
+                                            <p class="description"><?php esc_html_e('Choose what to display on the service cards in the booking form.', 'mobooking'); ?></p>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="mobooking-card">
@@ -284,13 +298,17 @@ if (!empty($current_slug)) {
                                                 <div class="preview-progress-fill"></div>
                                             </div>
                                             <div class="preview-form-content">
-                                                <div class="preview-form-group">
-                                                    <label><?php esc_html_e('Your Name', 'mobooking'); ?></label>
-                                                    <input type="text" readonly>
-                                                </div>
-                                                <div class="preview-form-group">
-                                                    <label><?php esc_html_e('Your Email', 'mobooking'); ?></label>
-                                                    <input type="email" readonly>
+                                                <div class="preview-service-card">
+                                                    <div id="preview-service-card-image" style="display: none;">
+                                                        <img src="https://via.placeholder.com/150" alt="Service Image">
+                                                    </div>
+                                                    <div id="preview-service-card-icon">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12V8a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8"></path><polygon points="22 12 18 12 20 7 22 12"></polygon></svg>
+                                                    </div>
+                                                    <div>
+                                                        <strong>Sample Service</strong>
+                                                        <p>A brief description.</p>
+                                                    </div>
                                                 </div>
                                                 <div class="preview-form-group">
                                                     <button type="button" class="preview-button"><?php esc_html_e('Continue', 'mobooking'); ?></button>
