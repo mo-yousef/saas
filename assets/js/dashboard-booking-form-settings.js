@@ -431,7 +431,9 @@ jQuery(document).ready(function ($) {
     progressBar: $('.preview-progress-bar'),
     progressFill: $('.preview-progress-fill'),
     button: $('.preview-button'),
-    inputs: $('.preview-form-group input')
+    inputs: $('.preview-form-group input'),
+    serviceCardImage: $('#preview-service-card-image'),
+    serviceCardIcon: $('#preview-service-card-icon')
   };
 
   const formInputs = {
@@ -441,7 +443,8 @@ jQuery(document).ready(function ($) {
     backgroundColor: $('#bf_background_color'),
     textColor: $('#bf_text_color'),
     borderRadius: $('#bf_border_radius'),
-    showProgressBar: $('#bf_show_progress_bar')
+    showProgressBar: $('#bf_show_progress_bar'),
+    serviceCardDisplay: $('input[name="bf_service_card_display"]')
   };
 
   function updatePreview() {
@@ -449,6 +452,7 @@ jQuery(document).ready(function ($) {
     const backgroundColor = formInputs.backgroundColor.val() || '#ffffff';
     const textColor = formInputs.textColor.val() || '#333333';
     const borderRadius = (formInputs.borderRadius.val() || 8) + 'px';
+    const cardDisplay = formInputs.serviceCardDisplay.filter(':checked').val();
 
     // Update content
     preview.headerText.text(formInputs.headerText.val() || 'Book Our Services Online');
@@ -467,6 +471,15 @@ jQuery(document).ready(function ($) {
       preview.progressBar.show();
     } else {
       preview.progressBar.hide();
+    }
+
+    // Toggle service card display
+    if (cardDisplay === 'icon') {
+        preview.serviceCardImage.hide();
+        preview.serviceCardIcon.show();
+    } else {
+        preview.serviceCardImage.show();
+        preview.serviceCardIcon.hide();
     }
   }
 
