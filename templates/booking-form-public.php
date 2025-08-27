@@ -57,6 +57,7 @@ $form_config = [
     'header_text' => $bf_settings['bf_header_text'] ?? 'Book Our Services Online',
     'show_progress_bar' => ($bf_settings['bf_show_progress_bar'] ?? '1') === '1',
     'success_message' => $bf_settings['bf_success_message'] ?? 'Thank you for your booking! We will contact you soon to confirm the details.',
+    'service_card_display' => $bf_settings['bf_service_card_display'] ?? 'image',
 ];
 
 // Check if form is disabled

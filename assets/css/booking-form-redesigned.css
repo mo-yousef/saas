@@ -184,7 +184,51 @@ body.mobooking-body {
     gap: 1rem;
 }
 .mobooking-service-card {
-    /* ... modern card styles from previous attempts ... */
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius);
+    padding: 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.mobooking-service-card:hover {
+    border-color: hsl(var(--primary));
+    background-color: hsl(var(--accent));
+}
+.mobooking-service-card.selected {
+    border-color: hsl(var(--primary));
+    box-shadow: 0 0 0 2px hsl(var(--ring) / 0.2);
+    background-color: hsl(var(--primary) / 0.05);
+}
+.mobooking-service-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+.mobooking-service-image img,
+.mobooking-service-icon img {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: var(--radius-sm);
+}
+.mobooking-service-title {
+    font-weight: 600;
+}
+.mobooking-service-description {
+    font-size: 0.875rem;
+    color: hsl(var(--muted-foreground));
+}
+.mobooking-service-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.875rem;
+    color: hsl(var(--muted-foreground));
+}
+.mobooking-service-price {
+    font-weight: 600;
+    color: hsl(var(--foreground));
 }
 
 /* Summary Card */

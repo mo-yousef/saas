@@ -323,6 +323,9 @@ private function validate_and_sanitize_booking_form_settings($settings_data) {
         ],
         'bf_enable_location_check' => [ // Added for explicit boolean handling
             'type' => 'boolean'
+        ],
+        'bf_service_card_display' => [
+            'type' => 'text'
         ]
     ];
 
