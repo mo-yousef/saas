@@ -370,8 +370,12 @@ jQuery(document).ready(function ($) {
             $("#mobooking-step-1 button[type=submit]").prop("disabled", true);
         }
       })
-      .fail(function () {
-        showFeedback(els.areaFeedback, "error", CONFIG.i18n.error_ajax || "Network error");
+      .fail(function (xhr) {
+        let errorMessage = CONFIG.i18n.error_ajax || "Network error";
+        if (xhr.responseJSON && xhr.responseJSON.data && xhr.responseJSON.data.message) {
+            errorMessage = xhr.responseJSON.data.message;
+        }
+        showFeedback(els.areaFeedback, "error", errorMessage);
       });
   }, 500));
 
