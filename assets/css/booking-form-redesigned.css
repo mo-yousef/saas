@@ -45,52 +45,22 @@ body.mobooking-body {
 
 /* Main Layout */
 .mobooking-layout {
-    display: flex;
-    flex-direction: column;
-    gap: 2rem;
+    max-width: 800px;
+    margin: 0 auto;
 }
 
 .mobooking-form-card {
-    flex-grow: 1;
     background: hsl(var(--card));
     border-radius: var(--radius-lg);
     border: 1px solid hsl(var(--border));
     box-shadow: var(--shadow);
-    display: flex;
-    flex-direction: column;
+    overflow: hidden;
 }
 
 #mobooking-live-summary {
-    width: 100%;
     background: hsl(var(--secondary));
-    border-radius: var(--radius-lg);
-    border: 1px solid hsl(var(--border));
     padding: 1.5rem;
-    position: sticky;
-    top: 2rem;
-    height: fit-content;
-    opacity: 0;
-    transform: translateY(20px);
-    transition: opacity 0.4s ease, transform 0.4s ease;
-    visibility: hidden;
-}
-
-.summary-visible #mobooking-live-summary {
-    opacity: 1;
-    transform: translateY(0);
-    visibility: visible;
-}
-
-/* Desktop Layout */
-@media (min-width: 992px) {
-    .mobooking-layout {
-        flex-direction: row;
-        align-items: flex-start;
-    }
-    #mobooking-live-summary {
-        width: 380px;
-        flex-shrink: 0;
-    }
+    border-top: 1px solid hsl(var(--border));
 }
 
 
@@ -199,19 +169,25 @@ body.mobooking-body {
     padding: 1.5rem;
 }
 
+/* Smooth Transitions for Collapsible Sections */
+.mobooking-collapsible {
+    overflow: hidden;
+    transition: max-height 0.5s ease-in-out, opacity 0.5s ease-in-out;
+    max-height: 1000px; /* Large enough to not clip content */
+    opacity: 1;
+}
+
+.mobooking-collapsible.is-collapsed {
+    max-height: 0;
+    opacity: 0;
+}
+
 /* Responsive */
 @media (max-width: 991px) {
-    .mobooking-layout {
-        flex-direction: column-reverse;
+    .mobooking-public-form-container {
+        padding: 0;
     }
-    #mobooking-live-summary {
-        position: static;
-        width: 100%;
-        margin-bottom: 1rem;
-        transform: none; /* Reset for mobile */
-    }
-    .summary-visible #mobooking-live-summary {
-        opacity: 1;
-        visibility: visible;
+    .mobooking-form-card {
+        border-radius: 0;
     }
 }

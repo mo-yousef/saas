@@ -239,8 +239,26 @@ $script_data = [
             <?php if ($form_config['enable_service_frequency']): ?>
             <div class="mobooking-step-content" id="mobooking-step-5">
                 <h2 class="mobooking-step-title"><?php echo esc_html($bf_settings['bf_step_5_title'] ?? 'Service Frequency'); ?></h2>
-                <div id="mobooking-frequency-options-container">
-                     <!-- Frequency options will be loaded here or are static -->
+                <div class="mobooking-form-group">
+                    <p class="mobooking-label"><?php _e('How often would you like this service?', 'mobooking'); ?></p>
+                    <div class="mobooking-radio-group">
+                        <label class="mobooking-radio-option">
+                            <input type="radio" name="frequency" value="one-time" checked>
+                            <span><?php _e('One-time', 'mobooking'); ?></span>
+                        </label>
+                        <label class="mobooking-radio-option">
+                            <input type="radio" name="frequency" value="weekly">
+                            <span><?php _e('Weekly', 'mobooking'); ?></span>
+                        </label>
+                        <label class="mobooking-radio-option">
+                            <input type="radio" name="frequency" value="monthly">
+                            <span><?php _e('Monthly', 'mobooking'); ?></span>
+                        </label>
+                        <label class="mobooking-radio-option">
+                            <input type="radio" name="frequency" value="daily">
+                            <span><?php _e('Daily', 'mobooking'); ?></span>
+                        </label>
+                    </div>
                 </div>
                 <div class="mobooking-button-group">
                     <button type="button" class="mobooking-btn mobooking-btn-secondary" onclick="moBookingPreviousStep()">
@@ -382,7 +400,7 @@ $script_data = [
         </div>
 
         <!-- Live Summary Sidebar -->
-        <div class="mobooking-summary-card" id="mobooking-live-summary">
+        <div class="mobooking-summary-card" id="mobooking-live-summary" style="display: none;">
             <h3 class="summary-title"><?php _e('Booking Summary', 'mobooking'); ?></h3>
             <div id="mobooking-summary-content">
                 <p><?php _e('Your selections will appear here.', 'mobooking'); ?></p>
