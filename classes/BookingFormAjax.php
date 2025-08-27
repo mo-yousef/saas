@@ -85,7 +85,7 @@ class BookingFormAjax {
             // Get tenant's service areas
             $areas_table = Database::get_table_name('areas');
             $areas = $this->wpdb->get_results($this->wpdb->prepare(
-                "SELECT area_type, area_value, country_code FROM $areas_table WHERE user_id = %d",
+                "SELECT area_name, area_type, area_value, country_code FROM $areas_table WHERE user_id = %d",
                 $tenant_id
             ), ARRAY_A);
 
@@ -101,6 +101,7 @@ class BookingFormAjax {
 
             $location_normalized = strtolower(trim($location));
             $is_covered = false;
+            $area_name = '';
 
             foreach ($areas as $area) {
                 $area_value_normalized = strtolower(trim($area['area_value']));
@@ -110,6 +111,7 @@ class BookingFormAjax {
                     strpos($location_normalized, $area_value_normalized) !== false ||
                     strpos($area_value_normalized, $location_normalized) !== false) {
                     $is_covered = true;
+                    $area_name = $area['area_name'];
                     break;
                 }
 
@@ -119,6 +121,7 @@ class BookingFormAjax {
                     preg_match('/^\d{5}/', $area_value_normalized)) {
                     if (substr($location_normalized, 0, 5) === substr($area_value_normalized, 0, 5)) {
                         $is_covered = true;
+                        $area_name = $area['area_name'];
                         break;
                     }
                 }
@@ -127,7 +130,8 @@ class BookingFormAjax {
             if ($is_covered) {
                 wp_send_json_success([
                     'message' => __('Service is available in your area!', 'mobooking'),
-                    'covered' => true
+                    'covered' => true,
+                    'area_name' => $area_name
                 ]);
             } else {
                 wp_send_json_error([

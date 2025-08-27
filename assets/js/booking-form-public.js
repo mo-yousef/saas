@@ -41,6 +41,8 @@ jQuery(document).ready(function ($) {
   const state = {
     currentStep: 1,
     totalSteps: 9,
+    zip: "",
+    areaName: "",
     service: null, // { service_id, name, price, duration, ... }
     optionsById: {}, // { [option_id]: { id, name, type, value, price, meta } }
     pricing: {
@@ -127,6 +129,10 @@ jQuery(document).ready(function ($) {
     if (step === 2) loadServices();
     if (step === 3) ensureOptionsLoaded();
     if (step === 6) initDatePicker();
+    if (step === 7) {
+        $("#mobooking-zip-readonly").val(state.zip);
+        // TODO: Initialize Google Maps Places Autocomplete here when API key is available
+    }
     if (step === 8) renderConfirmationSummary();
 
     // Compact summary for customer details step
@@ -319,24 +325,30 @@ jQuery(document).ready(function ($) {
   // STEP 1: AREA CHECK (optional)
   // ==========================================
 
-  els.areaForm.on("submit", function (e) {
-    e.preventDefault();
-    // Validate only ZIP since Sweden-only
-    const zip = $("#mobooking-zip").val()?.trim();
-    if (!zip) {
-      showFeedback(
-        els.areaFeedback,
-        "error",
-        CONFIG.i18n.zip_required || "Please enter your ZIP code."
-      );
-      return;
+  function debounce(func, wait) {
+      let timeout;
+      return function(...args) {
+          const context = this;
+          clearTimeout(timeout);
+          timeout = setTimeout(() => func.apply(context, args), wait);
+      };
+  }
+
+  $("#mobooking-zip").on("input", debounce(function () {
+    const zip = $(this).val()?.trim();
+    state.zip = zip;
+
+    if (zip.length < 3) { // Don't search for very short zips
+        $("#mobooking-area-name").text("");
+        els.areaFeedback.hide();
+        return;
     }
 
     showFeedback(
       els.areaFeedback,
-      "",
+      "info",
       CONFIG.i18n.checking_availability || "Checking availability..."
-    ).text(CONFIG.i18n.checking_availability || "Checking availability...");
+    );
 
     $.post(CONFIG.ajax_url, {
       action: "mobooking_check_service_area",
@@ -345,47 +357,31 @@ jQuery(document).ready(function ($) {
       location: zip,
     })
       .done(function (res) {
-        // Treat missing/unconfigured areas as covered to avoid blocking bookings
-        if (
-          res.success ||
-          /no service areas configured/i.test(res?.data?.message || "")
-        ) {
-          showFeedback(
-            els.areaFeedback,
-            "success",
-            res.data?.message ||
-              CONFIG.i18n.service_available ||
-              "Service is available in your area!"
-          );
-          setTimeout(() => showStep(2), 400);
+        if (res.success) {
+            state.areaName = res.data.area_name || '';
+            $("#mobooking-area-name").text(state.areaName).addClass('valid');
+            showFeedback(els.areaFeedback, "success", res.data?.message || CONFIG.i18n.service_available);
+            // Enable the next button if it was disabled
+            $("#mobooking-step-1 button[type=submit]").prop("disabled", false);
         } else {
-          showFeedback(
-            els.areaFeedback,
-            "error",
-            res.data?.message ||
-              CONFIG.i18n.service_not_available ||
-              "Service is not available in your area."
-          );
+            state.areaName = '';
+            $("#mobooking-area-name").text("").removeClass('valid');
+            showFeedback(els.areaFeedback, "error", res.data?.message || CONFIG.i18n.service_not_available);
+            $("#mobooking-step-1 button[type=submit]").prop("disabled", true);
         }
       })
-      .fail(function (xhr) {
-        // If admin-ajax is missing (404), allow proceed and rely on direct services endpoint fallback
-        if (xhr?.status === 404) {
-          showFeedback(
-            els.areaFeedback,
-            "success",
-            CONFIG.i18n.service_available ||
-              "Service is available in your area!"
-          );
-          setTimeout(() => showStep(2), 400);
-          return;
-        }
-        showFeedback(
-          els.areaFeedback,
-          "error",
-          CONFIG.i18n.error_ajax || "Network error"
-        );
+      .fail(function () {
+        showFeedback(els.areaFeedback, "error", CONFIG.i18n.error_ajax || "Network error");
       });
+  }, 500));
+
+  els.areaForm.on("submit", function (e) {
+    e.preventDefault();
+    if(state.areaName) {
+        showStep(2);
+    } else {
+        showFeedback(els.areaFeedback, "error", "Please enter a valid ZIP code in a serviced area.");
+    }
   });
 
   // ==========================================
