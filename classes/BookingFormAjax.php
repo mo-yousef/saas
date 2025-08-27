@@ -85,7 +85,7 @@ class BookingFormAjax {
             // Get tenant's service areas
             $areas_table = Database::get_table_name('areas');
             $areas = $this->wpdb->get_results($this->wpdb->prepare(
-                "SELECT area_name, area_type, area_value, country_code FROM $areas_table WHERE user_id = %d",
+                "SELECT area_type, area_value, area_data, country_code FROM $areas_table WHERE user_id = %d",
                 $tenant_id
             ), ARRAY_A);
 
@@ -111,17 +111,19 @@ class BookingFormAjax {
                     strpos($location_normalized, $area_value_normalized) !== false ||
                     strpos($area_value_normalized, $location_normalized) !== false) {
                     $is_covered = true;
-                    $area_name = $area['area_name'];
+                    $area_data = json_decode($area['area_data'], true);
+                    $area_name = $area_data['place'] ?? '';
                     break;
                 }
 
                 // For ZIP codes, check if it's a 5-digit match
-                if ($area['area_type'] === 'zipcode' && 
+                if ($area['area_type'] === 'zip_code' &&
                     preg_match('/^\d{5}/', $location_normalized) && 
                     preg_match('/^\d{5}/', $area_value_normalized)) {
                     if (substr($location_normalized, 0, 5) === substr($area_value_normalized, 0, 5)) {
                         $is_covered = true;
-                        $area_name = $area['area_name'];
+                        $area_data = json_decode($area['area_data'], true);
+                        $area_name = $area_data['place'] ?? '';
                         break;
                     }
                 }
