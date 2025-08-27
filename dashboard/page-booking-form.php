@@ -227,14 +227,18 @@ if (!empty($current_slug)) {
                                         </div>
                                         <div class="form-group">
                                             <label><?php esc_html_e('Service Card Display', 'mobooking'); ?></label>
-                                            <div class="mobooking-radio-group">
+                                            <div class="mobooking-radio-group-cards">
                                                 <label>
                                                     <input type="radio" name="bf_service_card_display" value="image" <?php checked(mobooking_get_setting_value($bf_settings, 'bf_service_card_display', 'image'), 'image'); ?>>
-                                                    <?php esc_html_e('Show Image', 'mobooking'); ?>
+                                                    <div class="card-content">
+                                                        <span><?php esc_html_e('Show Image', 'mobooking'); ?></span>
+                                                    </div>
                                                 </label>
                                                 <label>
                                                     <input type="radio" name="bf_service_card_display" value="icon" <?php checked(mobooking_get_setting_value($bf_settings, 'bf_service_card_display', 'image'), 'icon'); ?>>
-                                                    <?php esc_html_e('Show Icon', 'mobooking'); ?>
+                                                    <div class="card-content">
+                                                        <span><?php esc_html_e('Show Icon', 'mobooking'); ?></span>
+                                                    </div>
                                                 </label>
                                             </div>
                                             <p class="description"><?php esc_html_e('Choose what to display on the service cards in the booking form.', 'mobooking'); ?></p>
@@ -310,6 +314,14 @@ if (!empty($current_slug)) {
                                                         <p>A brief description.</p>
                                                     </div>
                                                 </div>
+                                                <div class="preview-form-group">
+                                                     <label><?php esc_html_e('Sample Input', 'mobooking'); ?></label>
+                                                     <input type="text" readonly>
+                                                </div>
+                                                 <div class="preview-form-group">
+                                                     <label><?php esc_html_e('Sample Select', 'mobooking'); ?></label>
+                                                     <select readonly><option><?php esc_html_e('Option 1', 'mobooking'); ?></option></select>
+                                                 </div>
                                                 <div class="preview-form-group">
                                                     <button type="button" class="preview-button"><?php esc_html_e('Continue', 'mobooking'); ?></button>
                                                 </div>
