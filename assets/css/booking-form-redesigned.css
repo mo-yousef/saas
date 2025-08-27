@@ -1,0 +1,217 @@
+/*
+==========================================================================
+MODERN BOOKING FORM STYLES
+Author: Jules
+==========================================================================
+*/
+
+/* CSS Variables */
+:root {
+  --background: 220 20% 98%;
+  --foreground: 220 15% 20%;
+  --card: 0 0% 100%;
+  --card-foreground: 220 15% 20%;
+  --primary: 200 90% 50%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 220 15% 95%;
+  --secondary-foreground: 220 15% 20%;
+  --muted: 220 15% 95%;
+  --muted-foreground: 220 10% 45%;
+  --accent: 200 90% 50%;
+  --accent-foreground: 0 0% 100%;
+  --destructive: 0 80% 60%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 220 15% 90%;
+  --input: 220 15% 90%;
+  --ring: 200 90% 55%;
+  --radius: 0.75rem;
+  --radius-sm: 0.5rem;
+  --radius-lg: 1rem;
+  --shadow: 0 4px 12px rgba(0,0,0,0.05);
+  --shadow-lg: 0 10px 25px rgba(0,0,0,0.1);
+}
+
+/* General Body & Container */
+body.mobooking-body {
+  background-color: hsl(var(--background));
+  font-family: "Inter", sans-serif;
+}
+
+.mobooking-public-form-container {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+/* Main Layout */
+.mobooking-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.mobooking-form-card {
+    flex-grow: 1;
+    background: hsl(var(--card));
+    border-radius: var(--radius-lg);
+    border: 1px solid hsl(var(--border));
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+}
+
+#mobooking-live-summary {
+    width: 100%;
+    background: hsl(var(--secondary));
+    border-radius: var(--radius-lg);
+    border: 1px solid hsl(var(--border));
+    padding: 1.5rem;
+    position: sticky;
+    top: 2rem;
+    height: fit-content;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+    visibility: hidden;
+}
+
+.summary-visible #mobooking-live-summary {
+    opacity: 1;
+    transform: translateY(0);
+    visibility: visible;
+}
+
+/* Desktop Layout */
+@media (min-width: 992px) {
+    .mobooking-layout {
+        flex-direction: row;
+        align-items: flex-start;
+    }
+    #mobooking-live-summary {
+        width: 380px;
+        flex-shrink: 0;
+    }
+}
+
+
+/* Header */
+.mobooking-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+.mobooking-header h1 {
+    font-size: 2.25rem;
+    font-weight: 800;
+    color: hsl(var(--foreground));
+}
+.mobooking-header p {
+    color: hsl(var(--muted-foreground));
+    font-size: 1.1rem;
+}
+
+/* Progress Bar */
+.mobooking-progress-container {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid hsl(var(--border));
+}
+/* ... existing progress bar styles ... */
+
+/* Step Content */
+.mobooking-step-content {
+    display: none;
+    padding: 2rem;
+    animation: fadeIn 0.4s ease-in-out;
+    flex-grow: 1;
+}
+.mobooking-step-content.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+.mobooking-step-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: hsl(var(--foreground));
+    margin-bottom: 2rem;
+}
+
+/* Form Elements */
+.mobooking-label {
+    font-weight: 600;
+    color: hsl(var(--foreground));
+}
+.mobooking-input, .mobooking-textarea, .mobooking-select {
+    height: 3rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid hsl(var(--input));
+}
+.mobooking-input:focus, .mobooking-textarea:focus, .mobooking-select:focus {
+    border-color: hsl(var(--ring));
+    box-shadow: 0 0 0 3px hsl(var(--ring) / 0.2);
+}
+
+/* Service Selection */
+#mobooking-services-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 1rem;
+}
+.mobooking-service-card {
+    /* ... modern card styles from previous attempts ... */
+}
+
+/* Summary Card */
+.summary-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: hsl(var(--foreground));
+    margin: 0 0 1rem 0;
+}
+#mobooking-summary-content .summary-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid hsl(var(--border));
+}
+#mobooking-summary-content .summary-total {
+    display: flex;
+    justify-content: space-between;
+    font-weight: 700;
+    font-size: 1.1rem;
+    padding-top: 1rem;
+    margin-top: 0.5rem;
+}
+
+/* Compact Summary */
+#mobooking-live-summary.summary-compact #mobooking-summary-content .summary-item {
+    display: none;
+}
+#mobooking-live-summary.summary-compact #mobooking-summary-content .summary-item.summary-total {
+    display: flex;
+    background-color: hsl(var(--primary) / 0.1);
+    padding: 1rem;
+    border-radius: var(--radius-sm);
+}
+
+/* Confirmation Step */
+#mobooking-confirmation-summary {
+    background-color: hsl(var(--background));
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius);
+    padding: 1.5rem;
+}
+
+/* Responsive */
+@media (max-width: 991px) {
+    .mobooking-layout {
+        flex-direction: column-reverse;
+    }
+    #mobooking-live-summary {
+        position: static;
+        width: 100%;
+        margin-bottom: 1rem;
+        transform: none; /* Reset for mobile */
+    }
+    .summary-visible #mobooking-live-summary {
+        opacity: 1;
+        visibility: visible;
+    }
+}
