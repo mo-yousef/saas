@@ -152,7 +152,10 @@ $script_data = [
                 <form id="mobooking-area-check-form">
                     <div class="mobooking-form-group">
                         <label for="mobooking-zip" class="mobooking-label"><?php _e('ZIP/Postal Code', 'mobooking'); ?> *</label>
-                        <input type="text" id="mobooking-zip" class="mobooking-input" placeholder="<?php esc_attr_e('Enter your ZIP code', 'mobooking'); ?>" required>
+                        <div class="mobooking-input-group">
+                            <input type="text" id="mobooking-zip" class="mobooking-input" placeholder="<?php esc_attr_e('Enter your ZIP code', 'mobooking'); ?>" required>
+                            <span id="mobooking-area-name" class="mobooking-area-name"></span>
+                        </div>
                     </div>
                     <div id="mobooking-location-feedback" class="mobooking-feedback"></div>
                     <div class="mobooking-button-group">
@@ -312,9 +315,14 @@ $script_data = [
                         <input type="tel" id="mobooking-customer-phone" class="mobooking-input" required>
                     </div>
                     <div class="mobooking-form-group">
-                        <label for="mobooking-service-address" class="mobooking-label"><?php _e('Service Address', 'mobooking'); ?> *</label>
-                        <input type="text" id="mobooking-service-address" class="mobooking-input" required>
+                        <label for="mobooking-zip-readonly" class="mobooking-label"><?php _e('ZIP/Postal Code', 'mobooking'); ?></label>
+                        <input type="text" id="mobooking-zip-readonly" class="mobooking-input" readonly>
                     </div>
+                </div>
+                <div class="mobooking-form-group">
+                    <label for="mobooking-service-address" class="mobooking-label"><?php _e('Service Address', 'mobooking'); ?> *</label>
+                    <input type="text" id="mobooking-service-address" class="mobooking-input" required>
+                    <p class="description"><?php _e('Start typing your address and select from the suggestions.', 'mobooking'); ?></p>
                 </div>
 
                 <!-- Property Access -->
