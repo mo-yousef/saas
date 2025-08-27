@@ -40,7 +40,7 @@ jQuery(document).ready(function ($) {
 
   const state = {
     currentStep: 1,
-    totalSteps: 8,
+    totalSteps: 9,
     service: null, // { service_id, name, price, duration, ... }
     optionsById: {}, // { [option_id]: { id, name, type, value, price, meta } }
     pricing: {
@@ -60,6 +60,7 @@ jQuery(document).ready(function ($) {
 
   // DOM refs
   const els = {
+    layout: $(".mobooking-layout"),
     progressFill: $("#mobooking-progress-fill"),
     stepIndicators: $(".mobooking-step-indicator"),
     steps: $(".mobooking-step-content"),
@@ -82,15 +83,15 @@ jQuery(document).ready(function ($) {
     emailInput: $("#mobooking-customer-email"),
     phoneInput: $("#mobooking-customer-phone"),
     addressInput: $("#mobooking-service-address"),
-    specialInstructions: $("#mobooking-special-instructions"),
     contactFeedback: $("#mobooking-contact-feedback"),
-    accessDetailsWrap: $("#mobooking-custom-access-details"),
-    accessInstructions: $("#mobooking-access-instructions"),
+    // Step 8 (Confirmation)
+    confirmationSummary: $("#mobooking-confirmation-summary"),
+    confirmationFeedback: $("#mobooking-confirmation-feedback"),
     // Live summary
-    liveSummary: $("#mobooking-summary-content"),
+    liveSummaryContainer: $("#mobooking-live-summary"),
+    liveSummaryContent: $("#mobooking-summary-content"),
     // Success
     successMessage: $("#mobooking-success-message"),
-    successSummary: $("#mobooking-booking-summary"),
   };
 
   // ==========================================
@@ -116,11 +117,25 @@ jQuery(document).ready(function ($) {
     const progress = ((idx - 1) / Math.max(1, totalInd - 1)) * 100;
     els.progressFill.css("width", `${progress}%`);
 
+    // Show/hide summary sidebar
+    if (step > 1) {
+        els.layout.addClass("summary-visible");
+    } else {
+        els.layout.removeClass("summary-visible");
+    }
+
+    // Compact summary for customer details step
+    if (step === 7) {
+        els.liveSummaryContainer.addClass("summary-compact");
+    } else {
+        els.liveSummaryContainer.removeClass("summary-compact");
+    }
+
     // Step-specific hooks
     if (step === 2) loadServices();
     if (step === 3) ensureOptionsLoaded();
     if (step === 6) initDatePicker();
-    if (step === 8) renderSuccessSummary();
+    if (step === 8) renderConfirmationSummary();
 
     updateLiveSummary();
   }
@@ -948,72 +963,67 @@ jQuery(document).ready(function ($) {
   // LIVE SUMMARY
   // ==========================================
 
-  function updateLiveSummary() {
-    if (!els.liveSummary.length) return;
+  function getSummaryHtml() {
+      let html = "";
+      if (state.service) {
+          html += `<div class="summary-item">
+              <span>${escapeHtml(state.service.name)}</span>
+              <span>${CONFIG.currency_symbol}${(parseFloat(state.service.price) || 0).toFixed(2)}</span>
+          </div>`;
+      }
 
-    let html = "";
-    if (state.service) {
-      html += `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-        <span>${escapeHtml(state.service.name)}</span>
-        <span>${CONFIG.currency_symbol}${(
-        parseFloat(state.service.price) || 0
-      ).toFixed(2)}</span>
+      const optList = Object.values(state.optionsById || {});
+      if (optList.length) {
+          optList.forEach((o) => {
+              html += `<div class="summary-item">
+                  <span>${escapeHtml(o.name)}${o.value && o.type !== 'checkbox' ? `: ${escapeHtml(String(o.value))}` : ""}</span>
+                  <span>${o.price > 0 ? `+${CONFIG.currency_symbol}${o.price.toFixed(2)}` : ""}</span>
+              </div>`;
+          });
+      }
+
+      if (state.date || state.time) {
+          html += `<div class="summary-item">
+              <span>Date & Time</span>
+              <strong>${escapeHtml(state.date || "")}${state.time ? ` @ ${escapeHtml(state.time)}` : ""}</strong>
+          </div>`;
+      }
+
+      html += `<div class="summary-item summary-total">
+          <strong>Total</strong>
+          <strong>${CONFIG.currency_symbol}${(state.pricing.total || 0).toFixed(2)}</strong>
       </div>`;
-    }
-
-    const optList = Object.values(state.optionsById || {});
-    if (optList.length) {
-      html += `<div style="color:#6b7280;margin:6px 0;">Options:</div>`;
-      optList.forEach((o) => {
-        html += `<div style="display:flex;justify-content:space-between;margin-bottom:4px;color:#6b7280;">
-          <span>${escapeHtml(o.name)}${
-          o.value ? `: ${escapeHtml(String(o.value))}` : ""
-        }</span>
-          <span>${
-            o.price > 0 ? `+${CONFIG.currency_symbol}${o.price.toFixed(2)}` : ""
-          }</span>
-        </div>`;
-      });
-    }
-
-    if (state.date || state.time) {
-      html += `<div style="margin-top:6px;">Date/Time: <strong>${escapeHtml(
-        state.date || "-"
-      )}${state.time ? ` ${escapeHtml(state.time)}` : ""}</strong></div>`;
-    }
-
-    if (state.customer?.name) {
-      html += `<div style="margin-top:6px;">Name: <strong>${escapeHtml(
-        state.customer.name
-      )}</strong></div>`;
-    }
-
-    html += `<hr style="border:0;border-top:1px solid #e5e7eb;margin:10px 0;">`;
-    html += `<div style="display:flex;justify-content:space-between;align-items:center;">
-      <strong>Total</strong>
-      <strong>${CONFIG.currency_symbol}${(state.pricing.total || 0).toFixed(
-      2
-    )}</strong>
-    </div>`;
-
-    els.liveSummary.html(
-      html || `<p>${"Complete the form to see your booking summary"}</p>`
-    );
+      return html;
   }
 
+  function updateLiveSummary() {
+      if (!els.liveSummaryContent.length) return;
+      const html = getSummaryHtml();
+      els.liveSummaryContent.html(html || `<p>${"Your selections will appear here."}</p>`);
+  }
+
+  function renderConfirmationSummary() {
+      if (!els.confirmationSummary.length) return;
+      const html = getSummaryHtml();
+      els.confirmationSummary.html(html);
+  }
+
+
   // ==========================================
-  // SUBMISSION (Step 7 button)
+  // SUBMISSION
   // ==========================================
 
-  function submitForm() {
-    if (!validateStep(7)) return;
+  function confirmAndSubmitBooking() {
+    // Final validation before submission
+    if (!validateStep(7)) { // Re-validate customer details just in case
+        showStep(7);
+        return;
+    }
 
-    // Collect step data
+    // Collect all data
     state.pets.has_pets = $('input[name="has_pets"]:checked').val() === "yes";
     state.pets.details = $("#mobooking-pet-details").val().trim();
-    state.frequency =
-      $('input[name="frequency"]:checked').val() || state.frequency;
-
+    state.frequency = $('input[name="frequency"]:checked').val() || state.frequency;
     state.customer = {
       name: els.nameInput.val().trim(),
       email: els.emailInput.val().trim(),
@@ -1021,108 +1031,41 @@ jQuery(document).ready(function ($) {
       address: els.addressInput.val().trim(),
       date: state.date,
       time: state.time,
-      instructions: els.specialInstructions.val().trim(),
+      instructions: $("#mobooking-special-instructions").val()?.trim() || "",
     };
-
-    state.propertyAccess.details = els.accessInstructions.val().trim();
-
-    // Build payload
-    const selected_services = [
-      {
-        service_id: state.service?.service_id || 0,
-        configured_options: state.optionsById,
-      },
-    ];
+    state.propertyAccess.method = $('input[name="property_access"]:checked').val() || 'home';
+    state.propertyAccess.details = $("#mobooking-access-instructions").val()?.trim() || "";
 
     const payload = {
       action: "mobooking_create_booking",
       tenant_id: CONFIG.tenant_id,
       nonce: CONFIG.nonce,
-      selected_services: JSON.stringify(selected_services),
+      selected_services: JSON.stringify([{ service_id: state.service?.service_id, configured_options: state.optionsById }]),
       service_options: JSON.stringify(state.optionsById),
       customer_details: JSON.stringify(state.customer),
       service_frequency: state.frequency,
-      pet_information: JSON.stringify({
-        has_pets: state.pets.has_pets,
-        details: state.pets.details,
-      }),
-      property_access: JSON.stringify({
-        method: state.propertyAccess.method,
-        details: state.propertyAccess.details,
-      }),
+      pet_information: JSON.stringify(state.pets),
+      property_access: JSON.stringify(state.propertyAccess),
       pricing: JSON.stringify(state.pricing),
     };
 
-    showFeedback(
-      els.contactFeedback,
-      "",
-      CONFIG.i18n.submitting_booking || "Submitting booking..."
-    ).text(CONFIG.i18n.submitting_booking || "Submitting booking...");
+    showFeedback(els.confirmationFeedback, "", CONFIG.i18n.submitting_booking || "Submitting booking...");
 
     $.post(CONFIG.ajax_url, payload)
       .done(function (res) {
         if (res.success) {
-          showStep(8);
-          renderSuccessSummary(res.data);
+          showStep(9); // Success step is now 9
         } else {
-          showFeedback(
-            els.contactFeedback,
-            "error",
-            res.data?.message || CONFIG.i18n.booking_error || "Submission error"
-          );
+          showFeedback(els.confirmationFeedback, "error", res.data?.message || CONFIG.i18n.booking_error || "Submission error");
         }
       })
       .fail(function () {
-        showFeedback(
-          els.contactFeedback,
-          "error",
-          CONFIG.i18n.error_ajax || "Network error"
-        );
+        showFeedback(els.confirmationFeedback, "error", CONFIG.i18n.error_ajax || "Network error");
       });
   }
 
-  window.moBookingSubmitForm = submitForm;
-
-  // Step 8 success summary
-  function renderSuccessSummary(serverData) {
-    if (!els.successSummary.length) return;
-
-    let html = "";
-    if (state.service) {
-      html += `<div><strong>Service:</strong> ${escapeHtml(
-        state.service.name
-      )}</div>`;
-    }
-    const opts = Object.values(state.optionsById || {});
-    if (opts.length) {
-      html += `<div style=\"margin-top:6px;\"><strong>Options:</strong></div>`;
-      opts.forEach((o) => {
-        html += `<div style=\"color:#6b7280;\">- ${escapeHtml(o.name)}${
-          o.value ? `: ${escapeHtml(String(o.value))}` : ""
-        }${
-          o.price > 0
-            ? ` (+${CONFIG.currency_symbol}${o.price.toFixed(2)})`
-            : ""
-        }</div>`;
-      });
-    }
-    if (state.date || state.time) {
-      html += `<div style=\"margin-top:6px;\"><strong>Date/Time:</strong> ${escapeHtml(
-        state.date || "-"
-      )}${state.time ? ` ${escapeHtml(state.time)}` : ""}</div>`;
-    }
-    html += `<div style=\"margin-top:6px;\"><strong>Total:</strong> ${
-      CONFIG.currency_symbol
-    }${(state.pricing.total || 0).toFixed(2)}</div>`;
-
-    if (serverData?.booking_reference) {
-      html += `<div style=\"margin-top:6px;\"><strong>Reference:</strong> ${escapeHtml(
-        serverData.booking_reference
-      )}</div>`;
-    }
-
-    els.successSummary.html(html);
-  }
+  // Expose to global scope for template buttons
+  window.moBookingSubmitForm = confirmAndSubmitBooking;
 
   window.moBookingResetForm = function () {
     window.location.reload();
