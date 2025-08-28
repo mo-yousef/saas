@@ -5,35 +5,35 @@ General Page & Common Card Styling
 */
 /* Define Shadcn-like CSS variables for dashboard context */
 :root {
-  --background: 0 0% 100%;
-  --foreground: 222.2 84% 4.9%;
-  --card: 0 0% 100%;
-  --card-foreground: 222.2 84% 4.9%;
-  --popover: 0 0% 100%;
-  --popover-foreground: 222.2 84% 4.9%;
-  --primary: 221.2 83.2% 53.3%;
-  --primary-foreground: 210 40% 98%;
-  --secondary: 210 40% 96%;
-  --secondary-foreground: 222.2 84% 4.9%;
-  --muted: 210 40% 96%;
-  --muted-foreground: 215.4 16.3% 46.9%;
-  --accent: 210 40% 96%;
-  --accent-foreground: 222.2 84% 4.9%;
-  --destructive: 0 84.2% 60.2%;
-  --destructive-foreground: 210 40% 98%;
-  --border: 214.3 31.8% 91.4%;
-  --input: 214.3 31.8% 91.4%;
-  --ring: 221.2 83.2% 53.3%;
-  --radius: 0.5rem;
-  --radius-sm: 0.375rem;
-  --radius-lg: 0.75rem;
-  --input-height: 2.5rem;
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222.2 84% 4.9%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96%;
+    --accent-foreground: 222.2 84% 4.9%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221.2 83.2% 53.3%;
+    --radius: 0.5rem;
+    --radius-sm: 0.375rem;
+    --radius-lg: 0.75rem;
+    --input-height: 2.5rem;
 }
 
 body {
-  font-family: "Outfit", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-    Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif !important;
-  background-color: hsl(var(--muted));
+    font-family: "Outfit", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+        Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif !important;
+    background-color: hsl(var(--muted));
 }
 
 .mobooking-public-form-container {
@@ -133,8 +133,13 @@ body {
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
 }
 
 .mobooking-step-title {
@@ -157,7 +162,8 @@ body {
     margin-bottom: 0.5rem;
 }
 
-.mobooking-input, .mobooking-textarea {
+.mobooking-input,
+.mobooking-textarea {
     width: 100%;
     height: var(--input-height);
     padding: 0.5rem 0.75rem;
@@ -174,7 +180,8 @@ body {
     min-height: 80px;
 }
 
-.mobooking-input:focus, .mobooking-textarea:focus {
+.mobooking-input:focus,
+.mobooking-textarea:focus {
     outline: 2px solid transparent;
     outline-offset: 2px;
     border-color: hsl(var(--ring));
@@ -192,45 +199,51 @@ body {
 
 /* Buttons */
 .mobooking-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  white-space: nowrap;
-  border-radius: var(--radius-sm);
-  font-size: 0.875rem;
-  font-weight: 500;
-  padding: 0.5rem 1rem;
-  height: var(--input-height);
-  cursor: pointer;
-  transition: all 0.15s ease-in-out;
-  user-select: none;
-  border: 1px solid transparent;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+    border-radius: var(--radius-sm);
+    font-size: 0.875rem;
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    height: var(--input-height);
+    cursor: pointer;
+    transition: all 0.15s ease-in-out;
+    user-select: none;
+    border: 1px solid transparent;
 }
+
 .mobooking-btn:focus-visible {
-  outline: 2px solid transparent;
-  outline-offset: 2px;
-  box-shadow: 0 0 0 2px hsl(var(--background)), 0 0 0 4px hsl(var(--ring));
+    outline: 2px solid transparent;
+    outline-offset: 2px;
+    box-shadow: 0 0 0 2px hsl(var(--background)), 0 0 0 4px hsl(var(--ring));
 }
+
 .mobooking-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+    opacity: 0.5;
+    cursor: not-allowed;
 }
+
 .mobooking-btn-primary {
-  background-color: hsl(var(--primary));
-  color: hsl(var(--primary-foreground));
-  border-color: hsl(var(--primary));
+    background-color: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+    border-color: hsl(var(--primary));
 }
+
 .mobooking-btn-primary:hover:not(:disabled) {
-  background-color: hsl(221.2 83.2% 47.3%);
-  border-color: hsl(221.2 83.2% 47.3%);
+    background-color: hsl(221.2 83.2% 47.3%);
+    border-color: hsl(221.2 83.2% 47.3%);
 }
+
 .mobooking-btn-secondary {
-  background-color: hsl(var(--secondary));
-  color: hsl(var(--secondary-foreground));
-  border: 1px solid hsl(var(--input));
+    background-color: hsl(var(--secondary));
+    color: hsl(var(--secondary-foreground));
+    border: 1px solid hsl(var(--input));
 }
+
 .mobooking-btn-secondary:hover:not(:disabled) {
-  background-color: hsl(var(--accent));
+    background-color: hsl(var(--accent));
 }
 
 .mobooking-button-group {
@@ -249,11 +262,13 @@ body {
     margin-top: 1rem;
     font-size: 0.875rem;
 }
+
 .mobooking-feedback.success {
     background-color: hsl(145, 63%, 95%);
     color: hsl(145, 63%, 22%);
     border: 1px solid hsl(145, 63%, 72%);
 }
+
 .mobooking-feedback.error {
     background-color: hsl(var(--destructive) / 0.1);
     color: hsl(var(--destructive));
@@ -269,20 +284,24 @@ body {
     cursor: pointer;
     transition: all 0.2s ease;
 }
+
 #mobooking-services-container .mobooking-service-card:hover {
     border-color: hsl(var(--primary));
     background-color: hsl(var(--accent));
 }
+
 #mobooking-services-container .mobooking-service-card.selected {
     border-color: hsl(var(--primary));
     box-shadow: 0 0 0 2px hsl(var(--ring) / 0.2);
     background-color: hsl(var(--primary) / 0.05);
 }
+
 #mobooking-services-container .mobooking-service-card h3 {
     font-size: 1rem;
     font-weight: 600;
     margin: 0 0 0.5rem 0;
 }
+
 #mobooking-services-container .mobooking-service-card p {
     font-size: 0.875rem;
     color: hsl(var(--muted-foreground));
@@ -290,12 +309,15 @@ body {
 }
 
 /* Radio & Checkbox Options */
-.mobooking-radio-group, .mobooking-checkbox-group {
+.mobooking-radio-group,
+.mobooking-checkbox-group {
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
 }
-.mobooking-radio-option, .mobooking-checkbox-option {
+
+.mobooking-radio-option,
+.mobooking-checkbox-option {
     display: flex;
     align-items: center;
     gap: 0.75rem;
@@ -304,6 +326,7 @@ body {
     border-radius: var(--radius-sm);
     cursor: pointer;
 }
+
 .mobooking-radio-option:has(input:checked),
 .mobooking-checkbox-option:has(input:checked) {
     background-color: hsl(var(--primary) / 0.1);
@@ -318,6 +341,7 @@ body {
     padding: 1.5rem;
     margin-top: 2rem;
 }
+
 .mobooking-summary-card h3 {
     font-size: 1.25rem;
     font-weight: 600;
@@ -329,18 +353,23 @@ body {
 
 /* Spinner */
 .mobooking-spinner {
-  width: 24px;
-  height: 24px;
-  border: 3px solid hsl(var(--muted));
-  border-top: 3px solid hsl(var(--primary));
-  border-radius: 50%;
-  animation: mobooking-spin 1s linear infinite;
-  margin: 0 auto;
+    width: 24px;
+    height: 24px;
+    border: 3px solid hsl(var(--muted));
+    border-top: 3px solid hsl(var(--primary));
+    border-radius: 50%;
+    animation: mobooking-spin 1s linear infinite;
+    margin: 0 auto;
 }
 
 @keyframes mobooking-spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 /* Success State */
@@ -355,17 +384,17 @@ body {
     justify-content: center;
     margin: 0 auto 1rem;
 }
-.hidden {
-    display: none !important;
-}
+
 #mobooking-time-slots {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
     gap: 0.5rem;
 }
+
 #mobooking-time-slots button {
     width: 100%;
 }
+
 #mobooking-booking-summary {
     background-color: hsl(var(--muted));
     border-radius: var(--radius-sm);
@@ -378,9 +407,11 @@ body {
         grid-template-columns: 1fr;
         margin: 1rem;
     }
+
     .mobooking-grid-2 {
         grid-template-columns: 1fr;
     }
+
     .mobooking-summary-card {
         position: static;
         margin-top: 2rem;

@@ -4,6 +4,9 @@ MODERN BOOKING FORM STYLES
 Author: Jules
 ==========================================================================
 */
+/* body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif !important;
+} */
 
 /* CSS Variables from dashboard.css */
 :root {
@@ -57,12 +60,13 @@ body.mobooking-body {
     border: 1px solid hsl(var(--border));
     box-shadow: var(--shadow);
     overflow: hidden;
+    display: flex;
 }
 
 #mobooking-live-summary {
-    background: hsl(var(--secondary));
+    width: 300px;
     padding: 1.5rem;
-    border-top: 1px solid hsl(var(--border));
+    border-left: 1px solid hsl(var(--border));
 }
 
 
@@ -114,10 +118,21 @@ body.mobooking-body {
 }
 
 .mobooking-step-title {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: hsl(var(--foreground));
+    font-size: 18px;
+    font-weight: 600;
+    color: hsl(var(--muted-foreground));
+    margin: 0 0 1rem 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
     margin-bottom: 2rem;
+    letter-spacing: 0px;
+}
+
+.mobooking-step-title svg {
+    width: 24px;
+    height: 24px;
+    display: flex;
 }
 
 /* Form Elements */
@@ -170,6 +185,7 @@ body.mobooking-body {
     cursor: pointer;
     transition: all 0.15s ease-in-out;
     user-select: none;
+    font-family: inherit;
     border: 1px solid transparent;
 }
 
@@ -270,15 +286,25 @@ body.mobooking-body {
 
 /* Summary Card */
 .summary-title {
-    font-size: 1.25rem;
+    font-size: 16px;
     font-weight: 700;
     color: hsl(var(--foreground));
     margin: 0 0 1rem 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+
+}
+
+.summary-title svg {
+    width: 24px;
+    height: 24px;
 }
 
 #mobooking-summary-content {
     display: grid;
-    grid-template-columns: 1fr auto;
+    grid-template-columns: 1.5fr 1fr;
     gap: 0.75rem 1.5rem;
 }
 
@@ -428,4 +454,53 @@ body.mobooking-body {
     .mobooking-form-card {
         border-radius: 0;
     }
+}
+
+/*=============== STEP #1 ================*/
+form#mobooking-area-check-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.mobooking-form-group {
+    width: 100%;
+}
+
+.mobooking-form-group input {
+    width: 100%;
+    max-width: 100%;
+}
+
+.mobooking-button-group {
+    width: 100%;
+}
+
+.mobooking-button-group button {
+    width: 100%;
+}
+
+.mobooking-input-group {
+    position: relative;
+}
+
+span#mobooking-area-name {}
+
+.area-name-wrap {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    color: hsl(var(--muted-foreground));
+    position: absolute;
+    top: 8px;
+    right: 10px;
+}
+
+.area-name-wrap.valid {
+    display: flex;
+}
+
+.area-name-wrap svg {
+    width: 13px;
+    height: 13px;
 }

@@ -149,20 +149,24 @@ $script_data = [
             <!-- Step 1: Area Check -->
             <?php if ($form_config['enable_area_check']): ?>
             <div class="mobooking-step-content active" id="mobooking-step-1">
-                <h2 class="mobooking-step-title"><?php echo esc_html($bf_settings['bf_step_1_title'] ?? 'Check Service Area'); ?></h2>
+                <!-- <h2 class="mobooking-step-title"><?php //echo esc_html($bf_settings['bf_step_1_title'] ?? 'Check Service Area'); ?></h2> -->
                 <form id="mobooking-area-check-form">
                     <div class="mobooking-form-group">
-                        <label for="mobooking-zip" class="mobooking-label"><?php _e('ZIP/Postal Code', 'mobooking'); ?> *</label>
+                        <label for="mobooking-zip" class="mobooking-label"><?php _e('Enter your postal code', 'mobooking'); ?></label>
                         <div class="mobooking-input-group">
-                            <input type="text" id="mobooking-zip" class="mobooking-input" placeholder="<?php esc_attr_e('Enter your ZIP code', 'mobooking'); ?>" required>
-                            <span id="mobooking-area-name" class="mobooking-area-name"></span>
+                            <input type="text" id="mobooking-zip" class="mobooking-input" placeholder="<?php esc_attr_e('000 00', 'mobooking'); ?>" required>
+                            <div class="area-name-wrap">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                                <span id="mobooking-area-name" class="mobooking-area-name"></span>
+                                
+                            </div>
                         </div>
                     </div>
                     <div id="mobooking-location-feedback" class="mobooking-feedback"></div>
                     <div class="mobooking-button-group">
                         <div></div>
                         <button type="submit" class="mobooking-btn mobooking-btn-primary">
-                            <?php _e('Check Availability', 'mobooking'); ?>
+                            <?php _e('Choose service', 'mobooking'); ?>
                         </button>
                     </div>
                 </form>
@@ -171,7 +175,7 @@ $script_data = [
 
             <!-- Step 2: Service Selection -->
             <div class="mobooking-step-content <?php echo !$form_config['enable_area_check'] ? 'active' : ''; ?>" id="mobooking-step-2">
-                <h2 class="mobooking-step-title"><?php echo esc_html($bf_settings['bf_step_2_title'] ?? 'Choose Service'); ?></h2>
+                <h2 class="mobooking-step-title"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="#2563eb" viewBox="0 0 256 256"><path d="M40,64H88V208H40a8,8,0,0,1-8-8V72A8,8,0,0,1,40,64Zm176,0H168V208h48a8,8,0,0,0,8-8V72A8,8,0,0,0,216,64Z" opacity="0.2"></path><path d="M216,56H176V48a24,24,0,0,0-24-24H104A24,24,0,0,0,80,48v8H40A16,16,0,0,0,24,72V200a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V72A16,16,0,0,0,216,56ZM96,48a8,8,0,0,1,8-8h48a8,8,0,0,1,8,8v8H96Zm64,24V200H96V72ZM40,72H80V200H40ZM216,200H176V72h40V200Z"></path></svg><?php echo esc_html($bf_settings['bf_step_2_title'] ?? 'Select service'); ?></h2>
                 <div id="mobooking-services-container">
                     <div style="text-align: center; padding: 40px 0;">
                         <div class="mobooking-spinner"></div>
@@ -191,7 +195,7 @@ $script_data = [
 
             <!-- Step 3: Service Options / Add-ons -->
             <div class="mobooking-step-content" id="mobooking-step-3">
-                <h2 class="mobooking-step-title"><?php echo esc_html($bf_settings['bf_step_3_title'] ?? 'Select Add-ons'); ?></h2>
+                <h2 class="mobooking-step-title"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="#2563eb" viewBox="0 0 256 256"><path d="M224,128a96,96,0,1,1-96-96A96,96,0,0,1,224,128Z" opacity="0.2"></path><path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm48-88a8,8,0,0,1-8,8H136v32a8,8,0,0,1-16,0V136H88a8,8,0,0,1,0-16h32V88a8,8,0,0,1,16,0v32h32A8,8,0,0,1,176,128Z"></path></svg><?php echo esc_html($bf_settings['bf_step_3_title'] ?? 'Select Add-ons'); ?></h2>
                 <div id="mobooking-service-options-container">
                     <p><?php _e('Select your service first to see available options.', 'mobooking'); ?></p>
                 </div>
@@ -209,7 +213,7 @@ $script_data = [
             <!-- Step 4: Pet Information -->
             <?php if ($form_config['enable_pet_information']): ?>
             <div class="mobooking-step-content" id="mobooking-step-4">
-                <h2 class="mobooking-step-title"><?php echo esc_html($bf_settings['bf_step_4_title'] ?? 'Pet Information'); ?></h2>
+                <h2 class="mobooking-step-title"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="#2563eb" viewBox="0 0 256 256"><path d="M224,48v88c0,48.6-43,88-96,88s-96-39.4-96-88V48a8,8,0,0,1,13.66-5.66L67.6,67.6h0a102.87,102.87,0,0,1,120.8,0h0l21.94-25.24A8,8,0,0,1,224,48Z" opacity="0.2"></path><path d="M96,140a12,12,0,1,1-12-12A12,12,0,0,1,96,140Zm76-12a12,12,0,1,0,12,12A12,12,0,0,0,172,128Zm60-80v88c0,52.93-46.65,96-104,96S24,188.93,24,136V48A16,16,0,0,1,51.31,36.69c.14.14.26.27.38.41L69,57a111.22,111.22,0,0,1,118.1,0L204.31,37.1c.12-.14.24-.27.38-.41A16,16,0,0,1,232,48Zm-16,0-21.56,24.8A8,8,0,0,1,183.63,74,88.86,88.86,0,0,0,168,64.75V88a8,8,0,1,1-16,0V59.05a97.43,97.43,0,0,0-16-2.72V88a8,8,0,1,1-16,0V56.33a97.43,97.43,0,0,0-16,2.72V88a8,8,0,1,1-16,0V64.75A88.86,88.86,0,0,0,72.37,74a8,8,0,0,1-10.81-1.17L40,48v88c0,41.66,35.21,76,80,79.67V195.31l-13.66-13.66a8,8,0,0,1,11.32-11.31L128,180.68l10.34-10.34a8,8,0,0,1,11.32,11.31L136,195.31v20.36c44.79-3.69,80-38,80-79.67Z"></path></svg><?php echo esc_html($bf_settings['bf_step_4_title'] ?? 'Pet Information'); ?></h2>
                 <div class="mobooking-form-group">
                     <p class="mobooking-label"><?php _e('Do you have pets at the service location?', 'mobooking'); ?></p>
                     <div class="mobooking-radio-group">
@@ -242,7 +246,7 @@ $script_data = [
             <!-- Step 5: Service Frequency -->
             <?php if ($form_config['enable_service_frequency']): ?>
             <div class="mobooking-step-content" id="mobooking-step-5">
-                <h2 class="mobooking-step-title"><?php echo esc_html($bf_settings['bf_step_5_title'] ?? 'Service Frequency'); ?></h2>
+                <h2 class="mobooking-step-title"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="#2563eb" viewBox="0 0 256 256"><path d="M216,48V88H40V48a8,8,0,0,1,8-8H208A8,8,0,0,1,216,48Z" opacity="0.2"></path><path d="M208,32H184V24a8,8,0,0,0-16,0v8H88V24a8,8,0,0,0-16,0v8H48A16,16,0,0,0,32,48V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V48A16,16,0,0,0,208,32ZM72,48v8a8,8,0,0,0,16,0V48h80v8a8,8,0,0,0,16,0V48h24V80H48V48ZM208,208H48V96H208V208Zm-48-56a8,8,0,0,1-8,8H136v16a8,8,0,0,1-16,0V160H104a8,8,0,0,1,0-16h16V128a8,8,0,0,1,16,0v16h16A8,8,0,0,1,160,152Z"></path></svg><?php echo esc_html($bf_settings['bf_step_5_title'] ?? 'Service Frequency'); ?></h2>
                 <div class="mobooking-form-group">
                     <p class="mobooking-label"><?php _e('How often would you like this service?', 'mobooking'); ?></p>
                     <div class="mobooking-radio-group">
@@ -278,7 +282,7 @@ $script_data = [
             <!-- Step 6: Date & Time Selection -->
             <?php if ($form_config['enable_datetime_selection']): ?>
             <div class="mobooking-step-content" id="mobooking-step-6">
-                <h2 class="mobooking-step-title"><?php echo esc_html($bf_settings['bf_step_6_title'] ?? 'Select Date & Time'); ?></h2>
+                <h2 class="mobooking-step-title"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="#2563eb" viewBox="0 0 256 256"><path d="M216,48V88H40V48a8,8,0,0,1,8-8H208A8,8,0,0,1,216,48Z" opacity="0.2"></path><path d="M208,32H184V24a8,8,0,0,0-16,0v8H88V24a8,8,0,0,0-16,0v8H48A16,16,0,0,0,32,48V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V48A16,16,0,0,0,208,32ZM72,48v8a8,8,0,0,0,16,0V48h80v8a8,8,0,0,0,16,0V48h24V80H48V48ZM208,208H48V96H208V208Zm-38.34-85.66a8,8,0,0,1,0,11.32l-48,48a8,8,0,0,1-11.32,0l-24-24a8,8,0,0,1,11.32-11.32L116,164.69l42.34-42.35A8,8,0,0,1,169.66,122.34Z"></path></svg><?php echo esc_html($bf_settings['bf_step_6_title'] ?? 'Select Date & Time'); ?></h2>
                 <div class="mobooking-form-group">
                     <label for="mobooking-service-date" class="mobooking-label"><?php _e('Preferred Date', 'mobooking'); ?> *</label>
                     <input type="text" id="mobooking-service-date" class="mobooking-input" placeholder="<?php esc_attr_e('Select a date', 'mobooking'); ?>" readonly>
@@ -301,7 +305,7 @@ $script_data = [
 
             <!-- Step 7: Customer Details -->
             <div class="mobooking-step-content" id="mobooking-step-7">
-                <h2 class="mobooking-step-title"><?php echo esc_html($bf_settings['bf_step_7_title'] ?? 'Your Details'); ?></h2>
+                <h2 class="mobooking-step-title"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="#2563eb" viewBox="0 0 256 256"><path d="M224,128a95.76,95.76,0,0,1-31.8,71.37A72,72,0,0,0,128,160a40,40,0,1,0-40-40,40,40,0,0,0,40,40,72,72,0,0,0-64.2,39.37h0A96,96,0,1,1,224,128Z" opacity="0.2"></path><path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24ZM74.08,197.5a64,64,0,0,1,107.84,0,87.83,87.83,0,0,1-107.84,0ZM96,120a32,32,0,1,1,32,32A32,32,0,0,1,96,120Zm97.76,66.41a79.66,79.66,0,0,0-36.06-28.75,48,48,0,1,0-59.4,0,79.66,79.66,0,0,0-36.06,28.75,88,88,0,1,1,131.52,0Z"></path></svg><?php echo esc_html($bf_settings['bf_step_7_title'] ?? 'Your Details'); ?></h2>
                 <div class="mobooking-grid mobooking-grid-2">
                     <div class="mobooking-form-group">
                         <label for="mobooking-customer-name" class="mobooking-label"><?php _e('Full Name', 'mobooking'); ?> *</label>
@@ -328,6 +332,11 @@ $script_data = [
 
                 <!-- Property Access -->
                 <div class="mobooking-form-group">
+                <h2 class="mobooking-step-title"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="#2563eb" viewBox="0 0 256 256"><path d="M200,40V224H168V32h24A8,8,0,0,1,200,40Z" opacity="0.2"></path><path d="M232,216H208V40a16,16,0,0,0-16-16H64A16,16,0,0,0,48,40V216H24a8,8,0,0,0,0,16H232a8,8,0,0,0,0-16Zm-40,0H176V40h16ZM64,40h96V216H64Zm80,92a12,12,0,1,1-12-12A12,12,0,0,1,144,132Z"></path></svg>
+</h2>
+
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="#2563eb" viewBox="0 0 256 256"><path d="M200,40V224H168V32h24A8,8,0,0,1,200,40Z" opacity="0.2"></path><path d="M232,216H208V40a16,16,0,0,0-16-16H64A16,16,0,0,0,48,40V216H24a8,8,0,0,0,0,16H232a8,8,0,0,0,0-16Zm-40,0H176V40h16ZM64,40h96V216H64Zm80,92a12,12,0,1,1-12-12A12,12,0,0,1,144,132Z"></path></svg>
+
                     <p class="mobooking-label"><?php _e('How can our service provider access your property?', 'mobooking'); ?></p>
                     <div class="mobooking-radio-group">
                         <label class="mobooking-radio-option">
@@ -406,15 +415,17 @@ $script_data = [
                     </button>
                 </div>
             </div>
-        </div>
 
-        <!-- Live Summary Sidebar -->
-        <div class="mobooking-summary-card" id="mobooking-live-summary" style="display: none;">
-            <h3 class="summary-title"><?php _e('Booking Summary', 'mobooking'); ?></h3>
-            <div id="mobooking-summary-content">
-                <p><?php _e('Your selections will appear here.', 'mobooking'); ?></p>
+            <!-- Live Summary Sidebar -->
+            <div class="mobooking-summary-card" id="mobooking-live-summary" style="display: none;">
+                <h3 class="summary-title"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="#2563eb" viewBox="0 0 256 256"><path d="M208,40V200a24,24,0,0,1-24,24H72a24,24,0,0,1-24-24V40Z" opacity="0.2"></path><path d="M168,128a8,8,0,0,1-8,8H96a8,8,0,0,1,0-16h64A8,8,0,0,1,168,128Zm-8,24H96a8,8,0,0,0,0,16h64a8,8,0,0,0,0-16ZM216,40V200a32,32,0,0,1-32,32H72a32,32,0,0,1-32-32V40a8,8,0,0,1,8-8H72V24a8,8,0,0,1,16,0v8h32V24a8,8,0,0,1,16,0v8h32V24a8,8,0,0,1,16,0v8h24A8,8,0,0,1,216,40Zm-16,8H184v8a8,8,0,0,1-16,0V48H136v8a8,8,0,0,1-16,0V48H88v8a8,8,0,0,1-16,0V48H56V200a16,16,0,0,0,16,16H184a16,16,0,0,0,16-16Z"></path></svg><?php _e('Summary', 'mobooking'); ?></h3>
+                <div id="mobooking-summary-content">
+                    <p><?php _e('Your selections will appear here.', 'mobooking'); ?></p>
+                </div>
             </div>
         </div>
+
+
     </div>
 
 </div>

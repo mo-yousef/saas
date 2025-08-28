@@ -104,9 +104,12 @@ jQuery(document).ready(function ($) {
     state.currentStep = step;
 
     // Add active step class to the form card
-    els.layout.find(".mobooking-form-card").removeClass (function (index, className) {
-        return (className.match (/(^|\s)step-active-\S+/g) || []).join(' ');
-    }).addClass(`step-active-${step}`);
+    els.layout
+      .find(".mobooking-form-card")
+      .removeClass(function (index, className) {
+        return (className.match(/(^|\s)step-active-\S+/g) || []).join(" ");
+      })
+      .addClass(`step-active-${step}`);
 
     els.steps.removeClass("active").hide();
     $(`#mobooking-step-${step}`).addClass("active").show();
@@ -124,22 +127,21 @@ jQuery(document).ready(function ($) {
     const progress = ((idx - 1) / Math.max(1, totalInd - 1)) * 100;
     els.progressFill.css("width", `${progress}%`);
 
-
     // Step-specific hooks
     if (step === 2) loadServices();
     if (step === 3) ensureOptionsLoaded();
     if (step === 6) initDatePicker();
     if (step === 7) {
-        $("#mobooking-zip-readonly").val(state.zip);
-        // TODO: Initialize Google Maps Places Autocomplete here when API key is available
+      $("#mobooking-zip-readonly").val(state.zip);
+      // TODO: Initialize Google Maps Places Autocomplete here when API key is available
     }
     if (step === 8) renderConfirmationSummary();
 
     // Compact summary for customer details step
     if (step === 7) {
-        els.liveSummaryContainer.addClass("summary-compact");
+      els.liveSummaryContainer.addClass("summary-compact");
     } else {
-        els.liveSummaryContainer.removeClass("summary-compact");
+      els.liveSummaryContainer.removeClass("summary-compact");
     }
 
     updateLiveSummary();
@@ -326,65 +328,86 @@ jQuery(document).ready(function ($) {
   // ==========================================
 
   function debounce(func, wait) {
-      let timeout;
-      return function(...args) {
-          const context = this;
-          clearTimeout(timeout);
-          timeout = setTimeout(() => func.apply(context, args), wait);
-      };
+    let timeout;
+    return function (...args) {
+      const context = this;
+      clearTimeout(timeout);
+      timeout = setTimeout(() => func.apply(context, args), wait);
+    };
   }
 
-  $("#mobooking-zip").on("input", debounce(function () {
-    const zip = $(this).val()?.trim();
-    state.zip = zip;
+  $("#mobooking-zip").on(
+    "input",
+    debounce(function () {
+      const zip = $(this).val()?.trim();
+      state.zip = zip;
 
-    if (zip.length < 3) { // Don't search for very short zips
+      if (zip.length < 3) {
+        // Don't search for very short zips
         $("#mobooking-area-name").text("");
         els.areaFeedback.hide();
         return;
-    }
+      }
 
-    showFeedback(
-      els.areaFeedback,
-      "info",
-      CONFIG.i18n.checking_availability || "Checking availability..."
-    );
+      showFeedback(
+        els.areaFeedback,
+        "info",
+        CONFIG.i18n.checking_availability || "Checking availability..."
+      );
 
-    $.post(CONFIG.ajax_url, {
-      action: "mobooking_check_service_area",
-      nonce: CONFIG.nonce,
-      tenant_id: CONFIG.tenant_id,
-      location: zip,
-    })
-      .done(function (res) {
-        if (res.success) {
-            state.areaName = res.data.area_name || '';
-            $("#mobooking-area-name").text(state.areaName).addClass('valid');
-            showFeedback(els.areaFeedback, "success", res.data?.message || CONFIG.i18n.service_available);
+      $.post(CONFIG.ajax_url, {
+        action: "mobooking_check_service_area",
+        nonce: CONFIG.nonce,
+        tenant_id: CONFIG.tenant_id,
+        location: zip,
+      })
+        .done(function (res) {
+          if (res.success) {
+            state.areaName = res.data.area_name || "";
+            $(".area-name-wrap").addClass("valid");
+            $("#mobooking-area-name").text(state.areaName).addClass("valid");
+            showFeedback(
+              els.areaFeedback,
+              "success",
+              res.data?.message || CONFIG.i18n.service_available
+            );
             // Enable the next button if it was disabled
             $("#mobooking-step-1 button[type=submit]").prop("disabled", false);
-        } else {
-            state.areaName = '';
-            $("#mobooking-area-name").text("").removeClass('valid');
-            showFeedback(els.areaFeedback, "error", res.data?.message || CONFIG.i18n.service_not_available);
+          } else {
+            state.areaName = "";
+            $("#mobooking-area-name").text("").removeClass("valid");
+            showFeedback(
+              els.areaFeedback,
+              "error",
+              res.data?.message || CONFIG.i18n.service_not_available
+            );
             $("#mobooking-step-1 button[type=submit]").prop("disabled", true);
-        }
-      })
-      .fail(function (xhr) {
-        let errorMessage = CONFIG.i18n.error_ajax || "Network error";
-        if (xhr.responseJSON && xhr.responseJSON.data && xhr.responseJSON.data.message) {
+          }
+        })
+        .fail(function (xhr) {
+          let errorMessage = CONFIG.i18n.error_ajax || "Network error";
+          if (
+            xhr.responseJSON &&
+            xhr.responseJSON.data &&
+            xhr.responseJSON.data.message
+          ) {
             errorMessage = xhr.responseJSON.data.message;
-        }
-        showFeedback(els.areaFeedback, "error", errorMessage);
-      });
-  }, 500));
+          }
+          showFeedback(els.areaFeedback, "error", errorMessage);
+        });
+    }, 500)
+  );
 
   els.areaForm.on("submit", function (e) {
     e.preventDefault();
-    if(state.areaName) {
-        showStep(2);
+    if (state.areaName) {
+      showStep(2);
     } else {
-        showFeedback(els.areaFeedback, "error", "Please enter a valid ZIP code in a serviced area.");
+      showFeedback(
+        els.areaFeedback,
+        "error",
+        "Please enter a valid ZIP code in a serviced area."
+      );
     }
   });
 
@@ -472,11 +495,15 @@ jQuery(document).ready(function ($) {
       )}' style="position:absolute;opacity:0;pointer-events:none;">
           <div class="mobooking-service-header">
             ${
-              (CONFIG.settings.service_card_display === 'icon' && svc.icon)
-                ? `<div class="mobooking-service-icon"><img src="${svc.icon}" alt="${escapeHtml(svc.name)}"></div>`
-                : (svc.image_url)
-                ? `<div class="mobooking-service-image"><img src="${svc.image_url}" alt="${escapeHtml(svc.name)}"></div>`
-                : ''
+              CONFIG.settings.service_card_display === "icon" && svc.icon
+                ? `<div class="mobooking-service-icon"><img src="${
+                    svc.icon
+                  }" alt="${escapeHtml(svc.name)}"></div>`
+                : svc.image_url
+                ? `<div class="mobooking-service-image"><img src="${
+                    svc.image_url
+                  }" alt="${escapeHtml(svc.name)}"></div>`
+                : ""
             }
             <div style="flex:1;">
               <div class="mobooking-service-title">${escapeHtml(svc.name)}</div>
@@ -672,7 +699,9 @@ jQuery(document).ready(function ($) {
           name
         )}" data-impact-type="${impactType}" data-impact-value="${impactValue}"></textarea>`;
       } else if (type === "sqm") {
-        html += `<input type="number" min="1" step="0.1" placeholder="Enter square meters" class="mobooking-input mobooking-option-input" data-type="sqm" data-required="${isReq}" data-name="${escapeHtml(name)}" data-price-per-unit="${impactValue}">`;
+        html += `<input type="number" min="1" step="0.1" placeholder="Enter square meters" class="mobooking-input mobooking-option-input" data-type="sqm" data-required="${isReq}" data-name="${escapeHtml(
+          name
+        )}" data-price-per-unit="${impactValue}">`;
       } else if (type === "kilometers") {
         html += `<input type="number" min="1" step="0.1" placeholder="Enter kilometers" class="mobooking-input mobooking-option-input" data-type="kilometers" data-required="${isReq}" data-name="${escapeHtml(
           name
@@ -954,9 +983,9 @@ jQuery(document).ready(function ($) {
     const val = $(this).val();
     state.propertyAccess.method = val;
     if (val === "other") {
-        $("#mobooking-custom-access-details").removeClass("is-collapsed");
+      $("#mobooking-custom-access-details").removeClass("is-collapsed");
     } else {
-        $("#mobooking-custom-access-details").addClass("is-collapsed");
+      $("#mobooking-custom-access-details").addClass("is-collapsed");
     }
   });
 
@@ -965,50 +994,65 @@ jQuery(document).ready(function ($) {
   // ==========================================
 
   function getSummaryHtml() {
-      let html = "";
-      if (state.service) {
-          html += `<div class="summary-item">
+    let html = "";
+    if (state.service) {
+      html += `<div class="summary-item">
               <span>${escapeHtml(state.service.name)}</span>
-              <span>${CONFIG.currency_symbol}${(parseFloat(state.service.price) || 0).toFixed(2)}</span>
+              <span>${CONFIG.currency_symbol}${(
+        parseFloat(state.service.price) || 0
+      ).toFixed(2)}</span>
           </div>`;
-      }
+    }
 
-      const optList = Object.values(state.optionsById || {});
-      if (optList.length) {
-          optList.forEach((o) => {
-              html += `<div class="summary-item">
-                  <span>${escapeHtml(o.name)}${o.value && o.type !== 'checkbox' ? `: ${escapeHtml(String(o.value))}` : ""}</span>
-                  <span>${o.price > 0 ? `+${CONFIG.currency_symbol}${o.price.toFixed(2)}` : ""}</span>
+    const optList = Object.values(state.optionsById || {});
+    if (optList.length) {
+      optList.forEach((o) => {
+        html += `<div class="summary-item">
+                  <span>${escapeHtml(o.name)}${
+          o.value && o.type !== "checkbox"
+            ? `: ${escapeHtml(String(o.value))}`
+            : ""
+        }</span>
+                  <span>${
+                    o.price > 0
+                      ? `+${CONFIG.currency_symbol}${o.price.toFixed(2)}`
+                      : ""
+                  }</span>
               </div>`;
-          });
-      }
+      });
+    }
 
-      if (state.date || state.time) {
-          html += `<div class="summary-item">
+    if (state.date || state.time) {
+      html += `<div class="summary-item">
               <span>Date & Time</span>
-              <strong>${escapeHtml(state.date || "")}${state.time ? ` @ ${escapeHtml(state.time)}` : ""}</strong>
+              <strong>${escapeHtml(state.date || "")}${
+        state.time ? ` @ ${escapeHtml(state.time)}` : ""
+      }</strong>
           </div>`;
-      }
+    }
 
-      html += `<div class="summary-item summary-total">
+    html += `<div class="summary-item summary-total">
           <strong>Total</strong>
-          <strong>${CONFIG.currency_symbol}${(state.pricing.total || 0).toFixed(2)}</strong>
+          <strong>${CONFIG.currency_symbol}${(state.pricing.total || 0).toFixed(
+      2
+    )}</strong>
       </div>`;
-      return html;
+    return html;
   }
 
   function updateLiveSummary() {
-      if (!els.liveSummaryContent.length) return;
-      const html = getSummaryHtml();
-      els.liveSummaryContent.html(html || `<p>${"Your selections will appear here."}</p>`);
+    if (!els.liveSummaryContent.length) return;
+    const html = getSummaryHtml();
+    els.liveSummaryContent.html(
+      html || `<p>${"Your selections will appear here."}</p>`
+    );
   }
 
   function renderConfirmationSummary() {
-      if (!els.confirmationSummary.length) return;
-      const html = getSummaryHtml();
-      els.confirmationSummary.html(html);
+    if (!els.confirmationSummary.length) return;
+    const html = getSummaryHtml();
+    els.confirmationSummary.html(html);
   }
-
 
   // ==========================================
   // SUBMISSION
@@ -1016,15 +1060,17 @@ jQuery(document).ready(function ($) {
 
   function confirmAndSubmitBooking() {
     // Final validation before submission
-    if (!validateStep(7)) { // Re-validate customer details just in case
-        showStep(7);
-        return;
+    if (!validateStep(7)) {
+      // Re-validate customer details just in case
+      showStep(7);
+      return;
     }
 
     // Collect all data
     state.pets.has_pets = $('input[name="has_pets"]:checked').val() === "yes";
     state.pets.details = $("#mobooking-pet-details").val().trim();
-    state.frequency = $('input[name="frequency"]:checked').val() || state.frequency;
+    state.frequency =
+      $('input[name="frequency"]:checked').val() || state.frequency;
     state.customer = {
       name: els.nameInput.val().trim(),
       email: els.emailInput.val().trim(),
@@ -1034,14 +1080,21 @@ jQuery(document).ready(function ($) {
       time: state.time,
       instructions: $("#mobooking-special-instructions").val()?.trim() || "",
     };
-    state.propertyAccess.method = $('input[name="property_access"]:checked').val() || 'home';
-    state.propertyAccess.details = $("#mobooking-access-instructions").val()?.trim() || "";
+    state.propertyAccess.method =
+      $('input[name="property_access"]:checked').val() || "home";
+    state.propertyAccess.details =
+      $("#mobooking-access-instructions").val()?.trim() || "";
 
     const payload = {
       action: "mobooking_create_booking",
       tenant_id: CONFIG.tenant_id,
       nonce: CONFIG.nonce,
-      selected_services: JSON.stringify([{ service_id: state.service?.service_id, configured_options: state.optionsById }]),
+      selected_services: JSON.stringify([
+        {
+          service_id: state.service?.service_id,
+          configured_options: state.optionsById,
+        },
+      ]),
       service_options: JSON.stringify(state.optionsById),
       customer_details: JSON.stringify(state.customer),
       service_frequency: state.frequency,
@@ -1050,18 +1103,30 @@ jQuery(document).ready(function ($) {
       pricing: JSON.stringify(state.pricing),
     };
 
-    showFeedback(els.confirmationFeedback, "", CONFIG.i18n.submitting_booking || "Submitting booking...");
+    showFeedback(
+      els.confirmationFeedback,
+      "",
+      CONFIG.i18n.submitting_booking || "Submitting booking..."
+    );
 
     $.post(CONFIG.ajax_url, payload)
       .done(function (res) {
         if (res.success) {
           showStep(9); // Success step is now 9
         } else {
-          showFeedback(els.confirmationFeedback, "error", res.data?.message || CONFIG.i18n.booking_error || "Submission error");
+          showFeedback(
+            els.confirmationFeedback,
+            "error",
+            res.data?.message || CONFIG.i18n.booking_error || "Submission error"
+          );
         }
       })
       .fail(function () {
-        showFeedback(els.confirmationFeedback, "error", CONFIG.i18n.error_ajax || "Network error");
+        showFeedback(
+          els.confirmationFeedback,
+          "error",
+          CONFIG.i18n.error_ajax || "Network error"
+        );
       });
   }
 
@@ -1092,8 +1157,12 @@ jQuery(document).ready(function ($) {
 
   // Add collapsible classes
   els.timeSlotsWrap.addClass("mobooking-collapsible is-collapsed");
-  $("#mobooking-custom-access-details").addClass("mobooking-collapsible is-collapsed");
-  $("#mobooking-pet-details-container").addClass("mobooking-collapsible is-collapsed");
+  $("#mobooking-custom-access-details").addClass(
+    "mobooking-collapsible is-collapsed"
+  );
+  $("#mobooking-pet-details-container").addClass(
+    "mobooking-collapsible is-collapsed"
+  );
 
   showStep(startStep);
 
