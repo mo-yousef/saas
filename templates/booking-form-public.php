@@ -70,8 +70,6 @@ if (!$form_config['form_enabled']) {
 
 // Enqueue necessary styles and scripts
 wp_enqueue_script('jquery');
-wp_enqueue_script('flatpickr', 'https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js', ['jquery'], '4.6.13', true);
-wp_enqueue_style('flatpickr', 'https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.css', [], '4.6.13');
 
 // Prepare localized script data
 $script_data = [
@@ -154,7 +152,7 @@ $script_data = [
                     <div class="mobooking-form-group">
                         <label for="mobooking-zip" class="mobooking-label"><?php _e('Enter your postal code', 'mobooking'); ?></label>
                         <div class="mobooking-input-group">
-                            <input type="text" id="mobooking-zip" class="mobooking-input" placeholder="<?php esc_attr_e('000 00', 'mobooking'); ?>" required>
+                            <input type="text" id="mobooking-zip" class="mobooking-input" placeholder="<?php esc_attr_e('000 00', 'mobooking'); ?>" required maxlength="5">
                             <div class="area-name-wrap">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
                                 <span id="mobooking-area-name" class="mobooking-area-name"></span>
@@ -285,7 +283,7 @@ $script_data = [
                 <h2 class="mobooking-step-title"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="#2563eb" viewBox="0 0 256 256"><path d="M216,48V88H40V48a8,8,0,0,1,8-8H208A8,8,0,0,1,216,48Z" opacity="0.2"></path><path d="M208,32H184V24a8,8,0,0,0-16,0v8H88V24a8,8,0,0,0-16,0v8H48A16,16,0,0,0,32,48V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V48A16,16,0,0,0,208,32ZM72,48v8a8,8,0,0,0,16,0V48h80v8a8,8,0,0,0,16,0V48h24V80H48V48ZM208,208H48V96H208V208Zm-38.34-85.66a8,8,0,0,1,0,11.32l-48,48a8,8,0,0,1-11.32,0l-24-24a8,8,0,0,1,11.32-11.32L116,164.69l42.34-42.35A8,8,0,0,1,169.66,122.34Z"></path></svg><?php echo esc_html($bf_settings['bf_step_6_title'] ?? 'Select Date & Time'); ?></h2>
                 <div class="mobooking-form-group">
                     <label for="mobooking-service-date" class="mobooking-label"><?php _e('Preferred Date', 'mobooking'); ?> *</label>
-                    <input type="text" id="mobooking-service-date" class="mobooking-input" placeholder="<?php esc_attr_e('Select a date', 'mobooking'); ?>" readonly>
+                    <input type="date" id="mobooking-service-date" class="mobooking-input" placeholder="<?php esc_attr_e('Select a date', 'mobooking'); ?>">
                 </div>
                 <div class="mobooking-form-group hidden" id="mobooking-time-slots-container">
                     <label class="mobooking-label"><?php _e('Available Time Slots', 'mobooking'); ?> *</label>
@@ -398,19 +396,24 @@ $script_data = [
 
             <!-- Step 9: Success Message -->
             <div class="mobooking-step-content" id="mobooking-step-9">
-                <div style="text-align: center; padding: 40px 0;">
-                    <div class="mobooking-success-icon">
-                        <svg width="30" height="30" fill="none" stroke="#10b981" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                <div class="mobooking-confirmation-container">
+                    <div class="mobooking-success-icon" style="margin: 0 auto 1rem; width: 48px; height: 48px; background-color: hsl(145, 63%, 95%); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <svg width="32" height="32" fill="none" stroke="hsl(145, 63%, 42%)" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
                     </div>
-                    <h2 class="mobooking-step-title" style="text-align: center; color: #10b981;">
+                    <h2 class="mobooking-step-title" style="text-align: center; color: #10b981; margin-bottom: 0.5rem;">
                         <?php echo esc_html($bf_settings['bf_success_title'] ?? 'Booking Confirmed!'); ?>
                     </h2>
-                    <p style="color: #6b7280; margin-bottom: 30px;" id="mobooking-success-message">
+                    <p style="color: #6b7280; margin-bottom: 2rem; text-align: center;" id="mobooking-success-message">
                         <?php echo esc_html($form_config['success_message']); ?>
                     </p>
-                    <button type="button" class="mobooking-btn mobooking-btn-primary" onclick="moBookingResetForm()">
+
+                    <div class="mobooking-confirmation-summary" id="mobooking-confirmation-details">
+                        <!-- Summary details will be injected here by JS -->
+                    </div>
+
+                    <button type="button" class="mobooking-btn mobooking-btn-primary" style="margin-top: 2rem; width: 100%;" onclick="moBookingResetForm()">
                         <?php _e('Book Another Service', 'mobooking'); ?>
                     </button>
                 </div>

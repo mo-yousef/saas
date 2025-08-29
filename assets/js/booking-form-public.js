@@ -130,18 +130,17 @@ jQuery(document).ready(function ($) {
     // Step-specific hooks
     if (step === 2) loadServices();
     if (step === 3) ensureOptionsLoaded();
-    if (step === 6) initDatePicker();
     if (step === 7) {
       $("#mobooking-zip-readonly").val(state.zip);
       // TODO: Initialize Google Maps Places Autocomplete here when API key is available
     }
     if (step === 8) renderConfirmationSummary();
 
-    // Compact summary for customer details step
+    // Hide summary on contact step, otherwise show it if a service is selected
     if (step === 7) {
-      els.liveSummaryContainer.addClass("summary-compact");
-    } else {
-      els.liveSummaryContainer.removeClass("summary-compact");
+      els.liveSummaryContainer.hide();
+    } else if (state.service) {
+      els.liveSummaryContainer.slideDown();
     }
 
     updateLiveSummary();
@@ -154,7 +153,13 @@ jQuery(document).ready(function ($) {
 
   function prevStep() {
     const prev = state.currentStep - 1;
-    if (prev >= 1) showStep(prev);
+    if (prev >= 1) {
+      // Hide summary when going back to the step before service selection
+      if (prev === 1) {
+        els.liveSummaryContainer.slideUp();
+      }
+      showStep(prev);
+    }
   }
 
   function validateStep(step) {
@@ -342,7 +347,7 @@ jQuery(document).ready(function ($) {
       const zip = $(this).val()?.trim();
       state.zip = zip;
 
-      if (zip.length < 3) {
+      if (zip.length < 4) {
         // Don't search for very short zips
         $("#mobooking-area-name").text("");
         els.areaFeedback.hide();
@@ -888,29 +893,14 @@ jQuery(document).ready(function ($) {
   // STEP 6: DATE/TIME
   // ==========================================
 
-  function initDatePicker() {
-    if (!els.dateInput.length) return;
-    if (els.dateInput.data("fp")) return; // already initialized
-
-    els.dateInput.flatpickr({
-      dateFormat: "Y-m-d",
-      minDate: "today",
-      inline: true, // show calendar by default
-      onReady: function (selectedDates, dateStr, instance) {
-        // Ensure the calendar renders immediately
-        try {
-          instance.open();
-        } catch (e) {}
-      },
-      onChange: function (selectedDates, dateStr) {
-        state.date = dateStr || "";
-        state.time = "";
-        collapseTimeSlots(true);
-        els.timeSlots.empty();
-        if (state.date) loadTimeSlots(dateStr);
-      },
-    });
-  }
+  els.dateInput.on("change", function () {
+    const dateStr = $(this).val();
+    state.date = dateStr || "";
+    state.time = "";
+    collapseTimeSlots(true);
+    els.timeSlots.empty();
+    if (state.date) loadTimeSlots(dateStr);
+  });
 
   function collapseTimeSlots(collapsed) {
     if (collapsed) {
@@ -1048,10 +1038,77 @@ jQuery(document).ready(function ($) {
     );
   }
 
+  function getConfirmationSummaryHtml() {
+    let html = "";
+
+    // Service
+    if (state.service) {
+      html += `<div class="mobooking-summary-item">
+            <span class="item-label">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>
+                ${escapeHtml(state.service.name)}
+            </span>
+            <span class="item-value">${
+              CONFIG.currency_symbol
+            }${(parseFloat(state.service.price) || 0).toFixed(2)}</span>
+        </div>`;
+    }
+
+    // Options
+    const optList = Object.values(state.optionsById || {});
+    if (optList.length) {
+      html += optList
+        .map(
+          (o) => `
+            <div class="mobooking-summary-item">
+                <span class="item-label" style="padding-left: 2.75rem;">${escapeHtml(
+                  o.name
+                )}${
+            o.value && o.type !== "checkbox"
+              ? `: ${escapeHtml(String(o.value))}`
+              : ""
+          }</span>
+                <span class="item-value">${
+                  o.price > 0
+                    ? `+${CONFIG.currency_symbol}${o.price.toFixed(2)}`
+                    : ""
+                }</span>
+            </div>
+        `
+        )
+        .join("");
+    }
+
+    // Date & Time
+    if (state.date || state.time) {
+      html += `<div class="mobooking-summary-item">
+            <span class="item-label">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4"></path><path d="M16 2v4"></path><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><path d="M3 10h18"></path></svg>
+                Date & Time
+            </span>
+            <span class="item-value">${escapeHtml(state.date || "")}${
+        state.time ? ` @ ${escapeHtml(state.time)}` : ""
+      }</span>
+        </div>`;
+    }
+
+    // Total
+    html += `<div class="mobooking-summary-item mobooking-summary-total">
+        <span class="item-label">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4z"></path><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2z"></path></svg>
+            Total
+        </span>
+        <span class="item-value">${
+          CONFIG.currency_symbol
+        }${(state.pricing.total || 0).toFixed(2)}</span>
+    </div>`;
+
+    return html;
+  }
+
   function renderConfirmationSummary() {
-    if (!els.confirmationSummary.length) return;
-    const html = getSummaryHtml();
-    els.confirmationSummary.html(html);
+    const html = getConfirmationSummaryHtml();
+    $("#mobooking-confirmation-details").html(html);
   }
 
   // ==========================================
