@@ -130,6 +130,7 @@ jQuery(document).ready(function ($) {
     // Step-specific hooks
     if (step === 2) loadServices();
     if (step === 3) ensureOptionsLoaded();
+    if (step === 6) initDatePicker();
     if (step === 7) {
       $("#mobooking-zip-readonly").val(state.zip);
       // TODO: Initialize Google Maps Places Autocomplete here when API key is available
@@ -138,9 +139,9 @@ jQuery(document).ready(function ($) {
 
     // Hide summary on contact step, otherwise show it if a service is selected
     if (step === 7) {
-      els.liveSummaryContainer.hide();
+      els.liveSummaryContainer.removeClass("active");
     } else if (state.service) {
-      els.liveSummaryContainer.slideDown();
+      els.liveSummaryContainer.addClass("active");
     }
 
     updateLiveSummary();
@@ -156,7 +157,7 @@ jQuery(document).ready(function ($) {
     if (prev >= 1) {
       // Hide summary when going back to the step before service selection
       if (prev === 1) {
-        els.liveSummaryContainer.slideUp();
+        els.liveSummaryContainer.removeClass("active");
       }
       showStep(prev);
     }
@@ -548,7 +549,7 @@ jQuery(document).ready(function ($) {
         updateLiveSummary();
 
         // Show summary smoothly
-        els.liveSummaryContainer.slideDown();
+        els.liveSummaryContainer.addClass("active");
 
         // Auto advance to options
         setTimeout(() => showStep(3), 200);
@@ -893,14 +894,31 @@ jQuery(document).ready(function ($) {
   // STEP 6: DATE/TIME
   // ==========================================
 
-  els.dateInput.on("change", function () {
-    const dateStr = $(this).val();
-    state.date = dateStr || "";
-    state.time = "";
-    collapseTimeSlots(true);
-    els.timeSlots.empty();
-    if (state.date) loadTimeSlots(dateStr);
-  });
+  function initDatePicker() {
+    if (!els.dateInput.length) return;
+
+    // If instance exists, just redraw and exit
+    if (els.dateInput.data("fp")) {
+        els.dateInput.data("fp").redraw();
+        return;
+    }
+
+    els.dateInput.flatpickr({
+      dateFormat: "Y-m-d",
+      minDate: "today",
+      inline: true, // show calendar by default
+      onChange: function (selectedDates, dateStr) {
+        state.date = dateStr || "";
+        state.time = "";
+        collapseTimeSlots(true);
+        els.timeSlots.empty();
+        if (state.date) loadTimeSlots(dateStr);
+      },
+      onReady: function(selectedDates, dateStr, instance) {
+        $(instance.calendarContainer).addClass('mobooking-flatpickr');
+      }
+    });
+  }
 
   function collapseTimeSlots(collapsed) {
     if (collapsed) {
