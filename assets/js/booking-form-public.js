@@ -137,11 +137,12 @@ jQuery(document).ready(function ($) {
     }
     if (step === 8) renderConfirmationSummary();
 
-    // Hide summary on contact step, otherwise show it if a service is selected
-    if (step === 7) {
-      els.liveSummaryContainer.removeClass("active");
-    } else if (state.service) {
+    // Show summary only on steps 3, 4, 5, 6 and if a service is selected
+    const summaryVisibleSteps = [3, 4, 5, 6];
+    if (summaryVisibleSteps.includes(step) && state.service) {
       els.liveSummaryContainer.addClass("active");
+    } else {
+      els.liveSummaryContainer.removeClass("active");
     }
 
     updateLiveSummary();
@@ -155,11 +156,47 @@ jQuery(document).ready(function ($) {
   function prevStep() {
     const prev = state.currentStep - 1;
     if (prev >= 1) {
-      // Hide summary when going back to the step before service selection
-      if (prev === 1) {
-        els.liveSummaryContainer.removeClass("active");
-      }
+      resetStepData(state.currentStep); // Reset data for the step we are leaving
       showStep(prev);
+    }
+  }
+
+  function resetStepData(step) {
+    switch (step) {
+      case 2: // Reset service selection
+        state.service = null;
+        els.servicesContainer.find('input[name="mobooking-selected-service"]').prop('checked', false);
+        els.servicesContainer.find(".mobooking-service-card").removeClass("active");
+        break;
+      case 3: // Reset service options
+        state.optionsById = {};
+        state.pricing.options = 0;
+        els.optionsContainer.find(".mobooking-option-input").val('');
+        els.optionsContainer.find('input[type="checkbox"]').prop('checked', false);
+        els.optionsContainer.find('input[type="radio"]').prop('checked', false);
+        els.optionsContainer.find(".mobooking-form-group, .mobooking-radio-option").removeClass("active");
+        recalcTotal();
+        break;
+      case 4: // Reset pet info
+        state.pets = { has_pets: false, details: "" };
+        $('input[name="has_pets"][value="no"]').prop('checked', true).trigger('change');
+        $("#mobooking-pet-details").val('');
+        break;
+      case 5: // Reset frequency
+        state.frequency = "one-time";
+        $('input[name="frequency"][value="one-time"]').prop('checked', true).trigger('change');
+        break;
+      case 6: // Reset date and time
+        state.date = "";
+        state.time = "";
+        if (els.dateInput.data("fp")) {
+            els.dateInput.data("fp").clear();
+        } else {
+            els.dateInput.val('');
+        }
+        els.timeSlots.empty();
+        collapseTimeSlots(true);
+        break;
     }
   }
 
@@ -548,9 +585,6 @@ jQuery(document).ready(function ($) {
         recalcTotal();
         updateLiveSummary();
 
-        // Show summary smoothly
-        els.liveSummaryContainer.addClass("active");
-
         // Auto advance to options
         setTimeout(() => showStep(3), 200);
       });
@@ -855,8 +889,8 @@ jQuery(document).ready(function ($) {
   function calcImpactPrice(type, impact, quantity) {
     const base = state.pricing.base || 0;
     if (!impact) return 0;
-    if (type === "percentage") return ((base * impact) / 100) * (quantity || 1);
-    if (type === "multiply") return base * impact * (quantity || 1);
+    if (type === "percentage") return (base * impact) / 100;
+    if (type === "multiply") return base * impact;
     return impact * (quantity || 1);
   }
 
