@@ -197,6 +197,20 @@ jQuery(document).ready(function ($) {
         els.timeSlots.empty();
         collapseTimeSlots(true);
         break;
+      case 7: // Reset customer details
+        state.customer = { name: "", email: "", phone: "", address: "", instructions: "" };
+        state.propertyAccess = { method: "home", details: "" };
+        els.nameInput.val('');
+        els.emailInput.val('');
+        els.phoneInput.val('');
+        els.addressInput.val('');
+        $("#mobooking-special-instructions").val('');
+        $('input[name="property_access"][value="home"]').prop('checked', true).trigger('change');
+        $("#mobooking-access-instructions").val('');
+        break;
+      case 8: // Reset confirmation summary
+        $("#mobooking-confirmation-details").html('');
+        break;
     }
   }
 
@@ -890,7 +904,7 @@ jQuery(document).ready(function ($) {
     const base = state.pricing.base || 0;
     if (!impact) return 0;
     if (type === "percentage") return (base * impact) / 100;
-    if (type === "multiply") return base * impact;
+    if (type === "multiply") return base * (impact > 0 ? impact - 1 : 0);
     return impact * (quantity || 1);
   }
 
