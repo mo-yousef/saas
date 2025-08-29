@@ -401,6 +401,73 @@ body {
     padding: 1rem;
 }
 
+/* Styling for Frequency Step */
+#mobooking-step-5 .mobooking-radio-group {
+    flex-direction: row;
+    gap: 1rem;
+}
+
+#mobooking-step-5 .mobooking-radio-option {
+    flex-grow: 1;
+    justify-content: center;
+    text-align: center;
+}
+
+#mobooking-step-5 .mobooking-radio-option span {
+    font-weight: 500;
+}
+
+/* Confirmation Step Styling */
+.mobooking-confirmation-container {
+    max-width: 450px;
+    margin: 0 auto;
+    padding: 2rem 0;
+}
+
+.mobooking-confirmation-summary {
+    background-color: hsl(var(--muted));
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    border: 1px solid hsl(var(--border));
+}
+
+.mobooking-summary-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 0;
+    border-bottom: 1px solid hsl(var(--border));
+}
+
+.mobooking-summary-item:last-child {
+    border-bottom: none;
+}
+
+.mobooking-summary-item .item-label {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.875rem;
+    color: hsl(var(--muted-foreground));
+}
+
+.mobooking-summary-item .item-label svg {
+    width: 1.25rem;
+    height: 1.25rem;
+    stroke: hsl(var(--muted-foreground));
+}
+
+.mobooking-summary-item .item-value {
+    font-weight: 600;
+    color: hsl(var(--foreground));
+}
+
+.mobooking-summary-total {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: hsl(var(--foreground));
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .mobooking-public-form-container {
