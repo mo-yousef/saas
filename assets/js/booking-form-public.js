@@ -165,51 +165,71 @@ jQuery(document).ready(function ($) {
     switch (step) {
       case 2: // Reset service selection
         state.service = null;
-        els.servicesContainer.find('input[name="mobooking-selected-service"]').prop('checked', false);
-        els.servicesContainer.find(".mobooking-service-card").removeClass("active");
+        els.servicesContainer
+          .find('input[name="mobooking-selected-service"]')
+          .prop("checked", false);
+        els.servicesContainer
+          .find(".mobooking-service-card")
+          .removeClass("active");
         break;
       case 3: // Reset service options
         state.optionsById = {};
         state.pricing.options = 0;
-        els.optionsContainer.find(".mobooking-option-input").val('');
-        els.optionsContainer.find('input[type="checkbox"]').prop('checked', false);
-        els.optionsContainer.find('input[type="radio"]').prop('checked', false);
-        els.optionsContainer.find(".mobooking-form-group, .mobooking-radio-option").removeClass("active");
+        els.optionsContainer.find(".mobooking-option-input").val("");
+        els.optionsContainer
+          .find('input[type="checkbox"]')
+          .prop("checked", false);
+        els.optionsContainer.find('input[type="radio"]').prop("checked", false);
+        els.optionsContainer
+          .find(".mobooking-form-group, .mobooking-radio-option")
+          .removeClass("active");
         recalcTotal();
         break;
       case 4: // Reset pet info
         state.pets = { has_pets: false, details: "" };
-        $('input[name="has_pets"][value="no"]').prop('checked', true).trigger('change');
-        $("#mobooking-pet-details").val('');
+        $('input[name="has_pets"][value="no"]')
+          .prop("checked", true)
+          .trigger("change");
+        $("#mobooking-pet-details").val("");
         break;
       case 5: // Reset frequency
         state.frequency = "one-time";
-        $('input[name="frequency"][value="one-time"]').prop('checked', true).trigger('change');
+        $('input[name="frequency"][value="one-time"]')
+          .prop("checked", true)
+          .trigger("change");
         break;
       case 6: // Reset date and time
         state.date = "";
         state.time = "";
         if (els.dateInput.data("fp")) {
-            els.dateInput.data("fp").clear();
+          els.dateInput.data("fp").clear();
         } else {
-            els.dateInput.val('');
+          els.dateInput.val("");
         }
         els.timeSlots.empty();
         collapseTimeSlots(true);
         break;
       case 7: // Reset customer details
-        state.customer = { name: "", email: "", phone: "", address: "", instructions: "" };
+        state.customer = {
+          name: "",
+          email: "",
+          phone: "",
+          address: "",
+          instructions: "",
+        };
         state.propertyAccess = { method: "home", details: "" };
-        els.nameInput.val('');
-        els.emailInput.val('');
-        els.phoneInput.val('');
-        els.addressInput.val('');
-        $("#mobooking-special-instructions").val('');
-        $('input[name="property_access"][value="home"]').prop('checked', true).trigger('change');
-        $("#mobooking-access-instructions").val('');
+        els.nameInput.val("");
+        els.emailInput.val("");
+        els.phoneInput.val("");
+        els.addressInput.val("");
+        $("#mobooking-special-instructions").val("");
+        $('input[name="property_access"][value="home"]')
+          .prop("checked", true)
+          .trigger("change");
+        $("#mobooking-access-instructions").val("");
         break;
       case 8: // Reset confirmation summary
-        $("#mobooking-confirmation-details").html('');
+        $("#mobooking-confirmation-details").html("");
         break;
     }
   }
@@ -571,12 +591,6 @@ jQuery(document).ready(function ($) {
                     )}</div>`
                   : ""
               }
-            </div>
-          </div>
-          <div class="mobooking-service-footer">
-            <div>
-              <div class="mobooking-service-price">${priceDisplay}</div>
-              <div class="mobooking-service-duration">${duration} minutes</div>
             </div>
           </div>
         </label>`;
@@ -947,8 +961,8 @@ jQuery(document).ready(function ($) {
 
     // If instance exists, just redraw and exit
     if (els.dateInput.data("fp")) {
-        els.dateInput.data("fp").redraw();
-        return;
+      els.dateInput.data("fp").redraw();
+      return;
     }
 
     els.dateInput.flatpickr({
@@ -962,9 +976,9 @@ jQuery(document).ready(function ($) {
         els.timeSlots.empty();
         if (state.date) loadTimeSlots(dateStr);
       },
-      onReady: function(selectedDates, dateStr, instance) {
-        $(instance.calendarContainer).addClass('mobooking-flatpickr');
-      }
+      onReady: function (selectedDates, dateStr, instance) {
+        $(instance.calendarContainer).addClass("mobooking-flatpickr");
+      },
     });
   }
 
@@ -1001,11 +1015,9 @@ jQuery(document).ready(function ($) {
         }
         let html = "";
         slots.forEach((s, i) => {
-          html += `<button type=\"button\" class=\"mobooking-btn mobooking-btn-outline mobooking-time-slot\" data-time=\"${
+          html += `<a class=\"mobooking-btn mobooking-btn-outline mobooking-time-slot\" data-time=\"${
             s.start_time
-          }\" style=\"margin:5px;\">${escapeHtml(
-            s.display || `${s.start_time}`
-          )}</button>`;
+          }\">${escapeHtml(s.display || `${s.start_time}`)}</a>`;
         });
         els.timeSlots.html(html);
         collapseTimeSlots(false);
@@ -1114,9 +1126,9 @@ jQuery(document).ready(function ($) {
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>
                 ${escapeHtml(state.service.name)}
             </span>
-            <span class="item-value">${
-              CONFIG.currency_symbol
-            }${(parseFloat(state.service.price) || 0).toFixed(2)}</span>
+            <span class="item-value">${CONFIG.currency_symbol}${(
+        parseFloat(state.service.price) || 0
+      ).toFixed(2)}</span>
         </div>`;
     }
 
@@ -1164,9 +1176,9 @@ jQuery(document).ready(function ($) {
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4z"></path><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2z"></path></svg>
             Total
         </span>
-        <span class="item-value">${
-          CONFIG.currency_symbol
-        }${(state.pricing.total || 0).toFixed(2)}</span>
+        <span class="item-value">${CONFIG.currency_symbol}${(
+      state.pricing.total || 0
+    ).toFixed(2)}</span>
     </div>`;
 
     return html;
