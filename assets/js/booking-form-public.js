@@ -1296,20 +1296,4 @@ jQuery(document).ready(function ($) {
     state.frequency = $(this).val();
   });
 
-  // Property access radios active styling
-  $(document).on("change", 'input[name="property_access"]', function () {
-    const name = $(this).attr("name");
-    $(`input[name="${name}"]`).each(function () {
-      $(this).closest(".mobooking-radio-option").removeClass("active");
-    });
-    if ($(this).is(":checked"))
-      $(this).closest(".mobooking-radio-option").addClass("active");
-    const val = $(this).val();
-    state.propertyAccess.method = val;
-    if (val === "other")
-      els.accessDetailsWrap
-        .removeClass("hidden")
-        .removeClass("mobooking-collapsed");
-    else els.accessDetailsWrap.addClass("mobooking-collapsed");
-  });
 });
