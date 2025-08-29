@@ -54,6 +54,10 @@ body {
     color: hsl(var(--foreground));
 }
 
+.mobooking-flatpickr {
+    width: 100% !important;
+}
+
 .mobooking-header p {
     color: hsl(var(--muted-foreground));
     font-size: 1rem;
@@ -340,6 +344,16 @@ body {
     border: 1px solid hsl(var(--border));
     padding: 1.5rem;
     margin-top: 2rem;
+    display: none;
+    opacity: 0;
+    transform: scale(0.98);
+    transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
+}
+
+.mobooking-summary-card.active {
+    display: block;
+    opacity: 1;
+    transform: scale(1);
 }
 
 .mobooking-summary-card h3 {
@@ -405,16 +419,27 @@ body {
 #mobooking-step-5 .mobooking-radio-group {
     flex-direction: row;
     gap: 1rem;
+    align-items: stretch;
 }
 
 #mobooking-step-5 .mobooking-radio-option {
     flex-grow: 1;
     justify-content: center;
     text-align: center;
+    padding: 1rem 0.5rem;
+    border-width: 2px;
+    transition: all 0.2s ease-in-out;
+}
+
+#mobooking-step-5 .mobooking-radio-option:has(input:checked) {
+    border-color: hsl(var(--primary));
+    background-color: hsl(var(--primary) / 0.15);
+    box-shadow: 0 4px 12px hsl(var(--primary) / 0.1);
+    transform: translateY(-2px);
 }
 
 #mobooking-step-5 .mobooking-radio-option span {
-    font-weight: 500;
+    font-weight: 600;
 }
 
 /* Confirmation Step Styling */

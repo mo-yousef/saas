@@ -70,6 +70,8 @@ if (!$form_config['form_enabled']) {
 
 // Enqueue necessary styles and scripts
 wp_enqueue_script('jquery');
+wp_enqueue_script('flatpickr', 'https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js', ['jquery'], '4.6.13', true);
+wp_enqueue_style('flatpickr', 'https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.css', [], '4.6.13');
 
 // Prepare localized script data
 $script_data = [
@@ -283,7 +285,7 @@ $script_data = [
                 <h2 class="mobooking-step-title"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="#2563eb" viewBox="0 0 256 256"><path d="M216,48V88H40V48a8,8,0,0,1,8-8H208A8,8,0,0,1,216,48Z" opacity="0.2"></path><path d="M208,32H184V24a8,8,0,0,0-16,0v8H88V24a8,8,0,0,0-16,0v8H48A16,16,0,0,0,32,48V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V48A16,16,0,0,0,208,32ZM72,48v8a8,8,0,0,0,16,0V48h80v8a8,8,0,0,0,16,0V48h24V80H48V48ZM208,208H48V96H208V208Zm-38.34-85.66a8,8,0,0,1,0,11.32l-48,48a8,8,0,0,1-11.32,0l-24-24a8,8,0,0,1,11.32-11.32L116,164.69l42.34-42.35A8,8,0,0,1,169.66,122.34Z"></path></svg><?php echo esc_html($bf_settings['bf_step_6_title'] ?? 'Select Date & Time'); ?></h2>
                 <div class="mobooking-form-group">
                     <label for="mobooking-service-date" class="mobooking-label"><?php _e('Preferred Date', 'mobooking'); ?> *</label>
-                    <input type="date" id="mobooking-service-date" class="mobooking-input" placeholder="<?php esc_attr_e('Select a date', 'mobooking'); ?>">
+                    <input type="text" id="mobooking-service-date" class="mobooking-input" placeholder="<?php esc_attr_e('Select a date', 'mobooking'); ?>" readonly>
                 </div>
                 <div class="mobooking-form-group hidden" id="mobooking-time-slots-container">
                     <label class="mobooking-label"><?php _e('Available Time Slots', 'mobooking'); ?> *</label>
@@ -380,7 +382,7 @@ $script_data = [
             <!-- Step 8: Confirmation -->
             <div class="mobooking-step-content" id="mobooking-step-8">
                 <h2 class="mobooking-step-title"><?php echo esc_html($bf_settings['bf_step_8_title'] ?? 'Confirm Your Booking'); ?></h2>
-                <div id="mobooking-confirmation-summary">
+                <div class="mobooking-confirmation-summary" id="mobooking-confirmation-details">
                     <!-- Full summary will be dynamically injected here by JS -->
                 </div>
                 <div id="mobooking-confirmation-feedback" class="mobooking-feedback"></div>
@@ -409,10 +411,6 @@ $script_data = [
                         <?php echo esc_html($form_config['success_message']); ?>
                     </p>
 
-                    <div class="mobooking-confirmation-summary" id="mobooking-confirmation-details">
-                        <!-- Summary details will be injected here by JS -->
-                    </div>
-
                     <button type="button" class="mobooking-btn mobooking-btn-primary" style="margin-top: 2rem; width: 100%;" onclick="moBookingResetForm()">
                         <?php _e('Book Another Service', 'mobooking'); ?>
                     </button>
@@ -420,7 +418,7 @@ $script_data = [
             </div>
 
             <!-- Live Summary Sidebar -->
-            <div class="mobooking-summary-card" id="mobooking-live-summary" style="display: none;">
+            <div class="mobooking-summary-card" id="mobooking-live-summary">
                 <h3 class="summary-title"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="#2563eb" viewBox="0 0 256 256"><path d="M208,40V200a24,24,0,0,1-24,24H72a24,24,0,0,1-24-24V40Z" opacity="0.2"></path><path d="M168,128a8,8,0,0,1-8,8H96a8,8,0,0,1,0-16h64A8,8,0,0,1,168,128Zm-8,24H96a8,8,0,0,0,0,16h64a8,8,0,0,0,0-16ZM216,40V200a32,32,0,0,1-32,32H72a32,32,0,0,1-32-32V40a8,8,0,0,1,8-8H72V24a8,8,0,0,1,16,0v8h32V24a8,8,0,0,1,16,0v8h32V24a8,8,0,0,1,16,0v8h24A8,8,0,0,1,216,40Zm-16,8H184v8a8,8,0,0,1-16,0V48H136v8a8,8,0,0,1-16,0V48H88v8a8,8,0,0,1-16,0V48H56V200a16,16,0,0,0,16,16H184a16,16,0,0,0,16-16Z"></path></svg><?php _e('Summary', 'mobooking'); ?></h3>
                 <div id="mobooking-summary-content">
                     <p><?php _e('Your selections will appear here.', 'mobooking'); ?></p>
