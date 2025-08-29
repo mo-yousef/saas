@@ -610,7 +610,7 @@ class BookingFormAjax {
                         $time_slots[] = [
                             'start_time' => date('H:i', $current_time),
                             'end_time'   => date('H:i', $end_slot_time),
-                            'display'    => date('g:i A', $current_time) . ' until ' . date('g:i A', $end_slot_time)
+                            'display'    => date('g:i A', $current_time) . ' - ' . date('g:i A', $end_slot_time)
                         ];
                     }
                 }
