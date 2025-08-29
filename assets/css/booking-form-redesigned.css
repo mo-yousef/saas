@@ -474,6 +474,9 @@ form#mobooking-area-check-form {
 
 .mobooking-button-group {
     width: 100%;
+    display: flex;
+    gap: 16px;
+    justify-content: space-between;
 }
 
 .mobooking-button-group button {

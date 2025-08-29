@@ -425,9 +425,10 @@ tbody tr:hover {
   text-align: center;
 }
 
+/* 
 .hidden {
   display: none;
-}
+} */
 
 .required {
   color: hsl(0 84.2% 60.2%);
