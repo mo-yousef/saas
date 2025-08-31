@@ -46,49 +46,54 @@ $currency_pos        = $biz_settings['biz_currency_position'];
 
 // Define option types.
 $option_types = array(
-	'checkbox'   => array(
+	'toggle'   => array(
 		'label'       => __( 'Option Toggle / Yes or No', 'mobooking' ),
-		'description' => __( 'Simple yes/no choice', 'mobooking' ),
+		'description' => __( 'A single yes/no toggle switch.', 'mobooking' ),
+		'icon'        => 'toggle-right',
+	),
+	'checkbox'   => array(
+		'label'       => __( 'Multiple Choice', 'mobooking' ),
+		'description' => __( 'A list of checkboxes where multiple can be selected.', 'mobooking' ),
 		'icon'        => 'check-square',
 	),
 	'text'       => array(
 		'label'       => __( 'Short Answer', 'mobooking' ),
-		'description' => __( 'Short text field', 'mobooking' ),
+		'description' => __( 'A single-line text input field.', 'mobooking' ),
 		'icon'        => 'type',
 	),
 	'number'     => array(
 		'label'       => __( 'Number Field', 'mobooking' ),
-		'description' => __( 'Numeric input only', 'mobooking' ),
+		'description' => __( 'A field for entering a number.', 'mobooking' ),
 		'icon'        => 'hash',
 	),
 	'select'     => array(
 		'label'       => __( 'Select from List', 'mobooking' ),
-		'description' => __( 'Choose one from list', 'mobooking' ),
+		'description' => __( 'A dropdown list to select a single option.', 'mobooking' ),
 		'icon'        => 'chevron-down',
 	),
 	'radio'      => array(
 		'label'       => __( 'Single Choice', 'mobooking' ),
-		'description' => __( 'Single choice selection', 'mobooking' ),
+		'description' => __( 'A list of radio buttons to select a single option.', 'mobooking' ),
 		'icon'        => 'circle',
 	),
 	'textarea'   => array(
 		'label'       => __( 'Long Answer / Additional Notes', 'mobooking' ),
-		'description' => __( 'Multi-line text', 'mobooking' ),
+		'description' => __( 'A multi-line text input field for longer answers.', 'mobooking' ),
 		'icon'        => 'file-text',
 	),
 	'quantity'   => array(
 		'label'       => __( 'Item Quantity / Number of Items', 'mobooking' ),
-		'description' => __( 'Number with +/- buttons', 'mobooking' ),
+		'description' => __( 'A field for entering a quantity, often with steppers.', 'mobooking' ),
 		'icon'        => 'plus-minus',
 	),
 	'sqm'        => array(
 		'label'       => __( 'Area (m²)', 'mobooking' ),
-		'description' => __( 'Area calculation', 'mobooking' ),
+		'description' => __( 'A field for entering an area in square meters (m²).', 'mobooking' ),
 		'icon'        => 'square',
 	),
 	'kilometers' => array(
 		'label'       => __( 'Distance (km)', 'mobooking' ),
-		'description' => __( 'Distance calculation', 'mobooking' ),
+		'description' => __( 'A field for entering a distance in kilometers (km).', 'mobooking' ),
 		'icon'        => 'truck',
 	),
 );
