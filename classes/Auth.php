@@ -742,16 +742,14 @@ public function handle_ajax_registration() {
 
         // Send welcome email (only for business owners, not invited workers)
         if (!$is_invitation_flow) {
-            // error_log('MoBooking: Attempting to send welcome email');
-            // try {
-            //     // NOTE: This was commented out because it is likely causing a timeout
-            //     // if the server's email configuration is not working correctly.
-            //     // $this->send_welcome_email($user_id, $display_name);
-            //     error_log('MoBooking: Welcome email sending is currently disabled to prevent timeouts.');
-            // } catch (Exception $e) {
-            //     error_log("MoBooking: Welcome email failed: " . $e->getMessage());
-            //     // Don't fail registration for email issues
-            // }
+            error_log('MoBooking: Attempting to send welcome email');
+            try {
+                $this->send_welcome_email($user_id, $display_name);
+                error_log('MoBooking: Welcome email successfully sent.');
+            } catch (Exception $e) {
+                error_log("MoBooking: Welcome email failed: " . $e->getMessage());
+                // Don't fail registration for email issues
+            }
         }
 
         // Log successful registration
