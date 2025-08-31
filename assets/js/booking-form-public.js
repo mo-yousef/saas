@@ -745,7 +745,7 @@ jQuery(document).ready(function ($) {
           const value = v.value || v.label || v;
           const price = parseFloat(v.price) || 0;
           const cid = `mobooking-opt-${id}-${idx}`;
-          html += `<label class="mobooking-checkbox-option"><input type="checkbox" name="mobooking-option-${id}[]" id="${cid}" class="mobooking-option-input" data-type="checkbox" data-required="${isReq}" data-name="${escapeHtml(
+          html += `<label class="mobooking-checkbox-option mobooking-selectable-option"><input type="checkbox" name="mobooking-option-${id}[]" id="${cid}" class="mobooking-option-input" data-type="checkbox" data-required="${isReq}" data-name="${escapeHtml(
             name
           )}" value="${escapeHtml(
             value
@@ -779,7 +779,7 @@ jQuery(document).ready(function ($) {
           const value = v.value || v.label || v;
           const price = parseFloat(v.price) || 0;
           const rid = `mobooking-opt-${id}-${idx}`;
-          html += `<label class="mobooking-radio-option"><input type="radio" name="mobooking-option-${id}" id="${rid}" class="mobooking-option-input" data-type="radio" data-required="${isReq}" data-name="${escapeHtml(
+          html += `<label class="mobooking-radio-option mobooking-selectable-option"><input type="radio" name="mobooking-option-${id}" id="${rid}" class="mobooking-option-input" data-type="radio" data-required="${isReq}" data-name="${escapeHtml(
             name
           )}" value="${escapeHtml(
             value
@@ -789,8 +789,20 @@ jQuery(document).ready(function ($) {
         });
         if (opt.description)
           html += `<div class="mobooking-option-description">${escapeHtml(opt.description)}</div>`;
-      } else if (type === "number" || type === "quantity") {
-        html += `<input type="number" min="0" class="form-input mobooking-option-input" data-type="${type}" data-required="${isReq}" data-name="${escapeHtml(
+      } else if (type === "quantity") {
+        html += `<div class="mobooking-quantity-stepper">`;
+        html += `<button type="button" class="stepper-btn stepper-minus" aria-label="Decrease quantity">-</button>`;
+        html += `<input type="number" min="0" class="form-input mobooking-option-input" data-type="quantity" data-required="${isReq}" data-name="${escapeHtml(
+          name
+        )}" data-impact-type="${impactType}" data-impact-value="${impactValue}" value="${
+          isReq ? 1 : 0
+        }" readonly>`;
+        html += `<button type="button" class="stepper-btn stepper-plus" aria-label="Increase quantity">+</button>`;
+        html += `</div>`;
+        if (opt.description)
+          html += `<div class="mobooking-option-description">${escapeHtml(opt.description)}</div>`;
+      } else if (type === "number") {
+        html += `<input type="number" min="0" class="form-input mobooking-option-input" data-type="number" data-required="${isReq}" data-name="${escapeHtml(
           name
         )}" data-impact-type="${impactType}" data-impact-value="${impactValue}" value="${
           isReq ? 1 : 0
@@ -861,6 +873,34 @@ jQuery(document).ready(function ($) {
     collectOptionsAndPrice();
     updateLiveSummary();
   }
+
+  // Quantity Stepper Logic
+  $(document).on("click", ".stepper-btn", function () {
+    const $button = $(this);
+    const $input = $button.siblings('input[type="number"]');
+    if (!$input.length) return;
+
+    let currentValue = parseInt($input.val(), 10) || 0;
+    const min = parseInt($input.attr("min"), 10) || 0;
+
+    if ($button.hasClass("stepper-plus")) {
+      currentValue++;
+    } else if ($button.hasClass("stepper-minus")) {
+      currentValue--;
+    }
+
+    if (currentValue < min) {
+      currentValue = min;
+    }
+
+    $input.val(currentValue);
+
+    // Disable/enable buttons
+    $button.siblings(".stepper-minus").prop("disabled", currentValue === min);
+
+    // Trigger change event to update pricing
+    $input.trigger("change");
+  });
 
   function priceImpactLabel(type, value) {
     if (type === "percentage")
