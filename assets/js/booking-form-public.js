@@ -140,6 +140,10 @@ jQuery(document).ready(function ($) {
     if (step === 6) initDatePicker();
     if (step === 7) {
       $("#mobooking-zip-readonly").val(state.zip);
+      // Ensure the active class is set on the correct property access radio
+      $('input[name="property_access"]:checked')
+        .closest(".mobooking-radio-option")
+        .addClass("active");
       // TODO: Initialize Google Maps Places Autocomplete here when API key is available
     }
     if (step === 8) renderConfirmationSummary();
@@ -1368,11 +1372,9 @@ jQuery(document).ready(function ($) {
       pricing: JSON.stringify(state.pricing),
     };
 
-    showFeedback(
-      els.confirmationFeedback,
-      "",
-      CONFIG.i18n.submitting_booking || "Submitting booking..."
-    );
+    els.confirmationFeedback.html(
+      '<div class="mobooking-spinner" style="margin: 1rem auto;"></div>'
+    ).show();
 
     $.post(CONFIG.ajax_url, payload)
       .done(function (res) {
