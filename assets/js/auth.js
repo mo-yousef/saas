@@ -429,51 +429,51 @@ jQuery(document).ready(function ($) {
           });
         },
         success: (response) => {
-          DEBUG.group("✅ AJAX Success Response");
-          DEBUG.log("Raw response received", response);
+            DEBUG.group("✅ AJAX Success Response");
+            DEBUG.log("Raw response received", response);
 
-          if (response && response.success) {
-            DEBUG.success("Registration successful!", response.data);
+            if (response && response.success) {
+                DEBUG.success("Registration successful!", response.data);
 
-            $registerForm.hide();
-            $("#mobooking-progress-bar").hide();
+                $registerForm.hide();
+                $("#mobooking-progress-bar").hide();
 
-            const $formContainer = $registerForm.closest(".mobooking-auth-form-wrapper");
-            const successMessage = response.data?.message || "Your account has been created.";
-            const firstName = registrationData.first_name || "there";
+                const $formContainer = $registerForm.closest(".mobooking-auth-form-wrapper");
+                const successMessage = response.data?.message || "Your account has been created.";
+                const displayName = response.data?.user_data?.name || "there";
 
-            const messageHtml = `
-              <div style="text-align: center; padding: 30px; background: #f0f9ff; border: 2px solid #0ea5e9; border-radius: 8px; margin: 20px 0;">
-                <div style="color: #0ea5e9; font-size: 48px; margin-bottom: 20px;">✓</div>
-                <h3 style="color: #0369a1; margin: 0 0 15px 0; font-size: 24px;">Welcome, ${firstName}!</h3>
-                <p style="color: #0369a1; margin: 0 0 20px 0; font-size: 16px;">
-                  ${successMessage}
-                </p>
-                <p style="color: #0369a1; margin: 0 0 20px 0; font-size: 16px;">
-                  Redirecting to your dashboard...
-                </p>
-              </div>`;
+                const messageHtml = `
+        <div style="text-align: center; padding: 30px; background: #f0f9ff; border: 2px solid #0ea5e9; border-radius: 8px; margin: 20px 0;">
+        <div style="color: #0ea5e9; font-size: 48px; margin-bottom: 20px;">✓</div>
+        <h3 style="color: #0369a1; margin: 0 0 15px 0; font-size: 24px;">Welcome, ${displayName}!</h3>
+        <p style="color: #0369a1; margin: 0 0 20px 0; font-size: 16px;">
+          ${successMessage}
+        </p>
+        <p style="color: #0369a1; margin: 0 0 20px 0; font-size: 16px;">
+          Redirecting to your dashboard...
+        </p>
+        </div>`;
 
-            if ($formContainer.length) {
-                $formContainer.html(messageHtml).show();
+                if ($formContainer.length) {
+                    $formContainer.html(messageHtml).show();
+                } else {
+                    $registerMessageDiv.html(messageHtml).addClass("success").show();
+                }
+
+                const redirectUrl = response.data?.redirect_url || "/dashboard/";
+                DEBUG.log("Redirecting to", redirectUrl);
+                setTimeout(() => {
+                    window.location.href = redirectUrl;
+                }, 3000); // 3 second delay
             } else {
-                $registerMessageDiv.html(messageHtml).addClass("success").show();
+                DEBUG.error("Registration failed", response);
+                const errorMessage =
+                    response?.data?.message ||
+                    "Registration failed. Please try again.";
+                displayGlobalMessage($registerMessageDiv, errorMessage, false);
+                $submitButton.prop("disabled", false).val(originalButtonText);
             }
-
-            const redirectUrl = response.data?.redirect_url || "/dashboard/";
-            DEBUG.log("Redirecting to", redirectUrl);
-            setTimeout(() => {
-                window.location.href = redirectUrl;
-            }, 3000); // 3 second delay
-          } else {
-            DEBUG.error("Registration failed", response);
-            const errorMessage =
-              response?.data?.message ||
-              "Registration failed. Please try again.";
-            displayGlobalMessage($registerMessageDiv, errorMessage, false);
-            $submitButton.prop("disabled", false).val(originalButtonText);
-          }
-          DEBUG.groupEnd();
+            DEBUG.groupEnd();
         },
         error: (jqXHR, textStatus, errorThrown) => {
           DEBUG.group("❌ AJAX Error Response");
