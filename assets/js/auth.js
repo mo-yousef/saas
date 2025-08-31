@@ -224,6 +224,40 @@ jQuery(document).ready(function ($) {
       });
     }
 
+    async function checkCompanySlugExists(companyName) {
+      DEBUG.group("Company Slug Existence Check");
+      DEBUG.log("Checking company name", { companyName: companyName });
+
+      return new Promise((resolve) => {
+        $.ajax({
+          type: "POST",
+          url: mobooking_auth_params.ajax_url,
+          data: {
+            action: "mobooking_check_company_slug_exists",
+            company_name: companyName,
+          },
+          dataType: "json",
+          timeout: 10000,
+          success: (response) => {
+            DEBUG.log("Company slug check response", response);
+            const exists = response.data && response.data.exists;
+            DEBUG.success("Company slug check completed", { exists: exists });
+            DEBUG.groupEnd();
+            resolve({ exists: exists, message: response.data?.message || '' });
+          },
+          error: (jqXHR, textStatus, errorThrown) => {
+            DEBUG.error("Company slug check failed", {
+              status: jqXHR.status,
+              textStatus: textStatus,
+              errorThrown: errorThrown,
+            });
+            DEBUG.groupEnd();
+            resolve({ exists: false, message: 'Could not verify company name.' });
+          },
+        });
+      });
+    }
+
     async function validateRegisterStep(step) {
       DEBUG.group(`Step ${step} Validation`);
 
@@ -320,8 +354,23 @@ jQuery(document).ready(function ($) {
           );
           isValid = false;
           DEBUG.error("Company name validation failed");
+        } else if (!inviterId && registrationData.company_name) {
+            // Only check if it's not an invitation and company name is provided
+            try {
+                DEBUG.log("Starting company slug existence check");
+                const slugCheck = await checkCompanySlugExists(registrationData.company_name);
+                if (slugCheck.exists) {
+                    // It's just a warning, not a validation failure, so we don't set isValid = false
+                    showFieldError($("#mobooking-company-name"), slugCheck.message);
+                    DEBUG.log("Company name slug might be taken", { message: slugCheck.message });
+                } else {
+                    DEBUG.success("Company name appears to be available");
+                }
+            } catch (error) {
+                DEBUG.error("Company slug check failed, continuing...", error);
+            }
         } else {
-          DEBUG.success("Company name validation passed");
+          DEBUG.success("Company name validation passed (invitation flow or empty)");
         }
 
         DEBUG.groupEnd();
