@@ -185,23 +185,30 @@ class Notifications {
         $subject = sprintf(__('Your Booking Confirmation with %s - Ref: %s', 'mobooking'), $tenant_business_name, $ref);
         $greeting = sprintf(__('Dear %s,', 'mobooking'), $customer_name);
 
-        $body_content  = '<h2>' . __('Booking Confirmed!', 'mobooking') . '</h2>';
-        $body_content .= "<p>" . sprintf(__('Thank you for your booking with %s. Your booking (Ref: %s) is confirmed.', 'mobooking'), "<strong>{$tenant_business_name}</strong>", "<strong>{$ref}</strong>") . "</p>";
-        $body_content .= '<div class="booking-details">';
-        $body_content .= "<h3>" . __('Booking Summary:', 'mobooking') . "</h3>";
-        $body_content .= "<ul>";
-        $body_content .= "<li><strong>" . __('Services:', 'mobooking') . "</strong> " . $services . "</li>";
-        $body_content .= "<li><strong>" . __('Date & Time:', 'mobooking') . "</strong> " . $datetime . "</li>";
-        $body_content .= "<li><strong>" . __('Service Address:', 'mobooking') . "</strong><br>" . $address . "</li>";
-        $body_content .= "<li><strong>" . __('Total Price:', 'mobooking') . "</strong> " . $price_display . "</li>";
-        $body_content .= "</ul>";
-        $body_content .= '</div>';
-        $body_content .= "<p>" . sprintf(__('If you have any questions, please contact %s.', 'mobooking'), $tenant_business_name) . "</p>";
+        $template_path = get_template_directory() . '/templates/email/booking-confirmation-customer.php';
+        if (file_exists($template_path)) {
+            ob_start();
+            include $template_path;
+            $body_content = ob_get_clean();
+
+            $body_content = str_replace('%%TENANT_BUSINESS_NAME%%', $tenant_business_name, $body_content);
+            $body_content = str_replace('%%BOOKING_REFERENCE%%', $ref, $body_content);
+            $body_content = str_replace('%%SERVICE_NAMES%%', $services, $body_content);
+            $body_content = str_replace('%%BOOKING_DATE_TIME%%', $datetime, $body_content);
+            $body_content = str_replace('%%SERVICE_ADDRESS%%', $address, $body_content);
+            $body_content = str_replace('%%TOTAL_PRICE%%', $price_display, $body_content);
+        } else {
+            $body_content = '<h2>' . __('Booking Confirmed!', 'mobooking') . '</h2>';
+            $body_content .= "<p>" . sprintf(__('Thank you for your booking with %s. Your booking (Ref: %s) is confirmed.', 'mobooking'), "<strong>{$tenant_business_name}</strong>", "<strong>{$ref}</strong>") . "</p>";
+        }
+
+        $button_group = '<a href="#" class="btn btn-primary">' . __('View Booking', 'mobooking') . '</a>';
 
         $replacements = [
             '%%SUBJECT%%'      => $subject,
             '%%GREETING%%'     => $greeting,
             '%%BODY_CONTENT%%' => $body_content,
+            '%%BUTTON_GROUP%%' => $button_group,
         ];
         $full_email_html = $this->get_styled_email_html($replacements);
 
@@ -287,23 +294,24 @@ class Notifications {
         $subject = sprintf(__('New Booking Received - Ref: %s - %s', 'mobooking'), $ref, $customer_name);
         $greeting = __('New Booking Received!', 'mobooking');
 
-        $body_content = "<p>" . sprintf(__('You have received a new booking (Ref: %s).', 'mobooking'), "<strong>{$ref}</strong>") . "</p>";
-        $body_content .= '<div class="booking-details">';
-        $body_content .= "<h3>" . __('Customer Details:', 'mobooking') . "</h3>";
-        $body_content .= "<ul>";
-        $body_content .= "<li><strong>" . __('Name:', 'mobooking') . "</strong> " . $customer_name . "</li>";
-        $body_content .= "<li><strong>" . __('Email:', 'mobooking') . "</strong> " . $customer_email_val . "</li>";
-        $body_content .= "<li><strong>" . __('Phone:', 'mobooking') . "</strong> " . $customer_phone . "</li>";
-        $body_content .= "</ul>";
-        $body_content .= "<h3>" . __('Booking Details:', 'mobooking') . "</h3>";
-        $body_content .= "<ul>";
-        $body_content .= "<li><strong>" . __('Services:', 'mobooking') . "</strong> " . $services . "</li>";
-        $body_content .= "<li><strong>" . __('Date & Time:', 'mobooking') . "</strong> " . $datetime . "</li>";
-        $body_content .= "<li><strong>" . __('Service Address:', 'mobooking') . "</strong><br>" . $address . "</li>";
-        $body_content .= "<li><strong>" . __('Total Price:', 'mobooking') . "</strong> " . $price_display . "</li>";
-        $body_content .= "<li><strong>" . __('Special Instructions:', 'mobooking') . "</strong><br>" . $instructions . "</li>";
-        $body_content .= "</ul>";
-        $body_content .= '</div>';
+        $template_path = get_template_directory() . '/templates/email/new-booking-admin.php';
+        if (file_exists($template_path)) {
+            ob_start();
+            include $template_path;
+            $body_content = ob_get_clean();
+
+            $body_content = str_replace('%%BOOKING_REFERENCE%%', $ref, $body_content);
+            $body_content = str_replace('%%CUSTOMER_NAME%%', $customer_name, $body_content);
+            $body_content = str_replace('%%CUSTOMER_EMAIL%%', $customer_email_val, $body_content);
+            $body_content = str_replace('%%CUSTOMER_PHONE%%', $customer_phone, $body_content);
+            $body_content = str_replace('%%SERVICE_NAMES%%', $services, $body_content);
+            $body_content = str_replace('%%BOOKING_DATE_TIME%%', $datetime, $body_content);
+            $body_content = str_replace('%%SERVICE_ADDRESS%%', $address, $body_content);
+            $body_content = str_replace('%%TOTAL_PRICE%%', $price_display, $body_content);
+            $body_content = str_replace('%%SPECIAL_INSTRUCTIONS%%', $instructions, $body_content);
+        } else {
+            $body_content = "<p>" . sprintf(__('You have received a new booking (Ref: %s).', 'mobooking'), "<strong>{$ref}</strong>") . "</p>";
+        }
 
         $button_group = '<a href="' . esc_url(home_url('/dashboard/bookings/')) . '" class="btn btn-primary">' . __('View in Dashboard', 'mobooking') . '</a>';
 
