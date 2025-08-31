@@ -18,6 +18,47 @@ if ( class_exists( 'MoBooking\Classes\Database' ) ) {
     add_action( 'after_switch_theme', array( 'MoBooking\Classes\Database', 'create_tables' ) );
 }
 
+/**
+ * Creates the necessary authentication pages when the theme is activated.
+ */
+function mobooking_create_authentication_pages() {
+    $pages = array(
+        array(
+            'slug' => 'login',
+            'title' => 'Login',
+            'template' => 'page-login.php',
+        ),
+        array(
+            'slug' => 'register',
+            'title' => 'Register',
+            'template' => 'page-register.php',
+        ),
+        array(
+            'slug' => 'forgot-password',
+            'title' => 'Forgot Password',
+            'template' => 'page-forgot-password.php',
+        ),
+    );
+
+    foreach ( $pages as $page ) {
+        // Check if the page already exists
+        if ( ! get_page_by_path( $page['slug'] ) ) {
+            $page_data = array(
+                'post_title'    => $page['title'],
+                'post_name'     => $page['slug'],
+                'post_content'  => '',
+                'post_status'   => 'publish',
+                'post_type'     => 'page',
+                'page_template' => $page['template'],
+            );
+
+            // Insert the page into the database
+            wp_insert_post( $page_data );
+        }
+    }
+}
+add_action( 'after_switch_theme', 'mobooking_create_authentication_pages' );
+
 // Initialize Services Manager and register its AJAX actions
 if (class_exists('MoBooking\Classes\Services')) {
     if (!isset($GLOBALS['mobooking_services_manager'])) {
