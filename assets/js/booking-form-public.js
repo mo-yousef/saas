@@ -756,7 +756,7 @@ jQuery(document).ready(function ($) {
         if (opt.description)
           html += `<div class="mobooking-option-description">${escapeHtml(opt.description)}</div>`;
       } else if (type === "select") {
-        html += `<select class="mobooking-select mobooking-option-input" data-type="select" data-required="${isReq}" data-name="${escapeHtml(
+        html += `<select class="form-select mobooking-option-input" data-type="select" data-required="${isReq}" data-name="${escapeHtml(
           name
         )}">`;
         html += `<option value="">${"Choose an option"}</option>`;
@@ -790,7 +790,7 @@ jQuery(document).ready(function ($) {
         if (opt.description)
           html += `<div class="mobooking-option-description">${escapeHtml(opt.description)}</div>`;
       } else if (type === "number" || type === "quantity") {
-        html += `<input type="number" min="0" class="mobooking-input mobooking-option-input" data-type="${type}" data-required="${isReq}" data-name="${escapeHtml(
+        html += `<input type="number" min="0" class="form-input mobooking-option-input" data-type="${type}" data-required="${isReq}" data-name="${escapeHtml(
           name
         )}" data-impact-type="${impactType}" data-impact-value="${impactValue}" value="${
           isReq ? 1 : 0
@@ -798,20 +798,20 @@ jQuery(document).ready(function ($) {
         if (opt.description)
           html += `<div class="mobooking-option-description">${escapeHtml(opt.description)}</div>`;
       } else if (type === "textarea") {
-        html += `<textarea class="mobooking-textarea mobooking-option-input" data-type="textarea" data-required="${isReq}" data-name="${escapeHtml(
+        html += `<textarea class="form-textarea mobooking-option-input" data-type="textarea" data-required="${isReq}" data-name="${escapeHtml(
           name
         )}" data-impact-type="${impactType}" data-impact-value="${impactValue}"></textarea>`;
       } else if (type === "sqm") {
-        html += `<input type="number" min="1" step="0.1" placeholder="Enter square meters" class="mobooking-input mobooking-option-input" data-type="sqm" data-required="${isReq}" data-name="${escapeHtml(
+        html += `<input type="number" min="1" step="0.1" placeholder="Enter square meters" class="form-input mobooking-option-input" data-type="sqm" data-required="${isReq}" data-name="${escapeHtml(
           name
         )}" data-price-per-unit="${impactValue}">`;
       } else if (type === "kilometers") {
-        html += `<input type="number" min="1" step="0.1" placeholder="Enter kilometers" class="mobooking-input mobooking-option-input" data-type="kilometers" data-required="${isReq}" data-name="${escapeHtml(
+        html += `<input type="number" min="1" step="0.1" placeholder="Enter kilometers" class="form-input mobooking-option-input" data-type="kilometers" data-required="${isReq}" data-name="${escapeHtml(
           name
         )}" data-price-per-unit="${impactValue}">`;
       } else {
         // text default
-        html += `<input type="text" class="mobooking-input mobooking-option-input" data-type="text" data-required="${isReq}" data-name="${escapeHtml(
+        html += `<input type="text" class="form-input mobooking-option-input" data-type="text" data-required="${isReq}" data-name="${escapeHtml(
           name
         )}" data-impact-type="${impactType}" data-impact-value="${impactValue}" placeholder="Enter ${escapeHtml(
           name.toLowerCase()
