@@ -224,6 +224,40 @@ jQuery(document).ready(function ($) {
       });
     }
 
+    async function checkCompanySlugExists(companyName) {
+      DEBUG.group("Company Slug Existence Check");
+      DEBUG.log("Checking company name", { companyName: companyName });
+
+      return new Promise((resolve) => {
+        $.ajax({
+          type: "POST",
+          url: mobooking_auth_params.ajax_url,
+          data: {
+            action: "mobooking_check_company_slug_exists",
+            company_name: companyName,
+          },
+          dataType: "json",
+          timeout: 10000,
+          success: (response) => {
+            DEBUG.log("Company slug check response", response);
+            const exists = response.data && response.data.exists;
+            DEBUG.success("Company slug check completed", { exists: exists });
+            DEBUG.groupEnd();
+            resolve({ exists: exists, message: response.data?.message || '' });
+          },
+          error: (jqXHR, textStatus, errorThrown) => {
+            DEBUG.error("Company slug check failed", {
+              status: jqXHR.status,
+              textStatus: textStatus,
+              errorThrown: errorThrown,
+            });
+            DEBUG.groupEnd();
+            resolve({ exists: false, message: 'Could not verify company name.' });
+          },
+        });
+      });
+    }
+
     async function validateRegisterStep(step) {
       DEBUG.group(`Step ${step} Validation`);
 
@@ -320,8 +354,23 @@ jQuery(document).ready(function ($) {
           );
           isValid = false;
           DEBUG.error("Company name validation failed");
+        } else if (!inviterId && registrationData.company_name) {
+            // Only check if it's not an invitation and company name is provided
+            try {
+                DEBUG.log("Starting company slug existence check");
+                const slugCheck = await checkCompanySlugExists(registrationData.company_name);
+                if (slugCheck.exists) {
+                    // It's just a warning, not a validation failure, so we don't set isValid = false
+                    showFieldError($("#mobooking-company-name"), slugCheck.message);
+                    DEBUG.log("Company name slug might be taken", { message: slugCheck.message });
+                } else {
+                    DEBUG.success("Company name appears to be available");
+                }
+            } catch (error) {
+                DEBUG.error("Company slug check failed, continuing...", error);
+            }
         } else {
-          DEBUG.success("Company name validation passed");
+          DEBUG.success("Company name validation passed (invitation flow or empty)");
         }
 
         DEBUG.groupEnd();
@@ -429,51 +478,51 @@ jQuery(document).ready(function ($) {
           });
         },
         success: (response) => {
-          DEBUG.group("✅ AJAX Success Response");
-          DEBUG.log("Raw response received", response);
+            DEBUG.group("✅ AJAX Success Response");
+            DEBUG.log("Raw response received", response);
 
-          if (response && response.success) {
-            DEBUG.success("Registration successful!", response.data);
+            if (response && response.success) {
+                DEBUG.success("Registration successful!", response.data);
 
-            $registerForm.hide();
-            $("#mobooking-progress-bar").hide();
+                $registerForm.hide();
+                $("#mobooking-progress-bar").hide();
 
-            const $formContainer = $registerForm.closest(".mobooking-auth-form-wrapper");
-            const successMessage = response.data?.message || "Your account has been created.";
-            const firstName = registrationData.first_name || "there";
+                const $formContainer = $registerForm.closest(".mobooking-auth-form-wrapper");
+                const successMessage = response.data?.message || "Your account has been created.";
+                const displayName = response.data?.user_data?.name || "there";
 
-            const messageHtml = `
-              <div style="text-align: center; padding: 30px; background: #f0f9ff; border: 2px solid #0ea5e9; border-radius: 8px; margin: 20px 0;">
-                <div style="color: #0ea5e9; font-size: 48px; margin-bottom: 20px;">✓</div>
-                <h3 style="color: #0369a1; margin: 0 0 15px 0; font-size: 24px;">Welcome, ${firstName}!</h3>
-                <p style="color: #0369a1; margin: 0 0 20px 0; font-size: 16px;">
-                  ${successMessage}
-                </p>
-                <p style="color: #0369a1; margin: 0 0 20px 0; font-size: 16px;">
-                  Redirecting to your dashboard...
-                </p>
-              </div>`;
+                const messageHtml = `
+        <div style="text-align: center; padding: 30px; background: #f0f9ff; border: 2px solid #0ea5e9; border-radius: 8px; margin: 20px 0;">
+        <div style="color: #0ea5e9; font-size: 48px; margin-bottom: 20px;">✓</div>
+        <h3 style="color: #0369a1; margin: 0 0 15px 0; font-size: 24px;">Welcome, ${displayName}!</h3>
+        <p style="color: #0369a1; margin: 0 0 20px 0; font-size: 16px;">
+          ${successMessage}
+        </p>
+        <p style="color: #0369a1; margin: 0 0 20px 0; font-size: 16px;">
+          Redirecting to your dashboard...
+        </p>
+        </div>`;
 
-            if ($formContainer.length) {
-                $formContainer.html(messageHtml).show();
+                if ($formContainer.length) {
+                    $formContainer.html(messageHtml).show();
+                } else {
+                    $registerMessageDiv.html(messageHtml).addClass("success").show();
+                }
+
+                const redirectUrl = response.data?.redirect_url || "/dashboard/";
+                DEBUG.log("Redirecting to", redirectUrl);
+                setTimeout(() => {
+                    window.location.href = redirectUrl;
+                }, 3000); // 3 second delay
             } else {
-                $registerMessageDiv.html(messageHtml).addClass("success").show();
+                DEBUG.error("Registration failed", response);
+                const errorMessage =
+                    response?.data?.message ||
+                    "Registration failed. Please try again.";
+                displayGlobalMessage($registerMessageDiv, errorMessage, false);
+                $submitButton.prop("disabled", false).val(originalButtonText);
             }
-
-            const redirectUrl = response.data?.redirect_url || "/dashboard/";
-            DEBUG.log("Redirecting to", redirectUrl);
-            setTimeout(() => {
-                window.location.href = redirectUrl;
-            }, 3000); // 3 second delay
-          } else {
-            DEBUG.error("Registration failed", response);
-            const errorMessage =
-              response?.data?.message ||
-              "Registration failed. Please try again.";
-            displayGlobalMessage($registerMessageDiv, errorMessage, false);
-            $submitButton.prop("disabled", false).val(originalButtonText);
-          }
-          DEBUG.groupEnd();
+            DEBUG.groupEnd();
         },
         error: (jqXHR, textStatus, errorThrown) => {
           DEBUG.group("❌ AJAX Error Response");
