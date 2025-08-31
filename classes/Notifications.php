@@ -55,25 +55,26 @@ class Notifications {
      * @param string $body_content The main HTML content of the email.
      * @return string The full HTML email.
      */
-    private function get_styled_email_html(string $subject, string $header_title, string $body_content): string {
+    private function get_styled_email_html(array $replacements): string {
         $template_path = get_template_directory() . '/templates/email/base-email-template.php';
 
         if (!file_exists($template_path)) {
             // Fallback to a simple layout if template is missing
-            return "<h1>{$header_title}</h1>{$body_content}";
+            $body = isset($replacements['%%BODY_CONTENT%%']) ? $replacements['%%BODY_CONTENT%%'] : '';
+            $greeting = isset($replacements['%%GREETING%%']) ? '<h2>' . $replacements['%%GREETING%%'] . '</h2>' : '';
+            return "{$greeting}{$body}";
         }
 
-        ob_start();
-        include $template_path;
-        $template = ob_get_clean();
+        $template = file_get_contents($template_path);
 
-        $replacements = [
-            '{{SUBJECT}}'      => $subject,
-            '{{HEADER_TITLE}}' => $header_title,
-            '{{BODY_CONTENT}}' => $body_content,
-            '{{SITE_NAME}}'    => get_bloginfo('name'),
-            '{{SITE_URL}}'     => home_url('/'),
+        // Ensure all keys are present to avoid notices
+        $defaults = [
+            '%%SUBJECT%%'      => get_bloginfo('name'),
+            '%%GREETING%%'     => '',
+            '%%BODY_CONTENT%%' => '',
+            '%%BUTTON_GROUP%%' => '',
         ];
+        $replacements = wp_parse_args($replacements, $defaults);
 
         return str_replace(array_keys($replacements), array_values($replacements), $template);
     }
@@ -182,9 +183,9 @@ class Notifications {
         $price_display = $biz_currency_code . ' ' . number_format_i18n($raw_total_price, 2);
 
         $subject = sprintf(__('Your Booking Confirmation with %s - Ref: %s', 'mobooking'), $tenant_business_name, $ref);
+        $greeting = sprintf(__('Dear %s,', 'mobooking'), $customer_name);
 
         $body_content  = '<h2>' . __('Booking Confirmed!', 'mobooking') . '</h2>';
-        $body_content .= "<p>" . sprintf(__('Dear %s,', 'mobooking'), $customer_name) . "</p>";
         $body_content .= "<p>" . sprintf(__('Thank you for your booking with %s. Your booking (Ref: %s) is confirmed.', 'mobooking'), "<strong>{$tenant_business_name}</strong>", "<strong>{$ref}</strong>") . "</p>";
         $body_content .= '<div class="booking-details">';
         $body_content .= "<h3>" . __('Booking Summary:', 'mobooking') . "</h3>";
@@ -197,7 +198,12 @@ class Notifications {
         $body_content .= '</div>';
         $body_content .= "<p>" . sprintf(__('If you have any questions, please contact %s.', 'mobooking'), $tenant_business_name) . "</p>";
 
-        $full_email_html = $this->get_styled_email_html($subject, $tenant_business_name, $body_content);
+        $replacements = [
+            '%%SUBJECT%%'      => $subject,
+            '%%GREETING%%'     => $greeting,
+            '%%BODY_CONTENT%%' => $body_content,
+        ];
+        $full_email_html = $this->get_styled_email_html($replacements);
 
         $headers = $this->get_email_headers($tenant_user_id);
         $email_sent = wp_mail($customer_email, $subject, $full_email_html, $headers);
@@ -279,9 +285,9 @@ class Notifications {
 
         // Subject and message using translated strings
         $subject = sprintf(__('New Booking Received - Ref: %s - %s', 'mobooking'), $ref, $customer_name);
+        $greeting = __('New Booking Received!', 'mobooking');
 
-        $body_content  = '<h2>' . __('New Booking Received!', 'mobooking') . '</h2>';
-        $body_content .= "<p>" . sprintf(__('You have received a new booking (Ref: %s).', 'mobooking'), "<strong>{$ref}</strong>") . "</p>";
+        $body_content = "<p>" . sprintf(__('You have received a new booking (Ref: %s).', 'mobooking'), "<strong>{$ref}</strong>") . "</p>";
         $body_content .= '<div class="booking-details">';
         $body_content .= "<h3>" . __('Customer Details:', 'mobooking') . "</h3>";
         $body_content .= "<ul>";
@@ -298,9 +304,16 @@ class Notifications {
         $body_content .= "<li><strong>" . __('Special Instructions:', 'mobooking') . "</strong><br>" . $instructions . "</li>";
         $body_content .= "</ul>";
         $body_content .= '</div>';
-        $body_content .= '<p style="text-align:center; margin-top: 24px;"><a href="' . esc_url(home_url('/dashboard/bookings/')) . '" class="button">' . __('View in Dashboard', 'mobooking') . '</a></p>';
 
-        $full_email_html = $this->get_styled_email_html($subject, $tenant_business_name, $body_content);
+        $button_group = '<a href="' . esc_url(home_url('/dashboard/bookings/')) . '" class="btn btn-primary">' . __('View in Dashboard', 'mobooking') . '</a>';
+
+        $replacements = [
+            '%%SUBJECT%%'      => $subject,
+            '%%GREETING%%'     => $greeting,
+            '%%BODY_CONTENT%%' => $body_content,
+            '%%BUTTON_GROUP%%' => $button_group,
+        ];
+        $full_email_html = $this->get_styled_email_html($replacements);
 
         $headers = $this->get_email_headers($tenant_user_id);
         $email_sent = wp_mail($admin_email, $subject, $full_email_html, $headers);
@@ -368,9 +381,9 @@ class Notifications {
         $dashboard_link = home_url('/dashboard/my-assigned-bookings/'); // Or a direct link to the booking if preferred.
 
         $subject = sprintf(__('New Booking Assignment - Ref: %s - %s', 'mobooking'), $ref, $tenant_business_name);
+        $greeting = sprintf(__('Hi %s,', 'mobooking'), esc_html($staff_user->display_name));
 
         $body_content  = '<h2>' . __('New Booking Assignment', 'mobooking') . '</h2>';
-        $body_content .= "<p>" . sprintf(__('Hi %s,', 'mobooking'), esc_html($staff_user->display_name)) . "</p>";
         $body_content .= "<p>" . sprintf(__('You have been assigned a new booking (Ref: %s) for %s.', 'mobooking'), "<strong>{$ref}</strong>", "<strong>{$tenant_business_name}</strong>") . "</p>";
         $body_content .= '<div class="booking-details">';
         $body_content .= "<h3>" . __('Booking Details:', 'mobooking') . "</h3>";
@@ -379,9 +392,16 @@ class Notifications {
         $body_content .= "<li><strong>" . __('Date & Time:', 'mobooking') . "</strong> " . $datetime . "</li>";
         $body_content .= "</ul>";
         $body_content .= '</div>';
-        $body_content .= '<p style="text-align:center; margin-top: 24px;"><a href="' . esc_url($dashboard_link) . '" class="button">' . __('View Your Assignments', 'mobooking') . '</a></p>';
 
-        $full_email_html = $this->get_styled_email_html($subject, $tenant_business_name, $body_content);
+        $button_group = '<a href="' . esc_url($dashboard_link) . '" class="btn btn-primary">' . __('View Your Assignments', 'mobooking') . '</a>';
+
+        $replacements = [
+            '%%SUBJECT%%'      => $subject,
+            '%%GREETING%%'     => $greeting,
+            '%%BODY_CONTENT%%' => $body_content,
+            '%%BUTTON_GROUP%%' => $button_group,
+        ];
+        $full_email_html = $this->get_styled_email_html($replacements);
 
         $headers = $this->get_email_headers($tenant_user_id); // From the perspective of the business
         $email_sent = wp_mail($staff_user->user_email, $subject, $full_email_html, $headers);
@@ -442,9 +462,9 @@ class Notifications {
         $dashboard_link = home_url('/dashboard/bookings/?action=view_booking&booking_id=' . $booking_id);
 
         $subject = sprintf(__('Booking Status Updated - Ref: %s - %s', 'mobooking'), $ref, $tenant_business_name);
+        $greeting = __('Booking Status Updated', 'mobooking');
 
-        $body_content  = '<h2>' . __('Booking Status Updated', 'mobooking') . '</h2>';
-        $body_content .= "<p>" . sprintf(__('The status for booking reference %s has been updated.', 'mobooking'), "<strong>{$ref}</strong>") . "</p>";
+        $body_content  = "<p>" . sprintf(__('The status for booking reference %s has been updated.', 'mobooking'), "<strong>{$ref}</strong>") . "</p>";
         $body_content .= '<div class="booking-details">';
         $body_content .= "<ul>";
         $body_content .= "<li><strong>" . __('Old Status:', 'mobooking') . "</strong> " . esc_html(ucfirst($old_status)) . "</li>";
@@ -452,9 +472,16 @@ class Notifications {
         $body_content .= "<li><strong>" . __('Updated By:', 'mobooking') . "</strong> " . esc_html($updater_name) . " (ID: {$updated_by_user_id})</li>";
         $body_content .= "</ul>";
         $body_content .= '</div>';
-        $body_content .= '<p style="text-align:center; margin-top: 24px;"><a href="' . esc_url($dashboard_link) . '" class="button">' . __('View Booking Details', 'mobooking') . '</a></p>';
 
-        $full_email_html = $this->get_styled_email_html($subject, $tenant_business_name, $body_content);
+        $button_group = '<a href="' . esc_url($dashboard_link) . '" class="btn btn-primary">' . __('View Booking Details', 'mobooking') . '</a>';
+
+        $replacements = [
+            '%%SUBJECT%%'      => $subject,
+            '%%GREETING%%'     => $greeting,
+            '%%BODY_CONTENT%%' => $body_content,
+            '%%BUTTON_GROUP%%' => $button_group,
+        ];
+        $full_email_html = $this->get_styled_email_html($replacements);
 
         $headers = $this->get_email_headers($tenant_user_id);
         $email_sent = wp_mail($admin_user->user_email, $subject, $full_email_html, $headers);
@@ -485,14 +512,26 @@ class Notifications {
         $user_email = $user_info->user_email;
 
         $subject = sprintf(__('Welcome to %s, %s!', 'mobooking'), get_bloginfo('name'), $display_name);
+        $greeting = sprintf(__('Welcome, %s!', 'mobooking'), $display_name);
 
-        $body_content = '<h2>' . sprintf(__('Welcome, %s!', 'mobooking'), $display_name) . '</h2>';
-        $body_content .= '<p>' . sprintf(__('Thank you for registering with %s. We are excited to have you on board!', 'mobooking'), get_bloginfo('name')) . '</p>';
-        $body_content .= '<p>' . __('You can access your dashboard to get started managing your business and bookings.', 'mobooking') . '</p>';
-        $body_content .= '<p style="text-align:center; margin-top: 24px;"><a href="' . esc_url(home_url('/dashboard/')) . '" class="button">' . __('Go to Your Dashboard', 'mobooking') . '</a></p>';
-        $body_content .= '<p>' . __('If you have any questions, feel free to contact our support team.', 'mobooking') . '</p>';
+        $welcome_template_path = get_template_directory() . '/templates/email/welcome-email.php';
+        if (file_exists($welcome_template_path)) {
+            ob_start();
+            include $welcome_template_path;
+            $body_content = ob_get_clean();
+        } else {
+            $body_content = '<p>' . __('Welcome to our service!', 'mobooking') . '</p>';
+        }
 
-        $full_email_html = $this->get_styled_email_html($subject, get_bloginfo('name'), $body_content);
+        $button_group = '<a href="' . esc_url(home_url('/dashboard/')) . '" class="btn btn-primary">' . __('Go to Your Dashboard', 'mobooking') . '</a>';
+
+        $replacements = [
+            '%%SUBJECT%%'      => $subject,
+            '%%GREETING%%'     => $greeting,
+            '%%BODY_CONTENT%%' => $body_content,
+            '%%BUTTON_GROUP%%' => $button_group,
+        ];
+        $full_email_html = $this->get_styled_email_html($replacements);
 
         $headers = $this->get_email_headers();
         $email_sent = wp_mail($user_email, $subject, $full_email_html, $headers);
@@ -514,17 +553,24 @@ class Notifications {
      */
     public function send_invitation_email(string $worker_email, string $assigned_role, string $inviter_name, string $registration_link): bool {
         $subject = sprintf(__('You have been invited to %s', 'mobooking'), get_bloginfo('name'));
+        $greeting = sprintf(__('Hi %s,', 'mobooking'), $worker_email);
 
         $role_display_name = ucfirst(str_replace('mobooking_worker_', '', $assigned_role));
 
         $body_content = '<h2>' . __('You\'re Invited!', 'mobooking') . '</h2>';
-        $body_content .= '<p>' . sprintf(__('Hi %s,', 'mobooking'), $worker_email) . '</p>';
         $body_content .= '<p>' . sprintf(__('You have been invited to join %s as a %s by %s.', 'mobooking'), '<strong>' . get_bloginfo('name') . '</strong>', '<strong>' . $role_display_name . '</strong>', '<strong>' . $inviter_name . '</strong>') . '</p>';
         $body_content .= '<p>' . __('To accept this invitation and complete your registration, please click the button below. This link is valid for 7 days.', 'mobooking') . '</p>';
-        $body_content .= '<p style="text-align:center; margin-top: 24px;"><a href="' . esc_url($registration_link) . '" class="button">' . __('Accept Invitation & Register', 'mobooking') . '</a></p>';
         $body_content .= '<p style="font-size: 12px; color: #718096;">' . __('If you were not expecting this invitation, please ignore this email.', 'mobooking') . '</p>';
 
-        $full_email_html = $this->get_styled_email_html($subject, get_bloginfo('name'), $body_content);
+        $button_group = '<a href="' . esc_url($registration_link) . '" class="btn btn-primary">' . __('Accept Invitation & Register', 'mobooking') . '</a>';
+
+        $replacements = [
+            '%%SUBJECT%%'      => $subject,
+            '%%GREETING%%'     => $greeting,
+            '%%BODY_CONTENT%%' => $body_content,
+            '%%BUTTON_GROUP%%' => $button_group,
+        ];
+        $full_email_html = $this->get_styled_email_html($replacements);
 
         $headers = $this->get_email_headers();
         return wp_mail($worker_email, $subject, $full_email_html, $headers);
