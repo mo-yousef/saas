@@ -311,8 +311,8 @@
   margin-bottom: 0;
 }
 
-/* Custom Checkbox Styles */
-.mobooking-checkbox-option {
+/* Custom Selectable Options (Checkbox & Radio) */
+.mobooking-selectable-option {
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -324,32 +324,40 @@
   margin-bottom: 0.5rem;
 }
 
-.mobooking-checkbox-option:hover {
+.mobooking-selectable-option:hover {
   background-color: hsl(var(--accent));
 }
 
-.mobooking-checkbox-option input[type="checkbox"] {
+.mobooking-selectable-option input {
   opacity: 0;
   width: 0;
   height: 0;
   position: absolute;
 }
 
-.mobooking-checkbox-option span {
+.mobooking-selectable-option span {
   display: flex;
   align-items: center;
   gap: 0.75rem;
 }
 
-.mobooking-checkbox-option span::before {
+.mobooking-selectable-option span::before {
   content: '';
   display: inline-block;
   width: 18px;
   height: 18px;
   border: 2px solid hsl(var(--muted-foreground));
-  border-radius: var(--radius-sm);
   transition: all 0.2s ease;
   flex-shrink: 0;
+}
+
+.mobooking-checkbox-option span::before {
+  border-radius: var(--radius-sm);
+}
+
+.mobooking-radio-option span::before {
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 3px hsl(var(--background));
 }
 
 .mobooking-checkbox-option input[type="checkbox"]:checked + span::before {
@@ -360,59 +368,59 @@
   background-repeat: no-repeat;
 }
 
-.mobooking-checkbox-option input[type="checkbox"]:focus-visible + span::before {
-    box-shadow: 0 0 0 2px hsl(var(--background)), 0 0 0 4px hsl(var(--ring));
-}
-
-/* Custom Radio Button Styles */
-.mobooking-radio-option {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem;
-  border-radius: var(--radius-sm);
-  border: 1px solid hsl(var(--border));
-  cursor: pointer;
-  transition: all 0.2s ease;
-  margin-bottom: 0.5rem;
-}
-
-.mobooking-radio-option:hover {
-  background-color: hsl(var(--accent));
-}
-
-.mobooking-radio-option input[type="radio"] {
-  opacity: 0;
-  width: 0;
-  height: 0;
-  position: absolute;
-}
-
-.mobooking-radio-option span {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.mobooking-radio-option span::before {
-  content: '';
-  display: inline-block;
-  width: 18px;
-  height: 18px;
-  border: 2px solid hsl(var(--muted-foreground));
-  border-radius: 50%;
-  transition: all 0.2s ease;
-  flex-shrink: 0;
-  box-shadow: inset 0 0 0 3px hsl(var(--background));
-}
-
 .mobooking-radio-option input[type="radio"]:checked + span::before {
   background-color: hsl(var(--ring));
   border-color: hsl(var(--ring));
 }
 
+.mobooking-checkbox-option input[type="checkbox"]:focus-visible + span::before {
+    box-shadow: 0 0 0 2px hsl(var(--background)), 0 0 0 4px hsl(var(--ring));
+}
+
 .mobooking-radio-option input[type="radio"]:focus-visible + span::before {
     box-shadow: inset 0 0 0 3px hsl(var(--background)), 0 0 0 2px hsl(var(--background)), 0 0 0 4px hsl(var(--ring));
+}
+
+/* Quantity Stepper */
+.mobooking-quantity-stepper {
+  display: flex;
+  align-items: center;
+  border: 1px solid hsl(var(--input));
+  border-radius: var(--radius-sm);
+  max-width: 150px;
+}
+
+.mobooking-quantity-stepper .form-input {
+  text-align: center;
+  border: none;
+  box-shadow: none;
+  padding: 0.5rem;
+  -moz-appearance: textfield;
+}
+.mobooking-quantity-stepper .form-input::-webkit-outer-spin-button,
+.mobooking-quantity-stepper .form-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.mobooking-quantity-stepper .stepper-btn {
+  background-color: transparent;
+  border: none;
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  font-size: 1.25rem;
+  line-height: 1;
+  color: hsl(var(--muted-foreground));
+  transition: background-color 0.2s;
+}
+
+.mobooking-quantity-stepper .stepper-btn:hover {
+  background-color: hsl(var(--accent));
+}
+
+.mobooking-quantity-stepper .stepper-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* Input Groups */
