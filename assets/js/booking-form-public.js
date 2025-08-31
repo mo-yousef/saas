@@ -138,7 +138,7 @@ jQuery(document).ready(function ($) {
     if (step === 8) renderConfirmationSummary();
 
     // Show summary only on steps 3, 4, 5, 6 and if a service is selected
-    const summaryVisibleSteps = [3, 4, 5, 6];
+    const summaryVisibleSteps = [3, 4, 5];
     if (summaryVisibleSteps.includes(step) && state.service) {
       els.liveSummaryContainer.addClass("active");
     } else {
@@ -734,7 +734,11 @@ jQuery(document).ready(function ($) {
           : ""
       }${isReq ? ' <span style="color:#ef4444">*</span>' : ""}</label>`;
 
-      const descriptionHtml = opt.description ? `<div class="mobooking-option-description">${escapeHtml(opt.description)}</div>` : "";
+      const descriptionHtml = opt.description
+        ? `<div class="mobooking-option-description">${escapeHtml(
+            opt.description
+          )}</div>`
+        : "";
 
       if (type === "toggle") {
         html += `<div class="mobooking-input-group">`;
@@ -744,22 +748,22 @@ jQuery(document).ready(function ($) {
         )}" data-impact-type="${impactType}" data-impact-value="${impactValue}" value="1"> <span class="slider"></span></label>`;
         html += `</div>`;
         html += descriptionHtml;
-
       } else if (type === "quantity") {
         html += `<div class="mobooking-input-group">`;
         html += labelHtml;
         html += `<div class="mobooking-quantity-stepper">`;
-        html += `<button type="button" class="stepper-btn stepper-minus" aria-label="Decrease quantity">-</button>`;
+        html += `<button type="button" class="stepper-btn stepper-minus" aria-label="Decrease quantity">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg></button>`;
         html += `<input type="number" min="0" class="form-input mobooking-option-input" data-type="quantity" data-required="${isReq}" data-name="${escapeHtml(
           name
         )}" data-impact-type="${impactType}" data-impact-value="${impactValue}" value="${
           isReq ? 1 : 0
         }" readonly>`;
-        html += `<button type="button" class="stepper-btn stepper-plus" aria-label="Increase quantity">+</button>`;
+        html += `<button type="button" class="stepper-btn stepper-plus" aria-label="Increase quantity">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg></button>`;
         html += `</div>`;
         html += `</div>`;
         html += descriptionHtml;
-
       } else {
         // Default behavior for other inputs
         html += labelHtml;
@@ -775,7 +779,9 @@ jQuery(document).ready(function ($) {
             )}" value="${escapeHtml(
               value
             )}" data-price="${price}"><span>${escapeHtml(label)}${
-              price > 0 ? ` (+${CONFIG.currency_symbol}${price.toFixed(2)})` : ""
+              price > 0
+                ? ` (+${CONFIG.currency_symbol}${price.toFixed(2)})`
+                : ""
             }</span></label>`;
           });
           html += descriptionHtml;
@@ -791,7 +797,9 @@ jQuery(document).ready(function ($) {
             html += `<option value="${escapeHtml(
               value
             )}" data-price="${price}">${escapeHtml(label)}${
-              price > 0 ? ` (+${CONFIG.currency_symbol}${price.toFixed(2)})` : ""
+              price > 0
+                ? ` (+${CONFIG.currency_symbol}${price.toFixed(2)})`
+                : ""
             }</option>`;
           });
           html += `</select>`;
@@ -807,7 +815,9 @@ jQuery(document).ready(function ($) {
             )}" value="${escapeHtml(
               value
             )}" data-price="${price}"> <span>${escapeHtml(label)}${
-              price > 0 ? ` (+${CONFIG.currency_symbol}${price.toFixed(2)})` : ""
+              price > 0
+                ? ` (+${CONFIG.currency_symbol}${price.toFixed(2)})`
+                : ""
             }</span></label>`;
           });
           html += descriptionHtml;

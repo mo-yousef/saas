@@ -54,9 +54,10 @@
 .mobooking-form-group-toggle {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  padding: 1rem 0;
-  border-bottom: 1px solid #e5e7eb;
+  align-items: flex-start;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  padding: 1rem;
 }
 
 .mobooking-form-group-toggle .mobooking-label {
