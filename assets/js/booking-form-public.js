@@ -1330,10 +1330,19 @@ jQuery(document).ready(function ($) {
   function confirmAndSubmitBooking() {
     // Final validation before submission
     if (!validateStep(7)) {
-      // Re-validate customer details just in case
       showStep(7);
       return;
     }
+
+    const startTime = Date.now();
+    const minDisplayTime = 2000; // 2 seconds
+
+    // Hide form content and show a larger spinner
+    $("#mobooking-confirmation-details, #mobooking-step-8 .mobooking-button-group").slideUp();
+    els.confirmationFeedback.html(
+      '<div class="mobooking-spinner" style="margin: 3rem auto; width: 40px; height: 40px;"></div>'
+    ).show();
+
 
     // Collect all data
     state.pets.has_pets = $('input[name="has_pets"]:checked').val() === "yes";
@@ -1372,28 +1381,32 @@ jQuery(document).ready(function ($) {
       pricing: JSON.stringify(state.pricing),
     };
 
-    els.confirmationFeedback.html(
-      '<div class="mobooking-spinner" style="margin: 1rem auto;"></div>'
-    ).show();
+    const handleSuccess = () => {
+      const elapsedTime = Date.now() - startTime;
+      const remainingTime = Math.max(0, minDisplayTime - elapsedTime);
+      setTimeout(() => showStep(9), remainingTime);
+    };
+
+    const handleError = (message) => {
+      const elapsedTime = Date.now() - startTime;
+      const remainingTime = Math.max(0, minDisplayTime - elapsedTime);
+      setTimeout(() => {
+        // Restore form and show error
+        $("#mobooking-confirmation-details, #mobooking-step-8 .mobooking-button-group").slideDown();
+        showFeedback(els.confirmationFeedback, "error", message);
+      }, remainingTime);
+    };
 
     $.post(CONFIG.ajax_url, payload)
       .done(function (res) {
         if (res.success) {
-          showStep(9); // Success step is now 9
+          handleSuccess();
         } else {
-          showFeedback(
-            els.confirmationFeedback,
-            "error",
-            res.data?.message || CONFIG.i18n.booking_error || "Submission error"
-          );
+          handleError(res.data?.message || CONFIG.i18n.booking_error || "Submission error");
         }
       })
       .fail(function () {
-        showFeedback(
-          els.confirmationFeedback,
-          "error",
-          CONFIG.i18n.error_ajax || "Network error"
-        );
+        handleError(CONFIG.i18n.error_ajax || "Network error");
       });
   }
 
