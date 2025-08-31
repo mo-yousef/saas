@@ -828,13 +828,10 @@ public function handle_ajax_registration() {
         $original_slug_check_user_id = \MoBooking\Classes\Routes\BookingFormRouter::get_user_id_by_slug($base_slug);
 
         if ($original_slug_check_user_id !== 0) {
-            // Slug already exists, suggest alternatives or just inform
-            // For simplicity, we'll just say it might be taken and will be suffixed.
-            // A more advanced version could try to find the next available -NUMBER suffix.
+            // Slug already exists, return a hard error message.
             wp_send_json_success([
                 'exists' => true,
-                'message' => __('This company name might already be in use or result in a similar URL. It will be made unique if necessary (e.g., by adding a number).', 'mobooking'),
-                'slug_preview' => $base_slug . '-2' // Example suffix
+                'message' => __('This company name is already taken. Please choose another.', 'mobooking')
             ]);
         } else {
             wp_send_json_success([
