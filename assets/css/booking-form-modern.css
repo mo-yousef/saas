@@ -311,6 +311,59 @@
   margin-bottom: 0;
 }
 
+/* Custom Checkbox Styles */
+.mobooking-checkbox-option {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid hsl(var(--border));
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: 0.5rem;
+}
+
+.mobooking-checkbox-option:hover {
+  background-color: hsl(var(--accent));
+}
+
+.mobooking-checkbox-option input[type="checkbox"] {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  position: absolute;
+}
+
+.mobooking-checkbox-option span {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.mobooking-checkbox-option span::before {
+  content: '';
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border: 2px solid hsl(var(--muted-foreground));
+  border-radius: var(--radius-sm);
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.mobooking-checkbox-option input[type="checkbox"]:checked + span::before {
+  background-color: hsl(var(--ring));
+  border-color: hsl(var(--ring));
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='white'%3e%3cpath d='M12.207 4.793a1 1 0 0 1 0 1.414l-5 5a1 1 0 0 1-1.414 0l-2-2a1 1 0 0 1 1.414-1.414L6.5 9.086l4.293-4.293a1 1 0 0 1 1.414 0z'/%3e%3c/svg%3e");
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.mobooking-checkbox-option input[type="checkbox"]:focus-visible + span::before {
+    box-shadow: 0 0 0 2px hsl(var(--background)), 0 0 0 4px hsl(var(--ring));
+}
+
 /* Input Groups */
 .input-group {
   display: flex;
