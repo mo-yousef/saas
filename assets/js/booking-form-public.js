@@ -281,7 +281,9 @@ jQuery(document).ready(function ($) {
         const missing = [];
         els.optionsContainer.find(".mobooking-form-group").each(function () {
           const $group = $(this);
-          const requiredInputs = $group.find(".mobooking-option-input[data-required='1']");
+          const requiredInputs = $group.find(
+            ".mobooking-option-input[data-required='1']"
+          );
 
           if (!requiredInputs.length) {
             return; // Skip non-required groups
@@ -317,15 +319,12 @@ jQuery(document).ready(function ($) {
         });
 
         if (missing.length) {
-          const errorMsg = (CONFIG.i18n.fill_required_options || 'Please fill all required options:') + ' ' + missing.join(", ");
-          return (
-            showFeedback(
-              els.optionsFeedback,
-              "error",
-              errorMsg
-            ),
-            false
-          );
+          const errorMsg =
+            (CONFIG.i18n.fill_required_options ||
+              "Please fill all required options:") +
+            " " +
+            missing.join(", ");
+          return showFeedback(els.optionsFeedback, "error", errorMsg), false;
         }
         return true;
       case 4:
@@ -728,7 +727,9 @@ jQuery(document).ready(function ($) {
 
       html += `<div class="mobooking-form-group" data-option-id="${id}">`;
       html += `<label class="mobooking-label">${escapeHtml(name)}${
-        impactValue > 0 && !['select', 'radio', 'checkbox'].includes(type) ? priceImpactLabel(impactType, impactValue) : ""
+        impactValue > 0 && !["select", "radio", "checkbox"].includes(type)
+          ? priceImpactLabel(impactType, impactValue)
+          : ""
       }${isReq ? ' <span style="color:#ef4444">*</span>' : ""}</label>`;
 
       if (type === "toggle") {
@@ -737,7 +738,9 @@ jQuery(document).ready(function ($) {
           name
         )}" data-impact-type="${impactType}" data-impact-value="${impactValue}" value="1"> <span class="slider"></span></label>`;
         if (opt.description)
-          html += `<span class="ml-2 text-sm text-gray-600">${escapeHtml(opt.description)}</span>`;
+          html += `<span class="option-description">${escapeHtml(
+            opt.description
+          )}</span>`;
         html += `</div>`;
       } else if (type === "checkbox") {
         values.forEach((v, idx) => {
@@ -754,7 +757,9 @@ jQuery(document).ready(function ($) {
           }</span></label>`;
         });
         if (opt.description)
-          html += `<div class="mobooking-option-description">${escapeHtml(opt.description)}</div>`;
+          html += `<div class="mobooking-option-description">${escapeHtml(
+            opt.description
+          )}</div>`;
       } else if (type === "select") {
         html += `<select class="form-select mobooking-option-input" data-type="select" data-required="${isReq}" data-name="${escapeHtml(
           name
@@ -772,7 +777,9 @@ jQuery(document).ready(function ($) {
         });
         html += `</select>`;
         if (opt.description)
-          html += `<div class="mobooking-option-description">${escapeHtml(opt.description)}</div>`;
+          html += `<div class="mobooking-option-description">${escapeHtml(
+            opt.description
+          )}</div>`;
       } else if (type === "radio") {
         values.forEach((v, idx) => {
           const label = v.label || v.value || v;
@@ -788,7 +795,9 @@ jQuery(document).ready(function ($) {
           }</span></label>`;
         });
         if (opt.description)
-          html += `<div class="mobooking-option-description">${escapeHtml(opt.description)}</div>`;
+          html += `<div class="mobooking-option-description">${escapeHtml(
+            opt.description
+          )}</div>`;
       } else if (type === "quantity") {
         html += `<div class="mobooking-quantity-stepper">`;
         html += `<button type="button" class="stepper-btn stepper-minus" aria-label="Decrease quantity">-</button>`;
@@ -800,7 +809,9 @@ jQuery(document).ready(function ($) {
         html += `<button type="button" class="stepper-btn stepper-plus" aria-label="Increase quantity">+</button>`;
         html += `</div>`;
         if (opt.description)
-          html += `<div class="mobooking-option-description">${escapeHtml(opt.description)}</div>`;
+          html += `<div class="mobooking-option-description">${escapeHtml(
+            opt.description
+          )}</div>`;
       } else if (type === "number") {
         html += `<input type="number" min="0" class="form-input mobooking-option-input" data-type="number" data-required="${isReq}" data-name="${escapeHtml(
           name
@@ -808,7 +819,9 @@ jQuery(document).ready(function ($) {
           isReq ? 1 : 0
         }">`;
         if (opt.description)
-          html += `<div class="mobooking-option-description">${escapeHtml(opt.description)}</div>`;
+          html += `<div class="mobooking-option-description">${escapeHtml(
+            opt.description
+          )}</div>`;
       } else if (type === "textarea") {
         html += `<textarea class="form-textarea mobooking-option-input" data-type="textarea" data-required="${isReq}" data-name="${escapeHtml(
           name
@@ -829,7 +842,9 @@ jQuery(document).ready(function ($) {
           name.toLowerCase()
         )}...">`;
         if (opt.description)
-          html += `<div class="mobooking-option-description">${escapeHtml(opt.description)}</div>`;
+          html += `<div class="mobooking-option-description">${escapeHtml(
+            opt.description
+          )}</div>`;
       }
 
       html += "</div>";
@@ -917,85 +932,87 @@ jQuery(document).ready(function ($) {
     const opts = {};
 
     els.optionsContainer.find(".mobooking-form-group").each(function () {
-        const optWrap = $(this);
-        const optionId = parseInt(optWrap.data("option-id"), 10);
-        const firstInput = optWrap.find(".mobooking-option-input").first();
-        if (!firstInput.length) return;
+      const optWrap = $(this);
+      const optionId = parseInt(optWrap.data("option-id"), 10);
+      const firstInput = optWrap.find(".mobooking-option-input").first();
+      if (!firstInput.length) return;
 
-        const type = firstInput.data("type");
-        const name = firstInput.data("name") || "Option";
-        let value = null;
-        let price = 0;
+      const type = firstInput.data("type");
+      const name = firstInput.data("name") || "Option";
+      let value = null;
+      let price = 0;
 
-        if (type === "toggle") {
-            if (firstInput.is(":checked")) {
-                value = "1";
-                price = calcImpactPrice(
-                    firstInput.data("impact-type"),
-                    parseFloat(firstInput.data("impact-value")) || 0,
-                    1
-                );
-            }
-        } else if (type === "checkbox") {
-            const checked = optWrap.find('input[type="checkbox"]:checked');
-            if (checked.length > 0) {
-                const values = [];
-                let totalPrice = 0;
-                checked.each(function() {
-                    const cb = $(this);
-                    values.push(cb.val());
-                    totalPrice += parseFloat(cb.data('price')) || 0;
-                });
-                value = values.join(', ');
-                price = totalPrice;
-            }
-        } else if (type === "select") {
-            value = firstInput.val();
-            const p = parseFloat(firstInput.find("option:selected").data("price")) || 0;
-            if (value) price = p;
-        } else if (type === "radio") {
-            const selected = optWrap.find('input[type="radio"]:checked');
-            if (selected.length) {
-                value = selected.val();
-                price = parseFloat(selected.data("price")) || 0;
-            }
-        } else if (type === "number" || type === "quantity") {
-            const qty = parseFloat(firstInput.val()) || 0;
-            if (qty > 0) {
-                value = String(qty);
-                price = calcImpactPrice(
-                    firstInput.data("impact-type"),
-                    parseFloat(firstInput.data("impact-value")) || 0,
-                    qty
-                );
-            }
-        } else if (type === "textarea" || type === "text") {
-            const txt = (firstInput.val() || "").trim();
-            if (txt) {
-                value = txt;
-                price = calcImpactPrice(
-                    firstInput.data("impact-type"),
-                    parseFloat(firstInput.data("impact-value")) || 0,
-                    1
-                );
-            }
-        } else if (type === "sqm" || type === "kilometers") {
-            const quantity = parseFloat(firstInput.val()) || 0;
-            if (quantity > 0) {
-                value = String(quantity);
-                const pricePerUnit = parseFloat(firstInput.data("price-per-unit")) || 0;
-                price = quantity * pricePerUnit;
-            }
+      if (type === "toggle") {
+        if (firstInput.is(":checked")) {
+          value = "1";
+          price = calcImpactPrice(
+            firstInput.data("impact-type"),
+            parseFloat(firstInput.data("impact-value")) || 0,
+            1
+          );
         }
-
-        if (value !== null && value !== "") {
-            opts[optionId] = { id: optionId, name, type, value, price };
+      } else if (type === "checkbox") {
+        const checked = optWrap.find('input[type="checkbox"]:checked');
+        if (checked.length > 0) {
+          const values = [];
+          let totalPrice = 0;
+          checked.each(function () {
+            const cb = $(this);
+            values.push(cb.val());
+            totalPrice += parseFloat(cb.data("price")) || 0;
+          });
+          value = values.join(", ");
+          price = totalPrice;
         }
+      } else if (type === "select") {
+        value = firstInput.val();
+        const p =
+          parseFloat(firstInput.find("option:selected").data("price")) || 0;
+        if (value) price = p;
+      } else if (type === "radio") {
+        const selected = optWrap.find('input[type="radio"]:checked');
+        if (selected.length) {
+          value = selected.val();
+          price = parseFloat(selected.data("price")) || 0;
+        }
+      } else if (type === "number" || type === "quantity") {
+        const qty = parseFloat(firstInput.val()) || 0;
+        if (qty > 0) {
+          value = String(qty);
+          price = calcImpactPrice(
+            firstInput.data("impact-type"),
+            parseFloat(firstInput.data("impact-value")) || 0,
+            qty
+          );
+        }
+      } else if (type === "textarea" || type === "text") {
+        const txt = (firstInput.val() || "").trim();
+        if (txt) {
+          value = txt;
+          price = calcImpactPrice(
+            firstInput.data("impact-type"),
+            parseFloat(firstInput.data("impact-value")) || 0,
+            1
+          );
+        }
+      } else if (type === "sqm" || type === "kilometers") {
+        const quantity = parseFloat(firstInput.val()) || 0;
+        if (quantity > 0) {
+          value = String(quantity);
+          const pricePerUnit =
+            parseFloat(firstInput.data("price-per-unit")) || 0;
+          price = quantity * pricePerUnit;
+        }
+      }
+
+      if (value !== null && value !== "") {
+        opts[optionId] = { id: optionId, name, type, value, price };
+      }
     });
 
     // Recalculate total from scratch
     for (const id in opts) {
-        optionsTotal += opts[id].price;
+      optionsTotal += opts[id].price;
     }
 
     state.optionsById = opts;
