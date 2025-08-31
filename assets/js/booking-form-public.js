@@ -277,33 +277,61 @@ jQuery(document).ready(function ($) {
           );
         return true;
       case 3:
-        // Validate required options
+        // Validate required options using a group-based approach
         const missing = [];
-        els.optionsContainer.find("[data-required='1']").each(function () {
-          const type = $(this).data("type");
-          if (type === "checkbox" && !$(this).is(":checked"))
-            missing.push($(this).data("name") || "Option");
-          else if (
-            (type === "text" ||
-              type === "textarea" ||
-              type === "number" ||
-              type === "quantity" ||
-              type === "sqm") &&
-            !$(this).val()
-          )
-            missing.push($(this).data("name") || "Option");
-          else if ((type === "select" || type === "radio") && !$(this).val())
-            missing.push($(this).data("name") || "Option");
+        els.optionsContainer.find(".mobooking-form-group").each(function () {
+          const $group = $(this);
+          // A group is required if it contains any input with data-required="1"
+          const requiredInputs = $group.find(".mobooking-option-input[data-required='1']");
+
+          if (!requiredInputs.length) {
+            return; // Skip non-required groups
+          }
+
+          const firstInput = requiredInputs.first();
+          const type = firstInput.data("type");
+          const name = firstInput.data("name") || "Option";
+          let isValid = true;
+
+          if (type === "toggle") {
+            // A required toggle is a single checkbox that must be checked.
+            if (!firstInput.is(":checked")) {
+              isValid = false;
+            }
+          } else if (type === "checkbox") {
+            // For a required checkbox group, at least one must be checked.
+            if ($group.find("input[type='checkbox']:checked").length === 0) {
+              isValid = false;
+            }
+          } else if (type === "radio") {
+            // For a required radio group, one must be selected.
+            if ($group.find("input[type='radio']:checked").length === 0) {
+              isValid = false;
+            }
+          } else {
+            // Covers text, textarea, number, quantity, sqm, kilometers, select
+            const value = firstInput.val();
+            if (!value || String(value).trim() === "") {
+              isValid = false;
+            }
+          }
+
+          if (!isValid && !missing.includes(name)) {
+            missing.push(name);
+          }
         });
-        if (missing.length)
+
+        if (missing.length) {
+          const errorMsg = (CONFIG.i18n.fill_required_options || 'Please fill all required options:') + ' ' + missing.join(", ");
           return (
             showFeedback(
               els.optionsFeedback,
               "error",
-              `Please fill required: ${missing.join(", ")}`
+              errorMsg
             ),
             false
           );
+        }
         return true;
       case 4:
         // Pets: if yes, require details
