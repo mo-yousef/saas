@@ -41,7 +41,20 @@ body.mobooking-body {
   background-color: hsl(var(--background));
   font-family: "Inter", sans-serif;
 }
-
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="url"]:focus,
+input[type="password"]:focus,
+input[type="search"]:focus,
+input[type="number"]:focus,
+input[type="tel"]:focus,
+input[type="date"]:focus,
+input[type="time"]:focus,
+textarea:focus,
+select:focus {
+  border-color: unset !important;
+  box-shadow: none !important;
+}
 .mobooking-public-form-container {
   max-width: 1200px;
   margin: 2rem auto;
@@ -397,12 +410,6 @@ div#mobooking-step-1 .mobooking-button-group button {
 }
 
 /* Confirmation Step */
-#mobooking-confirmation-summary {
-  background-color: hsl(var(--background));
-  border: 1px solid hsl(var(--border));
-  border-radius: var(--radius);
-  padding: 1.5rem;
-}
 
 /* Smooth Transitions for Collapsible Sections */
 .mobooking-collapsible {
@@ -469,15 +476,14 @@ div#mobooking-step-1 .mobooking-button-group button {
 
 #mobooking-time-slots {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
   gap: 0.75rem;
 }
 
 .mobooking-time-slot {
-  background-color: hsl(var(--secondary));
   border: 1px solid hsl(var(--border));
   color: hsl(var(--secondary-foreground));
-  font-weight: 500;
+  font-weight: 400;
 }
 
 .mobooking-time-slot.selected {
@@ -554,12 +560,29 @@ label.mobooking-radio-option span {
   display: flex;
   align-items: center;
   gap: 16px;
-  font-size: 15px;
+  font-size: 14px;
+  flex-direction: row-reverse;
+  justify-content: space-between;
+  width: 100%;
 }
 
 label.mobooking-radio-option span svg {
   width: 20px;
   height: 20px;
+}
+
+#mobooking-step-4 .mobooking-radio-option span::before {
+  content: "";
+  display: inline-block;
+  width: 0px;
+  height: 0px;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+.frequency-radio-group label.mobooking-radio-option span {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
 }
 
 .mobooking-radio-option:has(.mobooking-option-input:checked) span svg,
@@ -591,11 +614,6 @@ label.mobooking-radio-option span svg {
 }
 /* Confirmation Summary Styles */
 .mobooking-confirmation-summary {
-  border: 1px solid hsl(var(--border));
-  border-radius: var(--radius);
-  padding: 1rem;
-  background-color: white;
-  margin: 1.5rem 0;
 }
 
 .mobooking-summary-item {
@@ -640,14 +658,207 @@ label.mobooking-radio-option span svg {
   font-size: 1.125rem;
   color: hsl(var(--primary));
 }
-.mobooking-quantity-stepper {
-  display: flex;
-  gap: 10px;
-}
+
 .mobooking-option-description,
 .option-description {
   font-size: 13px;
   color: hsl(var(--muted-foreground));
+}
+.mobooking-form-group-quantity {
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  padding: 1rem;
+}
+/* Quantity Stepper */
+.mobooking-quantity-stepper {
+  display: flex;
+  align-items: center;
+  border: 1px solid hsl(var(--input));
+  border-radius: var(--radius-sm);
+  max-width: 115px;
+  overflow: hidden;
+}
+
+.mobooking-quantity-stepper .form-input {
+  text-align: center;
+  border: none;
+  box-shadow: none;
+  padding: 0.5rem 0;
+  -moz-appearance: textfield;
+}
+.mobooking-quantity-stepper .form-input::-webkit-outer-spin-button,
+.mobooking-quantity-stepper .form-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.mobooking-quantity-stepper .stepper-btn {
+  background-color: transparent;
+  border: none;
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  font-size: 1.25rem;
+  line-height: 1;
+  border-radius: 0px;
+  color: hsl(var(--muted-foreground));
+  transition: background-color 0.2s;
+}
+.stepper-btn svg {
+  width: 14px;
+}
+.mobooking-quantity-stepper .stepper-btn:hover {
+  background-color: hsl(var(--accent));
+}
+
+.mobooking-quantity-stepper .stepper-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Custom Selectable Options (Checkbox & Radio) */
+.mobooking-selectable-option {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid hsl(var(--border));
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: 0px !important;
+}
+
+.mobooking-selectable-option:hover {
+  background-color: hsl(var(--accent));
+}
+
+.mobooking-selectable-option input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  position: absolute;
+}
+
+.mobooking-selectable-option span {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-direction: row-reverse;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.mobooking-selectable-option span::before {
+  content: "";
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border: 2px solid hsl(var(--muted-foreground));
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.mobooking-checkbox-option span::before {
+  border-radius: var(--radius-sm);
+}
+
+.mobooking-radio-option span::before {
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 3px hsl(var(--background));
+}
+
+.mobooking-checkbox-option input[type="checkbox"]:checked + span::before {
+  background-color: hsl(var(--ring));
+  border-color: hsl(var(--ring));
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='white'%3e%3cpath d='M12.207 4.793a1 1 0 0 1 0 1.414l-5 5a1 1 0 0 1-1.414 0l-2-2a1 1 0 0 1 1.414-1.414L6.5 9.086l4.293-4.293a1 1 0 0 1 1.414 0z'/%3e%3c/svg%3e");
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.mobooking-radio-option input[type="radio"]:checked + span::before {
+  background-color: hsl(var(--ring));
+  border-color: hsl(var(--ring));
+}
+
+.mobooking-checkbox-option input[type="checkbox"]:focus-visible + span::before {
+  box-shadow: 0 0 0 2px hsl(var(--background)), 0 0 0 4px hsl(var(--ring));
+}
+
+.mobooking-radio-option input[type="radio"]:focus-visible + span::before {
+  box-shadow: inset 0 0 0 3px hsl(var(--background)),
+    0 0 0 2px hsl(var(--background)), 0 0 0 4px hsl(var(--ring));
+}
+
+/* Toggle Switches */
+.form-group-toggle {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid hsl(var(--border));
+}
+
+.mobooking-toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 48px;
+  height: 24px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.mobooking-toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.mobooking-toggle-switch .slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #d2d6d9;
+  transition: 0.3s;
+  border-radius: 24px;
+}
+
+.mobooking-toggle-switch .slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.3s;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.mobooking-toggle-switch input:checked + .slider {
+  background-color: hsl(var(--ring));
+}
+
+.mobooking-toggle-switch input:checked + .slider:before {
+  transform: translateX(24px);
+}
+
+.toggle-label-group {
+  flex: 1;
+}
+
+.toggle-label-group .toggle-label {
+  margin-bottom: 0.25rem;
+  font-size: 0.9375rem;
+}
+
+.toggle-label-group .description {
+  margin-top: 0.25rem;
+  margin-bottom: 0;
 }
 
 /*=============== STEP #1 ================*/
@@ -679,6 +890,12 @@ form#mobooking-area-check-form {
 
 .mobooking-input-group {
   position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-direction: row;
+  width: 100%;
+  gap: 1.5rem;
 }
 
 span#mobooking-area-name {
