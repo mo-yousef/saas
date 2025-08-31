@@ -49,3 +49,17 @@
 .mobooking-toggle-switch input:checked + .slider:before {
   transform: translateX(16px);
 }
+
+/* Specific layout for toggle switch in a form group */
+.mobooking-form-group-toggle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.mobooking-form-group-toggle .mobooking-label {
+  margin: 0;
+  font-weight: 500;
+}

@@ -725,7 +725,7 @@ jQuery(document).ready(function ($) {
       const impactValue = parseFloat(opt.price_impact_value) || 0;
       const values = Array.isArray(opt.option_values) ? opt.option_values : [];
 
-      html += `<div class="mobooking-form-group" data-option-id="${id}">`;
+      html += `<div class="mobooking-form-group mobooking-form-group-${type}" data-option-id="${id}">`;
       html += `<label class="mobooking-label">${escapeHtml(name)}${
         impactValue > 0 && !["select", "radio", "checkbox"].includes(type)
           ? priceImpactLabel(impactType, impactValue)
