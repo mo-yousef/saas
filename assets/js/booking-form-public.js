@@ -708,12 +708,30 @@ jQuery(document).ready(function ($) {
         impactValue > 0 ? priceImpactLabel(impactType, impactValue) : ""
       }${isReq ? ' <span style="color:#ef4444">*</span>' : ""}</label>`;
 
-      if (type === "checkbox") {
-        html += `<label class="mobooking-radio-option"><input type="checkbox" class="mobooking-option-input" data-type="checkbox" data-required="${isReq}" data-name="${escapeHtml(
+      if (type === "toggle") {
+        html += `<label class="mobooking-switch-option"><input type="checkbox" class="mobooking-option-input" data-type="toggle" data-required="${isReq}" data-name="${escapeHtml(
           name
-        )}" data-impact-type="${impactType}" data-impact-value="${impactValue}" value="1"> <span>${escapeHtml(
-          opt.description || ""
+        )}" data-impact-type="${impactType}" data-impact-value="${impactValue}" value="1"> <span class="mobooking-switch-slider"></span> <span>${escapeHtml(
+          opt.description || name
         )}</span></label>`;
+      } else if (type === "checkbox") {
+        values.forEach((v, idx) => {
+          const label = v.label || v.value || v;
+          const value = v.value || v.label || v;
+          const price = parseFloat(v.price) || 0;
+          const cid = `mobooking-opt-${id}-${idx}`;
+          html += `<label class="mobooking-checkbox-option"><input type="checkbox" name="mobooking-option-${id}[]" id="${cid}" class="mobooking-option-input" data-type="checkbox" data-required="${isReq}" data-name="${escapeHtml(
+            name
+          )}" value="${escapeHtml(
+            value
+          )}" data-price="${price}"> <span>${escapeHtml(label)}${
+            price > 0 ? ` (+${CONFIG.currency_symbol}${price.toFixed(2)})` : ""
+          }</span></label>`;
+        });
+        if (opt.description)
+          html += `<div class="mobooking-option-description" style="color:#6b7280;font-size:0.875rem;margin-top:0.5rem;">${escapeHtml(
+            opt.description
+          )}</div>`;
       } else if (type === "select") {
         html += `<select class="mobooking-select mobooking-option-input" data-type="select" data-required="${isReq}" data-name="${escapeHtml(
           name
@@ -843,71 +861,87 @@ jQuery(document).ready(function ($) {
     let optionsTotal = 0;
     const opts = {};
 
-    els.optionsContainer.find(".mobooking-option-input").each(function () {
-      const $el = $(this);
-      const type = $el.data("type");
-      const name = $el.data("name") || "Option";
-      const optWrap = $el.closest("[data-option-id]");
-      const optionId = parseInt(optWrap.data("option-id"), 10);
+    els.optionsContainer.find(".mobooking-form-group").each(function () {
+        const optWrap = $(this);
+        const optionId = parseInt(optWrap.data("option-id"), 10);
+        const firstInput = optWrap.find(".mobooking-option-input").first();
+        if (!firstInput.length) return;
 
-      let value = null;
-      let price = 0;
+        const type = firstInput.data("type");
+        const name = firstInput.data("name") || "Option";
+        let value = null;
+        let price = 0;
 
-      if (type === "checkbox") {
-        if ($el.is(":checked")) {
-          value = "1";
-          price = calcImpactPrice(
-            $el.data("impact-type"),
-            parseFloat($el.data("impact-value")) || 0,
-            1
-          );
+        if (type === "toggle") {
+            if (firstInput.is(":checked")) {
+                value = "1";
+                price = calcImpactPrice(
+                    firstInput.data("impact-type"),
+                    parseFloat(firstInput.data("impact-value")) || 0,
+                    1
+                );
+            }
+        } else if (type === "checkbox") {
+            const checked = optWrap.find('input[type="checkbox"]:checked');
+            if (checked.length > 0) {
+                const values = [];
+                let totalPrice = 0;
+                checked.each(function() {
+                    const cb = $(this);
+                    values.push(cb.val());
+                    totalPrice += parseFloat(cb.data('price')) || 0;
+                });
+                value = values.join(', ');
+                price = totalPrice;
+            }
+        } else if (type === "select") {
+            value = firstInput.val();
+            const p = parseFloat(firstInput.find("option:selected").data("price")) || 0;
+            if (value) price = p;
+        } else if (type === "radio") {
+            const selected = optWrap.find('input[type="radio"]:checked');
+            if (selected.length) {
+                value = selected.val();
+                price = parseFloat(selected.data("price")) || 0;
+            }
+        } else if (type === "number" || type === "quantity") {
+            const qty = parseFloat(firstInput.val()) || 0;
+            if (qty > 0) {
+                value = String(qty);
+                price = calcImpactPrice(
+                    firstInput.data("impact-type"),
+                    parseFloat(firstInput.data("impact-value")) || 0,
+                    qty
+                );
+            }
+        } else if (type === "textarea" || type === "text") {
+            const txt = (firstInput.val() || "").trim();
+            if (txt) {
+                value = txt;
+                price = calcImpactPrice(
+                    firstInput.data("impact-type"),
+                    parseFloat(firstInput.data("impact-value")) || 0,
+                    1
+                );
+            }
+        } else if (type === "sqm" || type === "kilometers") {
+            const quantity = parseFloat(firstInput.val()) || 0;
+            if (quantity > 0) {
+                value = String(quantity);
+                const pricePerUnit = parseFloat(firstInput.data("price-per-unit")) || 0;
+                price = quantity * pricePerUnit;
+            }
         }
-      } else if (type === "select") {
-        value = $el.val();
-        const p = parseFloat($el.find("option:selected").data("price")) || 0;
-        if (value) price = p; // select values carry their own fixed price
-      } else if (type === "radio") {
-        const selected = $(
-          `input[name="mobooking-option-${optionId}"]:checked`
-        );
-        if (selected.length) {
-          value = selected.val();
-          price = parseFloat(selected.data("price")) || 0; // radios carry own fixed price
-        }
-      } else if (type === "number" || type === "quantity") {
-        const qty = parseFloat($el.val()) || 0;
-        if (qty > 0) {
-          value = String(qty);
-          price = calcImpactPrice(
-            $el.data("impact-type"),
-            parseFloat($el.data("impact-value")) || 0,
-            qty
-          );
-        }
-      } else if (type === "textarea" || type === "text") {
-        const txt = ($el.val() || "").trim();
-        if (txt) {
-          value = txt;
-          price = calcImpactPrice(
-            $el.data("impact-type"),
-            parseFloat($el.data("impact-value")) || 0,
-            1
-          );
-        }
-      } else if (type === "sqm" || type === "kilometers") {
-        const quantity = parseFloat($el.val()) || 0;
-        if (quantity > 0) {
-          value = String(quantity);
-          const pricePerUnit = parseFloat($el.data("price-per-unit")) || 0;
-          price = quantity * pricePerUnit;
-        }
-      }
 
-      if (value !== null && value !== "") {
-        opts[optionId] = { id: optionId, name, type, value, price };
-        optionsTotal += price;
-      }
+        if (value !== null && value !== "") {
+            opts[optionId] = { id: optionId, name, type, value, price };
+        }
     });
+
+    // Recalculate total from scratch
+    for (const id in opts) {
+        optionsTotal += opts[id].price;
+    }
 
     state.optionsById = opts;
     state.pricing.options = optionsTotal;
