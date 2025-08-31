@@ -1338,7 +1338,7 @@ jQuery(document).ready(function ($) {
     const minDisplayTime = 2000; // 2 seconds
 
     // Hide form content and show a larger spinner
-    $("#mobooking-confirmation-details, #mobooking-step-8 .mobooking-button-group").slideUp();
+    $("#mobooking-step-8 .mobooking-step-title, #mobooking-confirmation-details, #mobooking-step-8 .mobooking-button-group").slideUp();
     els.confirmationFeedback.html(
       '<div class="mobooking-spinner" style="margin: 3rem auto; width: 40px; height: 40px;"></div>'
     ).show();
@@ -1392,7 +1392,7 @@ jQuery(document).ready(function ($) {
       const remainingTime = Math.max(0, minDisplayTime - elapsedTime);
       setTimeout(() => {
         // Restore form and show error
-        $("#mobooking-confirmation-details, #mobooking-step-8 .mobooking-button-group").slideDown();
+        $("#mobooking-step-8 .mobooking-step-title, #mobooking-confirmation-details, #mobooking-step-8 .mobooking-button-group").slideDown();
         showFeedback(els.confirmationFeedback, "error", message);
       }, remainingTime);
     };
