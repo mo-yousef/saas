@@ -360,14 +360,15 @@ jQuery(document).ready(function ($) {
                 DEBUG.log("Starting company slug existence check");
                 const slugCheck = await checkCompanySlugExists(registrationData.company_name);
                 if (slugCheck.exists) {
-                    // It's just a warning, not a validation failure, so we don't set isValid = false
                     showFieldError($("#mobooking-company-name"), slugCheck.message);
-                    DEBUG.log("Company name slug might be taken", { message: slugCheck.message });
+                    isValid = false; // This is now a hard validation error
+                    DEBUG.error("Company name validation failed: slug exists");
                 } else {
                     DEBUG.success("Company name appears to be available");
                 }
             } catch (error) {
                 DEBUG.error("Company slug check failed, continuing...", error);
+                // Optionally, you could block submission if the check fails, but for now we'll allow it.
             }
         } else {
           DEBUG.success("Company name validation passed (invitation flow or empty)");
