@@ -435,19 +435,36 @@ jQuery(document).ready(function ($) {
           if (response && response.success) {
             DEBUG.success("Registration successful!", response.data);
 
-            // Hide form and progress bar
             $registerForm.hide();
             $("#mobooking-progress-bar").hide();
 
-            const redirectUrl = response.data?.redirect_url || "/dashboard/";
+            const $formContainer = $registerForm.closest(".mobooking-auth-form-wrapper");
+            const successMessage = response.data?.message || "Your account has been created.";
             const firstName = registrationData.first_name || "there";
 
-            DEBUG.log("Preparing success display and redirect", {
-              firstName: firstName,
-              redirectUrl: redirectUrl,
-            });
+            const messageHtml = `
+              <div style="text-align: center; padding: 30px; background: #f0f9ff; border: 2px solid #0ea5e9; border-radius: 8px; margin: 20px 0;">
+                <div style="color: #0ea5e9; font-size: 48px; margin-bottom: 20px;">✓</div>
+                <h3 style="color: #0369a1; margin: 0 0 15px 0; font-size: 24px;">Welcome, ${firstName}!</h3>
+                <p style="color: #0369a1; margin: 0 0 20px 0; font-size: 16px;">
+                  ${successMessage}
+                </p>
+                <p style="color: #0369a1; margin: 0 0 20px 0; font-size: 16px;">
+                  Redirecting to your dashboard...
+                </p>
+              </div>`;
 
-            showSuccessMessageWithCountdown(firstName, redirectUrl);
+            if ($formContainer.length) {
+                $formContainer.html(messageHtml).show();
+            } else {
+                $registerMessageDiv.html(messageHtml).addClass("success").show();
+            }
+
+            const redirectUrl = response.data?.redirect_url || "/dashboard/";
+            DEBUG.log("Redirecting to", redirectUrl);
+            setTimeout(() => {
+                window.location.href = redirectUrl;
+            }, 3000); // 3 second delay
           } else {
             DEBUG.error("Registration failed", response);
             const errorMessage =
@@ -456,7 +473,6 @@ jQuery(document).ready(function ($) {
             displayGlobalMessage($registerMessageDiv, errorMessage, false);
             $submitButton.prop("disabled", false).val(originalButtonText);
           }
-
           DEBUG.groupEnd();
         },
         error: (jqXHR, textStatus, errorThrown) => {
