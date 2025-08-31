@@ -86,6 +86,7 @@ jQuery(document).ready(function ($) {
     phoneInput: $("#mobooking-customer-phone"),
     addressInput: $("#mobooking-service-address"),
     contactFeedback: $("#mobooking-contact-feedback"),
+    accessDetailsWrap: $("#mobooking-custom-access-details"),
     // Step 8 (Confirmation)
     confirmationSummary: $("#mobooking-confirmation-summary"),
     confirmationFeedback: $("#mobooking-confirmation-feedback"),
@@ -130,6 +131,12 @@ jQuery(document).ready(function ($) {
     // Step-specific hooks
     if (step === 2) loadServices();
     if (step === 3) ensureOptionsLoaded();
+    if (step === 4) {
+      // Ensure the active class is set on the correct pet radio button
+      $('input[name="has_pets"]:checked')
+        .closest(".mobooking-radio-option")
+        .addClass("active");
+    }
     if (step === 6) initDatePicker();
     if (step === 7) {
       $("#mobooking-zip-readonly").val(state.zip);
@@ -1164,9 +1171,9 @@ jQuery(document).ready(function ($) {
     const val = $(this).val();
     state.propertyAccess.method = val;
     if (val === "other") {
-      $("#mobooking-custom-access-details").removeClass("is-collapsed");
+      els.accessDetailsWrap.removeClass("is-collapsed");
     } else {
-      $("#mobooking-custom-access-details").addClass("is-collapsed");
+      els.accessDetailsWrap.addClass("is-collapsed");
     }
   });
 
@@ -1230,65 +1237,75 @@ jQuery(document).ready(function ($) {
   }
 
   function getConfirmationSummaryHtml() {
-    let html = "";
+    let html = '<div class="mobooking-confirmation-grid">';
 
-    // Service
+    // --- Service Details Column ---
+    html += '<div class="mobooking-confirmation-column">';
+    html += '<h4>Service Details</h4>';
+
     if (state.service) {
       html += `<div class="mobooking-summary-item">
-            <span class="item-label">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>
-                ${escapeHtml(state.service.name)}
-            </span>
-            <span class="item-value">${CONFIG.currency_symbol}${(
+          <span class="item-label">${escapeHtml(state.service.name)}</span>
+          <span class="item-value">${CONFIG.currency_symbol}${(
         parseFloat(state.service.price) || 0
       ).toFixed(2)}</span>
-        </div>`;
+      </div>`;
     }
 
-    // Options
     const optList = Object.values(state.optionsById || {});
     if (optList.length) {
-      html += optList
-        .map(
-          (o) => `
-            <div class="mobooking-summary-item">
-                <span class="item-label" style="padding-left: 2.75rem;">${escapeHtml(
-                  o.name
-                )}${
-            o.value && o.type !== "checkbox"
-              ? `: ${escapeHtml(String(o.value))}`
-              : ""
-          }</span>
-                <span class="item-value">${
-                  o.price > 0
-                    ? `+${CONFIG.currency_symbol}${o.price.toFixed(2)}`
-                    : ""
-                }</span>
-            </div>
-        `
-        )
-        .join("");
+      html += '<div class="mobooking-summary-options">';
+      optList.forEach((o) => {
+        html += `<div class="mobooking-summary-item">
+            <span class="item-label">${escapeHtml(o.name)}${
+          o.value && !["checkbox", "toggle"].includes(o.type)
+            ? `: ${escapeHtml(String(o.value))}`
+            : ""
+        }</span>
+            <span class="item-value">${
+              o.price > 0
+                ? `+${CONFIG.currency_symbol}${o.price.toFixed(2)}`
+                : "Included"
+            }</span>
+        </div>`;
+      });
+      html += "</div>";
     }
+    html += "</div>"; // end column
 
-    // Date & Time
+    // --- Booking Details Column ---
+    html += '<div class="mobooking-confirmation-column">';
+    html += '<h4>Booking Details</h4>';
+
     if (state.date || state.time) {
       html += `<div class="mobooking-summary-item">
-            <span class="item-label">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4"></path><path d="M16 2v4"></path><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><path d="M3 10h18"></path></svg>
-                Date & Time
-            </span>
-            <span class="item-value">${escapeHtml(state.date || "")}${
+          <span class="item-label">Date & Time</span>
+          <span class="item-value">${escapeHtml(state.date || "")}${
         state.time ? ` @ ${escapeHtml(state.time)}` : ""
       }</span>
-        </div>`;
+      </div>`;
     }
 
-    // Total
+    html += `<div class="mobooking-summary-item">
+        <span class="item-label">Frequency</span>
+        <span class="item-value" style="text-transform: capitalize;">${escapeHtml(
+          state.frequency
+        )}</span>
+    </div>`;
+
+    if (state.pets.has_pets) {
+      html += `<div class="mobooking-summary-item">
+          <span class="item-label">Pets</span>
+          <span class="item-value">Yes</span>
+      </div>`;
+    }
+    html += "</div>"; // end column
+
+    html += "</div>"; // end grid
+
+    // --- Total ---
     html += `<div class="mobooking-summary-item mobooking-summary-total">
-        <span class="item-label">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4z"></path><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2z"></path></svg>
-            Total
-        </span>
+        <span class="item-label">Total</span>
         <span class="item-value">${CONFIG.currency_symbol}${(
       state.pricing.total || 0
     ).toFixed(2)}</span>
@@ -1435,20 +1452,5 @@ jQuery(document).ready(function ($) {
     state.frequency = $(this).val();
   });
 
-  // Property access radios active styling
-  $(document).on("change", 'input[name="property_access"]', function () {
-    const name = $(this).attr("name");
-    $(`input[name="${name}"]`).each(function () {
-      $(this).closest(".mobooking-radio-option").removeClass("active");
-    });
-    if ($(this).is(":checked"))
-      $(this).closest(".mobooking-radio-option").addClass("active");
-    const val = $(this).val();
-    state.propertyAccess.method = val;
-    if (val === "other")
-      els.accessDetailsWrap
-        .removeClass("hidden")
-        .removeClass("mobooking-collapsed");
-    else els.accessDetailsWrap.addClass("mobooking-collapsed");
-  });
+  // Property access radios active styling is handled in the STEP 7 section
 });
