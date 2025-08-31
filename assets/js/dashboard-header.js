@@ -75,4 +75,22 @@ jQuery(document).ready(function($) {
             });
         }, 300);
     });
+
+    // Mobile Sidebar Toggle
+    const mobileNavToggle = $('#mobooking-mobile-nav-toggle');
+    const sidebar = $('.mobooking-dashboard-sidebar');
+    const body = $('body');
+
+    mobileNavToggle.on('click', function(e) {
+        e.stopPropagation();
+        sidebar.toggleClass('open');
+        body.toggleClass('mobooking-sidebar-open');
+    });
+
+    $(document).on('click', function(e) {
+        if (sidebar.hasClass('open') && !$(e.target).closest('.mobooking-dashboard-sidebar').length) {
+            sidebar.removeClass('open');
+            body.removeClass('mobooking-sidebar-open');
+        }
+    });
 });

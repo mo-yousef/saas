@@ -34,15 +34,24 @@ function showToast({ type = 'info', title, message, duration = 5000 }) {
     const toastTitle = title || details.defaultTitle;
 
     toast.innerHTML = `
-        <div class="toast-icon">${details.icon}</div>
+        <div class="toast-icon-wrapper">
+            <div class="toast-icon">${details.icon}</div>
+        </div>
         <div class="toast-content">
             <h3 class="toast-title">${toastTitle}</h3>
             ${message ? `<p class="toast-message">${message}</p>` : ''}
         </div>
         <button class="toast-close-button">&times;</button>
+        <div class="toast-progress-bar"></div>
     `;
 
     container.appendChild(toast);
+
+    // Set progress bar animation duration
+    const progressBar = toast.querySelector('.toast-progress-bar');
+    if (progressBar) {
+        progressBar.style.animationDuration = `${duration}ms`;
+    }
 
     // Animate in
     setTimeout(() => {
