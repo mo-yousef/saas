@@ -674,15 +674,25 @@ public function handle_ajax_registration() {
                         $final_slug = $base_slug;
                         $counter = 1;
 
-                        while (\MoBooking\Classes\Routes\BookingFormRouter::get_user_id_by_slug($final_slug) !== 0) {
+                        error_log("MoBooking: Starting slug generation for base: {$base_slug}");
+
+                        // Loop until we find a slug that is not in use (get_user_id_by_slug returns null)
+                        while (\MoBooking\Classes\Routes\BookingFormRouter::get_user_id_by_slug($final_slug) !== null) {
                             $counter++;
                             $final_slug = $base_slug . '-' . $counter;
+                            error_log("MoBooking: Slug collision detected. Trying next slug: {$final_slug}");
+                            if ($counter > 50) { // Safety break to prevent accidental infinite loops in edge cases
+                                error_log("MoBooking: Slug generation loop exceeded 50 iterations. Breaking loop.");
+                                // Optionally, append a random string as a final attempt
+                                $final_slug .= '-' . wp_rand(100, 999);
+                                break;
+                            }
                         }
 
                         $settings_manager->update_setting($user_id, 'bf_business_slug', $final_slug);
-                        error_log("MoBooking: Business slug created: {$final_slug}");
+                        error_log("MoBooking: Business slug created and saved: {$final_slug}");
                     } catch (Exception $e) {
-                        error_log("MoBooking: Slug generation failed: " . $e->getMessage());
+                        error_log("MoBooking: Slug generation failed with exception: " . $e->getMessage());
                     }
                 }
             }
