@@ -461,7 +461,26 @@ body {
 /* ============================================================================
    Mobile Responsive Design
    ============================================================================ */
+body.mobooking-sidebar-open {
+    overflow: hidden;
+}
+
+#mobooking-mobile-nav-toggle {
+    display: none;
+    background: none;
+    border: none;
+    color: hsl(var(--foreground));
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    margin-right: 0.5rem;
+}
+
 @media (max-width: 768px) {
+  #mobooking-mobile-nav-toggle {
+    display: block;
+  }
+
   .mobooking-dashboard-sidebar {
     position: fixed;
     left: -280px;
