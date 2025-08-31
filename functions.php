@@ -1305,3 +1305,19 @@ function mobooking_direct_endpoint_js() {
     <?php
 }
 ?>
+<?php
+add_action('admin_init', 'mobooking_redirect_non_admin_users');
+function mobooking_redirect_non_admin_users() {
+    if (is_user_logged_in() && !current_user_can('manage_options') && !(defined('DOING_AJAX') && DOING_AJAX)) {
+        wp_redirect(home_url('/dashboard/'));
+        exit;
+    }
+}
+add_action('show_admin_bar', 'mobooking_hide_admin_bar_for_non_admins');
+function mobooking_hide_admin_bar_for_non_admins($show) {
+    if (is_user_logged_in() && !current_user_can('manage_options')) {
+        return false;
+    }
+    return $show;
+}
+?>
