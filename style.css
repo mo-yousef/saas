@@ -262,7 +262,7 @@ select {
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
   color: hsl(222.2 84% 4.9%);
   max-width: 24rem;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0px;
 }
 
 textarea {

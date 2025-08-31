@@ -140,6 +140,11 @@ div#mobooking-step-1 .mobooking-button-group button {
     opacity: 1;
   }
 }
+#mobooking-service-options-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
 
 .mobooking-step-title {
   font-size: 18px;
@@ -516,7 +521,7 @@ div#mobooking-step-1 .mobooking-button-group button {
 }
 
 .mobooking-radio-option input[type="radio"],
-.mobooking-option-input {
+.mobooking-radio-option input[type="checkbox"] {
   display: none !important;
 }
 
@@ -561,7 +566,29 @@ label.mobooking-radio-option span svg {
 .mobooking-radio-option.active span svg {
   color: hsl(var(--primary));
 }
-
+.mobooking-checkbox-option {
+  display: block;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  padding: 1rem;
+  cursor: pointer;
+  margin: 0px;
+  transition: all 0.2s ease;
+  position: relative;
+}
+.mobooking-checkbox-option:hover {
+  border-color: hsl(var(--primary));
+  background-color: hsl(var(--accent));
+}
+.mobooking-checkbox-option:has(.mobooking-option-input:checked),
+.mobooking-checkbox-option.active {
+  border-color: hsl(var(--primary));
+  background-color: hsl(var(--accent));
+}
+.mobooking-checkbox-option input[type="radio"],
+.mobooking-checkbox-option input[type="checkbox"] {
+  display: none !important;
+}
 /* Confirmation Summary Styles */
 .mobooking-confirmation-summary {
   border: 1px solid hsl(var(--border));
@@ -612,6 +639,15 @@ label.mobooking-radio-option span svg {
 .mobooking-summary-total .item-value {
   font-size: 1.125rem;
   color: hsl(var(--primary));
+}
+.mobooking-quantity-stepper {
+  display: flex;
+  gap: 10px;
+}
+.mobooking-option-description,
+.option-description {
+  font-size: 13px;
+  color: hsl(var(--muted-foreground));
 }
 
 /*=============== STEP #1 ================*/
