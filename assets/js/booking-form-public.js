@@ -281,7 +281,6 @@ jQuery(document).ready(function ($) {
         const missing = [];
         els.optionsContainer.find(".mobooking-form-group").each(function () {
           const $group = $(this);
-          // A group is required if it contains any input with data-required="1"
           const requiredInputs = $group.find(".mobooking-option-input[data-required='1']");
 
           if (!requiredInputs.length) {
@@ -294,22 +293,18 @@ jQuery(document).ready(function ($) {
           let isValid = true;
 
           if (type === "toggle") {
-            // A required toggle is a single checkbox that must be checked.
             if (!firstInput.is(":checked")) {
               isValid = false;
             }
           } else if (type === "checkbox") {
-            // For a required checkbox group, at least one must be checked.
             if ($group.find("input[type='checkbox']:checked").length === 0) {
               isValid = false;
             }
           } else if (type === "radio") {
-            // For a required radio group, one must be selected.
             if ($group.find("input[type='radio']:checked").length === 0) {
               isValid = false;
             }
           } else {
-            // Covers text, textarea, number, quantity, sqm, kilometers, select
             const value = firstInput.val();
             if (!value || String(value).trim() === "") {
               isValid = false;
@@ -733,15 +728,17 @@ jQuery(document).ready(function ($) {
 
       html += `<div class="mobooking-form-group" data-option-id="${id}">`;
       html += `<label class="mobooking-label">${escapeHtml(name)}${
-        impactValue > 0 ? priceImpactLabel(impactType, impactValue) : ""
+        impactValue > 0 && !['select', 'radio', 'checkbox'].includes(type) ? priceImpactLabel(impactType, impactValue) : ""
       }${isReq ? ' <span style="color:#ef4444">*</span>' : ""}</label>`;
 
       if (type === "toggle") {
-        html += `<label class="mobooking-switch-option"><input type="checkbox" class="mobooking-option-input" data-type="toggle" data-required="${isReq}" data-name="${escapeHtml(
+        html += `<div class="flex items-center">`;
+        html += `<label class="mobooking-toggle-switch"><input type="checkbox" class="mobooking-option-input" data-type="toggle" data-required="${isReq}" data-name="${escapeHtml(
           name
-        )}" data-impact-type="${impactType}" data-impact-value="${impactValue}" value="1"> <span class="mobooking-switch-slider"></span> <span>${escapeHtml(
-          opt.description || name
-        )}</span></label>`;
+        )}" data-impact-type="${impactType}" data-impact-value="${impactValue}" value="1"> <span class="slider"></span></label>`;
+        if (opt.description)
+          html += `<span class="ml-2 text-sm text-gray-600">${escapeHtml(opt.description)}</span>`;
+        html += `</div>`;
       } else if (type === "checkbox") {
         values.forEach((v, idx) => {
           const label = v.label || v.value || v;
@@ -752,14 +749,12 @@ jQuery(document).ready(function ($) {
             name
           )}" value="${escapeHtml(
             value
-          )}" data-price="${price}"> <span>${escapeHtml(label)}${
+          )}" data-price="${price}"><span>${escapeHtml(label)}${
             price > 0 ? ` (+${CONFIG.currency_symbol}${price.toFixed(2)})` : ""
           }</span></label>`;
         });
         if (opt.description)
-          html += `<div class="mobooking-option-description" style="color:#6b7280;font-size:0.875rem;margin-top:0.5rem;">${escapeHtml(
-            opt.description
-          )}</div>`;
+          html += `<div class="mobooking-option-description">${escapeHtml(opt.description)}</div>`;
       } else if (type === "select") {
         html += `<select class="mobooking-select mobooking-option-input" data-type="select" data-required="${isReq}" data-name="${escapeHtml(
           name
@@ -777,9 +772,7 @@ jQuery(document).ready(function ($) {
         });
         html += `</select>`;
         if (opt.description)
-          html += `<div class="mobooking-option-description" style="color:#6b7280;font-size:0.875rem;margin-top:0.5rem;">${escapeHtml(
-            opt.description
-          )}</div>`;
+          html += `<div class="mobooking-option-description">${escapeHtml(opt.description)}</div>`;
       } else if (type === "radio") {
         values.forEach((v, idx) => {
           const label = v.label || v.value || v;
@@ -795,9 +788,7 @@ jQuery(document).ready(function ($) {
           }</span></label>`;
         });
         if (opt.description)
-          html += `<div class="mobooking-option-description" style="color:#6b7280;font-size:0.875rem;margin-top:0.5rem;">${escapeHtml(
-            opt.description
-          )}</div>`;
+          html += `<div class="mobooking-option-description">${escapeHtml(opt.description)}</div>`;
       } else if (type === "number" || type === "quantity") {
         html += `<input type="number" min="0" class="mobooking-input mobooking-option-input" data-type="${type}" data-required="${isReq}" data-name="${escapeHtml(
           name
@@ -805,9 +796,7 @@ jQuery(document).ready(function ($) {
           isReq ? 1 : 0
         }">`;
         if (opt.description)
-          html += `<div class="mobooking-option-description" style="color:#6b7280;font-size:0.875rem;margin-top:0.5rem;">${escapeHtml(
-            opt.description
-          )}</div>`;
+          html += `<div class="mobooking-option-description">${escapeHtml(opt.description)}</div>`;
       } else if (type === "textarea") {
         html += `<textarea class="mobooking-textarea mobooking-option-input" data-type="textarea" data-required="${isReq}" data-name="${escapeHtml(
           name
@@ -828,9 +817,7 @@ jQuery(document).ready(function ($) {
           name.toLowerCase()
         )}...">`;
         if (opt.description)
-          html += `<div class="mobooking-option-description" style="color:#6b7280;font-size:0.875rem;margin-top:0.5rem;">${escapeHtml(
-            opt.description
-          )}</div>`;
+          html += `<div class="mobooking-option-description">${escapeHtml(opt.description)}</div>`;
       }
 
       html += "</div>";
