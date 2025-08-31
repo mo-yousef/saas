@@ -827,7 +827,7 @@ public function handle_ajax_registration() {
         $base_slug = sanitize_title($company_name);
         $original_slug_check_user_id = \MoBooking\Classes\Routes\BookingFormRouter::get_user_id_by_slug($base_slug);
 
-        if ($original_slug_check_user_id !== 0) {
+        if ($original_slug_check_user_id !== null) {
             // Slug already exists, return a hard error message.
             wp_send_json_success([
                 'exists' => true,
