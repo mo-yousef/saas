@@ -208,7 +208,7 @@ if ( $edit_mode && $service_id > 0 ) {
 	<div id="alert-container"></div>
 
 	<!-- Main Form -->
-	<form id="mobooking-service-form" class="service-form">
+	<form id="mobooking-service-form" class="service-form" novalidate>
 		<?php wp_nonce_field( 'mobooking_services_nonce', 'nonce' ); ?>
 
 		<?php if ( $edit_mode ) : ?>
