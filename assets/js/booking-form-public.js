@@ -726,79 +726,28 @@ jQuery(document).ready(function ($) {
       const values = Array.isArray(opt.option_values) ? opt.option_values : [];
 
       html += `<div class="mobooking-form-group mobooking-form-group-${type}" data-option-id="${id}">`;
-      html += `<label class="mobooking-label">${escapeHtml(name)}${
+
+      // Define label and description parts
+      const labelHtml = `<label class="mobooking-label">${escapeHtml(name)}${
         impactValue > 0 && !["select", "radio", "checkbox"].includes(type)
           ? priceImpactLabel(impactType, impactValue)
           : ""
       }${isReq ? ' <span style="color:#ef4444">*</span>' : ""}</label>`;
 
+      const descriptionHtml = opt.description ? `<div class="mobooking-option-description">${escapeHtml(opt.description)}</div>` : "";
+
       if (type === "toggle") {
-        html += `<div class="flex items-center">`;
+        html += `<div class="mobooking-input-group">`;
+        html += labelHtml;
         html += `<label class="mobooking-toggle-switch"><input type="checkbox" class="mobooking-option-input" data-type="toggle" data-required="${isReq}" data-name="${escapeHtml(
           name
         )}" data-impact-type="${impactType}" data-impact-value="${impactValue}" value="1"> <span class="slider"></span></label>`;
-        if (opt.description)
-          html += `<span class="option-description">${escapeHtml(
-            opt.description
-          )}</span>`;
         html += `</div>`;
-      } else if (type === "checkbox") {
-        values.forEach((v, idx) => {
-          const label = v.label || v.value || v;
-          const value = v.value || v.label || v;
-          const price = parseFloat(v.price) || 0;
-          const cid = `mobooking-opt-${id}-${idx}`;
-          html += `<label class="mobooking-checkbox-option mobooking-selectable-option"><input type="checkbox" name="mobooking-option-${id}[]" id="${cid}" class="mobooking-option-input" data-type="checkbox" data-required="${isReq}" data-name="${escapeHtml(
-            name
-          )}" value="${escapeHtml(
-            value
-          )}" data-price="${price}"><span>${escapeHtml(label)}${
-            price > 0 ? ` (+${CONFIG.currency_symbol}${price.toFixed(2)})` : ""
-          }</span></label>`;
-        });
-        if (opt.description)
-          html += `<div class="mobooking-option-description">${escapeHtml(
-            opt.description
-          )}</div>`;
-      } else if (type === "select") {
-        html += `<select class="form-select mobooking-option-input" data-type="select" data-required="${isReq}" data-name="${escapeHtml(
-          name
-        )}">`;
-        html += `<option value="">${"Choose an option"}</option>`;
-        values.forEach((v) => {
-          const label = v.label || v.value || v;
-          const value = v.value || v.label || v;
-          const price = parseFloat(v.price) || 0;
-          html += `<option value="${escapeHtml(
-            value
-          )}" data-price="${price}">${escapeHtml(label)}${
-            price > 0 ? ` (+${CONFIG.currency_symbol}${price.toFixed(2)})` : ""
-          }</option>`;
-        });
-        html += `</select>`;
-        if (opt.description)
-          html += `<div class="mobooking-option-description">${escapeHtml(
-            opt.description
-          )}</div>`;
-      } else if (type === "radio") {
-        values.forEach((v, idx) => {
-          const label = v.label || v.value || v;
-          const value = v.value || v.label || v;
-          const price = parseFloat(v.price) || 0;
-          const rid = `mobooking-opt-${id}-${idx}`;
-          html += `<label class="mobooking-radio-option mobooking-selectable-option"><input type="radio" name="mobooking-option-${id}" id="${rid}" class="mobooking-option-input" data-type="radio" data-required="${isReq}" data-name="${escapeHtml(
-            name
-          )}" value="${escapeHtml(
-            value
-          )}" data-price="${price}"> <span>${escapeHtml(label)}${
-            price > 0 ? ` (+${CONFIG.currency_symbol}${price.toFixed(2)})` : ""
-          }</span></label>`;
-        });
-        if (opt.description)
-          html += `<div class="mobooking-option-description">${escapeHtml(
-            opt.description
-          )}</div>`;
+        html += descriptionHtml;
+
       } else if (type === "quantity") {
+        html += `<div class="mobooking-input-group">`;
+        html += labelHtml;
         html += `<div class="mobooking-quantity-stepper">`;
         html += `<button type="button" class="stepper-btn stepper-minus" aria-label="Decrease quantity">-</button>`;
         html += `<input type="number" min="0" class="form-input mobooking-option-input" data-type="quantity" data-required="${isReq}" data-name="${escapeHtml(
@@ -808,43 +757,91 @@ jQuery(document).ready(function ($) {
         }" readonly>`;
         html += `<button type="button" class="stepper-btn stepper-plus" aria-label="Increase quantity">+</button>`;
         html += `</div>`;
-        if (opt.description)
-          html += `<div class="mobooking-option-description">${escapeHtml(
-            opt.description
-          )}</div>`;
-      } else if (type === "number") {
-        html += `<input type="number" min="0" class="form-input mobooking-option-input" data-type="number" data-required="${isReq}" data-name="${escapeHtml(
-          name
-        )}" data-impact-type="${impactType}" data-impact-value="${impactValue}" value="${
-          isReq ? 1 : 0
-        }">`;
-        if (opt.description)
-          html += `<div class="mobooking-option-description">${escapeHtml(
-            opt.description
-          )}</div>`;
-      } else if (type === "textarea") {
-        html += `<textarea class="form-textarea mobooking-option-input" data-type="textarea" data-required="${isReq}" data-name="${escapeHtml(
-          name
-        )}" data-impact-type="${impactType}" data-impact-value="${impactValue}"></textarea>`;
-      } else if (type === "sqm") {
-        html += `<input type="number" min="1" step="0.1" placeholder="Enter square meters" class="form-input mobooking-option-input" data-type="sqm" data-required="${isReq}" data-name="${escapeHtml(
-          name
-        )}" data-price-per-unit="${impactValue}">`;
-      } else if (type === "kilometers") {
-        html += `<input type="number" min="1" step="0.1" placeholder="Enter kilometers" class="form-input mobooking-option-input" data-type="kilometers" data-required="${isReq}" data-name="${escapeHtml(
-          name
-        )}" data-price-per-unit="${impactValue}">`;
+        html += `</div>`;
+        html += descriptionHtml;
+
       } else {
-        // text default
-        html += `<input type="text" class="form-input mobooking-option-input" data-type="text" data-required="${isReq}" data-name="${escapeHtml(
-          name
-        )}" data-impact-type="${impactType}" data-impact-value="${impactValue}" placeholder="Enter ${escapeHtml(
-          name.toLowerCase()
-        )}...">`;
-        if (opt.description)
-          html += `<div class="mobooking-option-description">${escapeHtml(
-            opt.description
-          )}</div>`;
+        // Default behavior for other inputs
+        html += labelHtml;
+
+        if (type === "checkbox") {
+          values.forEach((v, idx) => {
+            const label = v.label || v.value || v;
+            const value = v.value || v.label || v;
+            const price = parseFloat(v.price) || 0;
+            const cid = `mobooking-opt-${id}-${idx}`;
+            html += `<label class="mobooking-checkbox-option mobooking-selectable-option"><input type="checkbox" name="mobooking-option-${id}[]" id="${cid}" class="mobooking-option-input" data-type="checkbox" data-required="${isReq}" data-name="${escapeHtml(
+              name
+            )}" value="${escapeHtml(
+              value
+            )}" data-price="${price}"><span>${escapeHtml(label)}${
+              price > 0 ? ` (+${CONFIG.currency_symbol}${price.toFixed(2)})` : ""
+            }</span></label>`;
+          });
+          html += descriptionHtml;
+        } else if (type === "select") {
+          html += `<select class="form-select mobooking-option-input" data-type="select" data-required="${isReq}" data-name="${escapeHtml(
+            name
+          )}">`;
+          html += `<option value="">${"Choose an option"}</option>`;
+          values.forEach((v) => {
+            const label = v.label || v.value || v;
+            const value = v.value || v.label || v;
+            const price = parseFloat(v.price) || 0;
+            html += `<option value="${escapeHtml(
+              value
+            )}" data-price="${price}">${escapeHtml(label)}${
+              price > 0 ? ` (+${CONFIG.currency_symbol}${price.toFixed(2)})` : ""
+            }</option>`;
+          });
+          html += `</select>`;
+          html += descriptionHtml;
+        } else if (type === "radio") {
+          values.forEach((v, idx) => {
+            const label = v.label || v.value || v;
+            const value = v.value || v.label || v;
+            const price = parseFloat(v.price) || 0;
+            const rid = `mobooking-opt-${id}-${idx}`;
+            html += `<label class="mobooking-radio-option mobooking-selectable-option"><input type="radio" name="mobooking-option-${id}" id="${rid}" class="mobooking-option-input" data-type="radio" data-required="${isReq}" data-name="${escapeHtml(
+              name
+            )}" value="${escapeHtml(
+              value
+            )}" data-price="${price}"> <span>${escapeHtml(label)}${
+              price > 0 ? ` (+${CONFIG.currency_symbol}${price.toFixed(2)})` : ""
+            }</span></label>`;
+          });
+          html += descriptionHtml;
+        } else if (type === "number") {
+          html += `<input type="number" min="0" class="form-input mobooking-option-input" data-type="number" data-required="${isReq}" data-name="${escapeHtml(
+            name
+          )}" data-impact-type="${impactType}" data-impact-value="${impactValue}" value="${
+            isReq ? 1 : 0
+          }">`;
+          html += descriptionHtml;
+        } else if (type === "textarea") {
+          html += `<textarea class="form-textarea mobooking-option-input" data-type="textarea" data-required="${isReq}" data-name="${escapeHtml(
+            name
+          )}" data-impact-type="${impactType}" data-impact-value="${impactValue}"></textarea>`;
+          html += descriptionHtml;
+        } else if (type === "sqm") {
+          html += `<input type="number" min="1" step="0.1" placeholder="Enter square meters" class="form-input mobooking-option-input" data-type="sqm" data-required="${isReq}" data-name="${escapeHtml(
+            name
+          )}" data-price-per-unit="${impactValue}">`;
+          html += descriptionHtml;
+        } else if (type === "kilometers") {
+          html += `<input type="number" min="1" step="0.1" placeholder="Enter kilometers" class="form-input mobooking-option-input" data-type="kilometers" data-required="${isReq}" data-name="${escapeHtml(
+            name
+          )}" data-price-per-unit="${impactValue}">`;
+          html += descriptionHtml;
+        } else {
+          // text default
+          html += `<input type="text" class="form-input mobooking-option-input" data-type="text" data-required="${isReq}" data-name="${escapeHtml(
+            name
+          )}" data-impact-type="${impactType}" data-impact-value="${impactValue}" placeholder="Enter ${escapeHtml(
+            name.toLowerCase()
+          )}...">`;
+          html += descriptionHtml;
+        }
       }
 
       html += "</div>";
