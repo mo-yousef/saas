@@ -217,6 +217,25 @@ public function handle_save_booking_form_settings_ajax() {
         return;
     }
 
+    // === Business Slug Uniqueness Validation ===
+    if (isset($settings_data['bf_business_slug'])) {
+        $slug_to_check = sanitize_title($settings_data['bf_business_slug']);
+
+        if (!empty($slug_to_check)) {
+            $existing_user_id = \MoBooking\Classes\Routes\BookingFormRouter::get_user_id_by_slug($slug_to_check);
+
+            if ($existing_user_id !== null && $existing_user_id != $user_id) {
+                // The slug is taken by another user.
+                wp_send_json_error([
+                    'message' => __('This business slug is already in use. Please choose another one.', 'mobooking'),
+                    'field_id' => 'bf_business_slug' // Optional: for highlighting the field in JS
+                ], 400);
+                return;
+            }
+        }
+    }
+    // === End Validation ===
+
     // Enhanced validation and sanitization
     $validated_settings = $this->validate_and_sanitize_booking_form_settings($settings_data);
     
