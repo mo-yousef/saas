@@ -272,6 +272,129 @@
     align-items: stretch; /* Make grid items stretch to fill height */
 }
 
+/* Service List Item Styles */
+#services-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.service-list-item {
+    display: flex;
+    align-items: center;
+    background: hsl(var(--mobk-card));
+    border: 1px solid hsl(var(--mobk-border));
+    border-radius: var(--mobk-radius);
+    padding: 0.75rem;
+    transition: all var(--mobk-duration-normal) ease;
+    box-shadow: var(--mobk-shadow-sm);
+}
+
+.service-list-item:hover {
+    box-shadow: var(--mobk-shadow-md);
+    border-color: hsl(var(--mobk-border) / 0.7);
+}
+
+.service-list-item__drag-handle {
+    cursor: grab;
+    color: hsl(var(--mobk-muted-foreground));
+    padding: 0.5rem;
+}
+
+.service-list-item__drag-handle:hover {
+    color: hsl(var(--mobk-foreground));
+}
+
+.service-list-item__content {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-grow: 1;
+}
+
+.service-list-item__image-wrapper {
+    width: 48px;
+    height: 48px;
+    flex-shrink: 0;
+    border-radius: var(--mobk-radius);
+    overflow: hidden;
+    background: hsl(var(--mobk-muted));
+}
+
+.service-list-item__image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.service-list-item__image-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: hsl(var(--mobk-muted-foreground));
+}
+
+.service-list-item__image-placeholder svg {
+    width: 1.5rem;
+    height: 1.5rem;
+}
+
+.service-list-item__details {
+    flex-grow: 1;
+}
+
+.service-list-item__title {
+    font-weight: 600;
+    color: hsl(var(--mobk-card-foreground));
+    margin: 0;
+}
+
+.service-list-item__meta {
+    display: flex;
+    gap: 0.75rem;
+    font-size: 0.875rem;
+    color: hsl(var(--mobk-muted-foreground));
+    margin-top: 0.25rem;
+}
+
+.service-list-item__meta span:not(:last-child)::after {
+    content: '·';
+    margin-left: 0.75rem;
+}
+
+.service-list-item__actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.service-list-item__status {
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    text-transform: capitalize;
+}
+
+.service-list-item__status.status-active {
+    background-color: var(--mobk-badge-bg-active);
+    color: var(--mobk-badge-text-active);
+}
+
+.service-list-item__status.status-inactive {
+    background-color: var(--mobk-badge-bg-inactive);
+    color: var(--mobk-badge-text-inactive);
+}
+
+.ui-sortable-helper {
+    box-shadow: var(--mobk-shadow-md);
+    transform: scale(1.02);
+    background: hsl(var(--mobk-card));
+    border: 1px solid hsl(var(--mobk-primary));
+}
+
 /* ============================================================================
    Responsive Design
    ============================================================================ */

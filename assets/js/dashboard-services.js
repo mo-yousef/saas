@@ -30,6 +30,45 @@
       this.bindEvents();
       this.setupAccessibility();
       this.initializeEnhancements();
+      this.initSortable();
+    }
+
+    initSortable() {
+        const self = this;
+        this.$servicesListContainer.sortable({
+            handle: ".service-list-item__drag-handle",
+            placeholder: "service-list-item-placeholder",
+            axis: "y",
+            update: function(event, ui) {
+                const serviceIds = self.$servicesListContainer.find('.service-list-item').map(function() {
+                    return $(this).data('service-id');
+                }).get();
+
+                self.updateServiceOrder(serviceIds);
+            }
+        });
+    }
+
+    updateServiceOrder(serviceIds) {
+        $.ajax({
+            url: mobooking_services_params.ajax_url,
+            type: 'POST',
+            data: {
+                action: 'mobooking_update_service_order',
+                nonce: mobooking_services_params.services_nonce,
+                service_ids: serviceIds,
+            },
+            success: (response) => {
+                if (response.success) {
+                    this.showFeedback('Service order updated successfully.', 'success');
+                } else {
+                    this.showFeedback('Failed to update service order.', 'error');
+                }
+            },
+            error: () => {
+                this.showFeedback('An error occurred while updating service order.', 'error');
+            }
+        });
     }
 
     cacheElements() {
@@ -301,10 +340,10 @@
 
         if (services && services.length > 0) {
           const servicesHTML = services
-            .map((service) => this.renderServiceCard(service))
+            .map((service) => this.renderServiceListItem(service))
             .join("");
           this.$servicesListContainer.html(
-            `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="services-grid">${servicesHTML}</div>`
+            `<div id="services-list">${servicesHTML}</div>`
           );
         } else {
           const isFiltered = this.filters.search || this.filters.status;
@@ -533,6 +572,49 @@
 
       // Bind clear filters event
       $(document).on("click", "#clear-filters-btn", () => this.clearFilters());
+    }
+
+    renderServiceListItem(service) {
+      const priceFormatted = this.formatCurrency(service.price);
+      const optionsCount = service.options ? service.options.length : 0;
+      const imageUrl = service.image_url
+        ? `<img src="${service.image_url}" alt="${service.name}" class="service-list-item__image">`
+        : `<div class="service-list-item__image-placeholder"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg></div>`;
+
+      return `
+        <div class="service-list-item" data-service-id="${service.service_id}">
+            <div class="service-list-item__drag-handle">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg>
+            </div>
+            <div class="service-list-item__content">
+                <div class="service-list-item__image-wrapper">
+                    ${imageUrl}
+                </div>
+                <div class="service-list-item__details">
+                    <h3 class="service-list-item__title">${service.name}</h3>
+                    <div class="service-list-item__meta">
+                        <span class="service-list-item__price">${priceFormatted}</span>
+                        <span class="service-list-item__duration">${service.duration} min</span>
+                        ${optionsCount > 0 ? `<span class="service-list-item__options">${optionsCount} Options</span>` : ''}
+                    </div>
+                </div>
+            </div>
+            <div class="service-list-item__actions">
+                <span class="service-list-item__status status-${service.status}">${service.status.charAt(0).toUpperCase() + service.status.slice(1)}</span>
+                <a href="/dashboard/service-edit/?service_id=${service.service_id}" class="btn btn-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+                    Edit
+                </a>
+                <form method="POST" action="/wp-admin/admin-post.php" data-service-name="${service.name}">
+                    <input type="hidden" name="action" value="mobooking_delete_service">
+                    <input type="hidden" name="service_id" value="${service.service_id}">
+                    <button type="submit" class="btn btn-destructive">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                    </button>
+                </form>
+            </div>
+        </div>
+      `;
     }
 
     // Utility Methods
