@@ -127,7 +127,7 @@ function get_default_service_icon() {
                             </div>
                             <div class="service-list-item__actions">
                                 <span class="service-list-item__status status-<?php echo esc_attr($service['status']); ?>"><?php echo esc_html(ucfirst($service['status'])); ?></span>
-                                <a href="<?php echo esc_url(site_url('/dashboard/service-edit/?service_id=' . $service['service_id'])); ?>" class="btn btn-primary">
+                                <a href="<?php echo esc_url(site_url('/dashboard/service-edit/?service_id=' . $service['service_id'])); ?>" class="btn btn-sm btn-primary">
                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
                                     <?php esc_html_e('Edit', 'mobooking'); ?>
                                 </a>
@@ -135,7 +135,7 @@ function get_default_service_icon() {
                                     <input type="hidden" name="action" value="mobooking_delete_service">
                                     <input type="hidden" name="service_id" value="<?php echo esc_attr($service['service_id']); ?>">
                                     <?php wp_nonce_field('mobooking_delete_service_nonce'); ?>
-                                    <button type="submit" class="btn btn-destructive">
+                                    <button type="submit" class="btn btn-sm btn-destructive">
                                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
                                     </button>
                                 </form>

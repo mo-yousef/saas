@@ -34,42 +34,48 @@
     }
 
     initSortable() {
-        const self = this;
-        $("#services-list-container").sortable({
-            items: ".service-list-item",
-            handle: ".service-list-item__drag-handle",
-            placeholder: "service-list-item-placeholder",
-            axis: "y",
-            update: function(event, ui) {
-                const serviceIds = $(this).find('.service-list-item').map(function() {
-                    return $(this).data('service-id');
-                }).get();
+      const self = this;
+      $("#services-list-container").sortable({
+        items: ".service-list-item",
+        handle: ".service-list-item__drag-handle",
+        placeholder: "service-list-item-placeholder",
+        axis: "y",
+        update: function (event, ui) {
+          const serviceIds = $(this)
+            .find(".service-list-item")
+            .map(function () {
+              return $(this).data("service-id");
+            })
+            .get();
 
-                self.updateServiceOrder(serviceIds);
-            }
-        });
+          self.updateServiceOrder(serviceIds);
+        },
+      });
     }
 
     updateServiceOrder(serviceIds) {
-        $.ajax({
-            url: mobooking_services_params.ajax_url,
-            type: 'POST',
-            data: {
-                action: 'mobooking_update_service_order',
-                nonce: mobooking_services_params.services_nonce,
-                service_ids: serviceIds,
-            },
-            success: (response) => {
-                if (response.success) {
-                    this.showFeedback('Service order updated successfully.', 'success');
-                } else {
-                    this.showFeedback('Failed to update service order.', 'error');
-                }
-            },
-            error: () => {
-                this.showFeedback('An error occurred while updating service order.', 'error');
-            }
-        });
+      $.ajax({
+        url: mobooking_services_params.ajax_url,
+        type: "POST",
+        data: {
+          action: "mobooking_update_service_order",
+          nonce: mobooking_services_params.services_nonce,
+          service_ids: serviceIds,
+        },
+        success: (response) => {
+          if (response.success) {
+            this.showFeedback("Service order updated successfully.", "success");
+          } else {
+            this.showFeedback("Failed to update service order.", "error");
+          }
+        },
+        error: () => {
+          this.showFeedback(
+            "An error occurred while updating service order.",
+            "error"
+          );
+        },
+      });
     }
 
     cacheElements() {
@@ -595,20 +601,36 @@
                     <h3 class="service-list-item__title">${service.name}</h3>
                     <div class="service-list-item__meta">
                         <span class="service-list-item__price">${priceFormatted}</span>
-                        <span class="service-list-item__duration">${service.duration} min</span>
-                        ${optionsCount > 0 ? `<span class="service-list-item__options">${optionsCount} Options</span>` : ''}
+                        <span class="service-list-item__duration">${
+                          service.duration
+                        } min</span>
+                        ${
+                          optionsCount > 0
+                            ? `<span class="service-list-item__options">${optionsCount} Options</span>`
+                            : ""
+                        }
                     </div>
                 </div>
             </div>
             <div class="service-list-item__actions">
-                <span class="service-list-item__status status-${service.status}">${service.status.charAt(0).toUpperCase() + service.status.slice(1)}</span>
-                <a href="/dashboard/service-edit/?service_id=${service.service_id}" class="btn btn-primary">
+                <span class="service-list-item__status status-${
+                  service.status
+                }">${
+        service.status.charAt(0).toUpperCase() + service.status.slice(1)
+      }</span>
+                <a href="/dashboard/service-edit/?service_id=${
+                  service.service_id
+                }" class="btn btn-sm btn-primary">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
                     Edit
                 </a>
-                <form method="POST" action="/wp-admin/admin-post.php" data-service-name="${service.name}">
+                <form method="POST" action="/wp-admin/admin-post.php" data-service-name="${
+                  service.name
+                }">
                     <input type="hidden" name="action" value="mobooking_delete_service">
-                    <input type="hidden" name="service_id" value="${service.service_id}">
+                    <input type="hidden" name="service_id" value="${
+                      service.service_id
+                    }">
                     <button type="submit" class="btn btn-destructive">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
                     </button>
