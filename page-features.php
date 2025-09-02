@@ -310,8 +310,6 @@ get_header(); // Even if front-page doesn't use it, page templates generally sho
         }
 
     </style>
-</head>
-<body>
     <!-- Header (copied from front-page.php and adapted) -->
     <header class="front-page-header">
         <div class="container">
