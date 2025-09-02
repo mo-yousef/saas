@@ -363,22 +363,23 @@ class Services {
         }
 
         $table_name = Database::get_table_name('services');
-        $case_sql = 'CASE service_id';
-        $ids_placeholder = [];
+        $sql = "UPDATE $table_name SET sort_order = CASE service_id ";
+        $params = [];
 
         foreach ($service_ids as $index => $service_id) {
-            $case_sql .= $this->wpdb->prepare(" WHEN %d THEN %d", (int)$service_id, $index);
-            $ids_placeholder[] = '%d';
+            $sql .= "WHEN %d THEN %d ";
+            $params[] = (int)$service_id;
+            $params[] = $index;
         }
 
-        $case_sql .= ' END';
-        $ids_list = implode(', ', $service_ids);
+        $sql .= "END WHERE user_id = %d AND service_id IN (" . implode(',', array_fill(0, count($service_ids), '%d')) . ")";
 
-        $query = $this->wpdb->prepare(
-            "UPDATE $table_name SET sort_order = $case_sql WHERE user_id = %d AND service_id IN ($ids_list)",
-            $user_id
-        );
+        $params[] = $user_id;
+        foreach ($service_ids as $service_id) {
+            $params[] = (int)$service_id;
+        }
 
+        $query = $this->wpdb->prepare($sql, ...$params);
         $result = $this->wpdb->query($query);
 
         if (false === $result) {
