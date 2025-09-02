@@ -1,0 +1,378 @@
+/*
+Theme Name: Wallex Style
+*/
+
+:root {
+    --primary-color: #0070f3;
+    --secondary-color: #f0f0f0;
+    --text-color: #333;
+    --light-text-color: #555;
+    --background-color: #fff;
+    --section-background: #f9f9f9;
+    --border-color: #eaeaea;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    color: var(--text-color);
+    line-height: 1.6;
+    background-color: var(--background-color);
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* Header */
+.wallex-header {
+    background-color: var(--background-color);
+    border-bottom: 1px solid var(--border-color);
+    padding: 20px 0;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.wallex-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.wallex-logo a {
+    text-decoration: none;
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text-color);
+}
+
+.wallex-nav-links {
+    list-style: none;
+    display: flex;
+    gap: 40px;
+    margin: 0;
+    padding: 0;
+}
+
+.wallex-nav-links a {
+    text-decoration: none;
+    color: var(--light-text-color);
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.wallex-nav-links a:hover {
+    color: var(--primary-color);
+}
+
+.wallex-header-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.btn {
+    text-decoration: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    font-weight: 500;
+    border: 1px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    color: #fff;
+}
+
+.btn-primary:hover {
+    background-color: #005bb5;
+}
+
+.btn-secondary {
+    background-color: var(--secondary-color);
+    color: var(--text-color);
+    border-color: var(--border-color);
+}
+
+.btn-secondary:hover {
+    background-color: #e0e0e0;
+}
+
+/* Hero Section */
+.wallex-hero {
+    padding: 100px 0;
+    background-color: var(--background-color);
+}
+
+.wallex-hero .container {
+    display: flex;
+    align-items: center;
+    gap: 60px;
+}
+
+.wallex-hero-content {
+    flex: 1;
+}
+
+.wallex-hero-content h1 {
+    font-size: 52px;
+    font-weight: 800;
+    line-height: 1.2;
+    margin-bottom: 20px;
+}
+
+.wallex-hero-content p {
+    font-size: 18px;
+    color: var(--light-text-color);
+    margin-bottom: 40px;
+    max-width: 500px;
+}
+
+.wallex-hero-actions {
+    display: flex;
+    gap: 15px;
+}
+
+.wallex-hero-image {
+    flex: 1;
+    text-align: center;
+}
+
+.wallex-hero-image img {
+    max-width: 100%;
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+/* Features Section */
+.wallex-features {
+    padding: 80px 0;
+    background-color: var(--section-background);
+}
+
+.wallex-section-header {
+    text-align: center;
+    margin-bottom: 60px;
+}
+
+.wallex-section-header h2 {
+    font-size: 36px;
+    font-weight: 700;
+}
+
+.wallex-features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+}
+
+.wallex-feature-card {
+    background-color: #fff;
+    padding: 40px;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.wallex-feature-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+}
+
+.wallex-feature-card h3 {
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 15px;
+}
+
+.wallex-feature-card p {
+    color: var(--light-text-color);
+}
+
+/* Pricing Section */
+.wallex-pricing {
+    padding: 80px 0;
+}
+
+.wallex-pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+    align-items: center;
+}
+
+.wallex-pricing-card {
+    background-color: #fff;
+    padding: 40px;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.wallex-pricing-card:hover,
+.wallex-pricing-card.popular {
+    transform: translateY(-10px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+.wallex-pricing-card.popular {
+    border-color: var(--primary-color);
+    position: relative;
+    padding-top: 60px;
+}
+
+.wallex-pricing-card.popular::before {
+    content: 'Most Popular';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%) translateY(-50%);
+    background-color: var(--primary-color);
+    color: #fff;
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.wallex-pricing-card h3 {
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.wallex-pricing-card .price {
+    font-size: 48px;
+    font-weight: 700;
+    color: var(--primary-color);
+    margin-bottom: 20px;
+}
+
+.wallex-pricing-card .price span {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--light-text-color);
+}
+
+.wallex-pricing-card ul {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 30px 0;
+    text-align: left;
+}
+
+.wallex-pricing-card ul li {
+    margin-bottom: 15px;
+    padding-left: 25px;
+    position: relative;
+}
+
+.wallex-pricing-card ul li::before {
+    content: '✓';
+    color: var(--primary-color);
+    position: absolute;
+    left: 0;
+}
+
+/* Testimonials Section */
+.wallex-testimonials {
+    padding: 80px 0;
+    background-color: var(--section-background);
+}
+
+.wallex-testimonials-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 30px;
+}
+
+.wallex-testimonial-card {
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 10px;
+    border-left: 4px solid var(--primary-color);
+}
+
+.wallex-testimonial-card p {
+    font-style: italic;
+    margin-bottom: 20px;
+}
+
+.wallex-testimonial-card .author {
+    font-weight: 600;
+}
+
+/* FAQ Section */
+.wallex-faq {
+    padding: 80px 0;
+}
+
+.wallex-faq-grid {
+    max-width: 800px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.wallex-faq-item {
+    background-color: #fff;
+    padding: 20px;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+}
+
+.wallex-faq-item h3 {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+/* Footer */
+.wallex-footer {
+    background-color: #111;
+    color: #aaa;
+    padding: 60px 0;
+    text-align: center;
+}
+
+.wallex-footer p {
+    margin: 0;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+    .wallex-hero .container {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .wallex-hero-content p {
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .wallex-hero-actions {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 768px) {
+    .wallex-nav-links {
+        display: none;
+    }
+
+    .wallex-hero-content h1 {
+        font-size: 40px;
+    }
+
+    .wallex-features-grid,
+    .wallex-pricing-grid,
+    .wallex-testimonials-grid {
+        grid-template-columns: 1fr;
+    }
+}
