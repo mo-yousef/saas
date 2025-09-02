@@ -175,7 +175,7 @@ class Services {
         }
         $defaults = array(
             'status' => 'active',
-            'orderby' => 'name',
+            'orderby' => 'sort_order',
             'order' => 'ASC',
             'number' => 20, // Similar to posts_per_page
             'offset' => 0,
@@ -211,7 +211,7 @@ class Services {
         $sql_select = "SELECT *" . $sql_count_base . $sql_where;
 
         // Order and pagination
-        $valid_orderby_columns = ['service_id', 'name', 'price', 'duration', 'status', 'created_at', 'updated_at']; // Category removed
+        $valid_orderby_columns = ['service_id', 'name', 'price', 'duration', 'status', 'created_at', 'updated_at', 'sort_order']; // Category removed
         $orderby = in_array($args['orderby'], $valid_orderby_columns) ? $args['orderby'] : 'name';
         $order = strtoupper($args['order']) === 'DESC' ? 'DESC' : 'ASC';
         $sql_select .= " ORDER BY " . $orderby . " " . $order;
@@ -329,6 +329,7 @@ class Services {
         add_action('admin_post_mobooking_delete_service', [$this, 'handle_mobooking_delete_service_form']);
         add_action('wp_ajax_mobooking_search_services', [$this, 'handle_search_services_ajax']);
         add_action('wp_ajax_mobooking_save_service', [$this, 'handle_save_service_ajax']); // Covers Create and Update for service + options
+        add_action('wp_ajax_mobooking_update_service_order', [$this, 'handle_update_service_order_ajax']);
 
         // AJAX handlers for individual service options
         add_action('wp_ajax_mobooking_get_service_options', [$this, 'handle_get_service_options_ajax']);
@@ -354,6 +355,65 @@ class Services {
 
         // Delete from edit page
         add_action('wp_ajax_mobooking_delete_service_ajax', [$this, 'handle_delete_service_ajax']);
+    }
+
+    public function update_service_order(int $user_id, array $service_ids) {
+        if (empty($user_id) || empty($service_ids)) {
+            return new \WP_Error('invalid_data', __('Invalid data provided.', 'mobooking'));
+        }
+
+        $table_name = Database::get_table_name('services');
+        $case_sql = 'CASE service_id';
+        $ids_placeholder = [];
+
+        foreach ($service_ids as $index => $service_id) {
+            $case_sql .= $this->wpdb->prepare(" WHEN %d THEN %d", (int)$service_id, $index);
+            $ids_placeholder[] = '%d';
+        }
+
+        $case_sql .= ' END';
+        $ids_list = implode(', ', $service_ids);
+
+        $query = $this->wpdb->prepare(
+            "UPDATE $table_name SET sort_order = $case_sql WHERE user_id = %d AND service_id IN ($ids_list)",
+            $user_id
+        );
+
+        $result = $this->wpdb->query($query);
+
+        if (false === $result) {
+            return new \WP_Error('db_error', __('Could not update service order in the database.', 'mobooking'));
+        }
+
+        return true;
+    }
+
+    public function handle_update_service_order_ajax() {
+        if (!check_ajax_referer('mobooking_services_nonce', 'nonce', false)) {
+            wp_send_json_error(['message' => __('Error: Nonce verification failed.', 'mobooking')], 403);
+            return;
+        }
+
+        $user_id = get_current_user_id();
+        if (!$user_id) {
+            wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403);
+            return;
+        }
+
+        $service_ids = isset($_POST['service_ids']) && is_array($_POST['service_ids']) ? array_map('intval', $_POST['service_ids']) : [];
+
+        if (empty($service_ids)) {
+            wp_send_json_error(['message' => __('No service order data received.', 'mobooking')], 400);
+            return;
+        }
+
+        $result = $this->update_service_order($user_id, $service_ids);
+
+        if (is_wp_error($result)) {
+            wp_send_json_error(['message' => $result->get_error_message()], 500);
+        } else {
+            wp_send_json_success(['message' => __('Service order updated successfully.', 'mobooking')]);
+        }
     }
 
     public function handle_delete_service_ajax() {
