@@ -76,11 +76,13 @@ class Database {
             icon VARCHAR(100),
             image_url VARCHAR(255),
             status VARCHAR(20) NOT NULL DEFAULT 'active',
+            sort_order INT NOT NULL DEFAULT 0,
             created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
             updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             PRIMARY KEY (service_id),
             INDEX user_id_idx (user_id),
-            INDEX status_idx (status)
+            INDEX status_idx (status),
+            INDEX sort_order_idx (sort_order)
         ) $charset_collate;";
         error_log('[MoBooking DB Debug] SQL for services table: ' . preg_replace('/\s+/', ' ', $sql_services)); // Log condensed SQL
         $dbDelta_results['services'] = dbDelta( $sql_services );

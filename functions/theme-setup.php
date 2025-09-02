@@ -395,10 +395,10 @@ if ( is_page_template('templates/booking-form-public.php') || $page_type_for_scr
 
         if ( $current_page_slug === 'services' ) {
             wp_enqueue_style('mobooking-dashboard-services-redesigned', MOBOOKING_THEME_URI . 'assets/css/dashboard-services-redesigned.css', array('mobooking-dashboard-main'), MOBOOKING_VERSION);
-            wp_enqueue_script('mobooking-dashboard-services', MOBOOKING_THEME_URI . 'assets/js/dashboard-services.js', array('jquery'), MOBOOKING_VERSION, true);
+            wp_enqueue_script('mobooking-dashboard-services', MOBOOKING_THEME_URI . 'assets/js/dashboard-services.js', array('jquery', 'jquery-ui-sortable'), MOBOOKING_VERSION, true);
             wp_localize_script('mobooking-dashboard-services', 'mobooking_services_params', [
                 'ajax_url' => admin_url('admin-ajax.php'),
-                'nonce' => wp_create_nonce('mobooking_services_nonce'),
+                'services_nonce' => wp_create_nonce('mobooking_services_nonce'),
                 'i18n' => [
                     'loading_services' => __('Loading...', 'mobooking'),
                     'no_services_found' => __('No services found.', 'mobooking'),
