@@ -35,12 +35,13 @@
 
     initSortable() {
         const self = this;
-        this.$servicesListContainer.sortable({
+        $("#services-list-container").sortable({
+            items: ".service-list-item",
             handle: ".service-list-item__drag-handle",
             placeholder: "service-list-item-placeholder",
             axis: "y",
             update: function(event, ui) {
-                const serviceIds = self.$servicesListContainer.find('.service-list-item').map(function() {
+                const serviceIds = $(this).find('.service-list-item').map(function() {
                     return $(this).data('service-id');
                 }).get();
 
