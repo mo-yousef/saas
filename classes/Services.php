@@ -107,7 +107,9 @@ class Services {
             'duration' => 30, // Default duration in minutes
             'icon' => '',
             'image_url' => '',
-            'status' => 'active'
+            'status' => 'active',
+            'disable_pet_question' => 0,
+            'disable_frequency_option' => 0
         );
         $service_data = wp_parse_args($data, $defaults);
 
@@ -124,10 +126,12 @@ class Services {
                 'icon' => sanitize_text_field($service_data['icon']),
                 'image_url' => esc_url_raw($service_data['image_url']),
                 'status' => sanitize_text_field($service_data['status']),
+                'disable_pet_question' => intval($service_data['disable_pet_question']),
+                'disable_frequency_option' => intval($service_data['disable_frequency_option']),
                 'created_at' => current_time('mysql', 1), // GMT
                 'updated_at' => current_time('mysql', 1), // GMT
             ),
-            array('%d', '%s', '%s', '%f', '%d', '%s', '%s', '%s', '%s', '%s')
+            array('%d', '%s', '%s', '%f', '%d', '%s', '%s', '%s', '%d', '%d', '%s', '%s')
         );
 
         if (false === $inserted) {
@@ -271,6 +275,8 @@ class Services {
         if (isset($data['icon'])) { $update_data['icon'] = sanitize_text_field($data['icon']); $update_formats[] = '%s'; }
         if (isset($data['image_url'])) { $update_data['image_url'] = esc_url_raw($data['image_url']); $update_formats[] = '%s'; }
         if (isset($data['status'])) { $update_data['status'] = sanitize_text_field($data['status']); $update_formats[] = '%s'; }
+		if (isset($data['disable_pet_question'])) { $update_data['disable_pet_question'] = intval($data['disable_pet_question']); $update_formats[] = '%d'; }
+		if (isset($data['disable_frequency_option'])) { $update_data['disable_frequency_option'] = intval($data['disable_frequency_option']); $update_formats[] = '%d'; }
 
         if (empty($update_data)) {
             // If only 'category' was provided, $update_data might be empty now.
@@ -1103,14 +1109,16 @@ class Services {
         $image_url_from_post = isset($_POST['image_url']) ? trim($_POST['image_url']) : '';
 
             $data_for_service_method = [
-            'name' => sanitize_text_field($trimmed_service_name),
+                'name' => sanitize_text_field($trimmed_service_name),
                 'description' => wp_kses_post(isset($_POST['description']) ? $_POST['description'] : ''),
-            'price' => floatval($price_from_post),
-            // Add category to the data prepared for save/update methods
-            'category' => isset($_POST['category']) ? sanitize_text_field($_POST['category']) : '', // Default to empty string if not set, for consistency
-            'icon' => !empty($icon_from_post) ? sanitize_text_field($icon_from_post) : null,
-            'image_url' => !empty($image_url_from_post) ? esc_url_raw($image_url_from_post) : null,
+                'price' => floatval($price_from_post),
+                'duration' => $duration_from_post,
+                'category' => isset($_POST['category']) ? sanitize_text_field($_POST['category']) : '', // Default to empty string if not set, for consistency
+                'icon' => !empty($icon_from_post) ? sanitize_text_field($icon_from_post) : null,
+                'image_url' => !empty($image_url_from_post) ? esc_url_raw($image_url_from_post) : null,
                 'status' => sanitize_text_field(isset($_POST['status']) ? $_POST['status'] : 'active'),
+                'disable_pet_question' => isset($_POST['disable_pet_question']) && '1' === $_POST['disable_pet_question'] ? 1 : 0,
+                'disable_frequency_option' => isset($_POST['disable_frequency_option']) && '1' === $_POST['disable_frequency_option'] ? 1 : 0,
             ];
         error_log('[MoBooking SaveSvc Debug] Data for add/update_service (with nulls for empty optionals): ' . print_r($data_for_service_method, true));
  
