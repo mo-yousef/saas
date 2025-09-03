@@ -21,7 +21,7 @@ $default_args = [
     'number' => 20,
     'offset' => 0,
     'status' => null,
-    'orderby' => 'name',
+    'orderby' => 'sort_order',
     'order' => 'ASC',
 ];
 
