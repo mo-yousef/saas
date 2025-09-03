@@ -764,6 +764,7 @@ public function handle_get_public_services_ajax() {
                 $item['name'] = sanitize_text_field($item['name']);
                 $item['description'] = wp_kses_post($item['description']);
                 $item['category'] = sanitize_text_field($item['category'] ?? '');
+                $item['icon'] = $this->get_service_icon_html($item['icon']);
                 
                 // Get service options if they exist
                 $options_raw = $this->service_options_manager->get_service_options($item['service_id'], $tenant_id);
