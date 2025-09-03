@@ -1005,7 +1005,7 @@ function mobooking_unified_get_services() {
         
         // Get active services for the tenant
         $services = $wpdb->get_results($wpdb->prepare(
-            "SELECT service_id, name, description, price, duration, icon, image_url 
+            "SELECT service_id, name, description, price, duration, icon, image_url, disable_pet_question, disable_frequency_option
              FROM $services_table 
              WHERE user_id = %d AND status = 'active' 
              ORDER BY sort_order ASC",
@@ -1028,7 +1028,9 @@ function mobooking_unified_get_services() {
                 'price' => floatval($service['price']),
                 'duration' => intval($service['duration']),
                 'icon' => $services_manager->get_service_icon_html($service['icon']),
-                'image_url' => esc_url($service['image_url'])
+                'image_url' => esc_url($service['image_url']),
+                'disable_pet_question' => $service['disable_pet_question'],
+                'disable_frequency_option' => $service['disable_frequency_option']
             ];
         }
 
