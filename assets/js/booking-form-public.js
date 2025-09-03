@@ -1477,6 +1477,20 @@ jQuery(document).ready(function ($) {
   // If step 1 is disabled, start at step 2
   const startStep = $("#mobooking-step-1").length ? 1 : 2;
 
+  // If location check is disabled, make the ZIP input in step 7 editable
+  if (
+    !CONFIG.settings?.bf_enable_location_check ||
+    CONFIG.settings.bf_enable_location_check === "0"
+  ) {
+    const zipInput = $("#mobooking-zip-readonly");
+    zipInput.prop("readonly", false);
+
+    // Also, update state when user types in their zip
+    zipInput.on("input", function () {
+      state.zip = $(this).val();
+    });
+  }
+
   // Add collapsible classes
   els.timeSlotsWrap.addClass("mobooking-collapsible is-collapsed");
   $("#mobooking-custom-access-details").addClass(
