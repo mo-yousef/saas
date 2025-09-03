@@ -170,28 +170,32 @@ jQuery(function ($) {
       });
 
       // General switch handler for the entire form
-      $(document).on("click", ".service-form .switch", function() {
-          const $switch = $(this);
-          const $hiddenInput = $switch.siblings("input[type=hidden]");
-          const isChecked = $switch.hasClass("switch-checked");
-          const switchType = $switch.data("switch");
+      $(document).on("click", ".service-form .switch", function () {
+        const $switch = $(this);
+        const $hiddenInput = $switch.siblings("input[type=hidden]");
+        const isChecked = $switch.hasClass("switch-checked");
+        const switchType = $switch.data("switch");
 
-          $switch.toggleClass("switch-checked");
+        $switch.toggleClass("switch-checked");
 
-          if (switchType === 'status') {
-              const newValue = isChecked ? 'inactive' : 'active';
-              $hiddenInput.val(newValue);
-              $switch.parent().find(".text-sm").text(isChecked ? 'Inactive' : 'Active');
-          } else { // Handle other switches like 'is_required'
-              const newValue = isChecked ? '0' : '1';
-              $hiddenInput.val(newValue);
-               if (switchType === "required") {
-                  const $label = $switch.parent().find(".text-sm");
-                  if ($label.length) {
-                    $label.text(newValue === "1" ? "Required option" : "Optional");
-                  }
-                }
+        if (switchType === "status") {
+          const newValue = isChecked ? "inactive" : "active";
+          $hiddenInput.val(newValue);
+          $switch
+            .parent()
+            .find(".text-sm")
+            .text(isChecked ? "Inactive" : "Active");
+        } else {
+          // Handle other switches like 'is_required'
+          const newValue = isChecked ? "0" : "1";
+          $hiddenInput.val(newValue);
+          if (switchType === "required") {
+            const $label = $switch.parent().find(".text-sm");
+            if ($label.length) {
+              $label.text(newValue === "1" ? "Required option" : "Optional");
+            }
           }
+        }
       });
 
       // --- Delegated Option Events ---
@@ -371,27 +375,31 @@ jQuery(function ($) {
         const $hiddenInput = $switchEl.siblings("input[type=hidden]");
         const currentValue = $hiddenInput.val();
 
-        if ($switchEl.data("switch") === 'status') {
-            if (currentValue === 'active') {
-                $switchEl.addClass("switch-checked");
-            } else {
-                $switchEl.removeClass("switch-checked");
-            }
-            $switchEl.parent().find(".text-sm").text(currentValue === 'active' ? 'Active' : 'Inactive');
-        } else { // Handle other switches like 'is_required'
-            const isChecked = currentValue === "1";
-            if (isChecked) {
-              $switchEl.addClass("switch-checked");
-            } else {
-              $switchEl.removeClass("switch-checked");
-            }
+        if ($switchEl.data("switch") === "status") {
+          if (currentValue === "active") {
+            $switchEl.addClass("switch-checked");
+          } else {
+            $switchEl.removeClass("switch-checked");
+          }
+          $switchEl
+            .parent()
+            .find(".text-sm")
+            .text(currentValue === "active" ? "Active" : "Inactive");
+        } else {
+          // Handle other switches like 'is_required'
+          const isChecked = currentValue === "1";
+          if (isChecked) {
+            $switchEl.addClass("switch-checked");
+          } else {
+            $switchEl.removeClass("switch-checked");
+          }
 
-            if ($switchEl.data("switch") === "required") {
-              const $label = $switchEl.parent().find(".text-sm");
-              if ($label.length) {
-                $label.text(isChecked ? "Required option" : "Optional");
-              }
+          if ($switchEl.data("switch") === "required") {
+            const $label = $switchEl.parent().find(".text-sm");
+            if ($label.length) {
+              $label.text(isChecked ? "Required option" : "Optional");
             }
+          }
         }
       });
     },
@@ -486,7 +494,9 @@ jQuery(function ($) {
       const $form = $("#mobooking-service-form");
       const $submitBtn = $form.find('button[type="submit"]');
       const originalText = $submitBtn.text();
-      const isUpdating = $("input[name='service_id']").length > 0 && $("input[name='service_id']").val() > 0;
+      const isUpdating =
+        $("input[name='service_id']").length > 0 &&
+        $("input[name='service_id']").val() > 0;
 
       // Fix indices before submission
       this.fixOptionIndices();
@@ -558,31 +568,32 @@ jQuery(function ($) {
         contentType: false,
         success: function (response) {
           if (response && response.success) {
-              const message =
-                  response.data?.message ||
-                  (mobooking_service_edit_params.i18n?.service_saved) ||
-                  "Service saved successfully.";
+            const message =
+              response.data?.message ||
+              mobooking_service_edit_params.i18n?.service_saved ||
+              "Service saved successfully.";
 
-              if (typeof window.showToast === "function") {
-                  window.showToast({ type: "success", title: "Success", message });
-              }
+            if (typeof window.showToast === "function") {
+              window.showToast({ type: "success", title: "Success", message });
+            }
 
-              if (isUpdating) {
-                  // It's an update, so we reload the page after a short delay to allow the toast to be seen.
-                  setTimeout(() => location.reload(), 500);
+            if (isUpdating) {
+              // It's an update, so we reload the page after a short delay to allow the toast to be seen.
+              setTimeout(() => location.reload(), 500);
+            } else {
+              // It's a new service, so we redirect to the new edit page.
+              if (response.data && response.data.service_id) {
+                const newServiceId = response.data.service_id;
+                // Build the redirect URL using the localized admin_base_url
+                const baseUrl =
+                  mobooking_service_edit_params.admin_base_url || "admin.php";
+                const redirectUrl = `${baseUrl}?page=mobooking-service-edit&service_id=${newServiceId}`;
+                window.location.href = redirectUrl;
               } else {
-                  // It's a new service, so we redirect to the new edit page.
-                  if (response.data && response.data.service_id) {
-                      const newServiceId = response.data.service_id;
-                      // Build the redirect URL using the localized admin_base_url
-                      const baseUrl = mobooking_service_edit_params.admin_base_url || 'admin.php';
-                      const redirectUrl = `${baseUrl}?page=mobooking-service-edit&service_id=${newServiceId}`;
-                      window.location.href = redirectUrl;
-                  } else {
-                      // Fallback in case the service_id is not returned, just reload.
-                      setTimeout(() => location.reload(), 500);
-                  }
+                // Fallback in case the service_id is not returned, just reload.
+                setTimeout(() => location.reload(), 500);
               }
+            }
           } else {
             const message =
               (response && response.data && response.data.message) ||
@@ -606,7 +617,7 @@ jQuery(function ($) {
         complete: function () {
           // Reset button state only if not redirecting/reloading
           if (!isUpdating) {
-             $submitBtn.prop("disabled", false).text(originalText);
+            $submitBtn.prop("disabled", false).text(originalText);
           }
         },
       });
@@ -648,11 +659,11 @@ jQuery(function ($) {
 
     // --- Icon Selector Logic ---
     openIconSelector: function () {
-        const self = this;
-        this.selectedIconIdentifier = null;
-        this.selectedIconHtml = null;
+      const self = this;
+      this.selectedIconIdentifier = null;
+      this.selectedIconHtml = null;
 
-        const dialogContent = `
+      const dialogContent = `
             <div class="icon-selector-content">
                 <div class="preset-icons-section">
                     <h4 class="section-title">Preset Icons</h4>
@@ -663,102 +674,111 @@ jQuery(function ($) {
             </div>
         `;
 
-        this.iconDialog = new MoBookingDialog({
-            title: 'Choose an Icon',
-            content: dialogContent,
-            buttons: [
-                {
-                    label: 'Remove Icon',
-                    class: 'destructive',
-                    onClick: (dialog) => {
-                        this.removeIcon();
-                        dialog.close();
-                    }
-                },
-                {
-                    label: 'Cancel',
-                    class: 'secondary',
-                    onClick: (dialog) => dialog.close()
-                },
-                {
-                    label: 'Set Icon',
-                    class: 'primary',
-                    onClick: (dialog) => {
-                        this.setIcon();
-                        dialog.close();
-                    }
-                }
-            ],
-            onOpen: (dialog) => {
-                this.fetchPresetIcons(dialog);
-                const setButton = dialog.findElement('.btn-primary');
-                if (setButton) {
-                    setButton.disabled = true;
-                }
-            }
-        });
+      this.iconDialog = new MoBookingDialog({
+        title: "Choose an Icon",
+        content: dialogContent,
+        buttons: [
+          {
+            label: "Remove Icon",
+            class: "destructive",
+            onClick: (dialog) => {
+              this.removeIcon();
+              dialog.close();
+            },
+          },
+          {
+            label: "Cancel",
+            class: "secondary",
+            onClick: (dialog) => dialog.close(),
+          },
+          {
+            label: "Set Icon",
+            class: "primary",
+            onClick: (dialog) => {
+              this.setIcon();
+              dialog.close();
+            },
+          },
+        ],
+        onOpen: (dialog) => {
+          this.fetchPresetIcons(dialog);
+          const setButton = dialog.findElement(".btn-primary");
+          if (setButton) {
+            setButton.disabled = true;
+          }
+        },
+      });
 
-        this.iconDialog.show();
+      this.iconDialog.show();
     },
 
-    fetchPresetIcons: function(dialog) {
-        const self = this;
-        console.log("Fetching preset icons...");
-        const grid = dialog.findElement('#dialog-preset-icons-grid');
+    fetchPresetIcons: function (dialog) {
+      const self = this;
+      console.log("Fetching preset icons...");
+      const grid = dialog.findElement("#dialog-preset-icons-grid");
 
-        if (!grid) {
-            console.error("Could not find the icon grid element in the dialog.");
-            return;
-        }
-        console.log("Icon grid element found:", grid);
+      if (!grid) {
+        console.error("Could not find the icon grid element in the dialog.");
+        return;
+      }
+      console.log("Icon grid element found:", grid);
 
-        $.ajax({
-            url: mobooking_service_edit_params.ajax_url,
-            type: 'POST',
-            data: {
-                action: 'mobooking_get_preset_icons',
-                nonce: mobooking_service_edit_params.nonce
-            },
-            success: function(response) {
-                console.log("AJAX response received:", response);
-                if (response.success && response.data.icons && Object.keys(response.data.icons).length > 0) {
-                    grid.innerHTML = ''; // Clear loading
-                    console.log("Icons data is valid, starting to render icons.");
-                    for (const name in response.data.icons) {
-                        console.log("Rendering icon:", name);
-                        const item = document.createElement('div');
-                        item.className = 'mobooking-icon-grid-item';
-                        item.dataset.iconId = 'preset:' + name;
-                        item.innerHTML = response.data.icons[name];
-                        item.addEventListener('click', () => self.handleIconSelection(item, dialog));
-                        grid.appendChild(item);
-                    }
-                } else {
-                    grid.innerHTML = '<p>Could not load icons or no icons found.</p>';
-                    console.error("Failed to load icons from server or response contained no icons.", response);
-                }
-            },
-            error: function(xhr, status, error) {
-                grid.innerHTML = '<p>Error loading icons.</p>';
-                console.error("AJAX error loading icons:", status, error);
+      $.ajax({
+        url: mobooking_service_edit_params.ajax_url,
+        type: "POST",
+        data: {
+          action: "mobooking_get_preset_icons",
+          nonce: mobooking_service_edit_params.nonce,
+        },
+        success: function (response) {
+          console.log("AJAX response received:", response);
+          if (
+            response.success &&
+            response.data.icons &&
+            Object.keys(response.data.icons).length > 0
+          ) {
+            grid.innerHTML = ""; // Clear loading
+            console.log("Icons data is valid, starting to render icons.");
+            for (const name in response.data.icons) {
+              console.log("Rendering icon:", name);
+              const item = document.createElement("div");
+              item.className = "mobooking-icon-grid-item";
+              item.dataset.iconId = "preset:" + name;
+              item.innerHTML = response.data.icons[name];
+              item.addEventListener("click", () =>
+                self.handleIconSelection(item, dialog)
+              );
+              grid.appendChild(item);
             }
-        });
+          } else {
+            grid.innerHTML = "<p>Could not load icons or no icons found.</p>";
+            console.error(
+              "Failed to load icons from server or response contained no icons.",
+              response
+            );
+          }
+        },
+        error: function (xhr, status, error) {
+          grid.innerHTML = "<p>Error loading icons.</p>";
+          console.error("AJAX error loading icons:", status, error);
+        },
+      });
     },
 
-    handleIconSelection: function(item, dialog) {
-        const allItems = dialog.findElement('.mobooking-icon-grid').children;
-        for (let i = 0; i < allItems.length; i++) {
-            allItems[i].classList.remove('selected');
-        }
-        item.classList.add('selected');
+    handleIconSelection: function (item, dialog) {
+      const allItems = dialog.findElement(".mobooking-icon-grid").children;
+      for (let i = 0; i < allItems.length; i++) {
+        allItems[i].classList.remove("selected");
+      }
+      item.classList.add("selected");
 
-        this.selectedIconIdentifier = item.dataset.iconId;
-        this.selectedIconHtml = item.innerHTML;
+      this.selectedIconIdentifier = item.dataset.iconId;
+      this.selectedIconHtml = item.innerHTML;
 
-        const setButton = dialog.findElement('.btn-primary');
-        if (setButton) {
-            setButton.disabled = false;
-        }
+      const setButton = dialog.findElement(".btn-primary");
+      if (setButton) {
+        setButton.disabled = false;
+      }
     },
 
     setIcon: function () {
@@ -872,17 +892,17 @@ jQuery(function ($) {
       // If there's no serviceId, it means the service hasn't been saved yet.
       // In this case, we only need to remove the image from the UI, not the server.
       if (!serviceId) {
-          $("#service-image-url").val("");
-           $preview
-              .addClass("empty")
-              .html(
-                '<div class="mobooking-image-placeholder">' +
-                  '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>' +
-                  "<p>Click to upload image</p>" +
-                  '<p class="text-xs text-muted-foreground">PNG, JPG up to 5MB</p>' +
-                  "</div>"
-              );
-          return;
+        $("#service-image-url").val("");
+        $preview
+          .addClass("empty")
+          .html(
+            '<div class="mobooking-image-placeholder">' +
+              '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>' +
+              "<p>Click to upload image</p>" +
+              '<p class="text-xs text-muted-foreground">PNG, JPG up to 5MB</p>' +
+              "</div>"
+          );
+        return;
       }
 
       $.ajax({

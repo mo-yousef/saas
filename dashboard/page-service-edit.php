@@ -355,7 +355,21 @@ if ( $edit_mode && $service_id > 0 ) {
 								<?php esc_html_e( 'Create Service', 'mobooking' ); ?>
 							<?php endif; ?>
 						</button>
+
+
+						<?php if ( $edit_mode ) : ?>
+						<button type="button" id="delete-service-btn" class="btn btn-destructive btn-sm w-full">
+							<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><path d="m19 6-1 14H6L5 6"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+							<?php esc_html_e( 'Delete Service', 'mobooking' ); ?>
+						</button>
+						<hr class="my-4">
+						<?php endif; ?>
+
+						<?php if ( $edit_mode ) : ?>
+						<div class="flex items-center justify-between">
+						<?php else : ?>
 						<div class="flex items-center justify-between mt-4">
+						<?php endif; ?>
 							<label class="mobooking-filter-item label"><?php esc_html_e( 'Status', 'mobooking' ); ?></label>
 							<div class="flex items-center space-x-2">
 								<button type="button" class="switch <?php echo 'active' === $service_status ? 'switch-checked' : ''; ?>" data-switch="status">
@@ -367,13 +381,7 @@ if ( $edit_mode && $service_id > 0 ) {
 								<input type="hidden" name="status" value="<?php echo esc_attr( $service_status ); ?>">
 							</div>
 						</div>
-						<?php if ( $edit_mode ) : ?>
-						<hr class="my-4">
-						<button type="button" id="delete-service-btn" class="btn btn-destructive btn-sm w-full">
-							<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><path d="m19 6-1 14H6L5 6"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
-							<?php esc_html_e( 'Delete Service', 'mobooking' ); ?>
-						</button>
-						<?php endif; ?>
+
 					</div>
 				</div>
 				<!-- Visual Settings Card -->
@@ -413,7 +421,8 @@ if ( $edit_mode && $service_id > 0 ) {
 										<?php if ( ! empty( $service_icon ) ) : ?>
 											<?php echo $services_manager->get_service_icon_html( $service_icon ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 										<?php else : ?>
-											<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27,6.96 12,12.01 20.73,6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+											<svg xmlns="http://www.w3.org/2000/svg" viewBox="1 -1 50 50"><path d="M 11.09375 2 C 6.39375 2.8 2.8 6.39375 2 11.09375 L 6 11.6875 C 6.4 8.6875 8.6875 6.4 11.6875 6 L 11.09375 2 z M 17 2 L 17 6 L 23 6 L 23 2 L 17 2 z M 28 2 L 28 6 L 34 6 L 34 2 L 28 2 z M 38.90625 2 L 38.3125 6 C 41.2125 6.4 43.5 8.6875 44 11.6875 L 48 11.09375 C 47.2 6.39375 43.60625 2.7 38.90625 2 z M 2 16 L 2 22 L 6 22 L 6 16 L 2 16 z M 44 17 L 44 23 L 48 23 L 48 17 L 44 17 z M 2 27 L 2 33 L 6 33 L 6 27 L 2 27 z M 44 28 L 44 34 L 48 34 L 48 28 L 44 28 z M 6 38.3125 L 2 38.90625 C 2.8 43.60625 6.39375 47.3 11.09375 48 L 11.6875 44 C 8.7875 43.6 6.5 41.3125 6 38.3125 z M 44 38.3125 C 43.6 41.2125 41.3125 43.5 38.3125 44 L 38.90625 48 C 43.60625 47.2 47.2 43.60625 48 38.90625 L 44 38.3125 z M 16 44 L 16 48 L 22 48 L 22 44 L 16 44 z M 27 44 L 27 48 L 33 48 L 33 44 L 27 44 z" fill="currentColor" /></svg>
+
 										<?php endif; ?>
 									</div>
 								</div>
