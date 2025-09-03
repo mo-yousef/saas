@@ -1490,8 +1490,6 @@ jQuery(document).ready(function ($) {
       state.zip = $(this).val();
     });
 
-    // Also, hide the "previous" button on step 2, as there's no step 1
-    $("#mobooking-step-2 .mobooking-btn-secondary").hide();
   }
 
   // Add collapsible classes
