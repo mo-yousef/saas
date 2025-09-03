@@ -1111,7 +1111,7 @@ function mobooking_direct_services_handler() {
     $services_table = $wpdb->prefix . 'mobooking_services';
     
     $services = $wpdb->get_results($wpdb->prepare(
-        "SELECT service_id, name, description, price, duration, icon, image_url 
+        "SELECT service_id, name, description, price, duration, icon, image_url, disable_pet_question, disable_frequency_option
          FROM $services_table 
          WHERE user_id = %d AND status = 'active' 
          ORDER BY name ASC",
@@ -1132,7 +1132,9 @@ function mobooking_direct_services_handler() {
             'price' => floatval($service['price']),
             'duration' => intval($service['duration']),
             'icon' => $service['icon'],
-            'image_url' => $service['image_url']
+            'image_url' => $service['image_url'],
+            'disable_pet_question' => $service['disable_pet_question'],
+            'disable_frequency_option' => $service['disable_frequency_option']
         ];
     }
 
