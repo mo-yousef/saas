@@ -536,7 +536,7 @@ jQuery(document).ready(function ($) {
     `);
 
     $.post(CONFIG.ajax_url, {
-      action: "mobooking_get_services",
+      action: "mobooking_get_public_services",
       nonce: CONFIG.nonce,
       tenant_id: CONFIG.tenant_id,
     })
