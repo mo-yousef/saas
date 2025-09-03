@@ -4,7 +4,7 @@ Theme URI: https: //nordbooking.se
 Author: Your Mohammad Yousif
 Author URI: https://nordbooking.se
 Description: A multi-tenant SaaS application for cleaning service businesses to manage their bookings online.
-Version: 0.1.19
+Version: 0.1.20
 License: GNU General Public License v2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 Text Domain: mobooking
@@ -390,7 +390,7 @@ tbody tr:hover {
   background-color: hsl(0 0% 100%);
 }
 
-.wp-list-table.striped > tbody > tr:nth-child(even) {
+.wp-list-table.striped>tbody>tr:nth-child(even) {
   background-color: hsl(210 40% 98%);
 }
 
@@ -735,7 +735,7 @@ span.mobooking-menu-icon {
   background-color: #f9fafb;
 }
 
-.dashboard-page-content-area > div {
+.dashboard-page-content-area>div {
   max-width: 1200px;
   margin: auto;
 }
@@ -979,12 +979,8 @@ span.mobooking-menu-icon {
 
 /* Overview Page KPI Boxes */
 .wp-admin #mobooking-overview-content .kpi-box,
-.wp-admin
-  #mobooking-overview-content
-  #mobooking-overview-recent-bookings-section,
-.wp-admin
-  #mobooking-overview-content
-  #mobooking-overview-quick-actions-section {
+.wp-admin #mobooking-overview-content #mobooking-overview-recent-bookings-section,
+.wp-admin #mobooking-overview-content #mobooking-overview-quick-actions-section {
   background-color: hsl(0 0% 100%);
   padding: 1.5rem;
   border: 1px solid hsl(214.3 31.8% 91.4%);
@@ -1141,6 +1137,7 @@ span.mobooking-menu-icon {
 8.4 Mobile Responsive Tables
 --------------------------------------------------------------*/
 @media screen and (max-width: 782px) {
+
   .wp-list-table tbody th,
   .wp-list-table tbody td {
     display: block;
@@ -1330,7 +1327,7 @@ span.mobooking-menu-icon {
   margin-bottom: 0.75rem;
 }
 
-.mobooking-availability-page > p {
+.mobooking-availability-page>p {
   /* Intro paragraph */
   font-size: 1rem;
   color: hsl(215.4 16.3% 46.9%);
