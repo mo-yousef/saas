@@ -33,6 +33,8 @@ $service_duration     = '';
 $service_icon         = '';
 $service_image_url    = '';
 $service_status       = 'active';
+$disable_pet_question = 0;
+$disable_frequency_option = 0;
 $service_options_data = array();
 $error_message        = '';
 
@@ -160,6 +162,8 @@ if ( $edit_mode && $service_id > 0 ) {
 			$service_icon         = $service_data['icon'];
 			$service_image_url    = $service_data['image_url'];
 			$service_status       = $service_data['status'];
+			$disable_pet_question = $service_data['disable_pet_question'] ?? 0;
+			$disable_frequency_option = $service_data['disable_frequency_option'] ?? 0;
 			$service_options_data = isset( $service_data['options'] ) && is_array( $service_data['options'] ) ? $service_data['options'] : array();
 		} else {
 			$error_message = __( 'Service not found or you do not have permission to edit it.', 'mobooking' );
@@ -381,7 +385,25 @@ if ( $edit_mode && $service_id > 0 ) {
 								<input type="hidden" name="status" value="<?php echo esc_attr( $service_status ); ?>">
 							</div>
 						</div>
-
+						<hr class="my-4">
+						<div class="flex items-center justify-between">
+							<label class="mobooking-filter-item label" for="disable_pet_question"><?php esc_html_e( 'Disable Pet Question', 'mobooking' ); ?></label>
+							<div class="flex items-center space-x-2">
+								<button type="button" class="switch <?php echo $disable_pet_question ? 'switch-checked' : ''; ?>" data-switch="disable_pet_question">
+									<span class="switch-thumb"></span>
+								</button>
+								<input type="hidden" name="disable_pet_question" value="<?php echo esc_attr( $disable_pet_question ); ?>">
+							</div>
+						</div>
+						<div class="flex items-center justify-between mt-4">
+							<label class="mobooking-filter-item label" for="disable_frequency_option"><?php esc_html_e( 'Disable Frequency Option', 'mobooking' ); ?></label>
+							<div class="flex items-center space-x-2">
+								<button type="button" class="switch <?php echo $disable_frequency_option ? 'switch-checked' : ''; ?>" data-switch="disable_frequency_option">
+									<span class="switch-thumb"></span>
+								</button>
+								<input type="hidden" name="disable_frequency_option" value="<?php echo esc_attr( $disable_frequency_option ); ?>">
+							</div>
+						</div>
 					</div>
 				</div>
 				<!-- Visual Settings Card -->
