@@ -604,17 +604,15 @@ jQuery(document).ready(function ($) {
         svc
       )}' style="position:absolute;opacity:0;pointer-events:none;">
           <div class="mobooking-service-header">
-            ${
-              CONFIG.settings.service_card_display === "icon" && svc.icon
-                ? `<div class="mobooking-service-icon"><img src="${
-                    svc.icon
-                  }" alt="${escapeHtml(svc.name)}"></div>`
-                : svc.image_url
-                ? `<div class="mobooking-service-image"><img src="${
-                    svc.image_url
-                  }" alt="${escapeHtml(svc.name)}"></div>`
-                : ""
-            }
+            ${(() => {
+                if (CONFIG.settings.bf_service_card_display === 'icon' && svc.icon) {
+                    return `<div class="mobooking-service-icon">${svc.icon}</div>`;
+                }
+                if (CONFIG.settings.bf_service_card_display === 'image' && svc.image_url) {
+                    return `<div class="mobooking-service-image"><img src="${svc.image_url}" alt="${escapeHtml(svc.name)}"></div>`;
+                }
+                return '';
+            })()}
             <div style="flex:1;">
               <div class="mobooking-service-title">${escapeHtml(svc.name)}</div>
               ${

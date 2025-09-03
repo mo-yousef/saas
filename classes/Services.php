@@ -732,7 +732,7 @@ public function handle_get_public_services_ajax() {
         
         // Get all active services for this user
         $all_services = $this->wpdb->get_results($this->wpdb->prepare(
-            "SELECT * FROM $table_name WHERE user_id = %d AND status = 'active' ORDER BY name ASC",
+            "SELECT * FROM $table_name WHERE user_id = %d AND status = 'active' ORDER BY sort_order ASC",
             $tenant_id
         ), ARRAY_A);
         
