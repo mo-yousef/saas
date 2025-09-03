@@ -28,13 +28,19 @@ class Services {
 
     public static function get_preset_icon_svg(string $filename): ?string {
         $filepath = self::$preset_icons_path . sanitize_file_name($filename);
+        error_log('[MoBooking Debug] get_preset_icon_svg trying to read file: ' . $filepath);
         if (file_exists($filepath) && strtolower(pathinfo($filepath, PATHINFO_EXTENSION)) === 'svg') {
             // It's crucial to sanitize SVG content before outputting it.
             // For simplicity here, assuming SVGs are trusted or pre-sanitized.
             // In a real scenario, use a proper SVG sanitization library.
             $content = file_get_contents($filepath);
-            return Utils::sanitize_svg($content); // Assuming Utils::sanitize_svg exists and is robust
+            if ($content) {
+                error_log('[MoBooking Debug] Successfully read SVG content.');
+                return Utils::sanitize_svg($content); // Assuming Utils::sanitize_svg exists and is robust
+            }
+            error_log('[MoBooking Debug] Failed to read SVG content.');
         }
+        error_log('[MoBooking Debug] SVG file does not exist or is not an SVG.');
         return null;
     }
 
@@ -69,16 +75,24 @@ class Services {
     }
 
     public function get_service_icon_html(string $icon_identifier_or_url): string {
+        error_log('[MoBooking Debug] get_service_icon_html called with: ' . $icon_identifier_or_url);
         if (strpos($icon_identifier_or_url, 'preset:') === 0) {
             $filename = substr($icon_identifier_or_url, strlen('preset:'));
+            error_log('[MoBooking Debug] Preset icon found, filename: ' . $filename);
             $svg_content = self::get_preset_icon_svg($filename);
             if ($svg_content) {
-                return '<div class="mobooking-preset-icon">' . $svg_content . '</div>';
+                $html = '<div class="mobooking-preset-icon">' . $svg_content . '</div>';
+                error_log('[MoBooking Debug] Returning HTML for preset icon: ' . $html);
+                return $html;
             }
+            error_log('[MoBooking Debug] Preset icon SVG content not found.');
             return '';
         } elseif (filter_var($icon_identifier_or_url, FILTER_VALIDATE_URL)) {
-            return '<img src="' . esc_url($icon_identifier_or_url) . '" alt="Service Icon" class="mobooking-custom-icon"/>';
+            $html = '<img src="' . esc_url($icon_identifier_or_url) . '" alt="Service Icon" class="mobooking-custom-icon"/>';
+            error_log('[MoBooking Debug] Returning HTML for custom icon URL: ' . $html);
+            return $html;
         }
+        error_log('[MoBooking Debug] No valid icon identifier found, returning empty string.');
         return '';
     }
 
@@ -339,8 +353,6 @@ class Services {
         add_action('wp_ajax_mobooking_get_service_details', [$this, 'handle_get_service_details_ajax']); // For editing
 
         // For public booking form
-        add_action('wp_ajax_nopriv_mobooking_get_public_services', [$this, 'handle_get_public_services_ajax']);
-        add_action('wp_ajax_mobooking_get_public_services', [$this, 'handle_get_public_services_ajax']);
         add_action('wp_ajax_nopriv_mobooking_get_public_service_options', [$this, 'handle_get_public_service_options_ajax']);
         add_action('wp_ajax_mobooking_get_public_service_options', [$this, 'handle_get_public_service_options_ajax']);
 
@@ -692,114 +704,6 @@ class Services {
         }
     }
 
-public function handle_get_public_services_ajax() {
-    error_log('[MoBooking Debug] handle_get_public_services_ajax called.');
-    // Check nonce
-    if (!check_ajax_referer('mobooking_booking_form_nonce', 'nonce', false)) {
-        error_log('[MoBooking Debug] Nonce verification failed.');
-        wp_send_json_error(['message' => __('Error: Nonce verification failed.', 'mobooking')], 403);
-        return;
-    }
-    error_log('[MoBooking Debug] Nonce verified.');
-
-    $tenant_id = isset($_POST['tenant_id']) ? intval($_POST['tenant_id']) : 0;
-    error_log('[MoBooking Debug] Tenant ID: ' . $tenant_id);
-    if (empty($tenant_id)) {
-        wp_send_json_error(['message' => __('Tenant ID is required.', 'mobooking')], 400);
-        return;
-    }
-
-    // DEBUG: Log the request
-    error_log('[MoBooking Services Debug] Getting public services for tenant_id: ' . $tenant_id);
-
-    // Validate that the tenant user exists and has the right role
-    $tenant_user = get_user_by('ID', $tenant_id);
-    if (!$tenant_user) {
-        error_log('[MoBooking Services Debug] Tenant user not found for ID: ' . $tenant_id);
-        wp_send_json_error(['message' => __('Invalid business identifier.', 'mobooking')], 404);
-        return;
-    }
-
-    if (!in_array('mobooking_business_owner', $tenant_user->roles)) {
-        error_log('[MoBooking Services Debug] User ID ' . $tenant_id . ' is not a business owner. Roles: ' . print_r($tenant_user->roles, true));
-        wp_send_json_error(['message' => __('Invalid business identifier.', 'mobooking')], 404);
-        return;
-    }
-
-    // Get services using the existing method but with specific filters for public use
-    try {
-        $table_name = Database::get_table_name('services');
-        
-        // Get all active services for this user
-        $all_services = $this->wpdb->get_results($this->wpdb->prepare(
-            "SELECT * FROM $table_name WHERE user_id = %d AND status = 'active' ORDER BY sort_order ASC",
-            $tenant_id
-        ), ARRAY_A);
-        
-        error_log('[MoBooking Services Debug] Raw database query returned ' . count($all_services) . ' active services');
-        
-        $services_for_public = [];
-        
-        if ($all_services) {
-            $availability_manager = new Availability();
-            foreach ($all_services as $service_item) {
-                error_log('[MoBooking Services Debug] Processing service: ' . $service_item['name']);
-                
-                $item = (array) $service_item;
-                
-                // Enhanced price formatting
-                if (isset($item['price']) && is_numeric($item['price'])) {
-                    $item['price_formatted'] = number_format_i18n(floatval($item['price']), 2);
-                    $item['price'] = floatval($item['price']); // Ensure it's a float for JS
-                } else {
-                    $item['price_formatted'] = __('Contact for pricing', 'mobooking');
-                    $item['price'] = 0;
-                }
-                
-                // Ensure duration is an integer
-                $item['duration'] = isset($item['duration']) ? intval($item['duration']) : 60;
-                
-                // Sanitize output fields
-                $item['service_id'] = intval($item['service_id']);
-                $item['name'] = sanitize_text_field($item['name']);
-                $item['description'] = wp_kses_post($item['description']);
-                $item['category'] = sanitize_text_field($item['category'] ?? '');
-                $item['icon'] = $this->get_service_icon_html($item['icon']);
-                
-                // Get service options if they exist
-                $options_raw = $this->service_options_manager->get_service_options($item['service_id'], $tenant_id);
-                $options = [];
-                if (is_array($options_raw)) {
-                    foreach ($options_raw as $opt) {
-                        $option_array = (array) $opt;
-                        // Sanitize option data
-                        $option_array['option_id'] = intval($option_array['option_id']);
-                        $option_array['name'] = sanitize_text_field($option_array['name']);
-                        $option_array['description'] = wp_kses_post($option_array['description'] ?? '');
-                        $option_array['type'] = sanitize_text_field($option_array['type']);
-                        $option_array['required'] = (bool) ($option_array['required'] ?? false);
-                        $option_array['price_impact'] = floatval($option_array['price_impact'] ?? 0);
-                        $options[] = $option_array;
-                    }
-                }
-                $item['options'] = $options;
-                $item['availability'] = $availability_manager->get_recurring_schedule($tenant_id);
-                
-                $services_for_public[] = $item;
-                error_log('[MoBooking Services Debug] Added service: ' . $item['name'] . ' with ' . count($options) . ' options');
-            }
-        }
-
-        error_log('[MoBooking Services Debug] Final services count for public: ' . count($services_for_public));
-
-        // Always return success with the services array (even if empty)
-        wp_send_json_success($services_for_public);
-        
-    } catch (Exception $e) {
-        error_log('[MoBooking Services Debug] Exception in handle_get_public_services_ajax: ' . $e->getMessage());
-        wp_send_json_error(['message' => __('An error occurred while loading services.', 'mobooking')], 500);
-    }
-}
 
 
     public function handle_get_services_ajax() {

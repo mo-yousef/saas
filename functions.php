@@ -1008,7 +1008,7 @@ function mobooking_unified_get_services() {
             "SELECT service_id, name, description, price, duration, icon, image_url 
              FROM $services_table 
              WHERE user_id = %d AND status = 'active' 
-             ORDER BY name ASC",
+             ORDER BY sort_order ASC",
             $tenant_id
         ), ARRAY_A);
 
@@ -1018,6 +1018,7 @@ function mobooking_unified_get_services() {
         }
 
         // Format services for frontend
+        $services_manager = new \MoBooking\Classes\Services();
         $formatted_services = [];
         foreach ($services as $service) {
             $formatted_services[] = [
@@ -1026,7 +1027,7 @@ function mobooking_unified_get_services() {
                 'description' => sanitize_textarea_field($service['description']),
                 'price' => floatval($service['price']),
                 'duration' => intval($service['duration']),
-                'icon' => sanitize_text_field($service['icon']),
+                'icon' => $services_manager->get_service_icon_html($service['icon']),
                 'image_url' => esc_url($service['image_url'])
             ];
         }

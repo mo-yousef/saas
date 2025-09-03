@@ -48,8 +48,6 @@ class BookingFormAjax {
         add_action('wp_ajax_nopriv_mobooking_check_service_area', [$this, 'handle_check_service_area']);
         add_action('wp_ajax_mobooking_check_service_area', [$this, 'handle_check_service_area']);
 
-        add_action('wp_ajax_nopriv_mobooking_get_public_services', [$this, 'handle_get_public_services']);
-        add_action('wp_ajax_mobooking_get_public_services', [$this, 'handle_get_public_services']);
         
         add_action('wp_ajax_nopriv_mobooking_get_service_options', [$this, 'handle_get_service_options']);
         add_action('wp_ajax_mobooking_get_service_options', [$this, 'handle_get_service_options']);
@@ -148,61 +146,6 @@ class BookingFormAjax {
         }
     }
 
-    /**
-     * Get public services for a tenant
-     */
-    public function handle_get_public_services() {
-        if (!check_ajax_referer('mobooking_booking_form_nonce', 'nonce', false)) {
-            wp_send_json_error(['message' => __('Security check failed.', 'mobooking')], 403);
-            return;
-        }
-
-        $tenant_id = isset($_POST['tenant_id']) ? intval($_POST['tenant_id']) : 0;
-
-        if (empty($tenant_id)) {
-            wp_send_json_error(['message' => __('Invalid tenant ID.', 'mobooking')], 400);
-            return;
-        }
-
-        try {
-            // Get active services for the tenant
-            $services_table = Database::get_table_name('services');
-            $services = $this->wpdb->get_results($this->wpdb->prepare(
-                "SELECT service_id, name, description, price, duration, icon, image_url 
-                 FROM $services_table 
-                 WHERE user_id = %d AND status = 'active' 
-                 ORDER BY name ASC",
-                $tenant_id
-            ), ARRAY_A);
-
-            if (empty($services)) {
-                wp_send_json_error(['message' => __('No services available.', 'mobooking')], 404);
-                return;
-            }
-
-            // Format services for frontend
-            $formatted_services = array_map(function($service) {
-                return [
-                    'service_id' => intval($service['service_id']),
-                    'name' => $service['name'],
-                    'description' => $service['description'],
-                    'price' => floatval($service['price']),
-                    'duration' => intval($service['duration']),
-                    'icon' => $service['icon'],
-                    'image_url' => $service['image_url']
-                ];
-            }, $services);
-
-            wp_send_json_success([
-                'services' => $formatted_services,
-                'count' => count($formatted_services)
-            ]);
-
-        } catch (Exception $e) {
-            error_log('MoBooking - Get public services error: ' . $e->getMessage());
-            wp_send_json_error(['message' => __('Error loading services.', 'mobooking')], 500);
-        }
-    }
 
     /**
      * Get service options for selected services
