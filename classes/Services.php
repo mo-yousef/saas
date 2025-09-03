@@ -1234,7 +1234,7 @@ public function handle_get_public_services_ajax() {
                 'status' => sanitize_text_field(isset($_POST['status']) ? $_POST['status'] : 'active'),
             ];
         error_log('[MoBooking SaveSvc Debug] Data for add/update_service (with nulls for empty optionals): ' . print_r($data_for_service_method, true));
-
+ 
         $result_service_save = null;
         $message = '';
 
