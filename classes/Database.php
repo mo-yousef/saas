@@ -76,6 +76,8 @@ class Database {
             icon VARCHAR(100),
             image_url VARCHAR(255),
             status VARCHAR(20) NOT NULL DEFAULT 'active',
+            disable_pet_question BOOLEAN NOT NULL DEFAULT 0,
+            disable_frequency_option BOOLEAN NOT NULL DEFAULT 0,
             sort_order INT NOT NULL DEFAULT 0,
             created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
             updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
