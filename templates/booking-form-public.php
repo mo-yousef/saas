@@ -55,7 +55,6 @@ $form_config = [
     'form_enabled' => ($bf_settings['bf_form_enabled'] ?? '1') === '1',
     'theme_color' => $bf_settings['bf_theme_color'] ?? '#1abc9c',
     'header_text' => $bf_settings['bf_header_text'] ?? 'Book Our Services Online',
-    'progress_display_style' => $bf_settings['bf_progress_display_style'] ?? 'steps',
     'success_message' => $bf_settings['bf_success_message'] ?? 'Thank you for your booking! We will contact you soon to confirm the details.',
     'service_card_display' => $bf_settings['bf_service_card_display'] ?? 'image',
 ];
@@ -111,53 +110,9 @@ $script_data = [
     </div>
 
     <!-- Progress Bar -->
-    <?php
-    $progress_style = $bf_settings['bf_progress_display_style'] ?? 'steps';
-
-    // Backwards compatibility:
-    // If the new style setting has its default value ('steps') and the old 'show_progress_bar' setting was explicitly set to '0' (off),
-    // then we assume the user wanted it off and set the style to 'none'.
-    if ($progress_style === 'steps' && isset($bf_settings['bf_show_progress_bar']) && $bf_settings['bf_show_progress_bar'] === '0') {
-        $progress_style = 'none';
-    }
-    ?>
+    <?php $progress_style = $bf_settings['bf_progress_display_style'] ?? 'bar'; ?>
     <?php if ($progress_style !== 'none'): ?>
     <div class="mobooking-progress-container progress-style-<?php echo esc_attr($progress_style); ?>" id="mobooking-progress-container">
-        <?php if ($progress_style === 'steps'): ?>
-        <div class="mobooking-progress-steps">
-            <?php
-            $step_labels = [
-                1 => __('Area', 'mobooking'),
-                2 => __('Service', 'mobooking'),
-                3 => __('Options', 'mobooking'),
-                4 => __('Pets', 'mobooking'),
-                5 => __('Frequency', 'mobooking'),
-                6 => __('Date & Time', 'mobooking'),
-                7 => __('Details', 'mobooking'),
-                8 => __('Confirm', 'mobooking'),
-            ];
-            $total_steps = 8;
-            $visible_steps = [];
-
-            // Calculate visible steps based on enabled features
-            $step_counter = 1;
-            if ($form_config['enable_area_check']) $visible_steps[] = $step_counter++;
-            $visible_steps[] = $step_counter++; // Service selection (always enabled)
-            $visible_steps[] = $step_counter++; // Service options (always enabled)
-            $visible_steps[] = $step_counter++; // Pet Information - Always render indicator
-            $visible_steps[] = $step_counter++; // Service Frequency - Always render indicator
-            if ($form_config['enable_datetime_selection']) $visible_steps[] = $step_counter++;
-            if ($form_config['enable_property_access']) $visible_steps[] = $step_counter++;
-            $visible_steps[] = $step_counter++; // Success (always enabled)
-
-            foreach ($visible_steps as $i => $step):
-            ?>
-            <div class="mobooking-step-indicator <?php echo $i === 0 ? 'active' : ''; ?>" data-step="<?php echo $step; ?>" data-label="<?php echo esc_attr($step_labels[$step]); ?>">
-                <?php echo $step; ?>
-            </div>
-            <?php endforeach; ?>
-        </div>
-        <?php endif; ?>
         <div class="mobooking-progress-bar">
             <div class="mobooking-progress-fill" id="mobooking-progress-fill"></div>
         </div>
