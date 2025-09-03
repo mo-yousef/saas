@@ -606,7 +606,7 @@ jQuery(document).ready(function ($) {
           <div class="mobooking-service-header">
             ${(() => {
                 if (CONFIG.settings.bf_service_card_display === 'icon' && svc.icon) {
-                    return `<div class="mobooking-service-icon">${svc.icon}</div>`;
+                    return svc.icon;
                 }
                 if (CONFIG.settings.bf_service_card_display === 'image' && svc.image_url) {
                     return `<div class="mobooking-service-image"><img src="${svc.image_url}" alt="${escapeHtml(svc.name)}"></div>`;
