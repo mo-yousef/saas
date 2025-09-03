@@ -273,6 +273,7 @@ if ( is_page_template('templates/booking-form-public.php') || $page_type_for_scr
             'bf_form_enabled' => $tenant_settings['bf_form_enabled'] ?? '1',
             'bf_maintenance_message' => isset($tenant_settings['bf_maintenance_message']) ? esc_js($tenant_settings['bf_maintenance_message']) : '',
             'bf_enable_location_check' => $tenant_settings['bf_enable_location_check'] ?? '1',
+            'bf_service_card_display' => $tenant_settings['bf_service_card_display'] ?? 'image',
             // Add any other settings, ensuring strings that might contain problematic characters are escaped
             // For example, if there were other free-text fields:
             // 'another_free_text_setting' => isset($tenant_settings['another_free_text_setting']) ? esc_js($tenant_settings['another_free_text_setting']) : '',
