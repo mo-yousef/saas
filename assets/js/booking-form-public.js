@@ -101,6 +101,25 @@ jQuery(document).ready(function ($) {
   // STEP NAVIGATION
   // ==========================================
 
+  function updateStepVisibility() {
+    const service = state.service;
+    if (!service) {
+      // Show all conditional steps if no service is selected
+      $("#mobooking-step-4, #mobooking-step-5").removeClass("hidden");
+      $('.mobooking-step-indicator[data-step="4"], .mobooking-step-indicator[data-step="5"]').removeClass("hidden");
+      return;
+    }
+
+    const disablePets = service.disable_pet_question == "1";
+    const disableFreq = service.disable_frequency_option == "1";
+
+    $("#mobooking-step-4").toggleClass("hidden", disablePets);
+    $('.mobooking-step-indicator[data-step="4"]').toggleClass("hidden", disablePets);
+
+    $("#mobooking-step-5").toggleClass("hidden", disableFreq);
+    $('.mobooking-step-indicator[data-step="5"]').toggleClass("hidden", disableFreq);
+  }
+
   function showStep(step) {
     state.currentStep = step;
 
@@ -160,12 +179,36 @@ jQuery(document).ready(function ($) {
   }
 
   function nextStep() {
-    const next = state.currentStep + 1;
-    if (validateStep(state.currentStep)) showStep(next);
+    if (!validateStep(state.currentStep)) return;
+
+    let next = state.currentStep + 1;
+
+    // Skip step 4 if it's hidden
+    if (next === 4 && $("#mobooking-step-4").hasClass("hidden")) {
+      next++;
+    }
+    // Skip step 5 if it's hidden
+    if (next === 5 && $("#mobooking-step-5").hasClass("hidden")) {
+      next++;
+    }
+
+    if (next <= state.totalSteps) {
+      showStep(next);
+    }
   }
 
   function prevStep() {
-    const prev = state.currentStep - 1;
+    let prev = state.currentStep - 1;
+
+    // Skip step 5 if it's hidden
+    if (prev === 5 && $("#mobooking-step-5").hasClass("hidden")) {
+      prev--;
+    }
+    // Skip step 4 if it's hidden
+    if (prev === 4 && $("#mobooking-step-4").hasClass("hidden")) {
+      prev--;
+    }
+
     if (prev >= 1) {
       resetStepData(state.currentStep); // Reset data for the step we are leaving
       showStep(prev);
@@ -643,6 +686,7 @@ jQuery(document).ready(function ($) {
         state.pricing.base = parseFloat(svc.price) || 0;
         recalcTotal();
         updateLiveSummary();
+        updateStepVisibility();
 
         // Auto advance to options
         setTimeout(() => showStep(3), 200);
