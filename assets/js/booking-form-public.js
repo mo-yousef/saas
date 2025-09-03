@@ -1489,6 +1489,9 @@ jQuery(document).ready(function ($) {
     zipInput.on("input", function () {
       state.zip = $(this).val();
     });
+
+    // Also, hide the "previous" button on step 2, as there's no step 1
+    $("#mobooking-step-2 .mobooking-btn-secondary").hide();
   }
 
   // Add collapsible classes
