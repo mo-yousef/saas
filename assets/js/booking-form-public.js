@@ -1332,14 +1332,16 @@ jQuery(document).ready(function ($) {
       </div>`;
     }
 
-    html += `<div class="mobooking-summary-item">
-        <span class="item-label">Frequency</span>
-        <span class="item-value" style="text-transform: capitalize;">${escapeHtml(
-          state.frequency
-        )}</span>
-    </div>`;
+    if (state.service && state.service.disable_frequency_option != "1") {
+      html += `<div class="mobooking-summary-item">
+          <span class="item-label">Frequency</span>
+          <span class="item-value" style="text-transform: capitalize;">${escapeHtml(
+            state.frequency
+          )}</span>
+      </div>`;
+    }
 
-    if (state.pets.has_pets) {
+    if (state.service && state.service.disable_pet_question != "1" && state.pets.has_pets) {
       html += `<div class="mobooking-summary-item">
           <span class="item-label">Pets</span>
           <span class="item-value">Yes</span>
