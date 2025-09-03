@@ -17,7 +17,7 @@ class Settings {
                 'bf_font_family'              => 'system-ui',
                 'bf_border_radius'            => '8',
                 'bf_header_text'              => 'Book Our Services Online',
-                'bf_show_progress_bar'        => '1',
+                'bf_progress_display_style'   => 'steps',
                 'bf_allow_cancellation_hours' => '24',
                 'bf_custom_css'               => '',
                 'bf_terms_conditions_url'     => '',
@@ -344,6 +344,10 @@ private function validate_and_sanitize_booking_form_settings($settings_data) {
         'bf_enable_location_check' => [ // Added for explicit boolean handling
             'type' => 'boolean'
         ],
+        'bf_progress_display_style' => [
+            'type' => 'choice',
+            'choices' => ['steps', 'bar', 'none']
+        ],
         'bf_service_card_display' => [
             'type' => 'text'
         ]
@@ -399,6 +403,13 @@ private function sanitize_field_value($value, $rules) {
         case 'color':
             $sanitized = sanitize_hex_color($value);
             return $sanitized ?: '';
+
+        case 'choice':
+            if (isset($rules['choices']) && in_array($value, $rules['choices'], true)) {
+                return $value;
+            }
+            // Return the first choice as default if the provided value is invalid
+            return $rules['choices'][0] ?? '';
 
         case 'boolean':
             return in_array($value, ['1', 'true', true, 1], true) ? '1' : '0';

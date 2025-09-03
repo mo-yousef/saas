@@ -215,15 +215,29 @@ if (!empty($current_slug)) {
                                             <textarea name="bf_description" id="bf_description" class="form-textarea" rows="3"><?php echo mobooking_get_setting_textarea($bf_settings, 'bf_description'); ?></textarea>
                                             <p class="description"><?php esc_html_e('Optional description text shown below the header.', 'mobooking'); ?></p>
                                         </div>
-                                        <div class="form-group form-group-toggle">
-                                            <label class="mobooking-toggle-switch">
-                                                <input name="bf_show_progress_bar" type="checkbox" id="bf_show_progress_bar" value="1" <?php echo mobooking_is_setting_checked($bf_settings, 'bf_show_progress_bar', true); ?>>
-                                                <span class="slider"></span>
-                                            </label>
-                                            <div class="toggle-label-group">
-                                                <label for="bf_show_progress_bar" class="toggle-label"><?php esc_html_e('Show Progress Bar', 'mobooking'); ?></label>
-                                                <p class="description"><?php esc_html_e('Display a progress indicator showing the current step in the booking process.', 'mobooking'); ?></p>
+                                        <div class="form-group">
+                                            <label><?php esc_html_e('Progress Indicator Style', 'mobooking'); ?></label>
+                                            <div class="mobooking-radio-group-cards">
+                                                <label>
+                                                    <input type="radio" name="bf_progress_display_style" value="steps" <?php checked(mobooking_get_setting_value($bf_settings, 'bf_progress_display_style', 'steps'), 'steps'); ?>>
+                                                    <div class="card-content">
+                                                        <span><?php esc_html_e('Steps with Labels', 'mobooking'); ?></span>
+                                                    </div>
+                                                </label>
+                                                <label>
+                                                    <input type="radio" name="bf_progress_display_style" value="bar" <?php checked(mobooking_get_setting_value($bf_settings, 'bf_progress_display_style', 'steps'), 'bar'); ?>>
+                                                    <div class="card-content">
+                                                        <span><?php esc_html_e('Progress Bar', 'mobooking'); ?></span>
+                                                    </div>
+                                                </label>
+                                                <label>
+                                                    <input type="radio" name="bf_progress_display_style" value="none" <?php checked(mobooking_get_setting_value($bf_settings, 'bf_progress_display_style', 'steps'), 'none'); ?>>
+                                                    <div class="card-content">
+                                                        <span><?php esc_html_e('None', 'mobooking'); ?></span>
+                                                    </div>
+                                                </label>
                                             </div>
+                                            <p class="description"><?php esc_html_e('Choose how to display the progress indicator on the booking form.', 'mobooking'); ?></p>
                                         </div>
                                         <div class="form-group">
                                             <label><?php esc_html_e('Service Card Display', 'mobooking'); ?></label>
@@ -295,11 +309,18 @@ if (!empty($current_slug)) {
                                     <div class="mobooking-form-preview-wrapper">
                                         <div class="mobooking-form-preview">
                                             <div class="preview-header">
-                                                <h2 id="preview-header-text"><?php echo esc_html(mobooking_get_setting_value($bf_settings, 'bf_header_text', 'Book Our Services Online')); ?></h2>
+                                             <h2 id="preview-header-text"><?php echo esc_html(mobooking_get_setting_value($bf_settings, 'bf_header_text', 'Book Our Services Online')); ?></h2>
                                                 <p id="preview-description"><?php echo esc_html(mobooking_get_setting_value($bf_settings, 'bf_description')); ?></p>
                                             </div>
-                                            <div class="preview-progress-bar" style="<?php echo mobooking_is_setting_checked($bf_settings, 'bf_show_progress_bar', true) ? '' : 'display: none;'; ?>">
-                                                <div class="preview-progress-fill"></div>
+                                            <div class="preview-progress-wrapper" style="padding: 1rem 0; min-height: 50px;">
+                                                <div class="preview-progress-steps" style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
+                                                    <div class="mobooking-step-indicator active" style="position: relative;">1 <span class="step-label">Service</span></div>
+                                                    <div class="mobooking-step-indicator" style="position: relative;">2 <span class="step-label">Options</span></div>
+                                                    <div class="mobooking-step-indicator" style="position: relative;">3 <span class="step-label">Details</span></div>
+                                                </div>
+                                                <div class="preview-progress-bar" style="height: 8px; background-color: #e5e7eb; border-radius: 4px; overflow: hidden;">
+                                                    <div class="preview-progress-fill" style="width: 25%; height: 100%; background-color: var(--preview-primary, #1abc9c);"></div>
+                                                </div>
                                             </div>
                                             <div class="preview-form-content">
                                                 <div class="preview-service-card">
@@ -643,6 +664,17 @@ if (!empty($current_slug)) {
     word-wrap: break-word;
 }
 
+.preview-progress-steps .mobooking-step-indicator .step-label {
+    display: block;
+    font-size: 0.7rem;
+    position: absolute;
+    bottom: -1.2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #6b7280;
+    white-space: nowrap;
+}
+
 .preview-progress-bar {
     width: 100%;
     height: 8px;
@@ -723,3 +755,44 @@ if (!empty($current_slug)) {
     }
 }
 </style>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const progressStyleRadios = document.querySelectorAll('input[name="bf_progress_display_style"]');
+    const previewWrapper = document.querySelector('.preview-progress-wrapper');
+    const previewSteps = document.querySelector('.preview-progress-steps');
+    const previewBar = document.querySelector('.preview-progress-bar');
+
+    function updatePreview(style) {
+        if (!previewWrapper || !previewSteps || !previewBar) return;
+
+        // Reset styles to default (steps view)
+        previewWrapper.style.display = 'block';
+        previewSteps.style.display = 'flex';
+        previewBar.style.height = '8px';
+        previewBar.style.marginTop = '1rem';
+
+        switch(style) {
+            case 'bar':
+                previewSteps.style.display = 'none';
+                previewBar.style.height = '12px';
+                previewBar.style.marginTop = '0.5rem';
+                break;
+            case 'none':
+                previewWrapper.style.display = 'none';
+                break;
+        }
+    }
+
+    progressStyleRadios.forEach(function(radio) {
+        radio.addEventListener('change', function() {
+            updatePreview(this.value);
+        });
+    });
+
+    // Initial update on page load
+    const initialStyleEl = document.querySelector('input[name="bf_progress_display_style"]:checked');
+    if (initialStyleEl) {
+        updatePreview(initialStyleEl.value);
+    }
+});
+</script>
