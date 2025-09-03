@@ -28,19 +28,13 @@ class Services {
 
     public static function get_preset_icon_svg(string $filename): ?string {
         $filepath = self::$preset_icons_path . sanitize_file_name($filename);
-        error_log('[MoBooking Debug] get_preset_icon_svg trying to read file: ' . $filepath);
         if (file_exists($filepath) && strtolower(pathinfo($filepath, PATHINFO_EXTENSION)) === 'svg') {
             // It's crucial to sanitize SVG content before outputting it.
             // For simplicity here, assuming SVGs are trusted or pre-sanitized.
             // In a real scenario, use a proper SVG sanitization library.
             $content = file_get_contents($filepath);
-            if ($content) {
-                error_log('[MoBooking Debug] Successfully read SVG content.');
-                return Utils::sanitize_svg($content); // Assuming Utils::sanitize_svg exists and is robust
-            }
-            error_log('[MoBooking Debug] Failed to read SVG content.');
+            return Utils::sanitize_svg($content); // Assuming Utils::sanitize_svg exists and is robust
         }
-        error_log('[MoBooking Debug] SVG file does not exist or is not an SVG.');
         return null;
     }
 
@@ -75,24 +69,16 @@ class Services {
     }
 
     public function get_service_icon_html(string $icon_identifier_or_url): string {
-        error_log('[MoBooking Debug] get_service_icon_html called with: ' . $icon_identifier_or_url);
         if (strpos($icon_identifier_or_url, 'preset:') === 0) {
             $filename = substr($icon_identifier_or_url, strlen('preset:'));
-            error_log('[MoBooking Debug] Preset icon found, filename: ' . $filename);
             $svg_content = self::get_preset_icon_svg($filename);
             if ($svg_content) {
-                $html = '<div class="mobooking-preset-icon">' . $svg_content . '</div>';
-                error_log('[MoBooking Debug] Returning HTML for preset icon: ' . $html);
-                return $html;
+                return '<div class="mobooking-preset-icon">' . $svg_content . '</div>';
             }
-            error_log('[MoBooking Debug] Preset icon SVG content not found.');
             return '';
         } elseif (filter_var($icon_identifier_or_url, FILTER_VALIDATE_URL)) {
-            $html = '<img src="' . esc_url($icon_identifier_or_url) . '" alt="Service Icon" class="mobooking-custom-icon"/>';
-            error_log('[MoBooking Debug] Returning HTML for custom icon URL: ' . $html);
-            return $html;
+            return '<img src="' . esc_url($icon_identifier_or_url) . '" alt="Service Icon" class="mobooking-custom-icon"/>';
         }
-        error_log('[MoBooking Debug] No valid icon identifier found, returning empty string.');
         return '';
     }
 
@@ -1391,7 +1377,7 @@ class Services {
         error_log('[MoBooking Services Debug] Getting services for tenant_id: ' . $tenant_id);
 
         $table_name = Database::get_table_name('services');
-        $sql = $this->wpdb->prepare("SELECT * FROM $table_name WHERE user_id = %d AND status = 'active'", $tenant_id);
+        $sql = $this->wpdb->prepare("SELECT * FROM $table_name WHERE user_id = %d AND status = 'active' ORDER BY sort_order ASC", $tenant_id);
 
         error_log('[MoBooking Services Debug] SQL: ' . $sql);
 

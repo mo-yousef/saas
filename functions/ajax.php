@@ -759,6 +759,10 @@ function mobooking_ajax_get_public_services() {
         return;
     }
 
+    foreach ($services as &$service) {
+        $service['icon'] = $services_manager->get_service_icon_html($service['icon']);
+    }
+
     wp_send_json_success($services);
 }
 
