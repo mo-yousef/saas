@@ -160,42 +160,43 @@
 
 /* Icon Selector Grid Styles (inside a dialog) */
 .mobooking-icon-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
-  gap: 0.75rem;
-  max-height: 300px;
-  overflow-y: auto;
-  padding: 0.25rem;
-  background-color: var(--dialog-secondary, #F3F4F6);
-  border-radius: var(--dialog-radius, 0.5rem);
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+    gap: 1rem;
+    max-height: 300px;
+    overflow-y: auto;
+    padding: 1rem;
+    background-color: var(--dialog-secondary, #F3F4F6);
+    border-radius: 4px;
+    border: 1px solid var(--dialog-border);
 }
 
 .mobooking-icon-grid-item {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 2px solid var(--dialog-border, #E5E7EB);
-  border-radius: var(--dialog-radius, 0.5rem);
-  padding: 0.75rem;
-  cursor: pointer;
-  transition: all 0.2s ease-in-out;
-  background-color: #FFFFFF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid var(--dialog-border, #E5E7EB);
+    border-radius: 4px;
+    padding: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    background-color: #FFFFFF;
 }
 
 .mobooking-icon-grid-item:hover {
-  border-color: var(--accent-color, #3B82F6);
-  background-color: #EFF6FF; /* A light blue accent */
+    border-color: var(--accent-color, #3B82F6);
+    background-color: #EFF6FF;
+    /* A light blue accent */
 }
 
 .mobooking-icon-grid-item.selected {
-  border-color: var(--accent-color, #3B82F6);
-  background-color: var(--accent-color, #3B82F6);
-  color: white;
+    border-color: var(--accent-color, #3B82F6);
+    color: white;
 }
 
 .mobooking-icon-grid-item svg {
-  width: 32px;
-  height: 32px;
+    width: 32px;
+    height: 32px;
 }
 
 /* Styles for the icon preview on the main page */
@@ -206,15 +207,19 @@
     align-items: center;
     justify-content: center;
     width: 100%;
-    height: 12rem; /* Same as image preview */
+    height: 90px;
     background-color: var(--muted);
     color: var(--muted-foreground);
     transition: all 0.2s ease-in-out;
+    border-radius: var(--radius);
+    background-color: hsl(var(--muted));
+    border: 1px dashed hsl(var(--input));
+    color: hsl(var(--muted-foreground));
 }
 
 .mobooking-icon-display {
-    width: 64px;
-    height: 64px;
+    width: 44px;
+    height: 44px;
 }
 
 .mobooking-icon-display svg,
@@ -222,4 +227,6 @@
     width: 100%;
     height: 100%;
     object-fit: contain;
+    max-width: 32px;
+    margin: auto;
 }
