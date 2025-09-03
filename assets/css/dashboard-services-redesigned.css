@@ -395,6 +395,14 @@
     border: 1px solid hsl(var(--mobk-primary));
 }
 
+.service-list-item-placeholder {
+    height: 60px;
+    background-color: hsl(var(--mobk-muted));
+    border: 2px dashed hsl(var(--mobk-border));
+    border-radius: var(--mobk-radius);
+    margin-bottom: 0.5rem;
+}
+
 /* ============================================================================
    Responsive Design
    ============================================================================ */
