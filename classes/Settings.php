@@ -17,7 +17,7 @@ class Settings {
                 'bf_font_family'              => 'system-ui',
                 'bf_border_radius'            => '8',
                 'bf_header_text'              => 'Book Our Services Online',
-                'bf_progress_display_style'   => 'steps',
+                'bf_progress_display_style'   => 'bar',
                 'bf_allow_cancellation_hours' => '24',
                 'bf_custom_css'               => '',
                 'bf_terms_conditions_url'     => '',
@@ -346,7 +346,7 @@ private function validate_and_sanitize_booking_form_settings($settings_data) {
         ],
         'bf_progress_display_style' => [
             'type' => 'choice',
-            'choices' => ['steps', 'bar', 'none']
+            'choices' => ['bar', 'none']
         ],
         'bf_service_card_display' => [
             'type' => 'text'

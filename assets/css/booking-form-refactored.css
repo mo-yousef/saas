@@ -138,26 +138,6 @@ body {
     border-radius: 6px;
 }
 
-/* Steps with Labels Style */
-.progress-style-steps .mobooking-progress-bar {
-    height: 4px;
-    margin-top: 0.5rem;
-}
-
-.progress-style-steps .mobooking-step-indicator {
-    position: relative;
-}
-
-.progress-style-steps .mobooking-step-indicator::after {
-    content: attr(data-label);
-    position: absolute;
-    bottom: -1.5rem;
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 0.75rem;
-    color: hsl(var(--muted-foreground));
-    white-space: nowrap;
-}
 
 .mobooking-progress-fill {
     height: 100%;
