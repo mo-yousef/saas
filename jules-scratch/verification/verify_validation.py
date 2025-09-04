@@ -58,13 +58,34 @@ def run(playwright):
     page.locator("#mobooking-step-7 .mobooking-btn-primary").click()
 
     # Expect error messages for all required fields
-    expect(page.locator("#mobooking-customer-name + .mobooking-error-message")).to_be_visible()
-    expect(page.locator("#mobooking-customer-email + .mobooking-error-message")).to_be_visible()
-    expect(page.locator("#mobooking-customer-phone + .mobooking-error-message")).to_be_visible()
-    expect(page.locator("#mobooking-service-address + .mobooking-error-message")).to_be_visible()
+    name_error = page.locator("#mobooking-customer-name ~ .mobooking-error-message")
+    email_error = page.locator("#mobooking-customer-email ~ .mobooking-error-message")
+    phone_error = page.locator("#mobooking-customer-phone ~ .mobooking-error-message")
+    address_error = page.locator("#mobooking-service-address ~ .mobooking-error-message")
+
+    expect(name_error).to_be_visible()
+    expect(email_error).to_be_visible()
+    expect(phone_error).to_be_visible()
+    expect(address_error).to_be_visible()
 
     # Take a screenshot to verify the new validation styling
     page.screenshot(path="jules-scratch/verification/validation_errors.png")
+
+    # --- Test that errors are cleared on input ---
+    page.locator("#mobooking-customer-name").fill("John Doe")
+    expect(name_error).not_to_be_visible()
+
+    page.locator("#mobooking-customer-email").fill("john.doe@example.com")
+    expect(email_error).not_to_be_visible()
+
+    page.locator("#mobooking-customer-phone").fill("1234567890")
+    expect(phone_error).not_to_be_visible()
+
+    page.locator("#mobooking-service-address").fill("123 Main St")
+    expect(address_error).not_to_be_visible()
+
+    # Take a final screenshot to show the cleared errors
+    page.screenshot(path="jules-scratch/verification/validation_cleared.png")
 
     browser.close()
 
