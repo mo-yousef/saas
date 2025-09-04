@@ -468,6 +468,20 @@ jQuery(document).ready(function ($) {
     }
   }
 
+  function clearFieldError(field) {
+    const $field = $(field);
+    const $group = $field.closest(".mobooking-form-group.error");
+
+    $field.removeClass("error");
+    $field.siblings(".mobooking-error-message").remove();
+    $field.next(".mobooking-error-message").remove(); // Ensure message after field is removed
+
+    if ($group.length) {
+      $group.removeClass("error");
+      $group.find(".mobooking-error-message").remove();
+    }
+  }
+
   function clearFieldErrors(stepContainer) {
     $(stepContainer).find(".error").removeClass("error");
     $(stepContainer).find(".mobooking-error-message").remove();
@@ -1168,6 +1182,7 @@ jQuery(document).ready(function ($) {
         collapseTimeSlots(true);
         els.timeSlots.empty();
         if (state.date) loadTimeSlots(dateStr);
+        clearFieldError(els.dateInput);
       },
       onReady: function (selectedDates, dateStr, instance) {
         $(instance.calendarContainer).addClass("mobooking-flatpickr");
@@ -1561,4 +1576,33 @@ jQuery(document).ready(function ($) {
   });
 
   // Property access radios active styling is handled in the STEP 7 section
+
+  // ==========================================
+  // LIVE VALIDATION
+  // ==========================================
+  // Clear validation errors on user input for simple fields
+  $(document).on(
+    "input change",
+    "#mobooking-zip, #mobooking-pet-details, #mobooking-customer-name, #mobooking-customer-email, #mobooking-customer-phone, #mobooking-service-address",
+    function () {
+      clearFieldError($(this));
+    }
+  );
+
+  // Clear validation on complex components
+  $(document).on("change", ".mobooking-option-input", function () {
+    clearFieldError($(this));
+  });
+
+  els.servicesContainer.on(
+    "change",
+    'input[name="mobooking-selected-service"]',
+    function () {
+      clearFieldError(els.servicesContainer);
+    }
+  );
+
+  els.timeSlots.on("click", ".mobooking-time-slot", function () {
+    clearFieldError(els.timeSlotsWrap);
+  });
 });
