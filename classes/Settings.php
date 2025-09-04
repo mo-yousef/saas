@@ -836,6 +836,8 @@ public function save_booking_form_settings(int $user_id, array $settings_data): 
             }
         }
 
+        // Explicitly require dependencies before creating demo data to prevent potential autoloader issues during AJAX.
+        require_once __DIR__ . '/Services.php';
         self::create_demo_services($user_id);
     }
 
