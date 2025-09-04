@@ -621,11 +621,50 @@ private function setup_new_business_owner(\WP_User $user, string $company_name):
 public function handle_ajax_registration() {
     error_log('MoBooking: Registration process started');
     $user_id = null; // Initialize user_id to null
-    
+
     try {
         // 1. Verify nonce
         if (!check_ajax_referer(self::REGISTER_NONCE_ACTION, 'nonce', false)) {
             throw new \Exception(__('Security check failed. Please refresh the page and try again.', 'mobooking'));
+        }
+
+        // Verify reCAPTCHA
+        $recaptcha_token = isset($_POST['recaptcha_token']) ? $_POST['recaptcha_token'] : null;
+        // IMPORTANT: The secret key should be stored securely, e.g., in wp-config.php or WordPress options, not hardcoded.
+        $recaptcha_secret_key = defined('MOBOOKING_RECAPTCHA_SECRET_KEY') ? MOBOOKING_RECAPTCHA_SECRET_KEY : null;
+
+        // Only verify if the token and a secret key are present.
+        if ($recaptcha_token && $recaptcha_secret_key) {
+            error_log('MoBooking: Verifying reCAPTCHA token.');
+            $response = wp_remote_post('https://www.google.com/recaptcha/api/siteverify', [
+                'body' => [
+                    'secret'   => $recaptcha_secret_key,
+                    'response' => $recaptcha_token,
+                    'remoteip' => $_SERVER['REMOTE_ADDR'],
+                ],
+            ]);
+
+            if (is_wp_error($response)) {
+                throw new \Exception(__('Could not contact reCAPTCHA service.', 'mobooking'));
+            }
+
+            $response_body = wp_remote_retrieve_body($response);
+            $recaptcha_data = json_decode($response_body);
+
+            if (!$recaptcha_data || !isset($recaptcha_data->success)) {
+                throw new \Exception(__('Invalid response from reCAPTCHA service.', 'mobooking'));
+            }
+
+            // 0.5 is a common threshold for reCAPTCHA v3.
+            if ($recaptcha_data->success !== true || $recaptcha_data->score < 0.5) {
+                error_log('MoBooking: reCAPTCHA verification failed. Score: ' . ($recaptcha_data->score ?? 'N/A'));
+                throw new \Exception(__('Human verification failed. Please try again.', 'mobooking'));
+            }
+
+            error_log('MoBooking: reCAPTCHA verification successful. Score: ' . $recaptcha_data->score);
+        } elseif (defined('MOBOOKING_RECAPTCHA_SECRET_KEY') && !empty(MOBOOKING_RECAPTCHA_SECRET_KEY)) {
+            // If reCAPTCHA is configured on the backend but no token was sent, it's an error.
+            throw new \Exception(__('Human verification token not received. Please refresh the page.', 'mobooking'));
         }
 
         // 2. Sanitize and validate input data
@@ -647,7 +686,7 @@ public function handle_ajax_registration() {
         if ($password !== $password_confirm) $errors[] = __('Passwords do not match.', 'mobooking');
         if (!$is_invitation_flow && empty($company_name)) $errors[] = __('Company name is required for business registration.', 'mobooking');
         if (!empty($email) && (username_exists($email) || email_exists($email))) $errors[] = __('This email is already registered. Please use a different email or try logging in.', 'mobooking');
-        
+
         if (!empty($errors)) {
             throw new \Exception(implode('<br>', $errors));
         }
