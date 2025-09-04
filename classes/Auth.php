@@ -504,309 +504,206 @@ class Auth {
 
 // Enhanced handle_ajax_registration method for classes/Auth.php
 
+private function setup_invited_worker(\WP_User $user, array $post_data): array {
+    error_log('MoBooking: Processing invitation flow for user ID: ' . $user->ID);
+
+    $inviter_id = intval($post_data['inviter_id']);
+    $role_to_assign = sanitize_text_field($post_data['role_to_assign']);
+    $invitation_token = sanitize_text_field($post_data['invitation_token']);
+
+    // Validate invitation
+    $transient_key = 'mobooking_invitation_' . $invitation_token;
+    $invitation_data = get_transient($transient_key);
+
+    if (!$invitation_data || !is_array($invitation_data) ||
+        $invitation_data['inviter_id'] != $inviter_id ||
+        $invitation_data['worker_email'] !== $user->user_email ||
+        $invitation_data['assigned_role'] !== $role_to_assign) {
+
+        // Throwing an exception will trigger the cleanup in the main method's catch block
+        throw new \Exception(__('Invalid or expired invitation. Please request a new invitation.', 'mobooking'));
+    }
+
+    // Only ROLE_WORKER_STAFF is assignable in this flow.
+    if ($role_to_assign === self::ROLE_WORKER_STAFF) {
+        $user->set_role($role_to_assign);
+        update_user_meta($user->ID, self::META_KEY_OWNER_ID, $inviter_id);
+        delete_transient($transient_key);
+
+        return [
+            'message' => __('Your worker account has been successfully created.', 'mobooking'),
+            'redirect_url' => home_url('/dashboard/'),
+        ];
+    } else {
+        // This case should ideally not be reached if frontend is correct, but it's a safeguard.
+        throw new \Exception(__('Invalid role assignment. Please contact support.', 'mobooking'));
+    }
+}
+
+private function setup_new_business_owner(\WP_User $user, string $company_name): array {
+    error_log('MoBooking: Processing business owner registration for user ID: ' . $user->ID);
+
+    $user->set_role(self::ROLE_BUSINESS_OWNER);
+    update_user_meta($user->ID, 'mobooking_company_name', $company_name);
+
+    error_log('MoBooking: Business owner role assigned and company name saved');
+
+    // Generate and save unique business slug
+    if (!empty($company_name)) {
+        error_log('MoBooking: Generating business slug');
+
+        if (class_exists('MoBooking\Classes\Settings') && class_exists('MoBooking\Classes\Routes\BookingFormRouter')) {
+            // Initialize settings manager
+            if (!isset($GLOBALS['mobooking_settings_manager'])) {
+                $GLOBALS['mobooking_settings_manager'] = new \MoBooking\Classes\Settings();
+            }
+            $settings_manager = $GLOBALS['mobooking_settings_manager'];
+
+            // Generate unique slug
+            $base_slug = sanitize_title($company_name);
+            $final_slug = $base_slug;
+            $counter = 1;
+
+            global $wpdb;
+            $settings_table = \MoBooking\Classes\Database::get_table_name('tenant_settings');
+
+            if (empty($settings_table)) {
+                throw new \Exception('Database settings table name could not be retrieved.');
+            }
+
+            $slug_is_taken = true;
+            error_log("MoBooking: Starting slug generation for base: {$base_slug}");
+
+            while ($slug_is_taken) {
+                $query = $wpdb->prepare(
+                    "SELECT user_id FROM {$settings_table} WHERE setting_name = %s AND setting_value = %s",
+                    'bf_business_slug',
+                    $final_slug
+                );
+                $existing_user_id = $wpdb->get_var($query);
+
+                if ($existing_user_id === null) {
+                    $slug_is_taken = false;
+                } else {
+                    $counter++;
+                    $final_slug = $base_slug . '-' . $counter;
+                    error_log("MoBooking: Slug collision detected. Trying next slug: {$final_slug}");
+                    if ($counter > 50) {
+                        error_log("MoBooking: Slug generation loop exceeded 50 iterations. Breaking loop.");
+                        $final_slug .= '-' . wp_rand(100, 999);
+                        break;
+                    }
+                }
+            }
+
+            $settings_manager->update_setting($user->ID, 'bf_business_slug', $final_slug);
+            error_log("MoBooking: Business slug created and saved: {$final_slug}");
+        }
+    }
+
+    // Initialize default settings for new business owner
+    error_log('MoBooking: Initializing default settings');
+    if (class_exists('MoBooking\Classes\Settings') && method_exists('MoBooking\Classes\Settings', 'initialize_default_settings')) {
+        \MoBooking\Classes\Settings::initialize_default_settings($user->ID);
+        error_log('MoBooking: Default settings initialized successfully');
+    }
+
+    return [
+        'message' => sprintf(
+            __('Welcome to %s! Your business account has been successfully created.', 'mobooking'),
+            get_bloginfo('name')
+        ),
+        'redirect_url' => home_url('/dashboard/'),
+    ];
+}
+
+
 public function handle_ajax_registration() {
-    // Log the start of registration process
     error_log('MoBooking: Registration process started');
+    $user_id = null; // Initialize user_id to null
     
     try {
-        // Verify nonce for security
+        // 1. Verify nonce
         if (!check_ajax_referer(self::REGISTER_NONCE_ACTION, 'nonce', false)) {
-            error_log('MoBooking: Registration failed - Invalid nonce');
-            wp_send_json_error(array('message' => __('Security check failed. Please refresh the page and try again.', 'mobooking')));
+            throw new \Exception(__('Security check failed. Please refresh the page and try again.', 'mobooking'));
         }
 
-        // Sanitize and validate input data
+        // 2. Sanitize and validate input data
         $first_name = isset($_POST['first_name']) ? sanitize_text_field(trim($_POST['first_name'])) : '';
         $last_name = isset($_POST['last_name']) ? sanitize_text_field(trim($_POST['last_name'])) : '';
         $email = isset($_POST['email']) ? sanitize_email(trim($_POST['email'])) : '';
         $password = isset($_POST['password']) ? $_POST['password'] : '';
         $password_confirm = isset($_POST['password_confirm']) ? $_POST['password_confirm'] : '';
         $company_name = isset($_POST['company_name']) ? sanitize_text_field(trim($_POST['company_name'])) : '';
+        $is_invitation_flow = isset($_POST['inviter_id']) && isset($_POST['role_to_assign']);
 
         error_log("MoBooking: Registration attempt for email: {$email}");
 
-        // Enhanced validation with specific error messages
         $errors = [];
-
-        if (empty($first_name)) {
-            $errors[] = __('First name is required.', 'mobooking');
-        }
-
-        if (empty($last_name)) {
-            $errors[] = __('Last name is required.', 'mobooking');
-        }
-
-        if (empty($email) || !is_email($email)) {
-            $errors[] = __('A valid email address is required.', 'mobooking');
-        }
-
-        if (empty($password)) {
-            $errors[] = __('Please enter a password.', 'mobooking');
-        } elseif (strlen($password) < 8) {
-            $errors[] = __('Password must be at least 8 characters long.', 'mobooking');
-        }
-
-        if ($password !== $password_confirm) {
-            $errors[] = __('Passwords do not match.', 'mobooking');
-        }
-
-        // Check if this is an invitation flow
-        $is_invitation_flow = isset($_POST['inviter_id']) && isset($_POST['role_to_assign']);
+        if (empty($first_name)) $errors[] = __('First name is required.', 'mobooking');
+        if (empty($last_name)) $errors[] = __('Last name is required.', 'mobooking');
+        if (empty($email) || !is_email($email)) $errors[] = __('A valid email address is required.', 'mobooking');
+        if (empty($password) || strlen($password) < 8) $errors[] = __('Password must be at least 8 characters long.', 'mobooking');
+        if ($password !== $password_confirm) $errors[] = __('Passwords do not match.', 'mobooking');
+        if (!$is_invitation_flow && empty($company_name)) $errors[] = __('Company name is required for business registration.', 'mobooking');
+        if (!empty($email) && (username_exists($email) || email_exists($email))) $errors[] = __('This email is already registered. Please use a different email or try logging in.', 'mobooking');
         
-        if (!$is_invitation_flow && empty($company_name)) {
-            $errors[] = __('Company name is required for business registration.', 'mobooking');
-        }
-
-        // Check if email already exists
-        if (!empty($email) && (username_exists($email) || email_exists($email))) {
-            $errors[] = __('This email is already registered. Please use a different email or try logging in.', 'mobooking');
-        }
-
-        // Return validation errors if any
         if (!empty($errors)) {
-            error_log('MoBooking: Registration validation failed: ' . implode(', ', $errors));
-            wp_send_json_error(array(
-                'message' => implode('<br>', $errors),
-                'validation_errors' => $errors
-            ));
+            throw new \Exception(implode('<br>', $errors));
         }
 
-        // Attempt to create the user
+        // 3. Create the user
         error_log('MoBooking: Creating WordPress user');
         $user_id = wp_create_user($email, $password, $email);
 
         if (is_wp_error($user_id)) {
-            $error_message = $user_id->get_error_message();
-            error_log("MoBooking: WordPress user creation failed: {$error_message}");
-            wp_send_json_error(array(
-                'message' => sprintf(
-                    __('Account creation failed: %s', 'mobooking'),
-                    $error_message
-                )
-            ));
+            throw new \Exception(sprintf(__('Account creation failed: %s', 'mobooking'), $user_id->get_error_message()));
         }
 
         error_log("MoBooking: WordPress user created successfully with ID: {$user_id}");
-
-        // Initialize user object
         $user = new \WP_User($user_id);
 
-        // Update user profile information
+        // 4. Update basic user profile
         $display_name = trim($first_name . ' ' . $last_name);
-        $user_data = array(
-            'ID' => $user_id,
-            'first_name' => $first_name,
-            'last_name' => $last_name,
-            'display_name' => $display_name,
-        );
+        wp_update_user(['ID' => $user_id, 'first_name' => $first_name, 'last_name' => $last_name, 'display_name' => $display_name]);
+        error_log('MoBooking: User profile data updated successfully');
 
-        $update_result = wp_update_user($user_data);
-        if (is_wp_error($update_result)) {
-            error_log("MoBooking: User data update failed: " . $update_result->get_error_message());
-        } else {
-            error_log('MoBooking: User profile data updated successfully');
-        }
-
-        // Handle invitation flow vs regular business owner registration
+        // 5. Setup user based on registration type (Business Owner or Worker)
         if ($is_invitation_flow) {
-            error_log('MoBooking: Processing invitation flow');
-            // Handle worker invitation logic (existing code)
-            $inviter_id = intval($_POST['inviter_id']);
-            $role_to_assign = sanitize_text_field($_POST['role_to_assign']);
-            $invitation_token = sanitize_text_field($_POST['invitation_token']);
-
-            // Validate invitation
-            $transient_key = 'mobooking_invitation_' . $invitation_token;
-            $invitation_data = get_transient($transient_key);
-
-            if (!$invitation_data || !is_array($invitation_data) ||
-                $invitation_data['inviter_id'] != $inviter_id ||
-                $invitation_data['worker_email'] !== $email ||
-                $invitation_data['assigned_role'] !== $role_to_assign) {
-                
-                wp_delete_user($user_id);
-                wp_send_json_error(array(
-                    'message' => __('Invalid or expired invitation. Please request a new invitation.', 'mobooking')
-                ));
-            }
-
-            // Assign worker role and set owner relationship
-            if (in_array($role_to_assign, [self::ROLE_WORKER_MANAGER, self::ROLE_WORKER_STAFF, self::ROLE_WORKER_VIEWER])) {
-                $user->set_role($role_to_assign);
-                update_user_meta($user_id, self::META_KEY_OWNER_ID, $inviter_id);
-                delete_transient($transient_key);
-
-                $redirect_url = home_url('/dashboard/');
-                $success_message = __('Your worker account has been successfully created.', 'mobooking');
-            } else {
-                wp_delete_user($user_id);
-                wp_send_json_error(array(
-                    'message' => __('Invalid role assignment. Please contact support.', 'mobooking')
-                ));
-            }
+            $result = $this->setup_invited_worker($user, $_POST);
         } else {
-            error_log('MoBooking: Processing business owner registration');
-            // Regular business owner registration
-            $user->set_role(self::ROLE_BUSINESS_OWNER);
-            update_user_meta($user_id, 'mobooking_company_name', $company_name);
-
-            error_log('MoBooking: Business owner role assigned and company name saved');
-
-            // Generate and save unique business slug
-            if (!empty($company_name)) {
-                error_log('MoBooking: Generating business slug');
-                
-                // Ensure required classes are available
-                if (!class_exists('MoBooking\Classes\Settings')) {
-                    error_log('MoBooking: Settings class not found, cannot create slug');
-                } elseif (!class_exists('MoBooking\Classes\Routes\BookingFormRouter')) {
-                    error_log('MoBooking: BookingFormRouter class not found, cannot create slug');
-                } else {
-                    try {
-                        // Initialize settings manager
-                        if (!isset($GLOBALS['mobooking_settings_manager'])) {
-                            $GLOBALS['mobooking_settings_manager'] = new \MoBooking\Classes\Settings();
-                        }
-                        $settings_manager = $GLOBALS['mobooking_settings_manager'];
-
-                        // Generate unique slug
-                        $base_slug = sanitize_title($company_name);
-                        $final_slug = $base_slug;
-                        $counter = 1;
-
-                        global $wpdb;
-                        $settings_table = \MoBooking\Classes\Database::get_table_name('tenant_settings');
-
-                        if (empty($settings_table)) {
-                            throw new \Exception('Database settings table name could not be retrieved.');
-                        }
-
-                        $slug_is_taken = true;
-
-                        error_log("MoBooking: Starting slug generation for base: {$base_slug}");
-
-                        // Loop until we find a slug that is not in use by any user.
-                        while ($slug_is_taken) {
-                            $query = $wpdb->prepare(
-                                "SELECT user_id FROM {$settings_table} WHERE setting_name = %s AND setting_value = %s",
-                                'bf_business_slug',
-                                $final_slug
-                            );
-                            $existing_user_id = $wpdb->get_var($query);
-
-                            if ($existing_user_id === null) {
-                                // Slug is not taken, we can exit the loop.
-                                $slug_is_taken = false;
-                            } else {
-                                // Slug is taken, generate a new one.
-                                $counter++;
-                                $final_slug = $base_slug . '-' . $counter;
-                                error_log("MoBooking: Slug collision detected. Trying next slug: {$final_slug}");
-                                if ($counter > 50) { // Safety break
-                                    error_log("MoBooking: Slug generation loop exceeded 50 iterations. Breaking loop.");
-                                    $final_slug .= '-' . wp_rand(100, 999);
-                                    break;
-                                }
-                            }
-                        }
-
-                        $settings_manager->update_setting($user_id, 'bf_business_slug', $final_slug);
-                        error_log("MoBooking: Business slug created and saved: {$final_slug}");
-                    } catch (Exception $e) {
-                        error_log("MoBooking: Slug generation failed with exception: " . $e->getMessage());
-                    }
-                }
-            }
-
-            // Initialize default settings for new business owner
-            error_log('MoBooking: Initializing default settings');
-            if (class_exists('MoBooking\Classes\Settings')) {
-                try {
-                    if (!isset($GLOBALS['mobooking_settings_manager'])) {
-                        $GLOBALS['mobooking_settings_manager'] = new \MoBooking\Classes\Settings();
-                    }
-                    
-                    // Check if the method exists before calling it
-                    if (method_exists('MoBooking\Classes\Settings', 'initialize_default_settings')) {
-                        \MoBooking\Classes\Settings::initialize_default_settings($user_id);
-                        error_log('MoBooking: Default settings initialized successfully');
-                    } else {
-                        error_log('MoBooking: initialize_default_settings method not found');
-                    }
-                } catch (Exception $e) {
-                    error_log("MoBooking: Settings initialization failed: " . $e->getMessage());
-                    // Don't fail the registration for this, just log it
-                }
-            } else {
-                error_log('MoBooking: Settings class not available for initialization');
-            }
-
-            $redirect_url = home_url('/dashboard/');
-            $success_message = sprintf(
-                __('Welcome to %s! Your business account has been successfully created.', 'mobooking'),
-                get_bloginfo('name')
-            );
+            $result = $this->setup_new_business_owner($user, $company_name);
         }
 
-        // Log the user in
+        // 6. Log the new user in
         error_log('MoBooking: Logging user in and setting auth cookie');
-        $user_object = get_user_by('id', $user_id); // Get WP_User object for do_action
-        if ($user_object) {
-            wp_set_current_user($user_id, $user_object->user_login);
-            wp_set_auth_cookie($user_id, true, is_ssl());
-            // Fires the wp_login action hook, which is standard WordPress practice and allows other plugins to act on login.
-            do_action('wp_login', $user_object->user_login, $user_object);
-            error_log("MoBooking: User {$user_id} logged in, wp_login action hook fired.");
-        } else {
-            error_log("MoBooking: Failed to get user object for user ID {$user_id} during login process.");
-        }
+        wp_set_current_user($user_id, $user->user_login);
+        wp_set_auth_cookie($user_id, true, is_ssl());
+        do_action('wp_login', $user->user_login, $user);
+        error_log("MoBooking: User {$user_id} logged in, wp_login action hook fired.");
 
-        // Send welcome email (only for business owners, not invited workers)
+        // 7. Send welcome email (only for business owners)
         if (!$is_invitation_flow) {
-            error_log('MoBooking: Attempting to send welcome email');
-            try {
-                $this->send_welcome_email($user_id, $display_name);
-                error_log('MoBooking: Welcome email successfully sent.');
-            } catch (Exception $e) {
-                error_log("MoBooking: Welcome email failed: " . $e->getMessage());
-                // Don't fail registration for email issues
-            }
+            $this->send_welcome_email($user_id, $display_name);
         }
 
-        // Log successful registration
-        error_log(sprintf(
-            'MoBooking: Successful registration for %s (%s) - User ID: %d, Type: %s',
-            $display_name,
-            $email,
-            $user_id,
-            $is_invitation_flow ? 'Worker' : 'Business Owner'
-        ));
+        // 8. Send success response
+        error_log(sprintf('MoBooking: Successful registration for %s (%s) - User ID: %d, Type: %s', $display_name, $email, $user_id, $is_invitation_flow ? 'Worker' : 'Business Owner'));
+        wp_send_json_success([
+            'message' => $result['message'],
+            'redirect_url' => $result['redirect_url'],
+            'user_data' => ['id' => $user_id, 'name' => $display_name, 'email' => $email, 'type' => $is_invitation_flow ? 'worker' : 'business_owner']
+        ]);
 
-        // Send success response with enhanced data
-        wp_send_json_success(array(
-            'message' => $success_message,
-            'redirect_url' => $redirect_url,
-            'user_data' => array(
-                'id' => $user_id,
-                'name' => $display_name,
-                'email' => $email,
-                'type' => $is_invitation_flow ? 'worker' : 'business_owner'
-            )
-        ));
-
-    } catch (Exception $e) {
-        // Clean up user if something goes wrong during setup
-        if (isset($user_id) && $user_id) {
+    } catch (\Exception $e) {
+        // Centralized error handling and cleanup
+        if ($user_id && is_int($user_id)) {
             wp_delete_user($user_id);
-            error_log("MoBooking: Cleaned up user {$user_id} due to registration failure");
+            error_log("MoBooking: Cleaned up user {$user_id} due to registration failure: " . $e->getMessage());
         }
-
         error_log('MoBooking Registration Error: ' . $e->getMessage());
-        error_log('MoBooking Registration Error Stack Trace: ' . $e->getTraceAsString());
         
-        wp_send_json_error(array(
-            'message' => __('Registration failed due to a system error. Please try again or contact support.', 'mobooking')
-        ));
+        wp_send_json_error(['message' => $e->getMessage()]);
     }
 
     wp_die();
