@@ -676,6 +676,11 @@ public function handle_ajax_registration() {
 
                         global $wpdb;
                         $settings_table = \MoBooking\Classes\Database::get_table_name('tenant_settings');
+
+                        if (empty($settings_table)) {
+                            throw new \Exception('Database settings table name could not be retrieved.');
+                        }
+
                         $slug_is_taken = true;
 
                         error_log("MoBooking: Starting slug generation for base: {$base_slug}");
