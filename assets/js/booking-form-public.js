@@ -337,14 +337,17 @@ jQuery(document).ready(function ($) {
 
           const firstInput = requiredInputs.first();
           const type = firstInput.data("type");
+
+          if (type === "toggle") {
+            return; // Skip validation for toggle types as per user request
+          }
+
           const name = firstInput.data("name") || "Option";
           let isGroupValid = true;
 
-          if (type === "toggle" || type === "checkbox") {
+          if (type === "checkbox") {
             if (
-              $group.find(
-                "input[type='checkbox']:checked, input[type='toggle']:checked"
-              ).length === 0
+              $group.find("input[type='checkbox']:checked").length === 0
             ) {
               isGroupValid = false;
             }
