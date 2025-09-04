@@ -15,20 +15,6 @@ if ( ! isset( $single_booking_id ) || ! is_numeric( $single_booking_id ) ||
     return;
 }
 
-// Handle invoice download request
-if ( isset( $_GET['download_invoice'] ) && $_GET['download_invoice'] === 'true' ) {
-    $invoice_template_path = get_template_directory() . '/includes/invoice-generator.php';
-    if ( file_exists( $invoice_template_path ) ) {
-        // The included file will have access to variables in the current scope,
-        // such as $single_booking_id, $bookings_manager, $currency_symbol, etc.
-        include $invoice_template_path;
-        exit; // Stop further execution to prevent rendering the HTML page
-    } else {
-        // Optional: handle case where invoice template is missing
-        wp_die( 'Invoice template not found. Please contact support.' );
-    }
-}
-
 $booking_id_to_fetch = $single_booking_id;
 $user_id_for_permission_check = $current_user_id;
 
@@ -65,6 +51,20 @@ $booking = $bookings_manager->get_booking( $booking_id_to_fetch, $booking_owner_
 if ( ! $booking ) {
     echo '<div class="notice notice-error"><p>' . esc_html__( 'Booking details could not be retrieved or access denied.', 'mobooking' ) . '</p></div>';
     return;
+}
+
+// Handle invoice download request
+if ( isset( $_GET['download_invoice'] ) && $_GET['download_invoice'] === 'true' ) {
+    $invoice_template_path = get_template_directory() . '/includes/invoice-generator.php';
+    if ( file_exists( $invoice_template_path ) ) {
+        // The included file will have access to variables in the current scope,
+        // such as $single_booking_id, $bookings_manager, $currency_symbol, etc.
+        include $invoice_template_path;
+        exit; // Stop further execution to prevent rendering the HTML page
+    } else {
+        // Optional: handle case where invoice template is missing
+        wp_die( 'Invoice template not found. Please contact support.' );
+    }
 }
 
 // Prepare data for display
