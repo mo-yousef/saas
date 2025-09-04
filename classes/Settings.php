@@ -874,6 +874,20 @@ public function save_booking_form_settings(int $user_id, array $settings_data): 
                 'price_impact_type' => 'fixed',
                 'price_impact_value' => 50,
             ]);
+            $services_manager->service_options_manager->add_service_option($user_id, $home_cleaning_id, [
+                'name' => 'Inside Fridge',
+                'type' => 'checkbox',
+                'is_required' => false,
+                'price_impact_type' => 'fixed',
+                'price_impact_value' => 25,
+            ]);
+            $services_manager->service_options_manager->add_service_option($user_id, $home_cleaning_id, [
+                'name' => 'Inside Oven',
+                'type' => 'checkbox',
+                'is_required' => false,
+                'price_impact_type' => 'fixed',
+                'price_impact_value' => 25,
+            ]);
         }
 
         // 2. Window Cleaning
@@ -892,6 +906,13 @@ public function save_booking_form_settings(int $user_id, array $settings_data): 
                 'is_required' => true,
                 'price_impact_type' => 'per_unit',
                 'price_impact_value' => 5,
+            ]);
+            $services_manager->service_options_manager->add_service_option($user_id, $window_cleaning_id, [
+                'name' => 'Skylights',
+                'type' => 'checkbox',
+                'is_required' => false,
+                'price_impact_type' => 'fixed',
+                'price_impact_value' => 30,
             ]);
         }
 
@@ -914,6 +935,20 @@ public function save_booking_form_settings(int $user_id, array $settings_data): 
                     ['from' => 1001, 'to' => 2000, 'price' => 50],
                     ['from' => 2001, 'to' => 3000, 'price' => 100],
                 ]),
+            ]);
+            $services_manager->service_options_manager->add_service_option($user_id, $moving_cleaning_id, [
+                'name' => 'Carpet Shampooing',
+                'type' => 'checkbox',
+                'is_required' => false,
+                'price_impact_type' => 'fixed',
+                'price_impact_value' => 80,
+            ]);
+            $services_manager->service_options_manager->add_service_option($user_id, $moving_cleaning_id, [
+                'name' => 'Wall Washing',
+                'type' => 'checkbox',
+                'is_required' => false,
+                'price_impact_type' => 'fixed',
+                'price_impact_value' => 60,
             ]);
         }
 
