@@ -274,19 +274,20 @@ class BookingFormRouter {
             error_log('[MoBooking Router] Query result: ' . ($user_id ?: 'NULL'));
 
             if ($user_id) {
-                // If a user_id is found for the slug, that slug is taken, regardless of the user's role or status.
-                // The original logic incorrectly returned null if the user was not a business owner,
-                // allowing duplicate slugs to be created.
                 $user = get_userdata($user_id);
-                if (!$user) {
-                    // This case handles if a user was deleted but their slug entry remains.
-                    // The slug should still be considered "taken" until cleaned up, to prevent reassignment.
-                    // However, for routing purposes, we might not want to route to a non-existent user.
-                    // For the purpose of *checking if a slug exists during registration*, returning the ID is correct.
-                    error_log('[MoBooking Router] User ID ' . $user_id . ' found for slug ' . $slug . ', but get_userdata failed. Considering slug taken.');
+
+                // A slug is only valid for routing if it belongs to an existing business owner.
+                if ($user && \MoBooking\Classes\Auth::is_user_business_owner($user->ID)) {
+                    error_log('[MoBooking Router] Slug "' . $slug . '" is valid for routing to user ID: ' . $user_id);
+                    return (int) $user_id;
                 }
-                error_log('[MoBooking Router] Slug "' . $slug . '" is already in use by user ID: ' . $user_id);
-                return (int) $user_id;
+
+                // If the user doesn't exist or isn't a business owner, the slug is not routable.
+                // This also means that for slug uniqueness checks during registration, this function
+                // will now incorrectly report that slugs taken by non-owners are available.
+                // This needs to be handled by a more specific uniqueness check in the registration logic itself.
+                error_log('[MoBooking Router] Slug "' . $slug . '" is considered invalid for routing (user not found or not a business owner).');
+
             } else {
                 error_log('[MoBooking Router] No user found for slug: ' . $slug);
                 
