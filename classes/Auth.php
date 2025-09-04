@@ -674,18 +674,34 @@ public function handle_ajax_registration() {
                         $final_slug = $base_slug;
                         $counter = 1;
 
+                        global $wpdb;
+                        $settings_table = \MoBooking\Classes\Database::get_table_name('tenant_settings');
+                        $slug_is_taken = true;
+
                         error_log("MoBooking: Starting slug generation for base: {$base_slug}");
 
-                        // Loop until we find a slug that is not in use (get_user_id_by_slug returns null)
-                        while (\MoBooking\Classes\Routes\BookingFormRouter::get_user_id_by_slug($final_slug) !== null) {
-                            $counter++;
-                            $final_slug = $base_slug . '-' . $counter;
-                            error_log("MoBooking: Slug collision detected. Trying next slug: {$final_slug}");
-                            if ($counter > 50) { // Safety break to prevent accidental infinite loops in edge cases
-                                error_log("MoBooking: Slug generation loop exceeded 50 iterations. Breaking loop.");
-                                // Optionally, append a random string as a final attempt
-                                $final_slug .= '-' . wp_rand(100, 999);
-                                break;
+                        // Loop until we find a slug that is not in use by any user.
+                        while ($slug_is_taken) {
+                            $query = $wpdb->prepare(
+                                "SELECT user_id FROM {$settings_table} WHERE setting_name = %s AND setting_value = %s",
+                                'bf_business_slug',
+                                $final_slug
+                            );
+                            $existing_user_id = $wpdb->get_var($query);
+
+                            if ($existing_user_id === null) {
+                                // Slug is not taken, we can exit the loop.
+                                $slug_is_taken = false;
+                            } else {
+                                // Slug is taken, generate a new one.
+                                $counter++;
+                                $final_slug = $base_slug . '-' . $counter;
+                                error_log("MoBooking: Slug collision detected. Trying next slug: {$final_slug}");
+                                if ($counter > 50) { // Safety break
+                                    error_log("MoBooking: Slug generation loop exceeded 50 iterations. Breaking loop.");
+                                    $final_slug .= '-' . wp_rand(100, 999);
+                                    break;
+                                }
                             }
                         }
 
