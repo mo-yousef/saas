@@ -1,0 +1,45 @@
+/*
+ * Booking Form Validation Styles
+ */
+
+/* Style for input fields with an error */
+.mobooking-input.error,
+.mobooking-textarea.error,
+.mobooking-select.error {
+    border-color: #ef4444 !important; /* Red-500 from Tailwind palette */
+}
+
+.mobooking-input.error:focus,
+.mobooking-textarea.error:focus,
+.mobooking-select.error:focus {
+    box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.5);
+}
+
+
+/* Style for the error message */
+.mobooking-error-message {
+    color: #ef4444;
+    font-size: 0.875rem; /* 14px */
+    margin-top: 0.5rem; /* 8px */
+    display: block;
+}
+
+/* Adjustments for specific field types */
+.mobooking-form-group.error .mobooking-radio-group,
+.mobooking-form-group.error .mobooking-services-grid {
+    border: 1px solid #ef4444;
+    border-radius: 8px; /* Match existing border-radius if any */
+    padding: 1rem;
+}
+
+/* Add a general error class to highlight groups */
+.mobooking-form-group.error > .mobooking-label {
+    color: #ef4444;
+}
+
+/* Ensure the container for time slots can also show an error state */
+#mobooking-time-slots-container.error #mobooking-time-slots {
+    border: 1px solid #ef4444;
+    padding: 1rem;
+    border-radius: 8px;
+}
