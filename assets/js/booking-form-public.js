@@ -297,187 +297,180 @@ jQuery(document).ready(function ($) {
   }
 
   function validateStep(step) {
+    const stepContainer = $(`#mobooking-step-${step}`);
+    clearFieldErrors(stepContainer);
+    let isValid = true;
+
     switch (step) {
       case 1:
-        // Area check (optional if feature disabled). If form shows step 1, require zip/country.
-        if (!$("#mobooking-step-1").length) return true;
         if (
           !CONFIG.settings?.bf_enable_location_check ||
           CONFIG.settings.bf_enable_location_check === "0"
         )
           return true;
+
         const zip = $("#mobooking-zip").val()?.trim();
-        const country = $("#mobooking-country").val()?.trim();
-        if (!zip)
-          return (
-            showFeedback(
-              els.areaFeedback,
-              "error",
-              CONFIG.i18n.zip_required || "ZIP required"
-            ),
-            false
+        if (!zip) {
+          showFieldError(
+            $("#mobooking-zip"),
+            CONFIG.i18n.zip_required || "ZIP required"
           );
-        if (!country)
-          return (
-            showFeedback(
-              els.areaFeedback,
-              "error",
-              CONFIG.i18n.country_required || "Country required"
-            ),
-            false
-          );
-        return true;
+          isValid = false;
+        }
+        return isValid;
       case 2:
-        if (!state.service)
-          return (
-            showFeedback(
-              els.serviceFeedback,
-              "error",
-              CONFIG.i18n.select_service || "Select a service"
-            ),
-            false
+        if (!state.service) {
+          showFieldError(
+            els.servicesContainer,
+            CONFIG.i18n.select_service || "Select a service"
           );
-        return true;
+          isValid = false;
+        }
+        return isValid;
       case 3:
-        // Validate required options using a group-based approach
-        const missing = [];
         els.optionsContainer.find(".mobooking-form-group").each(function () {
           const $group = $(this);
           const requiredInputs = $group.find(
             ".mobooking-option-input[data-required='1']"
           );
-
-          if (!requiredInputs.length) {
-            return; // Skip non-required groups
-          }
+          if (!requiredInputs.length) return;
 
           const firstInput = requiredInputs.first();
           const type = firstInput.data("type");
           const name = firstInput.data("name") || "Option";
-          let isValid = true;
+          let isGroupValid = true;
 
-          if (type === "toggle") {
-            if (!firstInput.is(":checked")) {
-              isValid = false;
-            }
-          } else if (type === "checkbox") {
-            if ($group.find("input[type='checkbox']:checked").length === 0) {
-              isValid = false;
+          if (type === "toggle" || type === "checkbox") {
+            if (
+              $group.find(
+                "input[type='checkbox']:checked, input[type='toggle']:checked"
+              ).length === 0
+            ) {
+              isGroupValid = false;
             }
           } else if (type === "radio") {
             if ($group.find("input[type='radio']:checked").length === 0) {
-              isValid = false;
+              isGroupValid = false;
             }
           } else {
             const value = firstInput.val();
             if (!value || String(value).trim() === "") {
-              isValid = false;
+              isGroupValid = false;
             }
           }
 
-          if (!isValid && !missing.includes(name)) {
-            missing.push(name);
+          if (!isGroupValid) {
+            showFieldError(
+              $group,
+              (CONFIG.i18n.fill_required_options ||
+                "This field is required.") +
+                " " +
+                name
+            );
+            isValid = false;
           }
         });
+        return isValid;
 
-        if (missing.length) {
-          const errorMsg =
-            (CONFIG.i18n.fill_required_options ||
-              "Please fill all required options:") +
-            " " +
-            missing.join(", ");
-          return showFeedback(els.optionsFeedback, "error", errorMsg), false;
-        }
-        return true;
       case 4:
-        // Pets: if yes, require details
         const hasPets = $('input[name="has_pets"]:checked').val() === "yes";
         if (hasPets) {
           const details = $("#mobooking-pet-details").val().trim();
-          if (!details)
-            return (
-              showFeedback(
-                $("#mobooking-pet-feedback"),
-                "error",
-                CONFIG.i18n.pet_details_required || "Please add pet details"
-              ),
-              false
+          if (!details) {
+            showFieldError(
+              $("#mobooking-pet-details"),
+              CONFIG.i18n.pet_details_required || "Please add pet details"
             );
+            isValid = false;
+          }
         }
-        return true;
+        return isValid;
       case 5:
-        // Frequency always valid
-        return true;
+        return true; // Frequency always valid
       case 6:
-        if (!state.date)
-          return (
-            showFeedback(
-              els.dateTimeFeedback,
-              "error",
-              CONFIG.i18n.select_date || "Select a date"
-            ),
-            false
+        if (!state.date) {
+          showFieldError(
+            els.dateInput,
+            CONFIG.i18n.select_date || "Select a date"
           );
-        if (!state.time)
-          return (
-            showFeedback(
-              els.dateTimeFeedback,
-              "error",
-              CONFIG.i18n.select_time || "Select a time"
-            ),
-            false
+          isValid = false;
+        }
+        if (!state.time) {
+          showFieldError(
+            els.timeSlotsWrap,
+            CONFIG.i18n.select_time || "Select a time"
           );
-        return true;
+          isValid = false;
+        }
+        return isValid;
       case 7:
         const name = els.nameInput.val().trim();
         const email = els.emailInput.val().trim();
         const phone = els.phoneInput.val().trim();
         const address = els.addressInput.val().trim();
-        if (!name)
-          return (
-            showFeedback(
-              els.contactFeedback,
-              "error",
-              CONFIG.i18n.name_required || "Name required"
-            ),
-            false
+
+        if (!name) {
+          showFieldError(
+            els.nameInput,
+            CONFIG.i18n.name_required || "Name required"
           );
-        if (!email || !/^\S+@\S+\.\S+$/.test(email))
-          return (
-            showFeedback(
-              els.contactFeedback,
-              "error",
-              CONFIG.i18n.email_required || "Valid email required"
-            ),
-            false
+          isValid = false;
+        }
+        if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
+          showFieldError(
+            els.emailInput,
+            CONFIG.i18n.email_required || "Valid email required"
           );
-        if (!phone)
-          return (
-            showFeedback(
-              els.contactFeedback,
-              "error",
-              CONFIG.i18n.phone_required || "Phone required"
-            ),
-            false
+          isValid = false;
+        }
+        if (!phone) {
+          showFieldError(
+            els.phoneInput,
+            CONFIG.i18n.phone_required || "Phone required"
           );
-        if (!address)
-          return (
-            showFeedback(
-              els.contactFeedback,
-              "error",
-              CONFIG.i18n.address_required || "Address required"
-            ),
-            false
+          isValid = false;
+        }
+        if (!address) {
+          showFieldError(
+            els.addressInput,
+            CONFIG.i18n.address_required || "Address required"
           );
-        return true;
+          isValid = false;
+        }
+        return isValid;
       default:
         return true;
     }
   }
 
-  function showFeedback($el, type, message) {
-    $el.removeClass("success error").addClass(type).text(message).show();
-    return $el;
+  function showFieldError(field, message) {
+    const $field = $(field);
+    const $group = $field.closest(".mobooking-form-group");
+
+    // Add error class to the most relevant element
+    if ($group.length) {
+      $group.addClass("error");
+    } else {
+      $field.addClass("error");
+    }
+
+    // Remove any existing error message for this field/group
+    $group.find(".mobooking-error-message").remove();
+    $field.siblings(".mobooking-error-message").remove();
+
+    // Add new error message after the field or at the end of the group
+    const errorHtml =
+      '<div class="mobooking-error-message">' + message + "</div>";
+    if ($group.length) {
+      $group.append(errorHtml);
+    } else {
+      $field.after(errorHtml);
+    }
+  }
+
+  function clearFieldErrors(stepContainer) {
+    $(stepContainer).find(".error").removeClass("error");
+    $(stepContainer).find(".mobooking-error-message").remove();
   }
 
   // Expose for template buttons
