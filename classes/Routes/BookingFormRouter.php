@@ -274,25 +274,19 @@ class BookingFormRouter {
             error_log('[MoBooking Router] Query result: ' . ($user_id ?: 'NULL'));
 
             if ($user_id) {
+                // If a user_id is found for the slug, that slug is taken, regardless of the user's role or status.
+                // The original logic incorrectly returned null if the user was not a business owner,
+                // allowing duplicate slugs to be created.
                 $user = get_userdata($user_id);
-                if ($user) {
-                    // Check if user has appropriate role
-                    if (class_exists('MoBooking\\Classes\\Auth')) {
-                        $required_role = \MoBooking\Classes\Auth::ROLE_BUSINESS_OWNER;
-                        if (in_array($required_role, (array)$user->roles) || user_can($user, 'manage_options')) {
-                            error_log('[MoBooking Router] Valid user found: ' . $user_id . ' for slug: ' . $slug);
-                            return (int) $user_id;
-                        } else {
-                            error_log('[MoBooking Router] User ' . $user_id . ' does not have required role');
-                        }
-                    } else {
-                        // If Auth class not available, just return the user ID
-                        error_log('[MoBooking Router] Auth class not available, returning user ID: ' . $user_id);
-                        return (int) $user_id;
-                    }
-                } else {
-                    error_log('[MoBooking Router] User ID ' . $user_id . ' found but user data invalid');
+                if (!$user) {
+                    // This case handles if a user was deleted but their slug entry remains.
+                    // The slug should still be considered "taken" until cleaned up, to prevent reassignment.
+                    // However, for routing purposes, we might not want to route to a non-existent user.
+                    // For the purpose of *checking if a slug exists during registration*, returning the ID is correct.
+                    error_log('[MoBooking Router] User ID ' . $user_id . ' found for slug ' . $slug . ', but get_userdata failed. Considering slug taken.');
                 }
+                error_log('[MoBooking Router] Slug "' . $slug . '" is already in use by user ID: ' . $user_id);
+                return (int) $user_id;
             } else {
                 error_log('[MoBooking Router] No user found for slug: ' . $slug);
                 
