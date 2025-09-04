@@ -835,6 +835,89 @@ public function save_booking_form_settings(int $user_id, array $settings_data): 
                 $settings_instance->update_setting($user_id, $key, $value_to_set);
             }
         }
+
+        self::create_demo_services($user_id);
+    }
+
+    private static function create_demo_services(int $user_id)
+    {
+        if (get_user_meta($user_id, 'demo_services_created', true)) {
+            return;
+        }
+
+        $services_manager = new \MoBooking\Classes\Services();
+
+        // 1. Home Cleaning
+        $home_cleaning_id = $services_manager->add_service($user_id, [
+            'name' => 'Home Cleaning',
+            'description' => 'A comprehensive cleaning service for your home.',
+            'price' => 50,
+            'duration' => 120,
+            'icon' => 'preset:home-cleaning.svg',
+        ]);
+
+        if (!is_wp_error($home_cleaning_id)) {
+            $services_manager->service_options_manager->add_service_option($user_id, $home_cleaning_id, [
+                'name' => 'Number of Bedrooms',
+                'type' => 'dropdown',
+                'is_required' => true,
+                'option_values' => json_encode([
+                    ['label' => '1 Bedroom', 'price_impact' => 0],
+                    ['label' => '2 Bedrooms', 'price_impact' => 20],
+                    ['label' => '3 Bedrooms', 'price_impact' => 40],
+                ]),
+            ]);
+            $services_manager->service_options_manager->add_service_option($user_id, $home_cleaning_id, [
+                'name' => 'Deep Cleaning',
+                'type' => 'checkbox',
+                'is_required' => false,
+                'price_impact_type' => 'fixed',
+                'price_impact_value' => 50,
+            ]);
+        }
+
+        // 2. Window Cleaning
+        $window_cleaning_id = $services_manager->add_service($user_id, [
+            'name' => 'Window Cleaning',
+            'description' => 'Crystal clear windows for your home or office.',
+            'price' => 30,
+            'duration' => 60,
+            'icon' => 'preset:window-cleaning.svg',
+        ]);
+
+        if (!is_wp_error($window_cleaning_id)) {
+            $services_manager->service_options_manager->add_service_option($user_id, $window_cleaning_id, [
+                'name' => 'Number of Windows',
+                'type' => 'number',
+                'is_required' => true,
+                'price_impact_type' => 'per_unit',
+                'price_impact_value' => 5,
+            ]);
+        }
+
+        // 3. Moving Cleaning
+        $moving_cleaning_id = $services_manager->add_service($user_id, [
+            'name' => 'Moving Cleaning',
+            'description' => 'A thorough cleaning for when you are moving in or out.',
+            'price' => 150,
+            'duration' => 240,
+            'icon' => 'preset:apartment-cleaning.svg',
+        ]);
+
+        if (!is_wp_error($moving_cleaning_id)) {
+            $services_manager->service_options_manager->add_service_option($user_id, $moving_cleaning_id, [
+                'name' => 'Square Footage',
+                'type' => 'sqm',
+                'is_required' => true,
+                'option_values' => json_encode([
+                    ['from' => 0, 'to' => 1000, 'price' => 0],
+                    ['from' => 1001, 'to' => 2000, 'price' => 50],
+                    ['from' => 2001, 'to' => 3000, 'price' => 100],
+                ]),
+            ]);
+        }
+
+        update_user_meta($user_id, 'demo_services_created', true);
     }
 
     /**
