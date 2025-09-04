@@ -862,9 +862,9 @@ public function save_booking_form_settings(int $user_id, array $settings_data): 
                 'type' => 'dropdown',
                 'is_required' => true,
                 'option_values' => json_encode([
-                    ['label' => '1 Bedroom', 'price_impact' => 0],
-                    ['label' => '2 Bedrooms', 'price_impact' => 20],
-                    ['label' => '3 Bedrooms', 'price_impact' => 40],
+                    ['label' => '1 Bedroom', 'price' => 0],
+                    ['label' => '2 Bedrooms', 'price' => 20],
+                    ['label' => '3 Bedrooms', 'price' => 40],
                 ]),
             ]);
             $services_manager->service_options_manager->add_service_option($user_id, $home_cleaning_id, [
@@ -930,11 +930,8 @@ public function save_booking_form_settings(int $user_id, array $settings_data): 
                 'name' => 'Square Footage',
                 'type' => 'sqm',
                 'is_required' => true,
-                'option_values' => json_encode([
-                    ['from' => 0, 'to' => 1000, 'price' => 0],
-                    ['from' => 1001, 'to' => 2000, 'price' => 50],
-                    ['from' => 2001, 'to' => 3000, 'price' => 100],
-                ]),
+                'price_impact_type' => 'per_unit',
+                'price_impact_value' => 0.1,
             ]);
             $services_manager->service_options_manager->add_service_option($user_id, $moving_cleaning_id, [
                 'name' => 'Carpet Shampooing',
