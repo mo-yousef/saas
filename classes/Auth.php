@@ -734,15 +734,16 @@ public function handle_ajax_registration() {
             'user_data' => ['id' => $user_id, 'name' => $display_name, 'email' => $email, 'type' => $is_invitation_flow ? 'worker' : 'business_owner']
         ]);
 
-    } catch (\Exception $e) {
-        // Centralized error handling and cleanup
+    } catch (\Throwable $e) {
+        // Centralized error handling and cleanup for both Error and Exception.
         if ($user_id && is_int($user_id)) {
             wp_delete_user($user_id);
             error_log("MoBooking: Cleaned up user {$user_id} due to registration failure: " . $e->getMessage());
         }
-        error_log('MoBooking Registration Error: ' . $e->getMessage());
+        error_log('MoBooking Registration Error: ' . $e->getMessage() . ' in ' . $e->getFile() . ' on line ' . $e->getLine());
         
-        wp_send_json_error(['message' => $e->getMessage()]);
+        // Return a generic error to the user for security, but log the specific one.
+        wp_send_json_error(['message' => __('An unexpected error occurred during registration. Please contact support.', 'mobooking')]);
     }
 
     wp_die();
