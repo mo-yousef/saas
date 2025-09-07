@@ -150,9 +150,15 @@ jQuery(document).ready(function ($) {
       if (s === step) $(this).addClass("active");
     });
 
-    const totalInd = visibleIndicators.length || state.totalSteps;
-    const idx = Math.max(1, Math.min(step, totalInd));
-    const progress = ((idx - 1) / Math.max(1, totalInd - 1)) * 100;
+    const visibleStepIndicators = visibleIndicators.filter(":visible");
+    const totalVisible = visibleStepIndicators.length;
+    const activeIndicator = visibleIndicators.filter(".active");
+    const currentVisibleIndex = visibleStepIndicators.index(activeIndicator);
+
+    let progress = 0;
+    if (totalVisible > 1) {
+      progress = (currentVisibleIndex / (totalVisible - 1)) * 100;
+    }
     els.progressFill.css("width", `${progress}%`);
 
     // Step-specific hooks
@@ -1549,6 +1555,8 @@ jQuery(document).ready(function ($) {
 
     // Also, hide the "previous" button on step 2, as there's no step 1
     $("#mobooking-step-2 .mobooking-btn-secondary").hide();
+    // And hide the step 1 indicator from the progress bar
+    $('.mobooking-step-indicator[data-step="1"]').hide();
   }
 
   // Add collapsible classes
