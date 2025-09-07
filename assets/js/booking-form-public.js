@@ -142,22 +142,27 @@ jQuery(document).ready(function ($) {
     els.steps.removeClass("active").hide();
     $(`#mobooking-step-${step}`).addClass("active").show();
 
-    const visibleIndicators = els.stepIndicators;
-    visibleIndicators.removeClass("active completed");
-    visibleIndicators.each(function () {
-      const s = parseInt($(this).data("step"), 10);
-      if (s < step) $(this).addClass("completed");
-      if (s === step) $(this).addClass("active");
+    const allIndicators = els.stepIndicators;
+    allIndicators.removeClass("active completed");
+
+    // Find the current indicator
+    const currentIndicator = allIndicators.filter(`[data-step="${step}"]`);
+    currentIndicator.addClass("active");
+
+    // Mark previous indicators as completed
+    allIndicators.each(function() {
+        if (parseInt($(this).data("step")) < step) {
+            $(this).addClass("completed");
+        }
     });
 
-    const visibleStepIndicators = visibleIndicators.filter(":visible");
-    const totalVisible = visibleStepIndicators.length;
-    const activeIndicator = visibleIndicators.filter(".active");
-    const currentVisibleIndex = visibleStepIndicators.index(activeIndicator);
+    const visibleIndicators = allIndicators.filter(":visible");
+    const totalVisible = visibleIndicators.length;
+    const currentIndexInVisible = visibleIndicators.index(currentIndicator);
 
     let progress = 0;
-    if (totalVisible > 1) {
-      progress = (currentVisibleIndex / (totalVisible - 1)) * 100;
+    if (totalVisible > 1 && currentIndexInVisible > -1) {
+        progress = (currentIndexInVisible / (totalVisible - 1)) * 100;
     }
     els.progressFill.css("width", `${progress}%`);
 
