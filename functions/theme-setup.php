@@ -57,6 +57,9 @@ add_action( 'after_setup_theme', 'mobooking_setup' );
 // REPLACE the existing mobooking_scripts() function in your functions.php with this fixed version:
 
 function mobooking_scripts() {
+    // Determine if we are on a dashboard page
+    $is_dashboard = (strpos($_SERVER['REQUEST_URI'] ?? '', '/dashboard/') !== false);
+
     // Initialize variables to prevent undefined warnings if used before assignment in conditional blocks
     $public_form_currency = [ // Default currency settings
         'code' => 'USD',
@@ -74,9 +77,7 @@ function mobooking_scripts() {
     wp_enqueue_style( 'mobooking-toggle-switch', MOBOOKING_THEME_URI . 'assets/css/toggle-switch.css', array('mobooking-style'), MOBOOKING_VERSION );
 
     // Enqueue new-front-page.css on all pages that are not the dashboard.
-    // We are using strpos to check for the dashboard URL slug, as is_admin() will not work
-    // for this theme's custom dashboard pages.
-    if ( strpos($_SERVER['REQUEST_URI'] ?? '', '/dashboard/') === false ) {
+    if ( !$is_dashboard ) {
         wp_enqueue_style( 'mobooking-new-front-page', MOBOOKING_THEME_URI . 'assets/css/new-front-page.css', array('mobooking-style'), MOBOOKING_VERSION );
     }
 
@@ -303,37 +304,25 @@ if ( is_page_template('templates/booking-form-public.php') || $page_type_for_scr
 }
 
 
-    // FIXED: Get current dashboard page slug if we're on a dashboard page
-    // This prevents the undefined variable error
-    $current_page_slug = '';
-    if (strpos($_SERVER['REQUEST_URI'] ?? '', '/dashboard/') !== false) {
-        // Try to get from query vars first (set by router)
+    // Dashboard-specific scripts (only load if we're actually on a dashboard page)
+    if ($is_dashboard) {
+        // Get current dashboard page slug
         $current_page_slug = get_query_var('mobooking_dashboard_page');
-
-        // Fallback to global variable
         if (empty($current_page_slug)) {
             $current_page_slug = isset($GLOBALS['mobooking_current_dashboard_view']) ? $GLOBALS['mobooking_current_dashboard_view'] : '';
         }
-
-        // Parse from URL as final fallback
         if (empty($current_page_slug)) {
             $request_uri = $_SERVER['REQUEST_URI'] ?? '';
             $path = trim(parse_url($request_uri, PHP_URL_PATH), '/');
             $path_segments = explode('/', $path);
-
             if (isset($path_segments[0]) && $path_segments[0] === 'dashboard') {
                 $current_page_slug = isset($path_segments[1]) && !empty($path_segments[1]) ? sanitize_title($path_segments[1]) : 'overview';
             }
         }
-
-        // Final fallback to overview
         if (empty($current_page_slug)) {
             $current_page_slug = 'overview';
         }
-    }
 
-    // Dashboard-specific scripts (only load if we're actually on a dashboard page)
-    if (!empty($current_page_slug)) {
         // Enqueue the main dashboard stylesheet
         wp_enqueue_style('mobooking-dashboard-main', MOBOOKING_THEME_URI . 'assets/css/dashboard-main.css', array('mobooking-style'), MOBOOKING_VERSION);
 
