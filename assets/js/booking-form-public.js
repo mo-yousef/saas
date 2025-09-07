@@ -490,6 +490,11 @@ jQuery(document).ready(function ($) {
     $(stepContainer).find(".mobooking-error-message").remove();
   }
 
+  function showFeedback(element, type, message) {
+    element.removeClass("info success error").addClass(type);
+    element.text(message).show();
+  }
+
   // Expose for template buttons
   window.moBookingNextStep = nextStep;
   window.moBookingPreviousStep = prevStep;
