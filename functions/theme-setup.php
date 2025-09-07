@@ -73,7 +73,10 @@ function mobooking_scripts() {
     wp_enqueue_style( 'mobooking-style', get_stylesheet_uri(), array('mobooking-inter-font', 'mobooking-reset'), MOBOOKING_VERSION );
     wp_enqueue_style( 'mobooking-toggle-switch', MOBOOKING_THEME_URI . 'assets/css/toggle-switch.css', array('mobooking-style'), MOBOOKING_VERSION );
 
-    if ( is_front_page() ) {
+    // Enqueue new-front-page.css on all pages that are not the dashboard.
+    // We are using strpos to check for the dashboard URL slug, as is_admin() will not work
+    // for this theme's custom dashboard pages.
+    if ( strpos($_SERVER['REQUEST_URI'] ?? '', '/dashboard/') === false ) {
         wp_enqueue_style( 'mobooking-new-front-page', MOBOOKING_THEME_URI . 'assets/css/new-front-page.css', array('mobooking-style'), MOBOOKING_VERSION );
     }
 
