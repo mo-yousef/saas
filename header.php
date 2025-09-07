@@ -1,41 +1,38 @@
 <?php
 /**
- * The header for our theme
+ * The header for NordBK theme
  *
- * @package MoBooking
+ * @package Nord_Booking
+ * @version 1.0
  */
 ?>
-<!DOCTYPE html>
-<html <?php language_attributes(); ?>>
-<head>
-    <meta charset="<?php bloginfo( 'charset' ); ?>">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="profile" href="https://gmpg.org/xfn/11">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.29.2/feather.min.js"></script>
-    <?php wp_head(); ?>
-</head>
-<body <?php body_class(); ?>>
-<div id="page" class="site">
-    <a class="skip-link screen-reader-text" href="#content"><?php esc_html_e( 'Skip to content', 'mobooking' ); ?></a>
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <nav>
+                <div class="logo">Nord Booking</div>
+                <ul class="nav-links">
+                    <li><a href="<?php echo esc_url(home_url('/features/')); ?>">Features</a></li>
+                    <li><a href="#how-it-works">How It Works</a></li>
+                    <li><a href="#pricing">Pricing</a></li>
+                    <li><a href="#testimonials">Reviews</a></li>
+                </ul>
+                <div style="display: flex; gap: 0.75rem; align-items: center;">
+                    <?php if (is_user_logged_in()) : ?>
+                        <a href="<?php echo esc_url(home_url('/dashboard/')); ?>" class="btn btn-primary btn-sm">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-user" style="margin-right: 0.5rem;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                            My Account
+                        </a>
+                    <?php else : ?>
+                        <a href="<?php echo esc_url(home_url('/login/')); ?>" class="btn btn-outline btn-sm">Login</a>
+                        <a href="<?php echo esc_url(home_url('/register/')); ?>" class="btn btn-primary btn-sm">Sign Up</a>
+                    <?php endif; ?>
+                </div>
+                <button class="mobile-menu-toggle">☰</button>
+            </nav>
+        </div>
+    </header>
 
-    <header id="masthead" class="site-header">
-        <div class="site-branding">
-            <p class="site-title"><a href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home"><?php bloginfo( 'name' ); ?></a></p>
-            <?php
-            $mobooking_description = get_bloginfo( 'description', 'display' );
-            if ( $mobooking_description || is_customize_preview() ) :
-                ?>
-                <p class="site-description"><?php echo $mobooking_description; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></p>
-            <?php endif; ?>
-        </div><!-- .site-branding -->
+<body <?php body_class(); ?>>    
+    <?php wp_body_open(); ?>
 
-        <nav id="site-navigation" class="main-navigation">
-            <?php
-            // Placeholder for potential main navigation
-            // wp_nav_menu( array( 'theme_location' => 'menu-1', 'menu_id' => 'primary-menu' ) );
-            ?>
-        </nav><!-- #site-navigation -->
-    </header><!-- #masthead -->
-
-    <div id="content" class="site-content">
