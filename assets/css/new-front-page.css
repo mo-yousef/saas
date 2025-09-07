@@ -1,0 +1,168 @@
+/* General Styles */
+.landing-page {
+    font-family: 'Arial', sans-serif;
+    color: #333;
+    background-color: #fff;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* Header */
+.header {
+    background: #fff;
+    padding: 20px 0;
+    border-bottom: 1px solid #e7e7e7;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header .logo {
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+}
+
+.header .nav a {
+    margin: 0 15px;
+    text-decoration: none;
+    color: #555;
+    font-weight: 500;
+}
+
+.header .auth-buttons .btn {
+    margin-left: 10px;
+    padding: 10px 20px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.header .auth-buttons .btn-login {
+    background-color: transparent;
+    border: 1px solid #ccc;
+    color: #555;
+}
+
+.header .auth-buttons .btn-signup {
+    background-color: #007bff;
+    color: #fff;
+    border: 1px solid #007bff;
+}
+
+/* Hero Section */
+.hero {
+    background: #f8f9fa;
+    text-align: center;
+    padding: 80px 0;
+}
+
+.hero h1 {
+    font-size: 48px;
+    margin-bottom: 20px;
+}
+
+.hero p {
+    font-size: 18px;
+    margin-bottom: 30px;
+    color: #666;
+}
+
+.hero .btn-primary {
+    background-color: #007bff;
+    color: #fff;
+    padding: 15px 30px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-size: 18px;
+}
+
+/* Features Section */
+.features {
+    padding: 60px 0;
+    text-align: center;
+}
+
+.features h2 {
+    font-size: 36px;
+    margin-bottom: 40px;
+}
+
+.feature-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+}
+
+.feature-item {
+    background: #fff;
+    padding: 30px;
+    border: 1px solid #e7e7e7;
+    border-radius: 5px;
+}
+
+/* Pricing Section */
+.pricing {
+    background: #f8f9fa;
+    padding: 60px 0;
+    text-align: center;
+}
+
+.pricing h2 {
+    font-size: 36px;
+    margin-bottom: 40px;
+}
+
+.pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+}
+
+.pricing-plan {
+    background: #fff;
+    padding: 30px;
+    border: 1px solid #e7e7e7;
+    border-radius: 5px;
+}
+
+.pricing-plan.popular {
+    border-color: #007bff;
+    transform: scale(1.05);
+}
+
+.pricing-plan .price {
+    font-size: 36px;
+    font-weight: bold;
+    margin: 20px 0;
+}
+
+.pricing-plan .price span {
+    font-size: 16px;
+    font-weight: normal;
+    color: #666;
+}
+
+/* Contact Section */
+.contact {
+    padding: 60px 0;
+    text-align: center;
+}
+
+/* Footer */
+.footer {
+    background: #333;
+    color: #fff;
+    padding: 20px 0;
+    text-align: center;
+}
+
+.footer .footer-links a {
+    color: #fff;
+    margin: 0 10px;
+    text-decoration: none;
+}

@@ -73,6 +73,10 @@ function mobooking_scripts() {
     wp_enqueue_style( 'mobooking-style', get_stylesheet_uri(), array('mobooking-inter-font', 'mobooking-reset'), MOBOOKING_VERSION );
     wp_enqueue_style( 'mobooking-toggle-switch', MOBOOKING_THEME_URI . 'assets/css/toggle-switch.css', array('mobooking-style'), MOBOOKING_VERSION );
 
+    if ( is_front_page() ) {
+        wp_enqueue_style( 'mobooking-new-front-page', MOBOOKING_THEME_URI . 'assets/css/new-front-page.css', array('mobooking-style'), MOBOOKING_VERSION );
+    }
+
     if ( is_page_template( 'page-login.php' ) || is_page_template('page-register.php') || is_page_template('page-forgot-password.php') ) {
         // Enqueue the new auth pages specific CSS
         wp_enqueue_style( 'mobooking-auth-pages', MOBOOKING_THEME_URI . 'assets/css/auth-pages.css', array('mobooking-style'), MOBOOKING_VERSION );
@@ -516,6 +520,43 @@ if ( is_page_template('templates/booking-form-public.php') || $page_type_for_scr
             ]);
         }
     }
+    flush_rewrite_rules();
 }
 add_action( 'wp_enqueue_scripts', 'mobooking_scripts' );
+
+function create_legal_pages() {
+    $pages = [
+        'privacy-policy' => [
+            'title' => 'Privacy Policy',
+            'content' => 'legal/privacy-policy.html',
+        ],
+        'terms-of-use' => [
+            'title' => 'Terms of Use',
+            'content' => 'legal/terms-of-use.html',
+        ],
+        'cookies-policy' => [
+            'title' => 'Cookies Policy',
+            'content' => 'legal/cookies-policy.html',
+        ],
+        'refund-policy' => [
+            'title' => 'Refund Policy',
+            'content' => 'legal/refund-policy.html',
+        ],
+    ];
+
+    foreach ($pages as $slug => $page) {
+        // Check if page exists
+        $page_obj = get_page_by_path($slug);
+        if (!$page_obj) {
+            $page_id = wp_insert_post([
+                'post_title' => $page['title'],
+                'post_name' => $slug,
+                'post_content' => file_get_contents(get_template_directory() . '/assets/' . $page['content']),
+                'post_status' => 'publish',
+                'post_type' => 'page',
+            ]);
+        }
+    }
+}
+add_action('after_switch_theme', 'create_legal_pages');
 ?>
