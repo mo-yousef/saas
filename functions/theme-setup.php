@@ -73,9 +73,6 @@ function mobooking_scripts() {
     wp_enqueue_style( 'mobooking-style', get_stylesheet_uri(), array('mobooking-inter-font', 'mobooking-reset'), MOBOOKING_VERSION );
     wp_enqueue_style( 'mobooking-toggle-switch', MOBOOKING_THEME_URI . 'assets/css/toggle-switch.css', array('mobooking-style'), MOBOOKING_VERSION );
 
-    if ( is_front_page() ) {
-        wp_enqueue_style( 'mobooking-new-front-page', MOBOOKING_THEME_URI . 'assets/css/new-front-page.css', array('mobooking-style'), MOBOOKING_VERSION );
-    }
 
     if ( is_page_template( 'page-login.php' ) || is_page_template('page-register.php') || is_page_template('page-forgot-password.php') ) {
         // Enqueue the new auth pages specific CSS
