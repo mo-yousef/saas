@@ -1327,4 +1327,13 @@ function mobooking_hide_admin_bar_for_non_admins($show) {
     }
     return $show;
 }
+
+// Note on the `the_block_template_skip_link()` deprecation warning:
+// This warning originates from WordPress core and is triggered on certain pages
+// like the registration page (`wp-login.php?action=register`). The function
+// `the_block_template_skip_link()` is marked as private within WordPress core,
+// meaning it is not intended for theme or plugin developers to interact with directly.
+// As this is a core issue, it cannot be safely fixed from within the theme files.
+// The correct resolution is to wait for a future WordPress core update that addresses this.
+// For more information, see WordPress Trac ticket #60929.
 ?>
