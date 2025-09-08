@@ -53,6 +53,23 @@ if ( ! function_exists( 'mobooking_setup' ) ) :
 endif;
 add_action( 'after_setup_theme', 'mobooking_setup' );
 
+
+
+// Basic style enqueue function
+function theme_enqueue_styles() {
+    // Enqueue main theme stylesheet
+    wp_enqueue_style(
+        'theme-style',                              // Handle name
+        get_stylesheet_uri(),                       // Path to style.css
+        array(),                                    // Dependencies (optional)
+        wp_get_theme()->get('Version')              // Version number
+    );
+}
+
+// Hook the function to wp_enqueue_scripts
+add_action('wp_enqueue_scripts', 'theme_enqueue_styles');
+
+
 // Enqueue scripts and styles.
 // REPLACE the existing mobooking_scripts() function in your functions.php with this fixed version:
 
