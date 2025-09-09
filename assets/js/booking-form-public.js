@@ -310,10 +310,10 @@ jQuery(document).ready(function ($) {
           return true;
 
         const zip = $("#mobooking-zip").val()?.trim();
-        if (!zip) {
+        if (!/^\d{5}$/.test(zip)) {
           showFieldError(
             $("#mobooking-zip"),
-            CONFIG.i18n.zip_required || "ZIP required"
+            CONFIG.i18n.zip_required || "Please enter a valid 5-digit ZIP code."
           );
           isValid = false;
         }
@@ -533,9 +533,13 @@ jQuery(document).ready(function ($) {
       $submitBtn.prop("disabled", true);
       els.areaFeedback.hide();
       state.areaName = ""; // Reset area name
+      const $zipInput = $("#mobooking-zip");
+      clearFieldError($zipInput);
 
-      if (zip.length < 4) {
-        // Don't search for very short zips
+      if (!/^\d{5}$/.test(zip)) {
+        if (zip.length > 0) {
+          showFieldError($zipInput, 'Please enter a valid 5-digit ZIP code.');
+        }
         $("#mobooking-area-name").text("");
         return;
       }
