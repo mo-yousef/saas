@@ -139,13 +139,13 @@ $script_data = [
                             </div>
                         </div>
                     </div>
-                    <div id="mobooking-location-feedback" class="mobooking-feedback"></div>
                     <div class="mobooking-button-group">
                         <div></div>
                         <button type="submit" class="mobooking-btn-primary" disabled>
                             <?php _e('Choose service', 'mobooking'); ?>
                         </button>
                     </div>
+                    <div id="mobooking-location-feedback" class="mobooking-feedback"></div>
                 </form>
                 </div>
             </div>
