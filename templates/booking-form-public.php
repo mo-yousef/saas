@@ -258,13 +258,19 @@ $script_data = [
             <div class="mobooking-step-content" id="mobooking-step-6">
                 <div class="mobooking-step-content-wrap">
                 <h2 class="mobooking-step-title"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="#2563eb" viewBox="0 0 256 256"><path d="M216,48V88H40V48a8,8,0,0,1,8-8H208A8,8,0,0,1,216,48Z" opacity="0.2"></path><path d="M208,32H184V24a8,8,0,0,0-16,0v8H88V24a8,8,0,0,0-16,0v8H48A16,16,0,0,0,32,48V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V48A16,16,0,0,0,208,32ZM72,48v8a8,8,0,0,0,16,0V48h80v8a8,8,0,0,0,16,0V48h24V80H48V48ZM208,208H48V96H208V208Zm-38.34-85.66a8,8,0,0,1,0,11.32l-48,48a8,8,0,0,1-11.32,0l-24-24a8,8,0,0,1,11.32-11.32L116,164.69l42.34-42.35A8,8,0,0,1,169.66,122.34Z"></path></svg><?php echo esc_html($bf_settings['bf_step_6_title'] ?? 'Select Date & Time'); ?></h2>
-                <div class="mobooking-form-group">
-                    <label for="mobooking-service-date" class="mobooking-label"><?php _e('Preferred Date', 'mobooking'); ?> *</label>
-                    <input type="text" id="mobooking-service-date" class="mobooking-input" placeholder="<?php esc_attr_e('Select a date', 'mobooking'); ?>" readonly>
-                </div>
-                <div class="mobooking-form-group hidden" id="mobooking-time-slots-container">
-                    <label class="mobooking-label"><?php _e('Available Time Slots', 'mobooking'); ?> *</label>
-                    <div id="mobooking-time-slots" class="mobooking-time-slots"></div>
+                <div class="mobooking-datetime-grid">
+                    <div class="mobooking-datetime-col">
+                        <label class="mobooking-label"><?php _e('Preferred Date', 'mobooking'); ?> *</label>
+                        <div id="mobooking-service-date"></div>
+                    </div>
+                    <div class="mobooking-datetime-col">
+                        <label class="mobooking-label"><?php _e('Available Time Slots', 'mobooking'); ?> *</label>
+                        <div id="mobooking-time-slots-container">
+                            <div id="mobooking-time-slots" class="mobooking-time-slots">
+                                <p class="mobooking-time-placeholder"><?php _e('Select a date to see available times.', 'mobooking'); ?></p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <div id="mobooking-datetime-feedback" class="mobooking-feedback"></div>
                 <div class="mobooking-button-group">
