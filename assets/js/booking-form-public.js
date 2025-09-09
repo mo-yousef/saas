@@ -527,11 +527,16 @@ jQuery(document).ready(function ($) {
     debounce(function () {
       const zip = $(this).val()?.trim();
       state.zip = zip;
+      const $submitBtn = $("#mobooking-step-1 button[type=submit]");
+
+      // Always disable the button when input changes, until a successful check.
+      $submitBtn.prop("disabled", true);
+      els.areaFeedback.hide();
+      state.areaName = ""; // Reset area name
 
       if (zip.length < 4) {
         // Don't search for very short zips
         $("#mobooking-area-name").text("");
-        els.areaFeedback.hide();
         return;
       }
 
@@ -557,8 +562,8 @@ jQuery(document).ready(function ($) {
               "success",
               res.data?.message || CONFIG.i18n.service_available
             );
-            // Enable the next button if it was disabled
-            $("#mobooking-step-1 button[type=submit]").prop("disabled", false);
+            // Enable the next button ONLY on success
+            $submitBtn.prop("disabled", false);
           } else {
             state.areaName = "";
             $("#mobooking-area-name").text("").removeClass("valid");
@@ -567,7 +572,7 @@ jQuery(document).ready(function ($) {
               "error",
               res.data?.message || CONFIG.i18n.service_not_available
             );
-            $("#mobooking-step-1 button[type=submit]").prop("disabled", true);
+            // Button remains disabled.
           }
         })
         .fail(function (xhr) {
@@ -580,6 +585,7 @@ jQuery(document).ready(function ($) {
             errorMessage = xhr.responseJSON.data.message;
           }
           showFeedback(els.areaFeedback, "error", errorMessage);
+          // Button remains disabled on failure.
         });
     }, 500)
   );
