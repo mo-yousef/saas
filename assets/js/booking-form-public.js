@@ -490,6 +490,21 @@ jQuery(document).ready(function ($) {
     $(stepContainer).find(".mobooking-error-message").remove();
   }
 
+  function showFeedback(element, type, message) {
+    if (!element || !element.length) return;
+    const typeToClass = {
+      success: "mobooking-feedback-success",
+      error: "mobooking-feedback-error",
+      info: "mobooking-feedback-info",
+    };
+    const cssClass = typeToClass[type] || typeToClass.info;
+    element
+      .removeClass(Object.values(typeToClass).join(" "))
+      .addClass(cssClass)
+      .html(message)
+      .show();
+  }
+
   // Expose for template buttons
   window.moBookingNextStep = nextStep;
   window.moBookingPreviousStep = prevStep;
