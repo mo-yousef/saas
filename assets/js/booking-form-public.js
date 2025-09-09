@@ -77,7 +77,6 @@ jQuery(document).ready(function ($) {
     optionsFeedback: $("#mobooking-options-feedback"),
     // Step 6
     dateInput: $("#mobooking-service-date"),
-    timeSlotsWrap: $("#mobooking-time-slots-container"),
     timeSlots: $("#mobooking-time-slots"),
     dateTimeFeedback: $("#mobooking-datetime-feedback"),
     // Step 7
@@ -269,7 +268,6 @@ jQuery(document).ready(function ($) {
           els.dateInput.val("");
         }
         els.timeSlots.empty();
-        collapseTimeSlots(true);
         break;
       case 7: // Reset customer details
         state.customer = {
@@ -1192,43 +1190,42 @@ jQuery(document).ready(function ($) {
   // ==========================================
 
   function initDatePicker() {
-    if (!els.dateInput.length) return;
+    const dateContainer = $("#mobooking-service-date");
+    if (!dateContainer.length) return;
 
     // If instance exists, just redraw and exit
-    if (els.dateInput.data("fp")) {
-      els.dateInput.data("fp").redraw();
+    if (dateContainer.data("fp")) {
+      dateContainer.data("fp").redraw();
       return;
     }
 
-    els.dateInput.flatpickr({
+    // Initialize Flatpickr on the div
+    const fp = flatpickr(dateContainer[0], {
       dateFormat: "Y-m-d",
       minDate: "today",
-      inline: true, // show calendar by default
+      inline: true, // This is key for the new layout
       onChange: function (selectedDates, dateStr) {
         state.date = dateStr || "";
         state.time = "";
-        collapseTimeSlots(true);
+        // No longer need to collapse, just load
         els.timeSlots.empty();
-        if (state.date) loadTimeSlots(dateStr);
-        clearFieldError(els.dateInput);
+        if (state.date) {
+          loadTimeSlots(dateStr);
+        } else {
+          // Show placeholder if date is cleared
+          els.timeSlots.html('<p class="mobooking-time-placeholder">Select a date to see available times.</p>');
+        }
       },
-      onReady: function (selectedDates, dateStr, instance) {
+       onReady: function (selectedDates, dateStr, instance) {
+        // We can add a class to the container if needed, but not to the instance itself
         $(instance.calendarContainer).addClass("mobooking-flatpickr");
       },
     });
-  }
-
-  function collapseTimeSlots(collapsed) {
-    if (collapsed) {
-      els.timeSlotsWrap.addClass("is-collapsed");
-    } else {
-      els.timeSlotsWrap.removeClass("is-collapsed");
-    }
+    dateContainer.data("fp", fp);
   }
 
   function loadTimeSlots(dateStr) {
     els.dateTimeFeedback.text("").hide();
-    els.timeSlotsWrap.removeClass("hidden");
     els.timeSlots.html(
       `<div class="mobooking-spinner" style="margin: 10px auto;"></div>`
     );
@@ -1245,18 +1242,17 @@ jQuery(document).ready(function ($) {
         state.latestTimeSlots = slots;
         if (!slots.length) {
           els.timeSlots.html(
-            `<p style=\"color:#6b7280;\">No time slots available for this date.</p>`
+            `<p class="mobooking-time-placeholder">No time slots available for this date.</p>`
           );
           return;
         }
         let html = "";
         slots.forEach((s, i) => {
-          html += `<a class=\"mobooking-btn mobooking-btn-outline mobooking-time-slot\" data-time=\"${
+          html += `<a class="mobooking-btn mobooking-btn-outline mobooking-time-slot" data-time="${
             s.start_time
-          }\">${escapeHtml(s.display || `${s.start_time}`)}</a>`;
+          }">${escapeHtml(s.display || `${s.start_time}`)}</a>`;
         });
         els.timeSlots.html(html);
-        collapseTimeSlots(false);
         els.timeSlots.find(".mobooking-time-slot").on("click", function () {
           els.timeSlots
             .find(".mobooking-time-slot")
@@ -1572,7 +1568,6 @@ jQuery(document).ready(function ($) {
   }
 
   // Add collapsible classes
-  els.timeSlotsWrap.addClass("mobooking-collapsible is-collapsed");
   $("#mobooking-custom-access-details").addClass(
     "mobooking-collapsible is-collapsed"
   );

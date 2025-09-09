@@ -54,6 +54,31 @@ body {
     color: hsl(var(--foreground));
 }
 
+/* Date/Time Grid Layout */
+.mobooking-datetime-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    align-items: flex-start;
+}
+
+#mobooking-time-slots-container {
+    height: 300px; /* Or a height that matches the calendar */
+    overflow-y: auto;
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius-sm);
+    padding: 0.5rem;
+}
+
+.mobooking-time-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: hsl(var(--muted-foreground));
+    font-size: 0.875rem;
+}
+
 .mobooking-confirmation-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -539,5 +564,15 @@ body {
     .mobooking-summary-card {
         position: static;
         margin-top: 2rem;
+    }
+
+    .mobooking-datetime-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+
+    #mobooking-time-slots-container {
+        height: auto;
+        max-height: 250px;
     }
 }
