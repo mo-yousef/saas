@@ -2,9 +2,9 @@
 /**
  * Class Utils
  * Provides utility/helper functions for the theme.
- * @package MoBooking\Classes
+ * @package NORDBOOKING\Classes
  */
-namespace MoBooking\Classes;
+namespace NORDBOOKING\Classes;
 
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -39,20 +39,20 @@ class Utils {
         // Try to get WordPress locale settings for currency
         // These could be from a plugin's settings eventually
         if (is_null($decimals)) {
-            // Example: $decimals = intval(get_option('mobooking_currency_decimals', 2));
+            // Example: $decimals = intval(get_option('nordbooking_currency_decimals', 2));
             $decimals = 2;
         }
         if (is_null($decimal_sep)) {
-            // Example: $decimal_sep = get_option('mobooking_currency_decimal_sep', '.');
+            // Example: $decimal_sep = get_option('nordbooking_currency_decimal_sep', '.');
             $decimal_sep = '.';
         }
         if (is_null($thousand_sep)) {
-            // Example: $thousand_sep = get_option('mobooking_currency_thousand_sep', ',');
+            // Example: $thousand_sep = get_option('nordbooking_currency_thousand_sep', ',');
             $thousand_sep = ',';
         }
 
         if ($currency_symbol === null || $currency_pos === null) {
-            $settings = new \MoBooking\Classes\Settings();
+            $settings = new \NORDBOOKING\Classes\Settings();
             // TODO: get_current_user_id() might not be available in all contexts.
             // Consider passing user_id as a parameter or using a fallback.
             $user_id = function_exists('get_current_user_id') ? get_current_user_id() : null;

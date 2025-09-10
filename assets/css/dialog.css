@@ -13,7 +13,7 @@
   --dialog-radius: 0.5rem;
 }
 
-.mobooking-dialog-overlay {
+.NORDBOOKING-dialog-overlay {
   position: fixed;
   inset: 0;
   z-index: 1000;
@@ -22,7 +22,7 @@
   animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.mobooking-dialog {
+.NORDBOOKING-dialog {
   position: fixed;
   left: 50%;
   top: 50%;
@@ -40,7 +40,7 @@
   animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.mobooking-dialog-header {
+.NORDBOOKING-dialog-header {
   display: flex;
   align-items: center;
   padding: 1.5rem;
@@ -49,24 +49,24 @@
   border-bottom: 1px solid var(--dialog-border);
 }
 
-.mobooking-dialog-icon {
+.NORDBOOKING-dialog-icon {
   color: var(--dialog-primary);
 }
 
-.mobooking-dialog-icon svg {
+.NORDBOOKING-dialog-icon svg {
   width: 20px;
   height: 20px;
   color: hsl(var(--primary));
 }
 
-.mobooking-dialog-title {
+.NORDBOOKING-dialog-title {
   font-size: 20px;
   font-weight: 600;
   color: var(--dialog-foreground);
   flex-grow: 1;
 }
 
-.mobooking-dialog-close-btn {
+.NORDBOOKING-dialog-close-btn {
   background: transparent;
   border: none;
   padding: 0.5rem;
@@ -78,27 +78,27 @@
   transition: background-color 0.2s, color 0.2s;
 }
 
-.mobooking-dialog-close-btn:hover {
+.NORDBOOKING-dialog-close-btn:hover {
   background-color: var(--dialog-secondary);
   color: var(--dialog-secondary-foreground);
 }
 
-.mobooking-dialog-close-btn svg {
+.NORDBOOKING-dialog-close-btn svg {
   width: 18px;
   height: 18px;
 }
 
-.mobooking-dialog-content {
+.NORDBOOKING-dialog-content {
   padding: 1.5rem;
   overflow-y: auto;
   flex-grow: 1;
 }
 
-.mobooking-dialog-content p {
+.NORDBOOKING-dialog-content p {
   color: var(--dialog-muted-foreground);
 }
 
-.mobooking-dialog-footer {
+.NORDBOOKING-dialog-footer {
   display: flex;
   justify-content: flex-end;
   gap: 0.75rem;
@@ -152,11 +152,11 @@
   }
 }
 
-.mobooking-dialog-overlay.is-closing {
+.NORDBOOKING-dialog-overlay.is-closing {
   animation: fadeOut 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-.mobooking-dialog.is-closing {
+.NORDBOOKING-dialog.is-closing {
   animation: slideOut 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
@@ -167,7 +167,7 @@
   margin-bottom: 1rem;
 }
 
-.mobooking-dialog-search-input {
+.NORDBOOKING-dialog-search-input {
   width: 100%;
   padding: 0.5rem 0.75rem;
   border: 1px solid var(--dialog-border);
@@ -177,7 +177,7 @@
   color: var(--dialog-foreground);
 }
 
-.mobooking-dialog-search-input:focus {
+.NORDBOOKING-dialog-search-input:focus {
   outline: 2px solid var(--dialog-primary);
   outline-offset: 1px;
   border-color: transparent;

@@ -1,15 +1,15 @@
 <?php
 // Add this debug function to your functions.php temporarily to troubleshoot
-function mobooking_debug_booking_form_access() {
+function nordbooking_debug_booking_form_access() {
     if (!current_user_can('manage_options')) {
         return; // Only allow admins to see debug info
     }
 
-    if (isset($_GET['mobooking_debug']) && $_GET['mobooking_debug'] === '1') {
+    if (isset($_GET['nordbooking_debug']) && $_GET['nordbooking_debug'] === '1') {
         global $wpdb;
 
         echo '<div style="background: #f0f0f0; padding: 20px; margin: 20px; border: 1px solid #ccc;">';
-        echo '<h2>MoBooking Debug Information</h2>';
+        echo '<h2>NORDBOOKING Debug Information</h2>';
 
         // Check if rewrite rules are working
         echo '<h3>1. Rewrite Rules Check</h3>';
@@ -22,7 +22,7 @@ function mobooking_debug_booking_form_access() {
         // Check current user settings
         echo '<h3>2. Current User Settings</h3>';
         $user_id = get_current_user_id();
-        $settings_table = \MoBooking\Classes\Database::get_table_name('tenant_settings');
+        $settings_table = \NORDBOOKING\Classes\Database::get_table_name('tenant_settings');
         $user_settings = $wpdb->get_results($wpdb->prepare(
             "SELECT * FROM {$settings_table} WHERE user_id = %d AND setting_name LIKE 'bf_%'",
             $user_id
@@ -42,7 +42,7 @@ function mobooking_debug_booking_form_access() {
         if (!empty($user_settings)) {
             foreach ($user_settings as $setting) {
                 if ($setting->setting_name === 'bf_business_slug' && !empty($setting->setting_value)) {
-                    $test_user_id = mobooking_get_user_id_by_slug($setting->setting_value);
+                    $test_user_id = nordbooking_get_user_id_by_slug($setting->setting_value);
                     echo '<p>Testing slug "' . $setting->setting_value . '" returns user_id: ' . ($test_user_id ?: 'NULL') . '</p>';
 
                     // Test the actual URL
@@ -61,6 +61,6 @@ function mobooking_debug_booking_form_access() {
         echo '</div>';
     }
 }
-add_action('wp_footer', 'mobooking_debug_booking_form_access');
-add_action('admin_footer', 'mobooking_debug_booking_form_access');
+add_action('wp_footer', 'nordbooking_debug_booking_form_access');
+add_action('admin_footer', 'nordbooking_debug_booking_form_access');
 ?>

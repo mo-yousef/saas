@@ -1,9 +1,10 @@
 /* Settings Page General Layout */
-.mobooking-settings-page .settings-layout {
+.NORDBOOKING-settings-page .settings-layout {
     display: flex;
     gap: 20px;
 }
-.mobooking-settings-page .settings-column {
+
+.NORDBOOKING-settings-page .settings-column {
     flex: 1;
     min-width: 0;
 }
@@ -12,13 +13,21 @@
 .settings-tab-content {
     animation: fadeIn 0.3s ease-in-out;
 }
+
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* Page Description */
-.mobooking-settings-page .page-description {
+.NORDBOOKING-settings-page .page-description {
     font-size: 16px;
     color: #555;
     margin-bottom: 20px;
@@ -33,6 +42,7 @@
     align-items: center;
     gap: 20px;
 }
+
 .logo-preview {
     width: 120px;
     height: 120px;
@@ -44,21 +54,25 @@
     overflow: hidden;
     background-color: #f9f9f9;
 }
+
 .logo-preview img {
     max-width: 100%;
     max-height: 100%;
     object-fit: contain;
 }
+
 .logo-placeholder {
     font-size: 14px;
     color: #888;
     text-align: center;
 }
+
 .logo-uploader-actions {
     display: flex;
     flex-direction: column;
     gap: 10px;
 }
+
 .progress-bar-wrapper {
     height: 8px;
     background-color: #e0e0e0;
@@ -66,6 +80,7 @@
     margin-top: 10px;
     overflow: hidden;
 }
+
 .progress-bar {
     height: 100%;
     background-color: #1abc9c;
@@ -78,10 +93,12 @@
     display: flex;
     gap: 20px;
 }
+
 .email-editor-column {
     flex: 1;
     min-width: 0;
 }
+
 .email-preview-column {
     flex: 1;
     min-width: 0;
@@ -93,6 +110,7 @@
     margin-top: 15px;
     padding-top: 15px;
 }
+
 .email-editor-fields-wrapper {
     border: 1px solid #ddd;
     border-radius: 4px;
@@ -100,6 +118,7 @@
     min-height: 200px;
     background-color: #fdfdfd;
 }
+
 .email-component {
     display: flex;
     align-items: center;
@@ -109,8 +128,9 @@
     border-radius: 4px;
     margin-bottom: 10px;
     background-color: #fff;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
+
 .email-component .drag-handle {
     width: 20px;
     height: 20px;
@@ -118,9 +138,11 @@
     background-image: url('data:image/svg+xml;charset=UTF-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="%23888"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v12a1 1 0 11-2 0V4a1 1 0 011-1zM4 9a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1z" clip-rule="evenodd" /></svg>');
     opacity: 0.5;
 }
+
 .email-component:hover .drag-handle {
     opacity: 1;
 }
+
 .email-component .component-input,
 .email-component .component-url-input,
 .email-component textarea.component-input {
@@ -129,10 +151,12 @@
     padding: 8px;
     border-radius: 4px;
 }
+
 .email-component textarea.component-input {
     min-height: 80px;
     resize: vertical;
 }
+
 .email-component .delete-component {
     width: 20px;
     height: 20px;
@@ -143,6 +167,7 @@
     opacity: 0.6;
     transition: opacity 0.2s;
 }
+
 .email-component .delete-component:hover {
     opacity: 1;
 }
@@ -156,6 +181,7 @@
     flex-wrap: wrap;
     gap: 8px;
 }
+
 #email-variables-list li {
     background-color: #eef;
     padding: 5px 10px;
@@ -164,9 +190,11 @@
     cursor: pointer;
     transition: background-color 0.2s;
 }
+
 #email-variables-list li:hover {
     background-color: #ddf;
 }
+
 #email-preview-iframe {
     width: 100%;
     height: 500px;
@@ -175,21 +203,24 @@
 }
 
 /* Radio Group Cards */
-.mobooking-radio-group-cards {
+.NORDBOOKING-radio-group-cards {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 1rem;
 }
-.mobooking-radio-group-cards label {
+
+.NORDBOOKING-radio-group-cards label {
     position: relative;
 }
-.mobooking-radio-group-cards input[type="radio"] {
+
+.NORDBOOKING-radio-group-cards input[type="radio"] {
     position: absolute;
     opacity: 0;
     width: 0;
     height: 0;
 }
-.mobooking-radio-group-cards .card-content {
+
+.NORDBOOKING-radio-group-cards .card-content {
     padding: 1rem;
     border: 2px solid hsl(var(--border));
     border-radius: var(--radius);
@@ -198,13 +229,15 @@
     text-align: center;
     font-weight: 500;
 }
-.mobooking-radio-group-cards input[type="radio"]:checked + .card-content {
+
+.NORDBOOKING-radio-group-cards input[type="radio"]:checked+.card-content {
     border-color: hsl(var(--primary));
     background-color: hsl(var(--primary) / 0.1);
     color: hsl(var(--primary));
     box-shadow: 0 0 0 3px hsl(var(--primary) / 0.2);
 }
-.mobooking-radio-group-cards input[type="radio"]:focus + .card-content {
+
+.NORDBOOKING-radio-group-cards input[type="radio"]:focus+.card-content {
     border-color: hsl(var(--ring));
     box-shadow: 0 0 0 3px hsl(var(--ring) / 0.2);
 }

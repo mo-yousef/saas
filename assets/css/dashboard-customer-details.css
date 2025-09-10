@@ -2,26 +2,27 @@
    Customer Details Page
    ========================================================================== */
 
-.mobooking-customer-details-page .mobooking-page-header-heading {
+.NORDBOOKING-customer-details-page .NORDBOOKING-page-header-heading {
   display: flex;
   align-items: center;
   gap: 1rem;
 }
 
-.mobooking-customer-details-page .back-btn {
+.NORDBOOKING-customer-details-page .back-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
 }
 
-.mobooking-customer-details-page .header-title-container {
+.NORDBOOKING-customer-details-page .header-title-container {
   display: flex;
   align-items: center;
   gap: 0.75rem;
 }
 
-.mobooking-customer-details-page .header-title-container .status-badge {
-  margin-bottom: 0; /* Align with h1 */
+.NORDBOOKING-customer-details-page .header-title-container .status-badge {
+  margin-bottom: 0;
+  /* Align with h1 */
 }
 
 .customer-details-grid {
@@ -90,8 +91,7 @@
   gap: 0.5rem;
 }
 
-.quick-actions-buttons .btn {
-}
+.quick-actions-buttons .btn {}
 
 .customer-info-section {
   padding-bottom: 1rem;
@@ -114,7 +114,7 @@
   margin: 0 0 0.75rem 0;
 }
 
-.mobooking-stats-list {
+.NORDBOOKING-stats-list {
   margin: 0;
   padding: 0;
   display: flex;
@@ -122,7 +122,7 @@
   gap: 0.75rem;
 }
 
-.mobooking-stats-list div {
+.NORDBOOKING-stats-list div {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -131,16 +131,16 @@
   border-bottom: 1px solid var(--mobk-border);
 }
 
-.mobooking-stats-list div:last-child {
+.NORDBOOKING-stats-list div:last-child {
   border-bottom: none;
   padding-bottom: 0;
 }
 
-.mobooking-stats-list dt {
+.NORDBOOKING-stats-list dt {
   color: var(--mobk-muted-foreground);
 }
 
-.mobooking-stats-list dd {
+.NORDBOOKING-stats-list dd {
   font-weight: 600;
   color: var(--mobk-foreground);
   margin: 0;
@@ -183,6 +183,7 @@
   flex-direction: column;
   gap: 8px;
 }
+
 .key-info-value {
   font-size: 16px;
   font-weight: 600;
@@ -236,11 +237,13 @@
 .form-group.form-group-full {
   grid-column: 1 / -1;
 }
+
 .form-group.form-group-full input,
 .form-group.form-group-full select {
   width: 100%;
   max-width: 100%;
 }
+
 .form-group label {
   font-weight: 500;
   font-size: 0.875rem;

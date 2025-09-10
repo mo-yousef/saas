@@ -1,5 +1,5 @@
 /* ShadCN Inspired Styles for Discounts Page */
-.mobooking-discounts-page .button-primary {
+.NORDBOOKING-discounts-page .button-primary {
   background-color: hsl(var(--primary));
   color: hsl(var(--primary-foreground));
   border: none;
@@ -10,30 +10,30 @@
   font-weight: 500;
 }
 
-.mobooking-discounts-page .button-primary:hover {
+.NORDBOOKING-discounts-page .button-primary:hover {
   background-color: hsl(var(--primary) / 0.9);
 }
 
-.mobooking-discounts-page .wp-list-table {
+.NORDBOOKING-discounts-page .wp-list-table {
   border: 1px solid hsl(var(--border));
   border-radius: var(--radius);
   overflow: hidden;
 }
 
-.mobooking-discounts-page .wp-list-table thead th {
+.NORDBOOKING-discounts-page .wp-list-table thead th {
   background-color: hsl(var(--muted));
   border-bottom: 1px solid hsl(var(--border));
 }
 
-.mobooking-discounts-page .wp-list-table tbody tr:not(.no-items) {
+.NORDBOOKING-discounts-page .wp-list-table tbody tr:not(.no-items) {
   border-bottom: 1px solid hsl(var(--border));
 }
 
-.mobooking-discounts-page .wp-list-table tbody tr:last-child {
+.NORDBOOKING-discounts-page .wp-list-table tbody tr:last-child {
   border-bottom: none;
 }
 
-.mobooking-discounts-page .wp-list-table .button {
+.NORDBOOKING-discounts-page .wp-list-table .button {
   background-color: hsl(var(--secondary));
   color: hsl(var(--secondary-foreground));
   border: 1px solid hsl(var(--border));
@@ -41,22 +41,22 @@
   padding: 0.25rem 0.5rem;
 }
 
-.mobooking-discounts-page .wp-list-table .button:hover {
+.NORDBOOKING-discounts-page .wp-list-table .button:hover {
   background-color: hsl(var(--accent));
 }
 
-.mobooking-discounts-page .wp-list-table .button-link-delete {
+.NORDBOOKING-discounts-page .wp-list-table .button-link-delete {
   color: hsl(var(--destructive));
   border-color: transparent;
   background: transparent;
 }
 
-.mobooking-discounts-page .wp-list-table .button-link-delete:hover {
+.NORDBOOKING-discounts-page .wp-list-table .button-link-delete:hover {
   color: hsl(var(--destructive-foreground));
   background-color: hsl(var(--destructive));
 }
 
-.mobooking-discounts-page .status-active {
+.NORDBOOKING-discounts-page .status-active {
   background-color: hsl(var(--accent));
   color: hsl(var(--accent-foreground));
   padding: 0.25rem 0.5rem;
@@ -116,12 +116,13 @@
   user-select: none;
 }
 
-.radio-pills input[type="radio"]:checked + span {
+.radio-pills input[type="radio"]:checked+span {
   background-color: hsl(0 0% 100%);
   color: hsl(222.2 84% 4.9%);
   box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
 }
-input#mobooking-discount-code {
+
+input#NORDBOOKING-discount-code {
   margin: 0;
 }
 
@@ -134,15 +135,17 @@ input#mobooking-discount-code {
   gap: 1.5rem;
   grid-template-columns: 1fr 1fr;
 }
+
 .form-grid input {
   margin: 0px !important;
 }
+
 .form-group.full-width {
   grid-column: span 2;
 }
 
 @media screen and (max-width: 768px) {
-  .mobooking-table-container {
+  .NORDBOOKING-table-container {
     overflow-x: auto;
   }
 

@@ -1,5 +1,5 @@
 /**
- * MoBooking Enhanced Dashboard Overview CSS
+ * NORDBOOKING Enhanced Dashboard Overview CSS
  * Modern shadcn UI inspired styling with interactive elements
  * Save as: assets/css/dashboard-overview-enhanced.css
  */
@@ -75,7 +75,7 @@
 /* ============================================================================
    Base Styles
    ============================================================================ */
-.mobooking-overview-enhanced {
+.NORDBOOKING-overview-enhanced {
   min-height: 100vh;
   background: hsl(var(--mobk-background));
   padding: 1.5rem;
@@ -669,7 +669,7 @@
 }
 
 @media (max-width: 768px) {
-  .mobooking-overview-enhanced {
+  .NORDBOOKING-overview-enhanced {
     padding: 1rem;
   }
 
@@ -718,7 +718,7 @@
 }
 
 @media (max-width: 480px) {
-  .mobooking-overview-enhanced {
+  .NORDBOOKING-overview-enhanced {
     padding: 0.75rem;
   }
 
@@ -885,7 +885,7 @@
    Print Styles
    ============================================================================ */
 @media print {
-  .mobooking-overview-enhanced {
+  .NORDBOOKING-overview-enhanced {
     padding: 0;
     background: white;
     color: black;

@@ -1,11 +1,11 @@
 <?php
 
-use MoBooking\Classes\Auth;
+use NORDBOOKING\Classes\Auth;
 
 /**
  * Class Test_MoBooking_Auth
  *
- * @group mobooking_auth
+ * @group nordbooking_auth
  */
 class Test_MoBooking_Auth extends WP_UnitTestCase {
 
@@ -86,7 +86,7 @@ class Test_MoBooking_Auth extends WP_UnitTestCase {
      */
     public function test_business_owner_capabilities() {
         $user = get_userdata( $this->business_owner_id );
-        $this->assertTrue( $user->has_cap( Auth::ACCESS_MOBOOKING_DASHBOARD ) );
+        $this->assertTrue( $user->has_cap( Auth::ACCESS_NORDBOOKING_DASHBOARD ) );
         $this->assertTrue( $user->has_cap( Auth::CAP_MANAGE_WORKERS ) );
         $this->assertTrue( $user->has_cap( Auth::CAP_MANAGE_BOOKINGS ) );
         $this->assertTrue( $user->has_cap( Auth::CAP_MANAGE_SERVICES ) );
@@ -99,7 +99,7 @@ class Test_MoBooking_Auth extends WP_UnitTestCase {
      */
     public function test_worker_manager_capabilities() {
         $user = get_userdata( $this->worker_manager_id );
-        $this->assertTrue( $user->has_cap( Auth::ACCESS_MOBOOKING_DASHBOARD ) );
+        $this->assertTrue( $user->has_cap( Auth::ACCESS_NORDBOOKING_DASHBOARD ) );
         $this->assertTrue( $user->has_cap( Auth::CAP_MANAGE_BOOKINGS ) );
         $this->assertTrue( $user->has_cap( Auth::CAP_MANAGE_SERVICES ) );
         $this->assertFalse( $user->has_cap( Auth::CAP_MANAGE_WORKERS ), 'Worker Manager should not manage other workers.' );
@@ -111,7 +111,7 @@ class Test_MoBooking_Auth extends WP_UnitTestCase {
      */
     public function test_worker_staff_capabilities() {
         $user = get_userdata( $this->worker_staff_id );
-        $this->assertTrue( $user->has_cap( Auth::ACCESS_MOBOOKING_DASHBOARD ) );
+        $this->assertTrue( $user->has_cap( Auth::ACCESS_NORDBOOKING_DASHBOARD ) );
         $this->assertTrue( $user->has_cap( Auth::CAP_MANAGE_BOOKINGS ) ); // As per current setup
         $this->assertTrue( $user->has_cap( Auth::CAP_VIEW_SERVICES ) );
         $this->assertFalse( $user->has_cap( Auth::CAP_MANAGE_SERVICES ) );
@@ -123,7 +123,7 @@ class Test_MoBooking_Auth extends WP_UnitTestCase {
      */
     public function test_worker_viewer_capabilities() {
         $user = get_userdata( $this->worker_viewer_id );
-        $this->assertTrue( $user->has_cap( Auth::ACCESS_MOBOOKING_DASHBOARD ) );
+        $this->assertTrue( $user->has_cap( Auth::ACCESS_NORDBOOKING_DASHBOARD ) );
         $this->assertTrue( $user->has_cap( Auth::CAP_VIEW_BOOKINGS ) );
         $this->assertFalse( $user->has_cap( Auth::CAP_MANAGE_BOOKINGS ) );
         $this->assertFalse( $user->has_cap( Auth::CAP_MANAGE_WORKERS ) );
@@ -175,7 +175,7 @@ class Test_MoBooking_Auth extends WP_UnitTestCase {
         $_POST['worker_user_id'] = $this->worker_manager_id;
         $_POST['new_role'] = Auth::ROLE_WORKER_STAFF;
         // Nonce generation for direct testing can be tricky. We'll create one that passes.
-        $_POST['mobooking_change_role_nonce'] = wp_create_nonce( 'mobooking_change_worker_role_nonce_' . $this->worker_manager_id );
+        $_POST['nordbooking_change_role_nonce'] = wp_create_nonce( 'nordbooking_change_worker_role_nonce_' . $this->worker_manager_id );
 
         // Capture output for JSON response check (optional, can be complex)
         // ob_start();
@@ -201,7 +201,7 @@ class Test_MoBooking_Auth extends WP_UnitTestCase {
         // Clean up $_POST
         unset($_POST['worker_user_id']);
         unset($_POST['new_role']);
-        unset($_POST['mobooking_change_role_nonce']);
+        unset($_POST['nordbooking_change_role_nonce']);
     }
 
     /**
@@ -215,7 +215,7 @@ class Test_MoBooking_Auth extends WP_UnitTestCase {
         $this->assertEquals($this->business_owner_id, get_user_meta($this->worker_staff_id, Auth::META_KEY_OWNER_ID, true));
 
         $_POST['worker_user_id'] = $this->worker_staff_id;
-        $_POST['mobooking_revoke_access_nonce'] = wp_create_nonce( 'mobooking_revoke_worker_access_nonce_' . $this->worker_staff_id );
+        $_POST['nordbooking_revoke_access_nonce'] = wp_create_nonce( 'nordbooking_revoke_worker_access_nonce_' . $this->worker_staff_id );
 
         // Similar to above, direct call for simplified check
         // @TODO: Improve AJAX testing to capture wp_send_json_* output properly.
@@ -230,7 +230,7 @@ class Test_MoBooking_Auth extends WP_UnitTestCase {
 
         $worker_user_after = get_userdata($this->worker_staff_id);
         $this->assertFalse(in_array(Auth::ROLE_WORKER_STAFF, $worker_user_after->roles), "Worker Staff role should be removed.");
-        $this->assertFalse(Auth::is_user_worker($this->worker_staff_id), "User should no longer be a MoBooking worker.");
+        $this->assertFalse(Auth::is_user_worker($this->worker_staff_id), "User should no longer be a NORDBOOKING worker.");
         $this->assertEmpty(get_user_meta($this->worker_staff_id, Auth::META_KEY_OWNER_ID, true), "Owner meta key should be deleted.");
 
         // Check if role defaulted to subscriber if no other roles
@@ -239,7 +239,7 @@ class Test_MoBooking_Auth extends WP_UnitTestCase {
         }
 
         unset($_POST['worker_user_id']);
-        unset($_POST['mobooking_revoke_access_nonce']);
+        unset($_POST['nordbooking_revoke_access_nonce']);
     }
 
     /**
@@ -282,11 +282,11 @@ class Test_MoBooking_Auth extends WP_UnitTestCase {
         $this->assertEquals('Test', $user->first_name);
         $this->assertEquals('Owner', $user->last_name);
         $this->assertEquals('Test Owner', $user->display_name); // Default display name logic
-        $this->assertEquals('Test Company Inc.', get_user_meta($user->ID, 'mobooking_company_name', true));
+        $this->assertEquals('Test Company Inc.', get_user_meta($user->ID, 'nordbooking_company_name', true));
         $this->assertTrue(in_array(Auth::ROLE_BUSINESS_OWNER, $user->roles));
 
         // Check for business slug in tenant_settings
-        $settings_manager = new \MoBooking\Classes\Settings();
+        $settings_manager = new \NORDBOOKING\Classes\Settings();
         $slug = $settings_manager->get_setting($user->ID, 'bf_business_slug');
         $this->assertEquals('test-company-inc', $slug); // Assuming sanitize_title behavior
 
@@ -303,7 +303,7 @@ class Test_MoBooking_Auth extends WP_UnitTestCase {
         // Clean up
         wp_delete_user($user->ID);
         global $wpdb;
-        $settings_table = \MoBooking\Classes\Database::get_table_name('tenant_settings');
+        $settings_table = \NORDBOOKING\Classes\Database::get_table_name('tenant_settings');
         $wpdb->delete($settings_table, ['user_id' => $user->ID, 'setting_name' => 'bf_business_slug']);
         unset($_POST);
         $this->reset_mailer();
@@ -326,7 +326,7 @@ class Test_MoBooking_Auth extends WP_UnitTestCase {
         ];
         $this->call_ajax_handler([$this->auth_instance, 'handle_ajax_registration']);
         $user1 = get_user_by('email', 'owner1@example.com');
-        $settings_manager = new \MoBooking\Classes\Settings();
+        $settings_manager = new \NORDBOOKING\Classes\Settings();
         $slug1 = $settings_manager->get_setting($user1->ID, 'bf_business_slug');
         $this->assertEquals('unique-company', $slug1);
 
@@ -366,7 +366,7 @@ class Test_MoBooking_Auth extends WP_UnitTestCase {
         wp_delete_user($user2->ID);
         wp_delete_user($user3->ID);
         global $wpdb;
-        $settings_table = \MoBooking\Classes\Database::get_table_name('tenant_settings');
+        $settings_table = \NORDBOOKING\Classes\Database::get_table_name('tenant_settings');
         $wpdb->delete($settings_table, ['user_id' => $user1->ID]);
         $wpdb->delete($settings_table, ['user_id' => $user2->ID]);
         $wpdb->delete($settings_table, ['user_id' => $user3->ID]);
@@ -423,7 +423,7 @@ class Test_MoBooking_Auth extends WP_UnitTestCase {
     public function test_handle_ajax_registration_invited_worker() {
         $inviter = get_userdata($this->business_owner_id);
         $token = wp_generate_password(32, false);
-        $invitation_option_key = 'mobooking_invitation_' . $token;
+        $invitation_option_key = 'nordbooking_invitation_' . $token;
         $invitation_data = [
             'inviter_id'    => $this->business_owner_id,
             'worker_email'  => 'invitedworker@example.com',
@@ -459,8 +459,8 @@ class Test_MoBooking_Auth extends WP_UnitTestCase {
         $this->assertEquals($this->business_owner_id, get_user_meta($user->ID, Auth::META_KEY_OWNER_ID, true));
 
         // Company name and business slug should not be set for worker
-        $this->assertEmpty(get_user_meta($user->ID, 'mobooking_company_name', true));
-        $settings_manager = new \MoBooking\Classes\Settings();
+        $this->assertEmpty(get_user_meta($user->ID, 'nordbooking_company_name', true));
+        $settings_manager = new \NORDBOOKING\Classes\Settings();
         $this->assertEmpty($settings_manager->get_setting($user->ID, 'bf_business_slug'));
 
         // Check transient was deleted
@@ -491,7 +491,7 @@ class Test_MoBooking_Auth extends WP_UnitTestCase {
         $this->factory->user->create(['user_email' => $user_email, 'user_login' => 'existinguser']);
 
         $_POST = [
-            'nonce'      => wp_create_nonce('mobooking_forgot_password_nonce_action'),
+            'nonce'      => wp_create_nonce('nordbooking_forgot_password_nonce_action'),
             'user_email' => $user_email,
         ];
 
@@ -527,7 +527,7 @@ class Test_MoBooking_Auth extends WP_UnitTestCase {
      */
     public function test_handle_send_password_reset_link_ajax_non_existent_email() {
         $_POST = [
-            'nonce'      => wp_create_nonce('mobooking_forgot_password_nonce_action'),
+            'nonce'      => wp_create_nonce('nordbooking_forgot_password_nonce_action'),
             'user_email' => 'nonexistent@example.com',
         ];
 
@@ -553,7 +553,7 @@ class Test_MoBooking_Auth extends WP_UnitTestCase {
      */
     public function test_handle_send_password_reset_link_ajax_invalid_email() {
         $_POST = [
-            'nonce'      => wp_create_nonce('mobooking_forgot_password_nonce_action'),
+            'nonce'      => wp_create_nonce('nordbooking_forgot_password_nonce_action'),
             'user_email' => 'invalid-email',
         ];
         $response = $this->call_ajax_handler([$this->auth_instance, 'handle_send_password_reset_link_ajax']);
@@ -568,7 +568,7 @@ class Test_MoBooking_Auth extends WP_UnitTestCase {
      */
     public function test_handle_send_password_reset_link_ajax_missing_email() {
         $_POST = [
-            'nonce'      => wp_create_nonce('mobooking_forgot_password_nonce_action'),
+            'nonce'      => wp_create_nonce('nordbooking_forgot_password_nonce_action'),
             // 'user_email' is missing
         ];
         $response = $this->call_ajax_handler([$this->auth_instance, 'handle_send_password_reset_link_ajax']);
@@ -695,7 +695,7 @@ class Test_MoBooking_Auth extends WP_UnitTestCase {
     public function test_handle_ajax_login_user_without_dashboard_access() {
         $email = 'subscriber@example.com';
         $password = 'password123';
-        // Create a user with a role that does NOT have ACCESS_MOBOOKING_DASHBOARD cap
+        // Create a user with a role that does NOT have ACCESS_NORDBOOKING_DASHBOARD cap
         $this->factory->user->create(['user_login' => $email, 'user_email' => $email, 'user_pass' => $password, 'role' => 'subscriber']);
 
         $_POST = [

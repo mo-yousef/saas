@@ -9,16 +9,16 @@ def run(playwright):
     page.goto("/booking/test-company-inc/", wait_until="networkidle")
 
     # Wait for the zip code input to be visible
-    zip_input = page.locator("#mobooking-zip")
+    zip_input = page.locator("#NORDBOOKING-zip")
     expect(zip_input).to_be_visible()
 
     # Click the submit button without entering a zip code to trigger an error
-    page.locator("#mobooking-area-check-form button[type=submit]").click()
+    page.locator("#NORDBOOKING-area-check-form button[type=submit]").click()
 
     # Check for the error message
-    error_feedback = page.locator("#mobooking-location-feedback")
+    error_feedback = page.locator("#NORDBOOKING-location-feedback")
     expect(error_feedback).to_have_class(
-        "mobooking-feedback-error"
+        "NORDBOOKING-feedback-error"
     )
     expect(error_feedback).to_be_visible()
 
@@ -29,9 +29,9 @@ def run(playwright):
     # The success message should appear after a debounce
     page.wait_for_timeout(1000)
 
-    success_feedback = page.locator("#mobooking-location-feedback")
+    success_feedback = page.locator("#NORDBOOKING-location-feedback")
     expect(success_feedback).to_have_class(
-        "mobooking-feedback-success"
+        "NORDBOOKING-feedback-success"
     )
     expect(success_feedback).to_be_visible()
 

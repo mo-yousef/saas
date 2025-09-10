@@ -1,7 +1,7 @@
 jQuery(function ($) {
   // Service Edit functionality
   const ServiceEdit = {
-    optionIndex: mobooking_service_edit_params.option_count,
+    optionIndex: nordbooking_service_edit_params.option_count,
     iconDialog: null,
     selectedIconIdentifier: null,
     selectedIconHtml: null,
@@ -56,7 +56,7 @@ jQuery(function ($) {
       if (typeof $.fn.sortable === "function") {
         $container.sortable({
           items: ".option-item",
-          handle: ".mobooking-option-drag-handle",
+          handle: ".NORDBOOKING-option-drag-handle",
           placeholder: "sortable-placeholder",
           cursor: "grabbing",
           tolerance: "pointer",
@@ -141,7 +141,7 @@ jQuery(function ($) {
       );
 
       // Form submission
-      $("#mobooking-service-form").on("submit", function (e) {
+      $("#NORDBOOKING-service-form").on("submit", function (e) {
         e.preventDefault();
         self.saveService();
       });
@@ -202,16 +202,16 @@ jQuery(function ($) {
 
       // Toggle option
       $container.on("click", ".toggle-option", function () {
-        const $optionElement = $(this).closest(".mobooking-option-item");
+        const $optionElement = $(this).closest(".NORDBOOKING-option-item");
         $optionElement.toggleClass("expanded");
-        $optionElement.find(".mobooking-option-content").slideToggle(200);
+        $optionElement.find(".NORDBOOKING-option-content").slideToggle(200);
       });
 
       // Delete option
       $container.on("click", ".delete-option", function () {
         if (
           confirm(
-            mobooking_service_edit_params.i18n.confirm_delete_option ||
+            nordbooking_service_edit_params.i18n.confirm_delete_option ||
               "Are you sure you want to delete this option?"
           )
         ) {
@@ -258,9 +258,9 @@ jQuery(function ($) {
           $priceImpactDescription.hide();
           const labelText =
             selectedType === "sqm"
-              ? mobooking_service_edit_params.i18n.price_per_sqm ||
+              ? nordbooking_service_edit_params.i18n.price_per_sqm ||
                 "Price per Square Meter"
-              : mobooking_service_edit_params.i18n.price_per_km ||
+              : nordbooking_service_edit_params.i18n.price_per_km ||
                 "Price per Kilometer";
           $priceImpactLabel.text(labelText);
           $priceImpactValueLabel.text(labelText);
@@ -269,10 +269,10 @@ jQuery(function ($) {
           $priceTypesGrid.slideDown(200);
           $priceImpactDescription.show();
           $priceImpactLabel.text(
-            mobooking_service_edit_params.i18n.price_impact || "Price Impact"
+            nordbooking_service_edit_params.i18n.price_impact || "Price Impact"
           );
           $priceImpactValueLabel.text(
-            mobooking_service_edit_params.i18n.price_value || "Price Value"
+            nordbooking_service_edit_params.i18n.price_value || "Price Value"
           );
         }
 
@@ -408,7 +408,7 @@ jQuery(function ($) {
       const $container = $("#options-container");
       $container.find(".empty-state").remove();
 
-      const template = $("#mobooking-option-template").html();
+      const template = $("#NORDBOOKING-option-template").html();
       if (!template) {
         console.error("Option template not found!");
         return;
@@ -443,7 +443,7 @@ jQuery(function ($) {
     },
 
     showEmptyState: function () {
-      const i18n = mobooking_service_edit_params.i18n;
+      const i18n = nordbooking_service_edit_params.i18n;
       const emptyStateHtml = `
         <div class="empty-state">
             <div class="empty-state-icon">
@@ -491,7 +491,7 @@ jQuery(function ($) {
 
     saveService: function () {
       const self = this;
-      const $form = $("#mobooking-service-form");
+      const $form = $("#NORDBOOKING-service-form");
       const $submitBtn = $form.find('button[type="submit"]');
       const originalText = $submitBtn.text();
       const isUpdating =
@@ -547,12 +547,12 @@ jQuery(function ($) {
       // Show loading state
       $submitBtn
         .prop("disabled", true)
-        .text(mobooking_service_edit_params.i18n.saving || "Saving...");
+        .text(nordbooking_service_edit_params.i18n.saving || "Saving...");
 
       // Collect form data
       const formData = new FormData($form[0]);
-      formData.append("action", "mobooking_save_service");
-      formData.append("nonce", mobooking_service_edit_params.nonce);
+      formData.append("action", "nordbooking_save_service");
+      formData.append("nonce", nordbooking_service_edit_params.nonce);
 
       // Debug: Log form data
       console.log("Form data being submitted:");
@@ -561,7 +561,7 @@ jQuery(function ($) {
       }
 
       $.ajax({
-        url: mobooking_service_edit_params.ajax_url,
+        url: nordbooking_service_edit_params.ajax_url,
         type: "POST",
         data: formData,
         processData: false,
@@ -570,7 +570,7 @@ jQuery(function ($) {
           if (response && response.success) {
             const message =
               response.data?.message ||
-              mobooking_service_edit_params.i18n?.service_saved ||
+              nordbooking_service_edit_params.i18n?.service_saved ||
               "Service saved successfully.";
 
             if (typeof window.showToast === "function") {
@@ -586,8 +586,8 @@ jQuery(function ($) {
                 const newServiceId = response.data.service_id;
                 // Build the redirect URL using the localized admin_base_url
                 const baseUrl =
-                  mobooking_service_edit_params.admin_base_url || "admin.php";
-                const redirectUrl = `${baseUrl}?page=mobooking-service-edit&service_id=${newServiceId}`;
+                  nordbooking_service_edit_params.admin_base_url || "admin.php";
+                const redirectUrl = `${baseUrl}?page=NORDBOOKING-service-edit&service_id=${newServiceId}`;
                 window.location.href = redirectUrl;
               } else {
                 // Fallback in case the service_id is not returned, just reload.
@@ -597,8 +597,8 @@ jQuery(function ($) {
           } else {
             const message =
               (response && response.data && response.data.message) ||
-              (mobooking_service_edit_params.i18n &&
-                mobooking_service_edit_params.i18n.error_saving_service) ||
+              (nordbooking_service_edit_params.i18n &&
+                nordbooking_service_edit_params.i18n.error_saving_service) ||
               "Error saving service. Please check your input and try again.";
             if (typeof window.showToast === "function") {
               window.showToast({ type: "error", title: "Error", message });
@@ -607,8 +607,8 @@ jQuery(function ($) {
         },
         error: function (xhr, status, error) {
           const message =
-            (mobooking_service_edit_params.i18n &&
-              mobooking_service_edit_params.i18n.error_ajax) ||
+            (nordbooking_service_edit_params.i18n &&
+              nordbooking_service_edit_params.i18n.error_ajax) ||
             "An AJAX error occurred. Please try again.";
           if (typeof window.showToast === "function") {
             window.showToast({ type: "error", title: "Error", message });
@@ -628,7 +628,7 @@ jQuery(function ($) {
       if (
         !serviceId ||
         !confirm(
-          mobooking_service_edit_params.i18n.confirm_delete ||
+          nordbooking_service_edit_params.i18n.confirm_delete ||
             "Are you sure you want to delete this service? This action cannot be undone."
         )
       ) {
@@ -636,17 +636,17 @@ jQuery(function ($) {
       }
 
       $.ajax({
-        url: mobooking_service_edit_params.ajax_url,
+        url: nordbooking_service_edit_params.ajax_url,
         type: "POST",
         data: {
-          action: "mobooking_delete_service",
+          action: "nordbooking_delete_service",
           service_id: serviceId,
-          nonce: mobooking_service_edit_params.nonce,
+          nonce: nordbooking_service_edit_params.nonce,
         },
         success: function (response) {
           if (response.success) {
             alert("Service deleted successfully.");
-            window.location.href = mobooking_service_edit_params.redirect_url;
+            window.location.href = nordbooking_service_edit_params.redirect_url;
           } else {
             alert(response.data?.message || "Error deleting service.");
           }
@@ -667,7 +667,7 @@ jQuery(function ($) {
             <div class="icon-selector-content">
                 <div class="preset-icons-section">
                     <h4 class="section-title">Preset Icons</h4>
-                    <div id="dialog-preset-icons-grid" class="mobooking-icon-grid">
+                    <div id="dialog-preset-icons-grid" class="NORDBOOKING-icon-grid">
                         <div class="icon-grid-loading"><p>Loading icons...</p></div>
                     </div>
                 </div>
@@ -724,11 +724,11 @@ jQuery(function ($) {
       console.log("Icon grid element found:", grid);
 
       $.ajax({
-        url: mobooking_service_edit_params.ajax_url,
+        url: nordbooking_service_edit_params.ajax_url,
         type: "POST",
         data: {
-          action: "mobooking_get_preset_icons",
-          nonce: mobooking_service_edit_params.nonce,
+          action: "nordbooking_get_preset_icons",
+          nonce: nordbooking_service_edit_params.nonce,
         },
         success: function (response) {
           console.log("AJAX response received:", response);
@@ -742,7 +742,7 @@ jQuery(function ($) {
             for (const name in response.data.icons) {
               console.log("Rendering icon:", name);
               const item = document.createElement("div");
-              item.className = "mobooking-icon-grid-item";
+              item.className = "NORDBOOKING-icon-grid-item";
               item.dataset.iconId = "preset:" + name;
               item.innerHTML = response.data.icons[name];
               item.addEventListener("click", () =>
@@ -766,7 +766,7 @@ jQuery(function ($) {
     },
 
     handleIconSelection: function (item, dialog) {
-      const allItems = dialog.findElement(".mobooking-icon-grid").children;
+      const allItems = dialog.findElement(".NORDBOOKING-icon-grid").children;
       for (let i = 0; i < allItems.length; i++) {
         allItems[i].classList.remove("selected");
       }
@@ -813,12 +813,12 @@ jQuery(function ($) {
       $preview.addClass("uploading");
 
       const formData = new FormData();
-      formData.append("action", "mobooking_upload_service_image");
-      formData.append("nonce", mobooking_service_edit_params.nonce);
+      formData.append("action", "nordbooking_upload_service_image");
+      formData.append("nonce", nordbooking_service_edit_params.nonce);
       formData.append("service_image", file);
 
       $.ajax({
-        url: mobooking_service_edit_params.ajax_url,
+        url: nordbooking_service_edit_params.ajax_url,
         type: "POST",
         data: formData,
         processData: false,
@@ -849,8 +849,8 @@ jQuery(function ($) {
           } else {
             const msg =
               (response && response.data && response.data.message) ||
-              (mobooking_service_edit_params.i18n &&
-                mobooking_service_edit_params.i18n.error_uploading_image) ||
+              (nordbooking_service_edit_params.i18n &&
+                nordbooking_service_edit_params.i18n.error_uploading_image) ||
               "Failed to upload image.";
             alert(msg);
             $preview.html(originalHtml);
@@ -858,8 +858,8 @@ jQuery(function ($) {
         },
         error: function () {
           alert(
-            (mobooking_service_edit_params.i18n &&
-              mobooking_service_edit_params.i18n.error_uploading_image) ||
+            (nordbooking_service_edit_params.i18n &&
+              nordbooking_service_edit_params.i18n.error_uploading_image) ||
               "Failed to upload image"
           );
           $preview.html(originalHtml);
@@ -880,7 +880,7 @@ jQuery(function ($) {
         $preview
           .addClass("empty")
           .html(
-            '<div class="mobooking-image-placeholder">' +
+            '<div class="NORDBOOKING-image-placeholder">' +
               '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>' +
               "<p>Click to upload image</p>" +
               '<p class="text-xs text-muted-foreground">PNG, JPG up to 5MB</p>' +
@@ -896,7 +896,7 @@ jQuery(function ($) {
         $preview
           .addClass("empty")
           .html(
-            '<div class="mobooking-image-placeholder">' +
+            '<div class="NORDBOOKING-image-placeholder">' +
               '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>' +
               "<p>Click to upload image</p>" +
               '<p class="text-xs text-muted-foreground">PNG, JPG up to 5MB</p>' +
@@ -906,11 +906,11 @@ jQuery(function ($) {
       }
 
       $.ajax({
-        url: mobooking_service_edit_params.ajax_url,
+        url: nordbooking_service_edit_params.ajax_url,
         type: "POST",
         data: {
-          action: "mobooking_delete_service_image",
-          nonce: mobooking_service_edit_params.nonce,
+          action: "nordbooking_delete_service_image",
+          nonce: nordbooking_service_edit_params.nonce,
           image_url_to_delete: imageUrl,
           service_id: serviceId, // Pass the service ID to the backend
         },
@@ -920,7 +920,7 @@ jQuery(function ($) {
             $preview
               .addClass("empty")
               .html(
-                '<div class="mobooking-image-placeholder">' +
+                '<div class="NORDBOOKING-image-placeholder">' +
                   '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>' +
                   "<p>Click to upload image</p>" +
                   '<p class="text-xs text-muted-foreground">PNG, JPG up to 5MB</p>' +

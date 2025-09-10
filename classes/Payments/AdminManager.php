@@ -2,9 +2,9 @@
 /**
  * Class AdminManager
  * Manages payment settings and admin-related payment tasks.
- * @package MoBooking\Classes\Payments
+ * @package NORDBOOKING\Classes\Payments
  */
-namespace MoBooking\Classes\Payments;
+namespace NORDBOOKING\Classes\Payments;
 
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {

@@ -36,41 +36,42 @@ body {
     background-color: hsl(var(--muted));
 }
 
-.mobooking-public-form-container {
+.NORDBOOKING-public-form-container {
     max-width: 800px;
     margin: 2rem auto;
     gap: 2rem;
 }
 
-.mobooking-header {
+.NORDBOOKING-header {
     text-align: center;
     margin-bottom: 1rem;
     grid-column: 1 / -1;
 }
 
-.mobooking-header h1 {
+.NORDBOOKING-header h1 {
     font-size: 2rem;
     font-weight: 700;
     color: hsl(var(--foreground));
 }
 
 /* Date/Time Grid Layout */
-.mobooking-datetime-grid {
+.NORDBOOKING-datetime-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 2rem;
     align-items: flex-start;
 }
 
-#mobooking-time-slots-container {
-    height: 300px; /* Or a height that matches the calendar */
+#NORDBOOKING-time-slots-container {
+    height: 300px;
+    /* Or a height that matches the calendar */
     overflow-y: auto;
     border: 1px solid hsl(var(--border));
     border-radius: var(--radius-sm);
     padding: 0.5rem;
 }
 
-.mobooking-time-placeholder {
+.NORDBOOKING-time-placeholder {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -79,14 +80,14 @@ body {
     font-size: 0.875rem;
 }
 
-.mobooking-confirmation-grid {
+.NORDBOOKING-confirmation-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
     gap: 2rem;
     margin-bottom: 1.5rem;
 }
 
-.mobooking-confirmation-column h4 {
+.NORDBOOKING-confirmation-column h4 {
     font-size: 1rem;
     font-weight: 600;
     color: hsl(var(--foreground));
@@ -95,35 +96,35 @@ body {
     border-bottom: 1px solid hsl(var(--border));
 }
 
-.mobooking-summary-options {
+.NORDBOOKING-summary-options {
     padding-left: 1rem;
     border-left: 2px solid hsl(var(--border));
 }
 
-.mobooking-flatpickr {
+.NORDBOOKING-flatpickr {
     width: 100% !important;
 }
 
-.mobooking-header p {
+.NORDBOOKING-header p {
     color: hsl(var(--muted-foreground));
     font-size: 1rem;
 }
 
 /* Progress Bar */
-.mobooking-progress-container {
+.NORDBOOKING-progress-container {
     background: hsl(var(--card));
     padding: 1rem;
     border-radius: var(--radius);
     border: 1px solid hsl(var(--border));
 }
 
-.mobooking-progress-steps {
+.NORDBOOKING-progress-steps {
     display: flex;
     justify-content: space-between;
     margin-bottom: 0.5rem;
 }
 
-.mobooking-step-indicator {
+.NORDBOOKING-step-indicator {
     width: 2rem;
     height: 2rem;
     border-radius: 50%;
@@ -137,19 +138,19 @@ body {
     border: 2px solid hsl(var(--muted));
 }
 
-.mobooking-step-indicator.active {
+.NORDBOOKING-step-indicator.active {
     background-color: hsl(var(--primary));
     color: hsl(var(--primary-foreground));
     border-color: hsl(var(--primary));
 }
 
-.mobooking-step-indicator.completed {
+.NORDBOOKING-step-indicator.completed {
     background-color: hsl(var(--primary));
     border-color: hsl(var(--primary));
     color: hsl(var(--primary-foreground));
 }
 
-.mobooking-progress-bar {
+.NORDBOOKING-progress-bar {
     width: 100%;
     height: 8px;
     background-color: hsl(var(--muted));
@@ -158,13 +159,13 @@ body {
 }
 
 /* Progress Bar Only Style */
-.progress-style-bar .mobooking-progress-bar {
+.progress-style-bar .NORDBOOKING-progress-bar {
     height: 12px;
     border-radius: 6px;
 }
 
 
-.mobooking-progress-fill {
+.NORDBOOKING-progress-fill {
     height: 100%;
     background-color: hsl(var(--primary));
     width: 0%;
@@ -172,20 +173,20 @@ body {
 }
 
 /* Form Card */
-.mobooking-form-card {
+.NORDBOOKING-form-card {
     background: hsl(var(--card));
     border-radius: var(--radius);
     border: 1px solid hsl(var(--border));
     overflow: hidden;
 }
 
-.mobooking-step-content {
+.NORDBOOKING-step-content {
     display: none;
     padding: 1.5rem;
     animation: fadeIn 0.3s ease;
 }
 
-.mobooking-step-content.active {
+.NORDBOOKING-step-content.active {
     display: block;
 }
 
@@ -199,7 +200,7 @@ body {
     }
 }
 
-.mobooking-step-title {
+.NORDBOOKING-step-title {
     font-size: 1.25rem;
     font-weight: 600;
     color: hsl(var(--foreground));
@@ -207,11 +208,11 @@ body {
 }
 
 /* Form Elements */
-.mobooking-form-group {
+.NORDBOOKING-form-group {
     margin-bottom: 1.25rem;
 }
 
-.mobooking-label {
+.NORDBOOKING-label {
     display: block;
     font-size: 0.875rem;
     font-weight: 500;
@@ -219,8 +220,8 @@ body {
     margin-bottom: 0.5rem;
 }
 
-.mobooking-input,
-.mobooking-textarea {
+.NORDBOOKING-input,
+.NORDBOOKING-textarea {
     width: 100%;
     height: var(--input-height);
     padding: 0.5rem 0.75rem;
@@ -232,30 +233,30 @@ body {
     transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 }
 
-.mobooking-textarea {
+.NORDBOOKING-textarea {
     height: auto;
     min-height: 80px;
 }
 
-.mobooking-input:focus,
-.mobooking-textarea:focus {
+.NORDBOOKING-input:focus,
+.NORDBOOKING-textarea:focus {
     outline: 2px solid transparent;
     outline-offset: 2px;
     border-color: hsl(var(--ring));
     box-shadow: 0 0 0 2px hsl(var(--background)), 0 0 0 4px hsl(var(--ring));
 }
 
-.mobooking-grid {
+.NORDBOOKING-grid {
     display: grid;
     gap: 1.25rem;
 }
 
-.mobooking-grid-2 {
+.NORDBOOKING-grid-2 {
     grid-template-columns: repeat(2, 1fr);
 }
 
 /* Buttons */
-.mobooking-btn {
+.NORDBOOKING-btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -271,14 +272,14 @@ body {
     border: 1px solid transparent;
 }
 
-.mobooking-btn:focus-visible {
+.NORDBOOKING-btn:focus-visible {
     outline: 2px solid transparent;
     outline-offset: 2px;
     box-shadow: 0 0 0 2px hsl(var(--background)), 0 0 0 4px hsl(var(--ring));
 }
 
-.mobooking-btn:disabled,
-.mobooking-btn-primary:disabled {
+.NORDBOOKING-btn:disabled,
+.NORDBOOKING-btn-primary:disabled {
     opacity: 0.65;
     cursor: not-allowed;
     background-color: hsl(var(--muted));
@@ -286,28 +287,28 @@ body {
     border-color: hsl(var(--border));
 }
 
-.mobooking-btn-primary {
+.NORDBOOKING-btn-primary {
     background-color: hsl(var(--primary));
     color: hsl(var(--primary-foreground));
     border-color: hsl(var(--primary));
 }
 
-.mobooking-btn-primary:hover:not(:disabled) {
+.NORDBOOKING-btn-primary:hover:not(:disabled) {
     background-color: hsl(221.2 83.2% 47.3%);
     border-color: hsl(221.2 83.2% 47.3%);
 }
 
-.mobooking-btn-secondary {
+.NORDBOOKING-btn-secondary {
     background-color: hsl(var(--secondary));
     color: hsl(var(--secondary-foreground));
     border: 1px solid hsl(var(--input));
 }
 
-.mobooking-btn-secondary:hover:not(:disabled) {
+.NORDBOOKING-btn-secondary:hover:not(:disabled) {
     background-color: hsl(var(--accent));
 }
 
-.mobooking-button-group {
+.NORDBOOKING-button-group {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -317,27 +318,27 @@ body {
 }
 
 /* Feedback */
-.mobooking-feedback {
+.NORDBOOKING-feedback {
     padding: 0.75rem 1rem;
     border-radius: var(--radius-sm);
     margin-top: 1rem;
     font-size: 0.875rem;
 }
 
-.mobooking-feedback.success {
+.NORDBOOKING-feedback.success {
     background-color: hsl(145, 63%, 95%);
     color: hsl(145, 63%, 22%);
     border: 1px solid hsl(145, 63%, 72%);
 }
 
-.mobooking-feedback.error {
+.NORDBOOKING-feedback.error {
     background-color: hsl(var(--destructive) / 0.1);
     color: hsl(var(--destructive));
     border: 1px solid hsl(var(--destructive) / 0.3);
 }
 
 /* Service Selection */
-#mobooking-services-container .mobooking-service-card {
+#NORDBOOKING-services-container .NORDBOOKING-service-card {
     border: 1px solid hsl(var(--border));
     border-radius: var(--radius);
     padding: 1rem;
@@ -346,39 +347,39 @@ body {
     transition: all 0.2s ease;
 }
 
-#mobooking-services-container .mobooking-service-card:hover {
+#NORDBOOKING-services-container .NORDBOOKING-service-card:hover {
     border-color: hsl(var(--primary));
     background-color: hsl(var(--accent));
 }
 
-#mobooking-services-container .mobooking-service-card.selected {
+#NORDBOOKING-services-container .NORDBOOKING-service-card.selected {
     border-color: hsl(var(--primary));
     box-shadow: 0 0 0 2px hsl(var(--ring) / 0.2);
     background-color: hsl(var(--primary) / 0.05);
 }
 
-#mobooking-services-container .mobooking-service-card h3 {
+#NORDBOOKING-services-container .NORDBOOKING-service-card h3 {
     font-size: 1rem;
     font-weight: 600;
     margin: 0 0 0.5rem 0;
 }
 
-#mobooking-services-container .mobooking-service-card p {
+#NORDBOOKING-services-container .NORDBOOKING-service-card p {
     font-size: 0.875rem;
     color: hsl(var(--muted-foreground));
     margin: 0;
 }
 
 /* Radio & Checkbox Options */
-.mobooking-radio-group,
-.mobooking-checkbox-group {
+.NORDBOOKING-radio-group,
+.NORDBOOKING-checkbox-group {
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
 }
 
-.mobooking-radio-option,
-.mobooking-checkbox-option {
+.NORDBOOKING-radio-option,
+.NORDBOOKING-checkbox-option {
     display: flex;
     align-items: center;
     gap: 0.75rem;
@@ -388,14 +389,14 @@ body {
     cursor: pointer;
 }
 
-.mobooking-radio-option:has(input:checked),
-.mobooking-checkbox-option:has(input:checked) {
+.NORDBOOKING-radio-option:has(input:checked),
+.NORDBOOKING-checkbox-option:has(input:checked) {
     background-color: hsl(var(--primary) / 0.1);
     border-color: hsl(var(--primary));
 }
 
 /* Summary Card */
-.mobooking-summary-card {
+.NORDBOOKING-summary-card {
     background: hsl(var(--card));
     border-radius: var(--radius);
     border: 1px solid hsl(var(--border));
@@ -407,13 +408,13 @@ body {
     transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
 }
 
-.mobooking-summary-card.active {
+.NORDBOOKING-summary-card.active {
     display: block;
     opacity: 1;
     transform: scale(1);
 }
 
-.mobooking-summary-card h3 {
+.NORDBOOKING-summary-card h3 {
     font-size: 1.25rem;
     font-weight: 600;
     color: hsl(var(--foreground));
@@ -423,17 +424,17 @@ body {
 }
 
 /* Spinner */
-.mobooking-spinner {
+.NORDBOOKING-spinner {
     width: 24px;
     height: 24px;
     border: 3px solid hsl(var(--muted));
     border-top: 3px solid hsl(var(--primary));
     border-radius: 50%;
-    animation: mobooking-spin 1s linear infinite;
+    animation: NORDBOOKING-spin 1s linear infinite;
     margin: 0 auto;
 }
 
-@keyframes mobooking-spin {
+@keyframes NORDBOOKING-spin {
     0% {
         transform: rotate(0deg);
     }
@@ -444,7 +445,7 @@ body {
 }
 
 /* Success State */
-.mobooking-success-icon {
+.NORDBOOKING-success-icon {
     width: 48px;
     height: 48px;
     border-radius: 50%;
@@ -456,30 +457,30 @@ body {
     margin: 0 auto 1rem;
 }
 
-#mobooking-time-slots {
+#NORDBOOKING-time-slots {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
     gap: 0.5rem;
 }
 
-#mobooking-time-slots button {
+#NORDBOOKING-time-slots button {
     width: 100%;
 }
 
-#mobooking-booking-summary {
+#NORDBOOKING-booking-summary {
     background-color: hsl(var(--muted));
     border-radius: var(--radius-sm);
     padding: 1rem;
 }
 
 /* Styling for Frequency Step */
-#mobooking-step-5 .mobooking-radio-group {
+#NORDBOOKING-step-5 .NORDBOOKING-radio-group {
     flex-direction: row;
     gap: 1rem;
     align-items: stretch;
 }
 
-#mobooking-step-5 .mobooking-radio-option {
+#NORDBOOKING-step-5 .NORDBOOKING-radio-option {
     flex-grow: 1;
     justify-content: center;
     text-align: center;
@@ -488,32 +489,32 @@ body {
     transition: all 0.2s ease-in-out;
 }
 
-#mobooking-step-5 .mobooking-radio-option:has(input:checked) {
+#NORDBOOKING-step-5 .NORDBOOKING-radio-option:has(input:checked) {
     border-color: hsl(var(--primary));
     background-color: hsl(var(--primary) / 0.15);
     box-shadow: 0 4px 12px hsl(var(--primary) / 0.1);
     transform: translateY(-2px);
 }
 
-#mobooking-step-5 .mobooking-radio-option span {
+#NORDBOOKING-step-5 .NORDBOOKING-radio-option span {
     font-weight: 600;
 }
 
 /* Confirmation Step Styling */
-.mobooking-confirmation-container {
+.NORDBOOKING-confirmation-container {
     max-width: 450px;
     margin: 0 auto;
     padding: 2rem 0;
 }
 
-.mobooking-confirmation-summary {
+.NORDBOOKING-confirmation-summary {
     background-color: hsl(var(--muted));
     border-radius: var(--radius-lg);
     padding: 1.5rem;
     border: 1px solid hsl(var(--border));
 }
 
-.mobooking-summary-item {
+.NORDBOOKING-summary-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -521,11 +522,11 @@ body {
     border-bottom: 1px solid hsl(var(--border));
 }
 
-.mobooking-summary-item:last-child {
+.NORDBOOKING-summary-item:last-child {
     border-bottom: none;
 }
 
-.mobooking-summary-item .item-label {
+.NORDBOOKING-summary-item .item-label {
     display: flex;
     align-items: center;
     gap: 0.75rem;
@@ -533,18 +534,18 @@ body {
     color: hsl(var(--muted-foreground));
 }
 
-.mobooking-summary-item .item-label svg {
+.NORDBOOKING-summary-item .item-label svg {
     width: 1.25rem;
     height: 1.25rem;
     stroke: hsl(var(--muted-foreground));
 }
 
-.mobooking-summary-item .item-value {
+.NORDBOOKING-summary-item .item-value {
     font-weight: 600;
     color: hsl(var(--foreground));
 }
 
-.mobooking-summary-total {
+.NORDBOOKING-summary-total {
     font-size: 1.125rem;
     font-weight: 700;
     color: hsl(var(--foreground));
@@ -552,26 +553,26 @@ body {
 
 /* Responsive */
 @media (max-width: 768px) {
-    .mobooking-public-form-container {
+    .NORDBOOKING-public-form-container {
         grid-template-columns: 1fr;
         margin: 1rem;
     }
 
-    .mobooking-grid-2 {
+    .NORDBOOKING-grid-2 {
         grid-template-columns: 1fr;
     }
 
-    .mobooking-summary-card {
+    .NORDBOOKING-summary-card {
         position: static;
         margin-top: 2rem;
     }
 
-    .mobooking-datetime-grid {
+    .NORDBOOKING-datetime-grid {
         grid-template-columns: 1fr;
         gap: 1.5rem;
     }
 
-    #mobooking-time-slots-container {
+    #NORDBOOKING-time-slots-container {
         height: auto;
         max-height: 250px;
     }

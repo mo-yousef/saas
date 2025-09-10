@@ -1,5 +1,5 @@
 <?php
-namespace MoBooking\Classes;
+namespace NORDBOOKING\Classes;
 
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
@@ -113,31 +113,31 @@ class Settings {
 
     public function register_ajax_actions() {
         // Booking Form Settings
-        add_action('wp_ajax_mobooking_get_booking_form_settings', [$this, 'handle_get_booking_form_settings_ajax']);
-        add_action('wp_ajax_mobooking_save_booking_form_settings', [$this, 'handle_save_booking_form_settings_ajax']);
+        add_action('wp_ajax_nordbooking_get_booking_form_settings', [$this, 'handle_get_booking_form_settings_ajax']);
+        add_action('wp_ajax_nordbooking_save_booking_form_settings', [$this, 'handle_save_booking_form_settings_ajax']);
 
         // Business Settings
-        add_action('wp_ajax_mobooking_get_business_settings', [$this, 'handle_get_business_settings_ajax']);
-        add_action('wp_ajax_mobooking_save_business_settings', [$this, 'handle_save_business_settings_ajax']);
+        add_action('wp_ajax_nordbooking_get_business_settings', [$this, 'handle_get_business_settings_ajax']);
+        add_action('wp_ajax_nordbooking_save_business_settings', [$this, 'handle_save_business_settings_ajax']);
 
         // Utility Actions
-        add_action('wp_ajax_mobooking_flush_rewrite_rules', [$this, 'handle_flush_rewrite_rules_ajax']);
+        add_action('wp_ajax_nordbooking_flush_rewrite_rules', [$this, 'handle_flush_rewrite_rules_ajax']);
     }
 
     public function handle_flush_rewrite_rules_ajax() {
-        check_ajax_referer('mobooking_dashboard_nonce', 'nonce'); // Use existing general dashboard nonce
+        check_ajax_referer('nordbooking_dashboard_nonce', 'nonce'); // Use existing general dashboard nonce
 
         if (!current_user_can('manage_options')) { // Typically, only admins should flush rules
-            wp_send_json_error(['message' => __('You do not have permission to flush rewrite rules.', 'mobooking')], 403);
+            wp_send_json_error(['message' => __('You do not have permission to flush rewrite rules.', 'NORDBOOKING')], 403);
             return;
         }
 
         // Defer rewrite rule flushing to the 'shutdown' action hook.
         // This is the recommended way to flush rules to avoid issues with the $wp_rewrite global object state.
-        update_option('mobooking_flush_rewrite_rules_flag', true);
+        update_option('nordbooking_flush_rewrite_rules_flag', true);
 
         // Re-register our rules so they are definitely part of the flush
-        // Assuming mobooking_add_rewrite_rules() is the function that sets them up and is hooked to init.
+        // Assuming nordbooking_add_rewrite_rules() is the function that sets them up and is hooked to init.
         // We need to ensure it's callable or directly call the relevant part if not hooked to init in a way that runs now.
         // For now, we rely on the next init call to register them before shutdown flushes.
         // A more direct way would be to call the function that contains add_rewrite_rule() here if possible and safe.
@@ -146,14 +146,14 @@ class Settings {
         // The actual flushing will be done by a function hooked to 'shutdown' if the flag is true.
         // We need to add that function in functions.php or similar.
 
-        wp_send_json_success(['message' => __('Rewrite rules will be flushed. This may take a moment to reflect on your site.', 'mobooking')]);
+        wp_send_json_success(['message' => __('Rewrite rules will be flushed. This may take a moment to reflect on your site.', 'NORDBOOKING')]);
     }
 
     public function handle_get_business_settings_ajax() {
-        check_ajax_referer('mobooking_dashboard_nonce', 'nonce');
+        check_ajax_referer('nordbooking_dashboard_nonce', 'nonce');
         $user_id = get_current_user_id();
         if (!$user_id) {
-            wp_send_json_error(['message' => __('User not authenticated.', 'mobooking')], 403);
+            wp_send_json_error(['message' => __('User not authenticated.', 'NORDBOOKING')], 403);
             return;
         }
         $settings = $this->get_business_settings($user_id);
@@ -161,34 +161,34 @@ class Settings {
     }
 
     public function handle_save_business_settings_ajax() {
-        check_ajax_referer('mobooking_dashboard_nonce', 'nonce');
+        check_ajax_referer('nordbooking_dashboard_nonce', 'nonce');
         $user_id = get_current_user_id();
         if (!$user_id) {
-            wp_send_json_error(['message' => __('User not authenticated.', 'mobooking')], 403);
+            wp_send_json_error(['message' => __('User not authenticated.', 'NORDBOOKING')], 403);
             return;
         }
 
         $settings_data = isset($_POST['settings']) ? (array) $_POST['settings'] : [];
 
         if (empty($settings_data)) {
-            wp_send_json_error(['message' => __('No settings data received.', 'mobooking')], 400);
+            wp_send_json_error(['message' => __('No settings data received.', 'NORDBOOKING')], 400);
             return;
         }
 
         $result = $this->save_business_settings($user_id, $settings_data);
 
         if ($result) {
-            wp_send_json_success(['message' => __('Business settings saved successfully.', 'mobooking')]);
+            wp_send_json_success(['message' => __('Business settings saved successfully.', 'NORDBOOKING')]);
         } else {
-            wp_send_json_error(['message' => __('Failed to save some business settings.', 'mobooking')], 500);
+            wp_send_json_error(['message' => __('Failed to save some business settings.', 'NORDBOOKING')], 500);
         }
     }
 
     public function handle_get_booking_form_settings_ajax() {
-        check_ajax_referer('mobooking_dashboard_nonce', 'nonce');
+        check_ajax_referer('nordbooking_dashboard_nonce', 'nonce');
         $user_id = get_current_user_id();
         if (!$user_id) {
-            wp_send_json_error(['message' => __('User not authenticated.', 'mobooking')], 403);
+            wp_send_json_error(['message' => __('User not authenticated.', 'NORDBOOKING')], 403);
             return;
         }
         $settings = $this->get_booking_form_settings($user_id);
@@ -197,15 +197,15 @@ class Settings {
 
 public function handle_save_booking_form_settings_ajax() {
     // Verify nonce first
-    if (!check_ajax_referer('mobooking_dashboard_nonce', 'nonce', false)) {
-        wp_send_json_error(['message' => __('Security check failed.', 'mobooking')], 403);
+    if (!check_ajax_referer('nordbooking_dashboard_nonce', 'nonce', false)) {
+        wp_send_json_error(['message' => __('Security check failed.', 'NORDBOOKING')], 403);
         return;
     }
 
     // Check user authentication
     $user_id = get_current_user_id();
     if (!$user_id) {
-        wp_send_json_error(['message' => __('User not authenticated.', 'mobooking')], 403);
+        wp_send_json_error(['message' => __('User not authenticated.', 'NORDBOOKING')], 403);
         return;
     }
 
@@ -213,7 +213,7 @@ public function handle_save_booking_form_settings_ajax() {
     $settings_data = isset($_POST['settings']) ? (array) $_POST['settings'] : [];
     
     if (empty($settings_data)) {
-        wp_send_json_error(['message' => __('No settings data received.', 'mobooking')], 400);
+        wp_send_json_error(['message' => __('No settings data received.', 'NORDBOOKING')], 400);
         return;
     }
 
@@ -222,12 +222,12 @@ public function handle_save_booking_form_settings_ajax() {
         $slug_to_check = sanitize_title($settings_data['bf_business_slug']);
 
         if (!empty($slug_to_check)) {
-            $existing_user_id = \MoBooking\Classes\Routes\BookingFormRouter::get_user_id_by_slug($slug_to_check);
+            $existing_user_id = \NORDBOOKING\Classes\Routes\BookingFormRouter::get_user_id_by_slug($slug_to_check);
 
             if ($existing_user_id !== null && $existing_user_id != $user_id) {
                 // The slug is taken by another user.
                 wp_send_json_error([
-                    'message' => __('This business slug is already in use. Please choose another one.', 'mobooking'),
+                    'message' => __('This business slug is already in use. Please choose another one.', 'NORDBOOKING'),
                     'field_id' => 'bf_business_slug' // Optional: for highlighting the field in JS
                 ], 400);
                 return;
@@ -251,7 +251,7 @@ public function handle_save_booking_form_settings_ajax() {
         if ($result) {
             // Return success with any processed data
             $response_data = [
-                'message' => __('Booking form settings saved successfully.', 'mobooking')
+                'message' => __('Booking form settings saved successfully.', 'NORDBOOKING')
             ];
             
             // Include processed slug if it was sanitized
@@ -262,14 +262,14 @@ public function handle_save_booking_form_settings_ajax() {
             wp_send_json_success($response_data);
         } else {
             wp_send_json_error([
-                'message' => __('Failed to save settings. Please try again.', 'mobooking')
+                'message' => __('Failed to save settings. Please try again.', 'NORDBOOKING')
             ], 500);
         }
         
     } catch (Exception $e) {
-        error_log('[MoBooking Settings Save] Exception: ' . $e->getMessage());
+        error_log('[NORDBOOKING Settings Save] Exception: ' . $e->getMessage());
         wp_send_json_error([
-            'message' => __('An error occurred while saving settings.', 'mobooking')
+            'message' => __('An error occurred while saving settings.', 'NORDBOOKING')
         ], 500);
     }
 }
@@ -364,7 +364,7 @@ private function validate_and_sanitize_booking_form_settings($settings_data) {
         $sanitized_value = $this->sanitize_field_value($value, $rules);
 
         if (is_wp_error($sanitized_value)) {
-            $errors[] = sprintf(__('Invalid value for %s: %s', 'mobooking'), $key, $sanitized_value->get_error_message());
+            $errors[] = sprintf(__('Invalid value for %s: %s', 'NORDBOOKING'), $key, $sanitized_value->get_error_message());
             continue;
         }
 
@@ -501,13 +501,13 @@ private function ensure_unique_slug($slug, $user_id = null) {
      * Validate and sanitize booking form settings
      */
     private function validate_booking_form_settings($settings_data) {
-        error_log('[MoBooking Settings Validate - Input] ' . print_r($settings_data, true));
+        error_log('[NORDBOOKING Settings Validate - Input] ' . print_r($settings_data, true));
         // Sanitize business slug
         if (isset($settings_data['bf_business_slug'])) {
             $original_slug = $settings_data['bf_business_slug'];
             $settings_data['bf_business_slug'] = sanitize_title($settings_data['bf_business_slug']);
             if ($original_slug !== $settings_data['bf_business_slug']) {
-                error_log("[MoBooking Settings Validate] bf_business_slug changed from '$original_slug' to '{$settings_data['bf_business_slug']}'");
+                error_log("[NORDBOOKING Settings Validate] bf_business_slug changed from '$original_slug' to '{$settings_data['bf_business_slug']}'");
             }
         }
 
@@ -526,7 +526,7 @@ private function ensure_unique_slug($slug, $user_id = null) {
                 $value = intval($settings_data[$field]);
                 $settings_data[$field] = max($limits['min'], min($limits['max'], $value));
                 if ($original_val != $settings_data[$field]) { // Use != because intval can change type
-                     error_log("[MoBooking Settings Validate] Numeric field $field changed from '$original_val' to '{$settings_data[$field]}'");
+                     error_log("[NORDBOOKING Settings Validate] Numeric field $field changed from '$original_val' to '{$settings_data[$field]}'");
                 }
             }
         }
@@ -540,11 +540,11 @@ private function ensure_unique_slug($slug, $user_id = null) {
                 if ($color) {
                     $settings_data[$field] = $color;
                     if ($original_color !== $settings_data[$field]) {
-                         error_log("[MoBooking Settings Validate] Color field $field changed from '$original_color' to '{$settings_data[$field]}'");
+                         error_log("[NORDBOOKING Settings Validate] Color field $field changed from '$original_color' to '{$settings_data[$field]}'");
                     }
                 } else {
                     // Log if a color was invalid and is being removed/defaulted
-                    error_log("[MoBooking Settings Validate] Invalid color for $field: '$original_color'. Field will revert to default or be unset.");
+                    error_log("[NORDBOOKING Settings Validate] Invalid color for $field: '$original_color'. Field will revert to default or be unset.");
                     unset($settings_data[$field]);
                 }
             }
@@ -559,11 +559,11 @@ private function ensure_unique_slug($slug, $user_id = null) {
                     $url = esc_url_raw($settings_data[$field]);
                     if (!$url) {
                         $settings_data[$field] = ''; // Clear invalid URL
-                        error_log("[MoBooking Settings Validate] URL field $field cleared due to invalid value: '$original_url'");
+                        error_log("[NORDBOOKING Settings Validate] URL field $field cleared due to invalid value: '$original_url'");
                     } else {
                         $settings_data[$field] = $url;
                         if ($original_url !== $settings_data[$field]) {
-                            error_log("[MoBooking Settings Validate] URL field $field sanitized from '$original_url' to '$url'");
+                            error_log("[NORDBOOKING Settings Validate] URL field $field sanitized from '$original_url' to '$url'");
                         }
                     }
                 } else {
@@ -583,7 +583,7 @@ private function ensure_unique_slug($slug, $user_id = null) {
                 $original_text = $settings_data[$field];
                 $settings_data[$field] = sanitize_text_field($settings_data[$field]);
                 if ($original_text !== $settings_data[$field]) {
-                    error_log("[MoBooking Settings Validate] Text field $field sanitized. Original: '$original_text' New: '{$settings_data[$field]}'");
+                    error_log("[NORDBOOKING Settings Validate] Text field $field sanitized. Original: '$original_text' New: '{$settings_data[$field]}'");
                 }
             }
         }
@@ -601,7 +601,7 @@ private function ensure_unique_slug($slug, $user_id = null) {
             // For security, keeping wp_strip_all_tags is safer if we're unsure about all possible malicious inputs.
             $settings_data['bf_custom_css'] = wp_strip_all_tags($settings_data['bf_custom_css']); // Keeping it strict for now
             if ($original_css !== $settings_data['bf_custom_css']) {
-                 error_log("[MoBooking Settings Validate] bf_custom_css was modified by wp_strip_all_tags.");
+                 error_log("[NORDBOOKING Settings Validate] bf_custom_css was modified by wp_strip_all_tags.");
                  // Consider logging the before and after if it's short enough or a hash of it.
             }
         }
@@ -618,13 +618,13 @@ private function ensure_unique_slug($slug, $user_id = null) {
                 $original_bool_val = $settings_data[$field];
                 $settings_data[$field] = ($settings_data[$field] === '1' || $settings_data[$field] === true) ? '1' : '0';
                 if ($original_bool_val !== $settings_data[$field]) {
-                    error_log("[MoBooking Settings Validate] Boolean field $field normalized from '$original_bool_val' to '{$settings_data[$field]}'");
+                    error_log("[NORDBOOKING Settings Validate] Boolean field $field normalized from '$original_bool_val' to '{$settings_data[$field]}'");
                 }
             }
         }
 
 
-        error_log('[MoBooking Settings Validate - Output] ' . print_r($settings_data, true));
+        error_log('[NORDBOOKING Settings Validate - Output] ' . print_r($settings_data, true));
         return $settings_data;
     }
 
@@ -710,8 +710,8 @@ private function ensure_unique_slug($slug, $user_id = null) {
         }
 
         // Add currency symbol and position
-        $parsed_settings['biz_currency_symbol'] = \MoBooking\Classes\Utils::get_currency_symbol($parsed_settings['biz_currency_code']);
-        $parsed_settings['biz_currency_position'] = \MoBooking\Classes\Utils::get_currency_position($parsed_settings['biz_currency_code']);
+        $parsed_settings['biz_currency_symbol'] = \NORDBOOKING\Classes\Utils::get_currency_symbol($parsed_settings['biz_currency_code']);
+        $parsed_settings['biz_currency_position'] = \NORDBOOKING\Classes\Utils::get_currency_position($parsed_settings['biz_currency_code']);
 
         if ($user_id > 0) {
             $user_info = null;
@@ -747,20 +747,20 @@ private function ensure_unique_slug($slug, $user_id = null) {
         foreach ($settings_data as $key => $value) {
             if (array_key_exists($key, $default_keys_for_group)) {
                 $update_result = $this->update_setting($user_id, $key, $value);
-                error_log("[MoBooking Settings] save_settings_group - Key: $key, Value: " . 
+                error_log("[NORDBOOKING Settings] save_settings_group - Key: $key, Value: " . 
                     (is_array($value) ? json_encode($value) : $value) . ', Result: ' . 
                     ($update_result ? 'Success' : 'Failure'));
 
                 if (!$update_result) {
                     $all_successful = false;
                     $db_error = $this->wpdb->last_error;
-                    error_log("[MoBooking Settings] DB Error for $key (User: $user_id): " . $db_error);
+                    error_log("[NORDBOOKING Settings] DB Error for $key (User: $user_id): " . $db_error);
                 }
             } else {
-                error_log("[MoBooking Settings] Skipped key (not in default_keys_for_group): $key");
+                error_log("[NORDBOOKING Settings] Skipped key (not in default_keys_for_group): $key");
             }
         }
-        error_log('[MoBooking Settings] save_settings_group final result for user_id ' . $user_id . ': ' . ($all_successful ? 'All Successful' : 'Some Failed'));
+        error_log('[NORDBOOKING Settings] save_settings_group final result for user_id ' . $user_id . ': ' . ($all_successful ? 'All Successful' : 'Some Failed'));
         return $all_successful;
     }
 
@@ -783,10 +783,10 @@ public function save_booking_form_settings(int $user_id, array $settings_data): 
             if ($result) {
                 $success_count++;
             } else {
-                error_log("[MoBooking Settings] Failed to save setting: {$key} for user: {$user_id}");
+                error_log("[NORDBOOKING Settings] Failed to save setting: {$key} for user: {$user_id}");
             }
         } catch (Exception $e) {
-            error_log("[MoBooking Settings] Exception saving {$key}: " . $e->getMessage());
+            error_log("[NORDBOOKING Settings] Exception saving {$key}: " . $e->getMessage());
         }
     }
 
@@ -847,7 +847,7 @@ public function save_booking_form_settings(int $user_id, array $settings_data): 
             return;
         }
 
-        $services_manager = new \MoBooking\Classes\Services();
+        $services_manager = new \NORDBOOKING\Classes\Services();
 
         // 1. Home Cleaning
         $home_cleaning_id = $services_manager->add_service($user_id, [
@@ -1003,31 +1003,31 @@ public function save_booking_form_settings(int $user_id, array $settings_data): 
     public function get_email_templates(): array {
         $templates = [
             'booking_confirmation_customer' => [
-                'name' => __('Customer Booking Confirmation', 'mobooking'),
+                'name' => __('Customer Booking Confirmation', 'NORDBOOKING'),
                 'subject_key' => 'email_booking_conf_subj_customer',
                 'body_key' => 'email_booking_conf_body_customer',
                 'variables' => ['{{customer_name}}', '{{business_name}}', '{{booking_reference}}', '{{service_names}}', '{{booking_date_time}}', '{{total_price}}', '{{service_address}}', '{{special_instructions}}', '{{booking_link}}']
             ],
             'booking_confirmation_admin' => [
-                'name' => __('Admin New Booking Notification', 'mobooking'),
+                'name' => __('Admin New Booking Notification', 'NORDBOOKING'),
                 'subject_key' => 'email_booking_conf_subj_admin',
                 'body_key' => 'email_booking_conf_body_admin',
                 'variables' => ['{{customer_name}}', '{{customer_email}}', '{{customer_phone}}', '{{business_name}}', '{{booking_reference}}', '{{service_names}}', '{{booking_date_time}}', '{{total_price}}', '{{service_address}}', '{{special_instructions}}', '{{admin_booking_link}}']
             ],
             'staff_assignment' => [
-                'name' => __('Staff Assignment Notification', 'mobooking'),
+                'name' => __('Staff Assignment Notification', 'NORDBOOKING'),
                 'subject_key' => 'email_staff_assign_subj',
                 'body_key' => 'email_staff_assign_body',
                 'variables' => ['{{staff_name}}', '{{customer_name}}', '{{booking_reference}}', '{{booking_date_time}}', '{{staff_dashboard_link}}']
             ],
             'welcome' => [
-                'name' => __('Welcome Email', 'mobooking'),
+                'name' => __('Welcome Email', 'NORDBOOKING'),
                 'subject_key' => 'email_welcome_subj',
                 'body_key' => 'email_welcome_body',
                 'variables' => ['{{customer_name}}', '{{company_name}}', '{{dashboard_link}}']
             ],
             'invitation' => [
-                'name' => __('Invitation Email', 'mobooking'),
+                'name' => __('Invitation Email', 'NORDBOOKING'),
                 'subject_key' => 'email_invitation_subj',
                 'body_key' => 'email_invitation_body',
                 'variables' => ['{{worker_email}}', '{{worker_role}}', '{{inviter_name}}', '{{registration_link}}']
@@ -1049,27 +1049,27 @@ public function save_booking_form_settings(int $user_id, array $settings_data): 
         $step1_complete = !empty($biz_name);
         $progress['steps'][] = [
             'id' => 'business_name',
-            'label' => __('Set Business Name', 'mobooking'),
+            'label' => __('Set Business Name', 'NORDBOOKING'),
             'completed' => $step1_complete,
         ];
 
         // Step 2: Add a Service
-        $services_manager = new \MoBooking\Classes\Services();
+        $services_manager = new \NORDBOOKING\Classes\Services();
         $services_count = $services_manager->get_services_count($user_id);
         $step2_complete = $services_count > 0;
         $progress['steps'][] = [
             'id' => 'add_service',
-            'label' => __('Add Your First Service', 'mobooking'),
+            'label' => __('Add Your First Service', 'NORDBOOKING'),
             'completed' => $step2_complete,
         ];
 
         // Step 3: Define Service Area
-        $areas_manager = new \MoBooking\Classes\Areas();
+        $areas_manager = new \NORDBOOKING\Classes\Areas();
         $areas_count = $areas_manager->get_areas_count_by_user($user_id);
         $step3_complete = $areas_count > 0;
         $progress['steps'][] = [
             'id' => 'define_area',
-            'label' => __('Define Service Area', 'mobooking'),
+            'label' => __('Define Service Area', 'NORDBOOKING'),
             'completed' => $step3_complete,
         ];
 

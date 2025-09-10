@@ -1,5 +1,5 @@
 /**
- * Complete MoBooking Booking Form JavaScript
+ * Complete NORDBOOKING Booking Form JavaScript
  * Fixes service options display and implements live price calculation
  */
 
@@ -10,56 +10,56 @@ jQuery(document).ready(function ($) {
   // GLOBAL VARIABLES
   // ==========================================
 
-  const locationForm = $("#mobooking-bf-location-form");
-  const feedbackDiv = $("#mobooking-bf-feedback");
-  const step1Div = $("#mobooking-bf-step-1-location");
-  const tenantIdField = $("#mobooking-bf-tenant-id");
+  const locationForm = $("#NORDBOOKING-bf-location-form");
+  const feedbackDiv = $("#NORDBOOKING-bf-feedback");
+  const step1Div = $("#NORDBOOKING-bf-step-1-location");
+  const tenantIdField = $("#NORDBOOKING-bf-tenant-id");
 
   // Step 2 elements
-  const step2ServicesDiv = $("#mobooking-bf-step-2-services");
-  const servicesListDiv = $("#mobooking-bf-services-list");
-  const step2FeedbackDiv = $("#mobooking-bf-step-2-feedback").hide();
+  const step2ServicesDiv = $("#NORDBOOKING-bf-step-2-services");
+  const servicesListDiv = $("#NORDBOOKING-bf-services-list");
+  const step2FeedbackDiv = $("#NORDBOOKING-bf-step-2-feedback").hide();
 
   // Step 3 elements
-  const step3OptionsDiv = $("#mobooking-bf-step-3-options");
-  const serviceOptionsDisplayDiv = $("#mobooking-bf-service-options-display");
-  const step3FeedbackDiv = $("#mobooking-bf-step-3-feedback").hide();
+  const step3OptionsDiv = $("#NORDBOOKING-bf-step-3-options");
+  const serviceOptionsDisplayDiv = $("#NORDBOOKING-bf-service-options-display");
+  const step3FeedbackDiv = $("#NORDBOOKING-bf-step-3-feedback").hide();
 
   // Step 4 elements
-  const step4DetailsDiv = $("#mobooking-bf-step-4-details");
-  const step4FeedbackDiv = $("#mobooking-bf-step-4-feedback").hide();
+  const step4DetailsDiv = $("#NORDBOOKING-bf-step-4-details");
+  const step4FeedbackDiv = $("#NORDBOOKING-bf-step-4-feedback").hide();
 
   // Step 5 elements
-  const step5ReviewDiv = $("#mobooking-bf-step-5-review");
-  const reviewSummaryDiv = $("#mobooking-bf-review-summary");
-  const step5FeedbackDiv = $("#mobooking-bf-step-5-feedback").hide();
-  const discountCodeInput = $("#mobooking-bf-discount-code");
-  const applyDiscountBtn = $("#mobooking-bf-apply-discount-btn");
-  const discountFeedbackDiv = $("#mobooking-bf-discount-feedback").hide();
-  const subtotalDisplay = $("#mobooking-bf-subtotal");
-  const discountAppliedDisplay = $("#mobooking-bf-discount-applied");
-  const finalTotalDisplay = $("#mobooking-bf-final-total");
+  const step5ReviewDiv = $("#NORDBOOKING-bf-step-5-review");
+  const reviewSummaryDiv = $("#NORDBOOKING-bf-review-summary");
+  const step5FeedbackDiv = $("#NORDBOOKING-bf-step-5-feedback").hide();
+  const discountCodeInput = $("#NORDBOOKING-bf-discount-code");
+  const applyDiscountBtn = $("#NORDBOOKING-bf-apply-discount-btn");
+  const discountFeedbackDiv = $("#NORDBOOKING-bf-discount-feedback").hide();
+  const subtotalDisplay = $("#NORDBOOKING-bf-subtotal");
+  const discountAppliedDisplay = $("#NORDBOOKING-bf-discount-applied");
+  const finalTotalDisplay = $("#NORDBOOKING-bf-final-total");
 
   // Sidebar elements
-  const sidebarSummaryDiv = $("#mobooking-bf-sidebar-summary");
+  const sidebarSummaryDiv = $("#NORDBOOKING-bf-sidebar-summary");
 
   // Currency settings
   const currencyCode =
-    typeof mobooking_booking_form_params !== "undefined" &&
-    mobooking_booking_form_params.currency_code
-      ? mobooking_booking_form_params.currency_code
+    typeof nordbooking_booking_form_params !== "undefined" &&
+    nordbooking_booking_form_params.currency_code
+      ? nordbooking_booking_form_params.currency_code
       : "USD";
   const currencySymbol =
-    typeof mobooking_booking_form_params !== "undefined" &&
-    mobooking_booking_form_params.currency_symbol
-      ? mobooking_booking_form_params.currency_symbol
+    typeof nordbooking_booking_form_params !== "undefined" &&
+    nordbooking_booking_form_params.currency_symbol
+      ? nordbooking_booking_form_params.currency_symbol
       : "$";
 
   // Form settings
   const formSettings =
-    typeof mobooking_booking_form_params !== "undefined" &&
-    mobooking_booking_form_params.settings
-      ? mobooking_booking_form_params.settings
+    typeof nordbooking_booking_form_params !== "undefined" &&
+    nordbooking_booking_form_params.settings
+      ? nordbooking_booking_form_params.settings
       : {
           bf_header_text: "Book Our Services",
           bf_show_pricing: "1",
@@ -105,14 +105,14 @@ jQuery(document).ready(function ($) {
   // INITIALIZATION
   // ==========================================
 
-  console.log("[MoBooking Debug] Booking form initialized");
+  console.log("[NORDBOOKING Debug] Booking form initialized");
 
   // Check if form is enabled
   if (formSettings.bf_form_enabled !== "1") {
-    $(".mobooking-bf__container").html(`
-      <div class="mobooking-bf__maintenance">
+    $(".NORDBOOKING-bf__container").html(`
+      <div class="NORDBOOKING-bf__maintenance">
         <h3>${
-          mobooking_booking_form_params.i18n.form_disabled_title ||
+          nordbooking_booking_form_params.i18n.form_disabled_title ||
           "Booking Unavailable"
         }</h3>
         <p>${formSettings.bf_maintenance_message}</p>
@@ -141,7 +141,7 @@ jQuery(document).ready(function ($) {
         console.error("Tenant ID not found and location check is disabled");
         feedbackDiv
           .text(
-            mobooking_booking_form_params.i18n.tenant_id_missing ||
+            nordbooking_booking_form_params.i18n.tenant_id_missing ||
               "Configuration error"
           )
           .addClass("error")
@@ -159,29 +159,31 @@ jQuery(document).ready(function ($) {
   // ==========================================
 
   function displayStep(stepNumber) {
-    console.log(`[MoBooking Debug] Displaying step ${stepNumber}`);
+    console.log(`[NORDBOOKING Debug] Displaying step ${stepNumber}`);
 
     // Hide all steps
-    $(".mobooking-bf__step").hide();
+    $(".NORDBOOKING-bf__step").hide();
 
     // Show current step
     $(
-      `#mobooking-bf-step-${stepNumber}-location, #mobooking-bf-step-${stepNumber}-services, #mobooking-bf-step-${stepNumber}-options, #mobooking-bf-step-${stepNumber}-details, #mobooking-bf-step-${stepNumber}-review`
+      `#NORDBOOKING-bf-step-${stepNumber}-location, #NORDBOOKING-bf-step-${stepNumber}-services, #NORDBOOKING-bf-step-${stepNumber}-options, #NORDBOOKING-bf-step-${stepNumber}-details, #NORDBOOKING-bf-step-${stepNumber}-review`
     ).show();
 
     // Update progress bar
     updateProgressBar(stepNumber);
 
     // Scroll to top of form
-    $(".mobooking-bf__container").get(0).scrollIntoView({ behavior: "smooth" });
+    $(".NORDBOOKING-bf__container")
+      .get(0)
+      .scrollIntoView({ behavior: "smooth" });
   }
 
   function updateProgressBar(currentStep) {
     const totalSteps = 5;
     const progress = (currentStep / totalSteps) * 100;
 
-    $(".mobooking-bf__progress-bar").css("width", progress + "%");
-    $(".mobooking-bf__progress-text").text(
+    $(".NORDBOOKING-bf__progress-bar").css("width", progress + "%");
+    $(".NORDBOOKING-bf__progress-text").text(
       `Step ${currentStep} of ${totalSteps}`
     );
   }
@@ -192,8 +194,8 @@ jQuery(document).ready(function ($) {
 
   locationForm.on("submit", function (e) {
     e.preventDefault();
-    const zipCode = $("#mobooking-bf-zip").val().trim();
-    const countryCode = $("#mobooking-bf-country").val().trim();
+    const zipCode = $("#NORDBOOKING-bf-zip").val().trim();
+    const countryCode = $("#NORDBOOKING-bf-country").val().trim();
     const tenantId = tenantIdField.val();
 
     feedbackDiv.empty().hide();
@@ -201,7 +203,7 @@ jQuery(document).ready(function ($) {
     if (!zipCode) {
       feedbackDiv
         .text(
-          mobooking_booking_form_params.i18n.zip_required ||
+          nordbooking_booking_form_params.i18n.zip_required ||
             "ZIP code is required"
         )
         .addClass("error")
@@ -211,7 +213,7 @@ jQuery(document).ready(function ($) {
     if (!countryCode) {
       feedbackDiv
         .text(
-          mobooking_booking_form_params.i18n.country_code_required ||
+          nordbooking_booking_form_params.i18n.country_code_required ||
             "Country is required"
         )
         .addClass("error")
@@ -221,7 +223,7 @@ jQuery(document).ready(function ($) {
     if (!tenantId) {
       feedbackDiv
         .text(
-          mobooking_booking_form_params.i18n.tenant_id_missing ||
+          nordbooking_booking_form_params.i18n.tenant_id_missing ||
             "Tenant ID missing"
         )
         .addClass("error")
@@ -233,14 +235,14 @@ jQuery(document).ready(function ($) {
     const originalButtonText = submitButton.text();
     submitButton
       .prop("disabled", true)
-      .text(mobooking_booking_form_params.i18n.checking || "Checking...");
+      .text(nordbooking_booking_form_params.i18n.checking || "Checking...");
 
     $.ajax({
-      url: mobooking_booking_form_params.ajax_url,
+      url: nordbooking_booking_form_params.ajax_url,
       type: "POST",
       data: {
-        action: "mobooking_check_service_area",
-        nonce: mobooking_booking_form_params.nonce,
+        action: "nordbooking_check_service_area",
+        nonce: nordbooking_booking_form_params.nonce,
         zip_code: zipCode,
         country_code: countryCode,
         tenant_id: tenantId,
@@ -268,7 +270,8 @@ jQuery(document).ready(function ($) {
       error: function () {
         feedbackDiv
           .text(
-            mobooking_booking_form_params.i18n.ajax_error || "Connection error"
+            nordbooking_booking_form_params.i18n.ajax_error ||
+              "Connection error"
           )
           .addClass("error")
           .show();
@@ -284,28 +287,28 @@ jQuery(document).ready(function ($) {
   // ==========================================
 
   function loadServicesForTenant(tenantId) {
-    console.log(`[MoBooking Debug] Loading services for tenant: ${tenantId}`);
+    console.log(`[NORDBOOKING Debug] Loading services for tenant: ${tenantId}`);
 
     servicesListDiv.html(
-      '<div class="mobooking-bf__loading">Loading available services...</div>'
+      '<div class="NORDBOOKING-bf__loading">Loading available services...</div>'
     );
 
     $.ajax({
-      url: mobooking_booking_form_params.ajax_url,
+      url: nordbooking_booking_form_params.ajax_url,
       type: "POST",
       data: {
-        action: "mobooking_get_services",
-        nonce: mobooking_booking_form_params.nonce,
+        action: "nordbooking_get_services",
+        nonce: nordbooking_booking_form_params.nonce,
         tenant_id: tenantId,
       },
       success: function (response) {
-        console.log("[MoBooking Debug] Services response:", response);
+        console.log("[NORDBOOKING Debug] Services response:", response);
 
         if (response.success && response.data.services) {
           renderServices(response.data.services);
         } else {
           servicesListDiv.html(
-            `<p class="mobooking-bf__error">${
+            `<p class="NORDBOOKING-bf__error">${
               response.data.message || "No services available"
             }</p>`
           );
@@ -313,8 +316,8 @@ jQuery(document).ready(function ($) {
       },
       error: function () {
         servicesListDiv.html(
-          `<p class="mobooking-bf__error">${
-            mobooking_booking_form_params.i18n.ajax_error ||
+          `<p class="NORDBOOKING-bf__error">${
+            nordbooking_booking_form_params.i18n.ajax_error ||
             "Error loading services"
           }</p>`
         );
@@ -323,11 +326,11 @@ jQuery(document).ready(function ($) {
   }
 
   function renderServices(services) {
-    console.log("[MoBooking Debug] Rendering services:", services);
+    console.log("[NORDBOOKING Debug] Rendering services:", services);
 
     if (!services || services.length === 0) {
       servicesListDiv.html(
-        '<p class="mobooking-bf__error">No services available</p>'
+        '<p class="NORDBOOKING-bf__error">No services available</p>'
       );
       return;
     }
@@ -338,30 +341,30 @@ jQuery(document).ready(function ($) {
       const duration = parseInt(service.duration) || 0;
       const priceDisplay =
         formSettings.bf_show_pricing === "1"
-          ? `<span class="mobooking-bf__service-price">${currencySymbol}${price.toFixed(
+          ? `<span class="NORDBOOKING-bf__service-price">${currencySymbol}${price.toFixed(
               2
             )}</span>`
           : "";
 
       servicesHtml += `
-        <div class="mobooking-bf__service-item">
-          <div class="mobooking-bf__service-icon">
+        <div class="NORDBOOKING-bf__service-item">
+          <div class="NORDBOOKING-bf__service-icon">
             ${service.icon ? `<i class="dashicons ${service.icon}"></i>` : ""}
           </div>
-          <div class="mobooking-bf__service-content">
-            <label class="mobooking-bf__label mobooking-bf__label--radio">
+          <div class="NORDBOOKING-bf__service-content">
+            <label class="NORDBOOKING-bf__label NORDBOOKING-bf__label--radio">
               <input type="radio" name="selected_service" value="${
                 service.service_id
-              }" class="mobooking-bf__radio" data-service='${JSON.stringify(
+              }" class="NORDBOOKING-bf__radio" data-service='${JSON.stringify(
         service
       )}'>
-              <span class="mobooking-bf__service-name">${service.name}</span>
+              <span class="NORDBOOKING-bf__service-name">${service.name}</span>
               ${priceDisplay}
             </label>
-            <div class="mobooking-bf__service-duration">${duration} minutes</div>
+            <div class="NORDBOOKING-bf__service-duration">${duration} minutes</div>
             ${
               service.description
-                ? `<div class="mobooking-bf__service-description">${service.description}</div>`
+                ? `<div class="NORDBOOKING-bf__service-description">${service.description}</div>`
                 : ""
             }
           </div>
@@ -383,13 +386,13 @@ jQuery(document).ready(function ($) {
         'input[name="selected_service"]',
         function () {
           const serviceData = $(this).data("service");
-          console.log("[MoBooking Debug] Service selected:", serviceData);
+          console.log("[NORDBOOKING Debug] Service selected:", serviceData);
 
           currentSelectionForSummary.service = serviceData;
           updatePricing();
           renderOrUpdateSidebarSummary();
 
-          $("#mobooking-bf-services-next-btn")
+          $("#NORDBOOKING-bf-services-next-btn")
             .prop("disabled", false)
             .css("opacity", "1");
         }
@@ -397,13 +400,13 @@ jQuery(document).ready(function ($) {
   }
 
   // Services next button
-  $("#mobooking-bf-services-next-btn").on("click", function () {
+  $("#NORDBOOKING-bf-services-next-btn").on("click", function () {
     const selectedService = $('input[name="selected_service"]:checked');
 
     if (selectedService.length === 0) {
       step2FeedbackDiv
         .text(
-          mobooking_booking_form_params.i18n.select_service_required ||
+          nordbooking_booking_form_params.i18n.select_service_required ||
             "Please select a service"
         )
         .addClass("error")
@@ -417,7 +420,7 @@ jQuery(document).ready(function ($) {
     step2FeedbackDiv.empty().hide();
 
     sessionStorage.setItem(
-      "mobooking_cart_selected_services",
+      "nordbooking_cart_selected_services",
       JSON.stringify([serviceData])
     );
 
@@ -426,7 +429,7 @@ jQuery(document).ready(function ($) {
   });
 
   // Services back button
-  $("#mobooking-bf-services-back-btn").on("click", function () {
+  $("#NORDBOOKING-bf-services-back-btn").on("click", function () {
     displayStep(1);
   });
 
@@ -435,18 +438,18 @@ jQuery(document).ready(function ($) {
   // ==========================================
 
   function displayStep3_LoadOptions() {
-    console.log("[MoBooking Debug] Loading service options...");
+    console.log("[NORDBOOKING Debug] Loading service options...");
 
     const service = currentSelectionForSummary.service;
 
     if (!service) {
       const selectedServicesJSON = sessionStorage.getItem(
-        "mobooking_cart_selected_services"
+        "nordbooking_cart_selected_services"
       );
       if (!selectedServicesJSON) {
         step3FeedbackDiv
           .text(
-            mobooking_booking_form_params.i18n.no_service_selected_options ||
+            nordbooking_booking_form_params.i18n.no_service_selected_options ||
               "No service selected to show options."
           )
           .addClass("error")
@@ -458,7 +461,7 @@ jQuery(document).ready(function ($) {
       if (!tempSelectedServices || tempSelectedServices.length === 0) {
         step3FeedbackDiv
           .text(
-            mobooking_booking_form_params.i18n.no_service_selected_options ||
+            nordbooking_booking_form_params.i18n.no_service_selected_options ||
               "No service selected."
           )
           .addClass("error")
@@ -470,13 +473,13 @@ jQuery(document).ready(function ($) {
     }
 
     const currentService = currentSelectionForSummary.service;
-    console.log("[MoBooking Debug] Current service:", currentService);
+    console.log("[NORDBOOKING Debug] Current service:", currentService);
 
     // Update step title
-    const step3Title = $("#mobooking-bf-step-3-title");
+    const step3Title = $("#NORDBOOKING-bf-step-3-title");
     if (step3Title.length && currentService.name) {
       const baseTitle =
-        mobooking_booking_form_params.i18n.step3_title ||
+        nordbooking_booking_form_params.i18n.step3_title ||
         "Step 3: Configure Service Options";
       step3Title.text(baseTitle + " for " + currentService.name);
     }
@@ -487,10 +490,10 @@ jQuery(document).ready(function ($) {
 
     // Check if service has options
     if (!currentService.options || currentService.options.length === 0) {
-      console.log("[MoBooking Debug] No options found for service");
+      console.log("[NORDBOOKING Debug] No options found for service");
       serviceOptionsDisplayDiv.html(
         `<p>${
-          mobooking_booking_form_params.i18n.no_options_for_service ||
+          nordbooking_booking_form_params.i18n.no_options_for_service ||
           "This service has no additional options."
         }</p>`
       );
@@ -501,13 +504,13 @@ jQuery(document).ready(function ($) {
     }
 
     console.log(
-      "[MoBooking Debug] Processing options:",
+      "[NORDBOOKING Debug] Processing options:",
       currentService.options
     );
 
     // Process each option using template system
     currentService.options.forEach((option, index) => {
-      console.log(`[MoBooking Debug] Processing option ${index}:`, option);
+      console.log(`[NORDBOOKING Debug] Processing option ${index}:`, option);
 
       try {
         const optionHtml = generateOptionFromTemplate(
@@ -517,14 +520,14 @@ jQuery(document).ready(function ($) {
         if (optionHtml) {
           serviceOptionsDisplayDiv.append(optionHtml);
           console.log(
-            `[MoBooking Debug] Option ${index} rendered successfully`
+            `[NORDBOOKING Debug] Option ${index} rendered successfully`
           );
         } else {
-          console.warn(`[MoBooking Debug] Failed to render option ${index}`);
+          console.warn(`[NORDBOOKING Debug] Failed to render option ${index}`);
         }
       } catch (error) {
         console.error(
-          `[MoBooking Debug] Error rendering option ${index}:`,
+          `[NORDBOOKING Debug] Error rendering option ${index}:`,
           error
         );
         const fallbackHtml = generateFallbackOptionHtml(
@@ -545,11 +548,11 @@ jQuery(document).ready(function ($) {
   }
 
   function generateOptionFromTemplate(option, serviceId) {
-    const templateId = `mobooking-bf-option-${option.type}-template`;
+    const templateId = `NORDBOOKING-bf-option-${option.type}-template`;
     const template = $(`#${templateId}`);
 
     if (template.length === 0) {
-      console.warn(`[MoBooking Debug] Template not found: ${templateId}`);
+      console.warn(`[NORDBOOKING Debug] Template not found: ${templateId}`);
       return generateFallbackOptionHtml(option, serviceId);
     }
 
@@ -589,11 +592,11 @@ jQuery(document).ready(function ($) {
     let priceImpactHtml = "";
     if (templateData.price_impact > 0) {
       if (templateData.price_impact_type === "percentage") {
-        priceImpactHtml = `<span class="mobooking-bf__option-price">(+${templateData.price_impact}%)</span>`;
+        priceImpactHtml = `<span class="NORDBOOKING-bf__option-price">(+${templateData.price_impact}%)</span>`;
       } else if (templateData.price_impact_type === "multiply") {
-        priceImpactHtml = `<span class="mobooking-bf__option-price">(×${templateData.price_impact})</span>`;
+        priceImpactHtml = `<span class="NORDBOOKING-bf__option-price">(×${templateData.price_impact})</span>`;
       } else {
-        priceImpactHtml = `<span class="mobooking-bf__option-price">(+${currencySymbol}${templateData.price_impact})</span>`;
+        priceImpactHtml = `<span class="NORDBOOKING-bf__option-price">(+${currencySymbol}${templateData.price_impact})</span>`;
       }
     }
     html = html.replace(
@@ -604,7 +607,7 @@ jQuery(document).ready(function ($) {
     // Handle description placeholder
     let descriptionHtml = "";
     if (templateData.description) {
-      descriptionHtml = `<p class="mobooking-bf__option-description">${templateData.description}</p>`;
+      descriptionHtml = `<p class="NORDBOOKING-bf__option-description">${templateData.description}</p>`;
     }
     html = html.replace(
       /<!--\s*description_placeholder\s*-->/g,
@@ -615,7 +618,7 @@ jQuery(document).ready(function ($) {
     let requiredIndicatorHtml = "";
     if (option.is_required == 1) {
       requiredIndicatorHtml =
-        '<span class="mobooking-bf__required" style="color: red;">*</span>';
+        '<span class="NORDBOOKING-bf__required" style="color: red;">*</span>';
     }
     html = html.replace(
       /<!--\s*required_indicator_placeholder\s*-->/g,
@@ -656,25 +659,25 @@ jQuery(document).ready(function ($) {
               const radioId = `option-${serviceId}-${option.option_id}-${index}`;
               let priceSuffix = "";
               if (choicePrice > 0) {
-                priceSuffix = `<span class="mobooking-bf__option-price">(+${currencySymbol}${choicePrice})</span>`;
+                priceSuffix = `<span class="NORDBOOKING-bf__option-price">(+${currencySymbol}${choicePrice})</span>`;
               }
 
               optionsLoopHtml += `
-                <div class="mobooking-bf__radio-option">
+                <div class="NORDBOOKING-bf__radio-option">
                   <input type="radio" name="service_option[${serviceId}][${
                 option.option_id
               }]" value="${escapeHtml(
                 choiceValue
-              )}" id="${radioId}" class="mobooking-bf__radio" data-price="${choicePrice}" ${
+              )}" id="${radioId}" class="NORDBOOKING-bf__radio" data-price="${choicePrice}" ${
                 option.is_required == 1 ? "required" : ""
               }>
-                  <label for="${radioId}" class="mobooking-bf__label mobooking-bf__label--radio">${choiceLabel} ${priceSuffix}</label>
+                  <label for="${radioId}" class="NORDBOOKING-bf__label NORDBOOKING-bf__label--radio">${choiceLabel} ${priceSuffix}</label>
                 </div>`;
             }
           });
         }
       } catch (e) {
-        console.error("[MoBooking Debug] Error parsing option values:", e);
+        console.error("[NORDBOOKING Debug] Error parsing option values:", e);
       }
     }
 
@@ -686,7 +689,7 @@ jQuery(document).ready(function ($) {
 
   function generateFallbackOptionHtml(option, serviceId) {
     console.log(
-      "[MoBooking Debug] Using fallback HTML generation for option:",
+      "[NORDBOOKING Debug] Using fallback HTML generation for option:",
       option
     );
 
@@ -695,7 +698,7 @@ jQuery(document).ready(function ($) {
     const isRequired = option.is_required == 1;
     const requiredAttr = isRequired ? "required" : "";
     const requiredIndicator = isRequired
-      ? '<span class="mobooking-bf__required" style="color: red;">*</span>'
+      ? '<span class="NORDBOOKING-bf__required" style="color: red;">*</span>'
       : "";
     const priceImpact = parseFloat(option.price_impact) || 0;
     const priceImpactType = option.price_impact_type || "fixed";
@@ -703,30 +706,30 @@ jQuery(document).ready(function ($) {
     let priceImpactHtml = "";
     if (priceImpact > 0) {
       if (priceImpactType === "percentage") {
-        priceImpactHtml = `<span class="mobooking-bf__option-price">(+${priceImpact}%)</span>`;
+        priceImpactHtml = `<span class="NORDBOOKING-bf__option-price">(+${priceImpact}%)</span>`;
       } else if (priceImpactType === "multiply") {
-        priceImpactHtml = `<span class="mobooking-bf__option-price">(×${priceImpact})</span>`;
+        priceImpactHtml = `<span class="NORDBOOKING-bf__option-price">(×${priceImpact})</span>`;
       } else {
-        priceImpactHtml = `<span class="mobooking-bf__option-price">(+${currencySymbol}${priceImpact})</span>`;
+        priceImpactHtml = `<span class="NORDBOOKING-bf__option-price">(+${currencySymbol}${priceImpact})</span>`;
       }
     }
 
     let descriptionHtml = "";
     if (description) {
-      descriptionHtml = `<p class="mobooking-bf__option-description">${description}</p>`;
+      descriptionHtml = `<p class="NORDBOOKING-bf__option-description">${description}</p>`;
     }
 
     const commonClasses =
-      "mobooking-bf__option-group mobooking-bf__option-item";
+      "NORDBOOKING-bf__option-group NORDBOOKING-bf__option-item";
     const dataAttrs = `data-service-id="${serviceId}" data-option-id="${option.option_id}" data-option-type="${option.type}"`;
 
     switch (option.type) {
       case "checkbox":
         return $(`
           <div class="${commonClasses}" ${dataAttrs}>
-            <div class="mobooking-bf__checkbox-wrapper">
-              <input type="checkbox" name="service_option[${serviceId}][${option.option_id}]" value="1" class="mobooking-bf__checkbox" id="option-${serviceId}-${option.option_id}" data-price="${priceImpact}" data-price-type="${priceImpactType}" ${requiredAttr}>
-              <label for="option-${serviceId}-${option.option_id}" class="mobooking-bf__label">${name} ${priceImpactHtml} ${requiredIndicator}</label>
+            <div class="NORDBOOKING-bf__checkbox-wrapper">
+              <input type="checkbox" name="service_option[${serviceId}][${option.option_id}]" value="1" class="NORDBOOKING-bf__checkbox" id="option-${serviceId}-${option.option_id}" data-price="${priceImpact}" data-price-type="${priceImpactType}" ${requiredAttr}>
+              <label for="option-${serviceId}-${option.option_id}" class="NORDBOOKING-bf__label">${name} ${priceImpactHtml} ${requiredIndicator}</label>
             </div>
             ${descriptionHtml}
           </div>
@@ -735,8 +738,8 @@ jQuery(document).ready(function ($) {
       case "text":
         return $(`
           <div class="${commonClasses}" ${dataAttrs}>
-            <label for="option-${serviceId}-${option.option_id}" class="mobooking-bf__label">${name} ${priceImpactHtml} ${requiredIndicator}</label>
-            <input type="text" id="option-${serviceId}-${option.option_id}" name="service_option[${serviceId}][${option.option_id}]" class="mobooking-bf__input" data-price="${priceImpact}" data-price-type="${priceImpactType}" ${requiredAttr}>
+            <label for="option-${serviceId}-${option.option_id}" class="NORDBOOKING-bf__label">${name} ${priceImpactHtml} ${requiredIndicator}</label>
+            <input type="text" id="option-${serviceId}-${option.option_id}" name="service_option[${serviceId}][${option.option_id}]" class="NORDBOOKING-bf__input" data-price="${priceImpact}" data-price-type="${priceImpactType}" ${requiredAttr}>
             ${descriptionHtml}
           </div>
         `);
@@ -744,8 +747,8 @@ jQuery(document).ready(function ($) {
       case "textarea":
         return $(`
           <div class="${commonClasses}" ${dataAttrs}>
-            <label for="option-${serviceId}-${option.option_id}" class="mobooking-bf__label">${name} ${priceImpactHtml} ${requiredIndicator}</label>
-            <textarea id="option-${serviceId}-${option.option_id}" name="service_option[${serviceId}][${option.option_id}]" class="mobooking-bf__textarea" rows="3" data-price="${priceImpact}" data-price-type="${priceImpactType}" ${requiredAttr}></textarea>
+            <label for="option-${serviceId}-${option.option_id}" class="NORDBOOKING-bf__label">${name} ${priceImpactHtml} ${requiredIndicator}</label>
+            <textarea id="option-${serviceId}-${option.option_id}" name="service_option[${serviceId}][${option.option_id}]" class="NORDBOOKING-bf__textarea" rows="3" data-price="${priceImpact}" data-price-type="${priceImpactType}" ${requiredAttr}></textarea>
             ${descriptionHtml}
           </div>
         `);
@@ -755,11 +758,11 @@ jQuery(document).ready(function ($) {
         const defaultValue = isRequired ? 1 : 0;
         return $(`
           <div class="${commonClasses}" ${dataAttrs}>
-            <label for="option-${serviceId}-${option.option_id}" class="mobooking-bf__label">${name} ${priceImpactHtml} ${requiredIndicator}</label>
-            <div class="mobooking-bf__number-input-wrapper" style="display: flex; align-items: center; gap: 0.5rem; max-width: 150px;">
-              <button type="button" class="mobooking-bf__button mobooking-bf__button--outline mobooking-bf__number-btn" data-action="decrease" style="padding: 0; width: 2rem; height: 2rem;">-</button>
-              <input type="number" id="option-${serviceId}-${option.option_id}" name="service_option[${serviceId}][${option.option_id}]" value="${defaultValue}" min="0" class="mobooking-bf__input mobooking-bf__input--number" data-price="${priceImpact}" data-price-type="${priceImpactType}" ${requiredAttr} style="text-align: center; flex: 1;">
-              <button type="button" class="mobooking-bf__button mobooking-bf__button--outline mobooking-bf__number-btn" data-action="increase" style="padding: 0; width: 2rem; height: 2rem;">+</button>
+            <label for="option-${serviceId}-${option.option_id}" class="NORDBOOKING-bf__label">${name} ${priceImpactHtml} ${requiredIndicator}</label>
+            <div class="NORDBOOKING-bf__number-input-wrapper" style="display: flex; align-items: center; gap: 0.5rem; max-width: 150px;">
+              <button type="button" class="NORDBOOKING-bf__button NORDBOOKING-bf__button--outline NORDBOOKING-bf__number-btn" data-action="decrease" style="padding: 0; width: 2rem; height: 2rem;">-</button>
+              <input type="number" id="option-${serviceId}-${option.option_id}" name="service_option[${serviceId}][${option.option_id}]" value="${defaultValue}" min="0" class="NORDBOOKING-bf__input NORDBOOKING-bf__input--number" data-price="${priceImpact}" data-price-type="${priceImpactType}" ${requiredAttr} style="text-align: center; flex: 1;">
+              <button type="button" class="NORDBOOKING-bf__button NORDBOOKING-bf__button--outline NORDBOOKING-bf__number-btn" data-action="increase" style="padding: 0; width: 2rem; height: 2rem;">+</button>
             </div>
             ${descriptionHtml}
           </div>
@@ -772,8 +775,8 @@ jQuery(document).ready(function ($) {
       default:
         return $(`
           <div class="${commonClasses}" ${dataAttrs}>
-            <label for="option-${serviceId}-${option.option_id}" class="mobooking-bf__label">${name} ${priceImpactHtml} ${requiredIndicator}</label>
-            <input type="text" id="option-${serviceId}-${option.option_id}" name="service_option[${serviceId}][${option.option_id}]" class="mobooking-bf__input" data-price="${priceImpact}" data-price-type="${priceImpactType}" ${requiredAttr}>
+            <label for="option-${serviceId}-${option.option_id}" class="NORDBOOKING-bf__label">${name} ${priceImpactHtml} ${requiredIndicator}</label>
+            <input type="text" id="option-${serviceId}-${option.option_id}" name="service_option[${serviceId}][${option.option_id}]" class="NORDBOOKING-bf__input" data-price="${priceImpact}" data-price-type="${priceImpactType}" ${requiredAttr}>
             ${descriptionHtml}
           </div>
         `);
@@ -786,12 +789,12 @@ jQuery(document).ready(function ($) {
     const isRequired = option.is_required == 1;
     const requiredAttr = isRequired ? "required" : "";
     const requiredIndicator = isRequired
-      ? '<span class="mobooking-bf__required" style="color: red;">*</span>'
+      ? '<span class="NORDBOOKING-bf__required" style="color: red;">*</span>'
       : "";
 
     let descriptionHtml = "";
     if (description) {
-      descriptionHtml = `<p class="mobooking-bf__option-description">${description}</p>`;
+      descriptionHtml = `<p class="NORDBOOKING-bf__option-description">${description}</p>`;
     }
 
     let rangesHtml = "";
@@ -807,47 +810,49 @@ jQuery(document).ready(function ($) {
             const toValue = range.to || "∞";
             const price = parseFloat(range.price) || 0;
             rangesHtml += `
-              <div class="mobooking-bf__sqm-range">
+              <div class="NORDBOOKING-bf__sqm-range">
                 <span>${fromValue} - ${toValue} sqm: ${currencySymbol}${price}/sqm</span>
               </div>
             `;
           });
         }
       } catch (e) {
-        console.error("[MoBooking Debug] Error parsing SQM ranges:", e);
+        console.error("[NORDBOOKING Debug] Error parsing SQM ranges:", e);
       }
     }
 
     const commonClasses =
-      "mobooking-bf__option-group mobooking-bf__option-item";
+      "NORDBOOKING-bf__option-group NORDBOOKING-bf__option-item";
     const dataAttrs = `data-service-id="${serviceId}" data-option-id="${option.option_id}" data-option-type="sqm"`;
 
     return $(`
       <div class="${commonClasses}" ${dataAttrs}>
-        <label for="option-${serviceId}-${option.option_id}" class="mobooking-bf__label">${name} ${requiredIndicator}</label>
-        <div class="mobooking-bf__sqm-ranges">${rangesHtml}</div>
-        <input type="number" id="option-${serviceId}-${option.option_id}" name="service_option[${serviceId}][${option.option_id}]" class="mobooking-bf__input" placeholder="Enter square meters" min="1" step="0.1" data-option-ranges='${JSON.stringify(option.option_values)}' ${requiredAttr}>
+        <label for="option-${serviceId}-${option.option_id}" class="NORDBOOKING-bf__label">${name} ${requiredIndicator}</label>
+        <div class="NORDBOOKING-bf__sqm-ranges">${rangesHtml}</div>
+        <input type="number" id="option-${serviceId}-${option.option_id}" name="service_option[${serviceId}][${option.option_id}]" class="NORDBOOKING-bf__input" placeholder="Enter square meters" min="1" step="0.1" data-option-ranges='${JSON.stringify(option.option_values)}' ${requiredAttr}>
         ${descriptionHtml}
       </div>
     `);
   }
 
   function initializeOptionInteractivity() {
-    console.log("[MoBooking Debug] Initializing option interactivity...");
+    console.log("[NORDBOOKING Debug] Initializing option interactivity...");
 
     // Remove existing handlers to prevent duplicates
-    $(document).off("click.mobooking-options");
-    $(document).off("change.mobooking-options");
-    $(document).off("input.mobooking-options");
+    $(document).off("click.NORDBOOKING-options");
+    $(document).off("change.NORDBOOKING-options");
+    $(document).off("input.NORDBOOKING-options");
 
     // Handle quantity/number button controls
     $(document).on(
-      "click.mobooking-options",
-      ".mobooking-bf__number-btn",
+      "click.NORDBOOKING-options",
+      ".NORDBOOKING-bf__number-btn",
       function (e) {
         e.preventDefault();
         const action = $(this).data("action");
-        const wrapper = $(this).closest(".mobooking-bf__number-input-wrapper");
+        const wrapper = $(this).closest(
+          ".NORDBOOKING-bf__number-input-wrapper"
+        );
         const input = wrapper.find('input[type="number"]');
         let currentValue = parseInt(input.val()) || 0;
 
@@ -861,11 +866,11 @@ jQuery(document).ready(function ($) {
 
     // Handle all option changes for pricing updates
     $(document).on(
-      "change.mobooking-options input.mobooking-options",
-      ".mobooking-bf__option-item input, .mobooking-bf__option-item select, .mobooking-bf__option-item textarea",
+      "change.NORDBOOKING-options input.NORDBOOKING-options",
+      ".NORDBOOKING-bf__option-item input, .NORDBOOKING-bf__option-item select, .NORDBOOKING-bf__option-item textarea",
       function () {
         console.log(
-          "[MoBooking Debug] Option changed:",
+          "[NORDBOOKING Debug] Option changed:",
           $(this).attr("name"),
           $(this).val()
         );
@@ -879,7 +884,7 @@ jQuery(document).ready(function ($) {
   function updateOptionsSelection() {
     if (!currentSelectionForSummary.service) {
       console.log(
-        "[MoBooking Debug] No service selected, skipping options update"
+        "[NORDBOOKING Debug] No service selected, skipping options update"
       );
       return;
     }
@@ -887,13 +892,16 @@ jQuery(document).ready(function ($) {
     currentSelectionForSummary.options = {};
     let optionsTotal = 0;
 
-    $(".mobooking-bf__option-item").each(function () {
+    $(".NORDBOOKING-bf__option-item").each(function () {
       const $item = $(this);
       const optionId = $item.data("option-id");
       const optionType = $item.data("option-type");
 
       if (!optionId) {
-        console.warn("[MoBooking Debug] Option item missing option-id:", $item);
+        console.warn(
+          "[NORDBOOKING Debug] Option item missing option-id:",
+          $item
+        );
         return;
       }
 
@@ -966,7 +974,7 @@ jQuery(document).ready(function ($) {
 
         optionsTotal += price;
 
-        console.log(`[MoBooking Debug] Option ${optionId} updated:`, {
+        console.log(`[NORDBOOKING Debug] Option ${optionId} updated:`, {
           name: name,
           value: value,
           price: price,
@@ -1019,16 +1027,16 @@ jQuery(document).ready(function ($) {
 
       return 0;
     } catch (e) {
-      console.error("[MoBooking Debug] Error calculating SQM price:", e);
+      console.error("[NORDBOOKING Debug] Error calculating SQM price:", e);
       return 0;
     }
   }
 
   // Options navigation buttons
-  $("#mobooking-bf-options-next-btn").on("click", function () {
+  $("#NORDBOOKING-bf-options-next-btn").on("click", function () {
     // Validate required options
     let missingRequired = [];
-    $(".mobooking-bf__option-item").each(function () {
+    $(".NORDBOOKING-bf__option-item").each(function () {
       const $item = $(this);
       const optionType = $item.data("option-type");
       const optionName = getOptionName($item);
@@ -1067,7 +1075,7 @@ jQuery(document).ready(function ($) {
     displayStep(4);
   });
 
-  $("#mobooking-bf-options-back-btn").on("click", function () {
+  $("#NORDBOOKING-bf-options-back-btn").on("click", function () {
     displayStep(2);
   });
 
@@ -1075,18 +1083,18 @@ jQuery(document).ready(function ($) {
   // STEP 4: BOOKING DETAILS
   // ==========================================
 
-  $("#mobooking-bf-details-form").on("submit", function (e) {
+  $("#NORDBOOKING-bf-details-form").on("submit", function (e) {
     e.preventDefault();
 
     // Collect form data
     const formData = {
-      customer_name: $("#mobooking-bf-customer-name").val().trim(),
-      customer_email: $("#mobooking-bf-customer-email").val().trim(),
-      customer_phone: $("#mobooking-bf-customer-phone").val().trim(),
-      service_address: $("#mobooking-bf-service-address").val().trim(),
-      preferred_date: $("#mobooking-bf-preferred-date").val(),
-      preferred_time: $("#mobooking-bf-preferred-time").val(),
-      special_instructions: $("#mobooking-bf-special-instructions")
+      customer_name: $("#NORDBOOKING-bf-customer-name").val().trim(),
+      customer_email: $("#NORDBOOKING-bf-customer-email").val().trim(),
+      customer_phone: $("#NORDBOOKING-bf-customer-phone").val().trim(),
+      service_address: $("#NORDBOOKING-bf-service-address").val().trim(),
+      preferred_date: $("#NORDBOOKING-bf-preferred-date").val(),
+      preferred_time: $("#NORDBOOKING-bf-preferred-time").val(),
+      special_instructions: $("#NORDBOOKING-bf-special-instructions")
         .val()
         .trim(),
     };
@@ -1132,7 +1140,7 @@ jQuery(document).ready(function ($) {
     displayStep5_Review();
   });
 
-  $("#mobooking-bf-details-back-btn").on("click", function () {
+  $("#NORDBOOKING-bf-details-back-btn").on("click", function () {
     displayStep(3);
   });
 
@@ -1141,7 +1149,7 @@ jQuery(document).ready(function ($) {
   // ==========================================
 
   function displayStep5_Review() {
-    console.log("[MoBooking Debug] Displaying review step");
+    console.log("[NORDBOOKING Debug] Displaying review step");
 
     updatePricing();
     renderReviewSummary();
@@ -1161,9 +1169,9 @@ jQuery(document).ready(function ($) {
     const pricing = currentSelectionForSummary.pricing;
 
     let summaryHtml = `
-      <div class="mobooking-bf__review-section">
+      <div class="NORDBOOKING-bf__review-section">
         <h4>Service Details</h4>
-        <div class="mobooking-bf__review-service">
+        <div class="NORDBOOKING-bf__review-service">
           <h5>${escapeHtml(service.name)}</h5>
           <p><strong>Duration:</strong> ${service.duration} minutes</p>
           <p><strong>Base Price:</strong> ${currencySymbol}${parseFloat(
@@ -1176,16 +1184,16 @@ jQuery(document).ready(function ($) {
     // Show selected options
     if (Object.keys(currentSelectionForSummary.options).length > 0) {
       summaryHtml +=
-        '<div class="mobooking-bf__review-section"><h4>Selected Options</h4>';
+        '<div class="NORDBOOKING-bf__review-section"><h4>Selected Options</h4>';
       Object.values(currentSelectionForSummary.options).forEach((option) => {
         summaryHtml += `
-          <div class="mobooking-bf__review-option">
+          <div class="NORDBOOKING-bf__review-option">
             <strong>${escapeHtml(option.name)}:</strong> ${escapeHtml(
           option.value
         )}
             ${
               option.price > 0
-                ? `<span class="mobooking-bf__option-price">(+${currencySymbol}${option.price.toFixed(
+                ? `<span class="NORDBOOKING-bf__option-price">(+${currencySymbol}${option.price.toFixed(
                     2
                   )})</span>`
                 : ""
@@ -1198,7 +1206,7 @@ jQuery(document).ready(function ($) {
 
     // Show customer details
     summaryHtml += `
-      <div class="mobooking-bf__review-section">
+      <div class="NORDBOOKING-bf__review-section">
         <h4>Customer Information</h4>
         <p><strong>Name:</strong> ${escapeHtml(details.customer_name)}</p>
         <p><strong>Email:</strong> ${escapeHtml(details.customer_email)}</p>
@@ -1234,7 +1242,7 @@ jQuery(document).ready(function ($) {
 
   function initializeDiscountFunctionality() {
     if (formSettings.bf_allow_discount_codes !== "1") {
-      $(".mobooking-bf__discount-section").hide();
+      $(".NORDBOOKING-bf__discount-section").hide();
       return;
     }
 
@@ -1251,11 +1259,11 @@ jQuery(document).ready(function ($) {
 
       // Apply discount via AJAX
       $.ajax({
-        url: mobooking_booking_form_params.ajax_url,
+        url: nordbooking_booking_form_params.ajax_url,
         type: "POST",
         data: {
-          action: "mobooking_apply_discount",
-          nonce: mobooking_booking_form_params.nonce,
+          action: "nordbooking_apply_discount",
+          nonce: nordbooking_booking_form_params.nonce,
           discount_code: discountCode,
           tenant_id: tenantIdField.val(),
           subtotal: currentSelectionForSummary.pricing.subtotal,
@@ -1294,11 +1302,11 @@ jQuery(document).ready(function ($) {
     });
   }
 
-  $("#mobooking-bf-review-back-btn").on("click", function () {
+  $("#NORDBOOKING-bf-review-back-btn").on("click", function () {
     displayStep(4);
   });
 
-  $("#mobooking-bf-final-submit-btn").on("click", function () {
+  $("#NORDBOOKING-bf-final-submit-btn").on("click", function () {
     // Final booking submission
     submitBooking();
   });
@@ -1330,7 +1338,7 @@ jQuery(document).ready(function ($) {
     pricingForReviewPanel.finalTotal = finalTotal;
 
     console.log(
-      "[MoBooking Debug] Pricing updated:",
+      "[NORDBOOKING Debug] Pricing updated:",
       currentSelectionForSummary.pricing
     );
   }
@@ -1356,13 +1364,13 @@ jQuery(document).ready(function ($) {
 
   function renderOrUpdateSidebarSummary() {
     if (!sidebarSummaryDiv.length) {
-      console.log("[MoBooking Debug] Sidebar summary div not found");
+      console.log("[NORDBOOKING Debug] Sidebar summary div not found");
       return;
     }
 
     if (!currentSelectionForSummary.service) {
       sidebarSummaryDiv.html(
-        '<p class="mobooking-bf__sidebar-empty">No service selected</p>'
+        '<p class="NORDBOOKING-bf__sidebar-empty">No service selected</p>'
       );
       return;
     }
@@ -1371,13 +1379,13 @@ jQuery(document).ready(function ($) {
     const pricing = currentSelectionForSummary.pricing;
 
     let summaryHtml = `
-      <div class="mobooking-bf__sidebar-service">
+      <div class="NORDBOOKING-bf__sidebar-service">
         <h4>${escapeHtml(service.name)}</h4>
-        <div class="mobooking-bf__sidebar-price">
-          <span class="mobooking-bf__sidebar-service-price">${currencySymbol}${parseFloat(
+        <div class="NORDBOOKING-bf__sidebar-price">
+          <span class="NORDBOOKING-bf__sidebar-service-price">${currencySymbol}${parseFloat(
       service.price
     ).toFixed(2)}</span>
-          <span class="mobooking-bf__sidebar-duration">${
+          <span class="NORDBOOKING-bf__sidebar-duration">${
             service.duration
           } min</span>
         </div>
@@ -1387,16 +1395,16 @@ jQuery(document).ready(function ($) {
     // Show selected options
     if (Object.keys(currentSelectionForSummary.options).length > 0) {
       summaryHtml +=
-        '<div class="mobooking-bf__sidebar-options"><h5>Options</h5>';
+        '<div class="NORDBOOKING-bf__sidebar-options"><h5>Options</h5>';
       Object.values(currentSelectionForSummary.options).forEach((option) => {
         summaryHtml += `
-          <div class="mobooking-bf__sidebar-option">
-            <span class="mobooking-bf__sidebar-option-name">${escapeHtml(
+          <div class="NORDBOOKING-bf__sidebar-option">
+            <span class="NORDBOOKING-bf__sidebar-option-name">${escapeHtml(
               option.name
             )}: ${escapeHtml(option.value)}</span>
             ${
               option.price > 0
-                ? `<span class="mobooking-bf__sidebar-option-price">+${currencySymbol}${option.price.toFixed(
+                ? `<span class="NORDBOOKING-bf__sidebar-option-price">+${currencySymbol}${option.price.toFixed(
                     2
                   )}</span>`
                 : ""
@@ -1409,22 +1417,22 @@ jQuery(document).ready(function ($) {
 
     // Show pricing summary
     summaryHtml += `
-      <div class="mobooking-bf__sidebar-pricing">
-        <div class="mobooking-bf__sidebar-subtotal">
+      <div class="NORDBOOKING-bf__sidebar-pricing">
+        <div class="NORDBOOKING-bf__sidebar-subtotal">
           <span>Subtotal:</span>
           <span>${currencySymbol}${pricing.subtotal.toFixed(2)}</span>
         </div>
         ${
           pricing.discountAmount > 0
             ? `
-          <div class="mobooking-bf__sidebar-discount">
+          <div class="NORDBOOKING-bf__sidebar-discount">
             <span>Discount:</span>
             <span>-${currencySymbol}${pricing.discountAmount.toFixed(2)}</span>
           </div>
         `
             : ""
         }
-        <div class="mobooking-bf__sidebar-total">
+        <div class="NORDBOOKING-bf__sidebar-total">
           <span><strong>Total:</strong></span>
           <span><strong>${currencySymbol}${pricing.finalTotal.toFixed(
       2
@@ -1435,7 +1443,7 @@ jQuery(document).ready(function ($) {
 
     sidebarSummaryDiv.html(summaryHtml);
 
-    console.log("[MoBooking Debug] Sidebar summary updated");
+    console.log("[NORDBOOKING Debug] Sidebar summary updated");
   }
 
   // ==========================================
@@ -1443,14 +1451,14 @@ jQuery(document).ready(function ($) {
   // ==========================================
 
   function submitBooking() {
-    const submitBtn = $("#mobooking-bf-final-submit-btn");
+    const submitBtn = $("#NORDBOOKING-bf-final-submit-btn");
     const originalBtnText = submitBtn.text();
 
     submitBtn.prop("disabled", true).text("Submitting...");
 
     const bookingData = {
-      action: "mobooking_submit_booking",
-      nonce: mobooking_booking_form_params.nonce,
+      action: "nordbooking_submit_booking",
+      nonce: nordbooking_booking_form_params.nonce,
       tenant_id: tenantIdField.val(),
       service: currentSelectionForSummary.service,
       options: currentSelectionForSummary.options,
@@ -1460,7 +1468,7 @@ jQuery(document).ready(function ($) {
     };
 
     $.ajax({
-      url: mobooking_booking_form_params.ajax_url,
+      url: nordbooking_booking_form_params.ajax_url,
       type: "POST",
       data: bookingData,
       success: function (response) {
@@ -1488,8 +1496,8 @@ jQuery(document).ready(function ($) {
 
   function displayStep6_Success(data) {
     const successHtml = `
-      <div class="mobooking-bf__success">
-        <div class="mobooking-bf__success-icon">
+      <div class="NORDBOOKING-bf__success">
+        <div class="NORDBOOKING-bf__success-icon">
           <i class="fas fa-check-circle"></i>
         </div>
         <h2>Booking Confirmed!</h2>
@@ -1500,15 +1508,15 @@ jQuery(document).ready(function ($) {
             : ""
         }
         <p>You will receive a confirmation email shortly.</p>
-        <div class="mobooking-bf__success-actions">
-          <button type="button" class="mobooking-bf__button mobooking-bf__button--primary" onclick="window.location.reload();">
+        <div class="NORDBOOKING-bf__success-actions">
+          <button type="button" class="NORDBOOKING-bf__button NORDBOOKING-bf__button--primary" onclick="window.location.reload();">
             Book Another Service
           </button>
         </div>
       </div>
     `;
 
-    $(".mobooking-bf__container").html(successHtml);
+    $(".NORDBOOKING-bf__container").html(successHtml);
   }
 
   // ==========================================
@@ -1516,7 +1524,7 @@ jQuery(document).ready(function ($) {
   // ==========================================
 
   function getOptionName($item) {
-    let name = $item.find(".mobooking-bf__label").first().text().trim();
+    let name = $item.find(".NORDBOOKING-bf__label").first().text().trim();
     name = name.replace(/\([+×]\$?[\d.%]+\)/g, "");
     name = name.replace(/\*\s*$/, "");
     return name.trim() || "Unknown Option";
@@ -1534,7 +1542,7 @@ jQuery(document).ready(function ($) {
   // ==========================================
 
   function debugServiceOptions() {
-    console.log("=== MoBooking Service Options Debug ===");
+    console.log("=== NORDBOOKING Service Options Debug ===");
     console.log("Current service:", currentSelectionForSummary.service);
     console.log("Current options:", currentSelectionForSummary.options);
     console.log("Current pricing:", currentSelectionForSummary.pricing);
@@ -1562,11 +1570,11 @@ jQuery(document).ready(function ($) {
 
   // Make debug function available globally
   window.debugServiceOptions = debugServiceOptions;
-  window.mobookingCurrentSelection = currentSelectionForSummary;
+  window.nordbookingCurrentSelection = currentSelectionForSummary;
 
   // Initialize pricing
   updatePricing();
   renderOrUpdateSidebarSummary();
 
-  console.log("[MoBooking Debug] Booking form setup complete");
+  console.log("[NORDBOOKING Debug] Booking form setup complete");
 });

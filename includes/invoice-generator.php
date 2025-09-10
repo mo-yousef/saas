@@ -1,11 +1,11 @@
 <?php
 /**
- * Invoice Generator for MoBooking
+ * Invoice Generator for NORDBOOKING
  *
  * This file is responsible for generating a PDF invoice for a given booking.
  * It is included by page-booking-single.php when the 'download_invoice' parameter is set.
  *
- * @package MoBooking
+ * @package NORDBOOKING
  */
 
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
@@ -27,7 +27,7 @@ if ( ! isset( $booking ) || ! is_array( $booking ) ) {
 }
 
 // 3. Instantiate the Settings class
-$settings_manager = new \MoBooking\Classes\Settings();
+$settings_manager = new \NORDBOOKING\Classes\Settings();
 
 // 4. Fetch business settings
 $business_settings = $settings_manager->get_business_settings( $booking_owner_id_for_fetch );

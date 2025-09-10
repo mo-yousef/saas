@@ -2,7 +2,7 @@
 /**
  * Template part for displaying page content in page.php
  *
- * @package MoBooking
+ * @package NORDBOOKING
  */
 ?>
 
@@ -23,7 +23,7 @@
 
         wp_link_pages(
             array(
-                'before' => '<div class="page-links">' . esc_html__( 'Pages:', 'mobooking' ),
+                'before' => '<div class="page-links">' . esc_html__( 'Pages:', 'NORDBOOKING' ),
                 'after'  => '</div>',
             )
         );
@@ -37,7 +37,7 @@
                 sprintf(
                     wp_kses(
                         /* translators: %s: Name of current post. Only visible to screen readers */
-                        __( 'Edit <span class="screen-reader-text">%s</span>', 'mobooking' ),
+                        __( 'Edit <span class="screen-reader-text">%s</span>', 'NORDBOOKING' ),
                         array(
                             'span' => array(
                                 'class' => array(),

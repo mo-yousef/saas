@@ -1,7 +1,7 @@
 /* assets/css/auth-pages.css */
 
 /* Full page container for auth pages */
-.mobooking-auth-page-container {
+.NORDBOOKING-auth-page-container {
     display: flex;
     min-height: 100vh;
     width: 100%;
@@ -11,7 +11,7 @@
 }
 
 /* Grid container for the two columns */
-.mobooking-auth-grid {
+.NORDBOOKING-auth-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
     width: 100%;
@@ -25,7 +25,7 @@
 }
 
 /* Left column: Illustration/Image */
-.mobooking-auth-image-column {
+.NORDBOOKING-auth-image-column {
     background-color: hsl(222.2 47.4% 11.2%);
     /* bg-slate-900 (primary dark) */
     background-size: cover;
@@ -40,11 +40,11 @@
     color: hsl(0 0% 100%);
 }
 
-.mobooking-auth-image-column .placeholder-content {
+.NORDBOOKING-auth-image-column .placeholder-content {
     text-align: center;
 }
 
-.mobooking-auth-image-column .placeholder-content h1 {
+.NORDBOOKING-auth-image-column .placeholder-content h1 {
     font-size: 1.875rem;
     /* text-3xl */
     font-weight: 700;
@@ -54,7 +54,7 @@
     /* mb-4 */
 }
 
-.mobooking-auth-image-column .placeholder-content p {
+.NORDBOOKING-auth-image-column .placeholder-content p {
     font-size: 0.875rem;
     /* text-sm */
     color: hsl(215 20.2% 65.1%);
@@ -63,7 +63,7 @@
 }
 
 /* Right column: Form content */
-.mobooking-auth-form-column {
+.NORDBOOKING-auth-form-column {
     background-color: hsl(0 0% 100%);
     /* bg-card (white) */
     padding: 2.5rem;
@@ -75,13 +75,13 @@
     /* For smaller heights if form is long */
 }
 
-.mobooking-auth-form-wrapper {
+.NORDBOOKING-auth-form-wrapper {
     max-width: 400px;
     width: 100%;
     margin: 0 auto;
 }
 
-.mobooking-auth-form-wrapper h2 {
+.NORDBOOKING-auth-form-wrapper h2 {
     font-size: 1.5rem;
     /* text-2xl */
     font-weight: 600;
@@ -95,7 +95,7 @@
     /* tracking-tight */
 }
 
-.mobooking-auth-form-wrapper h3 {
+.NORDBOOKING-auth-form-wrapper h3 {
     /* For step titles */
     font-size: 1.125rem;
     /* text-lg */
@@ -110,7 +110,7 @@
 
 
 /* Input field styling (based on shadcn/ui Input) */
-.mobooking-auth-form-wrapper .input {
+.NORDBOOKING-auth-form-wrapper .input {
     display: flex;
     height: 2.5rem;
     /* h-10 */
@@ -131,12 +131,12 @@
     transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 }
 
-.mobooking-auth-form-wrapper .input::placeholder {
+.NORDBOOKING-auth-form-wrapper .input::placeholder {
     color: hsl(215.4 16.3% 46.9%);
     /* text-muted-foreground */
 }
 
-.mobooking-auth-form-wrapper .input:focus {
+.NORDBOOKING-auth-form-wrapper .input:focus {
     outline: none;
     border-color: hsl(221.2 83.2% 53.3%);
     /* ring-ring (focus) */
@@ -145,7 +145,7 @@
 }
 
 /* Button styling (based on shadcn/ui Button) */
-.mobooking-auth-form-wrapper .button {
+.NORDBOOKING-auth-form-wrapper .button {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -166,13 +166,13 @@
     line-height: 1.25rem;
 }
 
-.mobooking-auth-form-wrapper .button:focus-visible {
+.NORDBOOKING-auth-form-wrapper .button:focus-visible {
     outline: none;
     box-shadow: 0 0 0 2px hsl(221.2 83.2% 53.3% / 0.4);
     /* focus ring */
 }
 
-.mobooking-auth-form-wrapper .button.button-primary {
+.NORDBOOKING-auth-form-wrapper .button.button-primary {
     background-color: hsl(222.2 47.4% 11.2%);
     /* bg-primary (dark blue) */
     color: hsl(210 40% 98%);
@@ -180,12 +180,12 @@
     border-color: hsl(222.2 47.4% 11.2%);
 }
 
-.mobooking-auth-form-wrapper .button.button-primary:hover {
+.NORDBOOKING-auth-form-wrapper .button.button-primary:hover {
     background-color: hsl(222.2 47.4% 11.2% / 0.9);
     /* bg-primary/90 */
 }
 
-.mobooking-auth-form-wrapper .button:not(.button-primary) {
+.NORDBOOKING-auth-form-wrapper .button:not(.button-primary) {
     /* Secondary/Default button */
     background-color: hsl(0 0% 100%);
     /* bg-background */
@@ -195,7 +195,7 @@
     /* text-accent-foreground */
 }
 
-.mobooking-auth-form-wrapper .button:not(.button-primary):hover {
+.NORDBOOKING-auth-form-wrapper .button:not(.button-primary):hover {
     background-color: hsl(210 40% 96.1%);
     /* bg-accent */
     color: hsl(222.2 84% 4.9%);
@@ -204,7 +204,7 @@
 
 
 /* Links below the form */
-.mobooking-auth-links {
+.NORDBOOKING-auth-links {
     margin-top: 1.5rem;
     /* mt-6 */
     text-align: center;
@@ -212,12 +212,12 @@
     /* text-sm */
 }
 
-.mobooking-auth-links p {
+.NORDBOOKING-auth-links p {
     margin-bottom: 0.25rem;
     /* Minimal spacing between links */
 }
 
-.mobooking-auth-links a {
+.NORDBOOKING-auth-links a {
     color: hsl(221.2 83.2% 53.3%);
     /* text-primary */
     text-decoration: none;
@@ -225,7 +225,7 @@
     /* font-medium */
 }
 
-.mobooking-auth-links a:hover {
+.NORDBOOKING-auth-links a:hover {
     text-decoration: underline;
 }
 
@@ -267,47 +267,47 @@
 
 /* Responsive adjustments */
 @media (max-width: 992px) {
-    .mobooking-auth-grid {
+    .NORDBOOKING-auth-grid {
         grid-template-columns: 1fr;
         max-width: 500px;
         margin: 2rem auto;
         border-radius: 0.5rem;
     }
 
-    .mobooking-auth-image-column {
+    .NORDBOOKING-auth-image-column {
         min-height: 200px;
         /* display: none; */
         /* Option: hide image on smaller screens */
     }
 
-    .mobooking-auth-form-column {
+    .NORDBOOKING-auth-form-column {
         padding: 2rem;
     }
 }
 
 @media (max-width: 576px) {
-    .mobooking-auth-page-container {
+    .NORDBOOKING-auth-page-container {
         padding: 1rem;
         /* Add padding to page itself on mobile */
     }
 
-    .mobooking-auth-grid {
+    .NORDBOOKING-auth-grid {
         margin: 1rem auto;
         box-shadow: none;
         /* Remove shadow on very small screens if it looks odd */
         border-radius: 0.375rem;
     }
 
-    .mobooking-auth-image-column {
+    .NORDBOOKING-auth-image-column {
         display: none;
         /* Hide image column on very small screens */
     }
 
-    .mobooking-auth-form-column {
+    .NORDBOOKING-auth-form-column {
         padding: 1.5rem;
     }
 
-    .mobooking-auth-form-wrapper h2 {
+    .NORDBOOKING-auth-form-wrapper h2 {
         font-size: 1.25rem;
         /* text-xl */
         margin-bottom: 1rem;
@@ -315,18 +315,18 @@
 }
 
 /* General form element layout */
-.mobooking-auth-form-wrapper .input,
-.mobooking-auth-form-wrapper .button.button-primary[type="submit"] {
+.NORDBOOKING-auth-form-wrapper .input,
+.NORDBOOKING-auth-form-wrapper .button.button-primary[type="submit"] {
     /* Full width only for main submit button */
     width: 100%;
 }
 
-.mobooking-auth-form-wrapper p {
+.NORDBOOKING-auth-form-wrapper p {
     margin-bottom: 1rem;
     /* mb-4 */
 }
 
-.mobooking-auth-form-wrapper p.login-remember {
+.NORDBOOKING-auth-form-wrapper p.login-remember {
     /* Specific for remember me checkbox */
     display: flex;
     align-items: center;
@@ -334,7 +334,7 @@
     /* mb-5 */
 }
 
-.mobooking-auth-form-wrapper p.login-remember label {
+.NORDBOOKING-auth-form-wrapper p.login-remember label {
     font-weight: 400;
     /* normal */
     font-size: 0.875rem;
@@ -345,7 +345,7 @@
     color: hsl(215.4 16.3% 46.9%);
 }
 
-.mobooking-auth-form-wrapper p.login-remember input[type="checkbox"] {
+.NORDBOOKING-auth-form-wrapper p.login-remember input[type="checkbox"] {
     height: 1rem;
     width: 1rem;
     /* h-4 w-4 */
@@ -355,7 +355,7 @@
     /* border-primary */
 }
 
-.mobooking-auth-form-wrapper p label:not(.login-remember label) {
+.NORDBOOKING-auth-form-wrapper p label:not(.login-remember label) {
     display: block;
     margin-bottom: 0.5rem;
     /* mb-2 */
@@ -366,7 +366,7 @@
     color: hsl(222.2 84% 4.9%);
 }
 
-.mobooking-auth-form-wrapper small {
+.NORDBOOKING-auth-form-wrapper small {
     font-size: 0.75rem;
     /* text-xs */
     color: hsl(215.4 16.3% 46.9%);
@@ -377,14 +377,14 @@
 }
 
 /* Progress bar styling */
-#mobooking-progress-bar {
+#NORDBOOKING-progress-bar {
     display: flex;
     justify-content: space-between;
     margin-bottom: 1.5rem;
     gap: 0.5rem;
 }
 
-.mobooking-progress-step {
+.NORDBOOKING-progress-step {
     flex: 1;
     text-align: center;
     padding: 0.5rem 0.25rem;
@@ -396,7 +396,7 @@
     transition: all 0.2s ease-in-out;
 }
 
-.mobooking-progress-step.active {
+.NORDBOOKING-progress-step.active {
     background-color: hsl(222.2 47.4% 11.2%);
     /* bg-primary */
     color: hsl(210 40% 98%);
@@ -406,7 +406,7 @@
 }
 
 /* Step transitions */
-.mobooking-register-step {
+.NORDBOOKING-register-step {
     opacity: 0;
     transform: translateY(10px);
     transition: opacity 0.3s ease-out, transform 0.3s ease-out;
@@ -414,7 +414,7 @@
     visibility: hidden;
 }
 
-.mobooking-register-step.active {
+.NORDBOOKING-register-step.active {
     opacity: 1;
     transform: translateY(0);
     display: block;
@@ -434,8 +434,8 @@
 
 
 /* Error and Success Messages */
-#mobooking-register-message,
-#mobooking-login-message {
+#NORDBOOKING-register-message,
+#NORDBOOKING-login-message {
     padding: 0.75rem 1rem;
     /* p-3 */
     margin-top: 1rem;
@@ -449,8 +449,8 @@
     border-style: solid;
 }
 
-#mobooking-register-message.error,
-#mobooking-login-message.error {
+#NORDBOOKING-register-message.error,
+#NORDBOOKING-login-message.error {
     color: hsl(0 72.2% 50.6%);
     /* text-destructive */
     background-color: hsl(0 100% 98%);
@@ -459,8 +459,8 @@
     /* border-destructive */
 }
 
-#mobooking-register-message.success,
-#mobooking-login-message.success {
+#NORDBOOKING-register-message.success,
+#NORDBOOKING-login-message.success {
     color: hsl(142.1 70.6% 35.3%);
     /* Adjusted for better contrast on light bg */
     background-color: hsl(145 75% 96.3%);
@@ -528,14 +528,14 @@
 
 
 /* Confirmation step styling */
-#mobooking-confirmation-details p {
+#NORDBOOKING-confirmation-details p {
     margin-bottom: 0.75rem;
     font-size: 0.9rem;
     color: hsl(215.4 16.3% 46.9%);
     /* text-muted-foreground */
 }
 
-#mobooking-confirmation-details p strong {
+#NORDBOOKING-confirmation-details p strong {
     color: hsl(222.2 84% 4.9%);
     /* text-foreground */
     margin-right: 0.5rem;

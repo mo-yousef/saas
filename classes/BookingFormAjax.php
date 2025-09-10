@@ -1,6 +1,6 @@
 <?php
 /**
- * Complete MoBooking AJAX Handlers
+ * Complete NORDBOOKING AJAX Handlers
  * File: classes/BookingFormAjax.php
  * 
  * This class handles all AJAX requests for the public booking form,
@@ -8,7 +8,7 @@
  * availability checking, discount application, and booking creation.
  */
 
-namespace MoBooking\Classes;
+namespace NORDBOOKING\Classes;
 
 if (!defined('ABSPATH')) {
     exit;
@@ -30,44 +30,44 @@ class BookingFormAjax {
         $this->wpdb = $wpdb;
         
         // Initialize managers
-        global $mobooking_services_manager, $mobooking_areas_manager, $mobooking_availability_manager;
-        global $mobooking_discounts_manager, $mobooking_bookings_manager, $mobooking_customers_manager;
-        global $mobooking_notifications_manager;
+        global $nordbooking_services_manager, $nordbooking_areas_manager, $nordbooking_availability_manager;
+        global $nordbooking_discounts_manager, $nordbooking_bookings_manager, $nordbooking_customers_manager;
+        global $nordbooking_notifications_manager;
         
-        $this->services_manager = $mobooking_services_manager;
-        $this->areas_manager = $mobooking_areas_manager;
-        $this->availability_manager = $mobooking_availability_manager;
-        $this->discounts_manager = $mobooking_discounts_manager;
-        $this->bookings_manager = $mobooking_bookings_manager;
-        $this->customers_manager = $mobooking_customers_manager;
-        $this->notifications_manager = $mobooking_notifications_manager;
+        $this->services_manager = $nordbooking_services_manager;
+        $this->areas_manager = $nordbooking_areas_manager;
+        $this->availability_manager = $nordbooking_availability_manager;
+        $this->discounts_manager = $nordbooking_discounts_manager;
+        $this->bookings_manager = $nordbooking_bookings_manager;
+        $this->customers_manager = $nordbooking_customers_manager;
+        $this->notifications_manager = $nordbooking_notifications_manager;
     }
 
     public function register_ajax_actions() {
         // Public booking form AJAX handlers
-        add_action('wp_ajax_nopriv_mobooking_check_service_area', [$this, 'handle_check_service_area']);
-        add_action('wp_ajax_mobooking_check_service_area', [$this, 'handle_check_service_area']);
+        add_action('wp_ajax_nopriv_nordbooking_check_service_area', [$this, 'handle_check_service_area']);
+        add_action('wp_ajax_nordbooking_check_service_area', [$this, 'handle_check_service_area']);
 
         
-        add_action('wp_ajax_nopriv_mobooking_get_service_options', [$this, 'handle_get_service_options']);
-        add_action('wp_ajax_mobooking_get_service_options', [$this, 'handle_get_service_options']);
+        add_action('wp_ajax_nopriv_nordbooking_get_service_options', [$this, 'handle_get_service_options']);
+        add_action('wp_ajax_nordbooking_get_service_options', [$this, 'handle_get_service_options']);
         
-        add_action('wp_ajax_nopriv_mobooking_get_available_time_slots', [$this, 'handle_get_available_time_slots']);
-        add_action('wp_ajax_mobooking_get_available_time_slots', [$this, 'handle_get_available_time_slots']);
+        add_action('wp_ajax_nopriv_nordbooking_get_available_time_slots', [$this, 'handle_get_available_time_slots']);
+        add_action('wp_ajax_nordbooking_get_available_time_slots', [$this, 'handle_get_available_time_slots']);
         
-        add_action('wp_ajax_nopriv_mobooking_apply_discount', [$this, 'handle_apply_discount']);
-        add_action('wp_ajax_mobooking_apply_discount', [$this, 'handle_apply_discount']);
+        add_action('wp_ajax_nopriv_nordbooking_apply_discount', [$this, 'handle_apply_discount']);
+        add_action('wp_ajax_nordbooking_apply_discount', [$this, 'handle_apply_discount']);
         
-        add_action('wp_ajax_nopriv_mobooking_create_booking', [$this, 'handle_create_booking_public_ajax']);
-        add_action('wp_ajax_mobooking_create_booking', [$this, 'handle_create_booking_public_ajax']);
+        add_action('wp_ajax_nopriv_nordbooking_create_booking', [$this, 'handle_create_booking_public_ajax']);
+        add_action('wp_ajax_nordbooking_create_booking', [$this, 'handle_create_booking_public_ajax']);
     }
 
     /**
      * Check if service is available in the specified area
      */
     public function handle_check_service_area() {
-        if (!check_ajax_referer('mobooking_booking_form_nonce', 'nonce', false)) {
-            wp_send_json_error(['message' => __('Security check failed.', 'mobooking')], 403);
+        if (!check_ajax_referer('nordbooking_booking_form_nonce', 'nonce', false)) {
+            wp_send_json_error(['message' => __('Security check failed.', 'NORDBOOKING')], 403);
             return;
         }
 
@@ -75,7 +75,7 @@ class BookingFormAjax {
         $location = isset($_POST['location']) ? sanitize_text_field($_POST['location']) : '';
 
         if (empty($tenant_id) || empty($location)) {
-            wp_send_json_error(['message' => __('Invalid parameters.', 'mobooking')], 400);
+            wp_send_json_error(['message' => __('Invalid parameters.', 'NORDBOOKING')], 400);
             return;
         }
 
@@ -90,7 +90,7 @@ class BookingFormAjax {
             if (empty($areas)) {
                 // If no service areas configured, consider service available (do not block booking)
                 wp_send_json_success([
-                    'message' => __('Service is available in your area!', 'mobooking'),
+                    'message' => __('Service is available in your area!', 'NORDBOOKING'),
                     'covered' => true,
                     'note' => 'no_areas_configured'
                 ]);
@@ -129,20 +129,20 @@ class BookingFormAjax {
 
             if ($is_covered) {
                 wp_send_json_success([
-                    'message' => __('Service is available in your area!', 'mobooking'),
+                    'message' => __('Service is available in your area!', 'NORDBOOKING'),
                     'covered' => true,
                     'area_name' => $area_name
                 ]);
             } else {
                 wp_send_json_error([
-                    'message' => __('Sorry, we do not currently service your area.', 'mobooking'),
+                    'message' => __('Sorry, we do not currently service your area.', 'NORDBOOKING'),
                     'covered' => false
                 ], 404);
             }
 
         } catch (Exception $e) {
-            error_log('MoBooking - Service area check error: ' . $e->getMessage());
-            wp_send_json_error(['message' => __('Error checking service area.', 'mobooking')], 500);
+            error_log('NORDBOOKING - Service area check error: ' . $e->getMessage());
+            wp_send_json_error(['message' => __('Error checking service area.', 'NORDBOOKING')], 500);
         }
     }
 
@@ -151,9 +151,9 @@ class BookingFormAjax {
      * Get service options for selected services
      */
     public function handle_get_service_options() {
-        error_log('[MoBooking AJAX Debug] Received POST for get_service_options: ' . print_r($_POST, true));
-        $nonce_verified = check_ajax_referer('mobooking_booking_form_nonce', 'nonce', false);
-        error_log('[MoBooking AJAX Debug] Nonce verification result: ' . ($nonce_verified ? 'SUCCESS' : 'FAILURE'));
+        error_log('[NORDBOOKING AJAX Debug] Received POST for get_service_options: ' . print_r($_POST, true));
+        $nonce_verified = check_ajax_referer('nordbooking_booking_form_nonce', 'nonce', false);
+        error_log('[NORDBOOKING AJAX Debug] Nonce verification result: ' . ($nonce_verified ? 'SUCCESS' : 'FAILURE'));
 
         if (!$nonce_verified) {
             wp_send_json_error(['message' => 'Error: Nonce verification failed.'], 403);
@@ -164,7 +164,7 @@ class BookingFormAjax {
         $service_ids = isset($_POST['service_ids']) ? array_map('intval', $_POST['service_ids']) : [];
 
         if (empty($tenant_id) || empty($service_ids)) {
-            wp_send_json_error(['message' => __('Invalid parameters.', 'mobooking')], 400);
+            wp_send_json_error(['message' => __('Invalid parameters.', 'NORDBOOKING')], 400);
             return;
         }
 
@@ -217,8 +217,8 @@ class BookingFormAjax {
             ]);
 
         } catch (Exception $e) {
-            error_log('MoBooking - Get service options error: ' . $e->getMessage());
-            wp_send_json_error(['message' => __('Error loading service options.', 'mobooking')], 500);
+            error_log('NORDBOOKING - Get service options error: ' . $e->getMessage());
+            wp_send_json_error(['message' => __('Error loading service options.', 'NORDBOOKING')], 500);
         }
     }
 
@@ -226,22 +226,22 @@ class BookingFormAjax {
      * Get available time slots for a specific date
      */
     public function handle_get_available_time_slots() {
-        if (!check_ajax_referer('mobooking_booking_form_nonce', 'nonce', false)) {
-            wp_send_json_error(['message' => __('Security check failed.', 'mobooking')], 403);
+        if (!check_ajax_referer('nordbooking_booking_form_nonce', 'nonce', false)) {
+            wp_send_json_error(['message' => __('Security check failed.', 'NORDBOOKING')], 403);
             return;
         }
 
         $tenant_id = isset($_POST['tenant_id']) ? intval($_POST['tenant_id']) : 0;
         $date = isset($_POST['date']) ? sanitize_text_field($_POST['date']) : '';
         if (empty($tenant_id) || empty($date)) {
-            wp_send_json_error(['message' => __('Invalid parameters.', 'mobooking')], 400);
+            wp_send_json_error(['message' => __('Invalid parameters.', 'NORDBOOKING')], 400);
             return;
         }
 
         // More robust date validation
         $d = \DateTime::createFromFormat('Y-m-d', $date);
         if (!$d || $d->format('Y-m-d') !== $date) {
-            wp_send_json_error(['message' => __('Invalid date format. Please use YYYY-MM-DD.', 'mobooking')], 400);
+            wp_send_json_error(['message' => __('Invalid date format. Please use YYYY-MM-DD.', 'NORDBOOKING')], 400);
             return;
         }
 
@@ -258,8 +258,8 @@ class BookingFormAjax {
             ]);
 
         } catch (Exception $e) {
-            error_log('MoBooking - Get time slots error: ' . $e->getMessage());
-            wp_send_json_error(['message' => __('Error loading available times.', 'mobooking')], 500);
+            error_log('NORDBOOKING - Get time slots error: ' . $e->getMessage());
+            wp_send_json_error(['message' => __('Error loading available times.', 'NORDBOOKING')], 500);
         }
     }
 
@@ -267,8 +267,8 @@ class BookingFormAjax {
      * Apply discount code to booking
      */
     public function handle_apply_discount() {
-        if (!check_ajax_referer('mobooking_booking_form_nonce', 'nonce', false)) {
-            wp_send_json_error(['message' => __('Security check failed.', 'mobooking')], 403);
+        if (!check_ajax_referer('nordbooking_booking_form_nonce', 'nonce', false)) {
+            wp_send_json_error(['message' => __('Security check failed.', 'NORDBOOKING')], 403);
             return;
         }
 
@@ -277,7 +277,7 @@ class BookingFormAjax {
         $subtotal = isset($_POST['subtotal']) ? floatval($_POST['subtotal']) : 0;
 
         if (empty($tenant_id) || empty($discount_code) || $subtotal <= 0) {
-            wp_send_json_error(['message' => __('Invalid parameters.', 'mobooking')], 400);
+            wp_send_json_error(['message' => __('Invalid parameters.', 'NORDBOOKING')], 400);
             return;
         }
 
@@ -292,7 +292,7 @@ class BookingFormAjax {
             ), ARRAY_A);
 
             if (!$discount) {
-                wp_send_json_error(['message' => __('Invalid discount code.', 'mobooking')], 404);
+                wp_send_json_error(['message' => __('Invalid discount code.', 'NORDBOOKING')], 404);
                 return;
             }
 
@@ -314,26 +314,26 @@ class BookingFormAjax {
                     'value' => floatval($discount['value']),
                     'discount_amount' => $discount_amount
                 ],
-                'message' => sprintf(__('Discount "%s" applied successfully!', 'mobooking'), $discount['code'])
+                'message' => sprintf(__('Discount "%s" applied successfully!', 'NORDBOOKING'), $discount['code'])
             ]);
 
         } catch (Exception $e) {
-            error_log('MoBooking - Apply discount error: ' . $e->getMessage());
-            wp_send_json_error(['message' => __('Error applying discount code.', 'mobooking')], 500);
+            error_log('NORDBOOKING - Apply discount error: ' . $e->getMessage());
+            wp_send_json_error(['message' => __('Error applying discount code.', 'NORDBOOKING')], 500);
         }
     }
 
     public function handle_create_booking_public_ajax() {
         try {
             // 1. Security and Validation
-            if (!check_ajax_referer('mobooking_booking_form_nonce', 'nonce', false)) {
-                wp_send_json_error(['message' => __('Security check failed.', 'mobooking')], 403);
+            if (!check_ajax_referer('nordbooking_booking_form_nonce', 'nonce', false)) {
+                wp_send_json_error(['message' => __('Security check failed.', 'NORDBOOKING')], 403);
                 return;
             }
 
             $tenant_id = isset($_POST['tenant_id']) ? intval($_POST['tenant_id']) : 0;
             if (empty($tenant_id) || !get_userdata($tenant_id)) {
-                wp_send_json_error(['message' => __('Invalid tenant information.', 'mobooking')], 400);
+                wp_send_json_error(['message' => __('Invalid tenant information.', 'NORDBOOKING')], 400);
                 return;
             }
 
@@ -345,11 +345,11 @@ class BookingFormAjax {
 
             // Basic data integrity check
             if (is_wp_error($customer_details) || is_wp_error($selected_services) || is_wp_error($service_options)) {
-                wp_send_json_error(['message' => __('Invalid form data submitted.', 'mobooking')], 400);
+                wp_send_json_error(['message' => __('Invalid form data submitted.', 'NORDBOOKING')], 400);
                 return;
             }
             if (empty($selected_services)) {
-                wp_send_json_error(['message' => __('At least one service must be selected.', 'mobooking')], 400);
+                wp_send_json_error(['message' => __('At least one service must be selected.', 'NORDBOOKING')], 400);
                 return;
             }
 
@@ -420,7 +420,7 @@ class BookingFormAjax {
             $booking_id = $this->wpdb->insert_id;
 
             if (!$booking_id) {
-                wp_send_json_error(['message' => __('Could not save booking. Database error.', 'mobooking')], 500);
+                wp_send_json_error(['message' => __('Could not save booking. Database error.', 'NORDBOOKING')], 500);
                 return;
             }
 
@@ -452,7 +452,7 @@ class BookingFormAjax {
             ]);
 
         } catch (\Throwable $e) {
-            error_log('MoBooking Fatal Error in handle_create_booking_public_ajax: ' . $e->getMessage());
+            error_log('NORDBOOKING Fatal Error in handle_create_booking_public_ajax: ' . $e->getMessage());
             error_log($e->getTraceAsString());
             wp_send_json_error(['message' => 'A critical error occurred while creating your booking.'], 500);
         }
@@ -468,7 +468,7 @@ class BookingFormAjax {
             $table_name = Database::get_table_name($table_suffix);
 
             if ($this->wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name) {
-                error_log("MoBooking - Required table missing: $table_name");
+                error_log("NORDBOOKING - Required table missing: $table_name");
                 return false;
             }
         }
@@ -631,14 +631,14 @@ class BookingFormAjax {
         if (!empty($discount['expiry_date'])) {
             $expiry_date = strtotime($discount['expiry_date']);
             if ($expiry_date < time()) {
-                return new \WP_Error('discount_expired', __('This discount code has expired.', 'mobooking'));
+                return new \WP_Error('discount_expired', __('This discount code has expired.', 'NORDBOOKING'));
             }
         }
 
         // Check usage limit
         if (!empty($discount['usage_limit'])) {
             if (intval($discount['times_used']) >= intval($discount['usage_limit'])) {
-                return new \WP_Error('discount_limit_reached', __('This discount code has reached its usage limit.', 'mobooking'));
+                return new \WP_Error('discount_limit_reached', __('This discount code has reached its usage limit.', 'NORDBOOKING'));
             }
         }
 
@@ -669,7 +669,7 @@ class BookingFormAjax {
 
         foreach ($required_fields as $field) {
             if (empty($booking_data[$field])) {
-                return new \WP_Error('missing_field', sprintf(__('Required field "%s" is missing.', 'mobooking'), $field));
+                return new \WP_Error('missing_field', sprintf(__('Required field "%s" is missing.', 'NORDBOOKING'), $field));
             }
         }
 
@@ -677,28 +677,28 @@ class BookingFormAjax {
         $customer_required = ['name', 'email', 'phone', 'address', 'date', 'time'];
         foreach ($customer_required as $field) {
             if (empty($booking_data['customer'][$field])) {
-                return new \WP_Error('missing_customer_field', sprintf(__('Customer field "%s" is required.', 'mobooking'), $field));
+                return new \WP_Error('missing_customer_field', sprintf(__('Customer field "%s" is required.', 'NORDBOOKING'), $field));
             }
         }
 
         // Validate email
         if (!is_email($booking_data['customer']['email'])) {
-            return new \WP_Error('invalid_email', __('Invalid email address.', 'mobooking'));
+            return new \WP_Error('invalid_email', __('Invalid email address.', 'NORDBOOKING'));
         }
 
         // Validate date
         if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $booking_data['customer']['date'])) {
-            return new \WP_Error('invalid_date', __('Invalid date format.', 'mobooking'));
+            return new \WP_Error('invalid_date', __('Invalid date format.', 'NORDBOOKING'));
         }
 
         // Validate time
         if (!preg_match('/^\d{2}:\d{2}$/', $booking_data['customer']['time'])) {
-            return new \WP_Error('invalid_time', __('Invalid time format.', 'mobooking'));
+            return new \WP_Error('invalid_time', __('Invalid time format.', 'NORDBOOKING'));
         }
 
         // Validate services
         if (empty($booking_data['services']) || !is_array($booking_data['services'])) {
-            return new \WP_Error('no_services', __('At least one service must be selected.', 'mobooking'));
+            return new \WP_Error('no_services', __('At least one service must be selected.', 'NORDBOOKING'));
         }
 
         return true;
@@ -746,7 +746,7 @@ class BookingFormAjax {
             );
 
             if (!$inserted) {
-                return new \WP_Error('customer_creation_failed', __('Failed to create customer record.', 'mobooking'));
+                return new \WP_Error('customer_creation_failed', __('Failed to create customer record.', 'NORDBOOKING'));
             }
 
             return ['customer_id' => $this->wpdb->insert_id];
@@ -803,7 +803,7 @@ class BookingFormAjax {
             );
 
             if (!$inserted) {
-                return new \WP_Error('booking_item_creation_failed', __('Failed to create booking items.', 'mobooking'));
+                return new \WP_Error('booking_item_creation_failed', __('Failed to create booking items.', 'NORDBOOKING'));
             }
         }
 
@@ -828,8 +828,8 @@ class BookingFormAjax {
     private function send_booking_notifications($booking_id, $booking_data) {
         try {
             // Get business settings for email templates
-            global $mobooking_settings_manager;
-            $business_settings = $mobooking_settings_manager->get_business_settings($booking_data['tenant_id']);
+            global $nordbooking_settings_manager;
+            $business_settings = $nordbooking_settings_manager->get_business_settings($booking_data['tenant_id']);
 
             // Prepare email variables
             $email_vars = [
@@ -842,8 +842,8 @@ class BookingFormAjax {
                 'service_address' => $booking_data['customer']['address'],
                 'total_price' => number_format($booking_data['pricing']['total'], 2),
                 'special_instructions' => $booking_data['customer']['instructions'] ?? 'None',
-                'business_name' => $business_settings['biz_name'] ?? 'MoBooking',
-                'admin_booking_link' => admin_url('admin.php?page=mobooking-bookings&booking_id=' . $booking_id)
+                'business_name' => $business_settings['biz_name'] ?? 'NORDBOOKING',
+                'admin_booking_link' => admin_url('admin.php?page=NORDBOOKING-bookings&booking_id=' . $booking_id)
             ];
 
             // Send customer confirmation email
@@ -854,7 +854,7 @@ class BookingFormAjax {
             $this->send_admin_notification_email($admin_email, $email_vars, $business_settings);
 
         } catch (Exception $e) {
-            error_log('MoBooking - Notification sending error: ' . $e->getMessage());
+            error_log('NORDBOOKING - Notification sending error: ' . $e->getMessage());
             // Don't fail the booking if email sending fails
         }
     }
@@ -880,7 +880,7 @@ Thank you for choosing {{business_name}}!';
 
         $headers = [
             'Content-Type: text/html; charset=UTF-8',
-            'From: ' . ($business_settings['biz_name'] ?? 'MoBooking') . ' <' . ($business_settings['biz_email'] ?? get_option('admin_email')) . '>'
+            'From: ' . ($business_settings['biz_name'] ?? 'NORDBOOKING') . ' <' . ($business_settings['biz_email'] ?? get_option('admin_email')) . '>'
         ];
 
         wp_mail($customer_email, $subject, nl2br($body), $headers);
@@ -938,14 +938,14 @@ View booking: {{admin_booking_link}}';
      */
     private function safe_json_decode($json_string, $data_type = 'data') {
         if (empty($json_string)) {
-            return new \WP_Error('empty_json', sprintf(__('Empty data provided for %s', 'mobooking'), $data_type));
+            return new \WP_Error('empty_json', sprintf(__('Empty data provided for %s', 'NORDBOOKING'), $data_type));
         }
 
         // Clean the JSON string first
         $json_string = $this->clean_json_string($json_string);
 
         // Log the cleaned JSON for debugging
-        error_log("MoBooking - Decoding {$data_type}: " . substr($json_string, 0, 300) . (strlen($json_string) > 300 ? '...' : ''));
+        error_log("NORDBOOKING - Decoding {$data_type}: " . substr($json_string, 0, 300) . (strlen($json_string) > 300 ? '...' : ''));
 
         // Try to decode
         $decoded = json_decode($json_string, true);
@@ -956,14 +956,14 @@ View booking: {{admin_booking_link}}';
 
         // If initial decode fails, try common fixes
         $error_msg = json_last_error_msg();
-        error_log("MoBooking - Initial JSON decode failed for {$data_type}. Error: " . $error_msg);
+        error_log("NORDBOOKING - Initial JSON decode failed for {$data_type}. Error: " . $error_msg);
 
         // Try with stripslashes
         $stripped_json = stripslashes($json_string);
         $decoded = json_decode($stripped_json, true);
 
         if (json_last_error() === JSON_ERROR_NONE) {
-            error_log("MoBooking - JSON decode successful after stripslashes for {$data_type}");
+            error_log("NORDBOOKING - JSON decode successful after stripslashes for {$data_type}");
             return $decoded;
         }
 
@@ -972,7 +972,7 @@ View booking: {{admin_booking_link}}';
         $decoded = json_decode($double_stripped, true);
 
         if (json_last_error() === JSON_ERROR_NONE) {
-            error_log("MoBooking - JSON decode successful after double stripslashes for {$data_type}");
+            error_log("NORDBOOKING - JSON decode successful after double stripslashes for {$data_type}");
             return $decoded;
         }
 
@@ -981,19 +981,19 @@ View booking: {{admin_booking_link}}';
         $decoded = json_decode($url_decoded, true);
 
         if (json_last_error() === JSON_ERROR_NONE) {
-            error_log("MoBooking - JSON decode successful after URL decode for {$data_type}");
+            error_log("NORDBOOKING - JSON decode successful after URL decode for {$data_type}");
             return $decoded;
         }
 
         // If all attempts fail, return comprehensive error
         $final_error = sprintf(
-            __('Failed to decode JSON for %s. Original error: %s', 'mobooking'),
+            __('Failed to decode JSON for %s. Original error: %s', 'NORDBOOKING'),
             $data_type,
             $error_msg
         );
 
-        error_log("MoBooking - " . $final_error);
-        error_log("MoBooking - Raw JSON string (first 500 chars): " . substr($json_string, 0, 500));
+        error_log("NORDBOOKING - " . $final_error);
+        error_log("NORDBOOKING - Raw JSON string (first 500 chars): " . substr($json_string, 0, 500));
 
         return new \WP_Error('json_decode_error', $final_error);
     }

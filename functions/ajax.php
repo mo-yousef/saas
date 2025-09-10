@@ -3,24 +3,24 @@
 // Ensure these are defined globally and early for admin-ajax.php
 
 // AJAX handler for dashboard overview data (KPIs)
-add_action('wp_ajax_mobooking_get_dashboard_overview_data', 'mobooking_ajax_get_dashboard_overview_data');
-if ( ! function_exists( 'mobooking_ajax_get_dashboard_overview_data' ) ) {
-    function mobooking_ajax_get_dashboard_overview_data() {
-        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'mobooking_dashboard_nonce')) {
+add_action('wp_ajax_nordbooking_get_dashboard_overview_data', 'nordbooking_ajax_get_dashboard_overview_data');
+if ( ! function_exists( 'nordbooking_ajax_get_dashboard_overview_data' ) ) {
+    function nordbooking_ajax_get_dashboard_overview_data() {
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'nordbooking_dashboard_nonce')) {
             wp_send_json_error(array('message' => 'Security check failed: Invalid nonce.'), 403); return;
         }
         $current_user_id = get_current_user_id();
         if (!$current_user_id) {
             wp_send_json_error(array('message' => 'User not authenticated.'), 401); return;
         }
-        if (!isset($GLOBALS['mobooking_services_manager']) || !isset($GLOBALS['mobooking_bookings_manager'])) {
+        if (!isset($GLOBALS['nordbooking_services_manager']) || !isset($GLOBALS['nordbooking_bookings_manager'])) {
              wp_send_json_error(array('message' => 'Core components not available.'), 500); return;
         }
-        $services_manager = $GLOBALS['mobooking_services_manager'];
-        $bookings_manager = $GLOBALS['mobooking_bookings_manager'];
+        $services_manager = $GLOBALS['nordbooking_services_manager'];
+        $bookings_manager = $GLOBALS['nordbooking_bookings_manager'];
         $data_user_id = $current_user_id;
-        if (class_exists('MoBooking\Classes\Auth') && \MoBooking\Classes\Auth::is_user_worker($current_user_id)) {
-            $owner_id = \MoBooking\Classes\Auth::get_business_owner_id_for_worker($current_user_id);
+        if (class_exists('NORDBOOKING\Classes\Auth') && \NORDBOOKING\Classes\Auth::is_user_worker($current_user_id)) {
+            $owner_id = \NORDBOOKING\Classes\Auth::get_business_owner_id_for_worker($current_user_id);
             if ($owner_id) { $data_user_id = $owner_id; }
         }
         try {
@@ -34,16 +34,16 @@ if ( ! function_exists( 'mobooking_ajax_get_dashboard_overview_data' ) ) {
     }
 }
 
-add_action('wp_ajax_mobooking_update_customer_details', 'mobooking_ajax_update_customer_details');
-if (!function_exists('mobooking_ajax_update_customer_details')) {
-    function mobooking_ajax_update_customer_details() {
-        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'mobooking_dashboard_nonce')) {
+add_action('wp_ajax_nordbooking_update_customer_details', 'nordbooking_ajax_update_customer_details');
+if (!function_exists('nordbooking_ajax_update_customer_details')) {
+    function nordbooking_ajax_update_customer_details() {
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'nordbooking_dashboard_nonce')) {
             wp_send_json_error(['message' => 'Security check failed.'], 403);
             return;
         }
 
         $customer_id = isset($_POST['customer_id']) ? absint($_POST['customer_id']) : 0;
-        $tenant_id = \MoBooking\Classes\Auth::get_effective_tenant_id_for_user(get_current_user_id());
+        $tenant_id = \NORDBOOKING\Classes\Auth::get_effective_tenant_id_for_user(get_current_user_id());
 
         if (!$customer_id || !$tenant_id) {
             wp_send_json_error(['message' => 'Invalid request.'], 400);
@@ -58,7 +58,7 @@ if (!function_exists('mobooking_ajax_update_customer_details')) {
             }
         }
 
-        $customers_manager = new \MoBooking\Classes\Customers();
+        $customers_manager = new \NORDBOOKING\Classes\Customers();
         $result = $customers_manager->update_customer_details($customer_id, $tenant_id, $data);
 
         if (is_wp_error($result)) {
@@ -70,20 +70,20 @@ if (!function_exists('mobooking_ajax_update_customer_details')) {
 }
 
 // AJAX handler for recent bookings
-add_action('wp_ajax_mobooking_get_recent_bookings', 'mobooking_ajax_get_recent_bookings');
-if ( ! function_exists( 'mobooking_ajax_get_recent_bookings' ) ) {
-    function mobooking_ajax_get_recent_bookings() {
-        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'mobooking_dashboard_nonce')) {
+add_action('wp_ajax_nordbooking_get_recent_bookings', 'nordbooking_ajax_get_recent_bookings');
+if ( ! function_exists( 'nordbooking_ajax_get_recent_bookings' ) ) {
+    function nordbooking_ajax_get_recent_bookings() {
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'nordbooking_dashboard_nonce')) {
             wp_send_json_error(array('message' => 'Security check failed: Invalid nonce.'), 403); return;
         }
         $current_user_id = get_current_user_id();
         if (!$current_user_id) {
             wp_send_json_error(array('message' => 'User not authenticated.'), 401); return;
         }
-        if (!isset($GLOBALS['mobooking_bookings_manager'])) {
+        if (!isset($GLOBALS['nordbooking_bookings_manager'])) {
              wp_send_json_error(array('message' => 'Bookings component not available.'), 500); return;
         }
-        $bookings_manager = $GLOBALS['mobooking_bookings_manager'];
+        $bookings_manager = $GLOBALS['nordbooking_bookings_manager'];
         $limit = isset($_POST['limit']) ? intval($_POST['limit']) : 4;
         try {
             $args = array('limit' => $limit, 'orderby' => 'created_at', 'order' => 'DESC');
@@ -99,11 +99,11 @@ if ( ! function_exists( 'mobooking_ajax_get_recent_bookings' ) ) {
 }
 
 // AJAX handler for fetching all bookings for FullCalendar
-add_action('wp_ajax_mobooking_get_all_bookings_for_calendar', 'mobooking_ajax_get_all_bookings_for_calendar');
-if ( ! function_exists( 'mobooking_ajax_get_all_bookings_for_calendar' ) ) {
-    function mobooking_ajax_get_all_bookings_for_calendar() {
+add_action('wp_ajax_nordbooking_get_all_bookings_for_calendar', 'nordbooking_ajax_get_all_bookings_for_calendar');
+if ( ! function_exists( 'nordbooking_ajax_get_all_bookings_for_calendar' ) ) {
+    function nordbooking_ajax_get_all_bookings_for_calendar() {
         // Verify nonce
-        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'mobooking_dashboard_nonce')) {
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'nordbooking_dashboard_nonce')) {
             wp_send_json_error(array('message' => 'Security check failed: Invalid nonce.'), 403);
             return;
         }
@@ -114,17 +114,17 @@ if ( ! function_exists( 'mobooking_ajax_get_all_bookings_for_calendar' ) ) {
             return;
         }
 
-        if (!isset($GLOBALS['mobooking_bookings_manager'])) {
+        if (!isset($GLOBALS['nordbooking_bookings_manager'])) {
              wp_send_json_error(array('message' => 'Bookings component not available.'), 500);
             return;
         }
-        $bookings_manager = $GLOBALS['mobooking_bookings_manager'];
+        $bookings_manager = $GLOBALS['nordbooking_bookings_manager'];
         $dashboard_base_url = home_url('/dashboard/bookings/?booking_id='); // Base URL for booking details
 
         // Determine user for data fetching (handle workers)
         $data_user_id = $current_user_id;
-        if (class_exists('MoBooking\Classes\Auth') && \MoBooking\Classes\Auth::is_user_worker($current_user_id)) {
-            $owner_id = \MoBooking\Classes\Auth::get_business_owner_id_for_worker($current_user_id);
+        if (class_exists('NORDBOOKING\Classes\Auth') && \NORDBOOKING\Classes\Auth::is_user_worker($current_user_id)) {
+            $owner_id = \NORDBOOKING\Classes\Auth::get_business_owner_id_for_worker($current_user_id);
             if ($owner_id) {
                 $data_user_id = $owner_id;
             }
@@ -214,10 +214,10 @@ if ( ! function_exists( 'mobooking_ajax_get_all_bookings_for_calendar' ) ) {
 // Add these missing AJAX handlers to functions/ajax.php
 
 // AJAX handler for live activity feed
-add_action('wp_ajax_mobooking_get_live_activity', 'mobooking_ajax_get_live_activity');
-if (!function_exists('mobooking_ajax_get_live_activity')) {
-    function mobooking_ajax_get_live_activity() {
-        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'mobooking_dashboard_nonce')) {
+add_action('wp_ajax_nordbooking_get_live_activity', 'nordbooking_ajax_get_live_activity');
+if (!function_exists('nordbooking_ajax_get_live_activity')) {
+    function nordbooking_ajax_get_live_activity() {
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'nordbooking_dashboard_nonce')) {
             wp_send_json_error(array('message' => 'Security check failed: Invalid nonce.'), 403);
             return;
         }
@@ -228,18 +228,18 @@ if (!function_exists('mobooking_ajax_get_live_activity')) {
             return;
         }
         
-        if (!isset($GLOBALS['mobooking_bookings_manager'])) {
+        if (!isset($GLOBALS['nordbooking_bookings_manager'])) {
             wp_send_json_error(array('message' => 'Bookings component not available.'), 500);
             return;
         }
         
-        $bookings_manager = $GLOBALS['mobooking_bookings_manager'];
+        $bookings_manager = $GLOBALS['nordbooking_bookings_manager'];
         $limit = isset($_POST['limit']) ? intval($_POST['limit']) : 10;
         
         // Determine user for data fetching (handle workers)
         $data_user_id = $current_user_id;
-        if (class_exists('MoBooking\Classes\Auth') && \MoBooking\Classes\Auth::is_user_worker($current_user_id)) {
-            $owner_id = \MoBooking\Classes\Auth::get_business_owner_id_for_worker($current_user_id);
+        if (class_exists('NORDBOOKING\Classes\Auth') && \NORDBOOKING\Classes\Auth::is_user_worker($current_user_id)) {
+            $owner_id = \NORDBOOKING\Classes\Auth::get_business_owner_id_for_worker($current_user_id);
             if ($owner_id) {
                 $data_user_id = $owner_id;
             }
@@ -255,10 +255,10 @@ if (!function_exists('mobooking_ajax_get_live_activity')) {
 }
 
 // AJAX handler for top services
-add_action('wp_ajax_mobooking_get_top_services', 'mobooking_ajax_get_top_services');
-if (!function_exists('mobooking_ajax_get_top_services')) {
-    function mobooking_ajax_get_top_services() {
-        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'mobooking_dashboard_nonce')) {
+add_action('wp_ajax_nordbooking_get_top_services', 'nordbooking_ajax_get_top_services');
+if (!function_exists('nordbooking_ajax_get_top_services')) {
+    function nordbooking_ajax_get_top_services() {
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'nordbooking_dashboard_nonce')) {
             wp_send_json_error(array('message' => 'Security check failed: Invalid nonce.'), 403);
             return;
         }
@@ -269,18 +269,18 @@ if (!function_exists('mobooking_ajax_get_top_services')) {
             return;
         }
         
-        if (!isset($GLOBALS['mobooking_services_manager'])) {
+        if (!isset($GLOBALS['nordbooking_services_manager'])) {
             wp_send_json_error(array('message' => 'Services component not available.'), 500);
             return;
         }
         
-        $services_manager = $GLOBALS['mobooking_services_manager'];
+        $services_manager = $GLOBALS['nordbooking_services_manager'];
         $limit = isset($_POST['limit']) ? intval($_POST['limit']) : 5;
         
         // Determine user for data fetching (handle workers)
         $data_user_id = $current_user_id;
-        if (class_exists('MoBooking\Classes\Auth') && \MoBooking\Classes\Auth::is_user_worker($current_user_id)) {
-            $owner_id = \MoBooking\Classes\Auth::get_business_owner_id_for_worker($current_user_id);
+        if (class_exists('NORDBOOKING\Classes\Auth') && \NORDBOOKING\Classes\Auth::is_user_worker($current_user_id)) {
+            $owner_id = \NORDBOOKING\Classes\Auth::get_business_owner_id_for_worker($current_user_id);
             if ($owner_id) {
                 $data_user_id = $owner_id;
             }
@@ -296,10 +296,10 @@ if (!function_exists('mobooking_ajax_get_top_services')) {
 }
 
 // AJAX handler for customer insights
-add_action('wp_ajax_mobooking_get_customer_insights', 'mobooking_ajax_get_customer_insights');
-if (!function_exists('mobooking_ajax_get_customer_insights')) {
-    function mobooking_ajax_get_customer_insights() {
-        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'mobooking_dashboard_nonce')) {
+add_action('wp_ajax_nordbooking_get_customer_insights', 'nordbooking_ajax_get_customer_insights');
+if (!function_exists('nordbooking_ajax_get_customer_insights')) {
+    function nordbooking_ajax_get_customer_insights() {
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'nordbooking_dashboard_nonce')) {
             wp_send_json_error(array('message' => 'Security check failed: Invalid nonce.'), 403);
             return;
         }
@@ -310,17 +310,17 @@ if (!function_exists('mobooking_ajax_get_customer_insights')) {
             return;
         }
         
-        if (!isset($GLOBALS['mobooking_customers_manager'])) {
+        if (!isset($GLOBALS['nordbooking_customers_manager'])) {
             wp_send_json_error(array('message' => 'Customers component not available.'), 500);
             return;
         }
         
-        $customers_manager = $GLOBALS['mobooking_customers_manager'];
+        $customers_manager = $GLOBALS['nordbooking_customers_manager'];
         
         // Determine user for data fetching (handle workers)
         $data_user_id = $current_user_id;
-        if (class_exists('MoBooking\Classes\Auth') && \MoBooking\Classes\Auth::is_user_worker($current_user_id)) {
-            $owner_id = \MoBooking\Classes\Auth::get_business_owner_id_for_worker($current_user_id);
+        if (class_exists('NORDBOOKING\Classes\Auth') && \NORDBOOKING\Classes\Auth::is_user_worker($current_user_id)) {
+            $owner_id = \NORDBOOKING\Classes\Auth::get_business_owner_id_for_worker($current_user_id);
             if ($owner_id) {
                 $data_user_id = $owner_id;
             }
@@ -336,10 +336,10 @@ if (!function_exists('mobooking_ajax_get_customer_insights')) {
 }
 
 // AJAX handler for booking chart data
-add_action('wp_ajax_mobooking_get_chart_data', 'mobooking_ajax_get_chart_data');
-if (!function_exists('mobooking_ajax_get_chart_data')) {
-    function mobooking_ajax_get_chart_data() {
-        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'mobooking_dashboard_nonce')) {
+add_action('wp_ajax_nordbooking_get_chart_data', 'nordbooking_ajax_get_chart_data');
+if (!function_exists('nordbooking_ajax_get_chart_data')) {
+    function nordbooking_ajax_get_chart_data() {
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'nordbooking_dashboard_nonce')) {
             wp_send_json_error(array('message' => 'Security check failed: Invalid nonce.'), 403);
             return;
         }
@@ -350,18 +350,18 @@ if (!function_exists('mobooking_ajax_get_chart_data')) {
             return;
         }
         
-        if (!isset($GLOBALS['mobooking_bookings_manager'])) {
+        if (!isset($GLOBALS['nordbooking_bookings_manager'])) {
             wp_send_json_error(array('message' => 'Bookings component not available.'), 500);
             return;
         }
         
-        $bookings_manager = $GLOBALS['mobooking_bookings_manager'];
+        $bookings_manager = $GLOBALS['nordbooking_bookings_manager'];
         $period = isset($_POST['period']) ? sanitize_text_field($_POST['period']) : 'week';
         
         // Determine user for data fetching (handle workers)
         $data_user_id = $current_user_id;
-        if (class_exists('MoBooking\Classes\Auth') && \MoBooking\Classes\Auth::is_user_worker($current_user_id)) {
-            $owner_id = \MoBooking\Classes\Auth::get_business_owner_id_for_worker($current_user_id);
+        if (class_exists('NORDBOOKING\Classes\Auth') && \NORDBOOKING\Classes\Auth::is_user_worker($current_user_id)) {
+            $owner_id = \NORDBOOKING\Classes\Auth::get_business_owner_id_for_worker($current_user_id);
             if ($owner_id) {
                 $data_user_id = $owner_id;
             }
@@ -377,10 +377,10 @@ if (!function_exists('mobooking_ajax_get_chart_data')) {
 }
 
 // AJAX handler for subscription usage
-add_action('wp_ajax_mobooking_get_subscription_usage', 'mobooking_ajax_get_subscription_usage');
-if (!function_exists('mobooking_ajax_get_subscription_usage')) {
-    function mobooking_ajax_get_subscription_usage() {
-        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'mobooking_dashboard_nonce')) {
+add_action('wp_ajax_nordbooking_get_subscription_usage', 'nordbooking_ajax_get_subscription_usage');
+if (!function_exists('nordbooking_ajax_get_subscription_usage')) {
+    function nordbooking_ajax_get_subscription_usage() {
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'nordbooking_dashboard_nonce')) {
             wp_send_json_error(array('message' => 'Security check failed: Invalid nonce.'), 403);
             return;
         }
@@ -411,26 +411,26 @@ if (!function_exists('mobooking_ajax_get_subscription_usage')) {
     }
 }
 
-// Fix the KPI data handler - the JS expects 'mobooking_get_dashboard_kpi_data' but we have 'mobooking_get_dashboard_overview_data'
-add_action('wp_ajax_mobooking_get_dashboard_kpi_data', 'mobooking_ajax_get_dashboard_overview_data');
+// Fix the KPI data handler - the JS expects 'nordbooking_get_dashboard_kpi_data' but we have 'nordbooking_get_dashboard_overview_data'
+add_action('wp_ajax_nordbooking_get_dashboard_kpi_data', 'nordbooking_ajax_get_dashboard_overview_data');
 
 
 
 
 
 /**
- * Fixed AJAX Functions for MoBooking Dashboard
+ * Fixed AJAX Functions for NORDBOOKING Dashboard
  * This file contains the corrected AJAX handlers to fix the 500 errors
  */
 
 // Ensure these are defined globally and early for admin-ajax.php
 
 // AJAX handler for dashboard KPI data (Fixed action name mismatch)
-add_action('wp_ajax_mobooking_get_dashboard_kpi_data', 'mobooking_ajax_get_dashboard_kpi_data');
-if (!function_exists('mobooking_ajax_get_dashboard_kpi_data')) {
-    function mobooking_ajax_get_dashboard_kpi_data() {
+add_action('wp_ajax_nordbooking_get_dashboard_kpi_data', 'nordbooking_ajax_get_dashboard_kpi_data');
+if (!function_exists('nordbooking_ajax_get_dashboard_kpi_data')) {
+    function nordbooking_ajax_get_dashboard_kpi_data() {
         // Security check
-        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'mobooking_dashboard_nonce')) {
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'nordbooking_dashboard_nonce')) {
             wp_send_json_error(array('message' => 'Security check failed: Invalid nonce.'), 403);
             return;
         }
@@ -442,14 +442,14 @@ if (!function_exists('mobooking_ajax_get_dashboard_kpi_data')) {
         }
 
         // Initialize managers if not already done
-        if (!isset($GLOBALS['mobooking_services_manager']) || !isset($GLOBALS['mobooking_bookings_manager'])) {
+        if (!isset($GLOBALS['nordbooking_services_manager']) || !isset($GLOBALS['nordbooking_bookings_manager'])) {
             // Try to initialize managers
             try {
-                if (!isset($GLOBALS['mobooking_services_manager'])) {
-                    $GLOBALS['mobooking_services_manager'] = new \MoBooking\Classes\Services();
+                if (!isset($GLOBALS['nordbooking_services_manager'])) {
+                    $GLOBALS['nordbooking_services_manager'] = new \NORDBOOKING\Classes\Services();
                 }
-                if (!isset($GLOBALS['mobooking_bookings_manager'])) {
-                    $GLOBALS['mobooking_bookings_manager'] = new \MoBooking\Classes\Bookings();
+                if (!isset($GLOBALS['nordbooking_bookings_manager'])) {
+                    $GLOBALS['nordbooking_bookings_manager'] = new \NORDBOOKING\Classes\Bookings();
                 }
             } catch (Exception $e) {
                 wp_send_json_error(array('message' => 'Failed to initialize core components: ' . $e->getMessage()), 500);
@@ -457,13 +457,13 @@ if (!function_exists('mobooking_ajax_get_dashboard_kpi_data')) {
             }
         }
 
-        $services_manager = $GLOBALS['mobooking_services_manager'];
-        $bookings_manager = $GLOBALS['mobooking_bookings_manager'];
+        $services_manager = $GLOBALS['nordbooking_services_manager'];
+        $bookings_manager = $GLOBALS['nordbooking_bookings_manager'];
 
         // Handle worker permissions
         $data_user_id = $current_user_id;
-        if (class_exists('MoBooking\Classes\Auth') && \MoBooking\Classes\Auth::is_user_worker($current_user_id)) {
-            $owner_id = \MoBooking\Classes\Auth::get_business_owner_id_for_worker($current_user_id);
+        if (class_exists('NORDBOOKING\Classes\Auth') && \NORDBOOKING\Classes\Auth::is_user_worker($current_user_id)) {
+            $owner_id = \NORDBOOKING\Classes\Auth::get_business_owner_id_for_worker($current_user_id);
             if ($owner_id) {
                 $data_user_id = $owner_id;
             }
@@ -496,11 +496,11 @@ if (!function_exists('mobooking_ajax_get_dashboard_kpi_data')) {
 }
 
 // AJAX handler for recent bookings
-add_action('wp_ajax_mobooking_get_recent_bookings', 'mobooking_ajax_get_recent_bookings');
-if (!function_exists('mobooking_ajax_get_recent_bookings')) {
-    function mobooking_ajax_get_recent_bookings() {
+add_action('wp_ajax_nordbooking_get_recent_bookings', 'nordbooking_ajax_get_recent_bookings');
+if (!function_exists('nordbooking_ajax_get_recent_bookings')) {
+    function nordbooking_ajax_get_recent_bookings() {
         // Security check
-        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'mobooking_dashboard_nonce')) {
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'nordbooking_dashboard_nonce')) {
             wp_send_json_error(array('message' => 'Security check failed: Invalid nonce.'), 403);
             return;
         }
@@ -512,22 +512,22 @@ if (!function_exists('mobooking_ajax_get_recent_bookings')) {
         }
 
         // Initialize bookings manager if not available
-        if (!isset($GLOBALS['mobooking_bookings_manager'])) {
+        if (!isset($GLOBALS['nordbooking_bookings_manager'])) {
             try {
-                $GLOBALS['mobooking_bookings_manager'] = new \MoBooking\Classes\Bookings();
+                $GLOBALS['nordbooking_bookings_manager'] = new \NORDBOOKING\Classes\Bookings();
             } catch (Exception $e) {
                 wp_send_json_error(array('message' => 'Failed to initialize bookings manager: ' . $e->getMessage()), 500);
                 return;
             }
         }
 
-        $bookings_manager = $GLOBALS['mobooking_bookings_manager'];
+        $bookings_manager = $GLOBALS['nordbooking_bookings_manager'];
         $limit = isset($_POST['limit']) ? intval($_POST['limit']) : 5;
 
         // Handle worker permissions
         $data_user_id = $current_user_id;
-        if (class_exists('MoBooking\Classes\Auth') && \MoBooking\Classes\Auth::is_user_worker($current_user_id)) {
-            $owner_id = \MoBooking\Classes\Auth::get_business_owner_id_for_worker($current_user_id);
+        if (class_exists('NORDBOOKING\Classes\Auth') && \NORDBOOKING\Classes\Auth::is_user_worker($current_user_id)) {
+            $owner_id = \NORDBOOKING\Classes\Auth::get_business_owner_id_for_worker($current_user_id);
             if ($owner_id) {
                 $data_user_id = $owner_id;
             }
@@ -543,11 +543,11 @@ if (!function_exists('mobooking_ajax_get_recent_bookings')) {
 }
 
 // AJAX handler for customer insights
-add_action('wp_ajax_mobooking_get_customer_insights', 'mobooking_ajax_get_customer_insights');
-if (!function_exists('mobooking_ajax_get_customer_insights')) {
-    function mobooking_ajax_get_customer_insights() {
+add_action('wp_ajax_nordbooking_get_customer_insights', 'nordbooking_ajax_get_customer_insights');
+if (!function_exists('nordbooking_ajax_get_customer_insights')) {
+    function nordbooking_ajax_get_customer_insights() {
         // Security check
-        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'mobooking_dashboard_nonce')) {
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'nordbooking_dashboard_nonce')) {
             wp_send_json_error(array('message' => 'Security check failed: Invalid nonce.'), 403);
             return;
         }
@@ -560,8 +560,8 @@ if (!function_exists('mobooking_ajax_get_customer_insights')) {
 
         // Handle worker permissions
         $data_user_id = $current_user_id;
-        if (class_exists('MoBooking\Classes\Auth') && \MoBooking\Classes\Auth::is_user_worker($current_user_id)) {
-            $owner_id = \MoBooking\Classes\Auth::get_business_owner_id_for_worker($current_user_id);
+        if (class_exists('NORDBOOKING\Classes\Auth') && \NORDBOOKING\Classes\Auth::is_user_worker($current_user_id)) {
+            $owner_id = \NORDBOOKING\Classes\Auth::get_business_owner_id_for_worker($current_user_id);
             if ($owner_id) {
                 $data_user_id = $owner_id;
             }
@@ -569,12 +569,12 @@ if (!function_exists('mobooking_ajax_get_customer_insights')) {
 
         try {
             // Initialize customers manager if needed
-            if (!class_exists('MoBooking\Classes\Customers')) {
+            if (!class_exists('NORDBOOKING\Classes\Customers')) {
                 wp_send_json_error(array('message' => 'Customers class not available.'), 500);
                 return;
             }
 
-            $customers_manager = new \MoBooking\Classes\Customers();
+            $customers_manager = new \NORDBOOKING\Classes\Customers();
             $insights_data = $customers_manager->get_customer_insights($data_user_id);
 
             wp_send_json_success($insights_data);
@@ -585,11 +585,11 @@ if (!function_exists('mobooking_ajax_get_customer_insights')) {
 }
 
 // AJAX handler for top services
-add_action('wp_ajax_mobooking_get_top_services', 'mobooking_ajax_get_top_services');
-if (!function_exists('mobooking_ajax_get_top_services')) {
-    function mobooking_ajax_get_top_services() {
+add_action('wp_ajax_nordbooking_get_top_services', 'nordbooking_ajax_get_top_services');
+if (!function_exists('nordbooking_ajax_get_top_services')) {
+    function nordbooking_ajax_get_top_services() {
         // Security check
-        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'mobooking_dashboard_nonce')) {
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'nordbooking_dashboard_nonce')) {
             wp_send_json_error(array('message' => 'Security check failed: Invalid nonce.'), 403);
             return;
         }
@@ -602,8 +602,8 @@ if (!function_exists('mobooking_ajax_get_top_services')) {
 
         // Handle worker permissions
         $data_user_id = $current_user_id;
-        if (class_exists('MoBooking\Classes\Auth') && \MoBooking\Classes\Auth::is_user_worker($current_user_id)) {
-            $owner_id = \MoBooking\Classes\Auth::get_business_owner_id_for_worker($current_user_id);
+        if (class_exists('NORDBOOKING\Classes\Auth') && \NORDBOOKING\Classes\Auth::is_user_worker($current_user_id)) {
+            $owner_id = \NORDBOOKING\Classes\Auth::get_business_owner_id_for_worker($current_user_id);
             if ($owner_id) {
                 $data_user_id = $owner_id;
             }
@@ -611,11 +611,11 @@ if (!function_exists('mobooking_ajax_get_top_services')) {
 
         try {
             // Initialize services manager if not available
-            if (!isset($GLOBALS['mobooking_services_manager'])) {
-                $GLOBALS['mobooking_services_manager'] = new \MoBooking\Classes\Services();
+            if (!isset($GLOBALS['nordbooking_services_manager'])) {
+                $GLOBALS['nordbooking_services_manager'] = new \NORDBOOKING\Classes\Services();
             }
 
-            $services_manager = $GLOBALS['mobooking_services_manager'];
+            $services_manager = $GLOBALS['nordbooking_services_manager'];
             $limit = isset($_POST['limit']) ? intval($_POST['limit']) : 5;
             
             $top_services = $services_manager->get_top_services($data_user_id, $limit);
@@ -627,11 +627,11 @@ if (!function_exists('mobooking_ajax_get_top_services')) {
 }
 
 // AJAX handler for chart data
-add_action('wp_ajax_mobooking_get_chart_data', 'mobooking_ajax_get_chart_data');
-if (!function_exists('mobooking_ajax_get_chart_data')) {
-    function mobooking_ajax_get_chart_data() {
+add_action('wp_ajax_nordbooking_get_chart_data', 'nordbooking_ajax_get_chart_data');
+if (!function_exists('nordbooking_ajax_get_chart_data')) {
+    function nordbooking_ajax_get_chart_data() {
         // Security check
-        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'mobooking_dashboard_nonce')) {
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'nordbooking_dashboard_nonce')) {
             wp_send_json_error(array('message' => 'Security check failed: Invalid nonce.'), 403);
             return;
         }
@@ -644,8 +644,8 @@ if (!function_exists('mobooking_ajax_get_chart_data')) {
 
         // Handle worker permissions
         $data_user_id = $current_user_id;
-        if (class_exists('MoBooking\Classes\Auth') && \MoBooking\Classes\Auth::is_user_worker($current_user_id)) {
-            $owner_id = \MoBooking\Classes\Auth::get_business_owner_id_for_worker($current_user_id);
+        if (class_exists('NORDBOOKING\Classes\Auth') && \NORDBOOKING\Classes\Auth::is_user_worker($current_user_id)) {
+            $owner_id = \NORDBOOKING\Classes\Auth::get_business_owner_id_for_worker($current_user_id);
             if ($owner_id) {
                 $data_user_id = $owner_id;
             }
@@ -655,11 +655,11 @@ if (!function_exists('mobooking_ajax_get_chart_data')) {
 
         try {
             // Initialize bookings manager if not available
-            if (!isset($GLOBALS['mobooking_bookings_manager'])) {
-                $GLOBALS['mobooking_bookings_manager'] = new \MoBooking\Classes\Bookings();
+            if (!isset($GLOBALS['nordbooking_bookings_manager'])) {
+                $GLOBALS['nordbooking_bookings_manager'] = new \NORDBOOKING\Classes\Bookings();
             }
 
-            $bookings_manager = $GLOBALS['mobooking_bookings_manager'];
+            $bookings_manager = $GLOBALS['nordbooking_bookings_manager'];
             $chart_data = $bookings_manager->get_chart_data($data_user_id, $period);
 
             wp_send_json_success($chart_data);
@@ -670,31 +670,31 @@ if (!function_exists('mobooking_ajax_get_chart_data')) {
 }
 
 // Error logging function for debugging
-if (!function_exists('mobooking_log_ajax_error')) {
-    function mobooking_log_ajax_error($message, $context = array()) {
+if (!function_exists('nordbooking_log_ajax_error')) {
+    function nordbooking_log_ajax_error($message, $context = array()) {
         if (WP_DEBUG && WP_DEBUG_LOG) {
-            error_log('[MoBooking AJAX Error] ' . $message . ' Context: ' . print_r($context, true));
+            error_log('[NORDBOOKING AJAX Error] ' . $message . ' Context: ' . print_r($context, true));
         }
     }
 }
 
 // Add debugging handler for admin-ajax.php
-add_action('wp_ajax_mobooking_debug_ajax', 'mobooking_debug_ajax_handler');
-if (!function_exists('mobooking_debug_ajax_handler')) {
-    function mobooking_debug_ajax_handler() {
+add_action('wp_ajax_nordbooking_debug_ajax', 'nordbooking_debug_ajax_handler');
+if (!function_exists('nordbooking_debug_ajax_handler')) {
+    function nordbooking_debug_ajax_handler() {
         $debug_info = array(
             'ajax_url' => admin_url('admin-ajax.php'),
             'current_user' => get_current_user_id(),
-            'nonce_valid' => wp_verify_nonce($_POST['nonce'] ?? '', 'mobooking_dashboard_nonce'),
+            'nonce_valid' => wp_verify_nonce($_POST['nonce'] ?? '', 'nordbooking_dashboard_nonce'),
             'globals_available' => array(
-                'services_manager' => isset($GLOBALS['mobooking_services_manager']),
-                'bookings_manager' => isset($GLOBALS['mobooking_bookings_manager']),
+                'services_manager' => isset($GLOBALS['nordbooking_services_manager']),
+                'bookings_manager' => isset($GLOBALS['nordbooking_bookings_manager']),
             ),
             'classes_available' => array(
-                'Services' => class_exists('MoBooking\Classes\Services'),
-                'Bookings' => class_exists('MoBooking\Classes\Bookings'),
-                'Customers' => class_exists('MoBooking\Classes\Customers'),
-                'Auth' => class_exists('MoBooking\Classes\Auth'),
+                'Services' => class_exists('NORDBOOKING\Classes\Services'),
+                'Bookings' => class_exists('NORDBOOKING\Classes\Bookings'),
+                'Customers' => class_exists('NORDBOOKING\Classes\Customers'),
+                'Auth' => class_exists('NORDBOOKING\Classes\Auth'),
             ),
             'wp_debug' => WP_DEBUG,
             'wp_debug_log' => WP_DEBUG_LOG,
@@ -704,13 +704,13 @@ if (!function_exists('mobooking_debug_ajax_handler')) {
     }
 }
 
-add_action('wp_ajax_mobooking_get_available_slots', 'mobooking_ajax_get_available_slots');
-add_action('wp_ajax_nopriv_mobooking_get_available_slots', 'mobooking_ajax_get_available_slots');
-function mobooking_ajax_get_available_slots() {
+add_action('wp_ajax_nordbooking_get_available_slots', 'nordbooking_ajax_get_available_slots');
+add_action('wp_ajax_nopriv_nordbooking_get_available_slots', 'nordbooking_ajax_get_available_slots');
+function nordbooking_ajax_get_available_slots() {
     $date = $_POST['date'];
     $day_of_week = date('w', strtotime($date));
 
-    $availability = new MoBooking\Classes\Availability();
+    $availability = new NORDBOOKING\Classes\Availability();
     $schedule = $availability->get_recurring_schedule($_POST['tenant_id']);
 
     $slots = [];
@@ -732,10 +732,10 @@ function mobooking_ajax_get_available_slots() {
     wp_send_json_success($formatted_slots);
 }
 
-add_action('wp_ajax_mobooking_get_public_services', 'mobooking_ajax_get_public_services');
-add_action('wp_ajax_nopriv_mobooking_get_public_services', 'mobooking_ajax_get_public_services');
-function mobooking_ajax_get_public_services() {
-    if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'mobooking_booking_form_nonce')) {
+add_action('wp_ajax_nordbooking_get_public_services', 'nordbooking_ajax_get_public_services');
+add_action('wp_ajax_nopriv_nordbooking_get_public_services', 'nordbooking_ajax_get_public_services');
+function nordbooking_ajax_get_public_services() {
+    if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'nordbooking_booking_form_nonce')) {
         wp_send_json_error(array('message' => 'Security check failed: Invalid nonce.'), 403);
         return;
     }
@@ -746,12 +746,12 @@ function mobooking_ajax_get_public_services() {
         return;
     }
 
-    if (!isset($GLOBALS['mobooking_services_manager'])) {
+    if (!isset($GLOBALS['nordbooking_services_manager'])) {
         wp_send_json_error(array('message' => 'Services component not available.'), 500);
         return;
     }
 
-    $services_manager = $GLOBALS['mobooking_services_manager'];
+    $services_manager = $GLOBALS['nordbooking_services_manager'];
     $services = $services_manager->get_services_by_tenant_id($tenant_id);
 
     if (is_wp_error($services)) {
@@ -766,20 +766,20 @@ function mobooking_ajax_get_public_services() {
     wp_send_json_success($services);
 }
 
-add_action('wp_ajax_mobooking_get_service_coverage_grouped', 'mobooking_ajax_get_service_coverage_grouped');
-function mobooking_ajax_get_service_coverage_grouped() {
-    if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'mobooking_dashboard_nonce')) {
+add_action('wp_ajax_nordbooking_get_service_coverage_grouped', 'nordbooking_ajax_get_service_coverage_grouped');
+function nordbooking_ajax_get_service_coverage_grouped() {
+    if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'nordbooking_dashboard_nonce')) {
         wp_send_json_error(array('message' => 'Security check failed: Invalid nonce.'), 403);
         return;
     }
 
     $user_id = get_current_user_id();
     if (!$user_id) {
-        wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403);
+        wp_send_json_error(['message' => __('User not logged in.', 'NORDBOOKING')], 403);
         return;
     }
 
-    $areas_manager = new \MoBooking\Classes\Areas();
+    $areas_manager = new \NORDBOOKING\Classes\Areas();
     $filters = isset($_POST['filters']) ? $_POST['filters'] : [];
     $result = $areas_manager->get_service_coverage_grouped($user_id, $filters);
 
@@ -791,20 +791,20 @@ function mobooking_ajax_get_service_coverage_grouped() {
     wp_send_json_success($result);
 }
 
-add_action('wp_ajax_mobooking_get_service_coverage', 'mobooking_ajax_get_service_coverage');
-function mobooking_ajax_get_service_coverage() {
-    if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'mobooking_dashboard_nonce')) {
+add_action('wp_ajax_nordbooking_get_service_coverage', 'nordbooking_ajax_get_service_coverage');
+function nordbooking_ajax_get_service_coverage() {
+    if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'nordbooking_dashboard_nonce')) {
         wp_send_json_error(array('message' => 'Security check failed: Invalid nonce.'), 403);
         return;
     }
 
     $user_id = get_current_user_id();
     if (!$user_id) {
-        wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403);
+        wp_send_json_error(['message' => __('User not logged in.', 'NORDBOOKING')], 403);
         return;
     }
 
-    $areas_manager = new \MoBooking\Classes\Areas();
+    $areas_manager = new \NORDBOOKING\Classes\Areas();
     $city = isset($_POST['city']) ? sanitize_text_field($_POST['city']) : '';
     $limit = isset($_POST['limit']) ? intval($_POST['limit']) : 20;
 
@@ -843,14 +843,14 @@ function mobooking_ajax_get_service_coverage() {
 /**
  * Enhanced Dashboard AJAX Handlers
  * Add these functions to your functions/ajax.php file
- * @package MoBooking
+ * @package NORDBOOKING
  */
 
 // AJAX handler for dashboard statistics
-add_action('wp_ajax_mobooking_get_dashboard_stats', 'mobooking_ajax_get_dashboard_stats');
-if (!function_exists('mobooking_ajax_get_dashboard_stats')) {
-    function mobooking_ajax_get_dashboard_stats() {
-        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'mobooking_dashboard_nonce')) {
+add_action('wp_ajax_nordbooking_get_dashboard_stats', 'nordbooking_ajax_get_dashboard_stats');
+if (!function_exists('nordbooking_ajax_get_dashboard_stats')) {
+    function nordbooking_ajax_get_dashboard_stats() {
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'nordbooking_dashboard_nonce')) {
             wp_send_json_error(array('message' => 'Security check failed: Invalid nonce.'), 403);
             return;
         }
@@ -863,15 +863,15 @@ if (!function_exists('mobooking_ajax_get_dashboard_stats')) {
         
         try {
             // Initialize managers
-            $services_manager = new \MoBooking\Classes\Services();
-            $discounts_manager = new \MoBooking\Classes\Discounts($current_user_id);
-            $notifications_manager = new \MoBooking\Classes\Notifications();
-            $bookings_manager = new \MoBooking\Classes\Bookings($discounts_manager, $notifications_manager, $services_manager);
+            $services_manager = new \NORDBOOKING\Classes\Services();
+            $discounts_manager = new \NORDBOOKING\Classes\Discounts($current_user_id);
+            $notifications_manager = new \NORDBOOKING\Classes\Notifications();
+            $bookings_manager = new \NORDBOOKING\Classes\Bookings($discounts_manager, $notifications_manager, $services_manager);
             
             // Determine user for data fetching (handle workers)
             $data_user_id = $current_user_id;
-            if (class_exists('MoBooking\Classes\Auth') && \MoBooking\Classes\Auth::is_user_worker($current_user_id)) {
-                $owner_id = \MoBooking\Classes\Auth::get_business_owner_id_for_worker($current_user_id);
+            if (class_exists('NORDBOOKING\Classes\Auth') && \NORDBOOKING\Classes\Auth::is_user_worker($current_user_id)) {
+                $owner_id = \NORDBOOKING\Classes\Auth::get_business_owner_id_for_worker($current_user_id);
                 if ($owner_id) {
                     $data_user_id = $owner_id;
                 }
@@ -881,7 +881,7 @@ if (!function_exists('mobooking_ajax_get_dashboard_stats')) {
             $stats = $bookings_manager->get_booking_statistics($data_user_id);
             
             global $wpdb;
-            $bookings_table = \MoBooking\Classes\Database::get_table_name('bookings');
+            $bookings_table = \NORDBOOKING\Classes\Database::get_table_name('bookings');
             
             // Today's revenue
             $today_revenue = $wpdb->get_var($wpdb->prepare(
@@ -932,10 +932,10 @@ if (!function_exists('mobooking_ajax_get_dashboard_stats')) {
 }
 
 // AJAX handler for recent bookings
-add_action('wp_ajax_mobooking_get_recent_bookings', 'mobooking_ajax_get_recent_bookings');
-if (!function_exists('mobooking_ajax_get_recent_bookings')) {
-    function mobooking_ajax_get_recent_bookings() {
-        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'mobooking_dashboard_nonce')) {
+add_action('wp_ajax_nordbooking_get_recent_bookings', 'nordbooking_ajax_get_recent_bookings');
+if (!function_exists('nordbooking_ajax_get_recent_bookings')) {
+    function nordbooking_ajax_get_recent_bookings() {
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'nordbooking_dashboard_nonce')) {
             wp_send_json_error(array('message' => 'Security check failed: Invalid nonce.'), 403);
             return;
         }
@@ -948,15 +948,15 @@ if (!function_exists('mobooking_ajax_get_recent_bookings')) {
         
         try {
             // Initialize managers
-            $services_manager = new \MoBooking\Classes\Services();
-            $discounts_manager = new \MoBooking\Classes\Discounts($current_user_id);
-            $notifications_manager = new \MoBooking\Classes\Notifications();
-            $bookings_manager = new \MoBooking\Classes\Bookings($discounts_manager, $notifications_manager, $services_manager);
+            $services_manager = new \NORDBOOKING\Classes\Services();
+            $discounts_manager = new \NORDBOOKING\Classes\Discounts($current_user_id);
+            $notifications_manager = new \NORDBOOKING\Classes\Notifications();
+            $bookings_manager = new \NORDBOOKING\Classes\Bookings($discounts_manager, $notifications_manager, $services_manager);
             
             // Determine user for data fetching (handle workers)
             $data_user_id = $current_user_id;
-            if (class_exists('MoBooking\Classes\Auth') && \MoBooking\Classes\Auth::is_user_worker($current_user_id)) {
-                $owner_id = \MoBooking\Classes\Auth::get_business_owner_id_for_worker($current_user_id);
+            if (class_exists('NORDBOOKING\Classes\Auth') && \NORDBOOKING\Classes\Auth::is_user_worker($current_user_id)) {
+                $owner_id = \NORDBOOKING\Classes\Auth::get_business_owner_id_for_worker($current_user_id);
                 if ($owner_id) {
                     $data_user_id = $owner_id;
                 }
@@ -974,10 +974,10 @@ if (!function_exists('mobooking_ajax_get_recent_bookings')) {
 }
 
 // AJAX handler for recent activity
-add_action('wp_ajax_mobooking_get_recent_activity', 'mobooking_ajax_get_recent_activity');
-if (!function_exists('mobooking_ajax_get_recent_activity')) {
-    function mobooking_ajax_get_recent_activity() {
-        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'mobooking_dashboard_nonce')) {
+add_action('wp_ajax_nordbooking_get_recent_activity', 'nordbooking_ajax_get_recent_activity');
+if (!function_exists('nordbooking_ajax_get_recent_activity')) {
+    function nordbooking_ajax_get_recent_activity() {
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'nordbooking_dashboard_nonce')) {
             wp_send_json_error(array('message' => 'Security check failed: Invalid nonce.'), 403);
             return;
         }
@@ -991,15 +991,15 @@ if (!function_exists('mobooking_ajax_get_recent_activity')) {
         try {
             // Determine user for data fetching (handle workers)
             $data_user_id = $current_user_id;
-            if (class_exists('MoBooking\Classes\Auth') && \MoBooking\Classes\Auth::is_user_worker($current_user_id)) {
-                $owner_id = \MoBooking\Classes\Auth::get_business_owner_id_for_worker($current_user_id);
+            if (class_exists('NORDBOOKING\Classes\Auth') && \NORDBOOKING\Classes\Auth::is_user_worker($current_user_id)) {
+                $owner_id = \NORDBOOKING\Classes\Auth::get_business_owner_id_for_worker($current_user_id);
                 if ($owner_id) {
                     $data_user_id = $owner_id;
                 }
             }
             
             $limit = isset($_POST['limit']) ? intval($_POST['limit']) : 10;
-            $activities = mobooking_get_recent_activity($data_user_id, $limit);
+            $activities = nordbooking_get_recent_activity($data_user_id, $limit);
             
             wp_send_json_success($activities);
             
@@ -1010,10 +1010,10 @@ if (!function_exists('mobooking_ajax_get_recent_activity')) {
 }
 
 // AJAX handler for today's revenue (for real-time updates)
-add_action('wp_ajax_mobooking_get_today_revenue', 'mobooking_ajax_get_today_revenue');
-if (!function_exists('mobooking_ajax_get_today_revenue')) {
-    function mobooking_ajax_get_today_revenue() {
-        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'mobooking_dashboard_nonce')) {
+add_action('wp_ajax_nordbooking_get_today_revenue', 'nordbooking_ajax_get_today_revenue');
+if (!function_exists('nordbooking_ajax_get_today_revenue')) {
+    function nordbooking_ajax_get_today_revenue() {
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'nordbooking_dashboard_nonce')) {
             wp_send_json_error(array('message' => 'Security check failed: Invalid nonce.'), 403);
             return;
         }
@@ -1027,15 +1027,15 @@ if (!function_exists('mobooking_ajax_get_today_revenue')) {
         try {
             // Determine user for data fetching (handle workers)
             $data_user_id = $current_user_id;
-            if (class_exists('MoBooking\Classes\Auth') && \MoBooking\Classes\Auth::is_user_worker($current_user_id)) {
-                $owner_id = \MoBooking\Classes\Auth::get_business_owner_id_for_worker($current_user_id);
+            if (class_exists('NORDBOOKING\Classes\Auth') && \NORDBOOKING\Classes\Auth::is_user_worker($current_user_id)) {
+                $owner_id = \NORDBOOKING\Classes\Auth::get_business_owner_id_for_worker($current_user_id);
                 if ($owner_id) {
                     $data_user_id = $owner_id;
                 }
             }
             
             global $wpdb;
-            $bookings_table = \MoBooking\Classes\Database::get_table_name('bookings');
+            $bookings_table = \NORDBOOKING\Classes\Database::get_table_name('bookings');
             $today_revenue = $wpdb->get_var($wpdb->prepare(
                 "SELECT SUM(total_price) FROM $bookings_table WHERE user_id = %d AND status IN ('completed', 'confirmed') AND DATE(booking_date) = CURDATE()",
                 $data_user_id
@@ -1052,12 +1052,12 @@ if (!function_exists('mobooking_ajax_get_today_revenue')) {
 }
 
 // Helper function to get recent activity (add this to your utility functions)
-if (!function_exists('mobooking_get_recent_activity')) {
-    function mobooking_get_recent_activity($user_id, $limit = 10) {
+if (!function_exists('nordbooking_get_recent_activity')) {
+    function nordbooking_get_recent_activity($user_id, $limit = 10) {
         global $wpdb;
         
         $activities = array();
-        $bookings_table = \MoBooking\Classes\Database::get_table_name('bookings');
+        $bookings_table = \NORDBOOKING\Classes\Database::get_table_name('bookings');
         
         // Get recent bookings as activity
         $recent_bookings = $wpdb->get_results($wpdb->prepare(
@@ -1072,17 +1072,17 @@ if (!function_exists('mobooking_get_recent_activity')) {
         
         foreach ($recent_bookings as $booking) {
             $icon = 'calendar-plus';
-            $title = __('New booking received', 'mobooking');
-            $description = sprintf(__('%s booked a service', 'mobooking'), $booking->customer_name);
+            $title = __('New booking received', 'NORDBOOKING');
+            $description = sprintf(__('%s booked a service', 'NORDBOOKING'), $booking->customer_name);
             
             if ($booking->status === 'completed') {
                 $icon = 'check-circle';
-                $title = __('Booking completed', 'mobooking');
-                $description = sprintf(__('Booking #%d completed', 'mobooking'), $booking->id);
+                $title = __('Booking completed', 'NORDBOOKING');
+                $description = sprintf(__('Booking #%d completed', 'NORDBOOKING'), $booking->id);
             } elseif ($booking->status === 'cancelled') {
                 $icon = 'x-circle';
-                $title = __('Booking cancelled', 'mobooking');
-                $description = sprintf(__('Booking #%d cancelled', 'mobooking'), $booking->id);
+                $title = __('Booking cancelled', 'NORDBOOKING');
+                $description = sprintf(__('Booking #%d cancelled', 'NORDBOOKING'), $booking->id);
             }
             
             $activities[] = array(
@@ -1104,10 +1104,10 @@ if (!function_exists('mobooking_get_recent_activity')) {
 }
 
 // Enhanced chart data handler (extends existing)
-add_action('wp_ajax_mobooking_get_chart_data_enhanced', 'mobooking_ajax_get_chart_data_enhanced');
-if (!function_exists('mobooking_ajax_get_chart_data_enhanced')) {
-    function mobooking_ajax_get_chart_data_enhanced() {
-        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'mobooking_dashboard_nonce')) {
+add_action('wp_ajax_nordbooking_get_chart_data_enhanced', 'nordbooking_ajax_get_chart_data_enhanced');
+if (!function_exists('nordbooking_ajax_get_chart_data_enhanced')) {
+    function nordbooking_ajax_get_chart_data_enhanced() {
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'nordbooking_dashboard_nonce')) {
             wp_send_json_error(array('message' => 'Security check failed: Invalid nonce.'), 403);
             return;
         }
@@ -1121,8 +1121,8 @@ if (!function_exists('mobooking_ajax_get_chart_data_enhanced')) {
         try {
             // Determine user for data fetching (handle workers)
             $data_user_id = $current_user_id;
-            if (class_exists('MoBooking\Classes\Auth') && \MoBooking\Classes\Auth::is_user_worker($current_user_id)) {
-                $owner_id = \MoBooking\Classes\Auth::get_business_owner_id_for_worker($current_user_id);
+            if (class_exists('NORDBOOKING\Classes\Auth') && \NORDBOOKING\Classes\Auth::is_user_worker($current_user_id)) {
+                $owner_id = \NORDBOOKING\Classes\Auth::get_business_owner_id_for_worker($current_user_id);
                 if ($owner_id) {
                     $data_user_id = $owner_id;
                 }
@@ -1131,7 +1131,7 @@ if (!function_exists('mobooking_ajax_get_chart_data_enhanced')) {
             $period = isset($_POST['period']) ? sanitize_text_field($_POST['period']) : 'week';
             
             global $wpdb;
-            $bookings_table = \MoBooking\Classes\Database::get_table_name('bookings');
+            $bookings_table = \NORDBOOKING\Classes\Database::get_table_name('bookings');
             
             $labels = array();
             $revenue_data = array();
@@ -1240,10 +1240,10 @@ if (!function_exists('mobooking_ajax_get_chart_data_enhanced')) {
 }
 
 // AJAX handler for setup progress updates
-add_action('wp_ajax_mobooking_update_setup_step', 'mobooking_ajax_update_setup_step');
-if (!function_exists('mobooking_ajax_update_setup_step')) {
-    function mobooking_ajax_update_setup_step() {
-        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'mobooking_dashboard_nonce')) {
+add_action('wp_ajax_nordbooking_update_setup_step', 'nordbooking_ajax_update_setup_step');
+if (!function_exists('nordbooking_ajax_update_setup_step')) {
+    function nordbooking_ajax_update_setup_step() {
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'nordbooking_dashboard_nonce')) {
             wp_send_json_error(array('message' => 'Security check failed: Invalid nonce.'), 403);
             return;
         }
@@ -1265,14 +1265,14 @@ if (!function_exists('mobooking_ajax_update_setup_step')) {
             
             // Determine user for data fetching (handle workers)
             $data_user_id = $current_user_id;
-            if (class_exists('MoBooking\Classes\Auth') && \MoBooking\Classes\Auth::is_user_worker($current_user_id)) {
-                $owner_id = \MoBooking\Classes\Auth::get_business_owner_id_for_worker($current_user_id);
+            if (class_exists('NORDBOOKING\Classes\Auth') && \NORDBOOKING\Classes\Auth::is_user_worker($current_user_id)) {
+                $owner_id = \NORDBOOKING\Classes\Auth::get_business_owner_id_for_worker($current_user_id);
                 if ($owner_id) {
                     $data_user_id = $owner_id;
                 }
             }
             
-            $settings_manager = new \MoBooking\Classes\Settings();
+            $settings_manager = new \NORDBOOKING\Classes\Settings();
             $result = $settings_manager->update_setup_step($data_user_id, $step_key, $completed);
             
             if ($result) {
@@ -1289,10 +1289,10 @@ if (!function_exists('mobooking_ajax_update_setup_step')) {
 }
 
 // AJAX handler for live dashboard updates (WebSocket alternative)
-add_action('wp_ajax_mobooking_get_live_updates', 'mobooking_ajax_get_live_updates');
-if (!function_exists('mobooking_ajax_get_live_updates')) {
-    function mobooking_ajax_get_live_updates() {
-        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'mobooking_dashboard_nonce')) {
+add_action('wp_ajax_nordbooking_get_live_updates', 'nordbooking_ajax_get_live_updates');
+if (!function_exists('nordbooking_ajax_get_live_updates')) {
+    function nordbooking_ajax_get_live_updates() {
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'nordbooking_dashboard_nonce')) {
             wp_send_json_error(array('message' => 'Security check failed: Invalid nonce.'), 403);
             return;
         }
@@ -1306,8 +1306,8 @@ if (!function_exists('mobooking_ajax_get_live_updates')) {
         try {
             // Determine user for data fetching (handle workers)
             $data_user_id = $current_user_id;
-            if (class_exists('MoBooking\Classes\Auth') && \MoBooking\Classes\Auth::is_user_worker($current_user_id)) {
-                $owner_id = \MoBooking\Classes\Auth::get_business_owner_id_for_worker($current_user_id);
+            if (class_exists('NORDBOOKING\Classes\Auth') && \NORDBOOKING\Classes\Auth::is_user_worker($current_user_id)) {
+                $owner_id = \NORDBOOKING\Classes\Auth::get_business_owner_id_for_worker($current_user_id);
                 if ($owner_id) {
                     $data_user_id = $owner_id;
                 }
@@ -1316,7 +1316,7 @@ if (!function_exists('mobooking_ajax_get_live_updates')) {
             $last_update = isset($_POST['last_update']) ? sanitize_text_field($_POST['last_update']) : '';
             
             // Get updates since last check
-            $updates = mobooking_get_dashboard_updates($data_user_id, $last_update);
+            $updates = nordbooking_get_dashboard_updates($data_user_id, $last_update);
             
             wp_send_json_success($updates);
             
@@ -1327,8 +1327,8 @@ if (!function_exists('mobooking_ajax_get_live_updates')) {
 }
 
 // Helper function to get dashboard updates
-if (!function_exists('mobooking_get_dashboard_updates')) {
-    function mobooking_get_dashboard_updates($user_id, $since = '') {
+if (!function_exists('nordbooking_get_dashboard_updates')) {
+    function nordbooking_get_dashboard_updates($user_id, $since = '') {
         global $wpdb;
         
         $updates = array(
@@ -1343,7 +1343,7 @@ if (!function_exists('mobooking_get_dashboard_updates')) {
             $since = date('Y-m-d H:i:s', strtotime('-5 minutes'));
         }
         
-        $bookings_table = \MoBooking\Classes\Database::get_table_name('bookings');
+        $bookings_table = \NORDBOOKING\Classes\Database::get_table_name('bookings');
         
         // Check for new bookings
         $new_bookings = $wpdb->get_var($wpdb->prepare(
@@ -1358,8 +1358,8 @@ if (!function_exists('mobooking_get_dashboard_updates')) {
             $updates['new_bookings'] = intval($new_bookings);
             $updates['notifications'][] = array(
                 'type' => 'success',
-                'title' => __('New Bookings', 'mobooking'),
-                'message' => sprintf(__('%d new booking(s) received', 'mobooking'), $new_bookings),
+                'title' => __('New Bookings', 'NORDBOOKING'),
+                'message' => sprintf(__('%d new booking(s) received', 'NORDBOOKING'), $new_bookings),
                 'timestamp' => current_time('mysql')
             );
         }
@@ -1382,10 +1382,10 @@ if (!function_exists('mobooking_get_dashboard_updates')) {
 }
 
 // AJAX handler for exporting dashboard data
-add_action('wp_ajax_mobooking_export_dashboard_data', 'mobooking_ajax_export_dashboard_data');
-if (!function_exists('mobooking_ajax_export_dashboard_data')) {
-    function mobooking_ajax_export_dashboard_data() {
-        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'mobooking_dashboard_nonce')) {
+add_action('wp_ajax_nordbooking_export_dashboard_data', 'nordbooking_ajax_export_dashboard_data');
+if (!function_exists('nordbooking_ajax_export_dashboard_data')) {
+    function nordbooking_ajax_export_dashboard_data() {
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'nordbooking_dashboard_nonce')) {
             wp_send_json_error(array('message' => 'Security check failed: Invalid nonce.'), 403);
             return;
         }
@@ -1399,8 +1399,8 @@ if (!function_exists('mobooking_ajax_export_dashboard_data')) {
         try {
             // Determine user for data fetching (handle workers)
             $data_user_id = $current_user_id;
-            if (class_exists('MoBooking\Classes\Auth') && \MoBooking\Classes\Auth::is_user_worker($current_user_id)) {
-                $owner_id = \MoBooking\Classes\Auth::get_business_owner_id_for_worker($current_user_id);
+            if (class_exists('NORDBOOKING\Classes\Auth') && \NORDBOOKING\Classes\Auth::is_user_worker($current_user_id)) {
+                $owner_id = \NORDBOOKING\Classes\Auth::get_business_owner_id_for_worker($current_user_id);
                 if ($owner_id) {
                     $data_user_id = $owner_id;
                 }
@@ -1410,25 +1410,25 @@ if (!function_exists('mobooking_ajax_export_dashboard_data')) {
             $period = isset($_POST['period']) ? sanitize_text_field($_POST['period']) : 'month';
             
             // Initialize managers
-            $services_manager = new \MoBooking\Classes\Services();
-            $discounts_manager = new \MoBooking\Classes\Discounts($current_user_id);
-            $notifications_manager = new \MoBooking\Classes\Notifications();
-            $bookings_manager = new \MoBooking\Classes\Bookings($discounts_manager, $notifications_manager, $services_manager);
+            $services_manager = new \NORDBOOKING\Classes\Services();
+            $discounts_manager = new \NORDBOOKING\Classes\Discounts($current_user_id);
+            $notifications_manager = new \NORDBOOKING\Classes\Notifications();
+            $bookings_manager = new \NORDBOOKING\Classes\Bookings($discounts_manager, $notifications_manager, $services_manager);
             
             // Get export data
-            $export_data = mobooking_prepare_dashboard_export($data_user_id, $period, $bookings_manager);
+            $export_data = nordbooking_prepare_dashboard_export($data_user_id, $period, $bookings_manager);
             
             if ($format === 'json') {
                 wp_send_json_success(array(
                     'data' => $export_data,
-                    'filename' => 'mobooking-dashboard-' . date('Y-m-d') . '.json'
+                    'filename' => 'NORDBOOKING-dashboard-' . date('Y-m-d') . '.json'
                 ));
             } else {
                 // CSV format
-                $csv_data = mobooking_convert_to_csv($export_data);
+                $csv_data = nordbooking_convert_to_csv($export_data);
                 wp_send_json_success(array(
                     'csv' => $csv_data,
-                    'filename' => 'mobooking-dashboard-' . date('Y-m-d') . '.csv'
+                    'filename' => 'NORDBOOKING-dashboard-' . date('Y-m-d') . '.csv'
                 ));
             }
             
@@ -1439,8 +1439,8 @@ if (!function_exists('mobooking_ajax_export_dashboard_data')) {
 }
 
 // Helper function to prepare dashboard export data
-if (!function_exists('mobooking_prepare_dashboard_export')) {
-    function mobooking_prepare_dashboard_export($user_id, $period, $bookings_manager) {
+if (!function_exists('nordbooking_prepare_dashboard_export')) {
+    function nordbooking_prepare_dashboard_export($user_id, $period, $bookings_manager) {
         $stats = $bookings_manager->get_booking_statistics($user_id);
         $bookings = $bookings_manager->get_bookings_by_tenant($user_id, array('limit' => 1000));
         
@@ -1459,8 +1459,8 @@ if (!function_exists('mobooking_prepare_dashboard_export')) {
 }
 
 // Helper function to convert data to CSV
-if (!function_exists('mobooking_convert_to_csv')) {
-    function mobooking_convert_to_csv($data) {
+if (!function_exists('nordbooking_convert_to_csv')) {
+    function nordbooking_convert_to_csv($data) {
         $csv_lines = array();
         
         // Add summary header
@@ -1493,10 +1493,10 @@ if (!function_exists('mobooking_convert_to_csv')) {
 }
 
 // AJAX handler for dashboard live search
-add_action('wp_ajax_mobooking_dashboard_live_search', 'mobooking_ajax_dashboard_live_search');
-if (!function_exists('mobooking_ajax_dashboard_live_search')) {
-    function mobooking_ajax_dashboard_live_search() {
-        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'mobooking_dashboard_nonce')) {
+add_action('wp_ajax_nordbooking_dashboard_live_search', 'nordbooking_ajax_dashboard_live_search');
+if (!function_exists('nordbooking_ajax_dashboard_live_search')) {
+    function nordbooking_ajax_dashboard_live_search() {
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'nordbooking_dashboard_nonce')) {
             wp_send_json_error(array('message' => 'Security check failed: Invalid nonce.'), 403);
             return;
         }
@@ -1508,10 +1508,10 @@ if (!function_exists('mobooking_ajax_dashboard_live_search')) {
         }
 
         $results = [];
-        $tenant_id = \MoBooking\Classes\Auth::get_effective_tenant_id_for_user(get_current_user_id());
+        $tenant_id = \NORDBOOKING\Classes\Auth::get_effective_tenant_id_for_user(get_current_user_id());
 
         // Search Customers
-        $customers_manager = new \MoBooking\Classes\Customers();
+        $customers_manager = new \NORDBOOKING\Classes\Customers();
         $customers = $customers_manager->get_customers_by_tenant_id($tenant_id, ['search' => $query, 'per_page' => 5]);
         foreach ($customers as $customer) {
             $results[] = [
@@ -1522,7 +1522,7 @@ if (!function_exists('mobooking_ajax_dashboard_live_search')) {
         }
 
         // Search Bookings
-        $bookings_manager = new \MoBooking\Classes\Bookings(new \MoBooking\Classes\Discounts($tenant_id), new \MoBooking\Classes\Notifications(), new \MoBooking\Classes\Services());
+        $bookings_manager = new \NORDBOOKING\Classes\Bookings(new \NORDBOOKING\Classes\Discounts($tenant_id), new \NORDBOOKING\Classes\Notifications(), new \NORDBOOKING\Classes\Services());
         $bookings = $bookings_manager->get_bookings_by_tenant($tenant_id, ['search' => $query, 'limit' => 5]);
         foreach ($bookings['bookings'] as $booking) {
             $results[] = [

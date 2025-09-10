@@ -2,12 +2,12 @@
 // Custom Class Autoloader
 spl_autoload_register(function ($class_name) {
     // Check if the class belongs to our theme's namespace
-    if (strpos($class_name, 'MoBooking\\') !== 0) {
+    if (strpos($class_name, 'NORDBOOKING\\') !== 0) {
         return false; // Not our class, skip
     }
 
-    // Remove the root namespace prefix 'MoBooking\'
-    $relative_class_name = substr($class_name, strlen('MoBooking\\')); // e.g., Classes\Services or Payments\Manager
+    // Remove the root namespace prefix 'NORDBOOKING\'
+    $relative_class_name = substr($class_name, strlen('NORDBOOKING\\')); // e.g., Classes\Services or Payments\Manager
 
     // Split the relative class name into parts
     $parts = explode('\\', $relative_class_name);
@@ -20,7 +20,7 @@ spl_autoload_register(function ($class_name) {
     // For now, only 'Classes' -> 'classes' is confirmed as an issue.
 
     $file_path_part = implode(DIRECTORY_SEPARATOR, $parts);
-    $file = MOBOOKING_THEME_DIR . $file_path_part . '.php';
+    $file = NORDBOOKING_THEME_DIR . $file_path_part . '.php';
 
     // Check if the file exists (case-sensitive check on Linux/macOS)
     // error_log("Autoloader trying: " . $file); // Debugging line

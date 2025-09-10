@@ -1,5 +1,5 @@
 <?php
-namespace MoBooking\Classes;
+namespace NORDBOOKING\Classes;
 
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
@@ -19,20 +19,20 @@ class Bookings {
 
     public function register_ajax_actions() {
         // Public booking form
-        add_action('wp_ajax_nopriv_mobooking_create_booking', [$this, 'handle_create_booking_public_ajax']);
-        add_action('wp_ajax_mobooking_create_booking', [$this, 'handle_create_booking_public_ajax']);
+        add_action('wp_ajax_nopriv_nordbooking_create_booking', [$this, 'handle_create_booking_public_ajax']);
+        add_action('wp_ajax_nordbooking_create_booking', [$this, 'handle_create_booking_public_ajax']);
 
         // Tenant Dashboard - Bookings section
-        add_action('wp_ajax_mobooking_get_tenant_bookings', [$this, 'handle_get_tenant_bookings_ajax']);
-        add_action('wp_ajax_mobooking_get_tenant_booking_details', [$this, 'handle_get_tenant_booking_details_ajax']);
-        add_action('wp_ajax_mobooking_update_booking_status', [$this, 'handle_update_booking_status_ajax']);
-        add_action('wp_ajax_mobooking_get_dashboard_overview_data', [$this, 'handle_get_dashboard_overview_data_ajax']);
+        add_action('wp_ajax_nordbooking_get_tenant_bookings', [$this, 'handle_get_tenant_bookings_ajax']);
+        add_action('wp_ajax_nordbooking_get_tenant_booking_details', [$this, 'handle_get_tenant_booking_details_ajax']);
+        add_action('wp_ajax_nordbooking_update_booking_status', [$this, 'handle_update_booking_status_ajax']);
+        add_action('wp_ajax_nordbooking_get_dashboard_overview_data', [$this, 'handle_get_dashboard_overview_data_ajax']);
 
         // New AJAX actions for dashboard CRUD
-        add_action('wp_ajax_mobooking_create_dashboard_booking', [$this, 'handle_create_dashboard_booking_ajax']);
-        add_action('wp_ajax_mobooking_update_dashboard_booking_fields', [$this, 'handle_update_dashboard_booking_fields_ajax']);
-        add_action('wp_ajax_mobooking_delete_dashboard_booking', [$this, 'handle_delete_dashboard_booking_ajax']);
-        add_action('wp_ajax_mobooking_assign_staff_to_booking', [$this, 'handle_assign_staff_to_booking_ajax']);
+        add_action('wp_ajax_nordbooking_create_dashboard_booking', [$this, 'handle_create_dashboard_booking_ajax']);
+        add_action('wp_ajax_nordbooking_update_dashboard_booking_fields', [$this, 'handle_update_dashboard_booking_fields_ajax']);
+        add_action('wp_ajax_nordbooking_delete_dashboard_booking', [$this, 'handle_delete_dashboard_booking_ajax']);
+        add_action('wp_ajax_nordbooking_assign_staff_to_booking', [$this, 'handle_assign_staff_to_booking_ajax']);
     }
 
     /**
@@ -44,14 +44,14 @@ class Bookings {
      */
     private function safe_json_decode($json_string, $data_type = 'data') {
         if (empty($json_string)) {
-            return new \WP_Error('empty_json', sprintf(__('Empty data provided for %s', 'mobooking'), $data_type));
+            return new \WP_Error('empty_json', sprintf(__('Empty data provided for %s', 'NORDBOOKING'), $data_type));
         }
     
         // Clean the JSON string first
         $json_string = $this->clean_json_string($json_string);
         
         // Log the cleaned JSON for debugging
-        error_log("MoBooking - Decoding {$data_type}: " . substr($json_string, 0, 300) . (strlen($json_string) > 300 ? '...' : ''));
+        error_log("NORDBOOKING - Decoding {$data_type}: " . substr($json_string, 0, 300) . (strlen($json_string) > 300 ? '...' : ''));
     
         // Try to decode
         $decoded = json_decode($json_string, true);
@@ -62,14 +62,14 @@ class Bookings {
     
         // If initial decode fails, try common fixes
         $error_msg = json_last_error_msg();
-        error_log("MoBooking - Initial JSON decode failed for {$data_type}. Error: " . $error_msg);
+        error_log("NORDBOOKING - Initial JSON decode failed for {$data_type}. Error: " . $error_msg);
     
         // Try with stripslashes
         $stripped_json = stripslashes($json_string);
         $decoded = json_decode($stripped_json, true);
         
         if (json_last_error() === JSON_ERROR_NONE) {
-            error_log("MoBooking - JSON decode successful after stripslashes for {$data_type}");
+            error_log("NORDBOOKING - JSON decode successful after stripslashes for {$data_type}");
             return $decoded;
         }
     
@@ -78,7 +78,7 @@ class Bookings {
         $decoded = json_decode($double_stripped, true);
         
         if (json_last_error() === JSON_ERROR_NONE) {
-            error_log("MoBooking - JSON decode successful after double stripslashes for {$data_type}");
+            error_log("NORDBOOKING - JSON decode successful after double stripslashes for {$data_type}");
             return $decoded;
         }
     
@@ -87,19 +87,19 @@ class Bookings {
         $decoded = json_decode($url_decoded, true);
         
         if (json_last_error() === JSON_ERROR_NONE) {
-            error_log("MoBooking - JSON decode successful after URL decode for {$data_type}");
+            error_log("NORDBOOKING - JSON decode successful after URL decode for {$data_type}");
             return $decoded;
         }
     
         // If all attempts fail, return comprehensive error
         $final_error = sprintf(
-            __('Failed to decode JSON for %s. Original error: %s', 'mobooking'),
+            __('Failed to decode JSON for %s. Original error: %s', 'NORDBOOKING'),
             $data_type,
             $error_msg
         );
         
-        error_log("MoBooking - " . $final_error);
-        error_log("MoBooking - Raw JSON string (first 500 chars): " . substr($json_string, 0, 500));
+        error_log("NORDBOOKING - " . $final_error);
+        error_log("NORDBOOKING - Raw JSON string (first 500 chars): " . substr($json_string, 0, 500));
         
         return new \WP_Error('json_decode_error', $final_error);
     }
@@ -128,29 +128,29 @@ class Bookings {
 
     public function handle_create_booking_public_ajax() {
         // Enhanced logging for debugging
-        error_log('MoBooking - AJAX Request started');
-        error_log('MoBooking - $_POST data: ' . print_r($_POST, true));
+        error_log('NORDBOOKING - AJAX Request started');
+        error_log('NORDBOOKING - $_POST data: ' . print_r($_POST, true));
         
         // Security check - verify nonce
-        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'mobooking_booking_form_nonce')) {
-            error_log('MoBooking - Nonce verification failed. Expected: mobooking_booking_form_nonce, Received: ' . ($_POST['nonce'] ?? 'none'));
-            wp_send_json_error(['message' => __('Security check failed. Please refresh the page and try again.', 'mobooking')], 403);
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'nordbooking_booking_form_nonce')) {
+            error_log('NORDBOOKING - Nonce verification failed. Expected: nordbooking_booking_form_nonce, Received: ' . ($_POST['nonce'] ?? 'none'));
+            wp_send_json_error(['message' => __('Security check failed. Please refresh the page and try again.', 'NORDBOOKING')], 403);
             return;
         }
     
         // Get and validate tenant ID
         $tenant_id = isset($_POST['tenant_id']) ? intval($_POST['tenant_id']) : 0;
         if (!$tenant_id) {
-            error_log('MoBooking - Missing or invalid tenant ID: ' . $tenant_id);
-            wp_send_json_error(['message' => __('Invalid tenant information.', 'mobooking')], 400);
+            error_log('NORDBOOKING - Missing or invalid tenant ID: ' . $tenant_id);
+            wp_send_json_error(['message' => __('Invalid tenant information.', 'NORDBOOKING')], 400);
             return;
         }
     
         // Verify tenant exists
         $tenant_user = get_userdata($tenant_id);
         if (!$tenant_user) {
-            error_log('MoBooking - Tenant user not found: ' . $tenant_id);
-            wp_send_json_error(['message' => __('Business not found.', 'mobooking')], 400);
+            error_log('NORDBOOKING - Tenant user not found: ' . $tenant_id);
+            wp_send_json_error(['message' => __('Business not found.', 'NORDBOOKING')], 400);
             return;
         }
     
@@ -160,7 +160,7 @@ class Bookings {
         $discount_info_json = isset($_POST['discount_info']) ? wp_unslash($_POST['discount_info']) : '';
         $pricing_json = isset($_POST['pricing']) ? wp_unslash($_POST['pricing']) : '';
     
-        error_log('MoBooking - Raw JSON data received:');
+        error_log('NORDBOOKING - Raw JSON data received:');
         error_log('Selected Services: ' . $selected_services_json);
         error_log('Customer Details: ' . $customer_details_json);
         error_log('Pricing: ' . $pricing_json);
@@ -168,15 +168,15 @@ class Bookings {
         // Decode JSON data with enhanced error handling
         $selected_services = $this->safe_json_decode($selected_services_json, 'selected_services');
         if (is_wp_error($selected_services)) {
-            error_log('MoBooking - Selected services JSON decode error: ' . $selected_services->get_error_message());
-            wp_send_json_error(['message' => __('Invalid services data. Please try again.', 'mobooking')], 400);
+            error_log('NORDBOOKING - Selected services JSON decode error: ' . $selected_services->get_error_message());
+            wp_send_json_error(['message' => __('Invalid services data. Please try again.', 'NORDBOOKING')], 400);
             return;
         }
     
         $customer_details = $this->safe_json_decode($customer_details_json, 'customer_details');
         if (is_wp_error($customer_details)) {
-            error_log('MoBooking - Customer details JSON decode error: ' . $customer_details->get_error_message());
-            wp_send_json_error(['message' => __('Invalid customer information. Please check your form data.', 'mobooking')], 400);
+            error_log('NORDBOOKING - Customer details JSON decode error: ' . $customer_details->get_error_message());
+            wp_send_json_error(['message' => __('Invalid customer information. Please check your form data.', 'NORDBOOKING')], 400);
             return;
         }
     
@@ -185,7 +185,7 @@ class Bookings {
         if (!empty($discount_info_json)) {
             $discount_info = $this->safe_json_decode($discount_info_json, 'discount_info');
             if (is_wp_error($discount_info)) {
-                error_log('MoBooking - Discount info JSON decode error (non-critical): ' . $discount_info->get_error_message());
+                error_log('NORDBOOKING - Discount info JSON decode error (non-critical): ' . $discount_info->get_error_message());
                 $discount_info = null; // Continue without discount if invalid
             }
         }
@@ -194,7 +194,7 @@ class Bookings {
         if (!empty($pricing_json)) {
             $pricing_info = $this->safe_json_decode($pricing_json, 'pricing');
             if (is_wp_error($pricing_info)) {
-                error_log('MoBooking - Pricing info JSON decode error (non-critical): ' . $pricing_info->get_error_message());
+                error_log('NORDBOOKING - Pricing info JSON decode error (non-critical): ' . $pricing_info->get_error_message());
                 $pricing_info = null; // Continue without pricing if invalid
             }
         }
@@ -205,14 +205,14 @@ class Bookings {
     
         // Validate required data
         if (empty($selected_services) || !is_array($selected_services)) {
-            error_log('MoBooking - No services selected or invalid format');
-            wp_send_json_error(['message' => __('Please select at least one service.', 'mobooking')], 400);
+            error_log('NORDBOOKING - No services selected or invalid format');
+            wp_send_json_error(['message' => __('Please select at least one service.', 'NORDBOOKING')], 400);
             return;
         }
     
         if (empty($customer_details) || !is_array($customer_details)) {
-            error_log('MoBooking - Customer details missing or invalid format');
-            wp_send_json_error(['message' => __('Customer information is required.', 'mobooking')], 400);
+            error_log('NORDBOOKING - Customer details missing or invalid format');
+            wp_send_json_error(['message' => __('Customer information is required.', 'NORDBOOKING')], 400);
             return;
         }
     
@@ -227,31 +227,31 @@ class Bookings {
         }
     
         if (!empty($missing_fields)) {
-            error_log('MoBooking - Missing required customer fields: ' . implode(', ', $missing_fields));
-            wp_send_json_error(['message' => sprintf(__('Missing required information: %s', 'mobooking'), implode(', ', $missing_fields))], 400);
+            error_log('NORDBOOKING - Missing required customer fields: ' . implode(', ', $missing_fields));
+            wp_send_json_error(['message' => sprintf(__('Missing required information: %s', 'NORDBOOKING'), implode(', ', $missing_fields))], 400);
             return;
         }
     
         // Validate email format
         if (!is_email($customer_details['email'])) {
-            error_log('MoBooking - Invalid email format: ' . $customer_details['email']);
-            wp_send_json_error(['message' => __('Please provide a valid email address.', 'mobooking')], 400);
+            error_log('NORDBOOKING - Invalid email format: ' . $customer_details['email']);
+            wp_send_json_error(['message' => __('Please provide a valid email address.', 'NORDBOOKING')], 400);
             return;
         }
     
         // Validate date format
         $date_obj = DateTime::createFromFormat('Y-m-d', $customer_details['date']);
         if (!$date_obj || $date_obj->format('Y-m-d') !== $customer_details['date']) {
-            error_log('MoBooking - Invalid date format: ' . $customer_details['date']);
-            wp_send_json_error(['message' => __('Please provide a valid date.', 'mobooking')], 400);
+            error_log('NORDBOOKING - Invalid date format: ' . $customer_details['date']);
+            wp_send_json_error(['message' => __('Please provide a valid date.', 'NORDBOOKING')], 400);
             return;
         }
     
         // Validate time format
         $time_obj = DateTime::createFromFormat('H:i', $customer_details['time']);
         if (!$time_obj || $time_obj->format('H:i') !== $customer_details['time']) {
-            error_log('MoBooking - Invalid time format: ' . $customer_details['time']);
-            wp_send_json_error(['message' => __('Please provide a valid time.', 'mobooking')], 400);
+            error_log('NORDBOOKING - Invalid time format: ' . $customer_details['time']);
+            wp_send_json_error(['message' => __('Please provide a valid time.', 'NORDBOOKING')], 400);
             return;
         }
     
@@ -259,8 +259,8 @@ class Bookings {
         $booking_datetime = DateTime::createFromFormat('Y-m-d H:i', $customer_details['date'] . ' ' . $customer_details['time']);
         $now = new DateTime();
         if ($booking_datetime < $now) {
-            error_log('MoBooking - Booking date is in the past: ' . $customer_details['date'] . ' ' . $customer_details['time']);
-            wp_send_json_error(['message' => __('Booking date and time cannot be in the past.', 'mobooking')], 400);
+            error_log('NORDBOOKING - Booking date is in the past: ' . $customer_details['date'] . ' ' . $customer_details['time']);
+            wp_send_json_error(['message' => __('Booking date and time cannot be in the past.', 'NORDBOOKING')], 400);
             return;
         }
     
@@ -268,7 +268,7 @@ class Bookings {
         $service_frequency = isset($_POST['service_frequency']) ? sanitize_text_field($_POST['service_frequency']) : 'one-time';
         $valid_frequencies = ['one-time', 'weekly', 'monthly', 'daily']; // Adding 'daily' as a valid option
         if (!in_array($service_frequency, $valid_frequencies)) {
-            wp_send_json_error(['message' => __('Invalid service frequency.', 'mobooking')], 400);
+            wp_send_json_error(['message' => __('Invalid service frequency.', 'NORDBOOKING')], 400);
             return;
         }
 
@@ -283,12 +283,12 @@ class Bookings {
             'service_frequency' => $service_frequency
         ];
     
-        error_log('MoBooking - Final payload prepared: ' . print_r($payload, true));
+        error_log('NORDBOOKING - Final payload prepared: ' . print_r($payload, true));
     
         // Verify database tables exist before attempting to create booking
         if (!$this->verify_database_tables()) {
-            error_log('MoBooking - Database tables verification failed');
-            wp_send_json_error(['message' => __('System error: Database not properly configured. Please contact support.', 'mobooking')], 500);
+            error_log('NORDBOOKING - Database tables verification failed');
+            wp_send_json_error(['message' => __('System error: Database not properly configured. Please contact support.', 'NORDBOOKING')], 500);
             return;
         }
     
@@ -297,9 +297,9 @@ class Bookings {
             $result = $this->create_booking($tenant_id, $payload);
     
             if (is_wp_error($result)) {
-                error_log('MoBooking - Booking creation failed (WP_Error): ' . $result->get_error_message());
-                error_log('MoBooking - WP_Error code: ' . $result->get_error_code());
-                error_log('MoBooking - WP_Error data: ' . print_r($result->get_error_data(), true));
+                error_log('NORDBOOKING - Booking creation failed (WP_Error): ' . $result->get_error_message());
+                error_log('NORDBOOKING - WP_Error code: ' . $result->get_error_code());
+                error_log('NORDBOOKING - WP_Error data: ' . print_r($result->get_error_data(), true));
                 
                 // Map specific error codes to user-friendly messages
                 $error_code = $result->get_error_code();
@@ -307,13 +307,13 @@ class Bookings {
                 
                 switch ($error_code) {
                     case 'db_booking_error':
-                        $user_message = __('Could not save booking to database. Please try again.', 'mobooking');
+                        $user_message = __('Could not save booking to database. Please try again.', 'NORDBOOKING');
                         break;
                     case 'invalid_service':
-                        $user_message = __('One or more selected services are no longer available.', 'mobooking');
+                        $user_message = __('One or more selected services are no longer available.', 'NORDBOOKING');
                         break;
                     case 'discount_error':
-                        $user_message = __('There was an issue applying the discount code.', 'mobooking');
+                        $user_message = __('There was an issue applying the discount code.', 'NORDBOOKING');
                         break;
                     default:
                         $user_message = $error_message;
@@ -324,12 +324,12 @@ class Bookings {
                 return;
             }
     
-            error_log('MoBooking - Booking created successfully: ' . print_r($result, true));
+            error_log('NORDBOOKING - Booking created successfully: ' . print_r($result, true));
             
             // Format success response
             $success_message = !empty($result['message']) ? 
                 sprintf($result['message'], $result['booking_reference']) : 
-                sprintf(__('Booking confirmed! Your reference is %s.', 'mobooking'), $result['booking_reference']);
+                sprintf(__('Booking confirmed! Your reference is %s.', 'NORDBOOKING'), $result['booking_reference']);
     
             wp_send_json_success([
                 'message' => $success_message,
@@ -339,9 +339,9 @@ class Bookings {
             ]);
     
         } catch (Exception $e) {
-            error_log('MoBooking - Exception during booking creation: ' . $e->getMessage());
-            error_log('MoBooking - Exception trace: ' . $e->getTraceAsString());
-            wp_send_json_error(['message' => __('An unexpected error occurred. Please try again or contact support.', 'mobooking')], 500);
+            error_log('NORDBOOKING - Exception during booking creation: ' . $e->getMessage());
+            error_log('NORDBOOKING - Exception trace: ' . $e->getTraceAsString());
+            wp_send_json_error(['message' => __('An unexpected error occurred. Please try again or contact support.', 'NORDBOOKING')], 500);
         }
     }
 /**
@@ -354,7 +354,7 @@ private function verify_database_tables() {
         $table_name = Database::get_table_name($table_suffix);
         
         if ($this->wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name) {
-            error_log("MoBooking - Required table missing: $table_name");
+            error_log("NORDBOOKING - Required table missing: $table_name");
             return false;
         }
     }
@@ -405,10 +405,10 @@ private function verify_database_tables() {
 
     public function create_booking(int $tenant_user_id, array $payload) {
         try {
-            error_log('MoBooking - create_booking called with tenant_id: ' . $tenant_user_id);
+            error_log('NORDBOOKING - create_booking called with tenant_id: ' . $tenant_user_id);
             
             if (empty($tenant_user_id)) {
-                return new \WP_Error('invalid_tenant', __('Tenant user ID is required.', 'mobooking'));
+                return new \WP_Error('invalid_tenant', __('Tenant user ID is required.', 'NORDBOOKING'));
             }
 
             // Extract data from payload
@@ -418,7 +418,7 @@ private function verify_database_tables() {
             $time_slot = $payload['time_slot'] ?? null;
 
             if (empty($selected_service_items) || empty($customer)) {
-                return new \WP_Error('missing_data', __('Selected services and customer data are required.', 'mobooking'));
+                return new \WP_Error('missing_data', __('Selected services and customer data are required.', 'NORDBOOKING'));
             }
 
             // Validate and process services
@@ -433,7 +433,7 @@ private function verify_database_tables() {
                 // Get service details from database
                 $service_details = $this->services_manager->get_service($service_id, $tenant_user_id);
                 if (!$service_details) {
-                    return new \WP_Error('invalid_service', __('Invalid service selected.', 'mobooking'));
+                    return new \WP_Error('invalid_service', __('Invalid service selected.', 'NORDBOOKING'));
                 }
 
                 $service_price = floatval($service_details['price']);
@@ -484,7 +484,7 @@ private function verify_database_tables() {
                     $discount_amount = $validation_result['discount_amount'];
                     $validated_discount_info = $validation_result;
                 } else {
-                    error_log('MoBooking - Discount validation failed: ' . $validation_result->get_error_message());
+                    error_log('NORDBOOKING - Discount validation failed: ' . $validation_result->get_error_message());
                 }
             }
 
@@ -521,12 +521,12 @@ private function verify_database_tables() {
             $inserted = $this->wpdb->insert($bookings_table, $booking_data);
 
             if (false === $inserted) {
-                error_log('MoBooking - Database insert failed: ' . $this->wpdb->last_error);
-                return new \WP_Error('db_booking_error', __('Could not save booking to database.', 'mobooking'));
+                error_log('NORDBOOKING - Database insert failed: ' . $this->wpdb->last_error);
+                return new \WP_Error('db_booking_error', __('Could not save booking to database.', 'NORDBOOKING'));
             }
 
             $new_booking_id = $this->wpdb->insert_id;
-            error_log('MoBooking - Booking saved with ID: ' . $new_booking_id);
+            error_log('NORDBOOKING - Booking saved with ID: ' . $new_booking_id);
 
 // Now insert booking items into the booking_items table
 $booking_items_table = Database::get_table_name('booking_items');
@@ -544,7 +544,7 @@ foreach ($calculated_service_items as $service_item) {
     $item_inserted = $this->wpdb->insert($booking_items_table, $item_data);
     
     if (false === $item_inserted) {
-        error_log('MoBooking - Failed to insert booking item: ' . $this->wpdb->last_error);
+        error_log('NORDBOOKING - Failed to insert booking item: ' . $this->wpdb->last_error);
         // You might want to handle this error more gracefully
     }
 }
@@ -553,9 +553,9 @@ foreach ($calculated_service_items as $service_item) {
 
             // Update customer records (if Customers class exists)
             $mob_customer_id = null;
-            if (class_exists('MoBooking\Classes\Customers')) {
+            if (class_exists('NORDBOOKING\Classes\Customers')) {
                 try {
-                    $customers_manager = new \MoBooking\Classes\Customers();
+                    $customers_manager = new \NORDBOOKING\Classes\Customers();
                     // Prepare customer data array with keys expected by Customers::create_or_update_customer_for_booking
                     $customer_data_for_manager = [
                         'full_name' => $customer['name'] ?? '',
@@ -575,10 +575,10 @@ foreach ($calculated_service_items as $service_item) {
                     if (!is_wp_error($mob_customer_id) && $mob_customer_id > 0) {
                         $customers_manager->update_customer_booking_stats($mob_customer_id, $booking_data['created_at']);
                     } else if (is_wp_error($mob_customer_id)) {
-                        error_log("MoBooking: Error creating/updating customer: " . $mob_customer_id->get_error_message());
+                        error_log("NORDBOOKING: Error creating/updating customer: " . $mob_customer_id->get_error_message());
                     }
                 } catch (\Exception $e) {
-                    error_log("MoBooking: Error updating customer stats: " . $e->getMessage());
+                    error_log("NORDBOOKING: Error updating customer stats: " . $e->getMessage());
                 }
             }
 
@@ -617,7 +617,7 @@ foreach ($calculated_service_items as $service_item) {
                 'customer_phone' => $customer['phone'],
                 'service_address' => $customer['address'],
                 'special_instructions' => $customer['instructions'] ?? '',
-                'admin_booking_link' => admin_url('admin.php?page=mobooking-bookings&booking_id=' . $new_booking_id)
+                'admin_booking_link' => admin_url('admin.php?page=NORDBOOKING-bookings&booking_id=' . $new_booking_id)
             ];
 
             $this->notifications_manager->send_booking_confirmation_customer($email_booking_details, $customer['email'], $tenant_user_id);
@@ -627,21 +627,21 @@ foreach ($calculated_service_items as $service_item) {
                 'booking_id' => $new_booking_id, 
                 'booking_reference' => $booking_reference,
                 'final_total' => $final_total_server,
-                'message' => __('Booking confirmed! Your reference is %s.', 'mobooking')
+                'message' => __('Booking confirmed! Your reference is %s.', 'NORDBOOKING')
             ];
 
         } catch (\Exception $e) {
-             error_log("MoBooking Create Booking Exception: " . $e->getMessage());
+             error_log("NORDBOOKING Create Booking Exception: " . $e->getMessage());
             return new \WP_Error('booking_creation_exception', $e->getMessage());
         }
     }
 
     // Dashboard AJAX handlers (keeping existing methods)
     public function handle_get_tenant_bookings_ajax() {
-        check_ajax_referer('mobooking_dashboard_nonce', 'nonce');
+        check_ajax_referer('nordbooking_dashboard_nonce', 'nonce');
         $user_id = get_current_user_id();
         if (!$user_id) {
-            wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403);
+            wp_send_json_error(['message' => __('User not logged in.', 'NORDBOOKING')], 403);
             return;
         }
 
@@ -697,9 +697,9 @@ foreach ($calculated_service_items as $service_item) {
             foreach ($bookings as &$booking_item) {
                 if (!empty($booking_item['assigned_staff_id'])) {
                     $staff_user = get_userdata($booking_item['assigned_staff_id']);
-                    $booking_item['assigned_staff_name'] = $staff_user ? $staff_user->display_name : __('Unknown Staff', 'mobooking');
+                    $booking_item['assigned_staff_name'] = $staff_user ? $staff_user->display_name : __('Unknown Staff', 'NORDBOOKING');
                 } else {
-                    $booking_item['assigned_staff_name'] = __('Unassigned', 'mobooking');
+                    $booking_item['assigned_staff_name'] = __('Unassigned', 'NORDBOOKING');
                 }
             }
         }
@@ -724,13 +724,13 @@ foreach ($calculated_service_items as $service_item) {
 
         // Handle worker/owner relationship
         $user_to_fetch_for_id = $current_logged_in_user_id;
-        if (class_exists('MoBooking\Classes\Auth') && \MoBooking\Classes\Auth::is_user_worker($current_logged_in_user_id)) {
-            $owner_id = \MoBooking\Classes\Auth::get_business_owner_id_for_worker($current_logged_in_user_id);
+        if (class_exists('NORDBOOKING\Classes\Auth') && \NORDBOOKING\Classes\Auth::is_user_worker($current_logged_in_user_id)) {
+            $owner_id = \NORDBOOKING\Classes\Auth::get_business_owner_id_for_worker($current_logged_in_user_id);
             if ($owner_id) {
                 $user_to_fetch_for_id = $owner_id;
-                error_log("[MoBooking Bookings->get_bookings_by_tenant] Worker {$current_logged_in_user_id} associated with owner {$owner_id}. Querying for owner_id: {$owner_id}");
+                error_log("[NORDBOOKING Bookings->get_bookings_by_tenant] Worker {$current_logged_in_user_id} associated with owner {$owner_id}. Querying for owner_id: {$owner_id}");
             } else {
-                error_log("[MoBooking Bookings->get_bookings_by_tenant] Worker {$current_logged_in_user_id} has no associated owner. Cannot fetch bookings.");
+                error_log("[NORDBOOKING Bookings->get_bookings_by_tenant] Worker {$current_logged_in_user_id} has no associated owner. Cannot fetch bookings.");
                 return ['bookings' => [], 'total_count' => 0, 'per_page' => 20, 'current_page' => 1];
             }
         }
@@ -829,9 +829,9 @@ foreach ($calculated_service_items as $service_item) {
                 // Fetch assigned staff member display name
                 if (!empty($booking['assigned_staff_id'])) {
                     $staff_user = get_userdata($booking['assigned_staff_id']);
-                    $booking['assigned_staff_name'] = $staff_user ? $staff_user->display_name : __('Unknown Staff', 'mobooking');
+                    $booking['assigned_staff_name'] = $staff_user ? $staff_user->display_name : __('Unknown Staff', 'NORDBOOKING');
                 } else {
-                    $booking['assigned_staff_name'] = __('Unassigned', 'mobooking');
+                    $booking['assigned_staff_name'] = __('Unassigned', 'NORDBOOKING');
                 }
 
                 // Try to get booking items from separate table first
@@ -882,13 +882,13 @@ foreach ($calculated_service_items as $service_item) {
 
         // Handle worker/owner relationship
         $user_id_to_query_for = $current_logged_in_user_id;
-        if (class_exists('MoBooking\Classes\Auth') && \MoBooking\Classes\Auth::is_user_worker($current_logged_in_user_id)) {
-            $owner_id = \MoBooking\Classes\Auth::get_business_owner_id_for_worker($current_logged_in_user_id);
+        if (class_exists('NORDBOOKING\Classes\Auth') && \NORDBOOKING\Classes\Auth::is_user_worker($current_logged_in_user_id)) {
+            $owner_id = \NORDBOOKING\Classes\Auth::get_business_owner_id_for_worker($current_logged_in_user_id);
             if ($owner_id) {
                 $user_id_to_query_for = $owner_id;
-                error_log("[MoBooking Bookings->get_booking] Worker {$current_logged_in_user_id} associated with owner {$owner_id}. Querying for owner_id: {$owner_id}");
+                error_log("[NORDBOOKING Bookings->get_booking] Worker {$current_logged_in_user_id} associated with owner {$owner_id}. Querying for owner_id: {$owner_id}");
             } else {
-                error_log("[MoBooking Bookings->get_booking] Worker {$current_logged_in_user_id} has no associated owner. Cannot fetch booking {$booking_id}.");
+                error_log("[NORDBOOKING Bookings->get_booking] Worker {$current_logged_in_user_id} has no associated owner. Cannot fetch booking {$booking_id}.");
                 return null;
             }
         }
@@ -900,14 +900,14 @@ foreach ($calculated_service_items as $service_item) {
         ), ARRAY_A);
 
         if ($booking) {
-            error_log("[MoBooking Bookings->get_booking] Booking {$booking_id} found for user_id_to_query_for: {$user_id_to_query_for}.");
+            error_log("[NORDBOOKING Bookings->get_booking] Booking {$booking_id} found for user_id_to_query_for: {$user_id_to_query_for}.");
 
             // Fetch assigned staff member display name
             if (!empty($booking['assigned_staff_id'])) {
                 $staff_user = get_userdata($booking['assigned_staff_id']);
-                $booking['assigned_staff_name'] = $staff_user ? $staff_user->display_name : __('Unknown Staff', 'mobooking');
+                $booking['assigned_staff_name'] = $staff_user ? $staff_user->display_name : __('Unknown Staff', 'NORDBOOKING');
             } else {
-                $booking['assigned_staff_name'] = __('Unassigned', 'mobooking');
+                $booking['assigned_staff_name'] = __('Unassigned', 'NORDBOOKING');
             }
             
             // Try to get booking items from separate table first
@@ -941,18 +941,18 @@ foreach ($calculated_service_items as $service_item) {
     }
 
     public function handle_get_tenant_booking_details_ajax() {
-        check_ajax_referer('mobooking_dashboard_nonce', 'nonce');
+        check_ajax_referer('nordbooking_dashboard_nonce', 'nonce');
         $user_id = get_current_user_id();
         $booking_id = isset($_POST['booking_id']) ? intval($_POST['booking_id']) : 0;
 
         if (!$user_id || !$booking_id) {
-            wp_send_json_error(['message' => __('Invalid request.', 'mobooking')]);
+            wp_send_json_error(['message' => __('Invalid request.', 'NORDBOOKING')]);
             return;
         }
 
         $booking = $this->get_booking_by_id($booking_id, $user_id);
         if (!$booking) {
-            wp_send_json_error(['message' => __('Booking not found.', 'mobooking')]);
+            wp_send_json_error(['message' => __('Booking not found.', 'NORDBOOKING')]);
             return;
         }
 
@@ -976,20 +976,20 @@ foreach ($calculated_service_items as $service_item) {
     }
 
     public function handle_update_booking_status_ajax() {
-        check_ajax_referer('mobooking_dashboard_nonce', 'nonce');
+        check_ajax_referer('nordbooking_dashboard_nonce', 'nonce');
         $user_id = get_current_user_id();
         $booking_id = isset($_POST['booking_id']) ? intval($_POST['booking_id']) : 0;
         $new_status = isset($_POST['new_status']) ? sanitize_text_field($_POST['new_status']) : '';
 
         if (!$user_id || !$booking_id || !$new_status) {
-            wp_send_json_error(['message' => __('Invalid request parameters.', 'mobooking')]);
+            wp_send_json_error(['message' => __('Invalid request parameters.', 'NORDBOOKING')]);
             return;
         }
 
         // Ensure all statuses from the dropdown are considered valid
         $valid_statuses = ['pending', 'confirmed', 'assigned', 'in-progress', 'completed', 'cancelled', 'on-hold', 'processing'];
         if (!in_array($new_status, $valid_statuses)) {
-            wp_send_json_error(['message' => __('Invalid status selected.', 'mobooking')]); // Slightly clearer message
+            wp_send_json_error(['message' => __('Invalid status selected.', 'NORDBOOKING')]); // Slightly clearer message
             return;
         }
 
@@ -1007,13 +1007,13 @@ foreach ($calculated_service_items as $service_item) {
             if ($booking_details && isset($booking_details['assigned_staff_id']) && (int)$booking_details['assigned_staff_id'] === $user_id) {
                 $can_update = true;
             } else {
-                 wp_send_json_error(['message' => __('You can only update status for bookings assigned to you.', 'mobooking')], 403);
+                 wp_send_json_error(['message' => __('You can only update status for bookings assigned to you.', 'NORDBOOKING')], 403);
                  return;
             }
         }
 
         if (!$can_update) {
-            wp_send_json_error(['message' => __('You do not have permission to update this booking status.', 'mobooking')], 403);
+            wp_send_json_error(['message' => __('You do not have permission to update this booking status.', 'NORDBOOKING')], 403);
             return;
         }
 
@@ -1021,7 +1021,7 @@ foreach ($calculated_service_items as $service_item) {
         if (is_wp_error($result)) {
             wp_send_json_error(['message' => $result->get_error_message()]);
         } else {
-            wp_send_json_success(['message' => __('Booking status updated successfully.', 'mobooking')]);
+            wp_send_json_success(['message' => __('Booking status updated successfully.', 'NORDBOOKING')]);
         }
     }
 
@@ -1035,7 +1035,7 @@ foreach ($calculated_service_items as $service_item) {
         // Get old status for notification
         $old_booking_data = $this->get_booking_by_id($booking_id, $tenant_user_id);
         if (!$old_booking_data) {
-            return new \WP_Error('booking_not_found', __('Booking not found to update status.', 'mobooking'));
+            return new \WP_Error('booking_not_found', __('Booking not found to update status.', 'NORDBOOKING'));
         }
         $old_status = $old_booking_data['status'];
 
@@ -1053,7 +1053,7 @@ foreach ($calculated_service_items as $service_item) {
         );
 
         if (false === $updated) {
-            return new \WP_Error('db_update_error', __('Could not update booking status.', 'mobooking'));
+            return new \WP_Error('db_update_error', __('Could not update booking status.', 'NORDBOOKING'));
         }
 
         // Send notification to admin
@@ -1069,10 +1069,10 @@ foreach ($calculated_service_items as $service_item) {
     }
 
     public function handle_get_dashboard_overview_data_ajax() {
-        check_ajax_referer('mobooking_dashboard_nonce', 'nonce');
+        check_ajax_referer('nordbooking_dashboard_nonce', 'nonce');
         $user_id = get_current_user_id();
         if (!$user_id) {
-            wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403);
+            wp_send_json_error(['message' => __('User not logged in.', 'NORDBOOKING')], 403);
             return;
         }
 
@@ -1100,10 +1100,10 @@ foreach ($calculated_service_items as $service_item) {
 
     // Dashboard CRUD methods
     public function handle_create_dashboard_booking_ajax() {
-        check_ajax_referer('mobooking_dashboard_nonce', 'nonce');
+        check_ajax_referer('nordbooking_dashboard_nonce', 'nonce');
         $user_id = get_current_user_id();
         if (!$user_id) {
-            wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403);
+            wp_send_json_error(['message' => __('User not logged in.', 'NORDBOOKING')], 403);
             return;
         }
 
@@ -1111,7 +1111,7 @@ foreach ($calculated_service_items as $service_item) {
         $payload = json_decode($payload_json, true);
 
         if (json_last_error() !== JSON_ERROR_NONE || empty($payload)) {
-            wp_send_json_error(['message' => __('Invalid booking data received.', 'mobooking')], 400);
+            wp_send_json_error(['message' => __('Invalid booking data received.', 'NORDBOOKING')], 400);
             return;
         }
 
@@ -1120,7 +1120,7 @@ foreach ($calculated_service_items as $service_item) {
         if (is_wp_error($result)) {
             wp_send_json_error(['message' => $result->get_error_message()], 500);
         } else {
-            $success_message = !empty($result['message']) ? sprintf($result['message'], $result['booking_reference']) : __('Booking created successfully!', 'mobooking');
+            $success_message = !empty($result['message']) ? sprintf($result['message'], $result['booking_reference']) : __('Booking created successfully!', 'NORDBOOKING');
             wp_send_json_success([
                 'message' => $success_message,
                 'booking_id' => $result['booking_id']
@@ -1129,10 +1129,10 @@ foreach ($calculated_service_items as $service_item) {
     }
 
     public function handle_update_dashboard_booking_fields_ajax() {
-        check_ajax_referer('mobooking_dashboard_nonce', 'nonce');
+        check_ajax_referer('nordbooking_dashboard_nonce', 'nonce');
         $user_id = get_current_user_id();
         if (!$user_id) {
-            wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403);
+            wp_send_json_error(['message' => __('User not logged in.', 'NORDBOOKING')], 403);
             return;
         }
 
@@ -1140,13 +1140,13 @@ foreach ($calculated_service_items as $service_item) {
         $update_data_json = isset($_POST['update_data']) ? stripslashes_deep($_POST['update_data']) : '';
 
         if (empty($booking_id)) {
-            wp_send_json_error(['message' => __('Booking ID is required.', 'mobooking')], 400);
+            wp_send_json_error(['message' => __('Booking ID is required.', 'NORDBOOKING')], 400);
             return;
         }
 
         $update_data = json_decode($update_data_json, true);
         if (json_last_error() !== JSON_ERROR_NONE || empty($update_data)) {
-            wp_send_json_error(['message' => __('Invalid update data received.', 'mobooking')], 400);
+            wp_send_json_error(['message' => __('Invalid update data received.', 'NORDBOOKING')], 400);
             return;
         }
 
@@ -1155,7 +1155,7 @@ foreach ($calculated_service_items as $service_item) {
         if (is_wp_error($result)) {
             wp_send_json_error(['message' => $result->get_error_message()], 500);
         } else {
-            wp_send_json_success(['message' => __('Booking updated successfully.', 'mobooking')]);
+            wp_send_json_success(['message' => __('Booking updated successfully.', 'NORDBOOKING')]);
         }
     }
 
@@ -1176,7 +1176,7 @@ foreach ($calculated_service_items as $service_item) {
         }
         
         if (empty($filtered_data)) {
-            return new \WP_Error('no_valid_fields', __('No valid fields to update.', 'mobooking'));
+            return new \WP_Error('no_valid_fields', __('No valid fields to update.', 'NORDBOOKING'));
         }
         
         $filtered_data['updated_at'] = current_time('mysql');
@@ -1190,23 +1190,23 @@ foreach ($calculated_service_items as $service_item) {
         );
 
         if (false === $updated) {
-            return new \WP_Error('db_update_error', __('Could not update booking.', 'mobooking'));
+            return new \WP_Error('db_update_error', __('Could not update booking.', 'NORDBOOKING'));
         }
 
         return true;
     }
 
     public function handle_delete_dashboard_booking_ajax() {
-        check_ajax_referer('mobooking_dashboard_nonce', 'nonce');
+        check_ajax_referer('nordbooking_dashboard_nonce', 'nonce');
         $user_id = get_current_user_id();
         if (!$user_id) {
-            wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403);
+            wp_send_json_error(['message' => __('User not logged in.', 'NORDBOOKING')], 403);
             return;
         }
 
         $booking_id = isset($_POST['booking_id']) ? intval($_POST['booking_id']) : 0;
         if (empty($booking_id)) {
-            wp_send_json_error(['message' => __('Booking ID is required for deletion.', 'mobooking')], 400);
+            wp_send_json_error(['message' => __('Booking ID is required for deletion.', 'NORDBOOKING')], 400);
             return;
         }
 
@@ -1215,7 +1215,7 @@ foreach ($calculated_service_items as $service_item) {
         if (is_wp_error($result)) {
             wp_send_json_error(['message' => $result->get_error_message()], 500);
         } else {
-            wp_send_json_success(['message' => __('Booking deleted successfully.', 'mobooking')]);
+            wp_send_json_success(['message' => __('Booking deleted successfully.', 'NORDBOOKING')]);
         }
     }
 
@@ -1225,7 +1225,7 @@ foreach ($calculated_service_items as $service_item) {
         // First verify the booking exists and belongs to the tenant
         $booking = $this->get_booking_by_id($booking_id, $tenant_user_id);
         if (!$booking) {
-            return new \WP_Error('booking_not_found', __('Booking not found or access denied.', 'mobooking'));
+            return new \WP_Error('booking_not_found', __('Booking not found or access denied.', 'NORDBOOKING'));
         }
         
         $deleted = $this->wpdb->delete(
@@ -1235,7 +1235,7 @@ foreach ($calculated_service_items as $service_item) {
         );
 
         if (false === $deleted) {
-            return new \WP_Error('db_delete_error', __('Could not delete booking from database.', 'mobooking'));
+            return new \WP_Error('db_delete_error', __('Could not delete booking from database.', 'NORDBOOKING'));
         }
 
         return true;
@@ -1371,7 +1371,7 @@ foreach ($calculated_service_items as $service_item) {
         $bookings = $this->search_bookings($tenant_user_id, $filters);
         
         if (empty($bookings)) {
-            return new \WP_Error('no_bookings', __('No bookings found to export.', 'mobooking'));
+            return new \WP_Error('no_bookings', __('No bookings found to export.', 'NORDBOOKING'));
         }
         
         $csv_data = [];
@@ -1454,20 +1454,20 @@ foreach ($calculated_service_items as $service_item) {
         $required_fields = ['customer_name', 'customer_email', 'booking_date', 'booking_time'];
         foreach ($required_fields as $field) {
             if (empty($booking_data[$field])) {
-                $errors[] = sprintf(__('Field %s is required.', 'mobooking'), $field);
+                $errors[] = sprintf(__('Field %s is required.', 'NORDBOOKING'), $field);
             }
         }
         
         // Email validation
         if (!empty($booking_data['customer_email']) && !is_email($booking_data['customer_email'])) {
-            $errors[] = __('Invalid email address.', 'mobooking');
+            $errors[] = __('Invalid email address.', 'NORDBOOKING');
         }
         
         // Date validation
         if (!empty($booking_data['booking_date'])) {
             $date = \DateTime::createFromFormat('Y-m-d', $booking_data['booking_date']);
             if (!$date || $date->format('Y-m-d') !== $booking_data['booking_date']) {
-                $errors[] = __('Invalid booking date format.', 'mobooking');
+                $errors[] = __('Invalid booking date format.', 'NORDBOOKING');
             }
         }
         
@@ -1475,7 +1475,7 @@ foreach ($calculated_service_items as $service_item) {
         if (!empty($booking_data['booking_time'])) {
             $time = \DateTime::createFromFormat('H:i', $booking_data['booking_time']);
             if (!$time || $time->format('H:i') !== $booking_data['booking_time']) {
-                $errors[] = __('Invalid booking time format.', 'mobooking');
+                $errors[] = __('Invalid booking time format.', 'NORDBOOKING');
             }
         }
         
@@ -1518,11 +1518,11 @@ foreach ($calculated_service_items as $service_item) {
     }
 
     public function handle_assign_staff_to_booking_ajax() {
-        check_ajax_referer('mobooking_dashboard_nonce', 'nonce'); // Assuming a general dashboard nonce
+        check_ajax_referer('nordbooking_dashboard_nonce', 'nonce'); // Assuming a general dashboard nonce
         $current_user_id = get_current_user_id();
 
         if ( !current_user_can(Auth::CAP_MANAGE_BOOKINGS) && !current_user_can(Auth::CAP_ASSIGN_BOOKINGS) ) { // CAP_ASSIGN_BOOKINGS would be a new capability
-            wp_send_json_error(['message' => __('You do not have permission to assign bookings.', 'mobooking')], 403);
+            wp_send_json_error(['message' => __('You do not have permission to assign bookings.', 'NORDBOOKING')], 403);
             return;
         }
 
@@ -1530,7 +1530,7 @@ foreach ($calculated_service_items as $service_item) {
         $staff_id = isset($_POST['staff_id']) ? intval($_POST['staff_id']) : 0; // 0 means unassign
 
         if (empty($booking_id)) {
-            wp_send_json_error(['message' => __('Booking ID is required.', 'mobooking')], 400);
+            wp_send_json_error(['message' => __('Booking ID is required.', 'NORDBOOKING')], 400);
             return;
         }
 
@@ -1538,7 +1538,7 @@ foreach ($calculated_service_items as $service_item) {
         if ($staff_id !== 0) {
             $staff_user = get_userdata($staff_id);
             if (!$staff_user || !in_array(Auth::ROLE_WORKER_STAFF, $staff_user->roles)) {
-                wp_send_json_error(['message' => __('Invalid staff member selected.', 'mobooking')], 400);
+                wp_send_json_error(['message' => __('Invalid staff member selected.', 'NORDBOOKING')], 400);
                 return;
             }
             // Further check: ensure the staff member belongs to the same business owner if applicable
@@ -1546,8 +1546,8 @@ foreach ($calculated_service_items as $service_item) {
             if ($booking_owner_id) {
                 $staff_owner_id = Auth::get_business_owner_id_for_worker($staff_id);
                 if ((int)$booking_owner_id !== (int)$staff_owner_id) {
-                    error_log("MoBooking - Staff assignment failed: Booking owner ID ({$booking_owner_id}) does not match staff owner ID ({$staff_owner_id}).");
-                    wp_send_json_error(['message' => __('Staff member does not belong to this business.', 'mobooking')], 403);
+                    error_log("NORDBOOKING - Staff assignment failed: Booking owner ID ({$booking_owner_id}) does not match staff owner ID ({$staff_owner_id}).");
+                    wp_send_json_error(['message' => __('Staff member does not belong to this business.', 'NORDBOOKING')], 403);
                     return;
                 }
             }
@@ -1559,11 +1559,11 @@ foreach ($calculated_service_items as $service_item) {
             wp_send_json_error(['message' => $result->get_error_message()], 500);
         } else {
             // Optionally, send notification here if this step is confirmed
-            // if ($staff_id !== 0 && class_exists('MoBooking\Classes\Notifications')) {
+            // if ($staff_id !== 0 && class_exists('NORDBOOKING\Classes\Notifications')) {
             //     $booking_details = $this->get_booking($booking_id, $current_user_id); // Or a simplified version
             //     $this->notifications_manager->send_staff_assignment_notification($staff_id, $booking_id, $booking_details);
             // }
-            wp_send_json_success(['message' => __('Booking assignment updated successfully.', 'mobooking')]);
+            wp_send_json_success(['message' => __('Booking assignment updated successfully.', 'NORDBOOKING')]);
         }
     }
 
@@ -1580,7 +1580,7 @@ foreach ($calculated_service_items as $service_item) {
 
         if (!$booking_owner_id || $booking_owner_id !== $user_to_check_against) {
             if (!current_user_can(Auth::CAP_MANAGE_BOOKINGS_OTHERS)) { // A more global capability if needed
-                 return new \WP_Error('auth_error', __('You do not have permission to modify this booking.', 'mobooking'));
+                 return new \WP_Error('auth_error', __('You do not have permission to modify this booking.', 'NORDBOOKING'));
             }
         }
 
@@ -1595,7 +1595,7 @@ foreach ($calculated_service_items as $service_item) {
         );
 
         if (false === $updated) {
-            return new \WP_Error('db_update_error', __('Could not assign staff to booking.', 'mobooking'));
+            return new \WP_Error('db_update_error', __('Could not assign staff to booking.', 'NORDBOOKING'));
         }
 
         // Potentially update booking status to 'Assigned' if it was 'pending' and a staff member is assigned
