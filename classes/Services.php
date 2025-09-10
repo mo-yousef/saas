@@ -15,7 +15,7 @@ require_once __DIR__ . '/ServiceOptions.php';
 
 class Services {
     private $wpdb;
-    private $service_options_manager;
+    public $service_options_manager;
     private static $preset_icons_path; // Store the path to presets
 
     public function __construct() {
