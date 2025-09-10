@@ -180,10 +180,10 @@ jQuery(document).ready(function ($) {
         );
         isValid = false;
       }
-      const password = $("#NORDBOOKING-user-pass-register").val();
+      const password = $("#NORDBOOKING-user-pass").val();
       if (password.length < 8) {
         showFieldError(
-          $("#NORDBOOKING-user-pass-register"),
+          $("#NORDBOOKING-user-pass"),
           "Password must be at least 8 characters."
         );
         isValid = false;
