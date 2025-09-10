@@ -13,8 +13,8 @@ jQuery(document).ready(function ($) {
   }
 
   // --- Tab Navigation (Fixed) ---
-  const tabs = $(".mobooking-tab-item");
-  const panes = $(".mobooking-settings-tab-pane");
+  const tabs = $(".NORDBOOKING-tab-item");
+  const panes = $(".NORDBOOKING-settings-tab-pane");
 
   function activateTab(tabId) {
     // Remove active class from all tabs and panes
@@ -70,10 +70,10 @@ jQuery(document).ready(function ($) {
   initializeTabs();
 
   // --- Form Submission ---
-  $("#mobooking-booking-form-settings-form").on("submit", function (e) {
+  $("#NORDBOOKING-booking-form-settings-form").on("submit", function (e) {
     e.preventDefault();
     const form = $(this);
-    const saveButton = $("#mobooking-save-bf-settings-btn");
+    const saveButton = $("#NORDBOOKING-save-bf-settings-btn");
     const originalButtonText = saveButton.text();
     const spinner = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>`;
 
@@ -105,7 +105,7 @@ jQuery(document).ready(function ($) {
       if (
         !name ||
         name.startsWith("save_") ||
-        name === "mobooking_dashboard_nonce_field"
+        name === "nordbooking_dashboard_nonce_field"
       )
         return;
 
@@ -121,15 +121,15 @@ jQuery(document).ready(function ($) {
     });
 
     // Get nonce value
-    const nonce = $('input[name="mobooking_dashboard_nonce_field"]').val();
+    const nonce = $('input[name="nordbooking_dashboard_nonce_field"]').val();
 
     // AJAX submission
     $.ajax({
-      url: mobooking_bf_settings_params?.ajax_url || ajaxurl,
+      url: nordbooking_bf_settings_params?.ajax_url || ajaxurl,
       type: "POST",
       dataType: "json",
       data: {
-        action: "mobooking_save_booking_form_settings",
+        action: "nordbooking_save_booking_form_settings",
         nonce: nonce,
         settings: settingsData,
       },
@@ -164,13 +164,13 @@ jQuery(document).ready(function ($) {
   // --- Dynamic Public Link and Embed Code Updates ---
   const businessSlugInput = $("#bf_business_slug");
   const publicLinkDisplay = $("#bf-public-link");
-  const copyLinkBtn = $("#mobooking-copy-public-link-btn");
+  const copyLinkBtn = $("#NORDBOOKING-copy-public-link-btn");
 
   function updatePublicBookingURL(slug) {
     if (!slug) return;
 
     const siteUrl =
-      mobooking_bf_settings_params?.site_url || window.location.origin;
+      nordbooking_bf_settings_params?.site_url || window.location.origin;
     const newUrl = siteUrl.replace(/\/$/, "") + "/booking/" + slug + "/";
 
     if (publicLinkDisplay.length) {
@@ -178,7 +178,7 @@ jQuery(document).ready(function ($) {
     }
 
     // Update embed code if exists
-    const embedCodeTextarea = $("#mobooking-embed-code");
+    const embedCodeTextarea = $("#NORDBOOKING-embed-code");
     if (embedCodeTextarea.length) {
       const embedCode = `<iframe src="${newUrl}" width="100%" height="600" frameborder="0" scrolling="auto"></iframe>`;
       embedCodeTextarea.val(embedCode);
@@ -252,8 +252,8 @@ jQuery(document).ready(function ($) {
   });
 
   // Copy embed code
-  $("#mobooking-copy-embed-code-btn").on("click", function () {
-    const embedCode = $("#mobooking-embed-code").val();
+  $("#NORDBOOKING-copy-embed-code-btn").on("click", function () {
+    const embedCode = $("#NORDBOOKING-embed-code").val();
     if (embedCode) {
       copyToClipboard(embedCode, $(this));
     }
@@ -262,14 +262,16 @@ jQuery(document).ready(function ($) {
   // --- Color Picker Initialization ---
   try {
     if (typeof $.fn.wpColorPicker === "function") {
-      $(".mobooking-color-picker").wpColorPicker({
+      $(".NORDBOOKING-color-picker").wpColorPicker({
         change: function (event, ui) {
           const color = ui.color.toString();
           $(this).trigger("colorchange", [color]);
         },
       });
     } else {
-      console.warn("wpColorPicker script not loaded. Color fields will not be interactive.");
+      console.warn(
+        "wpColorPicker script not loaded. Color fields will not be interactive."
+      );
     }
   } catch (e) {
     console.error("An error occurred while initializing the color picker.", e);
@@ -425,75 +427,76 @@ jQuery(document).ready(function ($) {
 
   // --- Live Preview ---
   const preview = {
-    form: $('.mobooking-form-preview'),
-    headerText: $('#preview-header-text'),
-    description: $('#preview-description'),
-    progressBar: $('.preview-progress-bar'),
-    progressFill: $('.preview-progress-fill'),
-    button: $('.preview-button'),
-    inputs: $('.preview-form-group input'),
-    serviceCardImage: $('#preview-service-card-image'),
-    serviceCardIcon: $('#preview-service-card-icon')
+    form: $(".NORDBOOKING-form-preview"),
+    headerText: $("#preview-header-text"),
+    description: $("#preview-description"),
+    progressBar: $(".preview-progress-bar"),
+    progressFill: $(".preview-progress-fill"),
+    button: $(".preview-button"),
+    inputs: $(".preview-form-group input"),
+    serviceCardImage: $("#preview-service-card-image"),
+    serviceCardIcon: $("#preview-service-card-icon"),
   };
 
   const formInputs = {
-    headerText: $('#bf_header_text'),
-    description: $('#bf_description'),
-    themeColor: $('#bf_theme_color'),
-    backgroundColor: $('#bf_background_color'),
-    textColor: $('#bf_text_color'),
-    borderRadius: $('#bf_border_radius'),
-    showProgressBar: $('#bf_show_progress_bar'),
-    serviceCardDisplay: $('input[name="bf_service_card_display"]')
+    headerText: $("#bf_header_text"),
+    description: $("#bf_description"),
+    themeColor: $("#bf_theme_color"),
+    backgroundColor: $("#bf_background_color"),
+    textColor: $("#bf_text_color"),
+    borderRadius: $("#bf_border_radius"),
+    showProgressBar: $("#bf_show_progress_bar"),
+    serviceCardDisplay: $('input[name="bf_service_card_display"]'),
   };
 
   function updatePreview() {
-    const themeColor = formInputs.themeColor.val() || '#1abc9c';
-    const backgroundColor = formInputs.backgroundColor.val() || '#ffffff';
-    const textColor = formInputs.textColor.val() || '#333333';
-    const borderRadius = (formInputs.borderRadius.val() || 8) + 'px';
-    const cardDisplay = formInputs.serviceCardDisplay.filter(':checked').val();
+    const themeColor = formInputs.themeColor.val() || "#1abc9c";
+    const backgroundColor = formInputs.backgroundColor.val() || "#ffffff";
+    const textColor = formInputs.textColor.val() || "#333333";
+    const borderRadius = (formInputs.borderRadius.val() || 8) + "px";
+    const cardDisplay = formInputs.serviceCardDisplay.filter(":checked").val();
 
     // Update content
-    preview.headerText.text(formInputs.headerText.val() || 'Book Our Services Online');
+    preview.headerText.text(
+      formInputs.headerText.val() || "Book Our Services Online"
+    );
     preview.description.text(formInputs.description.val());
 
     // Update styles
     preview.form.css({
-      '--preview-bg': backgroundColor,
-      '--preview-text': textColor,
-      '--preview-primary': themeColor,
-      '--preview-radius': borderRadius
+      "--preview-bg": backgroundColor,
+      "--preview-text": textColor,
+      "--preview-primary": themeColor,
+      "--preview-radius": borderRadius,
     });
 
     // Toggle progress bar
-    if (formInputs.showProgressBar.is(':checked')) {
+    if (formInputs.showProgressBar.is(":checked")) {
       preview.progressBar.show();
     } else {
       preview.progressBar.hide();
     }
 
     // Toggle service card display
-    if (cardDisplay === 'icon') {
-        preview.serviceCardImage.hide();
-        preview.serviceCardIcon.show();
+    if (cardDisplay === "icon") {
+      preview.serviceCardImage.hide();
+      preview.serviceCardIcon.show();
     } else {
-        preview.serviceCardImage.show();
-        preview.serviceCardIcon.hide();
+      preview.serviceCardImage.show();
+      preview.serviceCardIcon.hide();
     }
   }
 
   // Bind events
-  Object.values(formInputs).forEach(input => {
-    input.on('input change', updatePreview);
+  Object.values(formInputs).forEach((input) => {
+    input.on("input change", updatePreview);
   });
 
   // Also trigger for color picker changes
-  $('.mobooking-color-picker').on('colorchange', updatePreview);
-
+  $(".NORDBOOKING-color-picker").on("colorchange", updatePreview);
 
   // Initial call
   updatePreview();
 
-  console.log("MoBooking Booking Form Settings initialized successfully");
+  console.log("NORDBOOKING Booking Form Settings initialized successfully");
 });

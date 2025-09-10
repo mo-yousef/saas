@@ -2,9 +2,9 @@
 /**
  * Class Auth
  * Handles authentication, user roles, and registration.
- * @package MoBooking\Classes
+ * @package NORDBOOKING\Classes
  */
-namespace MoBooking\Classes;
+namespace NORDBOOKING\Classes;
 
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -12,35 +12,35 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 class Auth {
-    const ROLE_BUSINESS_OWNER = 'mobooking_business_owner';
-    const ROLE_WORKER_STAFF = 'mobooking_worker_staff';
+    const ROLE_BUSINESS_OWNER = 'nordbooking_business_owner';
+    const ROLE_WORKER_STAFF = 'nordbooking_worker_staff';
 
-    const META_KEY_OWNER_ID = 'mobooking_owner_user_id';
+    const META_KEY_OWNER_ID = 'nordbooking_owner_user_id';
 
     // General Access
-    const ACCESS_MOBOOKING_DASHBOARD = 'access_mobooking_dashboard'; // Already used, formalizing definition here
+    const ACCESS_NORDBOOKING_DASHBOARD = 'access_nordbooking_dashboard'; // Already used, formalizing definition here
 
     // Capabilities
-    const CAP_MANAGE_BOOKINGS = 'mobooking_manage_bookings';
-    const CAP_VIEW_BOOKINGS = 'mobooking_view_bookings';
-    const CAP_MANAGE_SERVICES = 'mobooking_manage_services';
-    const CAP_VIEW_SERVICES = 'mobooking_view_services';
-    const CAP_MANAGE_DISCOUNTS = 'mobooking_manage_discounts';
-    const CAP_VIEW_DISCOUNTS = 'mobooking_view_discounts';
-    const CAP_MANAGE_AREAS = 'mobooking_manage_areas';
-    const CAP_VIEW_AREAS = 'mobooking_view_areas';
-    const CAP_MANAGE_BOOKING_FORM = 'mobooking_manage_booking_form';
-    const CAP_MANAGE_BUSINESS_SETTINGS = 'mobooking_manage_business_settings';
-    const CAP_MANAGE_WORKERS = 'mobooking_manage_workers';
-    const CAP_MANAGE_AVAILABILITY = 'mobooking_manage_availability'; // New capability
-    const CAP_MANAGE_CUSTOMERS = 'mobooking_manage_customers'; // New capability for managing customers
-    const CAP_VIEW_CUSTOMERS = 'mobooking_view_customers';     // New capability for viewing customers
-    const CAP_ASSIGN_BOOKINGS = 'mobooking_assign_bookings'; // For assigning staff to bookings
-    const CAP_UPDATE_OWN_BOOKING_STATUS = 'mobooking_update_own_booking_status'; // For staff to update status of their assigned bookings
+    const CAP_MANAGE_BOOKINGS = 'nordbooking_manage_bookings';
+    const CAP_VIEW_BOOKINGS = 'nordbooking_view_bookings';
+    const CAP_MANAGE_SERVICES = 'nordbooking_manage_services';
+    const CAP_VIEW_SERVICES = 'nordbooking_view_services';
+    const CAP_MANAGE_DISCOUNTS = 'nordbooking_manage_discounts';
+    const CAP_VIEW_DISCOUNTS = 'nordbooking_view_discounts';
+    const CAP_MANAGE_AREAS = 'nordbooking_manage_areas';
+    const CAP_VIEW_AREAS = 'nordbooking_view_areas';
+    const CAP_MANAGE_BOOKING_FORM = 'nordbooking_manage_booking_form';
+    const CAP_MANAGE_BUSINESS_SETTINGS = 'nordbooking_manage_business_settings';
+    const CAP_MANAGE_WORKERS = 'nordbooking_manage_workers';
+    const CAP_MANAGE_AVAILABILITY = 'nordbooking_manage_availability'; // New capability
+    const CAP_MANAGE_CUSTOMERS = 'nordbooking_manage_customers'; // New capability for managing customers
+    const CAP_VIEW_CUSTOMERS = 'nordbooking_view_customers';     // New capability for viewing customers
+    const CAP_ASSIGN_BOOKINGS = 'nordbooking_assign_bookings'; // For assigning staff to bookings
+    const CAP_UPDATE_OWN_BOOKING_STATUS = 'nordbooking_update_own_booking_status'; // For staff to update status of their assigned bookings
 
 
-    const LOGIN_NONCE_ACTION = 'mobooking_login_action';
-    const REGISTER_NONCE_ACTION = 'mobooking_register_action';
+    const LOGIN_NONCE_ACTION = 'nordbooking_login_action';
+    const REGISTER_NONCE_ACTION = 'nordbooking_register_action';
 
     public function __construct() {
         // Constructor can be used to add initial hooks if needed
@@ -50,7 +50,7 @@ class Auth {
     }
 
     /**
-     * Displays custom MoBooking role names in the WordPress Users list table.
+     * Displays custom NORDBOOKING role names in the WordPress Users list table.
      *
      * @param string $output      Custom column output. Default empty.
      * @param string $column_name Name of the custom column.
@@ -64,24 +64,24 @@ class Auth {
                 return $output;
             }
 
-            $mobooking_role_names = [];
-            $all_mobooking_roles = [
-                self::ROLE_BUSINESS_OWNER => __( 'Business Owner', 'mobooking' ),
-                self::ROLE_WORKER_STAFF   => __( 'Worker Staff', 'mobooking' ),
+            $nordbooking_role_names = [];
+            $all_nordbooking_roles = [
+                self::ROLE_BUSINESS_OWNER => __( 'Business Owner', 'NORDBOOKING' ),
+                self::ROLE_WORKER_STAFF   => __( 'Worker Staff', 'NORDBOOKING' ),
             ];
 
             foreach ( $user->roles as $role_slug ) {
-                if ( isset( $all_mobooking_roles[$role_slug] ) ) {
-                    $mobooking_role_names[] = $all_mobooking_roles[$role_slug];
+                if ( isset( $all_nordbooking_roles[$role_slug] ) ) {
+                    $nordbooking_role_names[] = $all_nordbooking_roles[$role_slug];
                 }
             }
 
-            if ( ! empty( $mobooking_role_names ) ) {
+            if ( ! empty( $nordbooking_role_names ) ) {
                 // If other roles are present, WordPress usually lists them.
                 // This filter primarily ensures our roles are clearly named if they are the ones WordPress picks up.
                 // Or, we can choose to *only* display our roles if present.
                 // For now, let's return our role names if any are found, potentially replacing default output.
-                return implode( ', ', $mobooking_role_names );
+                return implode( ', ', $nordbooking_role_names );
             }
         }
         return $output;
@@ -90,10 +90,10 @@ class Auth {
     public static function add_business_owner_role() {
         add_role(
             self::ROLE_BUSINESS_OWNER,
-            __( 'Business Owner', 'mobooking' ),
+            __( 'Business Owner', 'NORDBOOKING' ),
             array(
                 'read' => true,
-                self::ACCESS_MOBOOKING_DASHBOARD => true,
+                self::ACCESS_NORDBOOKING_DASHBOARD => true,
                 self::CAP_MANAGE_BOOKINGS => true,
                 self::CAP_VIEW_BOOKINGS => true,
                 self::CAP_MANAGE_SERVICES => true,
@@ -123,10 +123,10 @@ class Auth {
     public static function add_worker_roles() {
         add_role(
             self::ROLE_WORKER_STAFF,
-            __( 'Worker Staff', 'mobooking' ),
+            __( 'Worker Staff', 'NORDBOOKING' ),
             array(
                 'read' => true,
-                self::ACCESS_MOBOOKING_DASHBOARD => true,
+                self::ACCESS_NORDBOOKING_DASHBOARD => true,
                 // self::CAP_MANAGE_BOOKINGS => true, // Removed, staff should not manage all bookings
                 self::CAP_VIEW_BOOKINGS => true,   // Staff can view bookings (will be filtered to their own if a staff dashboard is made)
                 self::CAP_UPDATE_OWN_BOOKING_STATUS => true, // Staff can update status of their own bookings
@@ -144,36 +144,36 @@ class Auth {
     }
 
     public function init_ajax_handlers() {
-        add_action( 'wp_ajax_nopriv_mobooking_login', [ $this, 'handle_ajax_login' ] );
-        add_action( 'wp_ajax_nopriv_mobooking_register', [ $this, 'handle_ajax_registration' ] );
-        add_action( 'wp_ajax_nopriv_mobooking_check_email_exists', [ $this, 'handle_check_email_exists_ajax' ] );
-        add_action( 'wp_ajax_nopriv_mobooking_check_company_slug_exists', [ $this, 'handle_check_company_slug_exists_ajax' ] );
-        add_action( 'wp_ajax_nopriv_mobooking_send_password_reset_link', [ $this, 'handle_send_password_reset_link_ajax' ] ); // New action
-        add_action( 'wp_ajax_mobooking_send_invitation', [ $this, 'handle_ajax_send_invitation' ] );
-        add_action( 'wp_ajax_mobooking_change_worker_role', [ $this, 'handle_ajax_change_worker_role' ] );
-        add_action( 'wp_ajax_mobooking_revoke_worker_access', [ $this, 'handle_ajax_revoke_worker_access' ] );
-        add_action( 'wp_ajax_mobooking_direct_add_staff', [ $this, 'handle_ajax_direct_add_staff' ] );
-        add_action( 'wp_ajax_mobooking_edit_worker_details', [ $this, 'handle_ajax_edit_worker_details' ] );
-        // wp_ajax_mobooking_login for logged-in users if needed, but login is for non-logged-in
+        add_action( 'wp_ajax_nopriv_nordbooking_login', [ $this, 'handle_ajax_login' ] );
+        add_action( 'wp_ajax_nopriv_nordbooking_register', [ $this, 'handle_ajax_registration' ] );
+        add_action( 'wp_ajax_nopriv_nordbooking_check_email_exists', [ $this, 'handle_check_email_exists_ajax' ] );
+        add_action( 'wp_ajax_nopriv_nordbooking_check_company_slug_exists', [ $this, 'handle_check_company_slug_exists_ajax' ] );
+        add_action( 'wp_ajax_nopriv_nordbooking_send_password_reset_link', [ $this, 'handle_send_password_reset_link_ajax' ] ); // New action
+        add_action( 'wp_ajax_nordbooking_send_invitation', [ $this, 'handle_ajax_send_invitation' ] );
+        add_action( 'wp_ajax_nordbooking_change_worker_role', [ $this, 'handle_ajax_change_worker_role' ] );
+        add_action( 'wp_ajax_nordbooking_revoke_worker_access', [ $this, 'handle_ajax_revoke_worker_access' ] );
+        add_action( 'wp_ajax_nordbooking_direct_add_staff', [ $this, 'handle_ajax_direct_add_staff' ] );
+        add_action( 'wp_ajax_nordbooking_edit_worker_details', [ $this, 'handle_ajax_edit_worker_details' ] );
+        // wp_ajax_nordbooking_login for logged-in users if needed, but login is for non-logged-in
     }
 
     public function handle_ajax_edit_worker_details() {
         $worker_user_id = isset( $_POST['worker_user_id'] ) ? absint( $_POST['worker_user_id'] ) : 0;
-        check_ajax_referer( 'mobooking_edit_worker_details_nonce_' . $worker_user_id, 'mobooking_edit_details_nonce_field' );
+        check_ajax_referer( 'nordbooking_edit_worker_details_nonce_' . $worker_user_id, 'nordbooking_edit_details_nonce_field' );
 
         if ( ! current_user_can( self::CAP_MANAGE_WORKERS ) ) {
-            wp_send_json_error( array( 'message' => __( 'You do not have permission to edit workers.', 'mobooking' ) ) );
+            wp_send_json_error( array( 'message' => __( 'You do not have permission to edit workers.', 'NORDBOOKING' ) ) );
         }
 
         if ( empty( $worker_user_id ) ) {
-            wp_send_json_error( array( 'message' => __( 'Invalid worker ID.', 'mobooking' ) ) );
+            wp_send_json_error( array( 'message' => __( 'Invalid worker ID.', 'NORDBOOKING' ) ) );
         }
 
         $current_owner_id = get_current_user_id();
         $actual_owner_id = get_user_meta( $worker_user_id, self::META_KEY_OWNER_ID, true );
 
         if ( (int) $actual_owner_id !== $current_owner_id ) {
-            wp_send_json_error( array( 'message' => __( 'You do not have permission to modify this worker or they are not assigned to you.', 'mobooking' ) ) );
+            wp_send_json_error( array( 'message' => __( 'You do not have permission to modify this worker or they are not assigned to you.', 'NORDBOOKING' ) ) );
         }
 
         $first_name = isset( $_POST['edit_first_name'] ) ? sanitize_text_field( $_POST['edit_first_name'] ) : null;
@@ -199,50 +199,50 @@ class Auth {
                     $business_owner_user = get_userdata($current_owner_id);
                     $business_name = $business_owner_user ? $business_owner_user->display_name : get_bloginfo('name');
 
-                    $subject = sprintf(__('Your Worker Account Details at %s Have Been Updated', 'mobooking'), get_bloginfo('name'));
+                    $subject = sprintf(__('Your Worker Account Details at %s Have Been Updated', 'NORDBOOKING'), get_bloginfo('name'));
 
                     $updated_fields_messages = [];
                     if (isset($update_args['first_name'])) {
-                        $updated_fields_messages[] = sprintf(__('Your first name was updated to: %s', 'mobooking'), esc_html($update_args['first_name']));
+                        $updated_fields_messages[] = sprintf(__('Your first name was updated to: %s', 'NORDBOOKING'), esc_html($update_args['first_name']));
                     }
                     if (isset($update_args['last_name'])) {
-                        $updated_fields_messages[] = sprintf(__('Your last name was updated to: %s', 'mobooking'), esc_html($update_args['last_name']));
+                        $updated_fields_messages[] = sprintf(__('Your last name was updated to: %s', 'NORDBOOKING'), esc_html($update_args['last_name']));
                     }
 
                     if (!empty($updated_fields_messages)) {
                         $message_lines = [
-                            sprintf(__('Hi %s,', 'mobooking'), $worker_user->first_name ?: $worker_user->user_email),
+                            sprintf(__('Hi %s,', 'NORDBOOKING'), $worker_user->first_name ?: $worker_user->user_email),
                             '',
-                            sprintf(__('Your account details at %s were recently updated by %s:', 'mobooking'), get_bloginfo('name'), esc_html($business_name)),
+                            sprintf(__('Your account details at %s were recently updated by %s:', 'NORDBOOKING'), get_bloginfo('name'), esc_html($business_name)),
                             '',
                         ];
                         $message_lines = array_merge($message_lines, $updated_fields_messages);
                         $message_lines[] = '';
-                        $message_lines[] = sprintf(__('If you did not expect this change or have concerns, please contact %s.', 'mobooking'), esc_html($business_name));
+                        $message_lines[] = sprintf(__('If you did not expect this change or have concerns, please contact %s.', 'NORDBOOKING'), esc_html($business_name));
                         $message_lines[] = '';
-                        $message_lines[] = sprintf(__('Regards,', 'mobooking'));
-                        $message_lines[] = sprintf(__('The %s Team', 'mobooking'), get_bloginfo('name'));
+                        $message_lines[] = sprintf(__('Regards,', 'NORDBOOKING'));
+                        $message_lines[] = sprintf(__('The %s Team', 'NORDBOOKING'), get_bloginfo('name'));
 
                         $message = implode("\r\n", $message_lines);
 
                         if (!wp_mail($worker_user->user_email, $subject, $message)) {
-                            error_log("MoBooking: Failed to send account update email to worker: " . $worker_user->user_email);
+                            error_log("NORDBOOKING: Failed to send account update email to worker: " . $worker_user->user_email);
                         }
                     }
                 }
-                wp_send_json_success( array( 'message' => __( 'Worker details updated successfully. The worker has been notified if changes were made.', 'mobooking' ) ) );
+                wp_send_json_success( array( 'message' => __( 'Worker details updated successfully. The worker has been notified if changes were made.', 'NORDBOOKING' ) ) );
             }
         } else {
             // Nothing to update, but not an error per se. Could be considered success.
-            wp_send_json_success( array( 'message' => __( 'No changes detected for worker details.', 'mobooking' ) ) );
+            wp_send_json_success( array( 'message' => __( 'No changes detected for worker details.', 'NORDBOOKING' ) ) );
         }
     }
 
     public function handle_ajax_direct_add_staff() {
-        check_ajax_referer( 'mobooking_direct_add_staff_nonce', 'mobooking_direct_add_staff_nonce_field' );
+        check_ajax_referer( 'nordbooking_direct_add_staff_nonce', 'nordbooking_direct_add_staff_nonce_field' );
 
         if ( ! current_user_can( self::CAP_MANAGE_WORKERS ) ) {
-            wp_send_json_error( array( 'message' => __( 'You do not have permission to add workers.', 'mobooking' ) ) );
+            wp_send_json_error( array( 'message' => __( 'You do not have permission to add workers.', 'NORDBOOKING' ) ) );
         }
 
         $email      = isset( $_POST['direct_add_staff_email'] ) ? sanitize_email( $_POST['direct_add_staff_email'] ) : '';
@@ -252,15 +252,15 @@ class Auth {
         $current_user_id = get_current_user_id(); // This is the Business Owner
 
         if ( empty( $email ) || ! is_email( $email ) ) {
-            wp_send_json_error( array( 'message' => __( 'Please provide a valid email address.', 'mobooking' ) ) );
+            wp_send_json_error( array( 'message' => __( 'Please provide a valid email address.', 'NORDBOOKING' ) ) );
         }
 
         if ( empty( $password ) || strlen( $password ) < 8 ) {
-            wp_send_json_error( array( 'message' => __( 'Password must be at least 8 characters long.', 'mobooking' ) ) );
+            wp_send_json_error( array( 'message' => __( 'Password must be at least 8 characters long.', 'NORDBOOKING' ) ) );
         }
 
         if ( email_exists( $email ) ) {
-            wp_send_json_error( array( 'message' => __( 'This email address is already registered.', 'mobooking' ) ) );
+            wp_send_json_error( array( 'message' => __( 'This email address is already registered.', 'NORDBOOKING' ) ) );
         }
         // Using email as username, so email_exists check is sufficient for username_exists.
 
@@ -289,41 +289,41 @@ class Auth {
         $business_owner_user = get_userdata($current_user_id);
         $business_name = $business_owner_user ? $business_owner_user->display_name : get_bloginfo('name');
 
-        $subject = sprintf(__('Your Worker Account at %s has been Created', 'mobooking'), get_bloginfo('name'));
+        $subject = sprintf(__('Your Worker Account at %s has been Created', 'NORDBOOKING'), get_bloginfo('name'));
 
         $message_lines = [
-            sprintf(__('Hi %s,', 'mobooking'), $first_name ?: $email),
+            sprintf(__('Hi %s,', 'NORDBOOKING'), $first_name ?: $email),
             '',
-            sprintf(__('A worker account has been created for you at %s by %s.', 'mobooking'), get_bloginfo('name'), esc_html($business_name)),
+            sprintf(__('A worker account has been created for you at %s by %s.', 'NORDBOOKING'), get_bloginfo('name'), esc_html($business_name)),
             '',
-            __('Your login details are:', 'mobooking'),
-            '- ' . __('Email:', 'mobooking') . ' ' . $email,
-            '- ' . __('Password:', 'mobooking') . ' ' . esc_html($password) . ' (This was set by ' . esc_html($business_name) . ')',
+            __('Your login details are:', 'NORDBOOKING'),
+            '- ' . __('Email:', 'NORDBOOKING') . ' ' . $email,
+            '- ' . __('Password:', 'NORDBOOKING') . ' ' . esc_html($password) . ' (This was set by ' . esc_html($business_name) . ')',
             '',
-            sprintf(__('You can log in here: %s', 'mobooking'), esc_url(home_url('/login/'))), // Assuming /login/ is the custom login page
+            sprintf(__('You can log in here: %s', 'NORDBOOKING'), esc_url(home_url('/login/'))), // Assuming /login/ is the custom login page
             '',
-            __('We recommend changing your password after your first login for security reasons.', 'mobooking'),
+            __('We recommend changing your password after your first login for security reasons.', 'NORDBOOKING'),
             '',
-            sprintf(__('Regards,', 'mobooking')),
-            sprintf(__('The %s Team', 'mobooking'), get_bloginfo('name')),
+            sprintf(__('Regards,', 'NORDBOOKING')),
+            sprintf(__('The %s Team', 'NORDBOOKING'), get_bloginfo('name')),
         ];
         $message = implode("\r\n", $message_lines);
 
         if (!wp_mail($email, $subject, $message)) {
-            error_log("MoBooking: Failed to send account creation email to new worker: " . $email);
+            error_log("NORDBOOKING: Failed to send account creation email to new worker: " . $email);
             // Don't fail the whole process, but log the error.
             // The main success message below will still be sent to the admin.
         }
 
-        wp_send_json_success( array( 'message' => __( 'Worker Staff created and assigned successfully. They have been notified by email.', 'mobooking' ) ) );
+        wp_send_json_success( array( 'message' => __( 'Worker Staff created and assigned successfully. They have been notified by email.', 'NORDBOOKING' ) ) );
     }
 
     public function handle_ajax_change_worker_role() {
         $worker_user_id = isset($_POST['worker_user_id']) ? absint($_POST['worker_user_id']) : 0;
-        check_ajax_referer( 'mobooking_change_worker_role_nonce_' . $worker_user_id, 'mobooking_change_role_nonce' );
+        check_ajax_referer( 'nordbooking_change_worker_role_nonce_' . $worker_user_id, 'nordbooking_change_role_nonce' );
 
         if ( ! current_user_can( self::CAP_MANAGE_WORKERS ) ) {
-            wp_send_json_error( [ 'message' => __( 'You do not have permission to manage workers.', 'mobooking' ) ] );
+            wp_send_json_error( [ 'message' => __( 'You do not have permission to manage workers.', 'NORDBOOKING' ) ] );
         }
 
         $new_role = isset($_POST['new_role']) ? sanitize_text_field($_POST['new_role']) : '';
@@ -334,21 +334,21 @@ class Auth {
         ];
 
         if ( empty($worker_user_id) || empty($new_role) || !in_array($new_role, $allowed_worker_roles) ) {
-            wp_send_json_error( [ 'message' => __( 'Invalid data provided.', 'mobooking' ) ] );
+            wp_send_json_error( [ 'message' => __( 'Invalid data provided.', 'NORDBOOKING' ) ] );
         }
 
         // Verify worker belongs to this owner
         $actual_owner_id = get_user_meta( $worker_user_id, self::META_KEY_OWNER_ID, true );
         if ( (int) $actual_owner_id !== $current_owner_id ) {
-            wp_send_json_error( [ 'message' => __( 'This worker is not associated with your business or you do not have permission to modify them.', 'mobooking' ) ] );
+            wp_send_json_error( [ 'message' => __( 'This worker is not associated with your business or you do not have permission to modify them.', 'NORDBOOKING' ) ] );
         }
 
         $worker_user = get_userdata( $worker_user_id );
         if ( ! $worker_user ) {
-            wp_send_json_error( [ 'message' => __( 'Worker user not found.', 'mobooking' ) ] );
+            wp_send_json_error( [ 'message' => __( 'Worker user not found.', 'NORDBOOKING' ) ] );
         }
 
-        // Remove existing MoBooking worker roles before adding the new one
+        // Remove existing NORDBOOKING worker roles before adding the new one
         foreach ( $allowed_worker_roles as $role_to_remove ) {
             $worker_user->remove_role( $role_to_remove );
         }
@@ -359,50 +359,50 @@ class Auth {
 
         // For display in JS callback
         $all_roles_map = [
-            // self::ROLE_WORKER_MANAGER => __( 'Manager', 'mobooking' ), // Removed
-            self::ROLE_WORKER_STAFF   => __( 'Staff', 'mobooking' ),
-            // self::ROLE_WORKER_VIEWER  => __( 'Viewer', 'mobooking' ), // Removed
+            // self::ROLE_WORKER_MANAGER => __( 'Manager', 'NORDBOOKING' ), // Removed
+            self::ROLE_WORKER_STAFF   => __( 'Staff', 'NORDBOOKING' ),
+            // self::ROLE_WORKER_VIEWER  => __( 'Viewer', 'NORDBOOKING' ), // Removed
         ];
         $new_role_display_name = isset($all_roles_map[$new_role]) ? $all_roles_map[$new_role] : $new_role;
 
         wp_send_json_success( [
-            'message' => __( 'Worker role updated successfully.', 'mobooking' ),
+            'message' => __( 'Worker role updated successfully.', 'NORDBOOKING' ),
             'new_role_display_name' => $new_role_display_name
         ] );
     }
 
     public function handle_ajax_revoke_worker_access() {
         $worker_user_id = isset($_POST['worker_user_id']) ? absint($_POST['worker_user_id']) : 0;
-        check_ajax_referer( 'mobooking_revoke_worker_access_nonce_' . $worker_user_id, 'mobooking_revoke_access_nonce' );
+        check_ajax_referer( 'nordbooking_revoke_worker_access_nonce_' . $worker_user_id, 'nordbooking_revoke_access_nonce' );
 
         if ( ! current_user_can( self::CAP_MANAGE_WORKERS ) ) {
-            wp_send_json_error( [ 'message' => __( 'You do not have permission to manage workers.', 'mobooking' ) ] );
+            wp_send_json_error( [ 'message' => __( 'You do not have permission to manage workers.', 'NORDBOOKING' ) ] );
         }
 
         $current_owner_id = get_current_user_id();
 
         if ( empty($worker_user_id) ) {
-            wp_send_json_error( [ 'message' => __( 'Invalid worker ID.', 'mobooking' ) ] );
+            wp_send_json_error( [ 'message' => __( 'Invalid worker ID.', 'NORDBOOKING' ) ] );
         }
 
         // Verify worker belongs to this owner
         $actual_owner_id = get_user_meta( $worker_user_id, self::META_KEY_OWNER_ID, true );
         if ( (int) $actual_owner_id !== $current_owner_id ) {
-            wp_send_json_error( [ 'message' => __( 'This worker is not associated with your business or you do not have permission to modify them.', 'mobooking' ) ] );
+            wp_send_json_error( [ 'message' => __( 'This worker is not associated with your business or you do not have permission to modify them.', 'NORDBOOKING' ) ] );
         }
 
         $worker_user = get_userdata( $worker_user_id );
         if ( ! $worker_user ) {
-            wp_send_json_error( [ 'message' => __( 'Worker user not found.', 'mobooking' ) ] );
+            wp_send_json_error( [ 'message' => __( 'Worker user not found.', 'NORDBOOKING' ) ] );
         }
 
-        // Remove MoBooking specific roles
-        $mobooking_worker_roles = [
+        // Remove NORDBOOKING specific roles
+        $nordbooking_worker_roles = [
             self::ROLE_WORKER_STAFF,
         ];
         // Also remove manager/viewer roles if they somehow still exist on the user from a previous version
-        $legacy_roles_to_check_and_remove = ['mobooking_worker_manager', 'mobooking_worker_viewer'];
-        foreach ( array_merge($mobooking_worker_roles, $legacy_roles_to_check_and_remove) as $role_to_remove ) {
+        $legacy_roles_to_check_and_remove = ['nordbooking_worker_manager', 'nordbooking_worker_viewer'];
+        foreach ( array_merge($nordbooking_worker_roles, $legacy_roles_to_check_and_remove) as $role_to_remove ) {
             $worker_user->remove_role( $role_to_remove );
         }
 
@@ -414,14 +414,14 @@ class Auth {
             $worker_user->set_role( 'subscriber' );
         }
 
-        wp_send_json_success( [ 'message' => __( 'Worker access revoked successfully. The user has been reverted to a standard subscriber role if they had no other roles.', 'mobooking' ) ] );
+        wp_send_json_success( [ 'message' => __( 'Worker access revoked successfully. The user has been reverted to a standard subscriber role if they had no other roles.', 'NORDBOOKING' ) ] );
     }
 
     public function handle_ajax_send_invitation() {
-        check_ajax_referer( 'mobooking_send_invitation_nonce', 'mobooking_nonce' );
+        check_ajax_referer( 'nordbooking_send_invitation_nonce', 'nordbooking_nonce' );
 
         if ( ! current_user_can( self::CAP_MANAGE_WORKERS ) ) {
-             wp_send_json_error( array( 'message' => __( 'You do not have permission to invite workers.', 'mobooking' ) ) );
+             wp_send_json_error( array( 'message' => __( 'You do not have permission to invite workers.', 'NORDBOOKING' ) ) );
         }
 
         $current_user_id = get_current_user_id();
@@ -430,21 +430,21 @@ class Auth {
 
         // Validate email
         if ( empty( $worker_email ) || ! is_email( $worker_email ) ) {
-            wp_send_json_error( array( 'message' => __( 'Please provide a valid email address for the worker.', 'mobooking' ) ) );
+            wp_send_json_error( array( 'message' => __( 'Please provide a valid email address for the worker.', 'NORDBOOKING' ) ) );
         }
 
         // Validate role: Ensure it is exactly ROLE_WORKER_STAFF
         if ( $assigned_role !== self::ROLE_WORKER_STAFF ) {
-            wp_send_json_error( array( 'message' => __( 'Invalid role. Only \'Worker - Staff\' can be assigned at this time.', 'mobooking' ) ) );
+            wp_send_json_error( array( 'message' => __( 'Invalid role. Only \'Worker - Staff\' can be assigned at this time.', 'NORDBOOKING' ) ) );
         }
 
         // Check if email is already registered as any kind of user
         if ( email_exists( $worker_email ) ) {
-             wp_send_json_error( array( 'message' => __( 'This email address is already registered on this site.', 'mobooking' ) ) );
+             wp_send_json_error( array( 'message' => __( 'This email address is already registered on this site.', 'NORDBOOKING' ) ) );
         }
 
         $token = wp_generate_password( 32, false );
-        $invitation_option_key = 'mobooking_invitation_' . $token;
+        $invitation_option_key = 'nordbooking_invitation_' . $token;
         $expiration = 7 * DAY_IN_SECONDS; // 7 days
 
         $invitation_data = [
@@ -458,7 +458,7 @@ class Auth {
         $stored = set_transient( $invitation_option_key, $invitation_data, $expiration );
 
         if ( ! $stored ) {
-            wp_send_json_error( array( 'message' => __( 'Could not save invitation. Please try again.', 'mobooking' ) ) );
+            wp_send_json_error( array( 'message' => __( 'Could not save invitation. Please try again.', 'NORDBOOKING' ) ) );
         }
 
         // Send email
@@ -471,13 +471,13 @@ class Auth {
         $sent = $notifications->send_invitation_email($worker_email, $assigned_role, $inviter_name, $registration_link);
 
         if ( $sent ) {
-            wp_send_json_success( array( 'message' => __( 'Invitation sent successfully to ', 'mobooking' ) . $worker_email ) );
+            wp_send_json_success( array( 'message' => __( 'Invitation sent successfully to ', 'NORDBOOKING' ) . $worker_email ) );
         } else {
             // If email fails, it's good to remove the transient to allow retrying without token collision,
             // or inform the user that the token was created but email failed.
-            error_log('MoBooking: wp_mail failed to send invitation to ' . $worker_email . '. Transient mobooking_invitation_ ' . $token . ' deleted.');
+            error_log('NORDBOOKING: wp_mail failed to send invitation to ' . $worker_email . '. Transient nordbooking_invitation_ ' . $token . ' deleted.');
             delete_transient( $invitation_option_key );
-            wp_send_json_error( array( 'message' => __( 'Invitation created, but failed to send the invitation email. Please check your site\'s email configuration or try again.', 'mobooking' ) ) );
+            wp_send_json_error( array( 'message' => __( 'Invitation created, but failed to send the invitation email. Please check your site\'s email configuration or try again.', 'NORDBOOKING' ) ) );
         }
         wp_die();
     }
@@ -485,19 +485,19 @@ class Auth {
     public function handle_check_email_exists_ajax() {
         // No nonce check needed for this read-only, public-facing check,
         // but consider adding one if you want to restrict requests.
-        // check_ajax_referer('mobooking_check_email_nonce', 'nonce');
+        // check_ajax_referer('nordbooking_check_email_nonce', 'nonce');
 
         $email = isset($_POST['email']) ? sanitize_email($_POST['email']) : '';
 
         if (empty($email) || !is_email($email)) {
-            wp_send_json_error(['message' => __('Invalid email format provided for check.', 'mobooking')]);
+            wp_send_json_error(['message' => __('Invalid email format provided for check.', 'NORDBOOKING')]);
             wp_die();
         }
 
         if (email_exists($email)) {
-            wp_send_json_success(['exists' => true, 'message' => __('This email is already registered.', 'mobooking')]);
+            wp_send_json_success(['exists' => true, 'message' => __('This email is already registered.', 'NORDBOOKING')]);
         } else {
-            wp_send_json_success(['exists' => false, 'message' => __('This email is available.', 'mobooking')]);
+            wp_send_json_success(['exists' => false, 'message' => __('This email is available.', 'NORDBOOKING')]);
         }
         wp_die();
     }
@@ -505,14 +505,14 @@ class Auth {
 // Enhanced handle_ajax_registration method for classes/Auth.php
 
 private function setup_invited_worker(\WP_User $user, array $post_data): array {
-    error_log('MoBooking: Processing invitation flow for user ID: ' . $user->ID);
+    error_log('NORDBOOKING: Processing invitation flow for user ID: ' . $user->ID);
 
     $inviter_id = intval($post_data['inviter_id']);
     $role_to_assign = sanitize_text_field($post_data['role_to_assign']);
     $invitation_token = sanitize_text_field($post_data['invitation_token']);
 
     // Validate invitation
-    $transient_key = 'mobooking_invitation_' . $invitation_token;
+    $transient_key = 'nordbooking_invitation_' . $invitation_token;
     $invitation_data = get_transient($transient_key);
 
     if (!$invitation_data || !is_array($invitation_data) ||
@@ -521,7 +521,7 @@ private function setup_invited_worker(\WP_User $user, array $post_data): array {
         $invitation_data['assigned_role'] !== $role_to_assign) {
 
         // Throwing an exception will trigger the cleanup in the main method's catch block
-        throw new \Exception(__('Invalid or expired invitation. Please request a new invitation.', 'mobooking'));
+        throw new \Exception(__('Invalid or expired invitation. Please request a new invitation.', 'NORDBOOKING'));
     }
 
     // Only ROLE_WORKER_STAFF is assignable in this flow.
@@ -531,33 +531,33 @@ private function setup_invited_worker(\WP_User $user, array $post_data): array {
         delete_transient($transient_key);
 
         return [
-            'message' => __('Your worker account has been successfully created.', 'mobooking'),
+            'message' => __('Your worker account has been successfully created.', 'NORDBOOKING'),
             'redirect_url' => home_url('/dashboard/'),
         ];
     } else {
         // This case should ideally not be reached if frontend is correct, but it's a safeguard.
-        throw new \Exception(__('Invalid role assignment. Please contact support.', 'mobooking'));
+        throw new \Exception(__('Invalid role assignment. Please contact support.', 'NORDBOOKING'));
     }
 }
 
 private function setup_new_business_owner(\WP_User $user, string $company_name): array {
-    error_log('MoBooking: Processing business owner registration for user ID: ' . $user->ID);
+    error_log('NORDBOOKING: Processing business owner registration for user ID: ' . $user->ID);
 
     $user->set_role(self::ROLE_BUSINESS_OWNER);
-    update_user_meta($user->ID, 'mobooking_company_name', $company_name);
+    update_user_meta($user->ID, 'nordbooking_company_name', $company_name);
 
-    error_log('MoBooking: Business owner role assigned and company name saved');
+    error_log('NORDBOOKING: Business owner role assigned and company name saved');
 
     // Generate and save unique business slug
     if (!empty($company_name)) {
-        error_log('MoBooking: Generating business slug');
+        error_log('NORDBOOKING: Generating business slug');
 
-        if (class_exists('MoBooking\Classes\Settings') && class_exists('MoBooking\Classes\Routes\BookingFormRouter')) {
+        if (class_exists('NORDBOOKING\Classes\Settings') && class_exists('NORDBOOKING\Classes\Routes\BookingFormRouter')) {
             // Initialize settings manager
-            if (!isset($GLOBALS['mobooking_settings_manager'])) {
-                $GLOBALS['mobooking_settings_manager'] = new \MoBooking\Classes\Settings();
+            if (!isset($GLOBALS['nordbooking_settings_manager'])) {
+                $GLOBALS['nordbooking_settings_manager'] = new \NORDBOOKING\Classes\Settings();
             }
-            $settings_manager = $GLOBALS['mobooking_settings_manager'];
+            $settings_manager = $GLOBALS['nordbooking_settings_manager'];
 
             // Generate unique slug
             $base_slug = sanitize_title($company_name);
@@ -565,14 +565,14 @@ private function setup_new_business_owner(\WP_User $user, string $company_name):
             $counter = 1;
 
             global $wpdb;
-            $settings_table = \MoBooking\Classes\Database::get_table_name('tenant_settings');
+            $settings_table = \NORDBOOKING\Classes\Database::get_table_name('tenant_settings');
 
             if (empty($settings_table)) {
                 throw new \Exception('Database settings table name could not be retrieved.');
             }
 
             $slug_is_taken = true;
-            error_log("MoBooking: Starting slug generation for base: {$base_slug}");
+            error_log("NORDBOOKING: Starting slug generation for base: {$base_slug}");
 
             while ($slug_is_taken) {
                 $query = $wpdb->prepare(
@@ -587,9 +587,9 @@ private function setup_new_business_owner(\WP_User $user, string $company_name):
                 } else {
                     $counter++;
                     $final_slug = $base_slug . '-' . $counter;
-                    error_log("MoBooking: Slug collision detected. Trying next slug: {$final_slug}");
+                    error_log("NORDBOOKING: Slug collision detected. Trying next slug: {$final_slug}");
                     if ($counter > 50) {
-                        error_log("MoBooking: Slug generation loop exceeded 50 iterations. Breaking loop.");
+                        error_log("NORDBOOKING: Slug generation loop exceeded 50 iterations. Breaking loop.");
                         $final_slug .= '-' . wp_rand(100, 999);
                         break;
                     }
@@ -597,20 +597,20 @@ private function setup_new_business_owner(\WP_User $user, string $company_name):
             }
 
             $settings_manager->update_setting($user->ID, 'bf_business_slug', $final_slug);
-            error_log("MoBooking: Business slug created and saved: {$final_slug}");
+            error_log("NORDBOOKING: Business slug created and saved: {$final_slug}");
         }
     }
 
     // Initialize default settings for new business owner
-    error_log('MoBooking: Initializing default settings');
-    if (class_exists('MoBooking\Classes\Settings') && method_exists('MoBooking\Classes\Settings', 'initialize_default_settings')) {
-        \MoBooking\Classes\Settings::initialize_default_settings($user->ID);
-        error_log('MoBooking: Default settings initialized successfully');
+    error_log('NORDBOOKING: Initializing default settings');
+    if (class_exists('NORDBOOKING\Classes\Settings') && method_exists('NORDBOOKING\Classes\Settings', 'initialize_default_settings')) {
+        \NORDBOOKING\Classes\Settings::initialize_default_settings($user->ID);
+        error_log('NORDBOOKING: Default settings initialized successfully');
     }
 
     return [
         'message' => sprintf(
-            __('Welcome to %s! Your business account has been successfully created.', 'mobooking'),
+            __('Welcome to %s! Your business account has been successfully created.', 'NORDBOOKING'),
             get_bloginfo('name')
         ),
         'redirect_url' => home_url('/dashboard/'),
@@ -619,23 +619,23 @@ private function setup_new_business_owner(\WP_User $user, string $company_name):
 
 
 public function handle_ajax_registration() {
-    error_log('MoBooking: Registration process started');
+    error_log('NORDBOOKING: Registration process started');
     $user_id = null; // Initialize user_id to null
 
     try {
         // 1. Verify nonce
         if (!check_ajax_referer(self::REGISTER_NONCE_ACTION, 'nonce', false)) {
-            throw new \Exception(__('Security check failed. Please refresh the page and try again.', 'mobooking'));
+            throw new \Exception(__('Security check failed. Please refresh the page and try again.', 'NORDBOOKING'));
         }
 
         // Verify reCAPTCHA
         $recaptcha_token = isset($_POST['recaptcha_token']) ? $_POST['recaptcha_token'] : null;
         // IMPORTANT: The secret key should be stored securely, e.g., in wp-config.php or WordPress options, not hardcoded.
-        $recaptcha_secret_key = defined('MOBOOKING_RECAPTCHA_SECRET_KEY') ? MOBOOKING_RECAPTCHA_SECRET_KEY : null;
+        $recaptcha_secret_key = defined('NORDBOOKING_RECAPTCHA_SECRET_KEY') ? NORDBOOKING_RECAPTCHA_SECRET_KEY : null;
 
         // Only verify if the token and a secret key are present.
         if ($recaptcha_token && $recaptcha_secret_key) {
-            error_log('MoBooking: Verifying reCAPTCHA token.');
+            error_log('NORDBOOKING: Verifying reCAPTCHA token.');
             $response = wp_remote_post('https://www.google.com/recaptcha/api/siteverify', [
                 'body' => [
                     'secret'   => $recaptcha_secret_key,
@@ -645,26 +645,26 @@ public function handle_ajax_registration() {
             ]);
 
             if (is_wp_error($response)) {
-                throw new \Exception(__('Could not contact reCAPTCHA service.', 'mobooking'));
+                throw new \Exception(__('Could not contact reCAPTCHA service.', 'NORDBOOKING'));
             }
 
             $response_body = wp_remote_retrieve_body($response);
             $recaptcha_data = json_decode($response_body);
 
             if (!$recaptcha_data || !isset($recaptcha_data->success)) {
-                throw new \Exception(__('Invalid response from reCAPTCHA service.', 'mobooking'));
+                throw new \Exception(__('Invalid response from reCAPTCHA service.', 'NORDBOOKING'));
             }
 
             // 0.5 is a common threshold for reCAPTCHA v3.
             if ($recaptcha_data->success !== true || $recaptcha_data->score < 0.5) {
-                error_log('MoBooking: reCAPTCHA verification failed. Score: ' . ($recaptcha_data->score ?? 'N/A'));
-                throw new \Exception(__('Human verification failed. Please try again.', 'mobooking'));
+                error_log('NORDBOOKING: reCAPTCHA verification failed. Score: ' . ($recaptcha_data->score ?? 'N/A'));
+                throw new \Exception(__('Human verification failed. Please try again.', 'NORDBOOKING'));
             }
 
-            error_log('MoBooking: reCAPTCHA verification successful. Score: ' . $recaptcha_data->score);
-        } elseif (defined('MOBOOKING_RECAPTCHA_SECRET_KEY') && !empty(MOBOOKING_RECAPTCHA_SECRET_KEY)) {
+            error_log('NORDBOOKING: reCAPTCHA verification successful. Score: ' . $recaptcha_data->score);
+        } elseif (defined('NORDBOOKING_RECAPTCHA_SECRET_KEY') && !empty(NORDBOOKING_RECAPTCHA_SECRET_KEY)) {
             // If reCAPTCHA is configured on the backend but no token was sent, it's an error.
-            throw new \Exception(__('Human verification token not received. Please refresh the page.', 'mobooking'));
+            throw new \Exception(__('Human verification token not received. Please refresh the page.', 'NORDBOOKING'));
         }
 
         // 2. Sanitize and validate input data
@@ -676,36 +676,36 @@ public function handle_ajax_registration() {
         $company_name = isset($_POST['company_name']) ? sanitize_text_field(trim($_POST['company_name'])) : '';
         $is_invitation_flow = isset($_POST['inviter_id']) && isset($_POST['role_to_assign']);
 
-        error_log("MoBooking: Registration attempt for email: {$email}");
+        error_log("NORDBOOKING: Registration attempt for email: {$email}");
 
         $errors = [];
-        if (empty($first_name)) $errors[] = __('First name is required.', 'mobooking');
-        if (empty($last_name)) $errors[] = __('Last name is required.', 'mobooking');
-        if (empty($email) || !is_email($email)) $errors[] = __('A valid email address is required.', 'mobooking');
-        if (empty($password) || strlen($password) < 8) $errors[] = __('Password must be at least 8 characters long.', 'mobooking');
-        if ($password !== $password_confirm) $errors[] = __('Passwords do not match.', 'mobooking');
-        if (!$is_invitation_flow && empty($company_name)) $errors[] = __('Company name is required for business registration.', 'mobooking');
-        if (!empty($email) && (username_exists($email) || email_exists($email))) $errors[] = __('This email is already registered. Please use a different email or try logging in.', 'mobooking');
+        if (empty($first_name)) $errors[] = __('First name is required.', 'NORDBOOKING');
+        if (empty($last_name)) $errors[] = __('Last name is required.', 'NORDBOOKING');
+        if (empty($email) || !is_email($email)) $errors[] = __('A valid email address is required.', 'NORDBOOKING');
+        if (empty($password) || strlen($password) < 8) $errors[] = __('Password must be at least 8 characters long.', 'NORDBOOKING');
+        if ($password !== $password_confirm) $errors[] = __('Passwords do not match.', 'NORDBOOKING');
+        if (!$is_invitation_flow && empty($company_name)) $errors[] = __('Company name is required for business registration.', 'NORDBOOKING');
+        if (!empty($email) && (username_exists($email) || email_exists($email))) $errors[] = __('This email is already registered. Please use a different email or try logging in.', 'NORDBOOKING');
 
         if (!empty($errors)) {
             throw new \Exception(implode('<br>', $errors));
         }
 
         // 3. Create the user
-        error_log('MoBooking: Creating WordPress user');
+        error_log('NORDBOOKING: Creating WordPress user');
         $user_id = wp_create_user($email, $password, $email);
 
         if (is_wp_error($user_id)) {
-            throw new \Exception(sprintf(__('Account creation failed: %s', 'mobooking'), $user_id->get_error_message()));
+            throw new \Exception(sprintf(__('Account creation failed: %s', 'NORDBOOKING'), $user_id->get_error_message()));
         }
 
-        error_log("MoBooking: WordPress user created successfully with ID: {$user_id}");
+        error_log("NORDBOOKING: WordPress user created successfully with ID: {$user_id}");
         $user = new \WP_User($user_id);
 
         // 4. Update basic user profile
         $display_name = trim($first_name . ' ' . $last_name);
         wp_update_user(['ID' => $user_id, 'first_name' => $first_name, 'last_name' => $last_name, 'display_name' => $display_name]);
-        error_log('MoBooking: User profile data updated successfully');
+        error_log('NORDBOOKING: User profile data updated successfully');
 
         // 5. Setup user based on registration type (Business Owner or Worker)
         if ($is_invitation_flow) {
@@ -715,11 +715,11 @@ public function handle_ajax_registration() {
         }
 
         // 6. Log the new user in
-        error_log('MoBooking: Logging user in and setting auth cookie');
+        error_log('NORDBOOKING: Logging user in and setting auth cookie');
         wp_set_current_user($user_id, $user->user_login);
         wp_set_auth_cookie($user_id, true, is_ssl());
         do_action('wp_login', $user->user_login, $user);
-        error_log("MoBooking: User {$user_id} logged in, wp_login action hook fired.");
+        error_log("NORDBOOKING: User {$user_id} logged in, wp_login action hook fired.");
 
         // 7. Send welcome email (only for business owners)
         if (!$is_invitation_flow) {
@@ -727,7 +727,7 @@ public function handle_ajax_registration() {
         }
 
         // 8. Send success response
-        error_log(sprintf('MoBooking: Successful registration for %s (%s) - User ID: %d, Type: %s', $display_name, $email, $user_id, $is_invitation_flow ? 'Worker' : 'Business Owner'));
+        error_log(sprintf('NORDBOOKING: Successful registration for %s (%s) - User ID: %d, Type: %s', $display_name, $email, $user_id, $is_invitation_flow ? 'Worker' : 'Business Owner'));
         wp_send_json_success([
             'message' => $result['message'],
             'redirect_url' => $result['redirect_url'],
@@ -738,12 +738,12 @@ public function handle_ajax_registration() {
         // Centralized error handling and cleanup for both Error and Exception.
         if ($user_id && is_int($user_id)) {
             wp_delete_user($user_id);
-            error_log("MoBooking: Cleaned up user {$user_id} due to registration failure: " . $e->getMessage());
+            error_log("NORDBOOKING: Cleaned up user {$user_id} due to registration failure: " . $e->getMessage());
         }
-        error_log('MoBooking Registration Error: ' . $e->getMessage() . ' in ' . $e->getFile() . ' on line ' . $e->getLine());
+        error_log('NORDBOOKING Registration Error: ' . $e->getMessage() . ' in ' . $e->getFile() . ' on line ' . $e->getLine());
         
         // Return a generic error to the user for security, but log the specific one.
-        wp_send_json_error(['message' => __('An unexpected error occurred during registration. Please contact support.', 'mobooking')]);
+        wp_send_json_error(['message' => __('An unexpected error occurred during registration. Please contact support.', 'NORDBOOKING')]);
     }
 
     wp_die();
@@ -760,39 +760,39 @@ public function handle_ajax_registration() {
             $notifications = new Notifications();
             $notifications->send_welcome_email($user_id, $display_name);
         } catch ( Exception $e ) {
-            error_log( 'MoBooking: Welcome email error - ' . $e->getMessage() );
+            error_log( 'NORDBOOKING: Welcome email error - ' . $e->getMessage() );
         }
     }
 
     public function handle_check_company_slug_exists_ajax() {
         // Consider adding a nonce check for security if desired
-        // check_ajax_referer('mobooking_check_slug_nonce_action', 'nonce');
+        // check_ajax_referer('nordbooking_check_slug_nonce_action', 'nonce');
 
         $company_name = isset($_POST['company_name']) ? sanitize_text_field(trim($_POST['company_name'])) : '';
 
         if (empty($company_name)) {
-            wp_send_json_error(['message' => __('Company name not provided for check.', 'mobooking')]);
+            wp_send_json_error(['message' => __('Company name not provided for check.', 'NORDBOOKING')]);
             wp_die();
         }
 
-        if (!class_exists('MoBooking\Classes\Routes\BookingFormRouter')) {
-            wp_send_json_error(['message' => __('System error: Router class not found.', 'mobooking')]);
+        if (!class_exists('NORDBOOKING\Classes\Routes\BookingFormRouter')) {
+            wp_send_json_error(['message' => __('System error: Router class not found.', 'NORDBOOKING')]);
             wp_die();
         }
 
         $base_slug = sanitize_title($company_name);
-        $original_slug_check_user_id = \MoBooking\Classes\Routes\BookingFormRouter::get_user_id_by_slug($base_slug);
+        $original_slug_check_user_id = \NORDBOOKING\Classes\Routes\BookingFormRouter::get_user_id_by_slug($base_slug);
 
         if ($original_slug_check_user_id !== null) {
             // Slug already exists, return a hard error message.
             wp_send_json_success([
                 'exists' => true,
-                'message' => __('This company name is already taken. Please choose another.', 'mobooking')
+                'message' => __('This company name is already taken. Please choose another.', 'NORDBOOKING')
             ]);
         } else {
             wp_send_json_success([
                 'exists' => false,
-                'message' => __('This company name looks available!', 'mobooking'),
+                'message' => __('This company name looks available!', 'NORDBOOKING'),
                 'slug_preview' => $base_slug
             ]);
         }
@@ -801,12 +801,12 @@ public function handle_ajax_registration() {
 
     public function handle_send_password_reset_link_ajax() {
         // It's good practice to use a nonce here, even for "public" forms, to prevent abuse.
-        check_ajax_referer('mobooking_forgot_password_nonce_action', 'nonce');
+        check_ajax_referer('nordbooking_forgot_password_nonce_action', 'nonce');
 
         $email = isset($_POST['user_email']) ? sanitize_email($_POST['user_email']) : '';
 
         if (empty($email) || !is_email($email)) {
-            wp_send_json_error(['message' => __('Please provide a valid email address.', 'mobooking')]);
+            wp_send_json_error(['message' => __('Please provide a valid email address.', 'NORDBOOKING')]);
             wp_die();
         }
 
@@ -814,14 +814,14 @@ public function handle_ajax_registration() {
 
         if (empty($user_data)) {
             // Email does not exist, but send a generic success message to prevent user enumeration.
-            wp_send_json_success(['message' => __('If an account with that email exists, a password reset link has been sent.', 'mobooking')]);
+            wp_send_json_success(['message' => __('If an account with that email exists, a password reset link has been sent.', 'NORDBOOKING')]);
             wp_die();
         }
 
         // Generate password reset key
         $key = get_password_reset_key($user_data);
         if (is_wp_error($key)) {
-            wp_send_json_error(['message' => __('Error generating reset key. Please try again later.', 'mobooking')]);
+            wp_send_json_error(['message' => __('Error generating reset key. Please try again later.', 'NORDBOOKING')]);
             wp_die();
         }
 
@@ -842,9 +842,9 @@ public function handle_ajax_registration() {
 
         // Send the email
         if (wp_mail($email, $title, $message)) {
-            wp_send_json_success(['message' => __('If an account with that email exists, a password reset link has been sent.', 'mobooking')]);
+            wp_send_json_success(['message' => __('If an account with that email exists, a password reset link has been sent.', 'NORDBOOKING')]);
         } else {
-            wp_send_json_error(['message' => __('The email could not be sent. Please try again later or contact an administrator.', 'mobooking')]);
+            wp_send_json_error(['message' => __('The email could not be sent. Please try again later or contact an administrator.', 'NORDBOOKING')]);
         }
         wp_die();
     }
@@ -864,15 +864,15 @@ public function handle_ajax_registration() {
         } else {
             // Check if the user has the correct role (any role that can access dashboard)
             $user = $user_signon;
-            if ( $user->has_cap( self::ACCESS_MOBOOKING_DASHBOARD ) ) {
+            if ( $user->has_cap( self::ACCESS_NORDBOOKING_DASHBOARD ) ) {
                 wp_set_current_user($user->ID); // Ensure user is set for this session
                 wp_set_auth_cookie($user->ID, $info['remember']);
                 // TODO: Potentially redirect to a specific page based on role, or always to /dashboard/
-                wp_send_json_success( array( 'message' => __( 'Login successful. Redirecting...', 'mobooking' ), 'redirect_url' => home_url('/dashboard/') ) );
+                wp_send_json_success( array( 'message' => __( 'Login successful. Redirecting...', 'NORDBOOKING' ), 'redirect_url' => home_url('/dashboard/') ) );
             } else {
                 // If login is valid but user doesn't have dashboard access capability
                 wp_logout(); // Clears the cookie set by wp_signon
-                wp_send_json_error( array( 'message' => __( 'You do not have sufficient permissions to access the dashboard.', 'mobooking' ) ) );
+                wp_send_json_error( array( 'message' => __( 'You do not have sufficient permissions to access the dashboard.', 'NORDBOOKING' ) ) );
             }
         }
         wp_die();

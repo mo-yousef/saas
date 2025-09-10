@@ -1,10 +1,10 @@
 jQuery(document).ready(function ($) {
   "use strict";
 
-  const ajaxUrl = mobooking_availability_params.ajax_url;
-  const availabilityNonce = mobooking_availability_params.availability_nonce;
-  const i18n = mobooking_availability_params.i18n || {};
-  const icons = mobooking_availability_params.icons || {};
+  const ajaxUrl = nordbooking_availability_params.ajax_url;
+  const availabilityNonce = nordbooking_availability_params.availability_nonce;
+  const i18n = nordbooking_availability_params.i18n || {};
+  const icons = nordbooking_availability_params.icons || {};
   const daysOfWeek = [
     i18n.sunday || "Sunday",
     i18n.monday || "Monday",
@@ -16,9 +16,9 @@ jQuery(document).ready(function ($) {
   ];
 
   // --- DOM Elements ---
-  const $feedbackDiv = $("#mobooking-availability-feedback");
+  const $feedbackDiv = $("#NORDBOOKING-availability-feedback");
   const $scheduleContainer = $("#recurring-schedule-container");
-  const $saveScheduleBtn = $("#mobooking-save-recurring-schedule-btn");
+  const $saveScheduleBtn = $("#NORDBOOKING-save-recurring-schedule-btn");
 
   let scheduleData = []; // This will hold the state of the schedule
 
@@ -34,7 +34,7 @@ jQuery(document).ready(function ($) {
   // --- Schedule Rendering ---
   function renderScheduleEditor() {
     $scheduleContainer.empty();
-    const $scheduleList = $('<ul class="mobooking-schedule-editor"></ul>');
+    const $scheduleList = $('<ul class="NORDBOOKING-schedule-editor"></ul>');
 
     daysOfWeek.forEach((dayName, dayIndex) => {
       const dayData = scheduleData.find((d) => d.day_of_week == dayIndex) || {
@@ -49,7 +49,7 @@ jQuery(document).ready(function ($) {
         }">
           <div class="day-header">
             <div class="day-name-toggle">
-              <label class="mobooking-toggle-switch">
+              <label class="NORDBOOKING-toggle-switch">
                 <input type="checkbox" class="day-toggle-switch" data-day-index="${dayIndex}" ${
         dayData.is_enabled ? "checked" : ""
       }>
@@ -135,7 +135,7 @@ jQuery(document).ready(function ($) {
       url: ajaxUrl,
       type: "POST",
       data: {
-        action: "mobooking_get_recurring_schedule",
+        action: "nordbooking_get_recurring_schedule",
         nonce: availabilityNonce,
       },
       success: function (response) {
@@ -159,39 +159,45 @@ jQuery(document).ready(function ($) {
     let allErrors = [];
 
     schedule.forEach((dayData, dayIndex) => {
-        if (!dayData.is_enabled || dayData.slots.length <= 1) {
-            return; // No need to validate if the day is off or has only one slot
+      if (!dayData.is_enabled || dayData.slots.length <= 1) {
+        return; // No need to validate if the day is off or has only one slot
+      }
+
+      const dayName = daysOfWeek[dayIndex];
+      let sortedSlots = [...dayData.slots]
+        .map((slot, originalIndex) => ({ ...slot, originalIndex }))
+        .sort((a, b) => a.start_time.localeCompare(b.start_time));
+
+      for (let i = 0; i < sortedSlots.length; i++) {
+        let currentSlot = sortedSlots[i];
+
+        // Check for invalid or equal start/end times
+        if (currentSlot.start_time >= currentSlot.end_time) {
+          allErrors.push(
+            `On ${dayName}, slot ${
+              i + 1
+            } has an invalid time range (start time must be before end time).`
+          );
         }
 
-        const dayName = daysOfWeek[dayIndex];
-        let sortedSlots = [...dayData.slots]
-            .map((slot, originalIndex) => ({ ...slot, originalIndex }))
-            .sort((a, b) => a.start_time.localeCompare(b.start_time));
-
-        for (let i = 0; i < sortedSlots.length; i++) {
-            let currentSlot = sortedSlots[i];
-
-            // Check for invalid or equal start/end times
-            if (currentSlot.start_time >= currentSlot.end_time) {
-                allErrors.push(
-                    `On ${dayName}, slot ${i + 1} has an invalid time range (start time must be before end time).`
-                );
-            }
-
-            // Check for overlap with the next slot
-            if (i < sortedSlots.length - 1) {
-                let nextSlot = sortedSlots[i + 1];
-                if (currentSlot.end_time > nextSlot.start_time) {
-                    allErrors.push(
-                        `On ${dayName}, slot ${i + 1} (${currentSlot.start_time} - ${currentSlot.end_time}) overlaps with slot ${i + 2} (${nextSlot.start_time} - ${nextSlot.end_time}).`
-                    );
-                }
-            }
+        // Check for overlap with the next slot
+        if (i < sortedSlots.length - 1) {
+          let nextSlot = sortedSlots[i + 1];
+          if (currentSlot.end_time > nextSlot.start_time) {
+            allErrors.push(
+              `On ${dayName}, slot ${i + 1} (${currentSlot.start_time} - ${
+                currentSlot.end_time
+              }) overlaps with slot ${i + 2} (${nextSlot.start_time} - ${
+                nextSlot.end_time
+              }).`
+            );
+          }
         }
+      }
     });
 
     return allErrors;
-}
+  }
 
   function saveSchedule() {
     // Before saving, update scheduleData from the DOM
@@ -200,17 +206,17 @@ jQuery(document).ready(function ($) {
     // Perform validation
     const validationErrors = validateTimeSlots(scheduleData);
     if (validationErrors.length > 0) {
-        validationErrors.forEach(error => {
-            showFloatingAlert(error, 'error');
-        });
-        return; // Stop the save process
+      validationErrors.forEach((error) => {
+        showFloatingAlert(error, "error");
+      });
+      return; // Stop the save process
     }
 
     $.ajax({
       url: ajaxUrl,
       type: "POST",
       data: {
-        action: "mobooking_save_recurring_schedule",
+        action: "nordbooking_save_recurring_schedule",
         nonce: availabilityNonce,
         schedule_data: JSON.stringify(scheduleData),
       },
@@ -237,7 +243,7 @@ jQuery(document).ready(function ($) {
 
   function updateScheduleDataFromDOM() {
     let updatedSchedule = [];
-    $(".mobooking-schedule-editor .day-schedule").each(function (dayIndex) {
+    $(".NORDBOOKING-schedule-editor .day-schedule").each(function (dayIndex) {
       const $dayItem = $(this);
       const isEnabled = $dayItem.find(".day-toggle-switch").is(":checked");
       let dayData = {
@@ -389,46 +395,50 @@ jQuery(document).ready(function ($) {
     `;
 
     const copyDialog = new MoBookingDialog({
-        title: i18n.copy_schedule || "Copy Schedule",
-        content: contentHtml,
-        icon: 'copy',
-        buttons: [
-            {
-                label: i18n.cancel || "Cancel",
-                class: 'secondary',
-                onClick: (dialog) => dialog.close(),
-            },
-            {
-                label: i18n.copy || "Copy Schedule",
-                class: 'primary',
-                onClick: (dialog) => {
-                    const targetDays = [];
-                    $(dialog.getElement()).find('input[name="copy-day"]:checked').each(function () {
-                        targetDays.push(parseInt($(this).val()));
-                    });
+      title: i18n.copy_schedule || "Copy Schedule",
+      content: contentHtml,
+      icon: "copy",
+      buttons: [
+        {
+          label: i18n.cancel || "Cancel",
+          class: "secondary",
+          onClick: (dialog) => dialog.close(),
+        },
+        {
+          label: i18n.copy || "Copy Schedule",
+          class: "primary",
+          onClick: (dialog) => {
+            const targetDays = [];
+            $(dialog.getElement())
+              .find('input[name="copy-day"]:checked')
+              .each(function () {
+                targetDays.push(parseInt($(this).val()));
+              });
 
-                    if (targetDays.length > 0) {
-                        targetDays.forEach((targetDayIndex) => {
-                            let targetDayData = scheduleData.find(
-                                (d) => d.day_of_week == targetDayIndex
-                            );
-                            if (!targetDayData) {
-                                targetDayData = {
-                                    day_of_week: targetDayIndex,
-                                    is_enabled: false,
-                                    slots: [],
-                                };
-                                scheduleData.push(targetDayData);
-                            }
-                            targetDayData.is_enabled = sourceDayData.is_enabled;
-                            targetDayData.slots = JSON.parse(JSON.stringify(sourceDayData.slots)); // Deep copy
-                        });
-                        renderScheduleEditor();
-                    }
-                    dialog.close();
-                },
-            },
-        ],
+            if (targetDays.length > 0) {
+              targetDays.forEach((targetDayIndex) => {
+                let targetDayData = scheduleData.find(
+                  (d) => d.day_of_week == targetDayIndex
+                );
+                if (!targetDayData) {
+                  targetDayData = {
+                    day_of_week: targetDayIndex,
+                    is_enabled: false,
+                    slots: [],
+                  };
+                  scheduleData.push(targetDayData);
+                }
+                targetDayData.is_enabled = sourceDayData.is_enabled;
+                targetDayData.slots = JSON.parse(
+                  JSON.stringify(sourceDayData.slots)
+                ); // Deep copy
+              });
+              renderScheduleEditor();
+            }
+            dialog.close();
+          },
+        },
+      ],
     });
 
     copyDialog.show();

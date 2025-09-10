@@ -1,67 +1,67 @@
 <?php
 /**
- * MoBooking functions and definitions
+ * NORDBOOKING functions and definitions
  *
- * @package MoBooking
+ * @package NORDBOOKING
  */
 
-if ( ! defined( 'MOBOOKING_VERSION' ) ) {
-    define( 'MOBOOKING_VERSION', '0.1.24' );
+if ( ! defined( 'NORDBOOKING_VERSION' ) ) {
+    define( 'NORDBOOKING_VERSION', '0.1.24' );
 }
-if ( ! defined( 'MOBOOKING_DB_VERSION' ) ) {
-    define( 'MOBOOKING_DB_VERSION', '2.3' );
+if ( ! defined( 'NORDBOOKING_DB_VERSION' ) ) {
+    define( 'NORDBOOKING_DB_VERSION', '2.3' );
 }
-if ( ! defined( 'MOBOOKING_THEME_DIR' ) ) {
-    define( 'MOBOOKING_THEME_DIR', trailingslashit( get_template_directory() ) );
+if ( ! defined( 'NORDBOOKING_THEME_DIR' ) ) {
+    define( 'NORDBOOKING_THEME_DIR', trailingslashit( get_template_directory() ) );
 }
-if ( ! defined( 'MOBOOKING_THEME_URI' ) ) {
-    define( 'MOBOOKING_THEME_URI', trailingslashit( get_template_directory_uri() ) );
+if ( ! defined( 'NORDBOOKING_THEME_URI' ) ) {
+    define( 'NORDBOOKING_THEME_URI', trailingslashit( get_template_directory_uri() ) );
 }
 
 
 // Include the separated functional files
-require_once MOBOOKING_THEME_DIR . 'functions/ajax.php';
-require_once MOBOOKING_THEME_DIR . 'functions/theme-setup.php';
-require_once MOBOOKING_THEME_DIR . 'functions/autoloader.php';
-require_once MOBOOKING_THEME_DIR . 'functions/routing.php';
-require_once MOBOOKING_THEME_DIR . 'functions/initialization.php';
-require_once MOBOOKING_THEME_DIR . 'functions/utilities.php';
-require_once MOBOOKING_THEME_DIR . 'functions/debug.php';
-require_once MOBOOKING_THEME_DIR . 'functions/email.php';
-require_once MOBOOKING_THEME_DIR . 'functions/ajax-fixes.php';
-require_once MOBOOKING_THEME_DIR . 'functions/debug-utils.php';
+require_once NORDBOOKING_THEME_DIR . 'functions/ajax.php';
+require_once NORDBOOKING_THEME_DIR . 'functions/theme-setup.php';
+require_once NORDBOOKING_THEME_DIR . 'functions/autoloader.php';
+require_once NORDBOOKING_THEME_DIR . 'functions/routing.php';
+require_once NORDBOOKING_THEME_DIR . 'functions/initialization.php';
+require_once NORDBOOKING_THEME_DIR . 'functions/utilities.php';
+require_once NORDBOOKING_THEME_DIR . 'functions/debug.php';
+require_once NORDBOOKING_THEME_DIR . 'functions/email.php';
+require_once NORDBOOKING_THEME_DIR . 'functions/ajax-fixes.php';
+require_once NORDBOOKING_THEME_DIR . 'functions/debug-utils.php';
 
 
 /**
- * Initialize MoBooking managers globally
+ * Initialize NORDBOOKING managers globally
  * Add this to your theme's functions.php
  */
-function mobooking_initialize_managers() {
-    if (!isset($GLOBALS['mobooking_services_manager'])) {
+function nordbooking_initialize_managers() {
+    if (!isset($GLOBALS['nordbooking_services_manager'])) {
         try {
-            $GLOBALS['mobooking_services_manager'] = new \MoBooking\Classes\Services();
+            $GLOBALS['nordbooking_services_manager'] = new \NORDBOOKING\Classes\Services();
         } catch (Exception $e) {
-            error_log('MoBooking: Failed to initialize Services manager: ' . $e->getMessage());
+            error_log('NORDBOOKING: Failed to initialize Services manager: ' . $e->getMessage());
         }
     }
 
-    if (!isset($GLOBALS['mobooking_bookings_manager'])) {
+    if (!isset($GLOBALS['nordbooking_bookings_manager'])) {
         try {
-            $GLOBALS['mobooking_bookings_manager'] = new \MoBooking\Classes\Bookings(
-                $GLOBALS['mobooking_discounts_manager'],
-                $GLOBALS['mobooking_notifications_manager'],
-                $GLOBALS['mobooking_services_manager']
+            $GLOBALS['nordbooking_bookings_manager'] = new \NORDBOOKING\Classes\Bookings(
+                $GLOBALS['nordbooking_discounts_manager'],
+                $GLOBALS['nordbooking_notifications_manager'],
+                $GLOBALS['nordbooking_services_manager']
             );
         } catch (Exception $e) {
-            error_log('MoBooking: Failed to initialize Bookings manager: ' . $e->getMessage());
+            error_log('NORDBOOKING: Failed to initialize Bookings manager: ' . $e->getMessage());
         }
     }
 
-    if (!isset($GLOBALS['mobooking_customers_manager'])) {
+    if (!isset($GLOBALS['nordbooking_customers_manager'])) {
         try {
-            $GLOBALS['mobooking_customers_manager'] = new \MoBooking\Classes\Customers();
+            $GLOBALS['nordbooking_customers_manager'] = new \NORDBOOKING\Classes\Customers();
         } catch (Exception $e) {
-            error_log('MoBooking: Failed to initialize Customers manager: ' . $e->getMessage());
+            error_log('NORDBOOKING: Failed to initialize Customers manager: ' . $e->getMessage());
         }
     }
 }
@@ -70,7 +70,7 @@ function mobooking_initialize_managers() {
 // =============================================================================
 
 // Hook to initialize managers early
-add_action('init', 'mobooking_initialize_managers', 1);
+add_action('init', 'nordbooking_initialize_managers', 1);
 
 
 // =============================================================================
@@ -85,21 +85,21 @@ add_action('init', 'mobooking_initialize_managers', 1);
 // First, let's add some diagnostic logging
 add_action('init', function() {
     if (defined('WP_DEBUG') && WP_DEBUG) {
-        error_log('MoBooking Diagnostic - Plugin loaded at init');
+        error_log('NORDBOOKING Diagnostic - Plugin loaded at init');
     }
 });
 
 // Add a diagnostic AJAX handler to test if our hooks are working
-add_action('wp_ajax_mobooking_diagnostic_test', 'mobooking_diagnostic_test_handler');
-add_action('wp_ajax_nopriv_mobooking_diagnostic_test', 'mobooking_diagnostic_test_handler');
+add_action('wp_ajax_nordbooking_diagnostic_test', 'nordbooking_diagnostic_test_handler');
+add_action('wp_ajax_nopriv_nordbooking_diagnostic_test', 'nordbooking_diagnostic_test_handler');
 
-function mobooking_diagnostic_test_handler() {
+function nordbooking_diagnostic_test_handler() {
     wp_send_json_success([
         'message' => 'Diagnostic handler is working',
         'timestamp' => current_time('mysql'),
         'hooks_registered' => [
-            'mobooking_create_booking' => has_action('wp_ajax_mobooking_create_booking'),
-            'mobooking_create_booking_nopriv' => has_action('wp_ajax_nopriv_mobooking_create_booking')
+            'nordbooking_create_booking' => has_action('wp_ajax_nordbooking_create_booking'),
+            'nordbooking_create_booking_nopriv' => has_action('wp_ajax_nopriv_nordbooking_create_booking')
         ]
     ]);
 }
@@ -107,22 +107,22 @@ function mobooking_diagnostic_test_handler() {
 // Remove any existing handlers first (with higher priority)
 add_action('wp_loaded', function() {
     // Remove existing handlers
-    remove_all_actions('wp_ajax_mobooking_create_booking');
-    remove_all_actions('wp_ajax_nopriv_mobooking_create_booking');
+    remove_all_actions('wp_ajax_nordbooking_create_booking');
+    remove_all_actions('wp_ajax_nopriv_nordbooking_create_booking');
 
     // Add our enhanced handler
-    add_action('wp_ajax_mobooking_create_booking', 'mobooking_enhanced_create_booking_handler');
-    add_action('wp_ajax_nopriv_mobooking_create_booking', 'mobooking_enhanced_create_booking_handler');
+    add_action('wp_ajax_nordbooking_create_booking', 'nordbooking_enhanced_create_booking_handler');
+    add_action('wp_ajax_nopriv_nordbooking_create_booking', 'nordbooking_enhanced_create_booking_handler');
 
     if (defined('WP_DEBUG') && WP_DEBUG) {
-        error_log('MoBooking Enhanced Handler - Handlers registered at wp_loaded');
+        error_log('NORDBOOKING Enhanced Handler - Handlers registered at wp_loaded');
     }
 }, 999); // Very high priority
 
-function mobooking_enhanced_create_booking_handler() {
+function nordbooking_enhanced_create_booking_handler() {
     // Log that our handler is being called
-    error_log('MoBooking Enhanced Handler - Handler called at ' . current_time('mysql'));
-    error_log('MoBooking Enhanced Handler - POST data: ' . print_r($_POST, true));
+    error_log('NORDBOOKING Enhanced Handler - Handler called at ' . current_time('mysql'));
+    error_log('NORDBOOKING Enhanced Handler - POST data: ' . print_r($_POST, true));
 
     // Enable error reporting for this request
     if (defined('WP_DEBUG') && WP_DEBUG) {
@@ -132,15 +132,15 @@ function mobooking_enhanced_create_booking_handler() {
 
     try {
         // 1. Security Check with detailed logging
-        error_log('MoBooking Enhanced Handler - Checking nonce...');
+        error_log('NORDBOOKING Enhanced Handler - Checking nonce...');
         if (!isset($_POST['nonce'])) {
-            error_log('MoBooking Enhanced Handler - No nonce in POST data');
+            error_log('NORDBOOKING Enhanced Handler - No nonce in POST data');
             wp_send_json_error(['message' => 'No security token provided'], 403);
             return;
         }
 
-        $nonce_check = wp_verify_nonce($_POST['nonce'], 'mobooking_booking_form_nonce');
-        error_log('MoBooking Enhanced Handler - Nonce check result: ' . ($nonce_check ? 'PASS' : 'FAIL'));
+        $nonce_check = wp_verify_nonce($_POST['nonce'], 'nordbooking_booking_form_nonce');
+        error_log('NORDBOOKING Enhanced Handler - Nonce check result: ' . ($nonce_check ? 'PASS' : 'FAIL'));
 
         if (!$nonce_check) {
             wp_send_json_error(['message' => 'Security check failed. Please refresh the page and try again.'], 403);
@@ -148,10 +148,10 @@ function mobooking_enhanced_create_booking_handler() {
         }
 
         // 2. Validate Tenant ID
-        error_log('MoBooking Enhanced Handler - Validating tenant ID...');
+        error_log('NORDBOOKING Enhanced Handler - Validating tenant ID...');
         $tenant_id = isset($_POST['tenant_id']) ? intval($_POST['tenant_id']) : 0;
         if (!$tenant_id) {
-            error_log('MoBooking Enhanced Handler - Invalid tenant ID: ' . $tenant_id);
+            error_log('NORDBOOKING Enhanced Handler - Invalid tenant ID: ' . $tenant_id);
             wp_send_json_error(['message' => 'Invalid business information.'], 400);
             return;
         }
@@ -159,34 +159,34 @@ function mobooking_enhanced_create_booking_handler() {
         // Verify tenant exists
         $tenant_user = get_userdata($tenant_id);
         if (!$tenant_user) {
-            error_log('MoBooking Enhanced Handler - Tenant user not found: ' . $tenant_id);
+            error_log('NORDBOOKING Enhanced Handler - Tenant user not found: ' . $tenant_id);
             wp_send_json_error(['message' => 'Business not found.'], 400);
             return;
         }
 
-        error_log('MoBooking Enhanced Handler - Tenant validated: ' . $tenant_user->user_login);
+        error_log('NORDBOOKING Enhanced Handler - Tenant validated: ' . $tenant_user->user_login);
 
         // 3. Parse JSON Data with enhanced error handling
-        error_log('MoBooking Enhanced Handler - Parsing JSON data...');
+        error_log('NORDBOOKING Enhanced Handler - Parsing JSON data...');
 
-        $customer_details = mobooking_enhanced_json_decode($_POST['customer_details'] ?? '', 'customer_details');
-        $selected_services = mobooking_enhanced_json_decode($_POST['selected_services'] ?? '', 'selected_services');
-        $service_options = mobooking_enhanced_json_decode($_POST['service_options'] ?? '{}', 'service_options');
-        $pet_information = mobooking_enhanced_json_decode($_POST['pet_information'] ?? '{}', 'pet_information');
-        $property_access = mobooking_enhanced_json_decode($_POST['property_access'] ?? '{}', 'property_access');
+        $customer_details = nordbooking_enhanced_json_decode($_POST['customer_details'] ?? '', 'customer_details');
+        $selected_services = nordbooking_enhanced_json_decode($_POST['selected_services'] ?? '', 'selected_services');
+        $service_options = nordbooking_enhanced_json_decode($_POST['service_options'] ?? '{}', 'service_options');
+        $pet_information = nordbooking_enhanced_json_decode($_POST['pet_information'] ?? '{}', 'pet_information');
+        $property_access = nordbooking_enhanced_json_decode($_POST['property_access'] ?? '{}', 'property_access');
         $service_frequency = sanitize_text_field($_POST['service_frequency'] ?? 'one-time');
 
-        error_log('MoBooking Enhanced Handler - JSON parsing completed');
+        error_log('NORDBOOKING Enhanced Handler - JSON parsing completed');
 
         // 4. Validate Required Data
         if (!$customer_details || !is_array($customer_details)) {
-            error_log('MoBooking Enhanced Handler - Invalid customer details');
+            error_log('NORDBOOKING Enhanced Handler - Invalid customer details');
             wp_send_json_error(['message' => 'Invalid customer information provided.'], 400);
             return;
         }
 
         if (!$selected_services || !is_array($selected_services) || empty($selected_services)) {
-            error_log('MoBooking Enhanced Handler - Invalid or empty services');
+            error_log('NORDBOOKING Enhanced Handler - Invalid or empty services');
             wp_send_json_error(['message' => 'Please select at least one service.'], 400);
             return;
         }
@@ -195,7 +195,7 @@ function mobooking_enhanced_create_booking_handler() {
         $required_fields = ['name', 'email', 'phone', 'date', 'time'];
         foreach ($required_fields as $field) {
             if (empty($customer_details[$field])) {
-                error_log("MoBooking Enhanced Handler - Missing required field: {$field}");
+                error_log("NORDBOOKING Enhanced Handler - Missing required field: {$field}");
                 wp_send_json_error(['message' => "Missing required field: {$field}"], 400);
                 return;
             }
@@ -203,22 +203,22 @@ function mobooking_enhanced_create_booking_handler() {
 
         // 6. Validate Email
         if (!is_email($customer_details['email'])) {
-            error_log('MoBooking Enhanced Handler - Invalid email: ' . $customer_details['email']);
+            error_log('NORDBOOKING Enhanced Handler - Invalid email: ' . $customer_details['email']);
             wp_send_json_error(['message' => 'Please provide a valid email address.'], 400);
             return;
         }
 
         // 7. Process Services
-        error_log('MoBooking Enhanced Handler - Processing services...');
+        error_log('NORDBOOKING Enhanced Handler - Processing services...');
         $total_amount = 0;
         $valid_services = [];
 
         global $wpdb;
-        $services_table = $wpdb->prefix . 'mobooking_services';
+        $services_table = $wpdb->prefix . 'nordbooking_services';
 
         // Check if services table exists
         if ($wpdb->get_var("SHOW TABLES LIKE '{$services_table}'") != $services_table) {
-            error_log('MoBooking Enhanced Handler - Services table does not exist: ' . $services_table);
+            error_log('NORDBOOKING Enhanced Handler - Services table does not exist: ' . $services_table);
             wp_send_json_error(['message' => 'Database configuration error. Please contact support.'], 500);
             return;
         }
@@ -246,27 +246,27 @@ function mobooking_enhanced_create_booking_handler() {
                     'options' => $service_item['configured_options'] ?? []
                 ];
                 $total_amount += floatval($service['price']);
-                error_log("MoBooking Enhanced Handler - Valid service found: {$service['name']} (\${$service['price']})");
+                error_log("NORDBOOKING Enhanced Handler - Valid service found: {$service['name']} (\${$service['price']})");
             }
         }
 
         if (empty($valid_services)) {
-            error_log('MoBooking Enhanced Handler - No valid services found');
+            error_log('NORDBOOKING Enhanced Handler - No valid services found');
             wp_send_json_error(['message' => 'No valid services selected.'], 400);
             return;
         }
 
         // 8. Check Database Tables
-        error_log('MoBooking Enhanced Handler - Checking database tables...');
-        $bookings_table = $wpdb->prefix . 'mobooking_bookings';
+        error_log('NORDBOOKING Enhanced Handler - Checking database tables...');
+        $bookings_table = $wpdb->prefix . 'nordbooking_bookings';
         if ($wpdb->get_var("SHOW TABLES LIKE '{$bookings_table}'") != $bookings_table) {
-            error_log('MoBooking Enhanced Handler - Bookings table does not exist: ' . $bookings_table);
+            error_log('NORDBOOKING Enhanced Handler - Bookings table does not exist: ' . $bookings_table);
             wp_send_json_error(['message' => 'Database not properly configured. Please contact support.'], 500);
             return;
         }
 
         // 9. Create Booking Record
-        error_log('MoBooking Enhanced Handler - Creating booking record...');
+        error_log('NORDBOOKING Enhanced Handler - Creating booking record...');
         $booking_reference = 'MB-' . date('Ymd') . '-' . rand(1000, 9999);
 
         $booking_data = [
@@ -299,19 +299,19 @@ function mobooking_enhanced_create_booking_handler() {
         );
 
         if ($insert_result === false) {
-            error_log('MoBooking Enhanced Handler - Database insert failed: ' . $wpdb->last_error);
+            error_log('NORDBOOKING Enhanced Handler - Database insert failed: ' . $wpdb->last_error);
             wp_send_json_error(['message' => 'Failed to create booking. Database error.'], 500);
             return;
         }
 
         $booking_id = $wpdb->insert_id;
-        error_log('MoBooking Enhanced Handler - Booking created successfully: ' . $booking_id);
+        error_log('NORDBOOKING Enhanced Handler - Booking created successfully: ' . $booking_id);
 
         // 10. Send Emails (don't fail if this doesn't work)
         try {
-            mobooking_enhanced_send_emails($booking_id, $booking_data, $valid_services);
+            nordbooking_enhanced_send_emails($booking_id, $booking_data, $valid_services);
         } catch (Exception $e) {
-            error_log('MoBooking Enhanced Handler - Email sending failed: ' . $e->getMessage());
+            error_log('NORDBOOKING Enhanced Handler - Email sending failed: ' . $e->getMessage());
         }
 
         // 11. Success Response
@@ -332,12 +332,12 @@ function mobooking_enhanced_create_booking_handler() {
         ]);
 
     } catch (Exception $e) {
-        error_log('MoBooking Enhanced Handler - Exception: ' . $e->getMessage());
-        error_log('MoBooking Enhanced Handler - Exception trace: ' . $e->getTraceAsString());
+        error_log('NORDBOOKING Enhanced Handler - Exception: ' . $e->getMessage());
+        error_log('NORDBOOKING Enhanced Handler - Exception trace: ' . $e->getTraceAsString());
         wp_send_json_error(['message' => 'An unexpected error occurred. Please try again.'], 500);
     } catch (Error $e) {
-        error_log('MoBooking Enhanced Handler - Fatal Error: ' . $e->getMessage());
-        error_log('MoBooking Enhanced Handler - Error trace: ' . $e->getTraceAsString());
+        error_log('NORDBOOKING Enhanced Handler - Fatal Error: ' . $e->getMessage());
+        error_log('NORDBOOKING Enhanced Handler - Error trace: ' . $e->getTraceAsString());
         wp_send_json_error(['message' => 'A system error occurred. Please contact support.'], 500);
     }
 }
@@ -345,12 +345,12 @@ function mobooking_enhanced_create_booking_handler() {
 /**
  * Enhanced JSON decoder with detailed logging
  */
-function mobooking_enhanced_json_decode($json_string, $context = 'data') {
+function nordbooking_enhanced_json_decode($json_string, $context = 'data') {
     if (empty($json_string)) {
         return null;
     }
 
-    error_log("MoBooking Enhanced Handler - Decoding {$context}: " . substr($json_string, 0, 100) . "...");
+    error_log("NORDBOOKING Enhanced Handler - Decoding {$context}: " . substr($json_string, 0, 100) . "...");
 
     // Clean the input
     $json_string = trim($json_string);
@@ -359,27 +359,27 @@ function mobooking_enhanced_json_decode($json_string, $context = 'data') {
     // Try direct decode first
     $decoded = json_decode($json_string, true);
     if (json_last_error() === JSON_ERROR_NONE) {
-        error_log("MoBooking Enhanced Handler - {$context} decoded successfully");
+        error_log("NORDBOOKING Enhanced Handler - {$context} decoded successfully");
         return $decoded;
     }
 
     // Try with stripslashes
     $decoded = json_decode(stripslashes($json_string), true);
     if (json_last_error() === JSON_ERROR_NONE) {
-        error_log("MoBooking Enhanced Handler - {$context} decoded with stripslashes");
+        error_log("NORDBOOKING Enhanced Handler - {$context} decoded with stripslashes");
         return $decoded;
     }
 
     // Try with wp_unslash
     $decoded = json_decode(wp_unslash($json_string), true);
     if (json_last_error() === JSON_ERROR_NONE) {
-        error_log("MoBooking Enhanced Handler - {$context} decoded with wp_unslash");
+        error_log("NORDBOOKING Enhanced Handler - {$context} decoded with wp_unslash");
         return $decoded;
     }
 
     // Log the error
-    error_log("MoBooking Enhanced Handler - JSON decode failed for {$context}: " . json_last_error_msg());
-    error_log("MoBooking Enhanced Handler - Raw JSON: " . $json_string);
+    error_log("NORDBOOKING Enhanced Handler - JSON decode failed for {$context}: " . json_last_error_msg());
+    error_log("NORDBOOKING Enhanced Handler - Raw JSON: " . $json_string);
 
     return null;
 }
@@ -387,7 +387,7 @@ function mobooking_enhanced_json_decode($json_string, $context = 'data') {
 /**
  * Send booking emails
  */
-function mobooking_enhanced_send_emails($booking_id, $booking_data, $service_details) {
+function nordbooking_enhanced_send_emails($booking_id, $booking_data, $service_details) {
     $site_name = get_bloginfo('name');
     $admin_email = get_option('admin_email');
 
@@ -429,7 +429,7 @@ function mobooking_enhanced_send_emails($booking_id, $booking_data, $service_det
 // DATABASE UTILITIES
 // =============================================================================
 /**
- * Database Table Fix and Diagnostic for MoBooking
+ * Database Table Fix and Diagnostic for NORDBOOKING
  * Add this to your functions.php or create as a separate plugin
  */
 
@@ -438,19 +438,19 @@ function mobooking_enhanced_send_emails($booking_id, $booking_data, $service_det
 
 // Enhanced booking handler that matches the actual table structure
 add_action('wp_loaded', function() {
-    remove_all_actions('wp_ajax_mobooking_create_booking');
-    remove_all_actions('wp_ajax_nopriv_mobooking_create_booking');
+    remove_all_actions('wp_ajax_nordbooking_create_booking');
+    remove_all_actions('wp_ajax_nopriv_nordbooking_create_booking');
 
-    add_action('wp_ajax_mobooking_create_booking', 'mobooking_fixed_table_booking_handler');
-    add_action('wp_ajax_nopriv_mobooking_create_booking', 'mobooking_fixed_table_booking_handler');
+    add_action('wp_ajax_nordbooking_create_booking', 'nordbooking_fixed_table_booking_handler');
+    add_action('wp_ajax_nopriv_nordbooking_create_booking', 'nordbooking_fixed_table_booking_handler');
 }, 9999);
 
-function mobooking_fixed_table_booking_handler() {
-    error_log('MoBooking Fixed Table Handler - Starting');
+function nordbooking_fixed_table_booking_handler() {
+    error_log('NORDBOOKING Fixed Table Handler - Starting');
 
     try {
         // Security check
-        if (!wp_verify_nonce($_POST['nonce'], 'mobooking_booking_form_nonce')) {
+        if (!wp_verify_nonce($_POST['nonce'], 'nordbooking_booking_form_nonce')) {
             wp_send_json_error(['message' => 'Security check failed'], 403);
             return;
         }
@@ -486,7 +486,7 @@ function mobooking_fixed_table_booking_handler() {
 
         // Calculate total from services
         global $wpdb;
-        $services_table = $wpdb->prefix . 'mobooking_services';
+        $services_table = $wpdb->prefix . 'nordbooking_services';
         $total_amount = 0;
         $valid_services = [];
 
@@ -517,7 +517,7 @@ function mobooking_fixed_table_booking_handler() {
 
         // Prepare booking data to match actual table structure
         $booking_reference = 'MB-' . date('Ymd') . '-' . rand(1000, 9999);
-        $bookings_table = $wpdb->prefix . 'mobooking_bookings';
+        $bookings_table = $wpdb->prefix . 'nordbooking_bookings';
 
         $booking_data = [
             'user_id' => $tenant_id,
@@ -539,7 +539,7 @@ function mobooking_fixed_table_booking_handler() {
             'updated_at' => current_time('mysql')
         ];
 
-        error_log('MoBooking Fixed Table Handler - Attempting insert with data: ' . print_r($booking_data, true));
+        error_log('NORDBOOKING Fixed Table Handler - Attempting insert with data: ' . print_r($booking_data, true));
 
         // Insert booking
         $insert_result = $wpdb->insert(
@@ -549,14 +549,14 @@ function mobooking_fixed_table_booking_handler() {
         );
 
         if ($insert_result === false) {
-            error_log('MoBooking Fixed Table Handler - Insert failed: ' . $wpdb->last_error);
-            error_log('MoBooking Fixed Table Handler - Query: ' . $wpdb->last_query);
+            error_log('NORDBOOKING Fixed Table Handler - Insert failed: ' . $wpdb->last_error);
+            error_log('NORDBOOKING Fixed Table Handler - Query: ' . $wpdb->last_query);
             wp_send_json_error(['message' => 'Database error: ' . $wpdb->last_error], 500);
             return;
         }
 
         $booking_id = $wpdb->insert_id;
-        error_log('MoBooking Fixed Table Handler - Booking created: ' . $booking_id);
+        error_log('NORDBOOKING Fixed Table Handler - Booking created: ' . $booking_id);
 
         // Send emails
         try {
@@ -587,7 +587,7 @@ function mobooking_fixed_table_booking_handler() {
         ]);
 
     } catch (Exception $e) {
-        error_log('MoBooking Fixed Table Handler - Exception: ' . $e->getMessage());
+        error_log('NORDBOOKING Fixed Table Handler - Exception: ' . $e->getMessage());
         wp_send_json_error(['message' => 'System error occurred'], 500);
     }
 }
@@ -601,19 +601,19 @@ function mobooking_fixed_table_booking_handler() {
 
 // Remove previous handler and add the corrected one
 add_action('wp_loaded', function() {
-    remove_all_actions('wp_ajax_mobooking_create_booking');
-    remove_all_actions('wp_ajax_nopriv_mobooking_create_booking');
+    remove_all_actions('wp_ajax_nordbooking_create_booking');
+    remove_all_actions('wp_ajax_nopriv_nordbooking_create_booking');
 
-    add_action('wp_ajax_mobooking_create_booking', 'mobooking_corrected_column_booking_handler');
-    add_action('wp_ajax_nopriv_mobooking_create_booking', 'mobooking_corrected_column_booking_handler');
+    add_action('wp_ajax_nordbooking_create_booking', 'nordbooking_corrected_column_booking_handler');
+    add_action('wp_ajax_nopriv_nordbooking_create_booking', 'nordbooking_corrected_column_booking_handler');
 }, 9999);
 
-function mobooking_corrected_column_booking_handler() {
-    error_log('MoBooking Corrected Handler - Starting');
+function nordbooking_corrected_column_booking_handler() {
+    error_log('NORDBOOKING Corrected Handler - Starting');
 
     try {
         // Security check
-        if (!wp_verify_nonce($_POST['nonce'], 'mobooking_booking_form_nonce')) {
+        if (!wp_verify_nonce($_POST['nonce'], 'nordbooking_booking_form_nonce')) {
             wp_send_json_error(['message' => 'Security check failed'], 403);
             return;
         }
@@ -634,7 +634,7 @@ function mobooking_corrected_column_booking_handler() {
         $service_frequency = sanitize_text_field($_POST['service_frequency'] ?? 'one-time');
 
         if (json_last_error() !== JSON_ERROR_NONE) {
-            error_log('MoBooking Corrected Handler - JSON decode error: ' . json_last_error_msg());
+            error_log('NORDBOOKING Corrected Handler - JSON decode error: ' . json_last_error_msg());
             wp_send_json_error(['message' => 'Invalid form data format'], 400);
             return;
         }
@@ -661,7 +661,7 @@ function mobooking_corrected_column_booking_handler() {
 
         // Calculate total from services
         global $wpdb;
-        $services_table = $wpdb->prefix . 'mobooking_services';
+        $services_table = $wpdb->prefix . 'nordbooking_services';
         $total_amount = 0;
         $valid_services = [];
 
@@ -701,7 +701,7 @@ function mobooking_corrected_column_booking_handler() {
 
         // Generate booking reference
         $booking_reference = 'MB-' . date('Ymd') . '-' . rand(1000, 9999);
-        $bookings_table = $wpdb->prefix . 'mobooking_bookings';
+        $bookings_table = $wpdb->prefix . 'nordbooking_bookings';
 
         // Prepare booking data using CORRECT column names from your table structure
         $booking_data = [
@@ -725,7 +725,7 @@ function mobooking_corrected_column_booking_handler() {
             'updated_at' => current_time('mysql')
         ];
 
-        error_log('MoBooking Corrected Handler - Booking data prepared: ' . print_r($booking_data, true));
+        error_log('NORDBOOKING Corrected Handler - Booking data prepared: ' . print_r($booking_data, true));
 
         // Insert booking with correct column format
         $insert_result = $wpdb->insert(
@@ -738,18 +738,18 @@ function mobooking_corrected_column_booking_handler() {
         );
 
         if ($insert_result === false) {
-            error_log('MoBooking Corrected Handler - Insert failed: ' . $wpdb->last_error);
-            error_log('MoBooking Corrected Handler - Last query: ' . $wpdb->last_query);
+            error_log('NORDBOOKING Corrected Handler - Insert failed: ' . $wpdb->last_error);
+            error_log('NORDBOOKING Corrected Handler - Last query: ' . $wpdb->last_query);
             wp_send_json_error(['message' => 'Database error: ' . $wpdb->last_error], 500);
             return;
         }
 
         $booking_id = $wpdb->insert_id;
-        error_log('MoBooking Corrected Handler - Booking created successfully: ' . $booking_id);
+        error_log('NORDBOOKING Corrected Handler - Booking created successfully: ' . $booking_id);
 
         // Create or update customer
-        if (class_exists('MoBooking\Classes\Customers')) {
-            $customers_manager = new \MoBooking\Classes\Customers();
+        if (class_exists('NORDBOOKING\Classes\Customers')) {
+            $customers_manager = new \NORDBOOKING\Classes\Customers();
             $customer_data_for_manager = [
                 'full_name' => $customer_details['name'] ?? '',
                 'email' => $customer_details['email'] ?? '',
@@ -774,12 +774,12 @@ function mobooking_corrected_column_booking_handler() {
                     ['%d']
                 );
             } else if (is_wp_error($mob_customer_id)) {
-                error_log("MoBooking Corrected Handler - Error creating/updating customer: " . $mob_customer_id->get_error_message());
+                error_log("NORDBOOKING Corrected Handler - Error creating/updating customer: " . $mob_customer_id->get_error_message());
             }
         }
 
         // Insert booking items with selected options for detailed display
-		$items_table = \MoBooking\Classes\Database::get_table_name('booking_items');
+		$items_table = \NORDBOOKING\Classes\Database::get_table_name('booking_items');
 		foreach ($valid_services as $vs) {
 			$base_price = floatval($vs['price']);
 			$options_total = floatval($vs['options_total'] ?? 0);
@@ -834,7 +834,7 @@ function mobooking_corrected_column_booking_handler() {
             wp_mail($admin_email, $admin_subject, $admin_message);
 
         } catch (Exception $e) {
-            error_log('MoBooking Corrected Handler - Email sending failed: ' . $e->getMessage());
+            error_log('NORDBOOKING Corrected Handler - Email sending failed: ' . $e->getMessage());
         }
 
         // Success response
@@ -855,27 +855,27 @@ function mobooking_corrected_column_booking_handler() {
         ]);
 
     } catch (Exception $e) {
-        error_log('MoBooking Corrected Handler - Exception: ' . $e->getMessage());
-        error_log('MoBooking Corrected Handler - Exception trace: ' . $e->getTraceAsString());
+        error_log('NORDBOOKING Corrected Handler - Exception: ' . $e->getMessage());
+        error_log('NORDBOOKING Corrected Handler - Exception trace: ' . $e->getTraceAsString());
         wp_send_json_error(['message' => 'System error occurred'], 500);
     }
 }
 
 // Quick database column checker (for debugging)
 add_action('admin_notices', function() {
-    if (current_user_can('manage_options') && isset($_GET['check_mobooking_columns'])) {
+    if (current_user_can('manage_options') && isset($_GET['check_nordbooking_columns'])) {
         global $wpdb;
-        $bookings_table = $wpdb->prefix . 'mobooking_bookings';
+        $bookings_table = $wpdb->prefix . 'nordbooking_bookings';
         $columns = $wpdb->get_results("DESCRIBE $bookings_table");
 
         echo '<div class="notice notice-info">';
-        echo '<h3>MoBooking Bookings Table Columns:</h3>';
+        echo '<h3>NORDBOOKING Bookings Table Columns:</h3>';
         echo '<ul>';
         foreach ($columns as $column) {
             echo '<li><strong>' . esc_html($column->Field) . '</strong> - ' . esc_html($column->Type) . '</li>';
         }
         echo '</ul>';
-        echo '<p>Add <code>?check_mobooking_columns=1</code> to any admin page URL to see this.</p>';
+        echo '<p>Add <code>?check_nordbooking_columns=1</code> to any admin page URL to see this.</p>';
         echo '</div>';
     }
 });
@@ -889,10 +889,10 @@ add_action('admin_notices', function() {
  */
 
 // Fix 1: Ensure proper script parameters are available
-add_action('wp_footer', 'mobooking_fix_booking_form_params', 5);
-function mobooking_fix_booking_form_params() {
+add_action('wp_footer', 'nordbooking_fix_booking_form_params', 5);
+function nordbooking_fix_booking_form_params() {
     // Only run on booking form pages
-    $page_type = get_query_var('mobooking_page_type');
+    $page_type = get_query_var('nordbooking_page_type');
     if (!is_page_template('templates/booking-form-public.php') && 
         $page_type !== 'public_booking' && 
         $page_type !== 'embed_booking') {
@@ -902,19 +902,19 @@ function mobooking_fix_booking_form_params() {
     // Get tenant ID
     $tenant_id = 0;
     if ($page_type === 'public_booking' || $page_type === 'embed_booking') {
-        $tenant_id = get_query_var('mobooking_tenant_id_on_page', 0);
+        $tenant_id = get_query_var('nordbooking_tenant_id_on_page', 0);
     }
     if (!$tenant_id && !empty($_GET['tid'])) {
         $tenant_id = intval($_GET['tid']);
     }
     if (!$tenant_id && is_user_logged_in()) {
         $current_user = wp_get_current_user();
-        if (in_array('mobooking_business_owner', $current_user->roles)) {
+        if (in_array('nordbooking_business_owner', $current_user->roles)) {
             $tenant_id = $current_user->ID;
         }
     }
     if (!$tenant_id) {
-        $business_owners = get_users(['role' => 'mobooking_business_owner', 'number' => 1, 'fields' => 'ID']);
+        $business_owners = get_users(['role' => 'nordbooking_business_owner', 'number' => 1, 'fields' => 'ID']);
         if (!empty($business_owners)) {
             $tenant_id = $business_owners[0];
         }
@@ -923,10 +923,10 @@ function mobooking_fix_booking_form_params() {
     // Output the missing parameters that the old booking-form.js expects
     ?>
     <script type="text/javascript">
-    if (typeof mobooking_booking_form_params === 'undefined') {
-        window.mobooking_booking_form_params = {
+    if (typeof nordbooking_booking_form_params === 'undefined') {
+        window.nordbooking_booking_form_params = {
             ajax_url: '<?php echo admin_url('admin-ajax.php'); ?>',
-            nonce: '<?php echo wp_create_nonce('mobooking_booking_form_nonce'); ?>',
+            nonce: '<?php echo wp_create_nonce('nordbooking_booking_form_nonce'); ?>',
             tenant_id: <?php echo intval($tenant_id); ?>,
             currency_code: 'USD',
             currency_symbol: '$',
@@ -950,31 +950,31 @@ function mobooking_fix_booking_form_params() {
 }
 
 // Fix 2: Ensure working AJAX handlers exist
-remove_action('wp_ajax_mobooking_get_public_services', 'mobooking_ajax_get_public_services');
-remove_action('wp_ajax_nopriv_mobooking_get_public_services', 'mobooking_ajax_get_public_services');
+remove_action('wp_ajax_nordbooking_get_public_services', 'nordbooking_ajax_get_public_services');
+remove_action('wp_ajax_nopriv_nordbooking_get_public_services', 'nordbooking_ajax_get_public_services');
 
 // Add working handlers for both action names
-add_action('wp_ajax_mobooking_get_services', 'mobooking_unified_get_services');
-add_action('wp_ajax_nopriv_mobooking_get_services', 'mobooking_unified_get_services');
-add_action('wp_ajax_mobooking_get_public_services', 'mobooking_unified_get_services');
-add_action('wp_ajax_nopriv_mobooking_get_public_services', 'mobooking_unified_get_services');
+add_action('wp_ajax_nordbooking_get_services', 'nordbooking_unified_get_services');
+add_action('wp_ajax_nopriv_nordbooking_get_services', 'nordbooking_unified_get_services');
+add_action('wp_ajax_nordbooking_get_public_services', 'nordbooking_unified_get_services');
+add_action('wp_ajax_nopriv_nordbooking_get_public_services', 'nordbooking_unified_get_services');
 
-function mobooking_unified_get_services() {
+function nordbooking_unified_get_services() {
     // Security check - try both methods
     $nonce_valid = false;
     if (isset($_POST['nonce'])) {
         // Method 1: wp_verify_nonce
-        if (wp_verify_nonce($_POST['nonce'], 'mobooking_booking_form_nonce')) {
+        if (wp_verify_nonce($_POST['nonce'], 'nordbooking_booking_form_nonce')) {
             $nonce_valid = true;
         }
         // Method 2: check_ajax_referer
-        elseif (check_ajax_referer('mobooking_booking_form_nonce', 'nonce', false)) {
+        elseif (check_ajax_referer('nordbooking_booking_form_nonce', 'nonce', false)) {
             $nonce_valid = true;
         }
     }
     
     if (!$nonce_valid) {
-        error_log('MoBooking: Nonce verification failed. Nonce: ' . ($_POST['nonce'] ?? 'missing'));
+        error_log('NORDBOOKING: Nonce verification failed. Nonce: ' . ($_POST['nonce'] ?? 'missing'));
         wp_send_json_error(['message' => 'Security check failed'], 403);
         return;
     }
@@ -995,7 +995,7 @@ function mobooking_unified_get_services() {
         global $wpdb;
         
         // Get table name for services
-        $services_table = $wpdb->prefix . 'mobooking_services';
+        $services_table = $wpdb->prefix . 'nordbooking_services';
         
         // Check if table exists
         if ($wpdb->get_var("SHOW TABLES LIKE '$services_table'") != $services_table) {
@@ -1018,7 +1018,7 @@ function mobooking_unified_get_services() {
         }
 
         // Format services for frontend
-        $services_manager = new \MoBooking\Classes\Services();
+        $services_manager = new \NORDBOOKING\Classes\Services();
         $formatted_services = [];
         foreach ($services as $service) {
             $formatted_services[] = [
@@ -1040,20 +1040,20 @@ function mobooking_unified_get_services() {
         ]);
 
     } catch (Exception $e) {
-        error_log('MoBooking - Get services error: ' . $e->getMessage());
+        error_log('NORDBOOKING - Get services error: ' . $e->getMessage());
         wp_send_json_error(['message' => 'Error loading services'], 500);
     }
 }
 
 // Fix 3: Debug function to test the setup
-add_action('wp_ajax_mobooking_test_booking_setup', 'mobooking_test_booking_setup');
-add_action('wp_ajax_nopriv_mobooking_test_booking_setup', 'mobooking_test_booking_setup');
+add_action('wp_ajax_nordbooking_test_booking_setup', 'nordbooking_test_booking_setup');
+add_action('wp_ajax_nopriv_nordbooking_test_booking_setup', 'nordbooking_test_booking_setup');
 
-function mobooking_test_booking_setup() {
+function nordbooking_test_booking_setup() {
     global $wpdb;
     
     $tenant_id = isset($_POST['tenant_id']) ? intval($_POST['tenant_id']) : 1;
-    $services_table = $wpdb->prefix . 'mobooking_services';
+    $services_table = $wpdb->prefix . 'nordbooking_services';
     
     $debug_info = [
         'tenant_id' => $tenant_id,
@@ -1062,7 +1062,7 @@ function mobooking_test_booking_setup() {
         'services_count' => 0,
         'sample_services' => [],
         'ajax_url' => admin_url('admin-ajax.php'),
-        'nonce_created' => wp_create_nonce('mobooking_booking_form_nonce')
+        'nonce_created' => wp_create_nonce('nordbooking_booking_form_nonce')
     ];
     
     if ($debug_info['table_exists']) {
@@ -1089,15 +1089,15 @@ function mobooking_test_booking_setup() {
  */
 
 // Method 1: Create a completely separate endpoint
-add_action('init', 'mobooking_create_direct_endpoint');
-function mobooking_create_direct_endpoint() {
-    if (isset($_GET['mobooking_services']) && $_GET['mobooking_services'] === 'get') {
-        mobooking_direct_services_handler();
+add_action('init', 'nordbooking_create_direct_endpoint');
+function nordbooking_create_direct_endpoint() {
+    if (isset($_GET['nordbooking_services']) && $_GET['nordbooking_services'] === 'get') {
+        nordbooking_direct_services_handler();
         exit;
     }
 }
 
-function mobooking_direct_services_handler() {
+function nordbooking_direct_services_handler() {
     header('Content-Type: application/json');
     header('Access-Control-Allow-Origin: *');
     
@@ -1108,7 +1108,7 @@ function mobooking_direct_services_handler() {
     }
 
     global $wpdb;
-    $services_table = $wpdb->prefix . 'mobooking_services';
+    $services_table = $wpdb->prefix . 'nordbooking_services';
     
     $services = $wpdb->get_results($wpdb->prepare(
         "SELECT service_id, name, description, price, duration, icon, image_url, disable_pet_question, disable_frequency_option
@@ -1149,24 +1149,24 @@ function mobooking_direct_services_handler() {
 }
 
 // Method 2: Override the existing AJAX handlers more aggressively
-add_action('wp_loaded', 'mobooking_force_override_handlers', 9999);
-function mobooking_force_override_handlers() {
+add_action('wp_loaded', 'nordbooking_force_override_handlers', 9999);
+function nordbooking_force_override_handlers() {
     global $wp_filter;
     
     // Remove ALL handlers for these actions
-    unset($wp_filter['wp_ajax_mobooking_get_services']);
-    unset($wp_filter['wp_ajax_nopriv_mobooking_get_services']);
-    unset($wp_filter['wp_ajax_mobooking_get_public_services']);
-    unset($wp_filter['wp_ajax_nopriv_mobooking_get_public_services']);
+    unset($wp_filter['wp_ajax_nordbooking_get_services']);
+    unset($wp_filter['wp_ajax_nopriv_nordbooking_get_services']);
+    unset($wp_filter['wp_ajax_nordbooking_get_public_services']);
+    unset($wp_filter['wp_ajax_nopriv_nordbooking_get_public_services']);
     
     // Add our handlers
-    add_action('wp_ajax_mobooking_get_services', 'mobooking_override_handler', 1);
-    add_action('wp_ajax_nopriv_mobooking_get_services', 'mobooking_override_handler', 1);
-    add_action('wp_ajax_mobooking_get_public_services', 'mobooking_override_handler', 1);
-    add_action('wp_ajax_nopriv_mobooking_get_public_services', 'mobooking_override_handler', 1);
+    add_action('wp_ajax_nordbooking_get_services', 'nordbooking_override_handler', 1);
+    add_action('wp_ajax_nopriv_nordbooking_get_services', 'nordbooking_override_handler', 1);
+    add_action('wp_ajax_nordbooking_get_public_services', 'nordbooking_override_handler', 1);
+    add_action('wp_ajax_nopriv_nordbooking_get_public_services', 'nordbooking_override_handler', 1);
 }
 
-function mobooking_override_handler() {
+function nordbooking_override_handler() {
     // Skip ALL nonce checks
     $tenant_id = isset($_POST['tenant_id']) ? intval($_POST['tenant_id']) : 0;
     
@@ -1175,7 +1175,7 @@ function mobooking_override_handler() {
     }
 
     global $wpdb;
-    $services_table = $wpdb->prefix . 'mobooking_services';
+    $services_table = $wpdb->prefix . 'nordbooking_services';
     
     $services = $wpdb->get_results($wpdb->prepare(
         "SELECT service_id, name, description, price, duration, icon, image_url, disable_pet_question, disable_frequency_option
@@ -1211,11 +1211,11 @@ function mobooking_override_handler() {
 }
 
 // Method 3: Provide JavaScript that uses the direct endpoint
-add_action('wp_footer', 'mobooking_direct_endpoint_js');
-function mobooking_direct_endpoint_js() {
+add_action('wp_footer', 'nordbooking_direct_endpoint_js');
+function nordbooking_direct_endpoint_js() {
     $is_booking_page = is_page_template('templates/booking-form-public.php') || 
-                       get_query_var('mobooking_page_type') === 'public_booking' || 
-                       get_query_var('mobooking_page_type') === 'embed_booking';
+                       get_query_var('nordbooking_page_type') === 'public_booking' || 
+                       get_query_var('nordbooking_page_type') === 'embed_booking';
     
     if (!$is_booking_page) {
         return;
@@ -1226,10 +1226,10 @@ function mobooking_direct_endpoint_js() {
         $tenant_id = intval($_GET['tid']);
     }
 
-    $direct_url = home_url('/?mobooking_services=get&tenant_id=' . $tenant_id);
+    $direct_url = home_url('/?nordbooking_services=get&tenant_id=' . $tenant_id);
     ?>
     <script type="text/javascript">
-    window.mobooking_booking_form_params = {
+    window.nordbooking_booking_form_params = {
         ajax_url: '<?php echo admin_url('admin-ajax.php'); ?>',
         direct_url: '<?php echo $direct_url; ?>',
         nonce: 'bypass',
@@ -1256,7 +1256,7 @@ function mobooking_direct_endpoint_js() {
         console.log('Testing direct endpoint...');
         
         // Method 1: Direct endpoint (bypasses WordPress AJAX entirely)
-        $.get(mobooking_booking_form_params.direct_url)
+        $.get(nordbooking_booking_form_params.direct_url)
         .done(function(response) {
             console.log('✅ Direct endpoint works:', response);
         })
@@ -1265,9 +1265,9 @@ function mobooking_direct_endpoint_js() {
         });
         
         // Method 2: WordPress AJAX (should work with our override)
-        $.post(mobooking_booking_form_params.ajax_url, {
-            action: 'mobooking_get_services',
-            tenant_id: mobooking_booking_form_params.tenant_id
+        $.post(nordbooking_booking_form_params.ajax_url, {
+            action: 'nordbooking_get_services',
+            tenant_id: nordbooking_booking_form_params.tenant_id
         })
         .done(function(response) {
             console.log('✅ WordPress AJAX override works:', response);
@@ -1282,7 +1282,7 @@ function mobooking_direct_endpoint_js() {
     if (typeof window.loadServicesForTenant === 'function') {
         window.loadServicesForTenant = function(tenantId) {
             console.log('Using direct endpoint for tenant:', tenantId);
-            var directUrl = '<?php echo home_url('/'); ?>?mobooking_services=get&tenant_id=' + tenantId;
+            var directUrl = '<?php echo home_url('/'); ?>?nordbooking_services=get&tenant_id=' + tenantId;
             
             jQuery.get(directUrl)
             .done(function(response) {
@@ -1297,8 +1297,8 @@ function mobooking_direct_endpoint_js() {
             .fail(function() {
                 console.log('Direct endpoint failed, trying WordPress AJAX...');
                 // Fallback to WordPress AJAX without nonce
-                jQuery.post(mobooking_booking_form_params.ajax_url, {
-                    action: 'mobooking_get_services',
+                jQuery.post(nordbooking_booking_form_params.ajax_url, {
+                    action: 'nordbooking_get_services',
                     tenant_id: tenantId
                 }).done(function(response) {
                     if (response.success && response.data.services && typeof window.renderServices === 'function') {
@@ -1313,15 +1313,15 @@ function mobooking_direct_endpoint_js() {
 }
 ?>
 <?php
-add_action('admin_init', 'mobooking_redirect_non_admin_users');
-function mobooking_redirect_non_admin_users() {
+add_action('admin_init', 'nordbooking_redirect_non_admin_users');
+function nordbooking_redirect_non_admin_users() {
     if (is_user_logged_in() && !current_user_can('manage_options') && !(defined('DOING_AJAX') && DOING_AJAX)) {
         wp_redirect(home_url('/dashboard/'));
         exit;
     }
 }
-add_action('show_admin_bar', 'mobooking_hide_admin_bar_for_non_admins');
-function mobooking_hide_admin_bar_for_non_admins($show) {
+add_action('show_admin_bar', 'nordbooking_hide_admin_bar_for_non_admins');
+function nordbooking_hide_admin_bar_for_non_admins($show) {
     if (is_user_logged_in() && !current_user_can('manage_options')) {
         return false;
     }

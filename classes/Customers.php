@@ -1,11 +1,11 @@
 <?php
 /**
  * Class Customers
- * Handles customer data management for the MoBooking plugin.
+ * Handles customer data management for the NORDBOOKING plugin.
  *
- * @package MoBooking\Classes
+ * @package NORDBOOKING\Classes
  */
-namespace MoBooking\Classes;
+namespace NORDBOOKING\Classes;
 
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -29,7 +29,7 @@ class Customers {
      * Registers AJAX actions for customer management.
      */
     public function register_ajax_actions() {
-        add_action('wp_ajax_mobooking_get_customers', [$this, 'ajax_get_customers']);
+        add_action('wp_ajax_nordbooking_get_customers', [$this, 'ajax_get_customers']);
         // Add other AJAX actions here as needed (e.g., update_customer_status, add_note)
     }
 
@@ -37,17 +37,17 @@ class Customers {
      * AJAX handler for fetching customers.
      */
     public function ajax_get_customers() {
-        check_ajax_referer('mobooking_dashboard_nonce', 'nonce');
+        check_ajax_referer('nordbooking_dashboard_nonce', 'nonce');
 
         $current_user_id = get_current_user_id();
         if ( ! Auth::is_user_business_owner_or_worker($current_user_id) ) {
-            wp_send_json_error(['message' => __('Access denied.', 'mobooking')], 403);
+            wp_send_json_error(['message' => __('Access denied.', 'NORDBOOKING')], 403);
             return;
         }
 
         $tenant_id = Auth::get_effective_tenant_id_for_user($current_user_id);
         if ( ! $tenant_id ) {
-            wp_send_json_error(['message' => __('Could not determine tenant ID.', 'mobooking')], 400);
+            wp_send_json_error(['message' => __('Could not determine tenant ID.', 'NORDBOOKING')], 400);
             return;
         }
 
@@ -158,8 +158,8 @@ class Customers {
         $results = $this->db->get_results($prepared_sql);
 
         if ($this->db->last_error) {
-            error_log("MoBooking DB Error (get_customers_by_tenant_id): " . $this->db->last_error);
-            return new \WP_Error('db_error', __('Error fetching customers.', 'mobooking'));
+            error_log("NORDBOOKING DB Error (get_customers_by_tenant_id): " . $this->db->last_error);
+            return new \WP_Error('db_error', __('Error fetching customers.', 'NORDBOOKING'));
         }
 
         // TODO: Future enhancement - Calculate total_bookings and last_booking_date
@@ -208,8 +208,8 @@ class Customers {
         $count = $this->db->get_var($prepared_sql);
 
         if ($this->db->last_error) {
-            error_log("MoBooking DB Error (get_customer_count_by_tenant_id): " . $this->db->last_error);
-            return new \WP_Error('db_error', __('Error counting customers.', 'mobooking'));
+            error_log("NORDBOOKING DB Error (get_customer_count_by_tenant_id): " . $this->db->last_error);
+            return new \WP_Error('db_error', __('Error counting customers.', 'NORDBOOKING'));
         }
 
         return absint($count);
@@ -228,7 +228,7 @@ class Customers {
      */
     public function create_or_update_customer_for_booking($tenant_id, $customer_data) {
         if (empty($tenant_id) || empty($customer_data['email']) || empty($customer_data['full_name'])) {
-            return new \WP_Error('missing_data', __('Tenant ID, customer email, and full name are required.', 'mobooking'));
+            return new \WP_Error('missing_data', __('Tenant ID, customer email, and full name are required.', 'NORDBOOKING'));
         }
 
         $email = sanitize_email($customer_data['email']);
@@ -265,8 +265,8 @@ class Customers {
             // Update existing customer
             $this->db->update($this->table_name, $data_to_save, ['id' => $existing_customer->id], $data_format, ['%d']);
             if ($this->db->last_error) {
-                error_log("MoBooking DB Error (update_customer): " . $this->db->last_error);
-                return new \WP_Error('db_error', __('Error updating customer.', 'mobooking'));
+                error_log("NORDBOOKING DB Error (update_customer): " . $this->db->last_error);
+                return new \WP_Error('db_error', __('Error updating customer.', 'NORDBOOKING'));
             }
             return $existing_customer->id;
         } else {
@@ -278,8 +278,8 @@ class Customers {
 
             $this->db->insert($this->table_name, $data_to_save, $data_format);
             if ($this->db->last_error) {
-                error_log("MoBooking DB Error (insert_customer): " . $this->db->last_error);
-                return new \WP_Error('db_error', __('Error creating customer.', 'mobooking'));
+                error_log("NORDBOOKING DB Error (insert_customer): " . $this->db->last_error);
+                return new \WP_Error('db_error', __('Error creating customer.', 'NORDBOOKING'));
             }
             return $this->db->insert_id;
         }
@@ -312,7 +312,7 @@ class Customers {
         );
 
         if ($result === false) {
-            error_log("MoBooking DB Error (update_customer_booking_stats): " . $this->db->last_error);
+            error_log("NORDBOOKING DB Error (update_customer_booking_stats): " . $this->db->last_error);
             return false;
         }
         return true;
@@ -383,8 +383,8 @@ class Customers {
             $tenant_id = $current_user_id;
             
             // Handle worker case - get the business owner they work for
-            if ( class_exists( 'MoBooking\Classes\Auth' ) && \MoBooking\Classes\Auth::is_user_worker( $current_user_id ) ) {
-                $owner_id = \MoBooking\Classes\Auth::get_business_owner_id_for_worker( $current_user_id );
+            if ( class_exists( 'NORDBOOKING\Classes\Auth' ) && \NORDBOOKING\Classes\Auth::is_user_worker( $current_user_id ) ) {
+                $owner_id = \NORDBOOKING\Classes\Auth::get_business_owner_id_for_worker( $current_user_id );
                 if ( $owner_id ) {
                     $tenant_id = $owner_id;
                 }
@@ -392,7 +392,7 @@ class Customers {
         }
 
         if ( ! $tenant_id ) {
-            error_log( "MoBooking: No tenant_id available for get_customer_by_id" );
+            error_log( "NORDBOOKING: No tenant_id available for get_customer_by_id" );
             return null;
         }
 
@@ -406,7 +406,7 @@ class Customers {
         );
 
         if ( $this->db->last_error ) {
-            error_log( "MoBooking DB Error (get_customer_by_id): " . $this->db->last_error );
+            error_log( "NORDBOOKING DB Error (get_customer_by_id): " . $this->db->last_error );
             return null;
         }
 
@@ -430,8 +430,8 @@ class Customers {
             $tenant_id = $current_user_id;
             
             // Handle worker case
-            if ( class_exists( 'MoBooking\Classes\Auth' ) && \MoBooking\Classes\Auth::is_user_worker( $current_user_id ) ) {
-                $owner_id = \MoBooking\Classes\Auth::get_business_owner_id_for_worker( $current_user_id );
+            if ( class_exists( 'NORDBOOKING\Classes\Auth' ) && \NORDBOOKING\Classes\Auth::is_user_worker( $current_user_id ) ) {
+                $owner_id = \NORDBOOKING\Classes\Auth::get_business_owner_id_for_worker( $current_user_id );
                 if ( $owner_id ) {
                     $tenant_id = $owner_id;
                 }
@@ -448,7 +448,7 @@ class Customers {
         );
 
         if ( ! $customer || empty( $customer->email ) ) {
-            error_log( "MoBooking: Customer not found or email missing for customer_id: {$customer_id}, tenant_id: {$tenant_id}" );
+            error_log( "NORDBOOKING: Customer not found or email missing for customer_id: {$customer_id}, tenant_id: {$tenant_id}" );
             return (object) [
                 'total_bookings' => 0,
                 'completed_bookings' => 0,
@@ -479,7 +479,7 @@ class Customers {
         $result = $this->db->get_row( $query );
 
         if ( $this->db->last_error ) {
-            error_log( "MoBooking DB Error (get_booking_overview): " . $this->db->last_error );
+            error_log( "NORDBOOKING DB Error (get_booking_overview): " . $this->db->last_error );
             return (object) [
                 'total_bookings' => 0,
                 'completed_bookings' => 0,
@@ -540,7 +540,7 @@ class Customers {
         $results = $this->db->get_results( $query );
 
         if ( $this->db->last_error ) {
-            error_log( "MoBooking DB Error (get_customer_bookings): " . $this->db->last_error );
+            error_log( "NORDBOOKING DB Error (get_customer_bookings): " . $this->db->last_error );
             return [];
         }
 
@@ -561,7 +561,7 @@ public function update_customer_details( $customer_id, $tenant_id, $data ) {
     );
 
     if ( ! $customer ) {
-        return new \WP_Error('invalid_customer', __('Invalid customer or permission denied.', 'mobooking'));
+        return new \WP_Error('invalid_customer', __('Invalid customer or permission denied.', 'NORDBOOKING'));
     }
 
     $update_data = [];
@@ -609,7 +609,7 @@ public function update_customer_details( $customer_id, $tenant_id, $data ) {
     }
 
     if (empty($update_data)) {
-        return new \WP_Error('no_data', __('No data provided to update.', 'mobooking'));
+        return new \WP_Error('no_data', __('No data provided to update.', 'NORDBOOKING'));
     }
 
     $result = $this->db->update(
@@ -621,7 +621,7 @@ public function update_customer_details( $customer_id, $tenant_id, $data ) {
     );
 
     if ( false === $result ) {
-        return new \WP_Error('db_error', __('Could not update customer details.', 'mobooking'));
+        return new \WP_Error('db_error', __('Could not update customer details.', 'NORDBOOKING'));
     }
 
     return true;
@@ -700,9 +700,9 @@ public function get_customer_insights($tenant_id, $start_date = null, $end_date 
 // This is typically done once, for example, in functions.php or a plugin loader.
 // For now, let's assume it will be instantiated and its register_ajax_actions method called
 // similarly to other manager classes (e.g., Services, Bookings).
-// if (class_exists('MoBooking\Classes\Customers')) {
-//    $mobooking_customers_manager = new \MoBooking\Classes\Customers();
-//    $mobooking_customers_manager->register_ajax_actions();
+// if (class_exists('NORDBOOKING\Classes\Customers')) {
+//    $nordbooking_customers_manager = new \NORDBOOKING\Classes\Customers();
+//    $nordbooking_customers_manager->register_ajax_actions();
 // }
 
 ?>

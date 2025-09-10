@@ -159,7 +159,7 @@
 }
 
 /* Icon Selector Grid Styles (inside a dialog) */
-.mobooking-icon-grid {
+.NORDBOOKING-icon-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
     gap: 1rem;
@@ -171,7 +171,7 @@
     border: 1px solid var(--dialog-border);
 }
 
-.mobooking-icon-grid-item {
+.NORDBOOKING-icon-grid-item {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -183,24 +183,24 @@
     background-color: #FFFFFF;
 }
 
-.mobooking-icon-grid-item:hover {
+.NORDBOOKING-icon-grid-item:hover {
     border-color: var(--accent-color, #3B82F6);
     background-color: #EFF6FF;
     /* A light blue accent */
 }
 
-.mobooking-icon-grid-item.selected {
+.NORDBOOKING-icon-grid-item.selected {
     border-color: var(--accent-color, #3B82F6);
     color: white;
 }
 
-.mobooking-icon-grid-item svg {
+.NORDBOOKING-icon-grid-item svg {
     width: 32px;
     height: 32px;
 }
 
 /* Styles for the icon preview on the main page */
-.mobooking-icon-preview {
+.NORDBOOKING-icon-preview {
     border: 2px dashed var(--border);
     border-radius: var(--radius);
     display: flex;
@@ -217,13 +217,13 @@
     color: hsl(var(--muted-foreground));
 }
 
-.mobooking-icon-display {
+.NORDBOOKING-icon-display {
     width: 44px;
     height: 44px;
 }
 
-.mobooking-icon-display svg,
-.mobooking-icon-display img {
+.NORDBOOKING-icon-display svg,
+.NORDBOOKING-icon-display img {
     width: 100%;
     height: 100%;
     object-fit: contain;

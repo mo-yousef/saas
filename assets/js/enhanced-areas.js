@@ -22,7 +22,7 @@
   let areaDialog = null;
 
   // i18n shorthand
-  const i18n = mobooking_areas_params.i18n || {};
+  const i18n = nordbooking_areas_params.i18n || {};
 
   /**
    * Initialize the application
@@ -69,16 +69,16 @@
    */
   function loadCities() {
     $citiesGridContainer.html(
-      `<div class="mobooking-loading-state"><div class="mobooking-spinner"></div><p>${i18n.loading_cities}</p></div>`
+      `<div class="NORDBOOKING-loading-state"><div class="NORDBOOKING-spinner"></div><p>${i18n.loading_cities}</p></div>`
     );
 
     $.ajax({
-      url: mobooking_areas_params.ajax_url,
+      url: nordbooking_areas_params.ajax_url,
       type: "POST",
       data: {
-        action: "mobooking_get_cities_for_country",
-        nonce: mobooking_areas_params.nonce,
-        country_code: mobooking_areas_params.country_code,
+        action: "nordbooking_get_cities_for_country",
+        nonce: nordbooking_areas_params.nonce,
+        country_code: nordbooking_areas_params.country_code,
       },
       success: function (response) {
         if (response.success && response.data?.cities) {
@@ -87,13 +87,13 @@
           populateCityFilter(citiesData);
         } else {
           $citiesGridContainer.html(
-            `<div class="mobooking-empty-state"><p>${i18n.no_cities_available}</p></div>`
+            `<div class="NORDBOOKING-empty-state"><p>${i18n.no_cities_available}</p></div>`
           );
         }
       },
       error: function () {
         $citiesGridContainer.html(
-          `<div class="mobooking-error-state"><p>${i18n.error}</p></div>`
+          `<div class="NORDBOOKING-error-state"><p>${i18n.error}</p></div>`
         );
       },
     });
@@ -105,7 +105,7 @@
   function displayCities(cities) {
     if (!cities.length) {
       $citiesGridContainer.html(
-        `<div class="mobooking-empty-state"><p>${i18n.no_cities_available}</p></div>`
+        `<div class="NORDBOOKING-empty-state"><p>${i18n.no_cities_available}</p></div>`
       );
       return;
     }
@@ -121,7 +121,7 @@
                     )}</span>
                     <span class="city-action-link">${wp.i18n.__(
                       "Manage Areas",
-                      "mobooking"
+                      "NORDBOOKING"
                     )} &rarr;</span>
                 </div>
             `;
@@ -162,7 +162,7 @@
   function openModal() {
     const dialogContent = `
             <div class="dialog-search-wrapper">
-                <input type="search" id="dialog-area-search" placeholder="Search areas..." class="mobooking-dialog-search-input">
+                <input type="search" id="dialog-area-search" placeholder="Search areas..." class="NORDBOOKING-dialog-search-input">
             </div>
             <div class="areas-selection-controls">
                 <button type="button" id="dialog-select-all" class="btn btn-secondary btn-sm"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M4 12C4 7.58172 7.58172 4 12 4C16.4183 4 20 7.58172 20 12C20 16.4183 16.4183 20 12 20C7.58172 20 4 16.4183 4 12ZM12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2ZM17.4571 9.45711L16.0429 8.04289L11 13.0858L8.20711 10.2929L6.79289 11.7071L11 15.9142L17.4571 9.45711Z"></path></svg>${
@@ -173,7 +173,7 @@
                 }</button>
             </div>
             <div id="dialog-areas-grid" class="modal-areas-grid">
-                <div class="mobooking-loading-state"><div class="mobooking-spinner"></div><p>${
+                <div class="NORDBOOKING-loading-state"><div class="NORDBOOKING-spinner"></div><p>${
                   i18n.loading_areas
                 }</p></div>
             </div>
@@ -254,7 +254,7 @@
       })
       .fail(function () {
         $grid.html(
-          `<div class="mobooking-error-state"><p>${i18n.error}</p></div>`
+          `<div class="NORDBOOKING-error-state"><p>${i18n.error}</p></div>`
         );
       });
   }
@@ -264,12 +264,12 @@
    */
   function getAreasForCity(cityCode) {
     return $.ajax({
-      url: mobooking_areas_params.ajax_url,
+      url: nordbooking_areas_params.ajax_url,
       type: "POST",
       data: {
-        action: "mobooking_get_areas_for_city",
-        nonce: mobooking_areas_params.nonce,
-        country_code: mobooking_areas_params.country_code,
+        action: "nordbooking_get_areas_for_city",
+        nonce: nordbooking_areas_params.nonce,
+        country_code: nordbooking_areas_params.country_code,
         city_code: cityCode,
       },
     });
@@ -280,11 +280,11 @@
    */
   function getSavedAreasForCity(cityCode) {
     return $.ajax({
-      url: mobooking_areas_params.ajax_url,
+      url: nordbooking_areas_params.ajax_url,
       type: "POST",
       data: {
-        action: "mobooking_get_service_coverage",
-        nonce: mobooking_areas_params.nonce,
+        action: "nordbooking_get_service_coverage",
+        nonce: nordbooking_areas_params.nonce,
         city: cityCode,
         limit: -1, // Get all
       },
@@ -314,7 +314,7 @@
 
     if (!placeNames.length) {
       $grid.html(
-        `<div class="mobooking-empty-state"><p>${i18n.no_areas_available}</p></div>`
+        `<div class="NORDBOOKING-empty-state"><p>${i18n.no_areas_available}</p></div>`
       );
       return;
     }
@@ -394,15 +394,15 @@
     $saveBtn
       .prop("disabled", true)
       .html(
-        `<div class="mobooking-spinner mobooking-spinner-sm"></div> ${i18n.saving}`
+        `<div class="NORDBOOKING-spinner NORDBOOKING-spinner-sm"></div> ${i18n.saving}`
       );
 
     $.ajax({
-      url: mobooking_areas_params.ajax_url,
+      url: nordbooking_areas_params.ajax_url,
       type: "POST",
       data: {
-        action: "mobooking_save_city_areas",
-        nonce: mobooking_areas_params.nonce,
+        action: "nordbooking_save_city_areas",
+        nonce: nordbooking_areas_params.nonce,
         city_code: currentCity.code,
         areas_data: selectedAreas,
       },
@@ -437,23 +437,23 @@
    */
   function loadServiceCoverage() {
     $coverageList.html(
-      `<div class="mobooking-loading-state"><div class="mobooking-spinner"></div></div>`
+      `<div class="NORDBOOKING-loading-state"><div class="NORDBOOKING-spinner"></div></div>`
     );
 
     const filters = {
       search: $coverageSearch.val().trim(),
       city: $cityFilter.val(),
       status: $statusFilter.val(),
-      country_code: mobooking_areas_params.country_code,
+      country_code: nordbooking_areas_params.country_code,
       groupby: "city",
     };
 
     $.ajax({
-      url: mobooking_areas_params.ajax_url,
+      url: nordbooking_areas_params.ajax_url,
       type: "POST",
       data: {
-        action: "mobooking_get_service_coverage_grouped",
-        nonce: mobooking_areas_params.nonce,
+        action: "nordbooking_get_service_coverage_grouped",
+        nonce: nordbooking_areas_params.nonce,
         filters: filters,
       },
       success: function (response) {
@@ -462,7 +462,7 @@
           renderCoverage(response.data.cities);
         } else {
           $coverageList.html(
-            `<div class="mobooking-empty-state"><p>${
+            `<div class="NORDBOOKING-empty-state"><p>${
               i18n.no_coverage || "No service coverage found."
             }</p></div>`
           );
@@ -471,7 +471,7 @@
       error: function (xhr) {
         console.error("Error loading service coverage:", xhr.responseText);
         $coverageList.html(
-          `<div class="mobooking-error-state"><p>${i18n.error}</p></div>`
+          `<div class="NORDBOOKING-error-state"><p>${i18n.error}</p></div>`
         );
       },
     });
@@ -483,7 +483,7 @@
   function renderCoverage(cities) {
     if (!cities.length) {
       $coverageList.html(
-        `<div class="mobooking-empty-state"><p>${
+        `<div class="NORDBOOKING-empty-state"><p>${
           i18n.no_coverage || "No service coverage found."
         }</p></div>`
       );
@@ -503,12 +503,12 @@
                         <span class="city-stats">${city.area_count} areas</span>
                     </div>
                     <div class="city-actions">
-                        <button type="button" class="toggle-city-btn mobooking-btn mobooking-btn-secondary mobooking-btn-sm" data-city-code="${escapeHtml(
+                        <button type="button" class="toggle-city-btn NORDBOOKING-btn NORDBOOKING-btn-secondary NORDBOOKING-btn-sm" data-city-code="${escapeHtml(
                           city.city_code
                         )}" data-status="${escapeHtml(city.status)}">
                             ${city.status === "active" ? "Disable" : "Enable"}
                         </button>
-                        <button type="button" class="remove-city-btn mobooking-btn mobooking-btn-danger mobooking-btn-sm" data-city-code="${escapeHtml(
+                        <button type="button" class="remove-city-btn NORDBOOKING-btn NORDBOOKING-btn-danger NORDBOOKING-btn-sm" data-city-code="${escapeHtml(
                           city.city_code
                         )}">
                             Remove
@@ -532,14 +532,14 @@
 
     $btn
       .prop("disabled", true)
-      .html('<div class="mobooking-spinner mobooking-spinner-sm"></div>');
+      .html('<div class="NORDBOOKING-spinner NORDBOOKING-spinner-sm"></div>');
 
     $.ajax({
-      url: mobooking_areas_params.ajax_url,
+      url: nordbooking_areas_params.ajax_url,
       type: "POST",
       data: {
-        action: "mobooking_update_city_status",
-        nonce: mobooking_areas_params.nonce,
+        action: "nordbooking_update_city_status",
+        nonce: nordbooking_areas_params.nonce,
         city_code: cityCode,
         status: newStatus,
       },
@@ -586,14 +586,14 @@
 
     $btn
       .prop("disabled", true)
-      .html('<div class="mobooking-spinner mobooking-spinner-sm"></div>');
+      .html('<div class="NORDBOOKING-spinner NORDBOOKING-spinner-sm"></div>');
 
     $.ajax({
-      url: mobooking_areas_params.ajax_url,
+      url: nordbooking_areas_params.ajax_url,
       type: "POST",
       data: {
-        action: "mobooking_remove_city_coverage",
-        nonce: mobooking_areas_params.nonce,
+        action: "nordbooking_remove_city_coverage",
+        nonce: nordbooking_areas_params.nonce,
         city_code: cityCode,
       },
       success: function (response) {

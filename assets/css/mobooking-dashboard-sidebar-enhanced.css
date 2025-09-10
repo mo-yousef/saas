@@ -1,5 +1,5 @@
 /**
- * MoBooking Dashboard Sidebar - shadcn/ui Design System
+ * NORDBOOKING Dashboard Sidebar - shadcn/ui Design System
  * 
  * This stylesheet implements the shadcn/ui design system with proper
  * CSS variables, component architecture, and modern styling patterns.
@@ -204,7 +204,7 @@ body {
 /* ============================================================================
    Sidebar Base Structure
    ============================================================================ */
-.mobooking-dashboard-sidebar {
+.NORDBOOKING-dashboard-sidebar {
   width: 280px;
   background-color: hsl(var(--background));
   border-right: 1px solid hsl(var(--border));
@@ -220,7 +220,7 @@ body {
 /* ============================================================================
    Sidebar Header/Branding
    ============================================================================ */
-.mobooking-dashboard-sidebar .dashboard-branding {
+.NORDBOOKING-dashboard-sidebar .dashboard-branding {
   display: flex;
   align-items: center;
   padding: 1rem 1.5rem;
@@ -228,13 +228,13 @@ body {
   background-color: hsl(var(--background));
 }
 
-.mobooking-dashboard-sidebar .dashboard-branding .logo-container {
+.NORDBOOKING-dashboard-sidebar .dashboard-branding .logo-container {
   display: flex;
   align-items: center;
   gap: 0.75rem;
 }
 
-.mobooking-dashboard-sidebar .dashboard-branding .logo-icon {
+.NORDBOOKING-dashboard-sidebar .dashboard-branding .logo-icon {
   width: 2rem;
   height: 2rem;
   background: linear-gradient(135deg, hsl(271 81% 56%), hsl(271 91% 65%));
@@ -245,7 +245,7 @@ body {
   flex-shrink: 0;
 }
 
-.mobooking-dashboard-sidebar .dashboard-branding h3 {
+.NORDBOOKING-dashboard-sidebar .dashboard-branding h3 {
   font-size: 1.25rem;
   font-weight: 600;
   color: hsl(var(--foreground));
@@ -254,7 +254,7 @@ body {
   line-height: 1.6;
 }
 
-.mobooking-dashboard-sidebar .dashboard-branding a {
+.NORDBOOKING-dashboard-sidebar .dashboard-branding a {
   text-decoration: none;
   color: inherit;
   transition: opacity 0.2s;
@@ -263,14 +263,14 @@ body {
   gap: 0.75rem;
 }
 
-.mobooking-dashboard-sidebar .dashboard-branding a:hover {
+.NORDBOOKING-dashboard-sidebar .dashboard-branding a:hover {
   opacity: 0.8;
 }
 
 /* ============================================================================
    User Role Display
    ============================================================================ */
-.mobooking-dashboard-sidebar .dashboard-user-role {
+.NORDBOOKING-dashboard-sidebar .dashboard-user-role {
   padding: 0.75rem 1.5rem;
   background-color: hsl(var(--muted));
   border-bottom: 1px solid hsl(var(--border));
@@ -284,7 +284,7 @@ body {
 /* ============================================================================
    Navigation Container
    ============================================================================ */
-.mobooking-dashboard-sidebar .dashboard-nav {
+.NORDBOOKING-dashboard-sidebar .dashboard-nav {
   flex-grow: 1;
   padding: 1rem 0;
   overflow-y: auto;
@@ -292,35 +292,35 @@ body {
   scrollbar-color: hsl(var(--border)) transparent;
 }
 
-.mobooking-dashboard-sidebar .dashboard-nav::-webkit-scrollbar {
+.NORDBOOKING-dashboard-sidebar .dashboard-nav::-webkit-scrollbar {
   width: 6px;
 }
 
-.mobooking-dashboard-sidebar .dashboard-nav::-webkit-scrollbar-track {
+.NORDBOOKING-dashboard-sidebar .dashboard-nav::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.mobooking-dashboard-sidebar .dashboard-nav::-webkit-scrollbar-thumb {
+.NORDBOOKING-dashboard-sidebar .dashboard-nav::-webkit-scrollbar-thumb {
   background: hsl(var(--border));
   border-radius: 3px;
 }
 
-.mobooking-dashboard-sidebar .dashboard-nav::-webkit-scrollbar-thumb:hover {
+.NORDBOOKING-dashboard-sidebar .dashboard-nav::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--muted-foreground));
 }
 
 /* ============================================================================
    Navigation Groups
    ============================================================================ */
-.mobooking-dashboard-sidebar .dashboard-nav .nav-group {
+.NORDBOOKING-dashboard-sidebar .dashboard-nav .nav-group {
   margin-bottom: 1.5rem;
 }
 
-.mobooking-dashboard-sidebar .dashboard-nav .nav-group:last-child {
+.NORDBOOKING-dashboard-sidebar .dashboard-nav .nav-group:last-child {
   margin-bottom: 0;
 }
 
-.mobooking-dashboard-sidebar .dashboard-nav .nav-group-title {
+.NORDBOOKING-dashboard-sidebar .dashboard-nav .nav-group-title {
   font-size: 0.8125rem;
   font-weight: 600;
   color: hsl(var(--muted-foreground));
@@ -334,7 +334,7 @@ body {
 /* ============================================================================
    Navigation Lists and Items
    ============================================================================ */
-.mobooking-dashboard-sidebar .dashboard-nav ul {
+.NORDBOOKING-dashboard-sidebar .dashboard-nav ul {
   list-style: none;
   padding: 0;
   margin: 0;
@@ -343,7 +343,7 @@ body {
   gap: 0.125rem;
 }
 
-.mobooking-dashboard-sidebar .dashboard-nav li {
+.NORDBOOKING-dashboard-sidebar .dashboard-nav li {
   position: relative;
   padding: 0 0.75rem;
 }
@@ -351,7 +351,7 @@ body {
 /* ============================================================================
    Navigation Links - shadcn/ui Button Style
    ============================================================================ */
-.mobooking-dashboard-sidebar .dashboard-nav li a {
+.NORDBOOKING-dashboard-sidebar .dashboard-nav li a {
   display: flex;
   align-items: center;
   width: 100%;
@@ -369,12 +369,12 @@ body {
   border: 1px solid transparent;
 }
 
-.mobooking-dashboard-sidebar .dashboard-nav li a:hover {
+.NORDBOOKING-dashboard-sidebar .dashboard-nav li a:hover {
   background-color: hsl(var(--accent));
   color: hsl(var(--accent-foreground));
 }
 
-.mobooking-dashboard-sidebar .dashboard-nav li a:focus-visible {
+.NORDBOOKING-dashboard-sidebar .dashboard-nav li a:focus-visible {
   outline: 2px solid hsl(var(--ring));
   outline-offset: 2px;
 }
@@ -383,7 +383,7 @@ body {
 /* ============================================================================
    Navigation Badges
    ============================================================================ */
-.mobooking-dashboard-sidebar .nav-badge {
+.NORDBOOKING-dashboard-sidebar .nav-badge {
   margin-left: auto;
   background-color: hsl(var(--secondary));
   color: hsl(var(--secondary-foreground));
@@ -399,7 +399,7 @@ body {
   line-height: 1;
 }
 
-.mobooking-dashboard-sidebar .dashboard-nav li.active a .nav-badge {
+.NORDBOOKING-dashboard-sidebar .dashboard-nav li.active a .nav-badge {
   background-color: hsl(var(--primary-foreground));
   color: hsl(var(--primary));
 }
@@ -407,16 +407,16 @@ body {
 /* ============================================================================
    Subscription Plan Card
    ============================================================================ */
-.mobooking-subscription-plan {
+.NORDBOOKING-subscription-plan {
   padding: 1.5rem;
   margin-top: auto;
   border-top: 1px solid hsl(var(--border));
   background-color: hsl(var(--background));
 }
 
-.mobooking-subscription-plan-box {}
+.NORDBOOKING-subscription-plan-box {}
 
-.mobooking-subscription-plan-box h4 {
+.NORDBOOKING-subscription-plan-box h4 {
   font-size: 0.875rem;
   font-weight: 600;
   color: hsl(var(--card-foreground));
@@ -424,14 +424,14 @@ body {
   line-height: 1.25;
 }
 
-.mobooking-subscription-plan-box p {
+.NORDBOOKING-subscription-plan-box p {
   font-size: 0.8125rem;
   color: hsl(var(--muted-foreground));
   margin: 0 0 1rem;
   line-height: 1.4;
 }
 
-.mobooking-subscription-plan-box .mobooking-btn {
+.NORDBOOKING-subscription-plan-box .NORDBOOKING-btn {
   width: 100%;
   height: 2.25rem;
   padding: 0 0.75rem;
@@ -449,39 +449,39 @@ body {
   cursor: pointer;
 }
 
-.mobooking-subscription-plan-box .mobooking-btn:focus-visible {
+.NORDBOOKING-subscription-plan-box .NORDBOOKING-btn:focus-visible {
   outline: 2px solid hsl(var(--ring));
   outline-offset: 2px;
 }
 
-.mobooking-subscription-plan-box .mobooking-btn:active {
+.NORDBOOKING-subscription-plan-box .NORDBOOKING-btn:active {
   transform: scale(0.98);
 }
 
 /* ============================================================================
    Mobile Responsive Design
    ============================================================================ */
-body.mobooking-sidebar-open {
-    overflow: hidden;
+body.NORDBOOKING-sidebar-open {
+  overflow: hidden;
 }
 
-#mobooking-mobile-nav-toggle {
-    display: none;
-    background: none;
-    border: none;
-    color: hsl(var(--foreground));
-    font-size: 1.5rem;
-    cursor: pointer;
-    padding: 0.5rem;
-    margin-right: 0.5rem;
+#NORDBOOKING-mobile-nav-toggle {
+  display: none;
+  background: none;
+  border: none;
+  color: hsl(var(--foreground));
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  margin-right: 0.5rem;
 }
 
 @media (max-width: 768px) {
-  #mobooking-mobile-nav-toggle {
+  #NORDBOOKING-mobile-nav-toggle {
     display: block;
   }
 
-  .mobooking-dashboard-sidebar {
+  .NORDBOOKING-dashboard-sidebar {
     position: fixed;
     left: -280px;
     top: 0;
@@ -493,17 +493,17 @@ body.mobooking-sidebar-open {
       0 4px 6px -4px rgb(0 0 0 / 0.1);
   }
 
-  .mobooking-dashboard-sidebar.open {
+  .NORDBOOKING-dashboard-sidebar.open {
     left: 0;
   }
 
   /* Enhanced touch targets */
-  .mobooking-dashboard-sidebar .dashboard-nav li a {
+  .NORDBOOKING-dashboard-sidebar .dashboard-nav li a {
     padding: 0.75rem;
     min-height: 2.75rem;
   }
 
-  .mobooking-dashboard-sidebar .dashboard-branding {
+  .NORDBOOKING-dashboard-sidebar .dashboard-branding {
     padding: 1rem 1.5rem;
   }
 }
@@ -512,15 +512,15 @@ body.mobooking-sidebar-open {
    Tablet Responsive Design
    ============================================================================ */
 @media (max-width: 1024px) and (min-width: 769px) {
-  .mobooking-dashboard-sidebar {
+  .NORDBOOKING-dashboard-sidebar {
     width: 260px;
   }
 
-  .mobooking-dashboard-sidebar .dashboard-nav li {
+  .NORDBOOKING-dashboard-sidebar .dashboard-nav li {
     padding: 0 0.5rem;
   }
 
-  .mobooking-subscription-plan {
+  .NORDBOOKING-subscription-plan {
     padding: 1rem;
   }
 }
@@ -557,10 +557,10 @@ body.mobooking-sidebar-open {
    ============================================================================ */
 @media (prefers-reduced-motion: reduce) {
 
-  .mobooking-dashboard-sidebar,
-  .mobooking-dashboard-sidebar *,
-  .mobooking-dashboard-sidebar *::before,
-  .mobooking-dashboard-sidebar *::after {
+  .NORDBOOKING-dashboard-sidebar,
+  .NORDBOOKING-dashboard-sidebar *,
+  .NORDBOOKING-dashboard-sidebar *::before,
+  .NORDBOOKING-dashboard-sidebar *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
@@ -568,27 +568,27 @@ body.mobooking-sidebar-open {
 }
 
 /* Focus management for keyboard navigation */
-.mobooking-dashboard-sidebar a:focus-visible,
-.mobooking-dashboard-sidebar button:focus-visible {
+.NORDBOOKING-dashboard-sidebar a:focus-visible,
+.NORDBOOKING-dashboard-sidebar button:focus-visible {
   outline: 2px solid hsl(var(--ring));
   outline-offset: 2px;
 }
 
 /* High contrast mode support */
 @media (prefers-contrast: high) {
-  .mobooking-dashboard-sidebar {
+  .NORDBOOKING-dashboard-sidebar {
     border-right: 2px solid hsl(var(--border));
   }
 
-  .mobooking-dashboard-sidebar .dashboard-nav li a {
+  .NORDBOOKING-dashboard-sidebar .dashboard-nav li a {
     border: 1px solid transparent;
   }
 
-  .mobooking-dashboard-sidebar .dashboard-nav li a:hover {
+  .NORDBOOKING-dashboard-sidebar .dashboard-nav li a:hover {
     border-color: hsl(var(--border));
   }
 
-  .mobooking-dashboard-sidebar .dashboard-nav li.active a {
+  .NORDBOOKING-dashboard-sidebar .dashboard-nav li.active a {
     border-color: hsl(var(--primary));
   }
 }

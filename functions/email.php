@@ -38,7 +38,7 @@ add_filter( 'wp_mail_from', function( $original_email_address ) {
 /**
  * It is recommended to handle email templating directly when calling wp_mail
  * for more flexibility and to avoid conflicts. The email content is now
- * constructed and styled within the MoBooking\Classes\Notifications class.
+ * constructed and styled within the NORDBOOKING\Classes\Notifications class.
  */
 
 // --- End Custom Email Template Functions ---

@@ -1,5 +1,5 @@
 <?php
-namespace MoBooking\Classes;
+namespace NORDBOOKING\Classes;
 
 if (!defined('ABSPATH')) exit;
 
@@ -21,26 +21,26 @@ class Areas {
      */
     public function register_ajax_actions() {
         // Core area management
-        add_action('wp_ajax_mobooking_get_areas', [$this, 'handle_get_areas_ajax']);
-        add_action('wp_ajax_mobooking_add_bulk_areas', [$this, 'handle_add_bulk_areas_ajax']);
-        add_action('wp_ajax_mobooking_delete_area', [$this, 'handle_delete_area_ajax']);
+        add_action('wp_ajax_nordbooking_get_areas', [$this, 'handle_get_areas_ajax']);
+        add_action('wp_ajax_nordbooking_add_bulk_areas', [$this, 'handle_add_bulk_areas_ajax']);
+        add_action('wp_ajax_nordbooking_delete_area', [$this, 'handle_delete_area_ajax']);
 
         // Data retrieval for quick selection
-        add_action('wp_ajax_mobooking_get_countries', [$this, 'handle_get_countries_ajax']);
-        add_action('wp_ajax_mobooking_get_cities_for_country', [$this, 'handle_get_cities_for_country_ajax']);
-        add_action('wp_ajax_mobooking_get_areas_for_city', [$this, 'handle_get_areas_for_city_ajax']);
+        add_action('wp_ajax_nordbooking_get_countries', [$this, 'handle_get_countries_ajax']);
+        add_action('wp_ajax_nordbooking_get_cities_for_country', [$this, 'handle_get_cities_for_country_ajax']);
+        add_action('wp_ajax_nordbooking_get_areas_for_city', [$this, 'handle_get_areas_for_city_ajax']);
 
         // Public ZIP code checking
-        add_action('wp_ajax_nopriv_mobooking_check_zip_availability', [$this, 'handle_check_zip_code_public_ajax']);
-        add_action('wp_ajax_mobooking_check_zip_availability', [$this, 'handle_check_zip_code_public_ajax']);
+        add_action('wp_ajax_nopriv_nordbooking_check_zip_availability', [$this, 'handle_check_zip_code_public_ajax']);
+        add_action('wp_ajax_nordbooking_check_zip_availability', [$this, 'handle_check_zip_code_public_ajax']);
 
         // Enhanced Area Management AJAX actions
-        add_action('wp_ajax_mobooking_get_service_coverage', [$this, 'handle_get_service_coverage_ajax']);
-        add_action('wp_ajax_mobooking_toggle_area_status', [$this, 'handle_toggle_area_status_ajax']);
-        add_action('wp_ajax_mobooking_remove_country_coverage', [$this, 'handle_remove_country_coverage_ajax']);
-        add_action('wp_ajax_mobooking_save_city_areas', [$this, 'handle_save_city_areas_ajax']);
-        add_action('wp_ajax_mobooking_remove_city_coverage', [$this, 'handle_remove_city_coverage_ajax']);
-        add_action('wp_ajax_mobooking_update_city_status', [$this, 'handle_update_status_for_city_ajax']);
+        add_action('wp_ajax_nordbooking_get_service_coverage', [$this, 'handle_get_service_coverage_ajax']);
+        add_action('wp_ajax_nordbooking_toggle_area_status', [$this, 'handle_toggle_area_status_ajax']);
+        add_action('wp_ajax_nordbooking_remove_country_coverage', [$this, 'handle_remove_country_coverage_ajax']);
+        add_action('wp_ajax_nordbooking_save_city_areas', [$this, 'handle_save_city_areas_ajax']);
+        add_action('wp_ajax_nordbooking_remove_city_coverage', [$this, 'handle_remove_city_coverage_ajax']);
+        add_action('wp_ajax_nordbooking_update_city_status', [$this, 'handle_update_status_for_city_ajax']);
     }
 
     /**
@@ -54,17 +54,17 @@ class Areas {
         $json_file_path = get_template_directory() . '/data/service-areas-data.json';
         
         if (!file_exists($json_file_path)) {
-            return new \WP_Error('file_not_found', __('Service areas data file not found.', 'mobooking'));
+            return new \WP_Error('file_not_found', __('Service areas data file not found.', 'NORDBOOKING'));
         }
 
         $json_content = file_get_contents($json_file_path);
         if ($json_content === false) {
-            return new \WP_Error('file_read_error', __('Could not read service areas data file.', 'mobooking'));
+            return new \WP_Error('file_read_error', __('Could not read service areas data file.', 'NORDBOOKING'));
         }
 
         $data = json_decode($json_content, true);
         if (json_last_error() !== JSON_ERROR_NONE) {
-            return new \WP_Error('json_decode_error', __('Invalid JSON in service areas data file.', 'mobooking'));
+            return new \WP_Error('json_decode_error', __('Invalid JSON in service areas data file.', 'NORDBOOKING'));
         }
 
         $this->countries_cache = $data;
@@ -167,11 +167,11 @@ class Areas {
      */
     public function add_bulk_areas(int $user_id, array $areas_data) {
         if (empty($user_id)) {
-            return new \WP_Error('invalid_user', __('Invalid user.', 'mobooking'));
+            return new \WP_Error('invalid_user', __('Invalid user.', 'NORDBOOKING'));
         }
 
         if (!is_array($areas_data)) {
-            return new \WP_Error('invalid_data', __('Invalid areas data. Must be an array.', 'mobooking'));
+            return new \WP_Error('invalid_data', __('Invalid areas data. Must be an array.', 'NORDBOOKING'));
         }
 
         $table_name = Database::get_table_name('areas');
@@ -182,7 +182,7 @@ class Areas {
         foreach ($areas_data as $area_data) {
             // Validate required fields from the full location object
             if (empty($area_data['zipcode']) || empty($area_data['country_code'])) {
-                $errors[] = __('Missing zipcode or country_code for one or more areas.', 'mobooking');
+                $errors[] = __('Missing zipcode or country_code for one or more areas.', 'NORDBOOKING');
                 continue;
             }
 
@@ -220,7 +220,7 @@ class Areas {
                 $added_count++;
             } else {
                 $errors[] = sprintf(
-                    __('Failed to insert area: %s. Error: %s', 'mobooking'),
+                    __('Failed to insert area: %s. Error: %s', 'NORDBOOKING'),
                     esc_html($area_zipcode),
                     esc_html($this->wpdb->last_error)
                 );
@@ -298,7 +298,7 @@ class Areas {
      */
     public function delete_area(int $area_id, int $user_id) {
         if (empty($user_id)) {
-            return new \WP_Error('invalid_user', __('Invalid user.', 'mobooking'));
+            return new \WP_Error('invalid_user', __('Invalid user.', 'NORDBOOKING'));
         }
 
         $table_name = Database::get_table_name('areas');
@@ -310,7 +310,7 @@ class Areas {
         ));
 
         if (intval($owner_id) !== $user_id) {
-            return new \WP_Error('not_owner', __('You do not own this area.', 'mobooking'));
+            return new \WP_Error('not_owner', __('You do not own this area.', 'NORDBOOKING'));
         }
 
         $deleted = $this->wpdb->delete(
@@ -320,7 +320,7 @@ class Areas {
         );
 
         if (!$deleted) {
-            return new \WP_Error('db_error', __('Could not delete service area.', 'mobooking'));
+            return new \WP_Error('db_error', __('Could not delete service area.', 'NORDBOOKING'));
         }
 
         return true;
@@ -379,11 +379,11 @@ class Areas {
      * Handle get areas AJAX request
      */
     public function handle_get_areas_ajax() {
-        check_ajax_referer('mobooking_dashboard_nonce', 'nonce');
+        check_ajax_referer('nordbooking_dashboard_nonce', 'nonce');
         
         $user_id = get_current_user_id();
         if (!$user_id) {
-            wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403);
+            wp_send_json_error(['message' => __('User not logged in.', 'NORDBOOKING')], 403);
             return;
         }
 
@@ -402,17 +402,17 @@ class Areas {
      * Handle add bulk areas AJAX request
      */
     public function handle_add_bulk_areas_ajax() {
-        check_ajax_referer('mobooking_dashboard_nonce', 'nonce');
+        check_ajax_referer('nordbooking_dashboard_nonce', 'nonce');
         
         $user_id = get_current_user_id();
         if (!$user_id) {
-            wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403);
+            wp_send_json_error(['message' => __('User not logged in.', 'NORDBOOKING')], 403);
             return;
         }
 
         $areas_data = isset($_POST['areas_data']) ? $_POST['areas_data'] : [];
         if (empty($areas_data) || !is_array($areas_data)) {
-            wp_send_json_error(['message' => __('No areas data provided.', 'mobooking')], 400);
+            wp_send_json_error(['message' => __('No areas data provided.', 'NORDBOOKING')], 400);
             return;
         }
 
@@ -424,13 +424,13 @@ class Areas {
         }
 
         $message = sprintf(
-            __('Successfully added %d areas.', 'mobooking'),
+            __('Successfully added %d areas.', 'NORDBOOKING'),
             $result['added_count']
         );
 
         if ($result['skipped_count'] > 0) {
             $message .= ' ' . sprintf(
-                __('%d areas were skipped (already exist).', 'mobooking'),
+                __('%d areas were skipped (already exist).', 'NORDBOOKING'),
                 $result['skipped_count']
             );
         }
@@ -447,17 +447,17 @@ class Areas {
      * Handle delete area AJAX request
      */
     public function handle_delete_area_ajax() {
-        check_ajax_referer('mobooking_dashboard_nonce', 'nonce');
+        check_ajax_referer('nordbooking_dashboard_nonce', 'nonce');
         
         $user_id = get_current_user_id();
         if (!$user_id) {
-            wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403);
+            wp_send_json_error(['message' => __('User not logged in.', 'NORDBOOKING')], 403);
             return;
         }
 
         $area_id = isset($_POST['area_id']) ? intval($_POST['area_id']) : 0;
         if (empty($area_id)) {
-            wp_send_json_error(['message' => __('Invalid area ID.', 'mobooking')], 400);
+            wp_send_json_error(['message' => __('Invalid area ID.', 'NORDBOOKING')], 400);
             return;
         }
 
@@ -468,14 +468,14 @@ class Areas {
             return;
         }
 
-        wp_send_json_success(['message' => __('Service area deleted successfully.', 'mobooking')]);
+        wp_send_json_success(['message' => __('Service area deleted successfully.', 'NORDBOOKING')]);
     }
 
     /**
      * Handle get countries AJAX request
      */
     public function handle_get_countries_ajax() {
-        check_ajax_referer('mobooking_dashboard_nonce', 'nonce');
+        check_ajax_referer('nordbooking_dashboard_nonce', 'nonce');
         
         $countries = $this->get_countries();
         
@@ -491,11 +491,11 @@ class Areas {
      * Handle get cities for country AJAX request
      */
     public function handle_get_cities_for_country_ajax() {
-        check_ajax_referer('mobooking_dashboard_nonce', 'nonce');
+        check_ajax_referer('nordbooking_dashboard_nonce', 'nonce');
         
         $country_code = isset($_POST['country_code']) ? sanitize_text_field($_POST['country_code']) : '';
         if (empty($country_code)) {
-            wp_send_json_error(['message' => __('Country code is required.', 'mobooking')], 400);
+            wp_send_json_error(['message' => __('Country code is required.', 'NORDBOOKING')], 400);
             return;
         }
 
@@ -513,13 +513,13 @@ class Areas {
      * Handle get areas for city AJAX request
      */
     public function handle_get_areas_for_city_ajax() {
-        check_ajax_referer('mobooking_dashboard_nonce', 'nonce');
+        check_ajax_referer('nordbooking_dashboard_nonce', 'nonce');
         
         $country_code = isset($_POST['country_code']) ? sanitize_text_field($_POST['country_code']) : '';
         $city_code = isset($_POST['city_code']) ? sanitize_text_field($_POST['city_code']) : '';
         
         if (empty($country_code) || empty($city_code)) {
-            wp_send_json_error(['message' => __('Country code and city code are required.', 'mobooking')], 400);
+            wp_send_json_error(['message' => __('Country code and city code are required.', 'NORDBOOKING')], 400);
             return;
         }
 
@@ -538,13 +538,13 @@ class Areas {
      * Handle public ZIP code availability check
      */
     public function handle_check_zip_code_public_ajax() {
-        check_ajax_referer('mobooking_public_nonce', 'nonce');
+        check_ajax_referer('nordbooking_public_nonce', 'nonce');
         
         $tenant_user_id = isset($_POST['tenant_user_id']) ? intval($_POST['tenant_user_id']) : 0;
         $location = isset($_POST['location']) ? sanitize_text_field($_POST['location']) : '';
 
         if (empty($tenant_user_id) || empty($location)) {
-            wp_send_json_error(['message' => __('Invalid parameters.', 'mobooking')], 400);
+            wp_send_json_error(['message' => __('Invalid parameters.', 'NORDBOOKING')], 400);
             return;
         }
 
@@ -557,7 +557,7 @@ class Areas {
             ), ARRAY_A);
 
             if (empty($areas)) {
-                wp_send_json_error(['message' => __('No service areas configured.', 'mobooking')], 404);
+                wp_send_json_error(['message' => __('No service areas configured.', 'NORDBOOKING')], 404);
                 return;
             }
 
@@ -588,19 +588,19 @@ class Areas {
 
             if ($is_covered) {
                 wp_send_json_success([
-                    'message' => __('Service is available in your area!', 'mobooking'),
+                    'message' => __('Service is available in your area!', 'NORDBOOKING'),
                     'covered' => true
                 ]);
             } else {
                 wp_send_json_error([
-                    'message' => __('Sorry, we do not currently service your area.', 'mobooking'),
+                    'message' => __('Sorry, we do not currently service your area.', 'NORDBOOKING'),
                     'covered' => false
                 ], 404);
             }
 
         } catch (Exception $e) {
-            error_log('MoBooking - Service area check error: ' . $e->getMessage());
-            wp_send_json_error(['message' => __('Error checking service area.', 'mobooking')], 500);
+            error_log('NORDBOOKING - Service area check error: ' . $e->getMessage());
+            wp_send_json_error(['message' => __('Error checking service area.', 'NORDBOOKING')], 500);
         }
     }
 
@@ -764,11 +764,11 @@ public function get_service_coverage_grouped(int $user_id, $filters = []) {
  */
 public function toggle_area_status(int $area_id, int $user_id, string $status) {
     if (empty($user_id) || empty($area_id)) {
-        return new \WP_Error('invalid_params', __('Invalid parameters.', 'mobooking'));
+        return new \WP_Error('invalid_params', __('Invalid parameters.', 'NORDBOOKING'));
     }
 
     if (!in_array($status, ['active', 'inactive'])) {
-        return new \WP_Error('invalid_status', __('Invalid status value.', 'mobooking'));
+        return new \WP_Error('invalid_status', __('Invalid status value.', 'NORDBOOKING'));
     }
 
     $table_name = Database::get_table_name('areas');
@@ -780,7 +780,7 @@ public function toggle_area_status(int $area_id, int $user_id, string $status) {
     ));
 
     if (intval($owner_id) !== $user_id) {
-        return new \WP_Error('not_owner', __('You do not own this area.', 'mobooking'));
+        return new \WP_Error('not_owner', __('You do not own this area.', 'NORDBOOKING'));
     }
 
     // Update status
@@ -793,7 +793,7 @@ public function toggle_area_status(int $area_id, int $user_id, string $status) {
     );
 
     if (false === $updated) {
-        return new \WP_Error('db_error', __('Could not update area status.', 'mobooking'));
+        return new \WP_Error('db_error', __('Could not update area status.', 'NORDBOOKING'));
     }
 
     return true;
@@ -804,7 +804,7 @@ public function toggle_area_status(int $area_id, int $user_id, string $status) {
  */
 public function remove_country_coverage(int $user_id, string $country_code) {
     if (empty($user_id) || empty($country_code)) {
-        return new \WP_Error('invalid_params', __('Invalid parameters.', 'mobooking'));
+        return new \WP_Error('invalid_params', __('Invalid parameters.', 'NORDBOOKING'));
     }
 
     $table_name = Database::get_table_name('areas');
@@ -820,7 +820,7 @@ public function remove_country_coverage(int $user_id, string $country_code) {
     );
 
     if (false === $deleted) {
-        return new \WP_Error('db_error', __('Could not remove country coverage.', 'mobooking'));
+        return new \WP_Error('db_error', __('Could not remove country coverage.', 'NORDBOOKING'));
     }
 
     return $deleted; // Returns number of deleted rows
@@ -832,11 +832,11 @@ public function remove_country_coverage(int $user_id, string $country_code) {
  * Handle get service coverage AJAX request
  */
 public function handle_get_service_coverage_ajax() {
-    check_ajax_referer('mobooking_dashboard_nonce', 'nonce');
+    check_ajax_referer('nordbooking_dashboard_nonce', 'nonce');
     
     $user_id = get_current_user_id();
     if (!$user_id) {
-        wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403);
+        wp_send_json_error(['message' => __('User not logged in.', 'NORDBOOKING')], 403);
         return;
     }
 
@@ -853,11 +853,11 @@ public function handle_get_service_coverage_ajax() {
 }
 
 public function handle_get_service_coverage_grouped_ajax() {
-    check_ajax_referer('mobooking_dashboard_nonce', 'nonce');
+    check_ajax_referer('nordbooking_dashboard_nonce', 'nonce');
 
     $user_id = get_current_user_id();
     if (!$user_id) {
-        wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403);
+        wp_send_json_error(['message' => __('User not logged in.', 'NORDBOOKING')], 403);
         return;
     }
 
@@ -870,11 +870,11 @@ public function handle_get_service_coverage_grouped_ajax() {
  * Handle toggle area status AJAX request
  */
 public function handle_toggle_area_status_ajax() {
-    check_ajax_referer('mobooking_dashboard_nonce', 'nonce');
+    check_ajax_referer('nordbooking_dashboard_nonce', 'nonce');
     
     $user_id = get_current_user_id();
     if (!$user_id) {
-        wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403);
+        wp_send_json_error(['message' => __('User not logged in.', 'NORDBOOKING')], 403);
         return;
     }
 
@@ -882,7 +882,7 @@ public function handle_toggle_area_status_ajax() {
     $status = isset($_POST['status']) ? sanitize_text_field($_POST['status']) : '';
 
     if (empty($area_id) || empty($status)) {
-        wp_send_json_error(['message' => __('Area ID and status are required.', 'mobooking')], 400);
+        wp_send_json_error(['message' => __('Area ID and status are required.', 'NORDBOOKING')], 400);
         return;
     }
 
@@ -894,18 +894,18 @@ public function handle_toggle_area_status_ajax() {
     }
 
     $message = $status === 'active' ? 
-        __('Area enabled successfully.', 'mobooking') : 
-        __('Area disabled successfully.', 'mobooking');
+        __('Area enabled successfully.', 'NORDBOOKING') : 
+        __('Area disabled successfully.', 'NORDBOOKING');
 
     wp_send_json_success(['message' => $message]);
 }
 
 public function handle_save_city_areas_ajax() {
-    check_ajax_referer('mobooking_dashboard_nonce', 'nonce');
+    check_ajax_referer('nordbooking_dashboard_nonce', 'nonce');
 
     $user_id = get_current_user_id();
     if (!$user_id) {
-        wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403);
+        wp_send_json_error(['message' => __('User not logged in.', 'NORDBOOKING')], 403);
         return;
     }
 
@@ -913,7 +913,7 @@ public function handle_save_city_areas_ajax() {
     $areas_data = isset($_POST['areas_data']) ? $_POST['areas_data'] : [];
 
     if (empty($state_name)) {
-        wp_send_json_error(['message' => __('State (City) code is required.', 'mobooking')], 400);
+        wp_send_json_error(['message' => __('State (City) code is required.', 'NORDBOOKING')], 400);
         return;
     }
 
@@ -954,18 +954,18 @@ public function handle_save_city_areas_ajax() {
 }
 
 public function handle_remove_city_coverage_ajax() {
-    check_ajax_referer('mobooking_dashboard_nonce', 'nonce');
+    check_ajax_referer('nordbooking_dashboard_nonce', 'nonce');
 
     $user_id = get_current_user_id();
     if (!$user_id) {
-        wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403);
+        wp_send_json_error(['message' => __('User not logged in.', 'NORDBOOKING')], 403);
         return;
     }
 
     $city_name = isset($_POST['city_code']) ? sanitize_text_field($_POST['city_code']) : '';
 
     if (empty($city_name)) {
-        wp_send_json_error(['message' => __('City code is required.', 'mobooking')], 400);
+        wp_send_json_error(['message' => __('City code is required.', 'NORDBOOKING')], 400);
         return;
     }
 
@@ -998,12 +998,12 @@ public function handle_remove_city_coverage_ajax() {
     }
 
     if (false === $deleted_count) {
-        wp_send_json_error(['message' => __('Could not remove city coverage.', 'mobooking')], 500);
+        wp_send_json_error(['message' => __('Could not remove city coverage.', 'NORDBOOKING')], 500);
         return;
     }
 
     wp_send_json_success([
-        'message' => sprintf(__('%d service areas removed for %s.', 'mobooking'), $deleted_count, $city_name),
+        'message' => sprintf(__('%d service areas removed for %s.', 'NORDBOOKING'), $deleted_count, $city_name),
         'deleted_count' => $deleted_count
     ]);
 }
@@ -1012,18 +1012,18 @@ public function handle_remove_city_coverage_ajax() {
  * Handle remove country coverage AJAX request
  */
 public function handle_remove_country_coverage_ajax() {
-    check_ajax_referer('mobooking_dashboard_nonce', 'nonce');
+    check_ajax_referer('nordbooking_dashboard_nonce', 'nonce');
     
     $user_id = get_current_user_id();
     if (!$user_id) {
-        wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403);
+        wp_send_json_error(['message' => __('User not logged in.', 'NORDBOOKING')], 403);
         return;
     }
 
     $country_code = isset($_POST['country_code']) ? sanitize_text_field($_POST['country_code']) : '';
 
     if (empty($country_code)) {
-        wp_send_json_error(['message' => __('Country code is required.', 'mobooking')], 400);
+        wp_send_json_error(['message' => __('Country code is required.', 'NORDBOOKING')], 400);
         return;
     }
 
@@ -1035,7 +1035,7 @@ public function handle_remove_country_coverage_ajax() {
     }
 
     $message = sprintf(
-        __('Removed %d service areas for the selected country.', 'mobooking'),
+        __('Removed %d service areas for the selected country.', 'NORDBOOKING'),
         $result
     );
 
@@ -1083,7 +1083,7 @@ public function get_areas_count_by_user(int $user_id): int {
 
     public function update_status_for_city(int $user_id, string $city_name, string $new_status) {
         if (empty($user_id) || empty($city_name) || !in_array($new_status, ['active', 'inactive'])) {
-            return new \WP_Error('invalid_params', __('Invalid parameters.', 'mobooking'));
+            return new \WP_Error('invalid_params', __('Invalid parameters.', 'NORDBOOKING'));
         }
 
         // First, get all the zip codes that belong to this city from the JSON file.
@@ -1115,18 +1115,18 @@ public function get_areas_count_by_user(int $user_id): int {
         ));
 
         if (false === $updated_count) {
-            return new \WP_Error('db_error', __('Could not update statuses for the city.', 'mobooking'));
+            return new \WP_Error('db_error', __('Could not update statuses for the city.', 'NORDBOOKING'));
         }
 
         return $updated_count;
     }
 
     public function handle_update_status_for_city_ajax() {
-        check_ajax_referer('mobooking_dashboard_nonce', 'nonce');
+        check_ajax_referer('nordbooking_dashboard_nonce', 'nonce');
 
         $user_id = get_current_user_id();
         if (!$user_id) {
-            wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403);
+            wp_send_json_error(['message' => __('User not logged in.', 'NORDBOOKING')], 403);
             return;
         }
 
@@ -1134,7 +1134,7 @@ public function get_areas_count_by_user(int $user_id): int {
         $new_status = isset($_POST['status']) ? sanitize_text_field($_POST['status']) : '';
 
         if (empty($city_name) || empty($new_status)) {
-            wp_send_json_error(['message' => __('City code and status are required.', 'mobooking')], 400);
+            wp_send_json_error(['message' => __('City code and status are required.', 'NORDBOOKING')], 400);
             return;
         }
 
@@ -1146,7 +1146,7 @@ public function get_areas_count_by_user(int $user_id): int {
         }
 
         wp_send_json_success([
-            'message' => sprintf(__('Successfully updated %d areas in %s.', 'mobooking'), $result, $city_name),
+            'message' => sprintf(__('Successfully updated %d areas in %s.', 'NORDBOOKING'), $result, $city_name),
             'updated_count' => $result
         ]);
     }

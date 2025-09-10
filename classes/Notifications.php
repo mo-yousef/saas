@@ -1,5 +1,5 @@
 <?php
-namespace MoBooking\Classes;
+namespace NORDBOOKING\Classes;
 
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
@@ -94,7 +94,7 @@ class Notifications {
             $tenant_info = get_userdata($tenant_user_id);
             if ($tenant_info) {
                 // Attempt to get a configured business name for the tenant
-                $tenant_business_name_setting = get_user_meta($tenant_user_id, 'mobooking_business_name', true);
+                $tenant_business_name_setting = get_user_meta($tenant_user_id, 'nordbooking_business_name', true);
                 if (!empty($tenant_business_name_setting)) {
                     $from_name = $tenant_business_name_setting;
                 } elseif (!empty($tenant_info->display_name) && $tenant_info->display_name !== $tenant_info->user_login) {
@@ -134,7 +134,7 @@ class Notifications {
      */
     public function send_booking_confirmation_customer(array $booking_details, string $customer_email, int $tenant_user_id) {
         if (empty($customer_email) || !is_email($customer_email) || empty($booking_details)) {
-            // error_log('MoBooking Notifications: Missing data for send_booking_confirmation_customer.');
+            // error_log('NORDBOOKING Notifications: Missing data for send_booking_confirmation_customer.');
             return false;
         }
 
@@ -149,9 +149,9 @@ class Notifications {
                 if ($original_locale !== $user_language) {
                     if (switch_to_locale($user_language)) {
                         $locale_switched_for_email = true;
-                        // Ensure MOBOOKING_THEME_DIR is available or use get_template_directory()
-                        $theme_dir = defined('MOBOOKING_THEME_DIR') ? MOBOOKING_THEME_DIR : get_template_directory();
-                        load_theme_textdomain('mobooking', $theme_dir . '/languages');
+                        // Ensure NORDBOOKING_THEME_DIR is available or use get_template_directory()
+                        $theme_dir = defined('NORDBOOKING_THEME_DIR') ? NORDBOOKING_THEME_DIR : get_template_directory();
+                        load_theme_textdomain('NORDBOOKING', $theme_dir . '/languages');
                     }
                 }
             }
@@ -161,7 +161,7 @@ class Notifications {
         if ($tenant_user_id) {
             $tenant_info = get_userdata($tenant_user_id);
             if ($tenant_info) {
-                 $tenant_business_name_setting = get_user_meta($tenant_user_id, 'mobooking_business_name', true);
+                 $tenant_business_name_setting = get_user_meta($tenant_user_id, 'nordbooking_business_name', true);
                  // Use business name setting, fallback to display name (if not login), then site name
                  if (!empty($tenant_business_name_setting)) {
                     $tenant_business_name = $tenant_business_name_setting;
@@ -171,19 +171,19 @@ class Notifications {
             }
         }
 
-        $ref = isset($booking_details['booking_reference']) ? esc_html($booking_details['booking_reference']) : __('N/A', 'mobooking');
-        $services = isset($booking_details['service_names']) ? esc_html($booking_details['service_names']) : __('N/A', 'mobooking');
-        $datetime = isset($booking_details['booking_date_time']) ? esc_html($booking_details['booking_date_time']) : __('N/A', 'mobooking');
+        $ref = isset($booking_details['booking_reference']) ? esc_html($booking_details['booking_reference']) : __('N/A', 'NORDBOOKING');
+        $services = isset($booking_details['service_names']) ? esc_html($booking_details['service_names']) : __('N/A', 'NORDBOOKING');
+        $datetime = isset($booking_details['booking_date_time']) ? esc_html($booking_details['booking_date_time']) : __('N/A', 'NORDBOOKING');
         $raw_total_price = isset($booking_details['total_price']) ? floatval($booking_details['total_price']) : 0;
-        $customer_name = isset($booking_details['customer_name']) ? esc_html($booking_details['customer_name']) : __('Customer', 'mobooking');
-        $address = isset($booking_details['service_address']) ? nl2br(esc_html($booking_details['service_address'])) : __('N/A', 'mobooking');
+        $customer_name = isset($booking_details['customer_name']) ? esc_html($booking_details['customer_name']) : __('Customer', 'NORDBOOKING');
+        $address = isset($booking_details['service_address']) ? nl2br(esc_html($booking_details['service_address'])) : __('N/A', 'NORDBOOKING');
 
         $settings_manager = new Settings();
         $biz_currency_code = $settings_manager->get_setting($tenant_user_id, 'biz_currency_code', 'USD');
         $price_display = $biz_currency_code . ' ' . number_format_i18n($raw_total_price, 2);
 
-        $subject = sprintf(__('Your Booking Confirmation with %s - Ref: %s', 'mobooking'), $tenant_business_name, $ref);
-        $greeting = sprintf(__('Dear %s,', 'mobooking'), $customer_name);
+        $subject = sprintf(__('Your Booking Confirmation with %s - Ref: %s', 'NORDBOOKING'), $tenant_business_name, $ref);
+        $greeting = sprintf(__('Dear %s,', 'NORDBOOKING'), $customer_name);
 
         $template_path = get_template_directory() . '/templates/email/booking-confirmation-customer.php';
         if (file_exists($template_path)) {
@@ -198,11 +198,11 @@ class Notifications {
             $body_content = str_replace('%%SERVICE_ADDRESS%%', $address, $body_content);
             $body_content = str_replace('%%TOTAL_PRICE%%', $price_display, $body_content);
         } else {
-            $body_content = '<h2>' . __('Booking Confirmed!', 'mobooking') . '</h2>';
-            $body_content .= "<p>" . sprintf(__('Thank you for your booking with %s. Your booking (Ref: %s) is confirmed.', 'mobooking'), "<strong>{$tenant_business_name}</strong>", "<strong>{$ref}</strong>") . "</p>";
+            $body_content = '<h2>' . __('Booking Confirmed!', 'NORDBOOKING') . '</h2>';
+            $body_content .= "<p>" . sprintf(__('Thank you for your booking with %s. Your booking (Ref: %s) is confirmed.', 'NORDBOOKING'), "<strong>{$tenant_business_name}</strong>", "<strong>{$ref}</strong>") . "</p>";
         }
 
-        $button_group = '<a href="#" class="btn btn-primary">' . __('View Booking', 'mobooking') . '</a>';
+        $button_group = '<a href="#" class="btn btn-primary">' . __('View Booking', 'NORDBOOKING') . '</a>';
 
         $replacements = [
             '%%SUBJECT%%'      => $subject,
@@ -218,8 +218,8 @@ class Notifications {
         if ($locale_switched_for_email) {
             restore_current_locale();
             // Reload text domain for original locale
-            $theme_dir = defined('MOBOOKING_THEME_DIR') ? MOBOOKING_THEME_DIR : get_template_directory();
-            load_theme_textdomain('mobooking', $theme_dir . '/languages');
+            $theme_dir = defined('NORDBOOKING_THEME_DIR') ? NORDBOOKING_THEME_DIR : get_template_directory();
+            load_theme_textdomain('NORDBOOKING', $theme_dir . '/languages');
         }
 
         return $email_sent;
@@ -233,7 +233,7 @@ class Notifications {
      */
     public function send_booking_confirmation_admin(array $booking_details, int $tenant_user_id) {
         if (empty($tenant_user_id) || empty($booking_details)) {
-            // error_log('MoBooking Notifications: Missing data for send_booking_confirmation_admin.');
+            // error_log('NORDBOOKING Notifications: Missing data for send_booking_confirmation_admin.');
             return false;
         }
 
@@ -248,8 +248,8 @@ class Notifications {
                 if ($original_locale !== $user_language) {
                     if (switch_to_locale($user_language)) {
                         $locale_switched_for_email = true;
-                        $theme_dir = defined('MOBOOKING_THEME_DIR') ? MOBOOKING_THEME_DIR : get_template_directory();
-                        load_theme_textdomain('mobooking', $theme_dir . '/languages');
+                        $theme_dir = defined('NORDBOOKING_THEME_DIR') ? NORDBOOKING_THEME_DIR : get_template_directory();
+                        load_theme_textdomain('NORDBOOKING', $theme_dir . '/languages');
                     }
                 }
             }
@@ -257,12 +257,12 @@ class Notifications {
 
         $tenant_info = get_userdata($tenant_user_id);
         if (!$tenant_info) {
-            // error_log('MoBooking Notifications: Invalid tenant_user_id for admin confirmation.');
+            // error_log('NORDBOOKING Notifications: Invalid tenant_user_id for admin confirmation.');
             // Restore locale if it was switched before returning false
             if ($locale_switched_for_email) {
                 restore_current_locale();
-                $theme_dir = defined('MOBOOKING_THEME_DIR') ? MOBOOKING_THEME_DIR : get_template_directory();
-                load_theme_textdomain('mobooking', $theme_dir . '/languages');
+                $theme_dir = defined('NORDBOOKING_THEME_DIR') ? NORDBOOKING_THEME_DIR : get_template_directory();
+                load_theme_textdomain('NORDBOOKING', $theme_dir . '/languages');
             }
             return false;
         }
@@ -275,24 +275,24 @@ class Notifications {
         }
 
 
-        $ref = isset($booking_details['booking_reference']) ? esc_html($booking_details['booking_reference']) : __('N/A', 'mobooking');
-        $services = isset($booking_details['service_names']) ? esc_html($booking_details['service_names']) : __('N/A', 'mobooking');
-        $datetime = isset($booking_details['booking_date_time']) ? esc_html($booking_details['booking_date_time']) : __('N/A', 'mobooking');
-        // $price = isset($booking_details['total_price']) ? number_format_i18n($booking_details['total_price'], 2) : __('N/A', 'mobooking'); // Price variable unused, raw_total_price is used below
+        $ref = isset($booking_details['booking_reference']) ? esc_html($booking_details['booking_reference']) : __('N/A', 'NORDBOOKING');
+        $services = isset($booking_details['service_names']) ? esc_html($booking_details['service_names']) : __('N/A', 'NORDBOOKING');
+        $datetime = isset($booking_details['booking_date_time']) ? esc_html($booking_details['booking_date_time']) : __('N/A', 'NORDBOOKING');
+        // $price = isset($booking_details['total_price']) ? number_format_i18n($booking_details['total_price'], 2) : __('N/A', 'NORDBOOKING'); // Price variable unused, raw_total_price is used below
         $raw_total_price = isset($booking_details['total_price']) ? floatval($booking_details['total_price']) : 0;
-        $customer_name = isset($booking_details['customer_name']) ? esc_html($booking_details['customer_name']) : __('N/A', 'mobooking');
-        $customer_email_val = isset($booking_details['customer_email']) ? esc_html($booking_details['customer_email']) : __('N/A', 'mobooking');
-        $customer_phone = isset($booking_details['customer_phone']) ? esc_html($booking_details['customer_phone']) : __('N/A', 'mobooking');
-        $address = isset($booking_details['service_address']) ? nl2br(esc_html($booking_details['service_address'])) : __('N/A', 'mobooking');
-        $instructions = isset($booking_details['special_instructions']) && !empty($booking_details['special_instructions']) ? nl2br(esc_html($booking_details['special_instructions'])) : __('None', 'mobooking');
+        $customer_name = isset($booking_details['customer_name']) ? esc_html($booking_details['customer_name']) : __('N/A', 'NORDBOOKING');
+        $customer_email_val = isset($booking_details['customer_email']) ? esc_html($booking_details['customer_email']) : __('N/A', 'NORDBOOKING');
+        $customer_phone = isset($booking_details['customer_phone']) ? esc_html($booking_details['customer_phone']) : __('N/A', 'NORDBOOKING');
+        $address = isset($booking_details['service_address']) ? nl2br(esc_html($booking_details['service_address'])) : __('N/A', 'NORDBOOKING');
+        $instructions = isset($booking_details['special_instructions']) && !empty($booking_details['special_instructions']) ? nl2br(esc_html($booking_details['special_instructions'])) : __('None', 'NORDBOOKING');
 
         // Settings manager already instantiated above
         $biz_currency_code = $settings_manager->get_setting($tenant_user_id, 'biz_currency_code', 'USD');
         $price_display = $biz_currency_code . ' ' . number_format_i18n($raw_total_price, 2);
 
         // Subject and message using translated strings
-        $subject = sprintf(__('New Booking Received - Ref: %s - %s', 'mobooking'), $ref, $customer_name);
-        $greeting = __('New Booking Received!', 'mobooking');
+        $subject = sprintf(__('New Booking Received - Ref: %s - %s', 'NORDBOOKING'), $ref, $customer_name);
+        $greeting = __('New Booking Received!', 'NORDBOOKING');
 
         $template_path = get_template_directory() . '/templates/email/new-booking-admin.php';
         if (file_exists($template_path)) {
@@ -310,10 +310,10 @@ class Notifications {
             $body_content = str_replace('%%TOTAL_PRICE%%', $price_display, $body_content);
             $body_content = str_replace('%%SPECIAL_INSTRUCTIONS%%', $instructions, $body_content);
         } else {
-            $body_content = "<p>" . sprintf(__('You have received a new booking (Ref: %s).', 'mobooking'), "<strong>{$ref}</strong>") . "</p>";
+            $body_content = "<p>" . sprintf(__('You have received a new booking (Ref: %s).', 'NORDBOOKING'), "<strong>{$ref}</strong>") . "</p>";
         }
 
-        $button_group = '<a href="' . esc_url(home_url('/dashboard/bookings/')) . '" class="btn btn-primary">' . __('View in Dashboard', 'mobooking') . '</a>';
+        $button_group = '<a href="' . esc_url(home_url('/dashboard/bookings/')) . '" class="btn btn-primary">' . __('View in Dashboard', 'NORDBOOKING') . '</a>';
 
         $replacements = [
             '%%SUBJECT%%'      => $subject,
@@ -328,8 +328,8 @@ class Notifications {
 
         if ($locale_switched_for_email) {
             restore_current_locale();
-            $theme_dir = defined('MOBOOKING_THEME_DIR') ? MOBOOKING_THEME_DIR : get_template_directory();
-            load_theme_textdomain('mobooking', $theme_dir . '/languages');
+            $theme_dir = defined('NORDBOOKING_THEME_DIR') ? NORDBOOKING_THEME_DIR : get_template_directory();
+            load_theme_textdomain('NORDBOOKING', $theme_dir . '/languages');
         }
 
         return $email_sent;
@@ -350,7 +350,7 @@ class Notifications {
     public function send_staff_assignment_notification(int $staff_user_id, int $booking_id, array $booking_details, int $tenant_user_id) {
         $staff_user = get_userdata($staff_user_id);
         if (!$staff_user || empty($staff_user->user_email)) {
-            error_log("MoBooking Notifications: Invalid staff user ID or email for assignment notification. Staff ID: {$staff_user_id}");
+            error_log("NORDBOOKING Notifications: Invalid staff user ID or email for assignment notification. Staff ID: {$staff_user_id}");
             return false;
         }
 
@@ -367,8 +367,8 @@ class Notifications {
             if ($original_locale !== $staff_language) {
                 if (switch_to_locale($staff_language)) {
                     $locale_switched = true;
-                    $theme_dir = defined('MOBOOKING_THEME_DIR') ? MOBOOKING_THEME_DIR : get_template_directory();
-                    load_theme_textdomain('mobooking', $theme_dir . '/languages');
+                    $theme_dir = defined('NORDBOOKING_THEME_DIR') ? NORDBOOKING_THEME_DIR : get_template_directory();
+                    load_theme_textdomain('NORDBOOKING', $theme_dir . '/languages');
                 }
             }
         }
@@ -381,27 +381,27 @@ class Notifications {
             }
         }
 
-        $ref = isset($booking_details['booking_reference']) ? esc_html($booking_details['booking_reference']) : __('N/A', 'mobooking');
-        $customer_name = isset($booking_details['customer_name']) ? esc_html($booking_details['customer_name']) : __('N/A', 'mobooking');
+        $ref = isset($booking_details['booking_reference']) ? esc_html($booking_details['booking_reference']) : __('N/A', 'NORDBOOKING');
+        $customer_name = isset($booking_details['customer_name']) ? esc_html($booking_details['customer_name']) : __('N/A', 'NORDBOOKING');
         $datetime = (isset($booking_details['booking_date']) && isset($booking_details['booking_time'])) ?
                     esc_html(date_i18n(get_option('date_format') . ' ' . get_option('time_format'), strtotime($booking_details['booking_date'] . ' ' . $booking_details['booking_time']))) :
-                    __('N/A', 'mobooking');
+                    __('N/A', 'NORDBOOKING');
         $dashboard_link = home_url('/dashboard/my-assigned-bookings/'); // Or a direct link to the booking if preferred.
 
-        $subject = sprintf(__('New Booking Assignment - Ref: %s - %s', 'mobooking'), $ref, $tenant_business_name);
-        $greeting = sprintf(__('Hi %s,', 'mobooking'), esc_html($staff_user->display_name));
+        $subject = sprintf(__('New Booking Assignment - Ref: %s - %s', 'NORDBOOKING'), $ref, $tenant_business_name);
+        $greeting = sprintf(__('Hi %s,', 'NORDBOOKING'), esc_html($staff_user->display_name));
 
-        $body_content  = '<h2>' . __('New Booking Assignment', 'mobooking') . '</h2>';
-        $body_content .= "<p>" . sprintf(__('You have been assigned a new booking (Ref: %s) for %s.', 'mobooking'), "<strong>{$ref}</strong>", "<strong>{$tenant_business_name}</strong>") . "</p>";
+        $body_content  = '<h2>' . __('New Booking Assignment', 'NORDBOOKING') . '</h2>';
+        $body_content .= "<p>" . sprintf(__('You have been assigned a new booking (Ref: %s) for %s.', 'NORDBOOKING'), "<strong>{$ref}</strong>", "<strong>{$tenant_business_name}</strong>") . "</p>";
         $body_content .= '<div class="booking-details">';
-        $body_content .= "<h3>" . __('Booking Details:', 'mobooking') . "</h3>";
+        $body_content .= "<h3>" . __('Booking Details:', 'NORDBOOKING') . "</h3>";
         $body_content .= "<ul>";
-        $body_content .= "<li><strong>" . __('Customer:', 'mobooking') . "</strong> " . $customer_name . "</li>";
-        $body_content .= "<li><strong>" . __('Date & Time:', 'mobooking') . "</strong> " . $datetime . "</li>";
+        $body_content .= "<li><strong>" . __('Customer:', 'NORDBOOKING') . "</strong> " . $customer_name . "</li>";
+        $body_content .= "<li><strong>" . __('Date & Time:', 'NORDBOOKING') . "</strong> " . $datetime . "</li>";
         $body_content .= "</ul>";
         $body_content .= '</div>';
 
-        $button_group = '<a href="' . esc_url($dashboard_link) . '" class="btn btn-primary">' . __('View Your Assignments', 'mobooking') . '</a>';
+        $button_group = '<a href="' . esc_url($dashboard_link) . '" class="btn btn-primary">' . __('View Your Assignments', 'NORDBOOKING') . '</a>';
 
         $replacements = [
             '%%SUBJECT%%'      => $subject,
@@ -416,12 +416,12 @@ class Notifications {
 
         if ($locale_switched) {
             restore_current_locale();
-            $theme_dir = defined('MOBOOKING_THEME_DIR') ? MOBOOKING_THEME_DIR : get_template_directory();
-            load_theme_textdomain('mobooking', $theme_dir . '/languages');
+            $theme_dir = defined('NORDBOOKING_THEME_DIR') ? NORDBOOKING_THEME_DIR : get_template_directory();
+            load_theme_textdomain('NORDBOOKING', $theme_dir . '/languages');
         }
 
         if (!$email_sent) {
-            error_log("MoBooking Notifications: Failed to send assignment email to staff {$staff_user_id} for booking {$booking_id}.");
+            error_log("NORDBOOKING Notifications: Failed to send assignment email to staff {$staff_user_id} for booking {$booking_id}.");
         }
         return $email_sent;
     }
@@ -439,7 +439,7 @@ class Notifications {
     public function send_admin_status_change_notification(int $booking_id, string $new_status, string $old_status, array $booking_details, int $tenant_user_id, int $updated_by_user_id) {
         $admin_user = get_userdata($tenant_user_id);
         if (!$admin_user || empty($admin_user->user_email)) {
-            error_log("MoBooking Notifications: Invalid admin user ID or email for status change notification. Admin ID: {$tenant_user_id}");
+            error_log("NORDBOOKING Notifications: Invalid admin user ID or email for status change notification. Admin ID: {$tenant_user_id}");
             return false;
         }
 
@@ -452,8 +452,8 @@ class Notifications {
             if ($original_locale !== $admin_language) {
                 if (switch_to_locale($admin_language)) {
                     $locale_switched = true;
-                    $theme_dir = defined('MOBOOKING_THEME_DIR') ? MOBOOKING_THEME_DIR : get_template_directory();
-                    load_theme_textdomain('mobooking', $theme_dir . '/languages');
+                    $theme_dir = defined('NORDBOOKING_THEME_DIR') ? NORDBOOKING_THEME_DIR : get_template_directory();
+                    load_theme_textdomain('NORDBOOKING', $theme_dir . '/languages');
                 }
             }
         }
@@ -464,24 +464,24 @@ class Notifications {
         }
 
         $updater_user = get_userdata($updated_by_user_id);
-        $updater_name = $updater_user ? $updater_user->display_name : __('Unknown User', 'mobooking');
+        $updater_name = $updater_user ? $updater_user->display_name : __('Unknown User', 'NORDBOOKING');
 
-        $ref = isset($booking_details['booking_reference']) ? esc_html($booking_details['booking_reference']) : __('N/A', 'mobooking');
+        $ref = isset($booking_details['booking_reference']) ? esc_html($booking_details['booking_reference']) : __('N/A', 'NORDBOOKING');
         $dashboard_link = home_url('/dashboard/bookings/?action=view_booking&booking_id=' . $booking_id);
 
-        $subject = sprintf(__('Booking Status Updated - Ref: %s - %s', 'mobooking'), $ref, $tenant_business_name);
-        $greeting = __('Booking Status Updated', 'mobooking');
+        $subject = sprintf(__('Booking Status Updated - Ref: %s - %s', 'NORDBOOKING'), $ref, $tenant_business_name);
+        $greeting = __('Booking Status Updated', 'NORDBOOKING');
 
-        $body_content  = "<p>" . sprintf(__('The status for booking reference %s has been updated.', 'mobooking'), "<strong>{$ref}</strong>") . "</p>";
+        $body_content  = "<p>" . sprintf(__('The status for booking reference %s has been updated.', 'NORDBOOKING'), "<strong>{$ref}</strong>") . "</p>";
         $body_content .= '<div class="booking-details">';
         $body_content .= "<ul>";
-        $body_content .= "<li><strong>" . __('Old Status:', 'mobooking') . "</strong> " . esc_html(ucfirst($old_status)) . "</li>";
-        $body_content .= "<li><strong>" . __('New Status:', 'mobooking') . "</strong> " . esc_html(ucfirst($new_status)) . "</li>";
-        $body_content .= "<li><strong>" . __('Updated By:', 'mobooking') . "</strong> " . esc_html($updater_name) . " (ID: {$updated_by_user_id})</li>";
+        $body_content .= "<li><strong>" . __('Old Status:', 'NORDBOOKING') . "</strong> " . esc_html(ucfirst($old_status)) . "</li>";
+        $body_content .= "<li><strong>" . __('New Status:', 'NORDBOOKING') . "</strong> " . esc_html(ucfirst($new_status)) . "</li>";
+        $body_content .= "<li><strong>" . __('Updated By:', 'NORDBOOKING') . "</strong> " . esc_html($updater_name) . " (ID: {$updated_by_user_id})</li>";
         $body_content .= "</ul>";
         $body_content .= '</div>';
 
-        $button_group = '<a href="' . esc_url($dashboard_link) . '" class="btn btn-primary">' . __('View Booking Details', 'mobooking') . '</a>';
+        $button_group = '<a href="' . esc_url($dashboard_link) . '" class="btn btn-primary">' . __('View Booking Details', 'NORDBOOKING') . '</a>';
 
         $replacements = [
             '%%SUBJECT%%'      => $subject,
@@ -496,12 +496,12 @@ class Notifications {
 
         if ($locale_switched) {
             restore_current_locale();
-            $theme_dir = defined('MOBOOKING_THEME_DIR') ? MOBOOKING_THEME_DIR : get_template_directory();
-            load_theme_textdomain('mobooking', $theme_dir . '/languages');
+            $theme_dir = defined('NORDBOOKING_THEME_DIR') ? NORDBOOKING_THEME_DIR : get_template_directory();
+            load_theme_textdomain('NORDBOOKING', $theme_dir . '/languages');
         }
 
         if (!$email_sent) {
-            error_log("MoBooking Notifications: Failed to send status change email to admin {$tenant_user_id} for booking {$booking_id}.");
+            error_log("NORDBOOKING Notifications: Failed to send status change email to admin {$tenant_user_id} for booking {$booking_id}.");
         }
         return $email_sent;
     }
@@ -519,8 +519,8 @@ class Notifications {
         }
         $user_email = $user_info->user_email;
 
-        $subject = sprintf(__('Welcome to %s, %s!', 'mobooking'), get_bloginfo('name'), $display_name);
-        $greeting = sprintf(__('Welcome, %s!', 'mobooking'), $display_name);
+        $subject = sprintf(__('Welcome to %s, %s!', 'NORDBOOKING'), get_bloginfo('name'), $display_name);
+        $greeting = sprintf(__('Welcome, %s!', 'NORDBOOKING'), $display_name);
 
         $welcome_template_path = get_template_directory() . '/templates/email/welcome-email.php';
         if (file_exists($welcome_template_path)) {
@@ -528,10 +528,10 @@ class Notifications {
             include $welcome_template_path;
             $body_content = ob_get_clean();
         } else {
-            $body_content = '<p>' . __('Welcome to our service!', 'mobooking') . '</p>';
+            $body_content = '<p>' . __('Welcome to our service!', 'NORDBOOKING') . '</p>';
         }
 
-        $button_group = '<a href="' . esc_url(home_url('/dashboard/')) . '" class="btn btn-primary">' . __('Go to Your Dashboard', 'mobooking') . '</a>';
+        $button_group = '<a href="' . esc_url(home_url('/dashboard/')) . '" class="btn btn-primary">' . __('Go to Your Dashboard', 'NORDBOOKING') . '</a>';
 
         $replacements = [
             '%%SUBJECT%%'      => $subject,
@@ -545,7 +545,7 @@ class Notifications {
         $email_sent = wp_mail($user_email, $subject, $full_email_html, $headers);
 
         if (!$email_sent) {
-            error_log('MoBooking: Failed to send welcome email to ' . $user_email);
+            error_log('NORDBOOKING: Failed to send welcome email to ' . $user_email);
         }
 
         return $email_sent;
@@ -560,17 +560,17 @@ class Notifications {
      * @return bool
      */
     public function send_invitation_email(string $worker_email, string $assigned_role, string $inviter_name, string $registration_link): bool {
-        $subject = sprintf(__('You have been invited to %s', 'mobooking'), get_bloginfo('name'));
-        $greeting = sprintf(__('Hi %s,', 'mobooking'), $worker_email);
+        $subject = sprintf(__('You have been invited to %s', 'NORDBOOKING'), get_bloginfo('name'));
+        $greeting = sprintf(__('Hi %s,', 'NORDBOOKING'), $worker_email);
 
-        $role_display_name = ucfirst(str_replace('mobooking_worker_', '', $assigned_role));
+        $role_display_name = ucfirst(str_replace('nordbooking_worker_', '', $assigned_role));
 
-        $body_content = '<h2>' . __('You\'re Invited!', 'mobooking') . '</h2>';
-        $body_content .= '<p>' . sprintf(__('You have been invited to join %s as a %s by %s.', 'mobooking'), '<strong>' . get_bloginfo('name') . '</strong>', '<strong>' . $role_display_name . '</strong>', '<strong>' . $inviter_name . '</strong>') . '</p>';
-        $body_content .= '<p>' . __('To accept this invitation and complete your registration, please click the button below. This link is valid for 7 days.', 'mobooking') . '</p>';
-        $body_content .= '<p style="font-size: 12px; color: #718096;">' . __('If you were not expecting this invitation, please ignore this email.', 'mobooking') . '</p>';
+        $body_content = '<h2>' . __('You\'re Invited!', 'NORDBOOKING') . '</h2>';
+        $body_content .= '<p>' . sprintf(__('You have been invited to join %s as a %s by %s.', 'NORDBOOKING'), '<strong>' . get_bloginfo('name') . '</strong>', '<strong>' . $role_display_name . '</strong>', '<strong>' . $inviter_name . '</strong>') . '</p>';
+        $body_content .= '<p>' . __('To accept this invitation and complete your registration, please click the button below. This link is valid for 7 days.', 'NORDBOOKING') . '</p>';
+        $body_content .= '<p style="font-size: 12px; color: #718096;">' . __('If you were not expecting this invitation, please ignore this email.', 'NORDBOOKING') . '</p>';
 
-        $button_group = '<a href="' . esc_url($registration_link) . '" class="btn btn-primary">' . __('Accept Invitation & Register', 'mobooking') . '</a>';
+        $button_group = '<a href="' . esc_url($registration_link) . '" class="btn btn-primary">' . __('Accept Invitation & Register', 'NORDBOOKING') . '</a>';
 
         $replacements = [
             '%%SUBJECT%%'      => $subject,

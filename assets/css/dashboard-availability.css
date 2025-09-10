@@ -1,4 +1,4 @@
-/* ShadCN Inspired Styles for MoBooking Availability Page */
+/* ShadCN Inspired Styles for NORDBOOKING Availability Page */
 :root {
   --background: 0 0% 100%;
   --foreground: 222.2 84% 4.9%;
@@ -22,12 +22,12 @@
   --radius: 0.5rem;
 }
 
-.mobooking-availability-page p {
+.NORDBOOKING-availability-page p {
   color: hsl(var(--muted-foreground));
   margin-bottom: 1rem;
 }
 
-.mobooking-schedule-editor {
+.NORDBOOKING-schedule-editor {
   list-style: none;
   margin: 0;
   padding: 0;
@@ -47,6 +47,7 @@
 .day-schedule:not(:last-child) {
   border-bottom: 1px solid hsl(var(--border));
 }
+
 label.copy-day-label {
   display: inline-flex;
   align-items: center;
@@ -58,16 +59,19 @@ label.copy-day-label {
   margin: 0px;
   cursor: pointer;
 }
+
 .copy-day-label input[type="checkbox"] {
   margin: 0px;
   cursor: pointer;
 }
+
 .copy-days-selection {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 1rem;
   margin-top: 1rem;
 }
+
 .day-header {
   display: flex;
   justify-content: space-between;
@@ -217,14 +221,14 @@ label.copy-day-label {
 }
 
 /* Toggle Switch */
-.mobooking-toggle-switch {
+.NORDBOOKING-toggle-switch {
   position: relative;
   display: inline-block;
   width: 44px;
   height: 24px;
 }
 
-.mobooking-toggle-switch input {
+.NORDBOOKING-toggle-switch input {
   opacity: 0;
   width: 0;
   height: 0;
@@ -255,11 +259,11 @@ label.copy-day-label {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-input:checked + .slider {
+input:checked+.slider {
   background-color: hsl(var(--primary));
 }
 
-input:checked + .slider:before {
+input:checked+.slider:before {
   transform: translateX(20px);
 }
 
@@ -283,7 +287,7 @@ input:checked + .slider:before {
 
 /* Responsive adjustments */
 /* Floating Alert Styles */
-.mobooking-floating-alert {
+.NORDBOOKING-floating-alert {
   position: fixed;
   top: 2rem;
   right: 2rem;
@@ -301,20 +305,20 @@ input:checked + .slider:before {
   transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
-.mobooking-floating-alert.show {
+.NORDBOOKING-floating-alert.show {
   opacity: 1;
   transform: translateY(0);
 }
 
 @media (max-width: 768px) {
-  .mobooking-floating-alert {
+  .NORDBOOKING-floating-alert {
     top: 1rem;
     right: 1rem;
     left: 1rem;
     transform: translateY(-100%);
   }
 
-  .mobooking-availability-page h1 {
+  .NORDBOOKING-availability-page h1 {
     font-size: 1.75rem;
   }
 

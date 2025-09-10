@@ -3,7 +3,7 @@
  * Template for a single service option item.
  * FIXED VERSION - Properly displays choices and handles existing data
  *
- * @package MoBooking
+ * @package NORDBOOKING
  * @var array $option
  * @var int $option_index
  * @var array $option_types
@@ -64,17 +64,17 @@ $choices = $cleaned_choices;
 $choices_visible = in_array($type, ['select', 'radio', 'checkbox']);
 
 ?>
-<div class="mobooking-option-item option-item" data-option-index="<?php echo esc_attr($option_index); ?>">
-    <div class="mobooking-option-header">
-        <div class="mobooking-option-drag-handle">
+<div class="NORDBOOKING-option-item option-item" data-option-index="<?php echo esc_attr($option_index); ?>">
+    <div class="NORDBOOKING-option-header">
+        <div class="NORDBOOKING-option-drag-handle">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <circle cx="9" cy="12" r="1"/><circle cx="9" cy="5" r="1"/><circle cx="9" cy="19" r="1"/>
                 <circle cx="15" cy="12" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="19" r="1"/>
             </svg>
         </div>
-        <div class="mobooking-option-summary">
-            <h4 class="mobooking-option-name option-name"><?php echo esc_html($name); ?></h4>
-            <div class="mobooking-option-badges">
+        <div class="NORDBOOKING-option-summary">
+            <h4 class="NORDBOOKING-option-name option-name"><?php echo esc_html($name); ?></h4>
+            <div class="NORDBOOKING-option-badges">
                 <span class="badge badge-outline"><?php echo esc_html($option_types[$type]['label'] ?? 'Unknown'); ?></span>
                 <?php if (!empty($price_impact_type) && $price_impact_type !== ''): ?>
                     <span class="badge badge-accent">
@@ -82,20 +82,20 @@ $choices_visible = in_array($type, ['select', 'radio', 'checkbox']);
                     </span>
                 <?php endif; ?>
                 <?php if ($is_required): ?>
-                    <span class="badge badge-destructive"><?php esc_html_e('Required', 'mobooking'); ?></span>
+                    <span class="badge badge-destructive"><?php esc_html_e('Required', 'NORDBOOKING'); ?></span>
                 <?php endif; ?>
                 <?php if (!empty($choices)): ?>
-                    <span class="badge badge-secondary"><?php echo count($choices); ?> <?php esc_html_e('choices', 'mobooking'); ?></span>
+                    <span class="badge badge-secondary"><?php echo count($choices); ?> <?php esc_html_e('choices', 'NORDBOOKING'); ?></span>
                 <?php endif; ?>
             </div>
         </div>
-        <div class="mobooking-option-actions">
-            <button type="button" class="btn-icon toggle-option" title="<?php esc_attr_e('Toggle option', 'mobooking'); ?>">
+        <div class="NORDBOOKING-option-actions">
+            <button type="button" class="btn-icon toggle-option" title="<?php esc_attr_e('Toggle option', 'NORDBOOKING'); ?>">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M6 9l6 6 6-6"/>
                 </svg>
             </button>
-            <button type="button" class="btn-icon delete-option" title="<?php esc_attr_e('Delete option', 'mobooking'); ?>">
+            <button type="button" class="btn-icon delete-option" title="<?php esc_attr_e('Delete option', 'NORDBOOKING'); ?>">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M3 6h18"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><path d="m19 6-1 14H6L5 6"/>
                 </svg>
@@ -103,8 +103,8 @@ $choices_visible = in_array($type, ['select', 'radio', 'checkbox']);
         </div>
     </div>
 
-    <div class="mobooking-option-content option-content" style="display: none;">
-        <div class="mobooking-option-form">
+    <div class="NORDBOOKING-option-content option-content" style="display: none;">
+        <div class="NORDBOOKING-option-form">
             <!-- Hidden fields -->
             <?php if ($option_id): ?>
                 <input type="hidden" name="options[<?php echo esc_attr($option_index); ?>][option_id]" value="<?php echo esc_attr($option_id); ?>">
@@ -113,42 +113,42 @@ $choices_visible = in_array($type, ['select', 'radio', 'checkbox']);
             <input type="hidden" name="options[<?php echo esc_attr($option_index); ?>][price_impact_type]" value="<?php echo esc_attr($price_impact_type); ?>" class="price-impact-type-input">
 
             <div>
-                <label class="mobooking-filter-item label" for="option-name-<?php echo esc_attr($option_index); ?>">
-                    <?php esc_html_e('Option Name', 'mobooking'); ?>
+                <label class="NORDBOOKING-filter-item label" for="option-name-<?php echo esc_attr($option_index); ?>">
+                    <?php esc_html_e('Option Name', 'NORDBOOKING'); ?>
                 </label>
                 <input
                     type="text"
                     id="option-name-<?php echo esc_attr($option_index); ?>"
                     name="options[<?php echo esc_attr($option_index); ?>][name]"
                     class="regular-text option-name-input"
-                    placeholder="<?php esc_attr_e('e.g., Room Size, Add-ons', 'mobooking'); ?>"
+                    placeholder="<?php esc_attr_e('e.g., Room Size, Add-ons', 'NORDBOOKING'); ?>"
                     value="<?php echo esc_attr($name); ?>"
                     required
                 >
             </div>
 
             <div>
-                <label class="mobooking-filter-item label">
-                    <?php esc_html_e('Description', 'mobooking'); ?>
+                <label class="NORDBOOKING-filter-item label">
+                    <?php esc_html_e('Description', 'NORDBOOKING'); ?>
                 </label>
                 <textarea
                     name="options[<?php echo esc_attr($option_index); ?>][description]"
                     class="regular-text"
                     rows="2"
-                    placeholder="<?php esc_attr_e('Helpful description for customers...', 'mobooking'); ?>"
+                    placeholder="<?php esc_attr_e('Helpful description for customers...', 'NORDBOOKING'); ?>"
                 ><?php echo esc_textarea($description); ?></textarea>
             </div>
 
             <div>
                 <div class="flex items-center justify-between">
-                    <label class="mobooking-filter-item label">
-                        <?php esc_html_e('Settings', 'mobooking'); ?>
+                    <label class="NORDBOOKING-filter-item label">
+                        <?php esc_html_e('Settings', 'NORDBOOKING'); ?>
                     </label>
                     <div class="flex items-center gap-3">
                         <button type="button" class="switch <?php echo $is_required ? 'switch-checked' : ''; ?>" data-switch="required">
                             <span class="switch-thumb"></span>
                         </button>
-                        <span class="text-sm"><?php echo $is_required ? esc_html__('Required option', 'mobooking') : esc_html__('Optional', 'mobooking'); ?></span>
+                        <span class="text-sm"><?php echo $is_required ? esc_html__('Required option', 'NORDBOOKING') : esc_html__('Optional', 'NORDBOOKING'); ?></span>
                         <input type="hidden" name="options[<?php echo esc_attr($option_index); ?>][is_required]" value="<?php echo esc_attr($is_required); ?>" class="option-required-input">
                     </div>
                 </div>
@@ -157,17 +157,17 @@ $choices_visible = in_array($type, ['select', 'radio', 'checkbox']);
             <hr>
 
             <div>
-                <label class="mobooking-filter-item label price-impact-label">
+                <label class="NORDBOOKING-filter-item label price-impact-label">
                     <?php if ($type === 'sqm'): ?>
-                        <?php esc_html_e('Price per Square Meter', 'mobooking'); ?>
+                        <?php esc_html_e('Price per Square Meter', 'NORDBOOKING'); ?>
                     <?php elseif ($type === 'kilometers'): ?>
-                        <?php esc_html_e('Price per Kilometer', 'mobooking'); ?>
+                        <?php esc_html_e('Price per Kilometer', 'NORDBOOKING'); ?>
                     <?php else: ?>
-                        <?php esc_html_e('Price Impact', 'mobooking'); ?>
+                        <?php esc_html_e('Price Impact', 'NORDBOOKING'); ?>
                     <?php endif; ?>
                 </label>
                 <p class="form-description text-xs mb-2 price-impact-description" style="<?php echo in_array($type, ['sqm', 'kilometers']) ? 'display:none;' : ''; ?>">
-                    <?php esc_html_e('Set a price for this option itself, independent of choices.', 'mobooking'); ?>
+                    <?php esc_html_e('Set a price for this option itself, independent of choices.', 'NORDBOOKING'); ?>
                 </p>
 
                 <div class="price-types-grid" style="<?php echo in_array($type, ['sqm', 'kilometers']) ? 'display:none;' : ''; ?>">
@@ -187,13 +187,13 @@ $choices_visible = in_array($type, ['select', 'radio', 'checkbox']);
                 </div>
 
                 <div class="price-impact-value-container mt-4" style="display: <?php echo (!empty($price_impact_type) && $price_impact_type !== '') || in_array($type, ['sqm', 'kilometers']) ? 'block' : 'none'; ?>;">
-                    <label class="mobooking-filter-item label price-impact-value-label" for="price-impact-value-<?php echo esc_attr($option_index); ?>">
+                    <label class="NORDBOOKING-filter-item label price-impact-value-label" for="price-impact-value-<?php echo esc_attr($option_index); ?>">
                         <?php if ($type === 'sqm'): ?>
-                            <?php esc_html_e('Price per Square Meter', 'mobooking'); ?>
+                            <?php esc_html_e('Price per Square Meter', 'NORDBOOKING'); ?>
                         <?php elseif ($type === 'kilometers'): ?>
-                            <?php esc_html_e('Price per Kilometer', 'mobooking'); ?>
+                            <?php esc_html_e('Price per Kilometer', 'NORDBOOKING'); ?>
                         <?php else: ?>
-                            <?php esc_html_e('Price Value', 'mobooking'); ?>
+                            <?php esc_html_e('Price Value', 'NORDBOOKING'); ?>
                         <?php endif; ?>
                     </label>
                     <input
@@ -201,7 +201,7 @@ $choices_visible = in_array($type, ['select', 'radio', 'checkbox']);
                         id="price-impact-value-<?php echo esc_attr($option_index); ?>"
                         name="options[<?php echo esc_attr($option_index); ?>][price_impact_value]"
                         class="regular-text"
-                        placeholder="<?php esc_attr_e('e.g., 10.00', 'mobooking'); ?>"
+                        placeholder="<?php esc_attr_e('e.g., 10.00', 'NORDBOOKING'); ?>"
                         value="<?php echo esc_attr($price_impact_value); ?>"
                         step="0.01"
                         min="0"
@@ -212,8 +212,8 @@ $choices_visible = in_array($type, ['select', 'radio', 'checkbox']);
             <hr>
 
             <div>
-                <label class="mobooking-filter-item label"><?php esc_html_e('Option Type', 'mobooking'); ?></label>
-                <p class="form-description text-xs mb-2"><?php esc_html_e('Select how the user will interact with this option.', 'mobooking'); ?></p>
+                <label class="NORDBOOKING-filter-item label"><?php esc_html_e('Option Type', 'NORDBOOKING'); ?></label>
+                <p class="form-description text-xs mb-2"><?php esc_html_e('Select how the user will interact with this option.', 'NORDBOOKING'); ?></p>
                 <div class="option-types-grid">
                     <?php foreach ($option_types as $type_key => $type_data): ?>
                         <label class="option-type-card <?php echo $type === $type_key ? 'selected' : ''; ?>">
@@ -234,11 +234,11 @@ $choices_visible = in_array($type, ['select', 'radio', 'checkbox']);
             <div class="choices-container" style="display: <?php echo $choices_visible ? 'block' : 'none'; ?>;">
                 <hr>
                 <div class="mt-4">
-                    <label class="mobooking-filter-item label">
-                        <?php esc_html_e('Choices', 'mobooking'); ?>
+                    <label class="NORDBOOKING-filter-item label">
+                        <?php esc_html_e('Choices', 'NORDBOOKING'); ?>
                     </label>
                     <p class="form-description text-xs mb-2">
-                        <?php esc_html_e('Add choices for this option.', 'mobooking'); ?>
+                        <?php esc_html_e('Add choices for this option.', 'NORDBOOKING'); ?>
                     </p>
                     <div class="choices-list">
                         <?php if (!empty($choices)): ?>
@@ -247,16 +247,16 @@ $choices_visible = in_array($type, ['select', 'radio', 'checkbox']);
                                     <input type="text" 
                                            name="options[<?php echo esc_attr($option_index); ?>][choices][<?php echo $choice_index; ?>][label]" 
                                            class="regular-text flex-1" 
-                                           placeholder="<?php esc_attr_e('Choice Label', 'mobooking'); ?>" 
+                                           placeholder="<?php esc_attr_e('Choice Label', 'NORDBOOKING'); ?>" 
                                            value="<?php echo esc_attr($choice['label'] ?? ''); ?>"
                                            required>
                                     <input type="number" 
                                            name="options[<?php echo esc_attr($option_index); ?>][choices][<?php echo $choice_index; ?>][price]" 
                                            class="regular-text w-24" 
-                                           placeholder="<?php esc_attr_e('Price', 'mobooking'); ?>" 
+                                           placeholder="<?php esc_attr_e('Price', 'NORDBOOKING'); ?>" 
                                            value="<?php echo esc_attr($choice['price'] ?? '0'); ?>" 
                                            step="0.01">
-                                    <button type="button" class="btn-icon remove-choice-btn" title="<?php esc_attr_e('Remove choice', 'mobooking'); ?>">
+                                    <button type="button" class="btn-icon remove-choice-btn" title="<?php esc_attr_e('Remove choice', 'NORDBOOKING'); ?>">
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                             <path d="M3 6h18"/>
                                             <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
@@ -272,7 +272,7 @@ $choices_visible = in_array($type, ['select', 'radio', 'checkbox']);
                             <path d="M5 12h14"/>
                             <path d="M12 5v14"/>
                         </svg>
-                        <?php esc_html_e('Add Choice', 'mobooking'); ?>
+                        <?php esc_html_e('Add Choice', 'NORDBOOKING'); ?>
                     </button>
                     <div class="option-feedback text-destructive text-sm mt-2"></div>
                 </div>

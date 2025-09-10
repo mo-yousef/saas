@@ -1,30 +1,30 @@
 <?php
 /**
  * Dashboard Page: Booking Form Settings - FIXED VERSION
- * @package MoBooking
+ * @package NORDBOOKING
  */
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
 // Fetch settings
-$settings_manager = new \MoBooking\Classes\Settings();
+$settings_manager = new \NORDBOOKING\Classes\Settings();
 $user_id = get_current_user_id();
 $bf_settings = $settings_manager->get_booking_form_settings($user_id);
 $biz_settings = $settings_manager->get_business_settings($user_id); // For biz_name
 
 // Helper to get value, escape it, and provide default
-function mobooking_get_setting_value($settings, $key, $default = '') {
+function nordbooking_get_setting_value($settings, $key, $default = '') {
     return isset($settings[$key]) ? esc_attr($settings[$key]) : esc_attr($default);
 }
-function mobooking_get_setting_textarea($settings, $key, $default = '') {
+function nordbooking_get_setting_textarea($settings, $key, $default = '') {
     return isset($settings[$key]) ? esc_textarea($settings[$key]) : esc_textarea($default);
 }
-function mobooking_is_setting_checked($settings, $key, $default_is_checked = false) {
+function nordbooking_is_setting_checked($settings, $key, $default_is_checked = false) {
     $val = isset($settings[$key]) ? $settings[$key] : ($default_is_checked ? '1' : '0');
     return checked('1', $val, false);
 }
 
 // Get current public booking form URL
-$current_slug = mobooking_get_setting_value($bf_settings, 'bf_business_slug', '');
+$current_slug = nordbooking_get_setting_value($bf_settings, 'bf_business_slug', '');
 if (empty($current_slug) && !empty($biz_settings['biz_name'])) {
     $current_slug = sanitize_title($biz_settings['biz_name']);
 }
@@ -36,160 +36,160 @@ if (!empty($current_slug)) {
 }
 
 ?>
-<div id="mobooking-booking-form-settings-page" class="wrap mobooking-settings-page">
-    <div class="mobooking-page-header">
-        <div class="mobooking-page-header-heading">
-            <span class="mobooking-page-header-icon">
-                <?php echo mobooking_get_dashboard_menu_icon('booking_form'); ?>
+<div id="NORDBOOKING-booking-form-settings-page" class="wrap NORDBOOKING-settings-page">
+    <div class="NORDBOOKING-page-header">
+        <div class="NORDBOOKING-page-header-heading">
+            <span class="NORDBOOKING-page-header-icon">
+                <?php echo nordbooking_get_dashboard_menu_icon('booking_form'); ?>
             </span>
             <div class="heading-wrapper">
-                <h1><?php esc_html_e('Booking Form Settings', 'mobooking'); ?></h1>
-                <p class="dashboard-subtitle"><?php esc_html_e('Customize the appearance and behavior of your public booking form.', 'mobooking'); ?></p>
+                <h1><?php esc_html_e('Booking Form Settings', 'NORDBOOKING'); ?></h1>
+                <p class="dashboard-subtitle"><?php esc_html_e('Customize the appearance and behavior of your public booking form.', 'NORDBOOKING'); ?></p>
             </div>
         </div>
-        <div class="mobooking-page-header-actions">
-            <button type="submit" form="mobooking-booking-form-settings-form" name="save_booking_form_settings" id="mobooking-save-bf-settings-btn" class="btn btn-primary"><?php esc_html_e('Save Changes', 'mobooking'); ?></button>
+        <div class="NORDBOOKING-page-header-actions">
+            <button type="submit" form="NORDBOOKING-booking-form-settings-form" name="save_booking_form_settings" id="NORDBOOKING-save-bf-settings-btn" class="btn btn-primary"><?php esc_html_e('Save Changes', 'NORDBOOKING'); ?></button>
         </div>
     </div>
 
     <?php if (!empty($public_booking_url)): ?>
-    <div class="mobooking-public-link-display">
-        <span class="link-label"><?php esc_html_e('Your Booking Form is live at:', 'mobooking'); ?></span>
+    <div class="NORDBOOKING-public-link-display">
+        <span class="link-label"><?php esc_html_e('Your Booking Form is live at:', 'NORDBOOKING'); ?></span>
         <a href="<?php echo esc_url($public_booking_url); ?>" target="_blank" id="bf-public-link"><?php echo esc_url($public_booking_url); ?></a>
-        <button class="btn btn-sm btn-icon" id="mobooking-copy-public-link-btn" title="<?php esc_attr_e('Copy link', 'mobooking'); ?>" type="button">
+        <button class="btn btn-sm btn-icon" id="NORDBOOKING-copy-public-link-btn" title="<?php esc_attr_e('Copy link', 'NORDBOOKING'); ?>" type="button">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M8 16V18.8C8 19.9201 8 20.4802 8.21799 20.908C8.40973 21.2843 8.71569 21.5903 9.09202 21.782C9.51984 22 10.0799 22 11.2 22H18.8C19.9201 22 20.4802 22 20.908 21.782C21.2843 21.5903 21.5903 21.2843 21.782 20.908C22 20.4802 22 19.9201 22 18.8V11.2C22 10.0799 22 9.51984 21.782 9.09202C21.5903 8.71569 21.2843 8.40973 20.908 8.21799C20.4802 8 19.9201 8 18.8 8H16M5.2 16H12.8C13.9201 16 14.4802 16 14.908 15.782C15.2843 15.5903 15.5903 15.2843 15.782 14.908C16 14.4802 16 13.9201 16 12.8V5.2C16 4.0799 16 3.51984 15.782 3.09202C15.5903 2.71569 15.2843 2.40973 14.908 2.21799C14.4802 2 13.9201 2 12.8 2H5.2C4.0799 2 3.51984 2 3.09202 2.21799C2.71569 2.40973 2.40973 2.71569 2.21799 3.09202C2 3.51984 2 4.07989 2 5.2V12.8C2 13.9201 2 14.4802 2.21799 14.908C2.40973 15.2843 2.71569 15.5903 3.09202 15.782C3.51984 16 4.07989 16 5.2 16Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
         </button>
         <?php if (!empty($public_booking_url)): ?>
-            <button type="button" id="download-qr-btn" class="btn btn-secondary btn-sm"><?php esc_html_e('Download QR Code', 'mobooking'); ?></button>
+            <button type="button" id="download-qr-btn" class="btn btn-secondary btn-sm"><?php esc_html_e('Download QR Code', 'NORDBOOKING'); ?></button>
         <?php endif; ?>
     </div>
     <?php endif; ?>
 
-    <div class="mobooking-settings-grid">
-        <div class="mobooking-settings-main">
-            <form id="mobooking-booking-form-settings-form" method="post" class="mobooking-settings-form">
-                <?php wp_nonce_field('mobooking_dashboard_nonce', 'mobooking_dashboard_nonce_field'); ?>
+    <div class="NORDBOOKING-settings-grid">
+        <div class="NORDBOOKING-settings-main">
+            <form id="NORDBOOKING-booking-form-settings-form" method="post" class="NORDBOOKING-settings-form">
+                <?php wp_nonce_field('nordbooking_dashboard_nonce', 'nordbooking_dashboard_nonce_field'); ?>
 
                 <!-- Tab Navigation -->
-                <div class="mobooking-settings-tabs" role="tablist" aria-label="<?php esc_attr_e('Booking Form Settings', 'mobooking'); ?>">
-                    <a href="#general" class="mobooking-tab-item active" data-tab="general" role="tab">
-                        <?php echo mobooking_get_booking_form_tab_icon('cog'); ?>
-                        <span><?php esc_html_e('General', 'mobooking'); ?></span>
+                <div class="NORDBOOKING-settings-tabs" role="tablist" aria-label="<?php esc_attr_e('Booking Form Settings', 'NORDBOOKING'); ?>">
+                    <a href="#general" class="NORDBOOKING-tab-item active" data-tab="general" role="tab">
+                        <?php echo nordbooking_get_booking_form_tab_icon('cog'); ?>
+                        <span><?php esc_html_e('General', 'NORDBOOKING'); ?></span>
                     </a>
-                    <a href="#form-control" class="mobooking-tab-item" data-tab="form-control" role="tab">
-                        <?php echo mobooking_get_booking_form_tab_icon('toggle'); ?>
-                        <span><?php esc_html_e('Form Control', 'mobooking'); ?></span>
+                    <a href="#form-control" class="NORDBOOKING-tab-item" data-tab="form-control" role="tab">
+                        <?php echo nordbooking_get_booking_form_tab_icon('toggle'); ?>
+                        <span><?php esc_html_e('Form Control', 'NORDBOOKING'); ?></span>
                     </a>
-                    <a href="#design" class="mobooking-tab-item" data-tab="design" role="tab">
-                        <?php echo mobooking_get_booking_form_tab_icon('star'); ?>
-                        <span><?php esc_html_e('Design', 'mobooking'); ?></span>
+                    <a href="#design" class="NORDBOOKING-tab-item" data-tab="design" role="tab">
+                        <?php echo nordbooking_get_booking_form_tab_icon('star'); ?>
+                        <span><?php esc_html_e('Design', 'NORDBOOKING'); ?></span>
                     </a>
-                    <a href="#advanced" class="mobooking-tab-item" data-tab="advanced" role="tab">
-                        <?php echo mobooking_get_booking_form_tab_icon('tools'); ?>
-                        <span><?php esc_html_e('Advanced', 'mobooking'); ?></span>
+                    <a href="#advanced" class="NORDBOOKING-tab-item" data-tab="advanced" role="tab">
+                        <?php echo nordbooking_get_booking_form_tab_icon('tools'); ?>
+                        <span><?php esc_html_e('Advanced', 'NORDBOOKING'); ?></span>
                     </a>
-                    <a href="#share-embed" class="mobooking-tab-item" data-tab="share-embed" role="tab">
-                        <?php echo mobooking_get_booking_form_tab_icon('share'); ?>
-                        <span><?php esc_html_e('Share & Embed', 'mobooking'); ?></span>
+                    <a href="#share-embed" class="NORDBOOKING-tab-item" data-tab="share-embed" role="tab">
+                        <?php echo nordbooking_get_booking_form_tab_icon('share'); ?>
+                        <span><?php esc_html_e('Share & Embed', 'NORDBOOKING'); ?></span>
                     </a>
                 </div>
 
-                <div class="mobooking-settings-content">
+                <div class="NORDBOOKING-settings-content">
                     <!-- General Settings Tab -->
-                    <div id="general" class="mobooking-settings-tab-pane active" role="tabpanel">
-                        <div class="mobooking-card">
-                            <div class="mobooking-card-header">
-                                <h3 class="mobooking-card-title"><?php esc_html_e('Basic Information', 'mobooking'); ?></h3>
+                    <div id="general" class="NORDBOOKING-settings-tab-pane active" role="tabpanel">
+                        <div class="NORDBOOKING-card">
+                            <div class="NORDBOOKING-card-header">
+                                <h3 class="NORDBOOKING-card-title"><?php esc_html_e('Basic Information', 'NORDBOOKING'); ?></h3>
                             </div>
-                            <div class="mobooking-card-content">
+                            <div class="NORDBOOKING-card-content">
                                 <div class="form-group">
-                                    <label for="bf_success_message"><?php esc_html_e('Success Message', 'mobooking'); ?></label>
-                                    <textarea name="bf_success_message" id="bf_success_message" class="form-textarea" rows="3"><?php echo mobooking_get_setting_textarea($bf_settings, 'bf_success_message', 'Thank you for your booking! We will contact you soon to confirm the details.'); ?></textarea>
-                                    <p class="description"><?php esc_html_e('Message shown to customers after successful form submission.', 'mobooking'); ?></p>
+                                    <label for="bf_success_message"><?php esc_html_e('Success Message', 'NORDBOOKING'); ?></label>
+                                    <textarea name="bf_success_message" id="bf_success_message" class="form-textarea" rows="3"><?php echo nordbooking_get_setting_textarea($bf_settings, 'bf_success_message', 'Thank you for your booking! We will contact you soon to confirm the details.'); ?></textarea>
+                                    <p class="description"><?php esc_html_e('Message shown to customers after successful form submission.', 'NORDBOOKING'); ?></p>
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Form Control Tab -->
-                    <div id="form-control" class="mobooking-settings-tab-pane" role="tabpanel">
-                        <div class="mobooking-card">
-                            <div class="mobooking-card-header">
-                                <h3 class="mobooking-card-title"><?php esc_html_e('Form Availability', 'mobooking'); ?></h3>
+                    <div id="form-control" class="NORDBOOKING-settings-tab-pane" role="tabpanel">
+                        <div class="NORDBOOKING-card">
+                            <div class="NORDBOOKING-card-header">
+                                <h3 class="NORDBOOKING-card-title"><?php esc_html_e('Form Availability', 'NORDBOOKING'); ?></h3>
                             </div>
-                            <div class="mobooking-card-content">
+                            <div class="NORDBOOKING-card-content">
                                 <div class="form-group form-group-toggle">
-                                    <label class="mobooking-toggle-switch">
-                                        <input name="bf_form_enabled" type="checkbox" id="bf_form_enabled" value="1" <?php echo mobooking_is_setting_checked($bf_settings, 'bf_form_enabled', true); ?>>
+                                    <label class="NORDBOOKING-toggle-switch">
+                                        <input name="bf_form_enabled" type="checkbox" id="bf_form_enabled" value="1" <?php echo nordbooking_is_setting_checked($bf_settings, 'bf_form_enabled', true); ?>>
                                         <span class="slider"></span>
                                     </label>
                                     <div class="toggle-label-group">
-                                        <label for="bf_form_enabled" class="toggle-label"><?php esc_html_e('Enable Booking Form', 'mobooking'); ?></label>
-                                        <p class="description"><?php esc_html_e('When disabled, the form will show a maintenance message instead of allowing bookings.', 'mobooking'); ?></p>
+                                        <label for="bf_form_enabled" class="toggle-label"><?php esc_html_e('Enable Booking Form', 'NORDBOOKING'); ?></label>
+                                        <p class="description"><?php esc_html_e('When disabled, the form will show a maintenance message instead of allowing bookings.', 'NORDBOOKING'); ?></p>
                                     </div>
                                 </div>
-                                <div class="form-group" id="maintenance-message-group" style="<?php echo mobooking_is_setting_checked($bf_settings, 'bf_form_enabled', true) ? 'display:none;' : ''; ?>">
-                                    <label for="bf_maintenance_message"><?php esc_html_e('Maintenance Message', 'mobooking'); ?></label>
-                                    <textarea name="bf_maintenance_message" id="bf_maintenance_message" class="form-textarea" rows="3"><?php echo mobooking_get_setting_textarea($bf_settings, 'bf_maintenance_message', 'We are temporarily not accepting new bookings. Please check back later or contact us directly.'); ?></textarea>
-                                    <p class="description"><?php esc_html_e('This message will be displayed when the booking form is disabled.', 'mobooking'); ?></p>
+                                <div class="form-group" id="maintenance-message-group" style="<?php echo nordbooking_is_setting_checked($bf_settings, 'bf_form_enabled', true) ? 'display:none;' : ''; ?>">
+                                    <label for="bf_maintenance_message"><?php esc_html_e('Maintenance Message', 'NORDBOOKING'); ?></label>
+                                    <textarea name="bf_maintenance_message" id="bf_maintenance_message" class="form-textarea" rows="3"><?php echo nordbooking_get_setting_textarea($bf_settings, 'bf_maintenance_message', 'We are temporarily not accepting new bookings. Please check back later or contact us directly.'); ?></textarea>
+                                    <p class="description"><?php esc_html_e('This message will be displayed when the booking form is disabled.', 'NORDBOOKING'); ?></p>
                                 </div>
                             </div>
                         </div>
-                        <div class="mobooking-card">
-                            <div class="mobooking-card-header">
-                                <h3 class="mobooking-card-title"><?php esc_html_e('Form Fields', 'mobooking'); ?></h3>
+                        <div class="NORDBOOKING-card">
+                            <div class="NORDBOOKING-card-header">
+                                <h3 class="NORDBOOKING-card-title"><?php esc_html_e('Form Fields', 'NORDBOOKING'); ?></h3>
                             </div>
-                            <div class="mobooking-card-content">
+                            <div class="NORDBOOKING-card-content">
                                 <div class="form-group form-group-toggle">
-                                    <label class="mobooking-toggle-switch">
-                                        <input name="bf_enable_location_check" type="checkbox" id="bf_enable_location_check" value="1" <?php echo mobooking_is_setting_checked($bf_settings, 'bf_enable_location_check', true); ?>>
+                                    <label class="NORDBOOKING-toggle-switch">
+                                        <input name="bf_enable_location_check" type="checkbox" id="bf_enable_location_check" value="1" <?php echo nordbooking_is_setting_checked($bf_settings, 'bf_enable_location_check', true); ?>>
                                         <span class="slider"></span>
                                     </label>
                                     <div class="toggle-label-group">
-                                        <label for="bf_enable_location_check" class="toggle-label"><?php esc_html_e('Enable Location Check', 'mobooking'); ?></label>
-                                        <p class="description"><?php esc_html_e('Allow customers to check if you service their area.', 'mobooking'); ?></p>
+                                        <label for="bf_enable_location_check" class="toggle-label"><?php esc_html_e('Enable Location Check', 'NORDBOOKING'); ?></label>
+                                        <p class="description"><?php esc_html_e('Allow customers to check if you service their area.', 'NORDBOOKING'); ?></p>
                                     </div>
                                 </div>
                                 <div class="form-group form-group-toggle">
-                                    <label class="mobooking-toggle-switch">
-                                        <input name="bf_enable_pet_information" type="checkbox" id="bf_enable_pet_information" value="1" <?php echo mobooking_is_setting_checked($bf_settings, 'bf_enable_pet_information', true); ?>>
+                                    <label class="NORDBOOKING-toggle-switch">
+                                        <input name="bf_enable_pet_information" type="checkbox" id="bf_enable_pet_information" value="1" <?php echo nordbooking_is_setting_checked($bf_settings, 'bf_enable_pet_information', true); ?>>
                                         <span class="slider"></span>
                                     </label>
                                     <div class="toggle-label-group">
-                                        <label for="bf_enable_pet_information" class="toggle-label"><?php esc_html_e('Enable Pet Information', 'mobooking'); ?></label>
-                                        <p class="description"><?php esc_html_e('Show fields for pet-related service information.', 'mobooking'); ?></p>
+                                        <label for="bf_enable_pet_information" class="toggle-label"><?php esc_html_e('Enable Pet Information', 'NORDBOOKING'); ?></label>
+                                        <p class="description"><?php esc_html_e('Show fields for pet-related service information.', 'NORDBOOKING'); ?></p>
                                     </div>
                                 </div>
                                 <div class="form-group form-group-toggle">
-                                    <label class="mobooking-toggle-switch">
-                                        <input name="bf_enable_service_frequency" type="checkbox" id="bf_enable_service_frequency" value="1" <?php echo mobooking_is_setting_checked($bf_settings, 'bf_enable_service_frequency', true); ?>>
+                                    <label class="NORDBOOKING-toggle-switch">
+                                        <input name="bf_enable_service_frequency" type="checkbox" id="bf_enable_service_frequency" value="1" <?php echo nordbooking_is_setting_checked($bf_settings, 'bf_enable_service_frequency', true); ?>>
                                         <span class="slider"></span>
                                     </label>
                                     <div class="toggle-label-group">
-                                        <label for="bf_enable_service_frequency" class="toggle-label"><?php esc_html_e('Enable Service Frequency', 'mobooking'); ?></label>
-                                        <p class="description"><?php esc_html_e('Allow customers to select recurring service options.', 'mobooking'); ?></p>
+                                        <label for="bf_enable_service_frequency" class="toggle-label"><?php esc_html_e('Enable Service Frequency', 'NORDBOOKING'); ?></label>
+                                        <p class="description"><?php esc_html_e('Allow customers to select recurring service options.', 'NORDBOOKING'); ?></p>
                                     </div>
                                 </div>
                                 <div class="form-group form-group-toggle">
-                                    <label class="mobooking-toggle-switch">
-                                        <input name="bf_enable_datetime_selection" type="checkbox" id="bf_enable_datetime_selection" value="1" <?php echo mobooking_is_setting_checked($bf_settings, 'bf_enable_datetime_selection', true); ?>>
+                                    <label class="NORDBOOKING-toggle-switch">
+                                        <input name="bf_enable_datetime_selection" type="checkbox" id="bf_enable_datetime_selection" value="1" <?php echo nordbooking_is_setting_checked($bf_settings, 'bf_enable_datetime_selection', true); ?>>
                                         <span class="slider"></span>
                                     </label>
                                     <div class="toggle-label-group">
-                                        <label for="bf_enable_datetime_selection" class="toggle-label"><?php esc_html_e('Enable Date & Time Selection', 'mobooking'); ?></label>
-                                        <p class="description"><?php esc_html_e('Show calendar and time slot picker.', 'mobooking'); ?></p>
+                                        <label for="bf_enable_datetime_selection" class="toggle-label"><?php esc_html_e('Enable Date & Time Selection', 'NORDBOOKING'); ?></label>
+                                        <p class="description"><?php esc_html_e('Show calendar and time slot picker.', 'NORDBOOKING'); ?></p>
                                     </div>
                                 </div>
                                 <div class="form-group form-group-toggle">
-                                    <label class="mobooking-toggle-switch">
-                                        <input name="bf_enable_property_access" type="checkbox" id="bf_enable_property_access" value="1" <?php echo mobooking_is_setting_checked($bf_settings, 'bf_enable_property_access', true); ?>>
+                                    <label class="NORDBOOKING-toggle-switch">
+                                        <input name="bf_enable_property_access" type="checkbox" id="bf_enable_property_access" value="1" <?php echo nordbooking_is_setting_checked($bf_settings, 'bf_enable_property_access', true); ?>>
                                         <span class="slider"></span>
                                     </label>
                                     <div class="toggle-label-group">
-                                        <label for="bf_enable_property_access" class="toggle-label"><?php esc_html_e('Enable Property Access Information', 'mobooking'); ?></label>
-                                        <p class="description"><?php esc_html_e('Collect information about property access and special instructions.', 'mobooking'); ?></p>
+                                        <label for="bf_enable_property_access" class="toggle-label"><?php esc_html_e('Enable Property Access Information', 'NORDBOOKING'); ?></label>
+                                        <p class="description"><?php esc_html_e('Collect information about property access and special instructions.', 'NORDBOOKING'); ?></p>
                                     </div>
                                 </div>
                             </div>
@@ -197,114 +197,114 @@ if (!empty($current_slug)) {
                     </div>
 
                     <!-- Design Settings Tab -->
-                    <div id="design" class="mobooking-settings-tab-pane" role="tabpanel">
-                        <div class="mobooking-design-grid">
-                            <div class="mobooking-design-settings">
-                                <div class="mobooking-card">
-                                    <div class="mobooking-card-header">
-                                        <h3 class="mobooking-card-title"><?php esc_html_e('Form Appearance', 'mobooking'); ?></h3>
+                    <div id="design" class="NORDBOOKING-settings-tab-pane" role="tabpanel">
+                        <div class="NORDBOOKING-design-grid">
+                            <div class="NORDBOOKING-design-settings">
+                                <div class="NORDBOOKING-card">
+                                    <div class="NORDBOOKING-card-header">
+                                        <h3 class="NORDBOOKING-card-title"><?php esc_html_e('Form Appearance', 'NORDBOOKING'); ?></h3>
                                     </div>
-                                    <div class="mobooking-card-content">
+                                    <div class="NORDBOOKING-card-content">
                                         <div class="form-group">
-                                            <label for="bf_header_text"><?php esc_html_e('Header Text', 'mobooking'); ?></label>
-                                            <input name="bf_header_text" type="text" id="bf_header_text" value="<?php echo mobooking_get_setting_value($bf_settings, 'bf_header_text', 'Book Our Services Online'); ?>" class="form-input">
-                                            <p class="description"><?php esc_html_e('The main heading displayed at the top of your booking form.', 'mobooking'); ?></p>
+                                            <label for="bf_header_text"><?php esc_html_e('Header Text', 'NORDBOOKING'); ?></label>
+                                            <input name="bf_header_text" type="text" id="bf_header_text" value="<?php echo nordbooking_get_setting_value($bf_settings, 'bf_header_text', 'Book Our Services Online'); ?>" class="form-input">
+                                            <p class="description"><?php esc_html_e('The main heading displayed at the top of your booking form.', 'NORDBOOKING'); ?></p>
                                         </div>
                                         <div class="form-group">
-                                            <label for="bf_description"><?php esc_html_e('Description', 'mobooking'); ?></label>
-                                            <textarea name="bf_description" id="bf_description" class="form-textarea" rows="3"><?php echo mobooking_get_setting_textarea($bf_settings, 'bf_description'); ?></textarea>
-                                            <p class="description"><?php esc_html_e('Optional description text shown below the header.', 'mobooking'); ?></p>
+                                            <label for="bf_description"><?php esc_html_e('Description', 'NORDBOOKING'); ?></label>
+                                            <textarea name="bf_description" id="bf_description" class="form-textarea" rows="3"><?php echo nordbooking_get_setting_textarea($bf_settings, 'bf_description'); ?></textarea>
+                                            <p class="description"><?php esc_html_e('Optional description text shown below the header.', 'NORDBOOKING'); ?></p>
                                         </div>
                                         <div class="form-group">
-                                            <label><?php esc_html_e('Progress Indicator Style', 'mobooking'); ?></label>
-                                            <div class="mobooking-radio-group-cards">
+                                            <label><?php esc_html_e('Progress Indicator Style', 'NORDBOOKING'); ?></label>
+                                            <div class="NORDBOOKING-radio-group-cards">
                                                 <label>
-                                                    <input type="radio" name="bf_progress_display_style" value="bar" <?php checked(mobooking_get_setting_value($bf_settings, 'bf_progress_display_style', 'bar'), 'bar'); ?>>
+                                                    <input type="radio" name="bf_progress_display_style" value="bar" <?php checked(nordbooking_get_setting_value($bf_settings, 'bf_progress_display_style', 'bar'), 'bar'); ?>>
                                                     <div class="card-content">
-                                                        <span><?php esc_html_e('Progress Bar', 'mobooking'); ?></span>
+                                                        <span><?php esc_html_e('Progress Bar', 'NORDBOOKING'); ?></span>
                                                     </div>
                                                 </label>
                                                 <label>
-                                                    <input type="radio" name="bf_progress_display_style" value="none" <?php checked(mobooking_get_setting_value($bf_settings, 'bf_progress_display_style', 'bar'), 'none'); ?>>
+                                                    <input type="radio" name="bf_progress_display_style" value="none" <?php checked(nordbooking_get_setting_value($bf_settings, 'bf_progress_display_style', 'bar'), 'none'); ?>>
                                                     <div class="card-content">
-                                                        <span><?php esc_html_e('None', 'mobooking'); ?></span>
+                                                        <span><?php esc_html_e('None', 'NORDBOOKING'); ?></span>
                                                     </div>
                                                 </label>
                                             </div>
-                                            <p class="description"><?php esc_html_e('Choose how to display the progress indicator on the booking form.', 'mobooking'); ?></p>
+                                            <p class="description"><?php esc_html_e('Choose how to display the progress indicator on the booking form.', 'NORDBOOKING'); ?></p>
                                         </div>
                                         <div class="form-group">
-                                            <label><?php esc_html_e('Service Card Display', 'mobooking'); ?></label>
-                                            <div class="mobooking-radio-group-cards">
+                                            <label><?php esc_html_e('Service Card Display', 'NORDBOOKING'); ?></label>
+                                            <div class="NORDBOOKING-radio-group-cards">
                                                 <label>
-                                                    <input type="radio" name="bf_service_card_display" value="image" <?php checked(mobooking_get_setting_value($bf_settings, 'bf_service_card_display', 'image'), 'image'); ?>>
+                                                    <input type="radio" name="bf_service_card_display" value="image" <?php checked(nordbooking_get_setting_value($bf_settings, 'bf_service_card_display', 'image'), 'image'); ?>>
                                                     <div class="card-content">
-                                                        <span><?php esc_html_e('Show Image', 'mobooking'); ?></span>
+                                                        <span><?php esc_html_e('Show Image', 'NORDBOOKING'); ?></span>
                                                     </div>
                                                 </label>
                                                 <label>
-                                                    <input type="radio" name="bf_service_card_display" value="icon" <?php checked(mobooking_get_setting_value($bf_settings, 'bf_service_card_display', 'image'), 'icon'); ?>>
+                                                    <input type="radio" name="bf_service_card_display" value="icon" <?php checked(nordbooking_get_setting_value($bf_settings, 'bf_service_card_display', 'image'), 'icon'); ?>>
                                                     <div class="card-content">
-                                                        <span><?php esc_html_e('Show Icon', 'mobooking'); ?></span>
+                                                        <span><?php esc_html_e('Show Icon', 'NORDBOOKING'); ?></span>
                                                     </div>
                                                 </label>
                                             </div>
-                                            <p class="description"><?php esc_html_e('Choose what to display on the service cards in the booking form.', 'mobooking'); ?></p>
+                                            <p class="description"><?php esc_html_e('Choose what to display on the service cards in the booking form.', 'NORDBOOKING'); ?></p>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="mobooking-card">
-                                    <div class="mobooking-card-header">
-                                        <h3 class="mobooking-card-title"><?php esc_html_e('Theme Colors', 'mobooking'); ?></h3>
+                                <div class="NORDBOOKING-card">
+                                    <div class="NORDBOOKING-card-header">
+                                        <h3 class="NORDBOOKING-card-title"><?php esc_html_e('Theme Colors', 'NORDBOOKING'); ?></h3>
                                     </div>
-                                    <div class="mobooking-card-content">
+                                    <div class="NORDBOOKING-card-content">
                                         <div class="form-group-grid two-cols">
                                             <div class="form-group">
-                                                <label for="bf_theme_color"><?php esc_html_e('Primary Color', 'mobooking'); ?></label>
-                                                <input name="bf_theme_color" type="text" id="bf_theme_color" value="<?php echo mobooking_get_setting_value($bf_settings, 'bf_theme_color', '#1abc9c'); ?>" class="form-input mobooking-color-picker">
-                                                <p class="description"><?php esc_html_e('Main color used for buttons and accents.', 'mobooking'); ?></p>
+                                                <label for="bf_theme_color"><?php esc_html_e('Primary Color', 'NORDBOOKING'); ?></label>
+                                                <input name="bf_theme_color" type="text" id="bf_theme_color" value="<?php echo nordbooking_get_setting_value($bf_settings, 'bf_theme_color', '#1abc9c'); ?>" class="form-input NORDBOOKING-color-picker">
+                                                <p class="description"><?php esc_html_e('Main color used for buttons and accents.', 'NORDBOOKING'); ?></p>
                                             </div>
                                             <div class="form-group">
-                                                <label for="bf_background_color"><?php esc_html_e('Background Color', 'mobooking'); ?></label>
-                                                <input name="bf_background_color" type="text" id="bf_background_color" value="<?php echo mobooking_get_setting_value($bf_settings, 'bf_background_color', '#ffffff'); ?>" class="form-input mobooking-color-picker">
-                                                <p class="description"><?php esc_html_e('Background color of the form.', 'mobooking'); ?></p>
+                                                <label for="bf_background_color"><?php esc_html_e('Background Color', 'NORDBOOKING'); ?></label>
+                                                <input name="bf_background_color" type="text" id="bf_background_color" value="<?php echo nordbooking_get_setting_value($bf_settings, 'bf_background_color', '#ffffff'); ?>" class="form-input NORDBOOKING-color-picker">
+                                                <p class="description"><?php esc_html_e('Background color of the form.', 'NORDBOOKING'); ?></p>
                                             </div>
                                         </div>
                                         <div class="form-group-grid two-cols">
                                             <div class="form-group">
-                                                <label for="bf_text_color"><?php esc_html_e('Text Color', 'mobooking'); ?></label>
-                                                <input name="bf_text_color" type="text" id="bf_text_color" value="<?php echo mobooking_get_setting_value($bf_settings, 'bf_text_color', '#333333'); ?>" class="form-input mobooking-color-picker">
-                                                <p class="description"><?php esc_html_e('Primary text color.', 'mobooking'); ?></p>
+                                                <label for="bf_text_color"><?php esc_html_e('Text Color', 'NORDBOOKING'); ?></label>
+                                                <input name="bf_text_color" type="text" id="bf_text_color" value="<?php echo nordbooking_get_setting_value($bf_settings, 'bf_text_color', '#333333'); ?>" class="form-input NORDBOOKING-color-picker">
+                                                <p class="description"><?php esc_html_e('Primary text color.', 'NORDBOOKING'); ?></p>
                                             </div>
                                             <div class="form-group">
-                                                <label for="bf_border_radius"><?php esc_html_e('Border Radius (px)', 'mobooking'); ?></label>
-                                                <input name="bf_border_radius" type="number" id="bf_border_radius" value="<?php echo mobooking_get_setting_value($bf_settings, 'bf_border_radius', '8'); ?>" min="0" max="50" class="form-input">
-                                                <p class="description"><?php esc_html_e('Roundness of form elements.', 'mobooking'); ?></p>
+                                                <label for="bf_border_radius"><?php esc_html_e('Border Radius (px)', 'NORDBOOKING'); ?></label>
+                                                <input name="bf_border_radius" type="number" id="bf_border_radius" value="<?php echo nordbooking_get_setting_value($bf_settings, 'bf_border_radius', '8'); ?>" min="0" max="50" class="form-input">
+                                                <p class="description"><?php esc_html_e('Roundness of form elements.', 'NORDBOOKING'); ?></p>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="mobooking-card">
-                                    <div class="mobooking-card-header">
-                                        <h3 class="mobooking-card-title"><?php esc_html_e('Custom CSS', 'mobooking'); ?></h3>
+                                <div class="NORDBOOKING-card">
+                                    <div class="NORDBOOKING-card-header">
+                                        <h3 class="NORDBOOKING-card-title"><?php esc_html_e('Custom CSS', 'NORDBOOKING'); ?></h3>
                                     </div>
-                                    <div class="mobooking-card-content">
+                                    <div class="NORDBOOKING-card-content">
                                         <div class="form-group">
-                                            <label for="bf_custom_css"><?php esc_html_e('Custom CSS Rules', 'mobooking'); ?></label>
-                                            <textarea name="bf_custom_css" id="bf_custom_css" class="form-textarea code" rows="8" placeholder="<?php esc_attr_e('/* Your custom CSS rules here */', 'mobooking'); ?>"><?php echo mobooking_get_setting_textarea($bf_settings, 'bf_custom_css'); ?></textarea>
-                                            <p class="description"><strong><?php esc_html_e('Tip:', 'mobooking'); ?></strong> <?php esc_html_e('Use <code>.mobooking-form</code> as the main selector to target form elements.', 'mobooking'); ?></p>
+                                            <label for="bf_custom_css"><?php esc_html_e('Custom CSS Rules', 'NORDBOOKING'); ?></label>
+                                            <textarea name="bf_custom_css" id="bf_custom_css" class="form-textarea code" rows="8" placeholder="<?php esc_attr_e('/* Your custom CSS rules here */', 'NORDBOOKING'); ?>"><?php echo nordbooking_get_setting_textarea($bf_settings, 'bf_custom_css'); ?></textarea>
+                                            <p class="description"><strong><?php esc_html_e('Tip:', 'NORDBOOKING'); ?></strong> <?php esc_html_e('Use <code>.NORDBOOKING-form</code> as the main selector to target form elements.', 'NORDBOOKING'); ?></p>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                            <div class="mobooking-design-preview">
-                                <div class="mobooking-preview-box">
-                                    <h3 class="preview-box-title"><?php esc_html_e('Live Preview', 'mobooking'); ?></h3>
-                                    <div class="mobooking-form-preview-wrapper">
-                                        <div class="mobooking-form-preview">
+                            <div class="NORDBOOKING-design-preview">
+                                <div class="NORDBOOKING-preview-box">
+                                    <h3 class="preview-box-title"><?php esc_html_e('Live Preview', 'NORDBOOKING'); ?></h3>
+                                    <div class="NORDBOOKING-form-preview-wrapper">
+                                        <div class="NORDBOOKING-form-preview">
                                             <div class="preview-header">
-                                             <h2 id="preview-header-text"><?php echo esc_html(mobooking_get_setting_value($bf_settings, 'bf_header_text', 'Book Our Services Online')); ?></h2>
-                                                <p id="preview-description"><?php echo esc_html(mobooking_get_setting_value($bf_settings, 'bf_description')); ?></p>
+                                             <h2 id="preview-header-text"><?php echo esc_html(nordbooking_get_setting_value($bf_settings, 'bf_header_text', 'Book Our Services Online')); ?></h2>
+                                                <p id="preview-description"><?php echo esc_html(nordbooking_get_setting_value($bf_settings, 'bf_description')); ?></p>
                                             </div>
                                             <div class="preview-progress-wrapper" style="padding: 1rem 0; min-height: 20px;">
                                                 <div class="preview-progress-bar" style="height: 12px; background-color: #e5e7eb; border-radius: 6px; overflow: hidden;">
@@ -325,15 +325,15 @@ if (!empty($current_slug)) {
                                                     </div>
                                                 </div>
                                                 <div class="preview-form-group">
-                                                     <label><?php esc_html_e('Sample Input', 'mobooking'); ?></label>
+                                                     <label><?php esc_html_e('Sample Input', 'NORDBOOKING'); ?></label>
                                                      <input type="text" readonly>
                                                 </div>
                                                  <div class="preview-form-group">
-                                                     <label><?php esc_html_e('Sample Select', 'mobooking'); ?></label>
-                                                     <select readonly><option><?php esc_html_e('Option 1', 'mobooking'); ?></option></select>
+                                                     <label><?php esc_html_e('Sample Select', 'NORDBOOKING'); ?></label>
+                                                     <select readonly><option><?php esc_html_e('Option 1', 'NORDBOOKING'); ?></option></select>
                                                  </div>
                                                 <div class="preview-form-group">
-                                                    <button type="button" class="preview-button"><?php esc_html_e('Continue', 'mobooking'); ?></button>
+                                                    <button type="button" class="preview-button"><?php esc_html_e('Continue', 'NORDBOOKING'); ?></button>
                                                 </div>
                                             </div>
                                         </div>
@@ -344,71 +344,71 @@ if (!empty($current_slug)) {
                     </div>
 
                     <!-- Advanced Settings Tab -->
-                    <div id="advanced" class="mobooking-settings-tab-pane" role="tabpanel">
-                        <div class="mobooking-card">
-                            <div class="mobooking-card-header">
-                                <h3 class="mobooking-card-title"><?php esc_html_e('Booking Logic', 'mobooking'); ?></h3>
+                    <div id="advanced" class="NORDBOOKING-settings-tab-pane" role="tabpanel">
+                        <div class="NORDBOOKING-card">
+                            <div class="NORDBOOKING-card-header">
+                                <h3 class="NORDBOOKING-card-title"><?php esc_html_e('Booking Logic', 'NORDBOOKING'); ?></h3>
                             </div>
-                            <div class="mobooking-card-content">
+                            <div class="NORDBOOKING-card-content">
                                 <div class="form-group-grid two-cols">
                                     <div class="form-group">
-                                        <label for="bf_allow_cancellation_hours"><?php esc_html_e('Cancellation Lead Time (Hours)', 'mobooking'); ?></label>
-                                        <input name="bf_allow_cancellation_hours" type="number" id="bf_allow_cancellation_hours" value="<?php echo mobooking_get_setting_value($bf_settings, 'bf_allow_cancellation_hours', '24'); ?>" min="0" class="form-input">
-                                        <p class="description"><?php esc_html_e('Minimum hours before booking a customer can cancel.', 'mobooking'); ?></p>
+                                        <label for="bf_allow_cancellation_hours"><?php esc_html_e('Cancellation Lead Time (Hours)', 'NORDBOOKING'); ?></label>
+                                        <input name="bf_allow_cancellation_hours" type="number" id="bf_allow_cancellation_hours" value="<?php echo nordbooking_get_setting_value($bf_settings, 'bf_allow_cancellation_hours', '24'); ?>" min="0" class="form-input">
+                                        <p class="description"><?php esc_html_e('Minimum hours before booking a customer can cancel.', 'NORDBOOKING'); ?></p>
                                     </div>
                                     <div class="form-group">
-                                        <label for="bf_booking_advance_days"><?php esc_html_e('Advance Booking Days', 'mobooking'); ?></label>
-                                        <input name="bf_booking_advance_days" type="number" id="bf_booking_advance_days" value="<?php echo mobooking_get_setting_value($bf_settings, 'bf_booking_advance_days', '30'); ?>" min="1" max="365" class="form-input">
-                                        <p class="description"><?php esc_html_e('How many days in advance customers can book.', 'mobooking'); ?></p>
+                                        <label for="bf_booking_advance_days"><?php esc_html_e('Advance Booking Days', 'NORDBOOKING'); ?></label>
+                                        <input name="bf_booking_advance_days" type="number" id="bf_booking_advance_days" value="<?php echo nordbooking_get_setting_value($bf_settings, 'bf_booking_advance_days', '30'); ?>" min="1" max="365" class="form-input">
+                                        <p class="description"><?php esc_html_e('How many days in advance customers can book.', 'NORDBOOKING'); ?></p>
                                     </div>
                                 </div>
                                 <div class="form-group-grid two-cols">
                                     <div class="form-group">
-                                        <label for="bf_min_booking_notice"><?php esc_html_e('Minimum Booking Notice (Hours)', 'mobooking'); ?></label>
-                                        <input name="bf_min_booking_notice" type="number" id="bf_min_booking_notice" value="<?php echo mobooking_get_setting_value($bf_settings, 'bf_min_booking_notice', '24'); ?>" min="0" class="form-input">
-                                        <p class="description"><?php esc_html_e('Minimum hours notice required for new bookings.', 'mobooking'); ?></p>
+                                        <label for="bf_min_booking_notice"><?php esc_html_e('Minimum Booking Notice (Hours)', 'NORDBOOKING'); ?></label>
+                                        <input name="bf_min_booking_notice" type="number" id="bf_min_booking_notice" value="<?php echo nordbooking_get_setting_value($bf_settings, 'bf_min_booking_notice', '24'); ?>" min="0" class="form-input">
+                                        <p class="description"><?php esc_html_e('Minimum hours notice required for new bookings.', 'NORDBOOKING'); ?></p>
                                     </div>
                                     <div class="form-group">
-                                        <label for="bf_time_slot_duration"><?php esc_html_e('Time Slot Duration (Minutes)', 'mobooking'); ?></label>
+                                        <label for="bf_time_slot_duration"><?php esc_html_e('Time Slot Duration (Minutes)', 'NORDBOOKING'); ?></label>
                                         <select name="bf_time_slot_duration" id="bf_time_slot_duration" class="form-select">
-                                            <option value="15" <?php selected(mobooking_get_setting_value($bf_settings, 'bf_time_slot_duration', '60'), '15'); ?>>15 <?php esc_html_e('minutes', 'mobooking'); ?></option>
-                                            <option value="30" <?php selected(mobooking_get_setting_value($bf_settings, 'bf_time_slot_duration', '60'), '30'); ?>>30 <?php esc_html_e('minutes', 'mobooking'); ?></option>
-                                            <option value="60" <?php selected(mobooking_get_setting_value($bf_settings, 'bf_time_slot_duration', '60'), '60'); ?>>1 <?php esc_html_e('hour', 'mobooking'); ?></option>
-                                            <option value="120" <?php selected(mobooking_get_setting_value($bf_settings, 'bf_time_slot_duration', '60'), '120'); ?>>2 <?php esc_html_e('hours', 'mobooking'); ?></option>
+                                            <option value="15" <?php selected(nordbooking_get_setting_value($bf_settings, 'bf_time_slot_duration', '60'), '15'); ?>>15 <?php esc_html_e('minutes', 'NORDBOOKING'); ?></option>
+                                            <option value="30" <?php selected(nordbooking_get_setting_value($bf_settings, 'bf_time_slot_duration', '60'), '30'); ?>>30 <?php esc_html_e('minutes', 'NORDBOOKING'); ?></option>
+                                            <option value="60" <?php selected(nordbooking_get_setting_value($bf_settings, 'bf_time_slot_duration', '60'), '60'); ?>>1 <?php esc_html_e('hour', 'NORDBOOKING'); ?></option>
+                                            <option value="120" <?php selected(nordbooking_get_setting_value($bf_settings, 'bf_time_slot_duration', '60'), '120'); ?>>2 <?php esc_html_e('hours', 'NORDBOOKING'); ?></option>
                                         </select>
-                                        <p class="description"><?php esc_html_e('Duration of each available time slot.', 'mobooking'); ?></p>
+                                        <p class="description"><?php esc_html_e('Duration of each available time slot.', 'NORDBOOKING'); ?></p>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="mobooking-card">
-                            <div class="mobooking-card-header">
-                                <h3 class="mobooking-card-title"><?php esc_html_e('Notification Settings', 'mobooking'); ?></h3>
+                        <div class="NORDBOOKING-card">
+                            <div class="NORDBOOKING-card-header">
+                                <h3 class="NORDBOOKING-card-title"><?php esc_html_e('Notification Settings', 'NORDBOOKING'); ?></h3>
                             </div>
-                            <div class="mobooking-card-content">
+                            <div class="NORDBOOKING-card-content">
                                 <div class="form-group">
-                                    <label for="bf_admin_email"><?php esc_html_e('Admin Notification Email', 'mobooking'); ?></label>
-                                    <input name="bf_admin_email" type="email" id="bf_admin_email" value="<?php echo mobooking_get_setting_value($bf_settings, 'bf_admin_email', get_option('admin_email')); ?>" class="form-input">
-                                    <p class="description"><?php esc_html_e('Email address to receive new booking notifications.', 'mobooking'); ?></p>
+                                    <label for="bf_admin_email"><?php esc_html_e('Admin Notification Email', 'NORDBOOKING'); ?></label>
+                                    <input name="bf_admin_email" type="email" id="bf_admin_email" value="<?php echo nordbooking_get_setting_value($bf_settings, 'bf_admin_email', get_option('admin_email')); ?>" class="form-input">
+                                    <p class="description"><?php esc_html_e('Email address to receive new booking notifications.', 'NORDBOOKING'); ?></p>
                                 </div>
                                 <div class="form-group form-group-toggle">
-                                    <label class="mobooking-toggle-switch">
-                                        <input name="bf_send_customer_confirmation" type="checkbox" id="bf_send_customer_confirmation" value="1" <?php echo mobooking_is_setting_checked($bf_settings, 'bf_send_customer_confirmation', true); ?>>
+                                    <label class="NORDBOOKING-toggle-switch">
+                                        <input name="bf_send_customer_confirmation" type="checkbox" id="bf_send_customer_confirmation" value="1" <?php echo nordbooking_is_setting_checked($bf_settings, 'bf_send_customer_confirmation', true); ?>>
                                         <span class="slider"></span>
                                     </label>
                                     <div class="toggle-label-group">
-                                        <label for="bf_send_customer_confirmation" class="toggle-label"><?php esc_html_e('Send Customer Confirmation Emails', 'mobooking'); ?></label>
-                                        <p class="description"><?php esc_html_e('Automatically send confirmation emails to customers after booking.', 'mobooking'); ?></p>
+                                        <label for="bf_send_customer_confirmation" class="toggle-label"><?php esc_html_e('Send Customer Confirmation Emails', 'NORDBOOKING'); ?></label>
+                                        <p class="description"><?php esc_html_e('Automatically send confirmation emails to customers after booking.', 'NORDBOOKING'); ?></p>
                                     </div>
                                 </div>
                                 <div class="form-group form-group-toggle">
-                                    <label class="mobooking-toggle-switch">
-                                        <input name="bf_send_admin_notification" type="checkbox" id="bf_send_admin_notification" value="1" <?php echo mobooking_is_setting_checked($bf_settings, 'bf_send_admin_notification', true); ?>>
+                                    <label class="NORDBOOKING-toggle-switch">
+                                        <input name="bf_send_admin_notification" type="checkbox" id="bf_send_admin_notification" value="1" <?php echo nordbooking_is_setting_checked($bf_settings, 'bf_send_admin_notification', true); ?>>
                                         <span class="slider"></span>
                                     </label>
                                     <div class="toggle-label-group">
-                                        <label for="bf_send_admin_notification" class="toggle-label"><?php esc_html_e('Send Admin Notification Emails', 'mobooking'); ?></label>
-                                        <p class="description"><?php esc_html_e('Receive email notifications when new bookings are made.', 'mobooking'); ?></p>
+                                        <label for="bf_send_admin_notification" class="toggle-label"><?php esc_html_e('Send Admin Notification Emails', 'NORDBOOKING'); ?></label>
+                                        <p class="description"><?php esc_html_e('Receive email notifications when new bookings are made.', 'NORDBOOKING'); ?></p>
                                     </div>
                                 </div>
                             </div>
@@ -416,65 +416,65 @@ if (!empty($current_slug)) {
                     </div>
 
                     <!-- Share & Embed Tab -->
-                    <div id="share-embed" class="mobooking-settings-tab-pane" role="tabpanel">
-                        <div class="mobooking-card">
-                            <div class="mobooking-card-header">
-                                <h3 class="mobooking-card-title"><?php esc_html_e('Public Booking Link', 'mobooking'); ?></h3>
+                    <div id="share-embed" class="NORDBOOKING-settings-tab-pane" role="tabpanel">
+                        <div class="NORDBOOKING-card">
+                            <div class="NORDBOOKING-card-header">
+                                <h3 class="NORDBOOKING-card-title"><?php esc_html_e('Public Booking Link', 'NORDBOOKING'); ?></h3>
                             </div>
-                            <div class="mobooking-card-content">
+                            <div class="NORDBOOKING-card-content">
                                 <div class="form-group">
-                                    <label for="bf_business_slug"><?php esc_html_e('Business Slug', 'mobooking'); ?></label>
-                                    <input name="bf_business_slug" type="text" id="bf_business_slug" value="<?php echo esc_attr($current_slug); ?>" class="form-input" pattern="[a-z0-9-]+" title="<?php esc_attr_e('Only lowercase letters, numbers, and hyphens allowed', 'mobooking'); ?>">
+                                    <label for="bf_business_slug"><?php esc_html_e('Business Slug', 'NORDBOOKING'); ?></label>
+                                    <input name="bf_business_slug" type="text" id="bf_business_slug" value="<?php echo esc_attr($current_slug); ?>" class="form-input" pattern="[a-z0-9-]+" title="<?php esc_attr_e('Only lowercase letters, numbers, and hyphens allowed', 'NORDBOOKING'); ?>">
                                     <p class="description">
-                                        <?php esc_html_e('Unique slug for your public booking page URL (e.g., your-business-name).', 'mobooking'); ?>
+                                        <?php esc_html_e('Unique slug for your public booking page URL (e.g., your-business-name).', 'NORDBOOKING'); ?>
                                         <br>
-                                        <?php esc_html_e('Changing this will change your public booking form URL. Only use lowercase letters, numbers, and hyphens.', 'mobooking'); ?>
+                                        <?php esc_html_e('Changing this will change your public booking form URL. Only use lowercase letters, numbers, and hyphens.', 'NORDBOOKING'); ?>
                                     </p>
                                 </div>
                                 <div class="form-group">
-                                    <label for="mobooking-public-link"><?php esc_html_e('Public Link', 'mobooking'); ?></label>
+                                    <label for="NORDBOOKING-public-link"><?php esc_html_e('Public Link', 'NORDBOOKING'); ?></label>
                                     <div class="input-group">
-                                        <input type="url" id="mobooking-public-link" value="<?php echo esc_url($public_booking_url); ?>" class="form-input" readonly>
-                                        <button type="button" class="btn btn-secondary" id="mobooking-copy-public-link-btn"><?php esc_html_e('Copy', 'mobooking'); ?></button>
+                                        <input type="url" id="NORDBOOKING-public-link" value="<?php echo esc_url($public_booking_url); ?>" class="form-input" readonly>
+                                        <button type="button" class="btn btn-secondary" id="NORDBOOKING-copy-public-link-btn"><?php esc_html_e('Copy', 'NORDBOOKING'); ?></button>
                                     </div>
-                                    <p class="description"><?php esc_html_e('Share this link with customers so they can book your services directly.', 'mobooking'); ?></p>
+                                    <p class="description"><?php esc_html_e('Share this link with customers so they can book your services directly.', 'NORDBOOKING'); ?></p>
                                 </div>
                                 <?php if (!empty($public_booking_url)): ?>
                                 <div class="form-group">
-                                    <label><?php esc_html_e('QR Code', 'mobooking'); ?></label>
+                                    <label><?php esc_html_e('QR Code', 'NORDBOOKING'); ?></label>
                                     <div class="qr-code-container">
-                                        <img id="qr-code-image" src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=<?php echo urlencode($public_booking_url); ?>" alt="<?php esc_attr_e('Booking Form QR Code', 'mobooking'); ?>" style="max-width: 200px; height: auto;">
+                                        <img id="qr-code-image" src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=<?php echo urlencode($public_booking_url); ?>" alt="<?php esc_attr_e('Booking Form QR Code', 'NORDBOOKING'); ?>" style="max-width: 200px; height: auto;">
                                         <br>
-                                        <button type="button" id="download-qr-btn-embed" class="btn btn-secondary btn-sm" style="margin-top: 10px;"><?php esc_html_e('Download QR Code', 'mobooking'); ?></button>
+                                        <button type="button" id="download-qr-btn-embed" class="btn btn-secondary btn-sm" style="margin-top: 10px;"><?php esc_html_e('Download QR Code', 'NORDBOOKING'); ?></button>
                                     </div>
-                                    <p class="description"><?php esc_html_e('Print this QR code on business cards, flyers, or display it at your location.', 'mobooking'); ?></p>
+                                    <p class="description"><?php esc_html_e('Print this QR code on business cards, flyers, or display it at your location.', 'NORDBOOKING'); ?></p>
                                 </div>
                                 <?php endif; ?>
                             </div>
                         </div>
-                        <div class="mobooking-card">
-                            <div class="mobooking-card-header">
-                                <h3 class="mobooking-card-title"><?php esc_html_e('Embed Code', 'mobooking'); ?></h3>
+                        <div class="NORDBOOKING-card">
+                            <div class="NORDBOOKING-card-header">
+                                <h3 class="NORDBOOKING-card-title"><?php esc_html_e('Embed Code', 'NORDBOOKING'); ?></h3>
                             </div>
-                            <div class="mobooking-card-content">
+                            <div class="NORDBOOKING-card-content">
                                 <div class="form-group">
-                                    <label for="mobooking-embed-code"><?php esc_html_e('Embed Code', 'mobooking'); ?></label>
-                                    <textarea id="mobooking-embed-code" class="form-textarea code" rows="4" readonly><?php if (!empty($public_booking_url)): ?><iframe src="<?php echo esc_url($public_booking_url); ?>" width="100%" height="600" frameborder="0" scrolling="auto"></iframe><?php endif; ?></textarea>
+                                    <label for="NORDBOOKING-embed-code"><?php esc_html_e('Embed Code', 'NORDBOOKING'); ?></label>
+                                    <textarea id="NORDBOOKING-embed-code" class="form-textarea code" rows="4" readonly><?php if (!empty($public_booking_url)): ?><iframe src="<?php echo esc_url($public_booking_url); ?>" width="100%" height="600" frameborder="0" scrolling="auto"></iframe><?php endif; ?></textarea>
                                     <div class="button-group" style="margin-top: 0.75rem;">
-                                        <button type="button" class="btn btn-secondary" id="mobooking-copy-embed-code-btn"><?php esc_html_e('Copy Embed Code', 'mobooking'); ?></button>
+                                        <button type="button" class="btn btn-secondary" id="NORDBOOKING-copy-embed-code-btn"><?php esc_html_e('Copy Embed Code', 'NORDBOOKING'); ?></button>
                                     </div>
-                                    <p class="description"><?php esc_html_e('Use this code to embed the booking form directly into your website or blog.', 'mobooking'); ?></p>
+                                    <p class="description"><?php esc_html_e('Use this code to embed the booking form directly into your website or blog.', 'NORDBOOKING'); ?></p>
                                 </div>
                                 <div class="form-group-grid two-cols">
                                     <div class="form-group">
-                                        <label for="bf_embed_width"><?php esc_html_e('Embed Width', 'mobooking'); ?></label>
-                                        <input name="bf_embed_width" type="text" id="bf_embed_width" value="<?php echo mobooking_get_setting_value($bf_settings, 'bf_embed_width', '100%'); ?>" class="form-input">
-                                        <p class="description"><?php esc_html_e('Width of embedded form (e.g., 100%, 600px).', 'mobooking'); ?></p>
+                                        <label for="bf_embed_width"><?php esc_html_e('Embed Width', 'NORDBOOKING'); ?></label>
+                                        <input name="bf_embed_width" type="text" id="bf_embed_width" value="<?php echo nordbooking_get_setting_value($bf_settings, 'bf_embed_width', '100%'); ?>" class="form-input">
+                                        <p class="description"><?php esc_html_e('Width of embedded form (e.g., 100%, 600px).', 'NORDBOOKING'); ?></p>
                                     </div>
                                     <div class="form-group">
-                                        <label for="bf_embed_height"><?php esc_html_e('Embed Height', 'mobooking'); ?></label>
-                                        <input name="bf_embed_height" type="text" id="bf_embed_height" value="<?php echo mobooking_get_setting_value($bf_settings, 'bf_embed_height', '600px'); ?>" class="form-input">
-                                        <p class="description"><?php esc_html_e('Height of embedded form (e.g., 600px, 80vh).', 'mobooking'); ?></p>
+                                        <label for="bf_embed_height"><?php esc_html_e('Embed Height', 'NORDBOOKING'); ?></label>
+                                        <input name="bf_embed_height" type="text" id="bf_embed_height" value="<?php echo nordbooking_get_setting_value($bf_settings, 'bf_embed_height', '600px'); ?>" class="form-input">
+                                        <p class="description"><?php esc_html_e('Height of embedded form (e.g., 600px, 80vh).', 'NORDBOOKING'); ?></p>
                                     </div>
                                 </div>
                             </div>
@@ -482,12 +482,12 @@ if (!empty($current_slug)) {
                     </div>
                 </div>
             </form>
-        </div><!-- /.mobooking-settings-main -->
-    </div><!-- /.mobooking-settings-grid -->
+        </div><!-- /.NORDBOOKING-settings-main -->
+    </div><!-- /.NORDBOOKING-settings-grid -->
 </div>
 
 <!-- Success/Error Messages Container -->
-<div id="mobooking-settings-feedback" class="notice" style="display:none;"></div>
+<div id="NORDBOOKING-settings-feedback" class="notice" style="display:none;"></div>
 
 <style>
 /* Additional styles for improved form experience */
@@ -565,7 +565,7 @@ if (!empty($current_slug)) {
 }
 
 /* Tab icons */
-.mobooking-tab-item svg {
+.NORDBOOKING-tab-item svg {
     width: 16px;
     height: 16px;
     margin-right: 8px;
@@ -574,40 +574,40 @@ if (!empty($current_slug)) {
     opacity: 0.7;
     transition: opacity 0.2s ease-in-out;
 }
-.mobooking-tab-item:hover svg,
-.mobooking-tab-item.active svg {
+.NORDBOOKING-tab-item:hover svg,
+.NORDBOOKING-tab-item.active svg {
     opacity: 1;
 }
-.mobooking-tab-item span {
+.NORDBOOKING-tab-item span {
     vertical-align: middle;
     display: inline-block;
 }
 
-.mobooking-settings-grid {
+.NORDBOOKING-settings-grid {
     display: grid;
     grid-template-columns: 1fr; /* Default to single column */
     gap: 2rem;
 }
 
-.mobooking-design-grid {
+.NORDBOOKING-design-grid {
     display: grid;
     grid-template-columns: 1fr;
     gap: 2rem;
 }
 
 @media (min-width: 1024px) {
-    .mobooking-design-grid {
+    .NORDBOOKING-design-grid {
         grid-template-columns: 1fr 400px;
     }
 }
 
-.mobooking-design-preview {
+.NORDBOOKING-design-preview {
     position: sticky;
     top: 2rem;
     height: fit-content;
 }
 
-.mobooking-preview-box {
+.NORDBOOKING-preview-box {
     background-color: hsl(var(--card));
     border: 1px solid hsl(var(--border));
     border-radius: var(--radius-lg);
@@ -620,11 +620,11 @@ if (!empty($current_slug)) {
     border-bottom: 1px solid hsl(var(--border));
 }
 
-.mobooking-form-preview-wrapper {
+.NORDBOOKING-form-preview-wrapper {
     padding: 1.5rem;
 }
 
-.mobooking-form-preview {
+.NORDBOOKING-form-preview {
     background-color: var(--preview-bg, #ffffff);
     color: var(--preview-text, #333333);
     border-radius: var(--preview-radius, 8px);
@@ -709,12 +709,12 @@ if (!empty($current_slug)) {
         grid-template-columns: 1fr;
     }
     
-    .mobooking-settings-tabs {
+    .NORDBOOKING-settings-tabs {
         flex-wrap: wrap;
         gap: 0.125rem;
     }
     
-    .mobooking-tab-item {
+    .NORDBOOKING-tab-item {
         padding: 0.5rem 0.75rem;
         font-size: 0.8125rem;
     }

@@ -1,12 +1,12 @@
 <?php
 
-use MoBooking\Classes\Settings;
-use MoBooking\Classes\Notifications;
+use NORDBOOKING\Classes\Settings;
+use NORDBOOKING\Classes\Notifications;
 
 /**
  * Class Test_MoBooking_Settings
  *
- * @group mobooking_settings
+ * @group nordbooking_settings
  */
 class Test_MoBooking_Settings extends WP_UnitTestCase {
 
@@ -167,7 +167,7 @@ class Test_MoBooking_Settings extends WP_UnitTestCase {
 
     /**
      * Test language switching for notification emails.
-     * This requires dummy .mo files for 'mobooking' text domain.
+     * This requires dummy .mo files for 'NORDBOOKING' text domain.
      * E.g., languages/en_US.mo and languages/sv_SE.mo
      * With a test string like: 'Booking Summary:' translated differently.
      */

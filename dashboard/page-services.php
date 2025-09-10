@@ -1,16 +1,16 @@
 <?php
 /**
  * Dashboard Page: Services (Enhanced & Refactored)
- * @package MoBooking
+ * @package NORDBOOKING
  */
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
 // Instantiate the Services class
-$services_manager = new \MoBooking\Classes\Services();
+$services_manager = new \NORDBOOKING\Classes\Services();
 $user_id = get_current_user_id();
 
 // Fetch business settings for currency formatting
-$settings_manager = new \MoBooking\Classes\Settings();
+$settings_manager = new \NORDBOOKING\Classes\Settings();
 $biz_settings = $settings_manager->get_business_settings($user_id);
 $currency_symbol = $biz_settings['biz_currency_symbol'] ?? '$';
 $currency_pos = $biz_settings['biz_currency_position'] ?? 'before';
@@ -48,47 +48,47 @@ function get_default_service_icon() {
 ?>
 
 
-<div class="wrap mobooking-dashboard-wrap mobooking-services-page-wrapper">
-    <div class="mobooking-page-header">
-        <div class="mobooking-page-header-heading">
-            <span class="mobooking-page-header-icon">
-                <?php echo mobooking_get_dashboard_menu_icon('services'); ?>
+<div class="wrap NORDBOOKING-dashboard-wrap NORDBOOKING-services-page-wrapper">
+    <div class="NORDBOOKING-page-header">
+        <div class="NORDBOOKING-page-header-heading">
+            <span class="NORDBOOKING-page-header-icon">
+                <?php echo nordbooking_get_dashboard_menu_icon('services'); ?>
             </span>
-            <h1 class="wp-heading-inline"><?php esc_html_e('Manage Your Services', 'mobooking'); ?></h1>
+            <h1 class="wp-heading-inline"><?php esc_html_e('Manage Your Services', 'NORDBOOKING'); ?></h1>
         </div>
         <a href="<?php echo esc_url(site_url('/dashboard/service-edit/')); ?>" class="btn btn-primary btn-sm">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class=""><path d="M5 12h14"/><path d="M12 5v14"/></svg>
-            <?php esc_html_e('Add New Service', 'mobooking'); ?>
+            <?php esc_html_e('Add New Service', 'NORDBOOKING'); ?>
         </a>
     </div>
 
     <!-- Controls Section -->
-    <div class="mobooking-card mobooking-filters-wrapper">
-        <div class="mobooking-card-content">
-            <div class="mobooking-filter-row">
-                <div class="mobooking-filter-item mobooking-filter-item-search">
-                    <label for="services-search"><?php esc_html_e('Search:', 'mobooking'); ?></label>
-                    <input type="text" id="services-search" class="regular-text" placeholder="<?php esc_attr_e('Search services...', 'mobooking'); ?>" value="">
+    <div class="NORDBOOKING-card NORDBOOKING-filters-wrapper">
+        <div class="NORDBOOKING-card-content">
+            <div class="NORDBOOKING-filter-row">
+                <div class="NORDBOOKING-filter-item NORDBOOKING-filter-item-search">
+                    <label for="services-search"><?php esc_html_e('Search:', 'NORDBOOKING'); ?></label>
+                    <input type="text" id="services-search" class="regular-text" placeholder="<?php esc_attr_e('Search services...', 'NORDBOOKING'); ?>" value="">
                 </div>
             </div>
         </div>
     </div>
         
     <!-- Content Section -->
-    <div class="mobooking-services-list-wrapper">
+    <div class="NORDBOOKING-services-list-wrapper">
         <div id="services-list-container">
             <div id="loading-state" class="loading-state" style="display: none;">
                 <div class="loading-spinner"></div>
-                <p><?php esc_html_e('Loading services...', 'mobooking'); ?></p>
+                <p><?php esc_html_e('Loading services...', 'NORDBOOKING'); ?></p>
             </div>
             <?php if (empty($services_list)): ?>
                 <div class="text-center py-12">
                         <svg class="mx-auto h-12 w-12 text-muted-foreground" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>
-                        <h3 class="mt-4 text-lg font-semibold"><?php esc_html_e('No services yet', 'mobooking'); ?></h3>
-                        <p class="mt-2 text-sm text-muted-foreground"><?php esc_html_e('Create your first service to start accepting bookings.', 'mobooking'); ?></p>
+                        <h3 class="mt-4 text-lg font-semibold"><?php esc_html_e('No services yet', 'NORDBOOKING'); ?></h3>
+                        <p class="mt-2 text-sm text-muted-foreground"><?php esc_html_e('Create your first service to start accepting bookings.', 'NORDBOOKING'); ?></p>
                         <a href="<?php echo esc_url(site_url('/dashboard/service-edit/')); ?>" class="btn btn-primary mt-6">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 mr-2"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
-                            <?php esc_html_e('Create First Service', 'mobooking'); ?>
+                            <?php esc_html_e('Create First Service', 'NORDBOOKING'); ?>
                         </a>
                     </div>
                 <?php else: ?>
@@ -129,12 +129,12 @@ function get_default_service_icon() {
                                 <span class="service-list-item__status status-<?php echo esc_attr($service['status']); ?>"><?php echo esc_html(ucfirst($service['status'])); ?></span>
                                 <a href="<?php echo esc_url(site_url('/dashboard/service-edit/?service_id=' . $service['service_id'])); ?>" class="btn btn-sm btn-primary">
                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
-                                    <?php esc_html_e('Edit', 'mobooking'); ?>
+                                    <?php esc_html_e('Edit', 'NORDBOOKING'); ?>
                                 </a>
                                 <form method="POST" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" data-service-name="<?php echo esc_attr($service['name']); ?>">
-                                    <input type="hidden" name="action" value="mobooking_delete_service">
+                                    <input type="hidden" name="action" value="nordbooking_delete_service">
                                     <input type="hidden" name="service_id" value="<?php echo esc_attr($service['service_id']); ?>">
-                                    <?php wp_nonce_field('mobooking_delete_service_nonce'); ?>
+                                    <?php wp_nonce_field('nordbooking_delete_service_nonce'); ?>
                                     <button type="submit" class="btn btn-sm btn-destructive">
                                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
                                     </button>
@@ -167,7 +167,7 @@ function get_default_service_icon() {
 <div id="delete-confirmation-modal" class="modal-overlay" style="display: none;">
     <div class="modal-content">
         <div class="modal-header">
-            <h3><?php esc_html_e('Confirm Deletion', 'mobooking'); ?></h3>
+            <h3><?php esc_html_e('Confirm Deletion', 'NORDBOOKING'); ?></h3>
             <button type="button" class="modal-close" id="modal-close-btn">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M18 6L6 18"/>
@@ -179,8 +179,8 @@ function get_default_service_icon() {
             <p id="delete-confirmation-text"></p>
         </div>
         <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" id="cancel-delete-btn"><?php esc_html_e('Cancel', 'mobooking'); ?></button>
-            <button type="button" class="btn btn-destructive" id="confirm-delete-btn"><?php esc_html_e('Delete Service', 'mobooking'); ?></button>
+            <button type="button" class="btn btn-secondary" id="cancel-delete-btn"><?php esc_html_e('Cancel', 'NORDBOOKING'); ?></button>
+            <button type="button" class="btn btn-destructive" id="confirm-delete-btn"><?php esc_html_e('Delete Service', 'NORDBOOKING'); ?></button>
         </div>
     </div>
 </div>
@@ -288,9 +288,9 @@ jQuery(document).ready(function($) {
             url: "<?php echo esc_url(admin_url('admin-ajax.php')); ?>",
             type: 'POST',
             data: {
-                action: 'mobooking_search_services',
+                action: 'nordbooking_search_services',
                 search_query: searchQuery,
-                nonce: "<?php echo wp_create_nonce('mobooking_search_services_nonce'); ?>"
+                nonce: "<?php echo wp_create_nonce('nordbooking_search_services_nonce'); ?>"
             },
             success: function(response) {
                 $loadingState.hide();

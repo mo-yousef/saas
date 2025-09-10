@@ -2,9 +2,9 @@
 /**
  * Class Services
  * Manages cleaning services and their options.
- * @package MoBooking\Classes
+ * @package NORDBOOKING\Classes
  */
-namespace MoBooking\Classes;
+namespace NORDBOOKING\Classes;
 
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -23,7 +23,7 @@ class Services {
         $this->wpdb = $wpdb;
         $this->service_options_manager = new ServiceOptions();
         // Define the path to the preset icons directory using the theme directory constant.
-        self::$preset_icons_path = MOBOOKING_THEME_DIR . 'assets/svg-icons/presets/';
+        self::$preset_icons_path = NORDBOOKING_THEME_DIR . 'assets/svg-icons/presets/';
     }
 
     public static function get_preset_icon_svg(string $filename): ?string {
@@ -43,13 +43,13 @@ class Services {
         $path = self::$preset_icons_path;
 
         if (!is_dir($path) || !is_readable($path)) {
-            error_log('[MoBooking Error] Preset icons directory not found or not readable at: ' . $path);
+            error_log('[NORDBOOKING Error] Preset icons directory not found or not readable at: ' . $path);
             return [];
         }
 
         $files = scandir($path);
         if ($files === false) {
-            error_log('[MoBooking Error] Could not scan preset icons directory: ' . $path);
+            error_log('[NORDBOOKING Error] Could not scan preset icons directory: ' . $path);
             return [];
         }
 
@@ -60,7 +60,7 @@ class Services {
                 if ($content) {
                     $icons[sanitize_file_name($file)] = Utils::sanitize_svg($content);
                 } else {
-                    error_log('[MoBooking Warning] Could not read content for preset icon: ' . $filepath);
+                    error_log('[NORDBOOKING Warning] Could not read content for preset icon: ' . $filepath);
                 }
             }
         }
@@ -73,11 +73,11 @@ class Services {
             $filename = substr($icon_identifier_or_url, strlen('preset:'));
             $svg_content = self::get_preset_icon_svg($filename);
             if ($svg_content) {
-                return '<div class="mobooking-preset-icon">' . $svg_content . '</div>';
+                return '<div class="NORDBOOKING-preset-icon">' . $svg_content . '</div>';
             }
             return '';
         } elseif (filter_var($icon_identifier_or_url, FILTER_VALIDATE_URL)) {
-            return '<img src="' . esc_url($icon_identifier_or_url) . '" alt="Service Icon" class="mobooking-custom-icon"/>';
+            return '<img src="' . esc_url($icon_identifier_or_url) . '" alt="Service Icon" class="NORDBOOKING-custom-icon"/>';
         }
         return '';
     }
@@ -95,10 +95,10 @@ class Services {
 
     public function add_service(int $user_id, array $data) {
         if ( empty($user_id) ) {
-            return new \WP_Error('invalid_user', __('Invalid user ID.', 'mobooking'));
+            return new \WP_Error('invalid_user', __('Invalid user ID.', 'NORDBOOKING'));
         }
         if ( empty($data['name']) ) {
-            return new \WP_Error('missing_name', __('Service name is required.', 'mobooking'));
+            return new \WP_Error('missing_name', __('Service name is required.', 'NORDBOOKING'));
         }
 
         $defaults = array(
@@ -136,8 +136,8 @@ class Services {
 
         if (false === $inserted) {
             // Log the actual database error
-            error_log('[MoBooking Services DB Error] add_service failed: ' . $this->wpdb->last_error);
-            return new \WP_Error('db_error', __('Could not add service to the database.', 'mobooking'));
+            error_log('[NORDBOOKING Services DB Error] add_service failed: ' . $this->wpdb->last_error);
+            return new \WP_Error('db_error', __('Could not add service to the database.', 'NORDBOOKING'));
         }
         return $this->wpdb->insert_id;
     }
@@ -147,14 +147,14 @@ class Services {
             return null;
         }
         if ( !$this->_verify_service_ownership($service_id, $user_id) ) {
-            error_log('[MoBooking get_service] Ownership verification failed for service_id: ' . $service_id . ' and user_id: ' . $user_id);
+            error_log('[NORDBOOKING get_service] Ownership verification failed for service_id: ' . $service_id . ' and user_id: ' . $user_id);
             return null; // Or WP_Error for permission denied
         }
         $table_name = Database::get_table_name('services');
         $service = $this->wpdb->get_row( $this->wpdb->prepare( "SELECT * FROM $table_name WHERE service_id = %d AND user_id = %d", $service_id, $user_id ), ARRAY_A );
 
         if (is_null($service)) {
-            error_log('[MoBooking get_service] Service not found in database for service_id: ' . $service_id . ' and user_id: ' . $user_id);
+            error_log('[NORDBOOKING get_service] Service not found in database for service_id: ' . $service_id . ' and user_id: ' . $user_id);
         }
 
         if ($service) {
@@ -166,14 +166,14 @@ class Services {
                     $options[] = (array) $opt; // Cast to array if objects
                 }
             }
-            error_log('[MoBooking get_service] Fetched ' . count($options) . ' options for service_id: ' . $service_id);
+            error_log('[NORDBOOKING get_service] Fetched ' . count($options) . ' options for service_id: ' . $service_id);
             $service['options'] = $options;
         }
         return $service;
     }
 
     public function get_services_by_user(int $user_id, array $args = []) {
-        error_log('[MoBooking Services Debug] get_services_by_user called for user_id: ' . $user_id . ' with args: ' . print_r($args, true));
+        error_log('[NORDBOOKING Services Debug] get_services_by_user called for user_id: ' . $user_id . ' with args: ' . print_r($args, true));
         if ( empty($user_id) ) {
             return array();
         }
@@ -223,8 +223,8 @@ class Services {
 
         $services_data = $this->wpdb->get_results($this->wpdb->prepare($sql_select, ...$params), ARRAY_A);
 
-        error_log('[MoBooking Services Debug] SQL query: ' . $this->wpdb->prepare($sql_select, ...$params));
-        error_log('[MoBooking Services Debug] Found ' . count($services_data) . ' services.');
+        error_log('[NORDBOOKING Services Debug] SQL query: ' . $this->wpdb->prepare($sql_select, ...$params));
+        error_log('[NORDBOOKING Services Debug] Found ' . count($services_data) . ' services.');
 
         if ($services_data) {
             foreach ($services_data as $key => $service) {
@@ -251,13 +251,13 @@ class Services {
 
     public function update_service(int $service_id, int $user_id, array $data) {
         if ( empty($user_id) || empty($service_id) ) {
-            return new \WP_Error('invalid_ids', __('Invalid service or user ID.', 'mobooking'));
+            return new \WP_Error('invalid_ids', __('Invalid service or user ID.', 'NORDBOOKING'));
         }
         if ( !$this->_verify_service_ownership($service_id, $user_id) ) {
-            return new \WP_Error('not_owner', __('You do not own this service.', 'mobooking'));
+            return new \WP_Error('not_owner', __('You do not own this service.', 'NORDBOOKING'));
         }
         if ( empty($data) ) {
-            return new \WP_Error('no_data', __('No data provided for update.', 'mobooking'));
+            return new \WP_Error('no_data', __('No data provided for update.', 'NORDBOOKING'));
         }
 
         $table_name = Database::get_table_name('services');
@@ -283,7 +283,7 @@ class Services {
             // However, the original check for 'no_data' was before adding 'updated_at'.
             // If $update_data only contained 'category' and is now empty, we should probably not proceed.
             // For now, if $update_data is empty here, it means no *valid* fields were provided.
-            return new \WP_Error('no_valid_data', __('No valid fields provided for update.', 'mobooking'));
+            return new \WP_Error('no_valid_data', __('No valid fields provided for update.', 'NORDBOOKING'));
         }
         $update_data['updated_at'] = current_time('mysql', 1); // GMT
         $update_formats[] = '%s';
@@ -298,18 +298,18 @@ class Services {
 
         if (false === $updated) {
             // Log the actual database error
-            error_log('[MoBooking Services DB Error] update_service failed for service_id ' . $service_id . ': ' . $this->wpdb->last_error);
-            return new \WP_Error('db_error', __('Could not update service in the database.', 'mobooking'));
+            error_log('[NORDBOOKING Services DB Error] update_service failed for service_id ' . $service_id . ': ' . $this->wpdb->last_error);
+            return new \WP_Error('db_error', __('Could not update service in the database.', 'NORDBOOKING'));
         }
         return true; // Or $updated which is number of rows affected
     }
 
     public function delete_service(int $service_id, int $user_id) {
         if ( empty($user_id) || empty($service_id) ) {
-            return new \WP_Error('invalid_ids', __('Invalid service or user ID.', 'mobooking'));
+            return new \WP_Error('invalid_ids', __('Invalid service or user ID.', 'NORDBOOKING'));
         }
         if ( !$this->_verify_service_ownership($service_id, $user_id) ) {
-            return new \WP_Error('not_owner', __('You do not own this service.', 'mobooking'));
+            return new \WP_Error('not_owner', __('You do not own this service.', 'NORDBOOKING'));
         }
 
         // Delete associated options first
@@ -323,7 +323,7 @@ class Services {
         );
 
         if (false === $deleted) {
-            return new \WP_Error('db_error', __('Could not delete service from the database.', 'mobooking'));
+            return new \WP_Error('db_error', __('Could not delete service from the database.', 'NORDBOOKING'));
         }
         return true;
     }
@@ -331,39 +331,39 @@ class Services {
     // --- AJAX Handlers ---
 
     public function register_actions() {
-        add_action('wp_ajax_mobooking_get_services', [$this, 'handle_get_services_ajax']);
-        add_action('admin_post_mobooking_delete_service', [$this, 'handle_mobooking_delete_service_form']);
-        add_action('wp_ajax_mobooking_search_services', [$this, 'handle_search_services_ajax']);
-        add_action('wp_ajax_mobooking_save_service', [$this, 'handle_save_service_ajax']); // Covers Create and Update for service + options
-        add_action('wp_ajax_mobooking_update_service_order', [$this, 'handle_update_service_order_ajax']);
+        add_action('wp_ajax_nordbooking_get_services', [$this, 'handle_get_services_ajax']);
+        add_action('admin_post_nordbooking_delete_service', [$this, 'handle_nordbooking_delete_service_form']);
+        add_action('wp_ajax_nordbooking_search_services', [$this, 'handle_search_services_ajax']);
+        add_action('wp_ajax_nordbooking_save_service', [$this, 'handle_save_service_ajax']); // Covers Create and Update for service + options
+        add_action('wp_ajax_nordbooking_update_service_order', [$this, 'handle_update_service_order_ajax']);
 
         // AJAX handlers for individual service options
-        add_action('wp_ajax_mobooking_get_service_options', [$this, 'handle_get_service_options_ajax']);
-        add_action('wp_ajax_mobooking_add_service_option', [$this, 'handle_add_service_option_ajax']);
-        add_action('wp_ajax_mobooking_update_service_option', [$this, 'handle_update_service_option_ajax']);
-        add_action('wp_ajax_mobooking_delete_service_option', [$this, 'handle_delete_service_option_ajax']);
-        add_action('wp_ajax_mobooking_get_service_details', [$this, 'handle_get_service_details_ajax']); // For editing
+        add_action('wp_ajax_nordbooking_get_service_options', [$this, 'handle_get_service_options_ajax']);
+        add_action('wp_ajax_nordbooking_add_service_option', [$this, 'handle_add_service_option_ajax']);
+        add_action('wp_ajax_nordbooking_update_service_option', [$this, 'handle_update_service_option_ajax']);
+        add_action('wp_ajax_nordbooking_delete_service_option', [$this, 'handle_delete_service_option_ajax']);
+        add_action('wp_ajax_nordbooking_get_service_details', [$this, 'handle_get_service_details_ajax']); // For editing
 
         // For public booking form
-        add_action('wp_ajax_nopriv_mobooking_get_public_service_options', [$this, 'handle_get_public_service_options_ajax']);
-        add_action('wp_ajax_mobooking_get_public_service_options', [$this, 'handle_get_public_service_options_ajax']);
+        add_action('wp_ajax_nopriv_nordbooking_get_public_service_options', [$this, 'handle_get_public_service_options_ajax']);
+        add_action('wp_ajax_nordbooking_get_public_service_options', [$this, 'handle_get_public_service_options_ajax']);
 
         // Icon AJAX Handlers
-        add_action('wp_ajax_mobooking_get_preset_icons', [$this, 'handle_get_preset_icons_ajax']); // New handler
-        add_action('wp_ajax_mobooking_upload_service_icon', [$this, 'handle_upload_service_icon_ajax']);
-        add_action('wp_ajax_mobooking_delete_service_icon', [$this, 'handle_delete_service_icon_ajax']);
+        add_action('wp_ajax_nordbooking_get_preset_icons', [$this, 'handle_get_preset_icons_ajax']); // New handler
+        add_action('wp_ajax_nordbooking_upload_service_icon', [$this, 'handle_upload_service_icon_ajax']);
+        add_action('wp_ajax_nordbooking_delete_service_icon', [$this, 'handle_delete_service_icon_ajax']);
 
         // Image AJAX Handlers
-        add_action('wp_ajax_mobooking_upload_service_image', [$this, 'handle_upload_service_image_ajax']);
-        add_action('wp_ajax_mobooking_delete_service_image', [$this, 'handle_delete_service_image_ajax']);
+        add_action('wp_ajax_nordbooking_upload_service_image', [$this, 'handle_upload_service_image_ajax']);
+        add_action('wp_ajax_nordbooking_delete_service_image', [$this, 'handle_delete_service_image_ajax']);
 
         // Delete from edit page
-        add_action('wp_ajax_mobooking_delete_service_ajax', [$this, 'handle_delete_service_ajax']);
+        add_action('wp_ajax_nordbooking_delete_service_ajax', [$this, 'handle_delete_service_ajax']);
     }
 
     public function update_service_order(int $user_id, array $service_ids) {
         if (empty($user_id) || empty($service_ids)) {
-            return new \WP_Error('invalid_data', __('Invalid data provided.', 'mobooking'));
+            return new \WP_Error('invalid_data', __('Invalid data provided.', 'NORDBOOKING'));
         }
 
         $table_name = Database::get_table_name('services');
@@ -382,21 +382,21 @@ class Services {
     }
 
     public function handle_update_service_order_ajax() {
-        if (!check_ajax_referer('mobooking_services_nonce', 'nonce', false)) {
-            wp_send_json_error(['message' => __('Error: Nonce verification failed.', 'mobooking')], 403);
+        if (!check_ajax_referer('nordbooking_services_nonce', 'nonce', false)) {
+            wp_send_json_error(['message' => __('Error: Nonce verification failed.', 'NORDBOOKING')], 403);
             return;
         }
 
         $user_id = get_current_user_id();
         if (!$user_id) {
-            wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403);
+            wp_send_json_error(['message' => __('User not logged in.', 'NORDBOOKING')], 403);
             return;
         }
 
         $service_ids = isset($_POST['service_ids']) && is_array($_POST['service_ids']) ? array_map('intval', $_POST['service_ids']) : [];
 
         if (empty($service_ids)) {
-            wp_send_json_error(['message' => __('No service order data received.', 'mobooking')], 400);
+            wp_send_json_error(['message' => __('No service order data received.', 'NORDBOOKING')], 400);
             return;
         }
 
@@ -405,25 +405,25 @@ class Services {
         if (is_wp_error($result)) {
             wp_send_json_error(['message' => $result->get_error_message()], 500);
         } else {
-            wp_send_json_success(['message' => __('Service order updated successfully.', 'mobooking')]);
+            wp_send_json_success(['message' => __('Service order updated successfully.', 'NORDBOOKING')]);
         }
     }
 
     public function handle_delete_service_ajax() {
-        if (!check_ajax_referer('mobooking_services_nonce', 'nonce', false)) {
-            wp_send_json_error(['message' => __('Error: Nonce verification failed.', 'mobooking')], 403);
+        if (!check_ajax_referer('nordbooking_services_nonce', 'nonce', false)) {
+            wp_send_json_error(['message' => __('Error: Nonce verification failed.', 'NORDBOOKING')], 403);
             return;
         }
 
         $user_id = get_current_user_id();
         if (!$user_id) {
-            wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403);
+            wp_send_json_error(['message' => __('User not logged in.', 'NORDBOOKING')], 403);
             return;
         }
 
         $service_id = isset($_POST['service_id']) ? intval($_POST['service_id']) : 0;
         if (empty($service_id)) {
-            wp_send_json_error(['message' => __('Service ID is required.', 'mobooking')], 400);
+            wp_send_json_error(['message' => __('Service ID is required.', 'NORDBOOKING')], 400);
             return;
         }
 
@@ -432,29 +432,29 @@ class Services {
         if (is_wp_error($result)) {
             wp_send_json_error(['message' => $result->get_error_message()], 400);
         } else {
-            wp_send_json_success(['message' => __('Service deleted successfully. Redirecting...', 'mobooking')]);
+            wp_send_json_success(['message' => __('Service deleted successfully. Redirecting...', 'NORDBOOKING')]);
         }
     }
 
     public function handle_upload_service_image_ajax() {
-        if (!check_ajax_referer('mobooking_services_nonce', 'nonce', false)) {
-            wp_send_json_error(['message' => __('Error: Nonce verification failed.', 'mobooking')], 403);
+        if (!check_ajax_referer('nordbooking_services_nonce', 'nonce', false)) {
+            wp_send_json_error(['message' => __('Error: Nonce verification failed.', 'NORDBOOKING')], 403);
             return;
         }
         $user_id = get_current_user_id();
         if (!$user_id) {
-            wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403);
+            wp_send_json_error(['message' => __('User not logged in.', 'NORDBOOKING')], 403);
             return;
         }
 
         if (empty($_FILES['service_image'])) {
-            wp_send_json_error(['message' => __('No image file uploaded.', 'mobooking')], 400);
+            wp_send_json_error(['message' => __('No image file uploaded.', 'NORDBOOKING')], 400);
             return;
         }
 
         $file_error = $_FILES['service_image']['error'];
         if ($file_error !== UPLOAD_ERR_OK) {
-            wp_send_json_error(['message' => __('File upload error code: ' . $file_error, 'mobooking')], 400);
+            wp_send_json_error(['message' => __('File upload error code: ' . $file_error, 'NORDBOOKING')], 400);
             return;
         }
 
@@ -470,7 +470,7 @@ class Services {
 
         // Custom directory within uploads
         $upload_dir_info = wp_upload_dir();
-        $user_images_dir_base = 'mobooking-images/' . $user_id;
+        $user_images_dir_base = 'NORDBOOKING-images/' . $user_id;
         $user_images_path = $upload_dir_info['basedir'] . '/' . $user_images_dir_base;
         $user_images_url = $upload_dir_info['baseurl'] . '/' . $user_images_dir_base;
 
@@ -500,23 +500,23 @@ class Services {
         if ($movefile && !isset($movefile['error'])) {
             // $movefile contains 'url', 'file' (path), 'type'
             wp_send_json_success([
-                'message' => __('Image uploaded successfully.', 'mobooking'),
+                'message' => __('Image uploaded successfully.', 'NORDBOOKING'),
                 'image_url' => $movefile['url'],
                 'file_path' => $movefile['file'] // For reference, not usually sent to client
             ]);
         } else {
-            wp_send_json_error(['message' => isset($movefile['error']) ? $movefile['error'] : __('Image upload failed.', 'mobooking')], 500);
+            wp_send_json_error(['message' => isset($movefile['error']) ? $movefile['error'] : __('Image upload failed.', 'NORDBOOKING')], 500);
         }
     }
 
     public function handle_delete_service_image_ajax() {
-        if (!check_ajax_referer('mobooking_services_nonce', 'nonce', false)) {
-            wp_send_json_error(['message' => __('Error: Nonce verification failed.', 'mobooking')], 403);
+        if (!check_ajax_referer('nordbooking_services_nonce', 'nonce', false)) {
+            wp_send_json_error(['message' => __('Error: Nonce verification failed.', 'NORDBOOKING')], 403);
             return;
         }
         $user_id = get_current_user_id();
         if (!$user_id) {
-            wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403);
+            wp_send_json_error(['message' => __('User not logged in.', 'NORDBOOKING')], 403);
             return;
         }
 
@@ -524,25 +524,25 @@ class Services {
         $service_id = isset($_POST['service_id']) ? intval($_POST['service_id']) : 0;
 
         if (empty($image_url_to_delete)) {
-            wp_send_json_error(['message' => __('Image URL is required for deletion.', 'mobooking')], 400);
+            wp_send_json_error(['message' => __('Image URL is required for deletion.', 'NORDBOOKING')], 400);
             return;
         }
 
         if (empty($service_id)) {
-            wp_send_json_error(['message' => __('Service ID is required to delete an image.', 'mobooking')], 400);
+            wp_send_json_error(['message' => __('Service ID is required to delete an image.', 'NORDBOOKING')], 400);
             return;
         }
 
         // Verify ownership before proceeding
         if ( !$this->_verify_service_ownership($service_id, $user_id) ) {
-            return new \WP_Error('not_owner', __('You do not own this service.', 'mobooking'));
+            return new \WP_Error('not_owner', __('You do not own this service.', 'NORDBOOKING'));
         }
 
         $upload_dir_info = wp_upload_dir();
 
         // Check if the image URL starts with the base upload URL. If not, it's not one of ours.
         if (strpos($image_url_to_delete, $upload_dir_info['baseurl']) !== 0) {
-            wp_send_json_error(['message' => __('Invalid image URL. Not a site upload.', 'mobooking')], 400);
+            wp_send_json_error(['message' => __('Invalid image URL. Not a site upload.', 'NORDBOOKING')], 400);
             return;
         }
 
@@ -551,13 +551,13 @@ class Services {
         $file_path = wp_normalize_path($upload_dir_info['basedir'] . $relative_path);
 
         // Security check: Ensure the file is within the user's specific directory
-        $expected_user_dir_fragment = wp_normalize_path('/mobooking-images/' . $user_id . '/');
+        $expected_user_dir_fragment = wp_normalize_path('/NORDBOOKING-images/' . $user_id . '/');
         $expected_base_dir = wp_normalize_path($upload_dir_info['basedir']);
 
         // Check if the file_path starts with the user's specific image directory
         if (strpos($file_path, $expected_base_dir . $expected_user_dir_fragment) !== 0) {
             error_log("Security Alert: User {$user_id} attempted to delete file outside their directory: " . $file_path . ". Expected fragment: " . $expected_user_dir_fragment);
-            wp_send_json_error(['message' => __('Access denied or invalid path for deletion.', 'mobooking')], 403);
+            wp_send_json_error(['message' => __('Access denied or invalid path for deletion.', 'NORDBOOKING')], 403);
             return;
         }
 
@@ -566,7 +566,7 @@ class Services {
             if (wp_delete_file($file_path)) {
                 $file_deleted = true;
             } else {
-                wp_send_json_error(['message' => __('Could not delete the image file.', 'mobooking')], 500);
+                wp_send_json_error(['message' => __('Could not delete the image file.', 'NORDBOOKING')], 500);
                 return;
             }
         } else {
@@ -580,33 +580,33 @@ class Services {
                 // The file was deleted, but the DB update failed. This is not ideal.
                 // We should probably log this and maybe inform the user.
                 error_log("Failed to clear image_url for service {$service_id} after deleting the file. Error: " . $update_result->get_error_message());
-                wp_send_json_error(['message' => __('Image file deleted, but failed to update the service record. Please refresh.', 'mobooking')], 500);
+                wp_send_json_error(['message' => __('Image file deleted, but failed to update the service record. Please refresh.', 'NORDBOOKING')], 500);
             } else {
-                wp_send_json_success(['message' => __('Image deleted successfully.', 'mobooking')]);
+                wp_send_json_success(['message' => __('Image deleted successfully.', 'NORDBOOKING')]);
             }
         }
     }
 
     public function handle_upload_service_icon_ajax() {
-        if (!check_ajax_referer('mobooking_services_nonce', 'nonce', false)) {
-            wp_send_json_error(['message' => __('Error: Nonce verification failed.', 'mobooking')], 403);
+        if (!check_ajax_referer('nordbooking_services_nonce', 'nonce', false)) {
+            wp_send_json_error(['message' => __('Error: Nonce verification failed.', 'NORDBOOKING')], 403);
             return;
         }
         $user_id = get_current_user_id();
         if (!$user_id) {
-            wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403);
+            wp_send_json_error(['message' => __('User not logged in.', 'NORDBOOKING')], 403);
             return;
         }
 
         if (empty($_FILES['service_icon_svg'])) {
-            wp_send_json_error(['message' => __('No file uploaded.', 'mobooking')], 400);
+            wp_send_json_error(['message' => __('No file uploaded.', 'NORDBOOKING')], 400);
             return;
         }
 
         $file = $_FILES['service_icon_svg'];
 
         if ($file['error'] !== UPLOAD_ERR_OK) {
-            wp_send_json_error(['message' => __('File upload error: ' . $file['error'], 'mobooking')], 400);
+            wp_send_json_error(['message' => __('File upload error: ' . $file['error'], 'NORDBOOKING')], 400);
             return;
         }
 
@@ -615,20 +615,20 @@ class Services {
         $file_ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
 
         if ($file_type !== 'image/svg+xml' || $file_ext !== 'svg') {
-            wp_send_json_error(['message' => __('Invalid file type. Only SVG files are allowed.', 'mobooking')], 400);
+            wp_send_json_error(['message' => __('Invalid file type. Only SVG files are allowed.', 'NORDBOOKING')], 400);
             return;
         }
 
         // Sanitize SVG content
         $svg_content = file_get_contents($file['tmp_name']);
         if ($svg_content === false) {
-            wp_send_json_error(['message' => __('Could not read SVG file content.', 'mobooking')], 500);
+            wp_send_json_error(['message' => __('Could not read SVG file content.', 'NORDBOOKING')], 500);
             return;
         }
 
         // Basic check for script tags before more complex sanitization
         if (strpos($svg_content, '<script') !== false) {
-            wp_send_json_error(['message' => __('SVG content appears to contain script tags, which are not allowed.', 'mobooking')], 400);
+            wp_send_json_error(['message' => __('SVG content appears to contain script tags, which are not allowed.', 'NORDBOOKING')], 400);
             return;
         }
         $sanitized_svg_content = Utils::sanitize_svg($svg_content);
@@ -636,7 +636,7 @@ class Services {
 
         // Define upload path
         $upload_dir_info = wp_upload_dir();
-        $icons_dir = $upload_dir_info['basedir'] . '/mobooking-icons/' . $user_id . '/';
+        $icons_dir = $upload_dir_info['basedir'] . '/NORDBOOKING-icons/' . $user_id . '/';
         if (!file_exists($icons_dir)) {
             wp_mkdir_p($icons_dir); // Creates directory recursively
         }
@@ -644,41 +644,41 @@ class Services {
         $service_id_for_filename = isset($_POST['service_id']) ? intval($_POST['service_id']) : 0;
         $filename = 'service_icon_' . ($service_id_for_filename ?: uniqid()) . '.svg';
         $filepath = $icons_dir . $filename;
-        $fileurl = $upload_dir_info['baseurl'] . '/mobooking-icons/' . $user_id . '/' . $filename;
+        $fileurl = $upload_dir_info['baseurl'] . '/NORDBOOKING-icons/' . $user_id . '/' . $filename;
 
         if (file_put_contents($filepath, $sanitized_svg_content) === false) {
-            wp_send_json_error(['message' => __('Could not save sanitized SVG file.', 'mobooking')], 500);
+            wp_send_json_error(['message' => __('Could not save sanitized SVG file.', 'NORDBOOKING')], 500);
             return;
         }
 
-        wp_send_json_success(['message' => __('Icon uploaded successfully.', 'mobooking'), 'icon_url' => $fileurl]);
+        wp_send_json_success(['message' => __('Icon uploaded successfully.', 'NORDBOOKING'), 'icon_url' => $fileurl]);
     }
 
     public function handle_delete_service_icon_ajax() {
-        if (!check_ajax_referer('mobooking_services_nonce', 'nonce', false)) {
-            wp_send_json_error(['message' => __('Error: Nonce verification failed.', 'mobooking')], 403);
+        if (!check_ajax_referer('nordbooking_services_nonce', 'nonce', false)) {
+            wp_send_json_error(['message' => __('Error: Nonce verification failed.', 'NORDBOOKING')], 403);
             return;
         }
         $user_id = get_current_user_id();
         if (!$user_id) {
-            wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403);
+            wp_send_json_error(['message' => __('User not logged in.', 'NORDBOOKING')], 403);
             return;
         }
 
         $icon_url = isset($_POST['icon_url']) ? esc_url_raw($_POST['icon_url']) : '';
         if (empty($icon_url)) {
-            wp_send_json_error(['message' => __('Icon URL is required.', 'mobooking')], 400);
+            wp_send_json_error(['message' => __('Icon URL is required.', 'NORDBOOKING')], 400);
             return;
         }
 
         // Construct path from URL
         $upload_dir_info = wp_upload_dir();
-        $base_url = $upload_dir_info['baseurl'] . '/mobooking-icons/' . $user_id . '/';
-        $base_dir = $upload_dir_info['basedir'] . '/mobooking-icons/' . $user_id . '/';
+        $base_url = $upload_dir_info['baseurl'] . '/NORDBOOKING-icons/' . $user_id . '/';
+        $base_dir = $upload_dir_info['basedir'] . '/NORDBOOKING-icons/' . $user_id . '/';
 
         // Check if the icon_url starts with the user's icon directory URL
         if (strpos($icon_url, $base_url) !== 0) {
-            wp_send_json_error(['message' => __('Invalid icon URL or permission denied.', 'mobooking')], 400);
+            wp_send_json_error(['message' => __('Invalid icon URL or permission denied.', 'NORDBOOKING')], 400);
             return;
         }
 
@@ -687,29 +687,29 @@ class Services {
 
         if (file_exists($filepath)) {
             if (unlink($filepath)) {
-                wp_send_json_success(['message' => __('Icon deleted successfully.', 'mobooking')]);
+                wp_send_json_success(['message' => __('Icon deleted successfully.', 'NORDBOOKING')]);
             } else {
-                wp_send_json_error(['message' => __('Could not delete icon file.', 'mobooking')], 500);
+                wp_send_json_error(['message' => __('Could not delete icon file.', 'NORDBOOKING')], 500);
             }
         } else {
-            wp_send_json_error(['message' => __('Icon file not found.', 'mobooking')], 404);
+            wp_send_json_error(['message' => __('Icon file not found.', 'NORDBOOKING')], 404);
         }
     }
 
 
 
     public function handle_get_services_ajax() {
-        error_log('[MoBooking Services Debug] handle_get_services_ajax reached.');
-        error_log('[MoBooking Services Debug] POST data: ' . print_r($_POST, true));
+        error_log('[NORDBOOKING Services Debug] handle_get_services_ajax reached.');
+        error_log('[NORDBOOKING Services Debug] POST data: ' . print_r($_POST, true));
 
-        if (!check_ajax_referer('mobooking_services_nonce', 'nonce', false)) {
-            wp_send_json_error(['message' => __('Error: Nonce verification failed.', 'mobooking')], 403);
+        if (!check_ajax_referer('nordbooking_services_nonce', 'nonce', false)) {
+            wp_send_json_error(['message' => __('Error: Nonce verification failed.', 'NORDBOOKING')], 403);
             return;
         }
 
         $user_id = get_current_user_id();
         if (!$user_id) {
-            wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403);
+            wp_send_json_error(['message' => __('User not logged in.', 'NORDBOOKING')], 403);
             return;
         }
 
@@ -740,12 +740,12 @@ class Services {
         wp_send_json_success($result);
     }
 
-    public function handle_mobooking_delete_service_form() {
-        if (!isset($_POST['action']) || $_POST['action'] !== 'mobooking_delete_service') {
+    public function handle_nordbooking_delete_service_form() {
+        if (!isset($_POST['action']) || $_POST['action'] !== 'nordbooking_delete_service') {
             wp_die('Invalid action.');
         }
 
-        if (!isset($_POST['_wpnonce']) || !wp_verify_nonce($_POST['_wpnonce'], 'mobooking_delete_service_nonce')) {
+        if (!isset($_POST['_wpnonce']) || !wp_verify_nonce($_POST['_wpnonce'], 'nordbooking_delete_service_nonce')) {
             wp_die('Nonce verification failed. Please go back and try again.');
         }
 
@@ -761,10 +761,10 @@ class Services {
 
         if (is_wp_error($result)) {
             // Optional: Add a transient to show an error message on the services page
-            set_transient('mobooking_admin_notice', ['type' => 'error', 'message' => $result->get_error_message()], 60);
+            set_transient('nordbooking_admin_notice', ['type' => 'error', 'message' => $result->get_error_message()], 60);
         } else {
             // Optional: Add a transient for a success message
-            set_transient('mobooking_admin_notice', ['type' => 'success', 'message' => __('Service deleted successfully.', 'mobooking')], 60);
+            set_transient('nordbooking_admin_notice', ['type' => 'success', 'message' => __('Service deleted successfully.', 'NORDBOOKING')], 60);
         }
 
         // Redirect back to the services page
@@ -774,7 +774,7 @@ class Services {
     }
 
     public function handle_search_services_ajax() {
-        if (!check_ajax_referer('mobooking_search_services_nonce', 'nonce', false)) {
+        if (!check_ajax_referer('nordbooking_search_services_nonce', 'nonce', false)) {
             wp_die('Nonce verification failed.');
         }
 
@@ -798,12 +798,12 @@ class Services {
 
         if (empty($services_list)) {
             // You can create a more styled empty state message here
-            echo '<div class="text-center py-12"><p>' . esc_html__('No services found matching your search.', 'mobooking') . '</p></div>';
+            echo '<div class="text-center py-12"><p>' . esc_html__('No services found matching your search.', 'NORDBOOKING') . '</p></div>';
         } else {
             // To render the cards, we need access to some functions and variables from the main page.
             // This is a good reason to have a reusable template part.
             // Let's define what we need here.
-            $settings_manager = new \MoBooking\Classes\Settings();
+            $settings_manager = new \NORDBOOKING\Classes\Settings();
             $biz_settings = $settings_manager->get_business_settings($user_id);
             $currency_symbol = $biz_settings['biz_currency_symbol'] ?? '$';
             $currency_pos = $biz_settings['biz_currency_position'] ?? 'before';
@@ -827,9 +827,9 @@ class Services {
 
             foreach ($services_list as $service) {
                 // To avoid duplicating the entire card HTML, we should use a template part.
-                // For now, let's assume `mobooking_get_template_part` exists and can load 'dashboard/template-parts/service-card.php'
+                // For now, let's assume `nordbooking_get_template_part` exists and can load 'dashboard/template-parts/service-card.php'
                 // set_query_var('service', $service);
-                // load_template(MOBOOKING_PLUGIN_DIR . 'dashboard/template-parts/service-card.php');
+                // load_template(NORDBOOKING_PLUGIN_DIR . 'dashboard/template-parts/service-card.php');
 
                 // Since I cannot create new files, I will duplicate the HTML here.
                 // This is technical debt that should be addressed.
@@ -864,12 +864,12 @@ class Services {
                         <div class="text-xs text-muted-foreground space-y-2">
                             <div class="flex items-center gap-2">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                                <span><?php echo esc_html($service['duration']); ?> <?php esc_html_e('min', 'mobooking'); ?></span>
+                                <span><?php echo esc_html($service['duration']); ?> <?php esc_html_e('min', 'NORDBOOKING'); ?></span>
                             </div>
                             <?php if ($options_count > 0): ?>
                             <div class="flex items-center gap-2">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M9 12l2 2 4-4"/><path d="M21 12c.552 0 1-.448 1-1V5c0-.552-.448-1-1-1H3c-.552 0-1 .448-1 1v6c0 .552.448 1 1 1h18z"/></svg>
-                                <span><?php echo esc_html($options_count); ?> <?php esc_html_e('Options', 'mobooking'); ?></span>
+                                <span><?php echo esc_html($options_count); ?> <?php esc_html_e('Options', 'NORDBOOKING'); ?></span>
                             </div>
                             <?php endif; ?>
                         </div>
@@ -877,12 +877,12 @@ class Services {
                     <div class="card-footer p-4 flex gap-2">
                         <a href="<?php echo esc_url(site_url('/dashboard/service-edit/?service_id=' . $service['service_id'])); ?>" class="btn btn-primary w-full">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 mr-2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
-                            <?php esc_html_e('View', 'mobooking'); ?>
+                            <?php esc_html_e('View', 'NORDBOOKING'); ?>
                         </a>
                         <form method="POST" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" data-service-name="<?php echo esc_attr($service['name']); ?>">
-                            <input type="hidden" name="action" value="mobooking_delete_service">
+                            <input type="hidden" name="action" value="nordbooking_delete_service">
                             <input type="hidden" name="service_id" value="<?php echo esc_attr($service['service_id']); ?>">
-                            <?php wp_nonce_field('mobooking_delete_service_nonce'); ?>
+                            <?php wp_nonce_field('nordbooking_delete_service_nonce'); ?>
                             <button type="submit" class="btn btn-destructive">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
                             </button>
@@ -902,8 +902,8 @@ class Services {
 
     // AJAX handler for service OPTIONS
     public function handle_get_public_service_options_ajax() {
-        if (!check_ajax_referer('mobooking_booking_form_nonce', 'nonce', false)) {
-            wp_send_json_error(['message' => __('Error: Nonce verification failed.', 'mobooking')], 403);
+        if (!check_ajax_referer('nordbooking_booking_form_nonce', 'nonce', false)) {
+            wp_send_json_error(['message' => __('Error: Nonce verification failed.', 'NORDBOOKING')], 403);
             return;
         }
 
@@ -914,13 +914,13 @@ class Services {
         $service_ids = array_map('intval', $service_ids_raw);
 
         if (empty($service_ids)) {
-            wp_send_json_error(['message' => __('Service ID(s) are required.', 'mobooking')], 400);
+            wp_send_json_error(['message' => __('Service ID(s) are required.', 'NORDBOOKING')], 400);
             return;
         }
 
         $tenant_id = isset($_POST['tenant_id']) ? intval($_POST['tenant_id']) : 0;
         if (empty($tenant_id)) {
-            wp_send_json_error(['message' => __('Tenant ID is required.', 'mobooking')], 400);
+            wp_send_json_error(['message' => __('Tenant ID is required.', 'NORDBOOKING')], 400);
             return;
         }
 
@@ -936,19 +936,19 @@ class Services {
     }
 
     public function handle_get_service_options_ajax() {
-        if (!check_ajax_referer('mobooking_services_nonce', 'nonce', false)) {
-            wp_send_json_error(['message' => __('Error: Nonce verification failed.', 'mobooking')], 403);
+        if (!check_ajax_referer('nordbooking_services_nonce', 'nonce', false)) {
+            wp_send_json_error(['message' => __('Error: Nonce verification failed.', 'NORDBOOKING')], 403);
             return;
         }
         $user_id = get_current_user_id();
-        if (!$user_id) { wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403); return; }
+        if (!$user_id) { wp_send_json_error(['message' => __('User not logged in.', 'NORDBOOKING')], 403); return; }
 
         $service_id = isset($_POST['service_id']) ? intval($_POST['service_id']) : 0;
-        if (empty($service_id)) { wp_send_json_error(['message' => __('Service ID is required.', 'mobooking')], 400); return; }
+        if (empty($service_id)) { wp_send_json_error(['message' => __('Service ID is required.', 'NORDBOOKING')], 400); return; }
 
         // Verify parent service ownership first
         if (!$this->_verify_service_ownership($service_id, $user_id)) {
-            wp_send_json_error(['message' => __('Service not found or permission denied.', 'mobooking')], 404); return;
+            wp_send_json_error(['message' => __('Service not found or permission denied.', 'NORDBOOKING')], 404); return;
         }
 
         $options = $this->service_options_manager->get_service_options($service_id, $user_id);
@@ -956,25 +956,25 @@ class Services {
     }
 
     public function handle_add_service_option_ajax() {
-        if (!check_ajax_referer('mobooking_services_nonce', 'nonce', false)) {
-            wp_send_json_error(['message' => __('Error: Nonce verification failed.', 'mobooking')], 403);
+        if (!check_ajax_referer('nordbooking_services_nonce', 'nonce', false)) {
+            wp_send_json_error(['message' => __('Error: Nonce verification failed.', 'NORDBOOKING')], 403);
             return;
         }
         $user_id = get_current_user_id();
-        if (!$user_id) { wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403); return; }
+        if (!$user_id) { wp_send_json_error(['message' => __('User not logged in.', 'NORDBOOKING')], 403); return; }
 
         $service_id = isset($_POST['service_id']) ? intval($_POST['service_id']) : 0;
         $option_data_json = isset($_POST['option_data']) ? stripslashes_deep($_POST['option_data']) : '';
         $option_data = json_decode($option_data_json, true);
 
         if (empty($service_id) || json_last_error() !== JSON_ERROR_NONE || empty($option_data)) {
-            wp_send_json_error(['message' => __('Service ID and valid option data are required.', 'mobooking')], 400);
+            wp_send_json_error(['message' => __('Service ID and valid option data are required.', 'NORDBOOKING')], 400);
             return;
         }
 
         // Verify parent service ownership
         if (!$this->_verify_service_ownership($service_id, $user_id)) {
-            wp_send_json_error(['message' => __('Service not found or permission denied for adding option.', 'mobooking')], 404); return;
+            wp_send_json_error(['message' => __('Service not found or permission denied for adding option.', 'NORDBOOKING')], 404); return;
         }
 
         // Sanitize option_values if it's part of $option_data and needs to be JSON
@@ -990,24 +990,24 @@ class Services {
         } else {
             $new_option_id = $result;
             $new_option = $this->service_options_manager->get_service_option($new_option_id, $user_id);
-            wp_send_json_success(['message' => __('Service option added successfully.', 'mobooking'), 'option' => $new_option]);
+            wp_send_json_success(['message' => __('Service option added successfully.', 'NORDBOOKING'), 'option' => $new_option]);
         }
     }
 
     public function handle_update_service_option_ajax() {
-        if (!check_ajax_referer('mobooking_services_nonce', 'nonce', false)) {
-            wp_send_json_error(['message' => __('Error: Nonce verification failed.', 'mobooking')], 403);
+        if (!check_ajax_referer('nordbooking_services_nonce', 'nonce', false)) {
+            wp_send_json_error(['message' => __('Error: Nonce verification failed.', 'NORDBOOKING')], 403);
             return;
         }
         $user_id = get_current_user_id();
-        if (!$user_id) { wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403); return; }
+        if (!$user_id) { wp_send_json_error(['message' => __('User not logged in.', 'NORDBOOKING')], 403); return; }
 
         $option_id = isset($_POST['option_id']) ? intval($_POST['option_id']) : 0;
         $option_data_json = isset($_POST['option_data']) ? stripslashes_deep($_POST['option_data']) : '';
         $option_data = json_decode($option_data_json, true);
 
         if (empty($option_id) || json_last_error() !== JSON_ERROR_NONE || empty($option_data)) {
-            wp_send_json_error(['message' => __('Option ID and valid option data are required.', 'mobooking')], 400);
+            wp_send_json_error(['message' => __('Option ID and valid option data are required.', 'NORDBOOKING')], 400);
             return;
         }
 
@@ -1021,21 +1021,21 @@ class Services {
             wp_send_json_error(['message' => $result->get_error_message()], ($result->get_error_code() === 'not_owner' ? 403 : 400) );
         } else {
             $updated_option = $this->service_options_manager->get_service_option($option_id, $user_id);
-            wp_send_json_success(['message' => __('Service option updated successfully.', 'mobooking'), 'option' => $updated_option]);
+            wp_send_json_success(['message' => __('Service option updated successfully.', 'NORDBOOKING'), 'option' => $updated_option]);
         }
     }
 
     public function handle_delete_service_option_ajax() {
-        if (!check_ajax_referer('mobooking_services_nonce', 'nonce', false)) {
-            wp_send_json_error(['message' => __('Error: Nonce verification failed.', 'mobooking')], 403);
+        if (!check_ajax_referer('nordbooking_services_nonce', 'nonce', false)) {
+            wp_send_json_error(['message' => __('Error: Nonce verification failed.', 'NORDBOOKING')], 403);
             return;
         }
         $user_id = get_current_user_id();
-        if (!$user_id) { wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403); return; }
+        if (!$user_id) { wp_send_json_error(['message' => __('User not logged in.', 'NORDBOOKING')], 403); return; }
 
         $option_id = isset($_POST['option_id']) ? intval($_POST['option_id']) : 0;
         if (empty($option_id)) {
-            wp_send_json_error(['message' => __('Option ID is required.', 'mobooking')], 400);
+            wp_send_json_error(['message' => __('Option ID is required.', 'NORDBOOKING')], 400);
             return;
         }
 
@@ -1044,63 +1044,63 @@ class Services {
         if (is_wp_error($result)) {
             wp_send_json_error(['message' => $result->get_error_message()], ($result->get_error_code() === 'not_owner' ? 403 : 400) );
         } else {
-            wp_send_json_success(['message' => __('Service option deleted successfully.', 'mobooking')]);
+            wp_send_json_success(['message' => __('Service option deleted successfully.', 'NORDBOOKING')]);
         }
     }
 
     public function handle_save_service_ajax() {
         ob_start();
         // die('[DEBUG] Reached handle_save_service_ajax start.');
-        error_log('[MoBooking SaveSvc Debug] handle_save_service_ajax reached.');
-        error_log('[MoBooking SaveSvc Debug] RAW POST data: ' . print_r($_POST, true));
+        error_log('[NORDBOOKING SaveSvc Debug] handle_save_service_ajax reached.');
+        error_log('[NORDBOOKING SaveSvc Debug] RAW POST data: ' . print_r($_POST, true));
 
-        $nonce_verified = check_ajax_referer('mobooking_services_nonce', 'nonce', false); // false to not die
+        $nonce_verified = check_ajax_referer('nordbooking_services_nonce', 'nonce', false); // false to not die
         if (!$nonce_verified) {
-            error_log('[MoBooking SaveSvc Debug] Nonce verification FAILED.');
+            error_log('[NORDBOOKING SaveSvc Debug] Nonce verification FAILED.');
             if (ob_get_length()) ob_clean();
-            wp_send_json_error(['message' => __('Nonce verification failed. Please refresh and try again.', 'mobooking')], 403);
+            wp_send_json_error(['message' => __('Nonce verification failed. Please refresh and try again.', 'NORDBOOKING')], 403);
             return;
         }
         // die('[DEBUG] Nonce verification PASSED.');
-        error_log('[MoBooking SaveSvc Debug] Nonce verified successfully.');
+        error_log('[NORDBOOKING SaveSvc Debug] Nonce verified successfully.');
 
         $user_id = get_current_user_id();
         if (!$user_id) {
-            error_log('[MoBooking SaveSvc Debug] User not logged in.');
+            error_log('[NORDBOOKING SaveSvc Debug] User not logged in.');
             if (ob_get_length()) ob_clean();
-            wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403);
+            wp_send_json_error(['message' => __('User not logged in.', 'NORDBOOKING')], 403);
             return;
         }
         // die('[DEBUG] User ID check PASSED. User ID: ' . $user_id);
-        error_log('[MoBooking SaveSvc Debug] User ID: ' . $user_id);
+        error_log('[NORDBOOKING SaveSvc Debug] User ID: ' . $user_id);
 
         $service_id = isset($_POST['service_id']) && !empty($_POST['service_id']) ? intval($_POST['service_id']) : 0;
-        error_log('[MoBooking SaveSvc Debug] Initial service_id from POST: ' . (isset($_POST['service_id']) ? $_POST['service_id'] : 'Not Set') . ', Processed service_id: ' . $service_id);
+        error_log('[NORDBOOKING SaveSvc Debug] Initial service_id from POST: ' . (isset($_POST['service_id']) ? $_POST['service_id'] : 'Not Set') . ', Processed service_id: ' . $service_id);
         // die('[DEBUG] Service ID determined: ' . $service_id);
-        error_log('[MoBooking SaveSvc Debug] Service ID for save/update: ' . $service_id);
+        error_log('[NORDBOOKING SaveSvc Debug] Service ID for save/update: ' . $service_id);
 
         $service_name_from_post = isset($_POST['name']) ? (string) $_POST['name'] : '';
         $trimmed_service_name = trim($service_name_from_post);
 
         if (empty($trimmed_service_name)) {
-            error_log('[MoBooking SaveSvc Debug] Validation Error: Service name (after trim) is required. Original POST name: \'' . $service_name_from_post . '\'');
+            error_log('[NORDBOOKING SaveSvc Debug] Validation Error: Service name (after trim) is required. Original POST name: \'' . $service_name_from_post . '\'');
                 if (ob_get_length()) ob_clean();
-                wp_send_json_error(['message' => __('Service name is required.', 'mobooking')], 400);
+                wp_send_json_error(['message' => __('Service name is required.', 'NORDBOOKING')], 400);
                 return;
             }
 
         $price_from_post = isset($_POST['price']) ? $_POST['price'] : null;
         if (is_null($price_from_post) || !is_numeric($price_from_post)) {
-            error_log('[MoBooking SaveSvc Debug] Validation Error: Valid price is required. Received: ' . print_r($price_from_post, true));
+            error_log('[NORDBOOKING SaveSvc Debug] Validation Error: Valid price is required. Received: ' . print_r($price_from_post, true));
                 if (ob_get_length()) ob_clean();
-                wp_send_json_error(['message' => __('Valid price is required.', 'mobooking')], 400);
+                wp_send_json_error(['message' => __('Valid price is required.', 'NORDBOOKING')], 400);
                 return;
             }
 
         $duration_from_post = isset($_POST['duration']) ? intval($_POST['duration']) : 0;
         if ($duration_from_post < 30) {
             if (ob_get_length()) ob_clean();
-            wp_send_json_error(['message' => __('Duration must be at least 30 minutes.', 'mobooking')], 400);
+            wp_send_json_error(['message' => __('Duration must be at least 30 minutes.', 'NORDBOOKING')], 400);
             return;
         }
 
@@ -1120,32 +1120,32 @@ class Services {
                 'disable_pet_question' => isset($_POST['disable_pet_question']) && '1' === $_POST['disable_pet_question'] ? 1 : 0,
                 'disable_frequency_option' => isset($_POST['disable_frequency_option']) && '1' === $_POST['disable_frequency_option'] ? 1 : 0,
             ];
-        error_log('[MoBooking SaveSvc Debug] Data for add/update_service (with nulls for empty optionals): ' . print_r($data_for_service_method, true));
+        error_log('[NORDBOOKING SaveSvc Debug] Data for add/update_service (with nulls for empty optionals): ' . print_r($data_for_service_method, true));
  
         $result_service_save = null;
         $message = '';
 
         // die('[DEBUG] All initial validations passed. About to call add/update service. Service ID: ' . $service_id);
         if ($service_id) { // Update
-            error_log('[MoBooking SaveSvc Debug] UPDATE path. Service ID: ' . $service_id);
-            error_log('[MoBooking SaveSvc Debug] Attempting to update service ID: ' . $service_id);
+            error_log('[NORDBOOKING SaveSvc Debug] UPDATE path. Service ID: ' . $service_id);
+            error_log('[NORDBOOKING SaveSvc Debug] Attempting to update service ID: ' . $service_id);
             $result_service_save = $this->update_service($service_id, $user_id, $data_for_service_method);
-            $message = __('Service updated successfully.', 'mobooking');
+            $message = __('Service updated successfully.', 'NORDBOOKING');
         } else { // Add
-            error_log('[MoBooking SaveSvc Debug] ADD path. Data for new service: ' . print_r($data_for_service_method, true));
-            error_log('[MoBooking SaveSvc Debug] Attempting to add new service.');
+            error_log('[NORDBOOKING SaveSvc Debug] ADD path. Data for new service: ' . print_r($data_for_service_method, true));
+            error_log('[NORDBOOKING SaveSvc Debug] Attempting to add new service.');
             $result_service_save = $this->add_service($user_id, $data_for_service_method);
-            error_log('[MoBooking SaveSvc Debug] Result of add_service: ' . print_r($result_service_save, true));
+            error_log('[NORDBOOKING SaveSvc Debug] Result of add_service: ' . print_r($result_service_save, true));
             // $message is set after successful ID validation
             // if (!is_wp_error($result_service_save)) { // This check is now part of the more robust validation below
             //      $service_id = $result_service_save;
-            //      error_log('[MoBooking SaveSvc Debug] NEW service_id assigned for options: ' . $service_id);
-            //      error_log('[MoBooking SaveSvc Debug] New service added with ID: ' . $service_id);
+            //      error_log('[NORDBOOKING SaveSvc Debug] NEW service_id assigned for options: ' . $service_id);
+            //      error_log('[NORDBOOKING SaveSvc Debug] New service added with ID: ' . $service_id);
             // }
         }
 
         if (is_wp_error($result_service_save)) {
-            error_log('[MoBooking SaveSvc Debug] Error saving/updating service (WP_Error): ' . $result_service_save->get_error_message());
+            error_log('[NORDBOOKING SaveSvc Debug] Error saving/updating service (WP_Error): ' . $result_service_save->get_error_message());
             if (ob_get_length()) ob_clean();
             wp_send_json_error(['message' => $result_service_save->get_error_message()], ('not_owner' === $result_service_save->get_error_code() ? 403 : 500) );
             return;
@@ -1159,34 +1159,34 @@ class Services {
         } else { // This was an ADD operation
             // More robust check for the result of add_service
             if (empty($result_service_save) || !is_numeric($result_service_save) || intval($result_service_save) <= 0) {
-                error_log('[MoBooking SaveSvc Debug] add_service did not return a valid new Service ID. Result: ' . print_r($result_service_save, true));
+                error_log('[NORDBOOKING SaveSvc Debug] add_service did not return a valid new Service ID. Result: ' . print_r($result_service_save, true));
                 if (ob_get_length()) ob_clean();
-                wp_send_json_error(['message' => __('Failed to create the new service (ID was invalid), so options could not be saved.', 'mobooking')], 500);
+                wp_send_json_error(['message' => __('Failed to create the new service (ID was invalid), so options could not be saved.', 'NORDBOOKING')], 500);
                 return; // Stop execution
             }
             $service_id = intval($result_service_save); // Ensure it's an integer
-            error_log('[MoBooking SaveSvc Debug] NEW service_id assigned after robust check: ' . $service_id);
+            error_log('[NORDBOOKING SaveSvc Debug] NEW service_id assigned after robust check: ' . $service_id);
             // $message was already set to "Service added successfully."
         }
         // $message is already set based on add/update path.
-        error_log('[MoBooking SaveSvc Debug] Service main data saved/updated successfully for service_id: ' . $service_id);
+        error_log('[NORDBOOKING SaveSvc Debug] Service main data saved/updated successfully for service_id: ' . $service_id);
 
         // Process service options if provided
-        error_log('[MoBooking SaveSvc Debug] Checking for service options. Current service_id: ' . $service_id);
+        error_log('[NORDBOOKING SaveSvc Debug] Checking for service options. Current service_id: ' . $service_id);
         if (isset($_POST['options']) && is_array($_POST['options'])) {
             $options = $_POST['options'];
-            error_log('[MoBooking SaveSvc Debug] Found options array in POST: ' . print_r($options, true));
+            error_log('[NORDBOOKING SaveSvc Debug] Found options array in POST: ' . print_r($options, true));
 
             // First, delete all existing options for this service to ensure a clean slate.
             $this->service_options_manager->delete_options_for_service($service_id, $user_id);
-            error_log('[MoBooking SaveSvc Debug] Deleted existing options for service_id: ' . $service_id);
+            error_log('[NORDBOOKING SaveSvc Debug] Deleted existing options for service_id: ' . $service_id);
 
             foreach ($options as $idx => $option_data) {
-                error_log("[MoBooking SaveSvc Debug] Processing option #{$idx}: " . print_r($option_data, true));
+                error_log("[NORDBOOKING SaveSvc Debug] Processing option #{$idx}: " . print_r($option_data, true));
 
                 // Skip if the option name is missing, as it's a required field.
                 if (empty($option_data['name'])) {
-                    error_log("[MoBooking SaveSvc Debug] Skipped processing option #{$idx} due to empty name.");
+                    error_log("[NORDBOOKING SaveSvc Debug] Skipped processing option #{$idx} due to empty name.");
                     continue;
                 }
 
@@ -1210,41 +1210,41 @@ class Services {
                     'price_impact_value' => isset($option_data['price_impact_value']) && is_numeric($option_data['price_impact_value']) ? floatval($option_data['price_impact_value']) : null,
                 ];
 
-                error_log("[MoBooking SaveSvc Debug] Adding option for service_id {$service_id}. Cleaned data: " . print_r($clean_option_data, true));
+                error_log("[NORDBOOKING SaveSvc Debug] Adding option for service_id {$service_id}. Cleaned data: " . print_r($clean_option_data, true));
                 $option_result = $this->service_options_manager->add_service_option($user_id, $service_id, $clean_option_data);
 
                 if (is_wp_error($option_result)) {
                     $error_message = $option_result->get_error_message(); // The message from ServiceOptions is now specific enough
-                    error_log("[MoBooking SaveSvc Debug] Error adding service option '{$clean_option_data['name']}': " . $error_message);
+                    error_log("[NORDBOOKING SaveSvc Debug] Error adding service option '{$clean_option_data['name']}': " . $error_message);
                     if (ob_get_length()) ob_clean();
                     wp_send_json_error(['message' => $error_message], 400);
                     return; // Stop execution
                 } else {
-                    error_log("[MoBooking SaveSvc Debug] Successfully added option '{$clean_option_data['name']}'. New option ID: " . $option_result);
+                    error_log("[NORDBOOKING SaveSvc Debug] Successfully added option '{$clean_option_data['name']}'. New option ID: " . $option_result);
                 }
             }
-            error_log('[MoBooking SaveSvc Debug] Finished processing service options.');
+            error_log('[NORDBOOKING SaveSvc Debug] Finished processing service options.');
         } else {
-            error_log('[MoBooking SaveSvc Debug] No service options found in POST data.');
+            error_log('[NORDBOOKING SaveSvc Debug] No service options found in POST data.');
             // If no options are submitted, we should ensure any existing options are removed.
             $this->service_options_manager->delete_options_for_service($service_id, $user_id);
-            error_log('[MoBooking SaveSvc Debug] No options in POST, ensured existing options are deleted for service_id: ' . $service_id);
+            error_log('[NORDBOOKING SaveSvc Debug] No options in POST, ensured existing options are deleted for service_id: ' . $service_id);
         }
 
 
         // If we've reached here, all options (if any) were saved successfully.
         $saved_service = $this->get_service($service_id, $user_id);
-        error_log('[MoBooking SaveSvc Debug] Sending success response. Service ID: ' . $service_id . '. Message: ' . $message);
+        error_log('[NORDBOOKING SaveSvc Debug] Sending success response. Service ID: ' . $service_id . '. Message: ' . $message);
 
         if ($saved_service) {
-            error_log('[MoBooking SaveSvc Debug] Final saved_service data: ' . print_r($saved_service, true));
+            error_log('[NORDBOOKING SaveSvc Debug] Final saved_service data: ' . print_r($saved_service, true));
             if (ob_get_length()) ob_clean(); // Clean buffer before sending JSON
             wp_send_json_success(['message' => $message, 'service' => $saved_service, 'service_id' => $service_id]);
         } else {
             // This case indicates an issue with get_service or the service was somehow deleted post-save.
-            error_log('[MoBooking SaveSvc Debug] Error: Could not retrieve service (ID: ' . $service_id . ') after saving, though main service and options (if any) reported success.');
+            error_log('[NORDBOOKING SaveSvc Debug] Error: Could not retrieve service (ID: ' . $service_id . ') after saving, though main service and options (if any) reported success.');
             if (ob_get_length()) ob_clean(); // Clean buffer
-            wp_send_json_error(['message' => __('Service was saved, but could not be retrieved. Please check the services list.', 'mobooking')], 500);
+            wp_send_json_error(['message' => __('Service was saved, but could not be retrieved. Please check the services list.', 'NORDBOOKING')], 500);
         }
         // wp_send_json_success / wp_send_json_error call wp_die() internally, so no need for explicit die/return here.
         // Final ob_clean just in case, though it should be unreachable if wp_send_json_* is called.
@@ -1252,51 +1252,51 @@ class Services {
     }
 
     public function handle_get_service_details_ajax() {
-        error_log('[MoBooking ServiceDetails AJAX] Received POST: ' . print_r($_POST, true));
+        error_log('[NORDBOOKING ServiceDetails AJAX] Received POST: ' . print_r($_POST, true));
         // Make check_ajax_referer not die, so we can send a custom JSON response
-        if (!check_ajax_referer('mobooking_services_nonce', 'nonce', false)) {
-            wp_send_json_error(['message' => __('Error: Nonce verification failed.', 'mobooking')], 403);
+        if (!check_ajax_referer('nordbooking_services_nonce', 'nonce', false)) {
+            wp_send_json_error(['message' => __('Error: Nonce verification failed.', 'NORDBOOKING')], 403);
             return;
         }
 
         $user_id = get_current_user_id();
         if (!$user_id) {
-            wp_send_json_error(['message' => __('Error: User not authenticated.', 'mobooking')], 401); // 401 Unauthorized
+            wp_send_json_error(['message' => __('Error: User not authenticated.', 'NORDBOOKING')], 401); // 401 Unauthorized
             return;
         }
 
         if (!isset($_POST['service_id']) || empty($_POST['service_id']) || !is_numeric($_POST['service_id'])) {
-            wp_send_json_error(['message' => __('Error: Service ID is missing or invalid.', 'mobooking')], 400);
+            wp_send_json_error(['message' => __('Error: Service ID is missing or invalid.', 'NORDBOOKING')], 400);
             return;
         }
         $service_id = (int) $_POST['service_id'];
 
-        error_log('[MoBooking ServiceDetails AJAX] Calling get_service for service_id: ' . $service_id);
+        error_log('[NORDBOOKING ServiceDetails AJAX] Calling get_service for service_id: ' . $service_id);
         $service_details = $this->get_service($service_id, $user_id);
 
         if (is_wp_error($service_details)) {
-            error_log('[MoBooking ServiceDetails AJAX] get_service returned WP_Error. Message: ' . $service_details->get_error_message() . ' Code: ' . $service_details->get_error_code()); // Added more detail
+            error_log('[NORDBOOKING ServiceDetails AJAX] get_service returned WP_Error. Message: ' . $service_details->get_error_message() . ' Code: ' . $service_details->get_error_code()); // Added more detail
             wp_send_json_error(['message' => $service_details->get_error_message()], 500);
             return;
         } elseif (empty($service_details)) {
-            error_log('[MoBooking ServiceDetails AJAX] get_service returned null or empty.');
-            wp_send_json_error(['message' => __('Error: Service not found or access denied.', 'mobooking')], 404); // Kept original response for client
+            error_log('[NORDBOOKING ServiceDetails AJAX] get_service returned null or empty.');
+            wp_send_json_error(['message' => __('Error: Service not found or access denied.', 'NORDBOOKING')], 404); // Kept original response for client
             return;
         } else {
-            error_log('[MoBooking ServiceDetails AJAX] get_service returned data for service_id: ' . $service_id);
+            error_log('[NORDBOOKING ServiceDetails AJAX] get_service returned data for service_id: ' . $service_id);
         }
 
         wp_send_json_success(['service' => $service_details]); // Ensure data is keyed under 'service' if JS expects response.data.service
     }
 
     public function handle_get_preset_icons_ajax() {
-        if (!check_ajax_referer('mobooking_services_nonce', 'nonce', false)) {
-            wp_send_json_error(['message' => __('Error: Nonce verification failed.', 'mobooking')], 403);
+        if (!check_ajax_referer('nordbooking_services_nonce', 'nonce', false)) {
+            wp_send_json_error(['message' => __('Error: Nonce verification failed.', 'NORDBOOKING')], 403);
             return;
         }
         $user_id = get_current_user_id();
         if (!$user_id) {
-            wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403);
+            wp_send_json_error(['message' => __('User not logged in.', 'NORDBOOKING')], 403);
             return;
         }
 
@@ -1382,18 +1382,18 @@ class Services {
     }
 
     public function get_services_by_tenant_id($tenant_id) {
-        error_log('[MoBooking Services Debug] Getting services for tenant_id: ' . $tenant_id);
+        error_log('[NORDBOOKING Services Debug] Getting services for tenant_id: ' . $tenant_id);
 
         $table_name = Database::get_table_name('services');
         $sql = $this->wpdb->prepare("SELECT * FROM $table_name WHERE user_id = %d AND status = 'active' ORDER BY sort_order ASC", $tenant_id);
 
-        error_log('[MoBooking Services Debug] SQL: ' . $sql);
+        error_log('[NORDBOOKING Services Debug] SQL: ' . $sql);
 
         $services = $this->wpdb->get_results($sql, ARRAY_A);
 
         if ($this->wpdb->last_error) {
-            error_log('[MoBooking Services DB Error] get_services_by_tenant_id failed: ' . $this->wpdb->last_error);
-            return new \WP_Error('db_error', __('Could not get services from the database.', 'mobooking'));
+            error_log('[NORDBOOKING Services DB Error] get_services_by_tenant_id failed: ' . $this->wpdb->last_error);
+            return new \WP_Error('db_error', __('Could not get services from the database.', 'NORDBOOKING'));
         }
 
         if ($services) {
@@ -1411,7 +1411,7 @@ class Services {
             }
         }
 
-        error_log('[MoBooking Services Debug] Found ' . count($services) . ' services for tenant_id: ' . $tenant_id);
+        error_log('[NORDBOOKING Services Debug] Found ' . count($services) . ' services for tenant_id: ' . $tenant_id);
 
         return $services;
     }

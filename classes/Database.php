@@ -2,9 +2,9 @@
 /**
  * Class Database
  * Handles custom database table creation and interaction.
- * @package MoBooking\Classes
+ * @package NORDBOOKING\Classes
  */
-namespace MoBooking\Classes;
+namespace NORDBOOKING\Classes;
 
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -19,7 +19,7 @@ class Database {
 
     public static function get_table_name( $name ) {
         global $wpdb;
-        return $wpdb->prefix . 'mobooking_' . $name;
+        return $wpdb->prefix . 'nordbooking_' . $name;
     }
 
     public function migrate_to_enhanced_booking_form() {
@@ -47,16 +47,16 @@ class Database {
                 $wpdb->query($sql);
 
                 if ($wpdb->last_error) {
-                    error_log("MoBooking Migration Error: " . $wpdb->last_error);
+                    error_log("NORDBOOKING Migration Error: " . $wpdb->last_error);
                 }
             }
         }
 
         // Update database version
-        update_option('mobooking_db_version', '2.0.0');
+        update_option('nordbooking_db_version', '2.0.0');
     }
     public static function create_tables() {
-        error_log('[MoBooking DB Debug] Attempting to create/update custom tables...');
+        error_log('[NORDBOOKING DB Debug] Attempting to create/update custom tables...');
         global $wpdb;
         require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
 
@@ -65,7 +65,7 @@ class Database {
 
         // Services Table
         $table_name = self::get_table_name('services');
-        error_log('[MoBooking DB Debug] Preparing SQL for services table: ' . $table_name);
+        error_log('[NORDBOOKING DB Debug] Preparing SQL for services table: ' . $table_name);
         $sql_services = "CREATE TABLE $table_name (
             service_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
             user_id BIGINT UNSIGNED NOT NULL,
@@ -86,12 +86,12 @@ class Database {
             INDEX status_idx (status),
             INDEX sort_order_idx (sort_order)
         ) $charset_collate;";
-        error_log('[MoBooking DB Debug] SQL for services table: ' . preg_replace('/\s+/', ' ', $sql_services)); // Log condensed SQL
+        error_log('[NORDBOOKING DB Debug] SQL for services table: ' . preg_replace('/\s+/', ' ', $sql_services)); // Log condensed SQL
         $dbDelta_results['services'] = dbDelta( $sql_services );
 
         // Service Options Table
         $table_name = self::get_table_name('service_options');
-        error_log('[MoBooking DB Debug] Preparing SQL for service_options table: ' . $table_name);
+        error_log('[NORDBOOKING DB Debug] Preparing SQL for service_options table: ' . $table_name);
         $sql_service_options = "CREATE TABLE $table_name (
             option_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
             service_id BIGINT UNSIGNED NOT NULL,
@@ -110,20 +110,20 @@ class Database {
             INDEX service_id_idx (service_id),
             INDEX user_id_idx (user_id)
         ) $charset_collate;";
-        error_log('[MoBooking DB Debug] SQL for service_options table: ' . preg_replace('/\s+/', ' ', $sql_service_options));
+        error_log('[NORDBOOKING DB Debug] SQL for service_options table: ' . preg_replace('/\s+/', ' ', $sql_service_options));
         $dbDelta_results['service_options'] = dbDelta( $sql_service_options );
 
         // NOTE: The 'customers' table definition below is being removed as it was redundant.
         // The correct table is 'mob_customers', defined later in this method.
         // $table_name = self::get_table_name('customers');
-        // error_log('[MoBooking DB Debug] Preparing SQL for customers table: ' . $table_name);
+        // error_log('[NORDBOOKING DB Debug] Preparing SQL for customers table: ' . $table_name);
         // $sql_customers = "CREATE TABLE $table_name ( ... ) $charset_collate;";
-        // error_log('[MoBooking DB Debug] SQL for customers table: ' . preg_replace('/\s+/', ' ', $sql_customers));
+        // error_log('[NORDBOOKING DB Debug] SQL for customers table: ' . preg_replace('/\s+/', ' ', $sql_customers));
         // $dbDelta_results['customers'] = dbDelta( $sql_customers );
 
         // Discounts Table (formerly discount_codes)
         $table_name = self::get_table_name('discounts');
-        error_log('[MoBooking DB Debug] Preparing SQL for discounts table: ' . $table_name);
+        error_log('[NORDBOOKING DB Debug] Preparing SQL for discounts table: ' . $table_name);
         $sql_discounts = "CREATE TABLE $table_name (
             discount_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
             user_id BIGINT UNSIGNED NOT NULL,
@@ -139,17 +139,17 @@ class Database {
             INDEX user_id_idx (user_id),
             UNIQUE KEY user_code_unique (user_id, code)
         ) $charset_collate;";
-        error_log('[MoBooking DB Debug] SQL for discounts table: ' . preg_replace('/\s+/', ' ', $sql_discounts));
+        error_log('[NORDBOOKING DB Debug] SQL for discounts table: ' . preg_replace('/\s+/', ' ', $sql_discounts));
         $dbDelta_results['discounts'] = dbDelta( $sql_discounts );
 
         // Bookings Table
         $table_name = self::get_table_name('bookings');
-        error_log('[MoBooking DB Debug] Preparing SQL for bookings table: ' . $table_name);
+        error_log('[NORDBOOKING DB Debug] Preparing SQL for bookings table: ' . $table_name);
         $sql_bookings = "CREATE TABLE $table_name (
             booking_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
             user_id BIGINT UNSIGNED NOT NULL, -- Tenant ID (Business Owner)
             customer_id BIGINT UNSIGNED, -- Original field, maybe WordPress user ID of customer if they are registered users.
-            mob_customer_id BIGINT UNSIGNED NULL, -- FK to mobooking_customers table (formerly mob_customers)
+            mob_customer_id BIGINT UNSIGNED NULL, -- FK to nordbooking_customers table (formerly mob_customers)
             assigned_staff_id BIGINT UNSIGNED NULL, -- ID of the assigned staff member (WP User ID)
             customer_name VARCHAR(255) NOT NULL,
             customer_email VARCHAR(255) NOT NULL,
@@ -185,12 +185,12 @@ class Database {
             INDEX discount_id_idx (discount_id),
             INDEX assigned_staff_id_idx (assigned_staff_id)
         ) $charset_collate;";
-        error_log('[MoBooking DB Debug] SQL for bookings table: ' . preg_replace('/\s+/', ' ', $sql_bookings));
+        error_log('[NORDBOOKING DB Debug] SQL for bookings table: ' . preg_replace('/\s+/', ' ', $sql_bookings));
         $dbDelta_results['bookings'] = dbDelta( $sql_bookings );
 
         // Booking Items Table
         $table_name = self::get_table_name('booking_items');
-        error_log('[MoBooking DB Debug] Preparing SQL for booking_items table: ' . $table_name);
+        error_log('[NORDBOOKING DB Debug] Preparing SQL for booking_items table: ' . $table_name);
         $sql_booking_items = "CREATE TABLE $table_name (
             item_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
             booking_id BIGINT UNSIGNED NOT NULL,
@@ -204,12 +204,12 @@ class Database {
             INDEX booking_id_idx (booking_id),
             INDEX service_id_idx (service_id)
         ) $charset_collate;";
-        error_log('[MoBooking DB Debug] SQL for booking_items table: ' . preg_replace('/\s+/', ' ', $sql_booking_items));
+        error_log('[NORDBOOKING DB Debug] SQL for booking_items table: ' . preg_replace('/\s+/', ' ', $sql_booking_items));
         $dbDelta_results['booking_items'] = dbDelta( $sql_booking_items );
 
         // Tenant Settings Table
         $table_name = self::get_table_name('tenant_settings');
-        error_log('[MoBooking DB Debug] Preparing SQL for tenant_settings table: ' . $table_name);
+        error_log('[NORDBOOKING DB Debug] Preparing SQL for tenant_settings table: ' . $table_name);
         $sql_tenant_settings = "CREATE TABLE $table_name (
             setting_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
             user_id BIGINT UNSIGNED NOT NULL,
@@ -218,12 +218,12 @@ class Database {
             PRIMARY KEY (setting_id),
             UNIQUE KEY user_setting_unique (user_id, setting_name(191))
         ) $charset_collate;";
-        error_log('[MoBooking DB Debug] SQL for tenant_settings table: ' . preg_replace('/\s+/', ' ', $sql_tenant_settings));
+        error_log('[NORDBOOKING DB Debug] SQL for tenant_settings table: ' . preg_replace('/\s+/', ' ', $sql_tenant_settings));
         $dbDelta_results['tenant_settings'] = dbDelta( $sql_tenant_settings );
 
         // Areas Table (formerly service_areas)
         $table_name = self::get_table_name('areas');
-        error_log('[MoBooking DB Debug] Preparing SQL for areas table: ' . $table_name);
+        error_log('[NORDBOOKING DB Debug] Preparing SQL for areas table: ' . $table_name);
         $sql_areas = "CREATE TABLE $table_name (
             area_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
             user_id BIGINT UNSIGNED NOT NULL,
@@ -237,12 +237,12 @@ class Database {
             INDEX user_id_idx (user_id),
             INDEX status_idx (status)
         ) $charset_collate;";
-        error_log('[MoBooking DB Debug] SQL for areas table: ' . preg_replace('/\s+/', ' ', $sql_areas));
+        error_log('[NORDBOOKING DB Debug] SQL for areas table: ' . preg_replace('/\s+/', ' ', $sql_areas));
         $dbDelta_results['areas'] = dbDelta( $sql_areas );
 
         // Availability Rules Table (Recurring, formerly availability_slots)
         $table_name_rules = self::get_table_name('availability_rules');
-        error_log('[MoBooking DB Debug] Preparing SQL for availability_rules table: ' . $table_name_rules);
+        error_log('[NORDBOOKING DB Debug] Preparing SQL for availability_rules table: ' . $table_name_rules);
         $sql_availability_rules = "CREATE TABLE $table_name_rules (
             slot_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
             user_id BIGINT UNSIGNED NOT NULL,
@@ -257,12 +257,12 @@ class Database {
             INDEX user_id_day_idx (user_id, day_of_week)
             -- CONSTRAINT check_day_of_week CHECK (day_of_week BETWEEN 0 AND 6) -- Removed for dbDelta compatibility
         ) $charset_collate;";
-        error_log('[MoBooking DB Debug] SQL for availability_rules table: ' . preg_replace('/\s+/', ' ', $sql_availability_rules));
+        error_log('[NORDBOOKING DB Debug] SQL for availability_rules table: ' . preg_replace('/\s+/', ' ', $sql_availability_rules));
         $dbDelta_results['availability_rules'] = dbDelta( $sql_availability_rules );
 
         // Availability Exceptions Table (Specific Dates, formerly availability_overrides)
         $table_name_exceptions = self::get_table_name('availability_exceptions');
-        error_log('[MoBooking DB Debug] Preparing SQL for availability_exceptions table: ' . $table_name_exceptions);
+        error_log('[NORDBOOKING DB Debug] Preparing SQL for availability_exceptions table: ' . $table_name_exceptions);
         $sql_availability_exceptions = "CREATE TABLE $table_name_exceptions (
             override_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
             user_id BIGINT UNSIGNED NOT NULL,
@@ -283,7 +283,7 @@ class Database {
         // For the initial plan (one override definition per day, or marking day off), this unique key is okay.
         // Let's adjust the unique key to be more flexible: a user can have multiple overrides on the same date IF they have different start/end times (or one is null for full day).
         // To simplify, let's assume for now an override either makes the whole day unavailable OR defines a single available block for that day.
-        // A more robust solution might involve removing start_time/end_time from the override and linking to a new table `mobooking_override_slots` if a date has custom slots.
+        // A more robust solution might involve removing start_time/end_time from the override and linking to a new table `nordbooking_override_slots` if a date has custom slots.
         // For now, let's keep it simple: an override can define a single slot OR mark the day unavailable.
         // The unique key should probably be `user_id` and `override_date` if we only allow one "override instruction" per day.
         // Let's refine the unique key to `user_id, override_date` and handle logic in PHP if multiple slots are needed for an override day (e.g. by creating multiple override entries if that's the design).
@@ -307,13 +307,13 @@ class Database {
             PRIMARY KEY (exception_id), -- Renamed from override_id
             UNIQUE KEY user_exception_date_unique (user_id, exception_date) -- Renamed from user_override_date_unique
         ) $charset_collate;";
-        error_log('[MoBooking DB Debug] SQL for availability_exceptions table: ' . preg_replace('/\s+/', ' ', $sql_availability_exceptions));
+        error_log('[NORDBOOKING DB Debug] SQL for availability_exceptions table: ' . preg_replace('/\s+/', ' ', $sql_availability_exceptions));
         $dbDelta_results['availability_exceptions'] = dbDelta( $sql_availability_exceptions );
 
-        // Customers Table (formerly MoBooking Customers / mob_customers)
+        // Customers Table (formerly NORDBOOKING Customers / mob_customers)
         // Renamed to 'customers' to match the expected table name from the debug message.
         $table_name_customers = self::get_table_name('customers');
-        error_log('[MoBooking DB Debug] Preparing SQL for customers table: ' . $table_name_customers);
+        error_log('[NORDBOOKING DB Debug] Preparing SQL for customers table: ' . $table_name_customers);
         $sql_customers = "CREATE TABLE $table_name_customers (
             id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
             wp_user_id BIGINT UNSIGNED NULL, -- Link to WordPress user table if the customer is a registered WP user
@@ -339,12 +339,12 @@ class Database {
             INDEX wp_user_id_idx (wp_user_id),
             INDEX tenant_id_idx (tenant_id)
         ) $charset_collate;";
-        error_log('[MoBooking DB Debug] SQL for customers table: ' . preg_replace('/\s+/', ' ', $sql_customers));
+        error_log('[NORDBOOKING DB Debug] SQL for customers table: ' . preg_replace('/\s+/', ' ', $sql_customers));
         $dbDelta_results['customers'] = dbDelta( $sql_customers );
 
         // Booking Meta Table (newly added)
         $table_name_booking_meta = self::get_table_name('booking_meta');
-        error_log('[MoBooking DB Debug] Preparing SQL for booking_meta table: ' . $table_name_booking_meta);
+        error_log('[NORDBOOKING DB Debug] Preparing SQL for booking_meta table: ' . $table_name_booking_meta);
         $sql_booking_meta = "CREATE TABLE $table_name_booking_meta (
             meta_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
             booking_id BIGINT UNSIGNED NOT NULL,
@@ -354,20 +354,20 @@ class Database {
             INDEX booking_id_idx (booking_id),
             INDEX meta_key_idx (meta_key(191))
         ) $charset_collate;";
-        error_log('[MoBooking DB Debug] SQL for booking_meta table: ' . preg_replace('/\s+/', ' ', $sql_booking_meta));
+        error_log('[NORDBOOKING DB Debug] SQL for booking_meta table: ' . preg_replace('/\s+/', ' ', $sql_booking_meta));
         $dbDelta_results['booking_meta'] = dbDelta( $sql_booking_meta );
 
-        error_log('[MoBooking DB Debug] dbDelta execution results: ' . print_r($dbDelta_results, true));
-        error_log('[MoBooking DB Debug] Custom tables creation/update attempt finished.');
+        error_log('[NORDBOOKING DB Debug] dbDelta execution results: ' . print_r($dbDelta_results, true));
+        error_log('[NORDBOOKING DB Debug] Custom tables creation/update attempt finished.');
     }
 
     public static function register_diagnostic_page() {
         add_submenu_page(
             'tools.php',
-            'MoBooking Database Diagnostic',
-            'MoBooking DB Diagnostic',
+            'NORDBOOKING Database Diagnostic',
+            'NORDBOOKING DB Diagnostic',
             'manage_options',
-            'mobooking-db-diagnostic',
+            'NORDBOOKING-db-diagnostic',
             array(__CLASS__, 'display_diagnostic_page')
         );
     }
@@ -380,7 +380,7 @@ class Database {
         global $wpdb;
 
         echo '<div class="wrap">';
-        echo '<h1>🔍 MoBooking Database Diagnostic</h1>';
+        echo '<h1>🔍 NORDBOOKING Database Diagnostic</h1>';
 
         // Check bookings table
         $bookings_table = self::get_table_name('bookings');
@@ -458,7 +458,7 @@ class Database {
         echo '<h2>🔧 Database Fix Actions</h2>';
 
         if (isset($_POST['action']) && $_POST['action'] === 'fix_database') {
-            if (wp_verify_nonce($_POST['nonce'], 'mobooking_db_fix')) {
+            if (wp_verify_nonce($_POST['nonce'], 'nordbooking_db_fix')) {
                 echo '<div style="background: #d1ecf1; border: 1px solid #bee5eb; padding: 10px; margin: 10px 0;">';
                 echo '<h3>🛠️ Running Database Fix...</h3>';
 
@@ -481,7 +481,7 @@ class Database {
         }
 
         echo '<form method="post">';
-        wp_nonce_field('mobooking_db_fix', 'nonce');
+        wp_nonce_field('nordbooking_db_fix', 'nonce');
         echo '<input type="hidden" name="action" value="fix_database">';
         echo '<button type="submit" class="button button-primary">🔧 Fix Database Tables</button>';
         echo '<p class="description">This will create/update the bookings table with the correct structure.</p>';

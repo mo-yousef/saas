@@ -2,7 +2,7 @@
 /**
  * The main template file
  *
- * @package MoBooking
+ * @package NORDBOOKING
  */
 
 get_header();

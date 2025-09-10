@@ -1,7 +1,7 @@
 /**
  * Enhanced Services Page JavaScript
  * Improved filtering, search, and modern UI interactions
- * @package MoBooking
+ * @package NORDBOOKING
  */
 
 (function ($) {
@@ -55,11 +55,11 @@
 
     updateServiceOrder(serviceIds) {
       $.ajax({
-        url: mobooking_services_params.ajax_url,
+        url: nordbooking_services_params.ajax_url,
         type: "POST",
         data: {
-          action: "mobooking_update_service_order",
-          nonce: mobooking_services_params.services_nonce,
+          action: "nordbooking_update_service_order",
+          nonce: nordbooking_services_params.services_nonce,
           service_ids: serviceIds,
         },
         success: (response) => {
@@ -171,20 +171,21 @@
       // Add ARIA labels
       this.$searchInput.attr({
         "aria-label":
-          mobooking_services_params.i18n?.search_services || "Search services",
+          nordbooking_services_params.i18n?.search_services ||
+          "Search services",
         role: "searchbox",
       });
 
       this.$statusFilter.attr({
         "aria-label":
-          mobooking_services_params.i18n?.filter_by_status ||
+          nordbooking_services_params.i18n?.filter_by_status ||
           "Filter by status",
         role: "combobox",
       });
 
       this.$sortFilter.attr({
         "aria-label":
-          mobooking_services_params.i18n?.sort_services || "Sort services",
+          nordbooking_services_params.i18n?.sort_services || "Sort services",
         role: "combobox",
       });
 
@@ -317,8 +318,8 @@
       }
 
       const requestData = {
-        action: "mobooking_get_services",
-        nonce: mobooking_services_params.services_nonce,
+        action: "nordbooking_get_services",
+        nonce: nordbooking_services_params.services_nonce,
         search_query: this.filters.search,
         status_filter: this.filters.status,
         orderby: this.filters.orderby,
@@ -328,7 +329,7 @@
       };
 
       this.currentRequest = $.ajax({
-        url: mobooking_services_params.ajax_url,
+        url: nordbooking_services_params.ajax_url,
         type: "POST",
         data: requestData,
         dataType: "json",
@@ -393,11 +394,11 @@
         .addClass("btn-loading");
 
       $.ajax({
-        url: mobooking_services_params.ajax_url,
+        url: nordbooking_services_params.ajax_url,
         type: "POST",
         data: {
-          action: "mobooking_delete_service",
-          _ajax_nonce: mobooking_services_params.services_nonce,
+          action: "nordbooking_delete_service",
+          _ajax_nonce: nordbooking_services_params.services_nonce,
           service_id: serviceId,
         },
         dataType: "json",
@@ -564,7 +565,7 @@
                     <p class="empty-state-description">
                         Create your first service to start accepting bookings from customers.
                     </p>
-                    <a href="${mobooking_services_params.add_service_url}" class="add-service-btn">
+                    <a href="${nordbooking_services_params.add_service_url}" class="add-service-btn">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M5 12h14" />
                             <path d="M12 5v14" />
@@ -627,7 +628,7 @@
                 <form method="POST" action="/wp-admin/admin-post.php" data-service-name="${
                   service.name
                 }">
-                    <input type="hidden" name="action" value="mobooking_delete_service">
+                    <input type="hidden" name="action" value="nordbooking_delete_service">
                     <input type="hidden" name="service_id" value="${
                       service.service_id
                     }">
@@ -657,8 +658,9 @@
     }
 
     formatCurrency(amount) {
-      const symbol = mobooking_services_params.currency_symbol || "";
-      const position = mobooking_services_params.currency_position || "before";
+      const symbol = nordbooking_services_params.currency_symbol || "";
+      const position =
+        nordbooking_services_params.currency_position || "before";
       const formattedAmount = parseFloat(amount).toFixed(2);
 
       return position === "before"
@@ -747,7 +749,7 @@
         // Alt + N: New service
         if (e.altKey && e.key === "n") {
           e.preventDefault();
-          window.location.href = mobooking_services_params.add_service_url;
+          window.location.href = nordbooking_services_params.add_service_url;
         }
 
         // Alt + R: Refresh
@@ -876,11 +878,11 @@
 
       // Perform bulk action via AJAX
       $.ajax({
-        url: mobooking_services_params.ajax_url,
+        url: nordbooking_services_params.ajax_url,
         type: "POST",
         data: {
-          action: `mobooking_bulk_${action}_services`,
-          nonce: mobooking_services_params.services_nonce,
+          action: `nordbooking_bulk_${action}_services`,
+          nonce: nordbooking_services_params.services_nonce,
           service_ids: selectedIds,
         },
         success: (response) => {
@@ -1030,11 +1032,11 @@
       const filters = this.manager.getFilters();
 
       $.ajax({
-        url: mobooking_services_params.ajax_url,
+        url: nordbooking_services_params.ajax_url,
         type: "POST",
         data: {
-          action: "mobooking_export_services",
-          nonce: mobooking_services_params.services_nonce,
+          action: "nordbooking_export_services",
+          nonce: nordbooking_services_params.services_nonce,
           format: format,
           filters: filters,
         },
@@ -1071,8 +1073,8 @@
   // Initialize when DOM is ready
   $(document).ready(function () {
     // Check if we're on the services page
-    if (typeof mobooking_services_params === "undefined") {
-      console.warn("MoBooking Services: Required parameters not found");
+    if (typeof nordbooking_services_params === "undefined") {
+      console.warn("NORDBOOKING Services: Required parameters not found");
       return;
     }
 
@@ -1103,6 +1105,6 @@
       servicesManager.setFilters(initialFilters);
     }
 
-    console.log("MoBooking Services: Enhanced page initialized successfully");
+    console.log("NORDBOOKING Services: Enhanced page initialized successfully");
   });
 })(jQuery);

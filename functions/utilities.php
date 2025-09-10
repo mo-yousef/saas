@@ -1,24 +1,24 @@
 <?php
 // Ensure Business Owner Role exists on init
-function mobooking_ensure_business_owner_role_exists() {
-    if (class_exists('MoBooking\Classes\Auth')) {
-        if ( !get_role( MoBooking\Classes\Auth::ROLE_BUSINESS_OWNER ) ) {
-            MoBooking\Classes\Auth::add_business_owner_role();
+function nordbooking_ensure_business_owner_role_exists() {
+    if (class_exists('NORDBOOKING\Classes\Auth')) {
+        if ( !get_role( NORDBOOKING\Classes\Auth::ROLE_BUSINESS_OWNER ) ) {
+            NORDBOOKING\Classes\Auth::add_business_owner_role();
             add_action('admin_notices', function() {
                 echo '<div class="notice notice-success is-dismissible"><p>' .
-                     esc_html__('MoBooking: The "Business Owner" user role was missing and has been successfully re-created. Please refresh if you were assigning roles.', 'mobooking') .
+                     esc_html__('NORDBOOKING: The "Business Owner" user role was missing and has been successfully re-created. Please refresh if you were assigning roles.', 'NORDBOOKING') .
                      '</p></div>';
             });
         }
     }
 }
-add_action( 'init', 'mobooking_ensure_business_owner_role_exists' );
+add_action( 'init', 'nordbooking_ensure_business_owner_role_exists' );
 
 // Ensure Worker Roles exist on init
-function mobooking_ensure_worker_roles_exist() {
-    if (class_exists('MoBooking\Classes\Auth')) {
+function nordbooking_ensure_worker_roles_exist() {
+    if (class_exists('NORDBOOKING\Classes\Auth')) {
         $roles_to_check = array(
-            MoBooking\Classes\Auth::ROLE_WORKER_STAFF
+            NORDBOOKING\Classes\Auth::ROLE_WORKER_STAFF
         );
         $missing_roles = false;
         foreach ($roles_to_check as $role_name) {
@@ -29,51 +29,51 @@ function mobooking_ensure_worker_roles_exist() {
         }
 
         if ($missing_roles) {
-            MoBooking\Classes\Auth::add_worker_roles();
+            NORDBOOKING\Classes\Auth::add_worker_roles();
             add_action('admin_notices', function() {
                 echo '<div class="notice notice-success is-dismissible"><p>' .
-                     esc_html__('MoBooking: The "Worker Staff" user role was missing and has been successfully re-created. Please refresh if you were assigning roles.', 'mobooking') .
+                     esc_html__('NORDBOOKING: The "Worker Staff" user role was missing and has been successfully re-created. Please refresh if you were assigning roles.', 'NORDBOOKING') .
                      '</p></div>';
             });
         }
     }
 }
-add_action( 'init', 'mobooking_ensure_worker_roles_exist' );
+add_action( 'init', 'nordbooking_ensure_worker_roles_exist' );
 
 // Ensure Custom Database Tables exist on admin_init
-function mobooking_ensure_custom_tables_exist() {
-    if (is_admin() && class_exists('MoBooking\Classes\Database')) {
-        $current_db_version = get_option('mobooking_db_version', '1.0');
+function nordbooking_ensure_custom_tables_exist() {
+    if (is_admin() && class_exists('NORDBOOKING\Classes\Database')) {
+        $current_db_version = get_option('nordbooking_db_version', '1.0');
 
-        if (version_compare($current_db_version, MOBOOKING_DB_VERSION, '<')) {
-            error_log('[MoBooking DB Debug] Database version mismatch. Stored: ' . $current_db_version . ', Required: ' . MOBOOKING_DB_VERSION . '. Forcing table creation/update.');
-            \MoBooking\Classes\Database::create_tables();
-            update_option('mobooking_db_version', MOBOOKING_DB_VERSION);
+        if (version_compare($current_db_version, NORDBOOKING_DB_VERSION, '<')) {
+            error_log('[NORDBOOKING DB Debug] Database version mismatch. Stored: ' . $current_db_version . ', Required: ' . NORDBOOKING_DB_VERSION . '. Forcing table creation/update.');
+            \NORDBOOKING\Classes\Database::create_tables();
+            update_option('nordbooking_db_version', NORDBOOKING_DB_VERSION);
 
             add_action('admin_notices', function() {
                 echo '<div class="notice notice-success is-dismissible"><p>' .
-                     esc_html__('MoBooking: Database updated successfully.', 'mobooking') .
+                     esc_html__('NORDBOOKING: Database updated successfully.', 'NORDBOOKING') .
                      '</p></div>';
             });
         }
     }
 }
-add_action( 'admin_init', 'mobooking_ensure_custom_tables_exist' );
+add_action( 'admin_init', 'nordbooking_ensure_custom_tables_exist' );
 
 // Function to actually flush rewrite rules, hooked to shutdown if a flag is set.
-function mobooking_conditionally_flush_rewrite_rules() {
-    if (get_option('mobooking_flush_rewrite_rules_flag')) {
-        delete_option('mobooking_flush_rewrite_rules_flag');
+function nordbooking_conditionally_flush_rewrite_rules() {
+    if (get_option('nordbooking_flush_rewrite_rules_flag')) {
+        delete_option('nordbooking_flush_rewrite_rules_flag');
         // Ensure our rules are registered before flushing
-        // mobooking_add_rewrite_rules(); // This function is hooked to init, so rules should be registered.
+        // nordbooking_add_rewrite_rules(); // This function is hooked to init, so rules should be registered.
         flush_rewrite_rules();
-        error_log('[MoBooking] Rewrite rules flushed via shutdown hook.');
+        error_log('[NORDBOOKING] Rewrite rules flushed via shutdown hook.');
     }
 }
-add_action('shutdown', 'mobooking_conditionally_flush_rewrite_rules');
+add_action('shutdown', 'nordbooking_conditionally_flush_rewrite_rules');
 
 // Locale switching functions
-function mobooking_switch_user_locale() {
+function nordbooking_switch_user_locale() {
     static $locale_switched = false; // Track if locale was actually switched
 
     if ( ! is_user_logged_in() ) {
@@ -86,83 +86,83 @@ function mobooking_switch_user_locale() {
     }
 
     // Ensure settings manager is available
-    if ( ! isset( $GLOBALS['mobooking_settings_manager'] ) || ! is_object( $GLOBALS['mobooking_settings_manager'] ) ) {
-        // error_log('MoBooking Debug: Settings manager not available for locale switch.');
+    if ( ! isset( $GLOBALS['nordbooking_settings_manager'] ) || ! is_object( $GLOBALS['nordbooking_settings_manager'] ) ) {
+        // error_log('NORDBOOKING Debug: Settings manager not available for locale switch.');
         return false;
     }
 
-    $settings_manager = $GLOBALS['mobooking_settings_manager'];
+    $settings_manager = $GLOBALS['nordbooking_settings_manager'];
     $user_language = $settings_manager->get_setting( $user_id, 'biz_user_language', '' );
 
     if ( ! empty( $user_language ) && is_string( $user_language ) ) {
         // Basic validation for locale format xx_XX or xx
         if ( preg_match( '/^[a-z]{2,3}(_[A-Z]{2})?$/', $user_language ) ) {
             if ( get_locale() !== $user_language ) { // Only switch if different
-                // error_log("MoBooking Debug: Switching locale from " . get_locale() . " to " . $user_language . " for user " . $user_id);
+                // error_log("NORDBOOKING Debug: Switching locale from " . get_locale() . " to " . $user_language . " for user " . $user_id);
                 if ( switch_to_locale( $user_language ) ) {
                     $locale_switched = true;
                     // Re-load the theme's text domain for the new locale
-                    // Note: This assumes 'mobooking' is the text domain and 'languages' is the path.
-                    // unload_textdomain( 'mobooking' ); // May not be necessary if switch_to_locale handles this context for future loads
-                    load_theme_textdomain( 'mobooking', MOBOOKING_THEME_DIR . 'languages' );
+                    // Note: This assumes 'NORDBOOKING' is the text domain and 'languages' is the path.
+                    // unload_textdomain( 'NORDBOOKING' ); // May not be necessary if switch_to_locale handles this context for future loads
+                    load_theme_textdomain( 'NORDBOOKING', NORDBOOKING_THEME_DIR . 'languages' );
 
                     // You might need to reload other text domains if your theme/plugins use them and expect user-specific language
                 } else {
-                    // error_log("MoBooking Debug: switch_to_locale failed for " . $user_language);
+                    // error_log("NORDBOOKING Debug: switch_to_locale failed for " . $user_language);
                 }
             }
         } else {
-            // error_log("MoBooking Debug: Invalid user language format: " . $user_language);
+            // error_log("NORDBOOKING Debug: Invalid user language format: " . $user_language);
         }
     }
     return $locale_switched; // Return status for potential use by restore function
 }
-add_action( 'after_setup_theme', 'mobooking_switch_user_locale', 20 ); // Priority 20 to run after settings manager and main textdomain load
+add_action( 'after_setup_theme', 'nordbooking_switch_user_locale', 20 ); // Priority 20 to run after settings manager and main textdomain load
 
 // Store whether locale was switched in a global to be accessible by shutdown action
 // because static variables in hooked functions are not easily accessible across different hooks.
-$GLOBALS['mobooking_locale_switched_for_request'] = false;
+$GLOBALS['nordbooking_locale_switched_for_request'] = false;
 
-function mobooking_set_global_locale_switched_status() {
+function nordbooking_set_global_locale_switched_status() {
     // This function is called by the after_setup_theme hook to get the status
-    // from mobooking_switch_user_locale and store it globally.
-    // However, mobooking_switch_user_locale itself is hooked to after_setup_theme.
-    // A simpler way: mobooking_switch_user_locale directly sets this global.
-    // Let's modify mobooking_switch_user_locale to do that.
-    // No, the static variable approach for mobooking_restore_user_locale is better.
-    // The static var inside mobooking_switch_user_locale is not directly accessible by mobooking_restore_user_locale.
-    // The issue is that mobooking_restore_user_locale needs to know the state of $locale_switched from mobooking_switch_user_locale.
+    // from nordbooking_switch_user_locale and store it globally.
+    // However, nordbooking_switch_user_locale itself is hooked to after_setup_theme.
+    // A simpler way: nordbooking_switch_user_locale directly sets this global.
+    // Let's modify nordbooking_switch_user_locale to do that.
+    // No, the static variable approach for nordbooking_restore_user_locale is better.
+    // The static var inside nordbooking_switch_user_locale is not directly accessible by nordbooking_restore_user_locale.
+    // The issue is that nordbooking_restore_user_locale needs to know the state of $locale_switched from nordbooking_switch_user_locale.
     // A simple global flag is okay here.
 }
 // No, this intermediate function is not the best way.
-// Let's make mobooking_switch_user_locale update a global directly.
+// Let's make nordbooking_switch_user_locale update a global directly.
 
-// Redefining mobooking_switch_user_locale slightly to set a global flag
+// Redefining nordbooking_switch_user_locale slightly to set a global flag
 // This is generally discouraged, but for shutdown action, it's a common pattern if needed.
 // However, restore_current_locale() is safe to call regardless.
 // The static var was more about *if* we should call it.
 // WordPress's own `restore_current_locale()` checks if a switch happened.
 // So, we don't strictly need to track it ourselves for `restore_current_locale`.
-// The static var `$locale_switched` inside `mobooking_switch_user_locale` is fine for its own logic (e.g. logging)
-// but `mobooking_restore_user_locale` can just call `restore_current_locale()`.
+// The static var `$locale_switched` inside `nordbooking_switch_user_locale` is fine for its own logic (e.g. logging)
+// but `nordbooking_restore_user_locale` can just call `restore_current_locale()`.
 
 // Let's simplify. `restore_current_locale()` is idempotent.
 
-function mobooking_restore_user_locale() {
+function nordbooking_restore_user_locale() {
     // restore_current_locale() will only do something if switch_to_locale() was successfully called.
     restore_current_locale();
-    // error_log("MoBooking Debug: Attempted to restore locale. Current locale after restore: " . get_locale());
+    // error_log("NORDBOOKING Debug: Attempted to restore locale. Current locale after restore: " . get_locale());
 }
-add_action( 'shutdown', 'mobooking_restore_user_locale' );
+add_action( 'shutdown', 'nordbooking_restore_user_locale' );
 
 // --- Business Slug for User Profiles (REMOVED as per refactor) ---
-// The functions mobooking_add_business_slug_field_to_profile and mobooking_save_business_slug_field
+// The functions nordbooking_add_business_slug_field_to_profile and nordbooking_save_business_slug_field
 // and their associated add_action calls have been removed.
 // Business Slug is now managed via Booking Form Settings page.
 
-// The global function mobooking_get_user_id_by_slug() has been moved to BookingFormRouter::get_user_id_by_slug()
+// The global function nordbooking_get_user_id_by_slug() has been moved to BookingFormRouter::get_user_id_by_slug()
 // Any internal theme code (if any) that was calling the global function directly would need to be updated
-// to call the static class method instead, e.g., \MoBooking\Classes\Routes\BookingFormRouter::get_user_id_by_slug($slug).
+// to call the static class method instead, e.g., \NORDBOOKING\Classes\Routes\BookingFormRouter::get_user_id_by_slug($slug).
 // For the template_include logic, it's now called as self::get_user_id_by_slug() within the BookingFormRouter class.
 
 /**
@@ -171,7 +171,7 @@ add_action( 'shutdown', 'mobooking_restore_user_locale' );
  * @param string $key The key for the icon (e.g., 'overview', 'bookings', 'services').
  * @return string The SVG icon HTML string, or an empty string if not found.
  */
-function mobooking_get_dashboard_menu_icon(string $key): string {
+function nordbooking_get_dashboard_menu_icon(string $key): string {
     static $icons = null;
     if (is_null($icons)) {
         $icons = [
@@ -211,8 +211,8 @@ function get_simple_icon_svg($icon_name) {
 }
 
 // Feather Icons - define a helper function or include them directly
-if (!function_exists('mobooking_get_feather_icon')) { // Check if function exists to avoid re-declaration if included elsewhere
-    function mobooking_get_feather_icon($icon_name, $attrs = 'width="18" height="18"') {
+if (!function_exists('nordbooking_get_feather_icon')) { // Check if function exists to avoid re-declaration if included elsewhere
+    function nordbooking_get_feather_icon($icon_name, $attrs = 'width="18" height="18"') {
         $svg = '';
         switch ($icon_name) {
             case 'calendar': $svg = '<svg xmlns="http://www.w3.org/2000/svg" '.$attrs.' viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>'; break;
@@ -242,8 +242,8 @@ if (!function_exists('mobooking_get_feather_icon')) { // Check if function exist
     }
 }
 
-if (!function_exists('mobooking_get_status_badge_icon_svg')) { // Check if function exists
-    function mobooking_get_status_badge_icon_svg($status) {
+if (!function_exists('nordbooking_get_status_badge_icon_svg')) { // Check if function exists
+    function nordbooking_get_status_badge_icon_svg($status) {
         $attrs = 'class="feather"'; // CSS will handle size and margin
         $icon_name = '';
         switch ($status) {
@@ -255,14 +255,14 @@ if (!function_exists('mobooking_get_status_badge_icon_svg')) { // Check if funct
             case 'cancelled': $icon_name = 'x-circle'; break;
             default: return '';
         }
-        return mobooking_get_feather_icon($icon_name, $attrs);
+        return nordbooking_get_feather_icon($icon_name, $attrs);
     }
 }
 
-function mobooking_get_booking_form_tab_icon(string $key): string {
+function nordbooking_get_booking_form_tab_icon(string $key): string {
     $icon_svg = '';
-    $icon_path = MOBOOKING_THEME_DIR . 'assets/svg-icons/' . $key . '.svg';
-    $presets_path = MOBOOKING_THEME_DIR . 'assets/svg-icons/presets/' . $key . '.svg';
+    $icon_path = NORDBOOKING_THEME_DIR . 'assets/svg-icons/' . $key . '.svg';
+    $presets_path = NORDBOOKING_THEME_DIR . 'assets/svg-icons/presets/' . $key . '.svg';
 
     if (file_exists($icon_path)) {
         $icon_svg = file_get_contents($icon_path);

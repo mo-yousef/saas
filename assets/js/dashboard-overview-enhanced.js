@@ -1,5 +1,5 @@
 /**
- * MoBooking Enhanced Dashboard JavaScript
+ * NORDBOOKING Enhanced Dashboard JavaScript
  * Interactive features and real-time updates
  * Save as: assets/js/dashboard-overview-enhanced.js
  */
@@ -154,7 +154,7 @@
                 label: function (context) {
                   return (
                     "Revenue: " +
-                    mobooking_overview_params.currency_symbol +
+                    nordbooking_overview_params.currency_symbol +
                     context.parsed.y.toFixed(2)
                   );
                 },
@@ -172,7 +172,8 @@
                 color: "hsl(215.4 16.3% 46.9%)",
                 callback: function (value) {
                   return (
-                    mobooking_overview_params.currency_symbol + value.toFixed(0)
+                    nordbooking_overview_params.currency_symbol +
+                    value.toFixed(0)
                   );
                 },
               },
@@ -204,7 +205,7 @@
       const ctx = document.getElementById("performance-chart");
       if (!ctx) return;
 
-      const stats = mobooking_overview_params.stats;
+      const stats = nordbooking_overview_params.stats;
       const totalBookings = stats.total_bookings || 1;
       const completedBookings = Math.round(
         totalBookings * (stats.completion_rate / 100)
@@ -284,11 +285,11 @@
       $chartWidget.addClass("loading");
 
       $.ajax({
-        url: mobooking_overview_params.ajax_url,
+        url: nordbooking_overview_params.ajax_url,
         type: "POST",
         data: {
-          action: "mobooking_get_chart_data",
-          nonce: mobooking_overview_params.nonce,
+          action: "nordbooking_get_chart_data",
+          nonce: nordbooking_overview_params.nonce,
           period: period,
         },
         success: (response) => {
@@ -341,11 +342,11 @@
       $refreshBtn.addClass("loading");
 
       $.ajax({
-        url: mobooking_overview_params.ajax_url,
+        url: nordbooking_overview_params.ajax_url,
         type: "POST",
         data: {
-          action: "mobooking_get_recent_bookings",
-          nonce: mobooking_overview_params.nonce,
+          action: "nordbooking_get_recent_bookings",
+          nonce: nordbooking_overview_params.nonce,
           limit: 8,
         },
         success: (response) => {
@@ -387,7 +388,7 @@
         $container.html(`
                     <div style="text-align: center; padding: 2rem; color: hsl(var(--mobk-muted-foreground));">
                         <i data-feather="calendar" style="width: 3rem; height: 3rem; margin-bottom: 1rem;"></i>
-                        <p>${mobooking_overview_params.i18n.no_data}</p>
+                        <p>${nordbooking_overview_params.i18n.no_data}</p>
                     </div>
                 `);
         feather.replace();
@@ -416,7 +417,7 @@
                     <div style="text-align: right;">
                         <div class="booking-amount">
                             ${
-                              mobooking_overview_params.currency_symbol
+                              nordbooking_overview_params.currency_symbol
                             }${parseFloat(booking.total_price).toFixed(2)}
                         </div>
                         <div class="booking-status">
@@ -444,11 +445,11 @@
       $refreshBtn?.addClass("loading");
 
       $.ajax({
-        url: mobooking_overview_params.ajax_url,
+        url: nordbooking_overview_params.ajax_url,
         type: "POST",
         data: {
-          action: "mobooking_get_recent_activity",
-          nonce: mobooking_overview_params.nonce,
+          action: "nordbooking_get_recent_activity",
+          nonce: nordbooking_overview_params.nonce,
           limit: 10,
         },
         success: (response) => {
@@ -512,7 +513,7 @@
         {
           icon: "calendar-plus",
           title:
-            mobooking_overview_params.i18n.new_booking ||
+            nordbooking_overview_params.i18n.new_booking ||
             "New booking received",
           description: "John Doe booked Hair Cut service",
           timestamp: new Date(now - 15 * 60 * 1000), // 15 minutes ago
@@ -520,27 +521,30 @@
         {
           icon: "check-circle",
           title:
-            mobooking_overview_params.i18n.booking_updated || "Booking updated",
+            nordbooking_overview_params.i18n.booking_updated ||
+            "Booking updated",
           description: "Booking #1234 marked as completed",
           timestamp: new Date(now - 2 * 60 * 60 * 1000), // 2 hours ago
         },
         {
           icon: "plus-circle",
           title:
-            mobooking_overview_params.i18n.service_created || "Service created",
+            nordbooking_overview_params.i18n.service_created ||
+            "Service created",
           description: "Massage Therapy service added",
           timestamp: new Date(now - 24 * 60 * 60 * 1000), // 1 day ago
         },
         {
           icon: "user-plus",
-          title: mobooking_overview_params.i18n.worker_added || "Worker added",
+          title:
+            nordbooking_overview_params.i18n.worker_added || "Worker added",
           description: "New staff member Sarah joined",
           timestamp: new Date(now - 3 * 24 * 60 * 60 * 1000), // 3 days ago
         },
         {
           icon: "settings",
           title:
-            mobooking_overview_params.i18n.settings_updated ||
+            nordbooking_overview_params.i18n.settings_updated ||
             "Settings updated",
           description: "Business hours updated",
           timestamp: new Date(now - 5 * 24 * 60 * 60 * 1000), // 5 days ago
@@ -550,7 +554,7 @@
 
     // Setup KPI animations
     setupKPIAnimations() {
-      const stats = mobooking_overview_params.stats;
+      const stats = nordbooking_overview_params.stats;
 
       // Animate values on load with staggered timing
       setTimeout(
@@ -626,7 +630,7 @@
         let displayValue;
         if (isCurrency) {
           displayValue =
-            mobooking_overview_params.currency_symbol +
+            nordbooking_overview_params.currency_symbol +
             this.formatNumber(currentValue);
         } else {
           displayValue = Math.round(currentValue) + suffix;
@@ -694,11 +698,11 @@
     // Refresh all dashboard data
     refreshDashboardData() {
       $.ajax({
-        url: mobooking_overview_params.ajax_url,
+        url: nordbooking_overview_params.ajax_url,
         type: "POST",
         data: {
-          action: "mobooking_get_dashboard_stats",
-          nonce: mobooking_overview_params.nonce,
+          action: "nordbooking_get_dashboard_stats",
+          nonce: nordbooking_overview_params.nonce,
         },
         success: (response) => {
           if (response.success) {
@@ -757,7 +761,7 @@
           switch (update.format) {
             case "currency":
               displayValue =
-                mobooking_overview_params.currency_symbol +
+                nordbooking_overview_params.currency_symbol +
                 parseFloat(stats[update.value]).toFixed(2);
               break;
             case "percentage":
@@ -777,7 +781,7 @@
       // Update quick stats
       $("#week-bookings").text(stats.week_bookings + " bookings");
       $("#avg-booking-value").text(
-        mobooking_overview_params.currency_symbol +
+        nordbooking_overview_params.currency_symbol +
           parseFloat(stats.avg_booking_value).toFixed(2)
       );
       $("#active-services").text(stats.active_services);
@@ -800,17 +804,17 @@
     // Update today's revenue specifically
     updateTodayRevenue() {
       $.ajax({
-        url: mobooking_overview_params.ajax_url,
+        url: nordbooking_overview_params.ajax_url,
         type: "POST",
         data: {
-          action: "mobooking_get_today_revenue",
-          nonce: mobooking_overview_params.nonce,
+          action: "nordbooking_get_today_revenue",
+          nonce: nordbooking_overview_params.nonce,
         },
         success: (response) => {
           if (response.success) {
             const $todayRevenueEl = $("#today-revenue-value");
             const newValue =
-              mobooking_overview_params.currency_symbol +
+              nordbooking_overview_params.currency_symbol +
               parseFloat(response.data.today_revenue).toFixed(2);
 
             if ($todayRevenueEl.text() !== newValue) {
@@ -831,11 +835,11 @@
     // Check for live updates
     checkLiveUpdates() {
       $.ajax({
-        url: mobooking_overview_params.ajax_url,
+        url: nordbooking_overview_params.ajax_url,
         type: "POST",
         data: {
-          action: "mobooking_get_live_updates",
-          nonce: mobooking_overview_params.nonce,
+          action: "nordbooking_get_live_updates",
+          nonce: nordbooking_overview_params.nonce,
           last_update: this.lastUpdate || "",
         },
         success: (response) => {
@@ -908,17 +912,17 @@
     // Navigate to bookings page
     navigateToBookings() {
       window.location.href =
-        mobooking_overview_params.dashboard_base_url + "bookings/";
+        nordbooking_overview_params.dashboard_base_url + "bookings/";
     },
 
     // Export dashboard data
     exportDashboardData() {
       $.ajax({
-        url: mobooking_overview_params.ajax_url,
+        url: nordbooking_overview_params.ajax_url,
         type: "POST",
         data: {
-          action: "mobooking_export_dashboard_data",
-          nonce: mobooking_overview_params.nonce,
+          action: "nordbooking_export_dashboard_data",
+          nonce: nordbooking_overview_params.nonce,
           format: "csv",
           period: "month",
         },
@@ -988,27 +992,28 @@
 
       if (diffInSeconds < 60) {
         return diffInSeconds < 5
-          ? mobooking_overview_params.i18n.time_ago_just_now
+          ? nordbooking_overview_params.i18n.time_ago_just_now
           : diffInSeconds +
-              mobooking_overview_params.i18n.time_ago_seconds_suffix;
+              nordbooking_overview_params.i18n.time_ago_seconds_suffix;
       }
 
       const diffInMinutes = Math.floor(diffInSeconds / 60);
       if (diffInMinutes < 60) {
         return (
-          diffInMinutes + mobooking_overview_params.i18n.time_ago_minutes_suffix
+          diffInMinutes +
+          nordbooking_overview_params.i18n.time_ago_minutes_suffix
         );
       }
 
       const diffInHours = Math.floor(diffInMinutes / 60);
       if (diffInHours < 24) {
         return (
-          diffInHours + mobooking_overview_params.i18n.time_ago_hours_suffix
+          diffInHours + nordbooking_overview_params.i18n.time_ago_hours_suffix
         );
       }
 
       const diffInDays = Math.floor(diffInHours / 24);
-      return diffInDays + mobooking_overview_params.i18n.time_ago_days_suffix;
+      return diffInDays + nordbooking_overview_params.i18n.time_ago_days_suffix;
     },
 
     // HTML escape helper
@@ -1018,7 +1023,7 @@
       return div.innerHTML;
     },
 
-    // Show notification (integrates with existing MoBooking notification system)
+    // Show notification (integrates with existing NORDBOOKING notification system)
     showNotification(type, title, message) {
       if (typeof window.showAlert === "function") {
         window.showAlert(message, type);
@@ -1066,7 +1071,7 @@
   // Initialize when document is ready
   $(document).ready(function () {
     // Initialize Feather Icons
-    if (typeof feather !== 'undefined') {
+    if (typeof feather !== "undefined") {
       feather.replace();
     }
 
@@ -1084,7 +1089,7 @@
     // Add keyboard shortcut hints
     if (console && console.info) {
       console.info(
-        "MoBooking Dashboard Shortcuts:\n- Ctrl/Cmd + R: Refresh all data\n- Ctrl/Cmd + E: Export data"
+        "NORDBOOKING Dashboard Shortcuts:\n- Ctrl/Cmd + R: Refresh all data\n- Ctrl/Cmd + E: Export data"
       );
     }
   });

@@ -2,9 +2,9 @@
 /**
  * Class Availability
  * Handles managing availability slots and overrides for users.
- * @package MoBooking\Classes
+ * @package NORDBOOKING\Classes
  */
-namespace MoBooking\Classes;
+namespace NORDBOOKING\Classes;
 
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -25,8 +25,8 @@ class Availability {
 
     public function register_ajax_actions() {
         // Recurring Schedule Actions
-        add_action('wp_ajax_mobooking_get_recurring_schedule', [$this, 'ajax_get_recurring_schedule']);
-        add_action('wp_ajax_mobooking_save_recurring_schedule', [$this, 'ajax_save_recurring_schedule']);
+        add_action('wp_ajax_nordbooking_get_recurring_schedule', [$this, 'ajax_get_recurring_schedule']);
+        add_action('wp_ajax_nordbooking_save_recurring_schedule', [$this, 'ajax_save_recurring_schedule']);
     }
 
     // --- Recurring Availability Schedule Methods ---
@@ -113,10 +113,10 @@ class Availability {
     // --- AJAX Handlers ---
 
     public function ajax_get_recurring_schedule() {
-        check_ajax_referer('mobooking_availability_nonce', 'nonce');
+        check_ajax_referer('nordbooking_availability_nonce', 'nonce');
         $user_id = get_current_user_id();
         if (!$user_id) {
-            wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403);
+            wp_send_json_error(['message' => __('User not logged in.', 'NORDBOOKING')], 403);
             return;
         }
         $schedule = $this->get_recurring_schedule($user_id);
@@ -124,23 +124,23 @@ class Availability {
     }
 
     public function ajax_save_recurring_schedule() {
-        check_ajax_referer('mobooking_availability_nonce', 'nonce');
+        check_ajax_referer('nordbooking_availability_nonce', 'nonce');
         $user_id = get_current_user_id();
         if (!$user_id) {
-            wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403);
+            wp_send_json_error(['message' => __('User not logged in.', 'NORDBOOKING')], 403);
             return;
         }
 
         $schedule_data = isset($_POST['schedule_data']) ? json_decode(stripslashes($_POST['schedule_data']), true) : [];
         if (empty($schedule_data)) {
-            wp_send_json_error(['message' => __('Schedule data is missing.', 'mobooking')], 400);
+            wp_send_json_error(['message' => __('Schedule data is missing.', 'NORDBOOKING')], 400);
             return;
         }
 
         if ($this->save_recurring_schedule($user_id, $schedule_data)) {
-            wp_send_json_success(['message' => __('Recurring schedule saved successfully.', 'mobooking')]);
+            wp_send_json_success(['message' => __('Recurring schedule saved successfully.', 'NORDBOOKING')]);
         } else {
-            wp_send_json_error(['message' => __('Failed to save recurring schedule.', 'mobooking')], 500);
+            wp_send_json_error(['message' => __('Failed to save recurring schedule.', 'NORDBOOKING')], 500);
         }
     }
 

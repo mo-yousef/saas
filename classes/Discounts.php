@@ -1,5 +1,5 @@
 <?php
-namespace MoBooking\Classes;
+namespace NORDBOOKING\Classes;
 
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
@@ -14,25 +14,25 @@ class Discounts {
     // Method to register AJAX actions
     public function register_ajax_actions() {
         // Dashboard specific discount management AJAX actions would go here.
-        // e.g., add_action('wp_ajax_mobooking_get_tenant_discounts', [$this, 'handle_get_tenant_discounts_ajax']);
+        // e.g., add_action('wp_ajax_nordbooking_get_tenant_discounts', [$this, 'handle_get_tenant_discounts_ajax']);
 
         // Public booking form discount validation
-        add_action('wp_ajax_nopriv_mobooking_validate_discount_public', [$this, 'handle_validate_discount_public_ajax']);
-        add_action('wp_ajax_mobooking_validate_discount_public', [$this, 'handle_validate_discount_public_ajax']);
+        add_action('wp_ajax_nopriv_nordbooking_validate_discount_public', [$this, 'handle_validate_discount_public_ajax']);
+        add_action('wp_ajax_nordbooking_validate_discount_public', [$this, 'handle_validate_discount_public_ajax']);
 
         // Tenant Dashboard AJAX actions
-        add_action('wp_ajax_mobooking_get_discounts', [$this, 'handle_get_discounts_ajax']);
-        add_action('wp_ajax_mobooking_save_discount', [$this, 'handle_save_discount_ajax']);
-        add_action('wp_ajax_mobooking_delete_discount', [$this, 'handle_delete_discount_ajax']);
-        add_action('wp_ajax_mobooking_get_discount_details', [$this, 'handle_get_discount_details_ajax']);
+        add_action('wp_ajax_nordbooking_get_discounts', [$this, 'handle_get_discounts_ajax']);
+        add_action('wp_ajax_nordbooking_save_discount', [$this, 'handle_save_discount_ajax']);
+        add_action('wp_ajax_nordbooking_delete_discount', [$this, 'handle_delete_discount_ajax']);
+        add_action('wp_ajax_nordbooking_get_discount_details', [$this, 'handle_get_discount_details_ajax']);
     }
 
     // --- AJAX Handlers for Tenant Dashboard ---
 
     public function handle_get_discounts_ajax() {
-        check_ajax_referer('mobooking_dashboard_nonce', 'nonce');
+        check_ajax_referer('nordbooking_dashboard_nonce', 'nonce');
         $user_id = get_current_user_id();
-        if (!$user_id) { wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403); return; }
+        if (!$user_id) { wp_send_json_error(['message' => __('User not logged in.', 'NORDBOOKING')], 403); return; }
 
         $args = [
             'status' => isset($_POST['status_filter']) ? sanitize_text_field($_POST['status_filter']) : null,
@@ -46,9 +46,9 @@ class Discounts {
     }
 
     public function handle_save_discount_ajax() {
-        check_ajax_referer('mobooking_dashboard_nonce', 'nonce');
+        check_ajax_referer('nordbooking_dashboard_nonce', 'nonce');
         $user_id = get_current_user_id();
-        if (!$user_id) { wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403); return; }
+        if (!$user_id) { wp_send_json_error(['message' => __('User not logged in.', 'NORDBOOKING')], 403); return; }
 
         $discount_id = isset($_POST['discount_id']) && !empty($_POST['discount_id']) ? intval($_POST['discount_id']) : 0;
 
@@ -63,10 +63,10 @@ class Discounts {
 
         if ($discount_id) {
             $result = $this->update_discount($discount_id, $user_id, $data);
-            $message = __('Discount code updated successfully.', 'mobooking');
+            $message = __('Discount code updated successfully.', 'NORDBOOKING');
         } else {
             $result = $this->add_discount($user_id, $data);
-            $message = __('Discount code added successfully.', 'mobooking');
+            $message = __('Discount code added successfully.', 'NORDBOOKING');
             if (!is_wp_error($result)) {
                 $discount_id = $result; // Get new ID
             }
@@ -81,34 +81,34 @@ class Discounts {
     }
 
     public function handle_delete_discount_ajax() {
-        check_ajax_referer('mobooking_dashboard_nonce', 'nonce');
+        check_ajax_referer('nordbooking_dashboard_nonce', 'nonce');
         $user_id = get_current_user_id();
-        if (!$user_id) { wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403); return; }
+        if (!$user_id) { wp_send_json_error(['message' => __('User not logged in.', 'NORDBOOKING')], 403); return; }
 
         $discount_id = isset($_POST['discount_id']) ? intval($_POST['discount_id']) : 0;
-        if (empty($discount_id)) { wp_send_json_error(['message' => __('Invalid discount ID.', 'mobooking')], 400); return; }
+        if (empty($discount_id)) { wp_send_json_error(['message' => __('Invalid discount ID.', 'NORDBOOKING')], 400); return; }
 
         $result = $this->delete_discount($discount_id, $user_id);
         if (is_wp_error($result)) {
             wp_send_json_error(['message' => $result->get_error_message()], 400);
         } else {
-            wp_send_json_success(['message' => __('Discount code deleted successfully.', 'mobooking')]);
+            wp_send_json_success(['message' => __('Discount code deleted successfully.', 'NORDBOOKING')]);
         }
     }
 
     public function handle_get_discount_details_ajax() {
-        check_ajax_referer('mobooking_dashboard_nonce', 'nonce');
+        check_ajax_referer('nordbooking_dashboard_nonce', 'nonce');
         $user_id = get_current_user_id();
-        if (!$user_id) { wp_send_json_error(['message' => __('User not logged in.', 'mobooking')], 403); return; }
+        if (!$user_id) { wp_send_json_error(['message' => __('User not logged in.', 'NORDBOOKING')], 403); return; }
 
         $discount_id = isset($_POST['discount_id']) ? intval($_POST['discount_id']) : 0;
-        if (empty($discount_id)) { wp_send_json_error(['message' => __('Invalid discount ID.', 'mobooking')], 400); return; }
+        if (empty($discount_id)) { wp_send_json_error(['message' => __('Invalid discount ID.', 'NORDBOOKING')], 400); return; }
 
         $discount = $this->get_discount($discount_id, $user_id);
         if ($discount) {
             wp_send_json_success(['discount' => $discount]);
         } else {
-            wp_send_json_error(['message' => __('Discount code not found or access denied.', 'mobooking')], 404);
+            wp_send_json_error(['message' => __('Discount code not found or access denied.', 'NORDBOOKING')], 404);
         }
     }
     // --- End AJAX Handlers ---
@@ -118,7 +118,7 @@ class Discounts {
     }
 
     public function add_discount(int $user_id, array $data) {
-        if (empty($user_id)) return new \WP_Error('invalid_user', __('Invalid user ID.', 'mobooking'));
+        if (empty($user_id)) return new \WP_Error('invalid_user', __('Invalid user ID.', 'NORDBOOKING'));
 
         $required_fields = ['code', 'type', 'value'];
         foreach ($required_fields as $field) {
@@ -127,7 +127,7 @@ class Discounts {
                 if ($field === 'value' && isset($data[$field]) && is_numeric($data[$field])) {
                     // Allow 0 if it's a valid scenario, though current logic requires positive.
                 } else {
-                    return new \WP_Error('missing_field', sprintf(__('Field "%s" is required.', 'mobooking'), $field));
+                    return new \WP_Error('missing_field', sprintf(__('Field "%s" is required.', 'NORDBOOKING'), $field));
                 }
             }
         }
@@ -148,28 +148,28 @@ class Discounts {
         $status = !empty($data['status']) && in_array($data['status'], ['active', 'inactive']) ? $data['status'] : 'active';
 
         if (!in_array($type, ['percentage', 'fixed_amount'])) {
-            return new \WP_Error('invalid_type', __('Invalid discount type. Must be "percentage" or "fixed_amount".', 'mobooking'));
+            return new \WP_Error('invalid_type', __('Invalid discount type. Must be "percentage" or "fixed_amount".', 'NORDBOOKING'));
         }
         if ($value <= 0) {
-            return new \WP_Error('invalid_value', __('Discount value must be positive.', 'mobooking'));
+            return new \WP_Error('invalid_value', __('Discount value must be positive.', 'NORDBOOKING'));
         }
         if ($type === 'percentage' && $value > 100) {
-            return new \WP_Error('invalid_percentage', __('Percentage discount cannot exceed 100.', 'mobooking'));
+            return new \WP_Error('invalid_percentage', __('Percentage discount cannot exceed 100.', 'NORDBOOKING'));
         }
         // Validate format only if expiry_date is not null (i.e., was provided and not empty)
         if (!is_null($expiry_date) && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $expiry_date)) {
-            return new \WP_Error('invalid_date_format', __('Expiry date must be in YYYY-MM-DD format or empty.', 'mobooking'));
+            return new \WP_Error('invalid_date_format', __('Expiry date must be in YYYY-MM-DD format or empty.', 'NORDBOOKING'));
         }
         // Validate only if usage_limit is not null (i.e., was provided and not empty)
         if (!is_null($usage_limit) && $usage_limit < 0) { // A usage_limit of 0 is valid (e.g. for a one-time use if times_used starts at 0)
-            return new \WP_Error('invalid_usage_limit', __('Usage limit cannot be negative.', 'mobooking'));
+            return new \WP_Error('invalid_usage_limit', __('Usage limit cannot be negative.', 'NORDBOOKING'));
         }
 
 
         // Check for code uniqueness for this user
         $existing_code = $this->get_discount_by_code($code, $user_id);
         if ($existing_code) {
-            return new \WP_Error('duplicate_code', __('This discount code already exists for your account.', 'mobooking'));
+            return new \WP_Error('duplicate_code', __('This discount code already exists for your account.', 'NORDBOOKING'));
         }
 
         $table_name = Database::get_table_name('discounts');
@@ -189,7 +189,7 @@ class Discounts {
             ['%d', '%s', '%s', '%f', '%s', '%d', '%s', '%d', '%s']
         );
 
-        if (!$inserted) return new \WP_Error('db_error', __('Could not add discount code.', 'mobooking'));
+        if (!$inserted) return new \WP_Error('db_error', __('Could not add discount code.', 'NORDBOOKING'));
         return $this->wpdb->insert_id;
     }
 
@@ -263,7 +263,7 @@ class Discounts {
     public function update_discount(int $discount_id, int $user_id, array $data) {
         $current_discount = $this->get_discount($discount_id, $user_id);
         if (!$current_discount) {
-            return new \WP_Error('not_found_or_owner', __('Discount code not found or you do not own it.', 'mobooking'));
+            return new \WP_Error('not_found_or_owner', __('Discount code not found or you do not own it.', 'NORDBOOKING'));
         }
 
         $update_data = [];
@@ -271,11 +271,11 @@ class Discounts {
 
         if (isset($data['code'])) {
             $new_code = $this->_normalize_code($data['code']);
-            if (empty($new_code)) return new \WP_Error('missing_field', __('Code cannot be empty.', 'mobooking'));
+            if (empty($new_code)) return new \WP_Error('missing_field', __('Code cannot be empty.', 'NORDBOOKING'));
             if ($new_code !== $current_discount['code']) {
                 $existing_code = $this->get_discount_by_code($new_code, $user_id);
                 if ($existing_code) {
-                    return new \WP_Error('duplicate_code', __('This discount code already exists for your account.', 'mobooking'));
+                    return new \WP_Error('duplicate_code', __('This discount code already exists for your account.', 'NORDBOOKING'));
                 }
             }
             $update_data['code'] = $new_code;
@@ -284,7 +284,7 @@ class Discounts {
 
         if (isset($data['type'])) {
             if (!in_array($data['type'], ['percentage', 'fixed_amount'])) {
-                return new \WP_Error('invalid_type', __('Invalid discount type.', 'mobooking'));
+                return new \WP_Error('invalid_type', __('Invalid discount type.', 'NORDBOOKING'));
             }
             $update_data['type'] = $data['type']; $format[] = '%s';
         }
@@ -292,9 +292,9 @@ class Discounts {
         $type_for_value_check = isset($update_data['type']) ? $update_data['type'] : $current_discount['type'];
         if (isset($data['value'])) {
             $value = floatval($data['value']);
-            if ($value <= 0) return new \WP_Error('invalid_value', __('Discount value must be positive.', 'mobooking'));
+            if ($value <= 0) return new \WP_Error('invalid_value', __('Discount value must be positive.', 'NORDBOOKING'));
             if ($type_for_value_check === 'percentage' && $value > 100) {
-                 return new \WP_Error('invalid_percentage', __('Percentage discount cannot exceed 100.', 'mobooking'));
+                 return new \WP_Error('invalid_percentage', __('Percentage discount cannot exceed 100.', 'NORDBOOKING'));
             }
             $update_data['value'] = $value; $format[] = '%f';
         }
@@ -306,7 +306,7 @@ class Discounts {
             } elseif (preg_match('/^\d{4}-\d{2}-\d{2}$/', $expiry_date)) {
                 $update_data['expiry_date'] = sanitize_text_field($expiry_date); $format[] = '%s';
             } else {
-                 return new \WP_Error('invalid_date_format', __('Expiry date must be YYYY-MM-DD or empty.', 'mobooking'));
+                 return new \WP_Error('invalid_date_format', __('Expiry date must be YYYY-MM-DD or empty.', 'NORDBOOKING'));
             }
         }
 
@@ -316,7 +316,7 @@ class Discounts {
                  $update_data['usage_limit'] = null; $format[] = '%d'; // Assuming DB field can be NULL
              } else {
                  $usage_limit_int = intval($usage_limit);
-                 if ($usage_limit_int < 0) return new \WP_Error('invalid_usage_limit', __('Usage limit cannot be negative.', 'mobooking'));
+                 if ($usage_limit_int < 0) return new \WP_Error('invalid_usage_limit', __('Usage limit cannot be negative.', 'NORDBOOKING'));
                  $update_data['usage_limit'] = $usage_limit_int; $format[] = '%d';
              }
         }
@@ -336,34 +336,34 @@ class Discounts {
             ['%d', '%d']
         );
 
-        if (false === $updated) return new \WP_Error('db_error', __('Could not update discount code.', 'mobooking'));
+        if (false === $updated) return new \WP_Error('db_error', __('Could not update discount code.', 'NORDBOOKING'));
         return true;
     }
 
     public function delete_discount(int $discount_id, int $user_id) {
         $current_discount = $this->get_discount($discount_id, $user_id);
         if (!$current_discount) {
-            return new \WP_Error('not_found_or_owner', __('Discount code not found or you do not own it.', 'mobooking'));
+            return new \WP_Error('not_found_or_owner', __('Discount code not found or you do not own it.', 'NORDBOOKING'));
         }
         $table_name = Database::get_table_name('discounts');
         $deleted = $this->wpdb->delete($table_name, ['discount_id' => $discount_id, 'user_id' => $user_id], ['%d', '%d']);
-        if (false === $deleted) return new \WP_Error('db_error', __('Could not delete discount code.', 'mobooking'));
+        if (false === $deleted) return new \WP_Error('db_error', __('Could not delete discount code.', 'NORDBOOKING'));
         return true;
     }
 
     public function validate_discount(string $code, int $user_id) {
         $discount = $this->get_discount_by_code($code, $user_id);
-        if (!$discount) return new \WP_Error('not_found', __('Discount code not found.', 'mobooking'));
+        if (!$discount) return new \WP_Error('not_found', __('Discount code not found.', 'NORDBOOKING'));
 
-        if ($discount['status'] !== 'active') return new \WP_Error('inactive', __('This discount code is not active.', 'mobooking'));
+        if ($discount['status'] !== 'active') return new \WP_Error('inactive', __('This discount code is not active.', 'NORDBOOKING'));
 
         if (!empty($discount['expiry_date'])) {
             $today = current_time('Y-m-d', 0);
-            if ($discount['expiry_date'] < $today) return new \WP_Error('expired', __('This discount code has expired.', 'mobooking'));
+            if ($discount['expiry_date'] < $today) return new \WP_Error('expired', __('This discount code has expired.', 'NORDBOOKING'));
         }
         if (!empty($discount['usage_limit'])) {
             if (intval($discount['times_used']) >= intval($discount['usage_limit'])) {
-                return new \WP_Error('limit_reached', __('This discount code has reached its usage limit.', 'mobooking'));
+                return new \WP_Error('limit_reached', __('This discount code has reached its usage limit.', 'NORDBOOKING'));
             }
         }
         return $discount;
@@ -379,22 +379,22 @@ class Discounts {
 
     // AJAX Handler for public discount validation
     public function handle_validate_discount_public_ajax() {
-        check_ajax_referer('mobooking_booking_form_nonce', 'nonce');
+        check_ajax_referer('nordbooking_booking_form_nonce', 'nonce');
 
         $code = isset($_POST['discount_code']) ? $this->_normalize_code($_POST['discount_code']) : '';
         $tenant_id = isset($_POST['tenant_id']) ? intval($_POST['tenant_id']) : 0;
 
         if (empty($code) || empty($tenant_id)) {
-            wp_send_json_error(['message' => __('Discount code and tenant ID are required.', 'mobooking')], 400);
+            wp_send_json_error(['message' => __('Discount code and tenant ID are required.', 'NORDBOOKING')], 400);
             return;
         }
 
         $discount_data = $this->validate_discount($code, $tenant_id);
 
         if ($discount_data && !is_wp_error($discount_data)) {
-            wp_send_json_success(['valid' => true, 'discount' => $discount_data, 'message' => __('Discount applied successfully!', 'mobooking')]);
+            wp_send_json_success(['valid' => true, 'discount' => $discount_data, 'message' => __('Discount applied successfully!', 'NORDBOOKING')]);
         } else {
-            $error_message = __('Invalid or expired discount code.', 'mobooking');
+            $error_message = __('Invalid or expired discount code.', 'NORDBOOKING');
             if (is_wp_error($discount_data)) {
                 $error_message = $discount_data->get_error_message();
             }

@@ -2,7 +2,7 @@
 /**
  * The template for displaying all single pages
  *
- * @package MoBooking
+ * @package NORDBOOKING
  */
 
 get_header();

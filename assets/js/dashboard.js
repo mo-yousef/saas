@@ -1,6 +1,6 @@
 /**
  * Dashboard Base JavaScript
- * @package MoBooking
+ * @package NORDBOOKING
  */
 
 jQuery(document).ready(function ($) {
@@ -41,7 +41,7 @@ jQuery(document).ready(function ($) {
   window.MoBookingDashboard = {
     showAlert: function (message, type = "info") {
       // Ensure the global showToast function exists
-      if (typeof window.showToast === 'function') {
+      if (typeof window.showToast === "function") {
         // Map old type to new type and create a title
         const title = type.charAt(0).toUpperCase() + type.slice(1);
 
@@ -52,7 +52,9 @@ jQuery(document).ready(function ($) {
         });
       } else {
         // Fallback to console if the toast system isn't loaded
-        console.log(`[MoBooking Fallback Alert] Type: ${type}, Message: ${message}`);
+        console.log(
+          `[NORDBOOKING Fallback Alert] Type: ${type}, Message: ${message}`
+        );
         // Optional: could even fallback to a simple browser alert
         // alert(`${title}: ${message}`);
       }

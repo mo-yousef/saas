@@ -10,11 +10,11 @@ def run(playwright):
     page.goto(f"{base_url}/booking/test-company-inc/", wait_until="networkidle")
 
     # Check that the button is disabled initially
-    submit_button = page.locator("#mobooking-area-check-form button[type=submit]")
+    submit_button = page.locator("#NORDBOOKING-area-check-form button[type=submit]")
     expect(submit_button).to_be_disabled()
 
     # Enter a valid zip code
-    zip_input = page.locator("#mobooking-zip")
+    zip_input = page.locator("#NORDBOOKING-zip")
     zip_input.fill("12345")
 
     # The button should be enabled after the debounce and successful ajax call

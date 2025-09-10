@@ -7,11 +7,11 @@
 
 (function ($) {
   "use strict";
-  console.log("MoBooking Workers: Enhanced JavaScript Loaded");
+  console.log("NORDBOOKING Workers: Enhanced JavaScript Loaded");
   // Wait for DOM and localized parameters
   $(document).ready(function () {
-    if (typeof mobooking_workers_params === "undefined") {
-      console.error("MoBooking Workers: Required parameters not found");
+    if (typeof nordbooking_workers_params === "undefined") {
+      console.error("NORDBOOKING Workers: Required parameters not found");
       return;
     }
 
@@ -61,13 +61,13 @@
     bindAccordionEvents: function () {
       var self = this;
 
-      $(document).on("click", ".mobooking-accordion-trigger", function (e) {
+      $(document).on("click", ".NORDBOOKING-accordion-trigger", function (e) {
         e.preventDefault();
         self.handleAccordionToggle($(this));
       });
 
       // Keyboard navigation for accordion
-      $(document).on("keydown", ".mobooking-accordion-trigger", function (e) {
+      $(document).on("keydown", ".NORDBOOKING-accordion-trigger", function (e) {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
           self.handleAccordionToggle($(this));
@@ -76,11 +76,11 @@
     },
 
     handleAccordionToggle: function ($trigger) {
-      var $item = $trigger.closest(".mobooking-accordion-item");
+      var $item = $trigger.closest(".NORDBOOKING-accordion-item");
       var target = $trigger.data("target");
       var $content = $("#" + target);
 
-      if ($item.hasClass("mobooking-accordion-open")) {
+      if ($item.hasClass("NORDBOOKING-accordion-open")) {
         this.closeAccordionItem($item, $content);
       } else {
         // Close other items first
@@ -90,7 +90,7 @@
     },
 
     openAccordionItem: function ($item, $content) {
-      $item.addClass("mobooking-accordion-open");
+      $item.addClass("NORDBOOKING-accordion-open");
       $content.slideDown(200, function () {
         // Focus first input in opened section
         $content.find("input, select, textarea").first().focus();
@@ -98,13 +98,15 @@
     },
 
     closeAccordionItem: function ($item, $content) {
-      $item.removeClass("mobooking-accordion-open");
+      $item.removeClass("NORDBOOKING-accordion-open");
       $content.slideUp(200);
     },
 
     closeAllAccordionItems: function () {
-      $(".mobooking-accordion-item").removeClass("mobooking-accordion-open");
-      $(".mobooking-accordion-content").slideUp(200);
+      $(".NORDBOOKING-accordion-item").removeClass(
+        "NORDBOOKING-accordion-open"
+      );
+      $(".NORDBOOKING-accordion-content").slideUp(200);
     },
 
     /**
@@ -114,7 +116,7 @@
       var self = this;
 
       // Invite worker form
-      $(document).on("submit", "#mobooking-invite-worker-form", function (e) {
+      $(document).on("submit", "#NORDBOOKING-invite-worker-form", function (e) {
         e.preventDefault();
         self.handleInviteWorkerSubmit($(this));
       });
@@ -122,7 +124,7 @@
       // Direct add worker form
       $(document).on(
         "submit",
-        "#mobooking-direct-add-worker-form",
+        "#NORDBOOKING-direct-add-worker-form",
         function (e) {
           e.preventDefault();
           self.handleDirectAddWorkerSubmit($(this));
@@ -130,13 +132,13 @@
       );
 
       // Change role forms
-      $(document).on("submit", ".mobooking-change-role-form", function (e) {
+      $(document).on("submit", ".NORDBOOKING-change-role-form", function (e) {
         e.preventDefault();
         self.handleChangeRoleSubmit($(this));
       });
 
       // Delete worker forms
-      $(document).on("submit", ".mobooking-delete-worker-form", function (e) {
+      $(document).on("submit", ".NORDBOOKING-delete-worker-form", function (e) {
         e.preventDefault();
         self.handleDeleteWorkerSubmit($(this));
       });
@@ -144,7 +146,7 @@
       // Edit worker details forms
       $(document).on(
         "submit",
-        ".mobooking-edit-details-actual-form",
+        ".NORDBOOKING-edit-details-actual-form",
         function (e) {
           e.preventDefault();
           self.handleEditWorkerDetailsSubmit($(this));
@@ -161,7 +163,7 @@
       // Edit worker details toggle
       $(document).on(
         "click",
-        ".mobooking-edit-worker-details-btn",
+        ".NORDBOOKING-edit-worker-details-btn",
         function (e) {
           e.preventDefault();
           self.handleEditWorkerToggle($(this));
@@ -171,7 +173,7 @@
       // Cancel edit
       $(document).on(
         "click",
-        ".mobooking-cancel-edit-details-btn",
+        ".NORDBOOKING-cancel-edit-details-btn",
         function (e) {
           e.preventDefault();
           self.handleCancelEdit($(this));
@@ -183,7 +185,7 @@
      * Password toggle functionality
      */
     bindPasswordToggleEvents: function () {
-      $(document).on("click", ".mobooking-password-toggle", function (e) {
+      $(document).on("click", ".NORDBOOKING-password-toggle", function (e) {
         e.preventDefault();
         var $toggle = $(this);
         var targetId = $toggle.data("target");
@@ -191,11 +193,11 @@
 
         if ($input.attr("type") === "password") {
           $input.attr("type", "text");
-          $toggle.addClass("mobooking-password-visible");
+          $toggle.addClass("NORDBOOKING-password-visible");
           $toggle.attr("aria-label", "Hide password");
         } else {
           $input.attr("type", "password");
-          $toggle.removeClass("mobooking-password-visible");
+          $toggle.removeClass("NORDBOOKING-password-visible");
           $toggle.attr("aria-label", "Show password");
         }
       });
@@ -211,17 +213,17 @@
       $(document).on("keydown", function (e) {
         if (e.key === "Escape") {
           // Close any open edit forms
-          $(".mobooking-edit-worker-form:visible").slideUp(200);
+          $(".NORDBOOKING-edit-worker-form:visible").slideUp(200);
 
           // Hide inline feedback messages
-          $(".mobooking-inline-alert:visible").slideUp(200);
+          $(".NORDBOOKING-inline-alert:visible").slideUp(200);
         }
       });
 
       // Enter key on table rows to edit
-      $(document).on("keydown", ".mobooking-table-row", function (e) {
+      $(document).on("keydown", ".NORDBOOKING-table-row", function (e) {
         if (e.key === "Enter") {
-          var $editBtn = $(this).find(".mobooking-edit-worker-details-btn");
+          var $editBtn = $(this).find(".NORDBOOKING-edit-worker-details-btn");
           if ($editBtn.length) {
             $editBtn.click();
           }
@@ -247,7 +249,7 @@
 
       this.setButtonLoading($submitButton, "Sending...");
 
-      $.post(mobooking_workers_params.ajax_url, formData)
+      $.post(nordbooking_workers_params.ajax_url, formData)
         .done(function (response) {
           self.handleFormResponse(response, feedbackArea, $form, function () {
             self.refreshWorkersTable();
@@ -280,7 +282,7 @@
 
       this.setButtonLoading($submitButton, "Creating...");
 
-      $.post(mobooking_workers_params.ajax_url, formData)
+      $.post(nordbooking_workers_params.ajax_url, formData)
         .done(function (response) {
           self.handleFormResponse(response, feedbackArea, $form, function () {
             self.refreshWorkersTable();
@@ -306,11 +308,11 @@
       this.hideInlineAlert(feedbackArea);
 
       var formData = $form.serialize();
-      var $submitButton = $form.find(".mobooking-change-role-submit-btn");
+      var $submitButton = $form.find(".NORDBOOKING-change-role-submit-btn");
 
       this.setButtonLoading($submitButton, "Updating...");
 
-      $.post(mobooking_workers_params.ajax_url, formData)
+      $.post(nordbooking_workers_params.ajax_url, formData)
         .done(function (response) {
           if (response.success) {
             self.showInlineAlert(feedbackArea, response.data.message, true);
@@ -351,11 +353,11 @@
       this.hideInlineAlert(feedbackArea);
 
       var formData = $form.serialize();
-      var $submitButton = $form.find(".mobooking-delete-worker-btn");
+      var $submitButton = $form.find(".NORDBOOKING-delete-worker-btn");
 
       this.setButtonLoading($submitButton, "Deleting...");
 
-      $.post(mobooking_workers_params.ajax_url, formData)
+      $.post(nordbooking_workers_params.ajax_url, formData)
         .done(function (response) {
           if (response.success) {
             self.showInlineAlert(feedbackArea, response.data.message, true);
@@ -389,11 +391,11 @@
       this.hideInlineAlert(feedbackArea);
 
       var formData = $form.serialize();
-      var $submitButton = $form.find(".mobooking-save-details-btn");
+      var $submitButton = $form.find(".NORDBOOKING-save-details-btn");
 
       this.setButtonLoading($submitButton, "Saving...");
 
-      $.post(mobooking_workers_params.ajax_url, formData)
+      $.post(nordbooking_workers_params.ajax_url, formData)
         .done(function (response) {
           if (response.success) {
             self.showInlineAlert(feedbackArea, response.data.message, true);
@@ -431,7 +433,7 @@
         this.hideEditForm(workerId);
       } else {
         // Hide other edit forms first
-        $(".mobooking-edit-worker-form:visible").slideUp(200);
+        $(".NORDBOOKING-edit-worker-form:visible").slideUp(200);
         this.showEditForm(workerId);
       }
     },
@@ -541,25 +543,25 @@
      */
     setupFeedbackAreas: function () {
       // Initialize all feedback areas as hidden
-      $(".mobooking-alert, .mobooking-inline-alert").hide();
+      $(".NORDBOOKING-alert, .NORDBOOKING-inline-alert").hide();
     },
 
     showGlobalAlert: function (message, isSuccess) {
-      const type = isSuccess ? 'success' : 'error';
+      const type = isSuccess ? "success" : "error";
       window.showAlert(message, type);
     },
 
     showInlineAlert: function ($alertArea, message, isSuccess) {
       var alertClass = isSuccess
-        ? "mobooking-inline-alert-success"
-        : "mobooking-inline-alert-error";
+        ? "NORDBOOKING-inline-alert-success"
+        : "NORDBOOKING-inline-alert-error";
 
       $alertArea
         .removeClass(
-          "mobooking-inline-alert-success mobooking-inline-alert-error"
+          "NORDBOOKING-inline-alert-success NORDBOOKING-inline-alert-error"
         )
         .addClass(alertClass)
-        .find(".mobooking-inline-alert-message")
+        .find(".NORDBOOKING-inline-alert-message")
         .text(message);
 
       $alertArea.slideDown(300);
@@ -576,7 +578,7 @@
     },
 
     hideAllAlerts: function () {
-      $(".mobooking-alert, .mobooking-inline-alert").slideUp(200);
+      $(".NORDBOOKING-alert, .NORDBOOKING-inline-alert").slideUp(200);
     },
 
     /**
@@ -588,12 +590,12 @@
       }
 
       var spinnerIcon =
-        '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mobooking-spinner"><path d="M21 12a9 9 0 11-6.219-8.56"/></svg>';
+        '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="NORDBOOKING-spinner"><path d="M21 12a9 9 0 11-6.219-8.56"/></svg>';
 
       $button
         .prop("disabled", true)
         .html(spinnerIcon + loadingText)
-        .addClass("mobooking-loading");
+        .addClass("NORDBOOKING-loading");
     },
 
     resetButtonLoading: function ($button) {
@@ -602,7 +604,7 @@
         $button
           .prop("disabled", false)
           .html(originalHtml)
-          .removeClass("mobooking-loading");
+          .removeClass("NORDBOOKING-loading");
       }
     },
 
@@ -637,7 +639,7 @@
     updateWorkerRoleDisplay: function (workerId, roleName, roleKey) {
       var $roleDisplay = $("#worker-row-" + workerId + " .worker-role-display");
       var $roleSelect = $(
-        "#worker-row-" + workerId + " .mobooking-role-select"
+        "#worker-row-" + workerId + " .NORDBOOKING-role-select"
       );
 
       $roleDisplay.text(roleName);
@@ -662,14 +664,14 @@
       var self = this;
       var $row = $("#worker-row-" + workerId);
 
-      $row.addClass("mobooking-animate-out");
+      $row.addClass("NORDBOOKING-animate-out");
 
       setTimeout(function () {
         $row.fadeOut(300, function () {
           $(this).remove();
 
           // Check if table is now empty
-          if ($(".mobooking-table-row").length === 0) {
+          if ($(".NORDBOOKING-table-row").length === 0) {
             setTimeout(function () {
               location.reload();
             }, 1000);
@@ -690,9 +692,9 @@
      */
     setupAccessibilityFeatures: function () {
       // Add ARIA labels and roles
-      $(".mobooking-accordion-trigger").attr("role", "button");
-      $(".mobooking-table").attr("role", "table");
-      $(".mobooking-password-toggle").attr(
+      $(".NORDBOOKING-accordion-trigger").attr("role", "button");
+      $(".NORDBOOKING-table").attr("role", "table");
+      $(".NORDBOOKING-password-toggle").attr(
         "aria-label",
         "Toggle password visibility"
       );
@@ -706,11 +708,11 @@
 
     addKeyboardHints: function () {
       // Add tooltips for keyboard shortcuts
-      $(".mobooking-accordion-trigger").attr(
+      $(".NORDBOOKING-accordion-trigger").attr(
         "title",
         "Press Enter or Space to toggle"
       );
-      $(".mobooking-table-row").attr("title", "Press Enter to edit");
+      $(".NORDBOOKING-table-row").attr("title", "Press Enter to edit");
     },
 
     setupFocusManagement: function () {
@@ -719,7 +721,7 @@
       // Trap focus in modal-like edit forms
       $(document).on(
         "keydown",
-        ".mobooking-edit-worker-form:visible",
+        ".NORDBOOKING-edit-worker-form:visible",
         function (e) {
           if (e.key === "Tab") {
             self.manageFocusInEditForm($(this), e);
@@ -765,8 +767,8 @@
       });
 
       // Clear validation errors on input
-      $(document).on("input", "input.mobooking-input-error", function () {
-        $(this).removeClass("mobooking-input-error");
+      $(document).on("input", "input.NORDBOOKING-input-error", function () {
+        $(this).removeClass("NORDBOOKING-input-error");
       });
     },
 
@@ -774,10 +776,10 @@
       var email = $field.val().trim();
 
       if (email && !this.isValidEmail(email)) {
-        $field.addClass("mobooking-input-error");
+        $field.addClass("NORDBOOKING-input-error");
         this.showFieldError($field, "Please enter a valid email address.");
       } else {
-        $field.removeClass("mobooking-input-error");
+        $field.removeClass("NORDBOOKING-input-error");
         this.hideFieldError($field);
       }
     },
@@ -787,23 +789,23 @@
       var minLength = 6;
 
       if (password && password.length < minLength) {
-        $field.addClass("mobooking-input-error");
+        $field.addClass("NORDBOOKING-input-error");
         this.showFieldError(
           $field,
           `Password must be at least ${minLength} characters long.`
         );
       } else {
-        $field.removeClass("mobooking-input-error");
+        $field.removeClass("NORDBOOKING-input-error");
         this.hideFieldError($field);
       }
     },
 
     showFieldError: function ($field, message) {
-      var $errorElement = $field.siblings(".mobooking-field-error");
+      var $errorElement = $field.siblings(".NORDBOOKING-field-error");
 
       if ($errorElement.length === 0) {
         $errorElement = $(
-          '<div class="mobooking-field-error" style="color: var(--mobk-destructive); font-size: 0.8125rem; margin-top: 0.25rem;"></div>'
+          '<div class="NORDBOOKING-field-error" style="color: var(--mobk-destructive); font-size: 0.8125rem; margin-top: 0.25rem;"></div>'
         );
         $field.after($errorElement);
       }
@@ -812,15 +814,16 @@
     },
 
     hideFieldError: function ($field) {
-      $field.siblings(".mobooking-field-error").hide();
+      $field.siblings(".NORDBOOKING-field-error").hide();
     },
 
     /**
      * Utility functions
      */
     getI18nString: function (key) {
-      return mobooking_workers_params.i18n && mobooking_workers_params.i18n[key]
-        ? mobooking_workers_params.i18n[key]
+      return nordbooking_workers_params.i18n &&
+        nordbooking_workers_params.i18n[key]
+        ? nordbooking_workers_params.i18n[key]
         : key;
     },
 
@@ -846,7 +849,7 @@
      */
     logError: function (error, context) {
       if (console && console.error) {
-        console.error("MoBooking Workers Error [" + context + "]:", error);
+        console.error("NORDBOOKING Workers Error [" + context + "]:", error);
       }
     },
 
@@ -855,7 +858,7 @@
      */
     destroy: function () {
       // Remove event listeners
-      $(document).off(".mobooking-workers");
+      $(document).off(".NORDBOOKING-workers");
 
       // Clear any timeouts
       if (this.refreshTimeout) {
@@ -863,7 +866,7 @@
       }
 
       // Reset button states
-      $(".mobooking-button[data-original-html]").each(function () {
+      $(".NORDBOOKING-button[data-original-html]").each(function () {
         var $btn = $(this);
         $btn.html($btn.data("original-html")).prop("disabled", false);
       });
@@ -871,15 +874,15 @@
   };
 
   // Add CSS for enhanced styles if not already included
-  if (!$("#mobooking-workers-enhanced-styles").length) {
+  if (!$("#NORDBOOKING-workers-enhanced-styles").length) {
     var enhancedStyles = `
-            <style id="mobooking-workers-enhanced-styles">
-                .mobooking-input-error {
+            <style id="NORDBOOKING-workers-enhanced-styles">
+                .NORDBOOKING-input-error {
                     border-color: var(--mobk-destructive) !important;
                     box-shadow: 0 0 0 3px var(--mobk-destructive) / 0.1 !important;
                 }
                 
-                .mobooking-spinner {
+                .NORDBOOKING-spinner {
                     animation: spin 1s linear infinite;
                 }
                 
@@ -888,7 +891,7 @@
                     to { transform: rotate(360deg); }
                 }
                 
-                .mobooking-animate-out {
+                .NORDBOOKING-animate-out {
                     animation: fadeOutScale 0.3s ease-in forwards;
                 }
                 
@@ -903,12 +906,12 @@
                     }
                 }
                 
-                .mobooking-loading {
+                .NORDBOOKING-loading {
                     cursor: not-allowed;
                     opacity: 0.7;
                 }
                 
-                .mobooking-field-error {
+                .NORDBOOKING-field-error {
                     animation: slideInUp 0.2s ease-out;
                 }
                 

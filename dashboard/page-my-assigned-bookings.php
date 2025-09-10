@@ -9,27 +9,27 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Ensure user is a staff member and has access to the dashboard
-if ( !current_user_can( MoBooking\Classes\Auth::ROLE_WORKER_STAFF ) || !current_user_can( MoBooking\Classes\Auth::ACCESS_MOBOOKING_DASHBOARD ) ) {
-    wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'mobooking' ) );
+if ( !current_user_can( NORDBOOKING\Classes\Auth::ROLE_WORKER_STAFF ) || !current_user_can( NORDBOOKING\Classes\Auth::ACCESS_NORDBOOKING_DASHBOARD ) ) {
+    wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'NORDBOOKING' ) );
 }
 
 $current_staff_id = get_current_user_id();
-$business_owner_id = MoBooking\Classes\Auth::get_business_owner_id_for_worker( $current_staff_id );
+$business_owner_id = NORDBOOKING\Classes\Auth::get_business_owner_id_for_worker( $current_staff_id );
 
 if ( !$business_owner_id ) {
-    echo '<div class="notice notice-error"><p>' . esc_html__( 'Could not determine your associated business. Please contact your administrator.', 'mobooking' ) . '</p></div>';
+    echo '<div class="notice notice-error"><p>' . esc_html__( 'Could not determine your associated business. Please contact your administrator.', 'NORDBOOKING' ) . '</p></div>';
     return;
 }
 
-$services_manager = new \MoBooking\Classes\Services();
-$discounts_manager = new \MoBooking\Classes\Discounts($business_owner_id);
-$notifications_manager = new \MoBooking\Classes\Notifications();
-$bookings_manager = new \MoBooking\Classes\Bookings($discounts_manager, $notifications_manager, $services_manager);
+$services_manager = new \NORDBOOKING\Classes\Services();
+$discounts_manager = new \NORDBOOKING\Classes\Discounts($business_owner_id);
+$notifications_manager = new \NORDBOOKING\Classes\Notifications();
+$bookings_manager = new \NORDBOOKING\Classes\Bookings($discounts_manager, $notifications_manager, $services_manager);
 
 $currency_symbol = '$'; // Default currency symbol
-if (isset($GLOBALS['mobooking_settings_manager'])) {
-    $currency_code_setting = $GLOBALS['mobooking_settings_manager']->get_setting($business_owner_id, 'biz_currency_code', 'USD');
-    $currency_symbol = \MoBooking\Classes\Utils::get_currency_symbol($currency_code_setting);
+if (isset($GLOBALS['nordbooking_settings_manager'])) {
+    $currency_code_setting = $GLOBALS['nordbooking_settings_manager']->get_setting($business_owner_id, 'biz_currency_code', 'USD');
+    $currency_symbol = \NORDBOOKING\Classes\Utils::get_currency_symbol($currency_code_setting);
 }
 
 // KPIs for staff might be different. Let's focus on upcoming bookings.
@@ -53,35 +53,35 @@ if (isset($_GET['action']) && $_GET['action'] === 'view_booking' && isset($_GET[
             return;
         }
     } else {
-        wp_die(esc_html__('You do not have permission to view this booking.', 'mobooking'));
+        wp_die(esc_html__('You do not have permission to view this booking.', 'NORDBOOKING'));
     }
 }
 
 ?>
 
-<div class="wrap mobooking-dashboard-wrap mobooking-bookings-page-wrapper">
+<div class="wrap NORDBOOKING-dashboard-wrap NORDBOOKING-bookings-page-wrapper">
 
-    <div class="mobooking-page-header">
-        <div class="mobooking-page-header-heading">
-            <span class="mobooking-page-header-icon">
-                <?php echo mobooking_get_dashboard_menu_icon('bookings'); ?>
+    <div class="NORDBOOKING-page-header">
+        <div class="NORDBOOKING-page-header-heading">
+            <span class="NORDBOOKING-page-header-icon">
+                <?php echo nordbooking_get_dashboard_menu_icon('bookings'); ?>
             </span>
-            <h1 class="wp-heading-inline"><?php esc_html_e('My Assigned Bookings', 'mobooking'); ?></h1>
+            <h1 class="wp-heading-inline"><?php esc_html_e('My Assigned Bookings', 'NORDBOOKING'); ?></h1>
         </div>
     </div>
 
-    <div class="dashboard-kpi-grid mobooking-overview-kpis">
+    <div class="dashboard-kpi-grid NORDBOOKING-overview-kpis">
         <div class="dashboard-kpi-card">
             <div class="kpi-header">
-                <span class="kpi-title"><?php esc_html_e('Upcoming Confirmed Bookings', 'mobooking'); ?></span>
+                <span class="kpi-title"><?php esc_html_e('Upcoming Confirmed Bookings', 'NORDBOOKING'); ?></span>
                  <div class="kpi-icon upcoming">⏰</div>
             </div>
             <div class="kpi-value"><?php echo esc_html($upcoming_count); ?></div>
         </div>
     </div>
 
-    <div class="mobooking-card">
-        <div class="mobooking-card-content">
+    <div class="NORDBOOKING-card">
+        <div class="NORDBOOKING-card-content">
             <?php
             $paged = isset( $_GET['paged'] ) ? max( 1, intval( $_GET['paged'] ) ) : 1;
             $limit = 20;
@@ -102,37 +102,37 @@ if (isset($_GET['action']) && $_GET['action'] === 'view_booking' && isset($_GET[
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50 hidden md:table-header-group">
                             <tr>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><?php esc_html_e( 'Ref', 'mobooking' ); ?></th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><?php esc_html_e( 'Customer', 'mobooking' ); ?></th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><?php esc_html_e( 'Booked Date', 'mobooking' ); ?></th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><?php esc_html_e( 'Total', 'mobooking' ); ?></th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><?php esc_html_e( 'Status', 'mobooking' ); ?></th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><?php esc_html_e( 'Actions', 'mobooking' ); ?></th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><?php esc_html_e( 'Ref', 'NORDBOOKING' ); ?></th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><?php esc_html_e( 'Customer', 'NORDBOOKING' ); ?></th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><?php esc_html_e( 'Booked Date', 'NORDBOOKING' ); ?></th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><?php esc_html_e( 'Total', 'NORDBOOKING' ); ?></th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><?php esc_html_e( 'Status', 'NORDBOOKING' ); ?></th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><?php esc_html_e( 'Actions', 'NORDBOOKING' ); ?></th>
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
                             <?php foreach ( $bookings_result['bookings'] as $booking ) :
                                 $status_val = $booking['status'];
-                                $status_display = !empty($status_val) ? ucfirst(str_replace('-', ' ', $status_val)) : __('N/A', 'mobooking');
-                                $status_icon_html = function_exists('mobooking_get_status_badge_icon_svg') ? mobooking_get_status_badge_icon_svg($status_val) : '';
+                                $status_display = !empty($status_val) ? ucfirst(str_replace('-', ' ', $status_val)) : __('N/A', 'NORDBOOKING');
+                                $status_icon_html = function_exists('nordbooking_get_status_badge_icon_svg') ? nordbooking_get_status_badge_icon_svg($status_val) : '';
                                 $total_price_formatted = esc_html($currency_symbol . number_format_i18n(floatval($booking['total_price']), 2));
                                 $booking_date_formatted = date_i18n(get_option('date_format'), strtotime($booking['booking_date']));
                                 $booking_time_formatted = date_i18n(get_option('time_format'), strtotime($booking['booking_time']));
                                 $details_page_url = home_url('/dashboard/my-assigned-bookings/?action=view_booking&booking_id=' . $booking['booking_id']);
                             ?>
                                 <tr data-booking-id="<?php echo esc_attr($booking['booking_id']); ?>" class="block md:table-row border-b md:border-none">
-                                    <td data-label="<?php esc_attr_e('Ref', 'mobooking'); ?>" class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 block md:table-cell"><?php echo esc_html($booking['booking_reference']); ?></td>
-                                    <td data-label="<?php esc_attr_e('Customer', 'mobooking'); ?>" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 block md:table-cell"><?php echo esc_html($booking['customer_name']); ?><br><small><?php echo esc_html($booking['customer_email']); ?></small></td>
-                                    <td data-label="<?php esc_attr_e('Booked Date', 'mobooking'); ?>" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 block md:table-cell"><?php echo esc_html($booking_date_formatted . ' ' . $booking_time_formatted); ?></td>
-                                    <td data-label="<?php esc_attr_e('Total', 'mobooking'); ?>" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 block md:table-cell"><?php echo $total_price_formatted; ?></td>
-                                    <td data-label="<?php esc_attr_e('Status', 'mobooking'); ?>" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 block md:table-cell">
+                                    <td data-label="<?php esc_attr_e('Ref', 'NORDBOOKING'); ?>" class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 block md:table-cell"><?php echo esc_html($booking['booking_reference']); ?></td>
+                                    <td data-label="<?php esc_attr_e('Customer', 'NORDBOOKING'); ?>" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 block md:table-cell"><?php echo esc_html($booking['customer_name']); ?><br><small><?php echo esc_html($booking['customer_email']); ?></small></td>
+                                    <td data-label="<?php esc_attr_e('Booked Date', 'NORDBOOKING'); ?>" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 block md:table-cell"><?php echo esc_html($booking_date_formatted . ' ' . $booking_time_formatted); ?></td>
+                                    <td data-label="<?php esc_attr_e('Total', 'NORDBOOKING'); ?>" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 block md:table-cell"><?php echo $total_price_formatted; ?></td>
+                                    <td data-label="<?php esc_attr_e('Status', 'NORDBOOKING'); ?>" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 block md:table-cell">
                                         <span class="status-badge status-<?php echo esc_attr($status_val); ?>">
                                             <?php echo $status_icon_html; ?>
                                             <span class="status-text"><?php echo esc_html($status_display); ?></span>
                                         </span>
                                     </td>
-                                    <td data-label="<?php esc_attr_e('Actions', 'mobooking'); ?>" class="px-6 py-4 whitespace-nowrap text-sm font-medium block md:table-cell">
-                                        <a href="<?php echo esc_url($details_page_url); ?>" class="btn btn-outline btn-sm"><?php esc_html_e('View Details', 'mobooking'); ?></a>
+                                    <td data-label="<?php esc_attr_e('Actions', 'NORDBOOKING'); ?>" class="px-6 py-4 whitespace-nowrap text-sm font-medium block md:table-cell">
+                                        <a href="<?php echo esc_url($details_page_url); ?>" class="btn btn-outline btn-sm"><?php esc_html_e('View Details', 'NORDBOOKING'); ?></a>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
@@ -155,8 +155,8 @@ if (isset($_GET['action']) && $_GET['action'] === 'view_booking' && isset($_GET[
                 }
                 ?>
             <?php else : ?>
-                <div class="mobooking-empty-state">
-                    <p><?php esc_html_e('No bookings are currently assigned to you.', 'mobooking'); ?></p>
+                <div class="NORDBOOKING-empty-state">
+                    <p><?php esc_html_e('No bookings are currently assigned to you.', 'NORDBOOKING'); ?></p>
                 </div>
             <?php endif; ?>
         </div>

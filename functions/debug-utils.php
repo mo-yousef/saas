@@ -4,7 +4,7 @@
  * Add this temporarily to your functions.php or create a separate debug page
  */
 
-function debug_mobooking_areas_table() {
+function debug_nordbooking_areas_table() {
     // Only show to administrators
     if (!current_user_can('manage_options')) {
         return;
@@ -13,17 +13,17 @@ function debug_mobooking_areas_table() {
     global $wpdb;
 
     echo '<div style="background: #f1f1f1; padding: 20px; margin: 20px; border: 1px solid #ccc;">';
-    echo '<h3>🔍 MoBooking Areas Database Debug</h3>';
+    echo '<h3>🔍 NORDBOOKING Areas Database Debug</h3>';
 
     // Check table name generation
     echo '<h4>Table Name Check:</h4>';
-    if (class_exists('MoBooking\Classes\Database')) {
-        $table_name = MoBooking\Classes\Database::get_table_name('areas');
+    if (class_exists('NORDBOOKING\Classes\Database')) {
+        $table_name = NORDBOOKING\Classes\Database::get_table_name('areas');
         echo '✅ Table name: ' . esc_html($table_name) . '<br>';
     } else {
         echo '❌ Database class not found<br>';
         // Fallback - try direct table name
-        $table_name = $wpdb->prefix . 'mobooking_areas';
+        $table_name = $wpdb->prefix . 'nordbooking_areas';
         echo '⚠️ Using fallback table name: ' . esc_html($table_name) . '<br>';
     }
 
@@ -84,26 +84,26 @@ function debug_mobooking_areas_table() {
         echo '❌ Table does not exist<br>';
         echo '<p>Expected table name: ' . esc_html($table_name) . '</p>';
 
-        // Show all tables starting with mobooking
-        echo '<h4>Available MoBooking Tables:</h4>';
-        $mobooking_tables = $wpdb->get_results("SHOW TABLES LIKE '{$wpdb->prefix}mobooking%'");
-        if ($mobooking_tables) {
-            foreach ($mobooking_tables as $table) {
+        // Show all tables starting with NORDBOOKING
+        echo '<h4>Available NORDBOOKING Tables:</h4>';
+        $nordbooking_tables = $wpdb->get_results("SHOW TABLES LIKE '{$wpdb->prefix}NORDBOOKING%'");
+        if ($nordbooking_tables) {
+            foreach ($nordbooking_tables as $table) {
                 $table_name_val = array_values((array)$table)[0];
                 echo '📋 ' . esc_html($table_name_val) . '<br>';
             }
         } else {
-            echo 'No MoBooking tables found<br>';
+            echo 'No NORDBOOKING tables found<br>';
         }
     }
 
     // Test Areas class methods
     echo '<h4>Areas Class Test:</h4>';
-    if (class_exists('MoBooking\Classes\Areas')) {
+    if (class_exists('NORDBOOKING\Classes\Areas')) {
         echo '✅ Areas class exists<br>';
 
         try {
-            $areas = new MoBooking\Classes\Areas();
+            $areas = new NORDBOOKING\Classes\Areas();
             echo '✅ Areas class instantiated<br>';
 
             // Test get_countries method
@@ -144,10 +144,10 @@ function debug_mobooking_areas_table() {
 }
 
 // Hook to admin_notices to show in admin area
-add_action('admin_notices', 'debug_mobooking_areas_table');
+add_action('admin_notices', 'debug_nordbooking_areas_table');
 
 // Also create a shortcode for testing on frontend
-add_shortcode('debug_areas_table', 'debug_mobooking_areas_table');
+add_shortcode('debug_areas_table', 'debug_nordbooking_areas_table');
 
 // Create a test endpoint to manually check table creation
 add_action('wp_ajax_create_areas_table', function() {
@@ -156,7 +156,7 @@ add_action('wp_ajax_create_areas_table', function() {
     }
 
     global $wpdb;
-    $table_name = $wpdb->prefix . 'mobooking_areas';
+    $table_name = $wpdb->prefix . 'nordbooking_areas';
 
     $charset_collate = $wpdb->get_charset_collate();
 

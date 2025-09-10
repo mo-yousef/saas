@@ -2,9 +2,9 @@
 /**
  * Class ServiceOptions
  * Manages options for services.
- * @package MoBooking\Classes
+ * @package NORDBOOKING\Classes
  */
-namespace MoBooking\Classes;
+namespace NORDBOOKING\Classes;
 
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -32,10 +32,10 @@ class ServiceOptions {
 
     public function add_service_option(int $user_id, int $service_id, array $data) {
         if ( empty($user_id) || empty($service_id) ) {
-            return new \WP_Error('invalid_ids', __('Invalid user or service ID.', 'mobooking'));
+            return new \WP_Error('invalid_ids', __('Invalid user or service ID.', 'NORDBOOKING'));
         }
         if ( empty($data['name']) || empty($data['type']) ) {
-            return new \WP_Error('missing_fields', __('Option name and type are required.', 'mobooking'));
+            return new \WP_Error('missing_fields', __('Option name and type are required.', 'NORDBOOKING'));
         }
 
         $defaults = array(
@@ -89,7 +89,7 @@ class ServiceOptions {
         );
 
         if (false === $inserted) {
-            return new \WP_Error('db_error', __('Could not add service option to the database.', 'mobooking'));
+            return new \WP_Error('db_error', __('Could not add service option to the database.', 'NORDBOOKING'));
         }
         return $this->wpdb->insert_id;
     }
@@ -140,13 +140,13 @@ class ServiceOptions {
 
     public function update_service_option(int $option_id, int $user_id, array $data) {
         if ( empty($user_id) || empty($option_id) ) {
-            return new \WP_Error('invalid_ids', __('Invalid option or user ID.', 'mobooking'));
+            return new \WP_Error('invalid_ids', __('Invalid option or user ID.', 'NORDBOOKING'));
         }
         if ( !$this->_verify_option_ownership($option_id, $user_id) ) {
-            return new \WP_Error('not_owner', __('You do not own this service option.', 'mobooking'));
+            return new \WP_Error('not_owner', __('You do not own this service option.', 'NORDBOOKING'));
         }
         if ( empty($data) ) {
-            return new \WP_Error('no_data', __('No data provided for update.', 'mobooking'));
+            return new \WP_Error('no_data', __('No data provided for update.', 'NORDBOOKING'));
         }
 
         // Fetch current option type if not provided in $data, to ensure validation consistency
@@ -183,7 +183,7 @@ class ServiceOptions {
 
 
         if (empty($update_data)) {
-            return new \WP_Error('no_valid_data', __('No valid data provided for update.', 'mobooking'));
+            return new \WP_Error('no_valid_data', __('No valid data provided for update.', 'NORDBOOKING'));
         }
         $update_data['updated_at'] = current_time('mysql', 1); // GMT
         $update_formats[] = '%s';
@@ -197,17 +197,17 @@ class ServiceOptions {
         );
 
         if (false === $updated) {
-            return new \WP_Error('db_error', __('Could not update service option in the database.', 'mobooking'));
+            return new \WP_Error('db_error', __('Could not update service option in the database.', 'NORDBOOKING'));
         }
         return true;
     }
 
     public function delete_service_option(int $option_id, int $user_id) {
         if ( empty($user_id) || empty($option_id) ) {
-            return new \WP_Error('invalid_ids', __('Invalid option or user ID.', 'mobooking'));
+            return new \WP_Error('invalid_ids', __('Invalid option or user ID.', 'NORDBOOKING'));
         }
         if ( !$this->_verify_option_ownership($option_id, $user_id) ) {
-            return new \WP_Error('not_owner', __('You do not own this service option.', 'mobooking'));
+            return new \WP_Error('not_owner', __('You do not own this service option.', 'NORDBOOKING'));
         }
 
         $table_name = Database::get_table_name('service_options');
@@ -218,14 +218,14 @@ class ServiceOptions {
         );
 
         if (false === $deleted) {
-            return new \WP_Error('db_error', __('Could not delete service option from the database.', 'mobooking'));
+            return new \WP_Error('db_error', __('Could not delete service option from the database.', 'NORDBOOKING'));
         }
         return true;
     }
 
     public function delete_options_for_service(int $service_id, int $user_id) {
         if ( empty($user_id) || empty($service_id) ) {
-             return new \WP_Error('invalid_ids', __('Invalid service or user ID.', 'mobooking'));
+             return new \WP_Error('invalid_ids', __('Invalid service or user ID.', 'NORDBOOKING'));
         }
 
         $table_name = Database::get_table_name('service_options');
@@ -236,7 +236,7 @@ class ServiceOptions {
             array('%d', '%d')
         );
         if (false === $deleted) {
-             return new \WP_Error('db_error', __('Could not delete service options for the service.', 'mobooking'));
+             return new \WP_Error('db_error', __('Could not delete service options for the service.', 'NORDBOOKING'));
         }
         return true; // Number of rows affected
     }

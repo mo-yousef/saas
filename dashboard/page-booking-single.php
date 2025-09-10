@@ -3,7 +3,7 @@
  * Dashboard Page: Single Booking Details (Redesigned)
  * This file is included by page-bookings.php when action=view_booking is set.
  * Expected variables: $single_booking_id, $bookings_manager, $currency_symbol, $current_user_id
- * @package MoBooking
+ * @package NORDBOOKING
  */
 
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 // Ensure variables are set (they should be by page-bookings.php)
 if ( ! isset( $single_booking_id ) || ! is_numeric( $single_booking_id ) ||
      ! isset( $bookings_manager ) || ! isset( $currency_symbol ) || ! isset( $current_user_id ) ) {
-    echo '<div class="notice notice-error"><p>' . esc_html__( 'Required data not available to display booking.', 'mobooking' ) . '</p></div>';
+    echo '<div class="notice notice-error"><p>' . esc_html__( 'Required data not available to display booking.', 'NORDBOOKING' ) . '</p></div>';
     return;
 }
 
@@ -22,18 +22,18 @@ $actual_booking_owner_id = $bookings_manager->get_booking_owner_id($booking_id_t
 $booking_owner_id_for_fetch = null;
 
 if ($actual_booking_owner_id === null) {
-    echo '<div class="notice notice-error"><p>' . esc_html__( 'Booking not found or owner could not be determined.', 'mobooking' ) . '</p></div>';
+    echo '<div class="notice notice-error"><p>' . esc_html__( 'Booking not found or owner could not be determined.', 'NORDBOOKING' ) . '</p></div>';
     return;
 }
 
 $can_view = false;
-if ( MoBooking\Classes\Auth::is_user_business_owner( $user_id_for_permission_check ) ) {
+if ( NORDBOOKING\Classes\Auth::is_user_business_owner( $user_id_for_permission_check ) ) {
     if ( $user_id_for_permission_check === $actual_booking_owner_id ) {
         $can_view = true;
         $booking_owner_id_for_fetch = $user_id_for_permission_check;
     }
-} elseif ( MoBooking\Classes\Auth::is_user_worker( $user_id_for_permission_check ) ) {
-    $worker_owner_id = MoBooking\Classes\Auth::get_business_owner_id_for_worker( $user_id_for_permission_check );
+} elseif ( NORDBOOKING\Classes\Auth::is_user_worker( $user_id_for_permission_check ) ) {
+    $worker_owner_id = NORDBOOKING\Classes\Auth::get_business_owner_id_for_worker( $user_id_for_permission_check );
     $booking_to_check = $bookings_manager->get_booking( $booking_id_to_fetch, $actual_booking_owner_id );
     if ( $worker_owner_id && $worker_owner_id === $actual_booking_owner_id && $booking_to_check && (int)$booking_to_check['assigned_staff_id'] === $user_id_for_permission_check ) {
         $can_view = true;
@@ -42,14 +42,14 @@ if ( MoBooking\Classes\Auth::is_user_business_owner( $user_id_for_permission_che
 }
 
 if ( ! $can_view ) {
-    echo '<div class="notice notice-error"><p>' . esc_html__( 'You do not have permission to view this booking.', 'mobooking' ) . '</p></div>';
+    echo '<div class="notice notice-error"><p>' . esc_html__( 'You do not have permission to view this booking.', 'NORDBOOKING' ) . '</p></div>';
     return;
 }
 
 $booking = $bookings_manager->get_booking( $booking_id_to_fetch, $booking_owner_id_for_fetch );
 
 if ( ! $booking ) {
-    echo '<div class="notice notice-error"><p>' . esc_html__( 'Booking details could not be retrieved or access denied.', 'mobooking' ) . '</p></div>';
+    echo '<div class="notice notice-error"><p>' . esc_html__( 'Booking details could not be retrieved or access denied.', 'NORDBOOKING' ) . '</p></div>';
     return;
 }
 
@@ -68,7 +68,7 @@ if ( isset( $_GET['download_invoice'] ) && $_GET['download_invoice'] === 'true' 
 }
 
 // Prepare data for display
-$status_display = !empty($booking['status']) ? ucfirst(str_replace('-', ' ', $booking['status'])) : __('N/A', 'mobooking');
+$status_display = !empty($booking['status']) ? ucfirst(str_replace('-', ' ', $booking['status'])) : __('N/A', 'NORDBOOKING');
 $total_price_formatted = esc_html($currency_symbol . number_format_i18n(floatval($booking['total_price']), 2));
 $discount_amount_formatted = esc_html($currency_symbol . number_format_i18n(floatval($booking['discount_amount']), 2));
 $booking_date_formatted = date_i18n(get_option('date_format'), strtotime($booking['booking_date']));
@@ -77,19 +77,19 @@ $created_at_formatted = date_i18n(get_option('date_format') . ' ' . get_option('
 $updated_at_formatted = date_i18n(get_option('date_format') . ' ' . get_option('time_format'), strtotime($booking['updated_at']));
 
 $booking_statuses_for_select = [
-    'pending' => __('Pending', 'mobooking'),
-    'confirmed' => __('Confirmed', 'mobooking'),
-    'processing' => __('Processing', 'mobooking'),
-    'on-hold' => __('On Hold', 'mobooking'),
-    'completed' => __('Completed', 'mobooking'),
-    'cancelled' => __('Cancelled', 'mobooking'),
+    'pending' => __('Pending', 'NORDBOOKING'),
+    'confirmed' => __('Confirmed', 'NORDBOOKING'),
+    'processing' => __('Processing', 'NORDBOOKING'),
+    'on-hold' => __('On Hold', 'NORDBOOKING'),
+    'completed' => __('Completed', 'NORDBOOKING'),
+    'cancelled' => __('Cancelled', 'NORDBOOKING'),
 ];
 
 $main_bookings_page_url = home_url('/dashboard/bookings/');
 
 // Feather Icons - define a helper function or include them directly
-if (!function_exists('mobooking_get_feather_icon')) {
-    function mobooking_get_feather_icon($icon_name, $attrs = 'width="18" height="18"') {
+if (!function_exists('nordbooking_get_feather_icon')) {
+    function nordbooking_get_feather_icon($icon_name, $attrs = 'width="18" height="18"') {
         $svg = '';
         // This is a simplified list. You'd have the full SVG paths here.
         switch ($icon_name) {
@@ -119,8 +119,8 @@ if (!function_exists('mobooking_get_feather_icon')) {
 }
 
 // Helper function to get icon based on status for badges
-if (!function_exists('mobooking_get_status_badge_icon_svg')) {
-    function mobooking_get_status_badge_icon_svg($status) {
+if (!function_exists('nordbooking_get_status_badge_icon_svg')) {
+    function nordbooking_get_status_badge_icon_svg($status) {
         $attrs = 'class="feather"'; // CSS will handle size and margin
         $icon_name = '';
         switch ($status) {
@@ -132,98 +132,98 @@ if (!function_exists('mobooking_get_status_badge_icon_svg')) {
             case 'cancelled': $icon_name = 'x-circle'; break;
             default: return '';
         }
-        return mobooking_get_feather_icon($icon_name, $attrs);
+        return nordbooking_get_feather_icon($icon_name, $attrs);
     }
 }
 ?>
 
-<div class="mobooking-single-booking-page-wrapper">
-    <div class="mobooking-page-header">
-        <h1><?php printf(esc_html__('Booking: %s', 'mobooking'), esc_html($booking['booking_reference'])); ?></h1>
-        <a href="<?php echo esc_url($main_bookings_page_url); ?>" class="btn btn-secondary"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-left"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg><?php esc_html_e(' Back to Bookings List', 'mobooking'); ?></a>
+<div class="NORDBOOKING-single-booking-page-wrapper">
+    <div class="NORDBOOKING-page-header">
+        <h1><?php printf(esc_html__('Booking: %s', 'NORDBOOKING'), esc_html($booking['booking_reference'])); ?></h1>
+        <a href="<?php echo esc_url($main_bookings_page_url); ?>" class="btn btn-secondary"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-left"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg><?php esc_html_e(' Back to Bookings List', 'NORDBOOKING'); ?></a>
     </div>
 
     <!-- Booking & Customer Details Card -->
-    <div class="mobooking-card card-bs">
-        <div class="mobooking-card-header">
-            <div class="mobooking-card-title-group">
-                <span class="mobooking-card-icon"><?php echo mobooking_get_feather_icon('info'); ?></span>
-                <h3 class="mobooking-card-title"><?php esc_html_e('Booking & Customer Details', 'mobooking'); ?></h3>
+    <div class="NORDBOOKING-card card-bs">
+        <div class="NORDBOOKING-card-header">
+            <div class="NORDBOOKING-card-title-group">
+                <span class="NORDBOOKING-card-icon"><?php echo nordbooking_get_feather_icon('info'); ?></span>
+                <h3 class="NORDBOOKING-card-title"><?php esc_html_e('Booking & Customer Details', 'NORDBOOKING'); ?></h3>
             </div>
         </div>
-        <div class="mobooking-card-content">
+        <div class="NORDBOOKING-card-content">
             <div class="kpi-grid">
                 <div>
-                    <div class="mb-3"><strong class="block font-semibold text-sm mb-1"><?php esc_html_e('Reference:', 'mobooking'); ?></strong> <span class="text-sm text-muted-foreground"><?php echo esc_html($booking['booking_reference']); ?></span></div>
-                    <div class="mb-3"><strong class="block font-semibold text-sm mb-1"><?php echo mobooking_get_feather_icon('calendar', 'width="16" height="16" style="vertical-align:middle; margin-right:0.25rem;"'); ?> <?php esc_html_e('Date:', 'mobooking'); ?></strong> <span class="text-sm text-muted-foreground"><?php echo esc_html($booking_date_formatted); ?></span></div>
-                    <div class="mb-3"><strong class="block font-semibold text-sm mb-1"><?php echo mobooking_get_feather_icon('clock', 'width="16" height="16" style="vertical-align:middle; margin-right:0.25rem;"'); ?> <?php esc_html_e('Time:', 'mobooking'); ?></strong> <span class="text-sm text-muted-foreground"><?php echo esc_html($booking_time_formatted); ?></span></div>
+                    <div class="mb-3"><strong class="block font-semibold text-sm mb-1"><?php esc_html_e('Reference:', 'NORDBOOKING'); ?></strong> <span class="text-sm text-muted-foreground"><?php echo esc_html($booking['booking_reference']); ?></span></div>
+                    <div class="mb-3"><strong class="block font-semibold text-sm mb-1"><?php echo nordbooking_get_feather_icon('calendar', 'width="16" height="16" style="vertical-align:middle; margin-right:0.25rem;"'); ?> <?php esc_html_e('Date:', 'NORDBOOKING'); ?></strong> <span class="text-sm text-muted-foreground"><?php echo esc_html($booking_date_formatted); ?></span></div>
+                    <div class="mb-3"><strong class="block font-semibold text-sm mb-1"><?php echo nordbooking_get_feather_icon('clock', 'width="16" height="16" style="vertical-align:middle; margin-right:0.25rem;"'); ?> <?php esc_html_e('Time:', 'NORDBOOKING'); ?></strong> <span class="text-sm text-muted-foreground"><?php echo esc_html($booking_time_formatted); ?></span></div>
                 </div>
                 <div>
-                    <div class="mb-3"><strong class="block font-semibold text-sm mb-1"><?php echo mobooking_get_feather_icon('user', 'width="16" height="16" style="vertical-align:middle; margin-right:0.25rem;"'); ?> <?php esc_html_e('Customer:', 'mobooking'); ?></strong> <span class="text-sm text-muted-foreground"><?php echo esc_html($booking['customer_name']); ?></span></div>
-                    <div class="mb-3"><strong class="block font-semibold text-sm mb-1"><?php echo mobooking_get_feather_icon('mail', 'width="16" height="16" style="vertical-align:middle; margin-right:0.25rem;"'); ?> <?php esc_html_e('Email:', 'mobooking'); ?></strong> <a href="mailto:<?php echo esc_attr($booking['customer_email']); ?>" class="text-sm text-primary hover:underline"><?php echo esc_html($booking['customer_email']); ?></a></div>
-                    <div class="mb-3"><strong class="block font-semibold text-sm mb-1"><?php echo mobooking_get_feather_icon('phone', 'width="16" height="16" style="vertical-align:middle; margin-right:0.25rem;"'); ?> <?php esc_html_e('Phone:', 'mobooking'); ?></strong> <span class="text-sm text-muted-foreground"><?php echo esc_html($booking['customer_phone'] ? $booking['customer_phone'] : 'N/A'); ?></span></div>
+                    <div class="mb-3"><strong class="block font-semibold text-sm mb-1"><?php echo nordbooking_get_feather_icon('user', 'width="16" height="16" style="vertical-align:middle; margin-right:0.25rem;"'); ?> <?php esc_html_e('Customer:', 'NORDBOOKING'); ?></strong> <span class="text-sm text-muted-foreground"><?php echo esc_html($booking['customer_name']); ?></span></div>
+                    <div class="mb-3"><strong class="block font-semibold text-sm mb-1"><?php echo nordbooking_get_feather_icon('mail', 'width="16" height="16" style="vertical-align:middle; margin-right:0.25rem;"'); ?> <?php esc_html_e('Email:', 'NORDBOOKING'); ?></strong> <a href="mailto:<?php echo esc_attr($booking['customer_email']); ?>" class="text-sm text-primary hover:underline"><?php echo esc_html($booking['customer_email']); ?></a></div>
+                    <div class="mb-3"><strong class="block font-semibold text-sm mb-1"><?php echo nordbooking_get_feather_icon('phone', 'width="16" height="16" style="vertical-align:middle; margin-right:0.25rem;"'); ?> <?php esc_html_e('Phone:', 'NORDBOOKING'); ?></strong> <span class="text-sm text-muted-foreground"><?php echo esc_html($booking['customer_phone'] ? $booking['customer_phone'] : 'N/A'); ?></span></div>
                 </div>
             </div>
-             <div class="mt-4"><strong class="block font-semibold text-sm mb-1"><?php echo mobooking_get_feather_icon('map-pin', 'width="16" height="16" style="vertical-align:middle; margin-right:0.25rem;"'); ?> <?php esc_html_e('Service Address:', 'mobooking'); ?></strong> <span class="text-sm text-muted-foreground"><?php echo nl2br(esc_html($booking['service_address'])); ?><?php if (!empty($booking['zip_code'])) { echo ', ' . esc_html($booking['zip_code']); } ?></span></div>
+             <div class="mt-4"><strong class="block font-semibold text-sm mb-1"><?php echo nordbooking_get_feather_icon('map-pin', 'width="16" height="16" style="vertical-align:middle; margin-right:0.25rem;"'); ?> <?php esc_html_e('Service Address:', 'NORDBOOKING'); ?></strong> <span class="text-sm text-muted-foreground"><?php echo nl2br(esc_html($booking['service_address'])); ?><?php if (!empty($booking['zip_code'])) { echo ', ' . esc_html($booking['zip_code']); } ?></span></div>
         </div>
     </div>
 
     <!-- Status & Admin Actions Card -->
-    <div class="mobooking-card card-bs">
-        <div class="mobooking-card-header">
-            <div class="mobooking-card-title-group">
-                <span class="mobooking-card-icon"><?php echo mobooking_get_feather_icon('activity'); ?></span>
-                <h3 class="mobooking-card-title"><?php esc_html_e('Status & Actions', 'mobooking'); ?></h3>
+    <div class="NORDBOOKING-card card-bs">
+        <div class="NORDBOOKING-card-header">
+            <div class="NORDBOOKING-card-title-group">
+                <span class="NORDBOOKING-card-icon"><?php echo nordbooking_get_feather_icon('activity'); ?></span>
+                <h3 class="NORDBOOKING-card-title"><?php esc_html_e('Status & Actions', 'NORDBOOKING'); ?></h3>
             </div>
         </div>
-        <div class="mobooking-card-content">
+        <div class="NORDBOOKING-card-content">
             <div class="border-b border-dashed pb-4 mb-4">
-                <div class="mb-3"><strong class="block font-semibold text-sm mb-1"><?php esc_html_e('Current Status:', 'mobooking'); ?></strong>
-                    <span id="mobooking-current-status-display" class="status-badge status-<?php echo esc_attr($booking['status']); ?>">
-                        <?php echo mobooking_get_status_badge_icon_svg($booking['status']); ?>
+                <div class="mb-3"><strong class="block font-semibold text-sm mb-1"><?php esc_html_e('Current Status:', 'NORDBOOKING'); ?></strong>
+                    <span id="NORDBOOKING-current-status-display" class="status-badge status-<?php echo esc_attr($booking['status']); ?>">
+                        <?php echo nordbooking_get_status_badge_icon_svg($booking['status']); ?>
                         <span class="status-text"><?php echo esc_html($status_display); ?></span>
                     </span>
                 </div>
                 <div class="flex items-center gap-3 flex-wrap">
-                    <label for="mobooking-single-booking-status-select" class="font-semibold text-sm flex items-center gap-1"><?php echo mobooking_get_feather_icon('edit', 'width="16" height="16"'); ?> <?php esc_html_e('Change Status:', 'mobooking'); ?></label>
-                    <select id="mobooking-single-booking-status-select" data-booking-id="<?php echo esc_attr($booking['booking_id']); ?>" class="mobooking-filter-select">
+                    <label for="NORDBOOKING-single-booking-status-select" class="font-semibold text-sm flex items-center gap-1"><?php echo nordbooking_get_feather_icon('edit', 'width="16" height="16"'); ?> <?php esc_html_e('Change Status:', 'NORDBOOKING'); ?></label>
+                    <select id="NORDBOOKING-single-booking-status-select" data-booking-id="<?php echo esc_attr($booking['booking_id']); ?>" class="NORDBOOKING-filter-select">
                         <?php foreach ($booking_statuses_for_select as $value => $label) : ?>
                             <option value="<?php echo esc_attr($value); ?>" <?php selected($booking['status'], $value); ?>><?php echo esc_html($label); ?></option>
                         <?php endforeach; ?>
                     </select>
-                    <button id="mobooking-single-save-status-btn" class="btn btn-primary btn-sm"><?php esc_html_e('Save Status', 'mobooking'); ?></button>
+                    <button id="NORDBOOKING-single-save-status-btn" class="btn btn-primary btn-sm"><?php esc_html_e('Save Status', 'NORDBOOKING'); ?></button>
                 </div>
-                <div id="mobooking-single-status-feedback" class="text-sm mt-2"></div>
+                <div id="NORDBOOKING-single-status-feedback" class="text-sm mt-2"></div>
             </div>
 
             <!-- Download Invoice Button -->
             <div class="pt-4 border-b border-dashed pb-4 mb-4">
-                <strong class="block font-semibold text-sm mb-2"><?php esc_html_e('Downloads', 'mobooking'); ?></strong>
+                <strong class="block font-semibold text-sm mb-2"><?php esc_html_e('Downloads', 'NORDBOOKING'); ?></strong>
                 <a href="<?php echo esc_url( add_query_arg( 'download_invoice', 'true' ) ); ?>" class="btn btn-secondary" target="_blank">
-                    <?php echo mobooking_get_feather_icon('download', 'width="16" height="16" style="vertical-align:middle; margin-right:0.25rem;"'); ?>
-                    <?php esc_html_e('Download Invoice', 'mobooking'); ?>
+                    <?php echo nordbooking_get_feather_icon('download', 'width="16" height="16" style="vertical-align:middle; margin-right:0.25rem;"'); ?>
+                    <?php esc_html_e('Download Invoice', 'NORDBOOKING'); ?>
                 </a>
             </div>
 
             <!-- Staff Assignment Section -->
             <?php
-            if (current_user_can(MoBooking\Classes\Auth::CAP_ASSIGN_BOOKINGS) || current_user_can(MoBooking\Classes\Auth::CAP_MANAGE_BOOKINGS)) :
+            if (current_user_can(NORDBOOKING\Classes\Auth::CAP_ASSIGN_BOOKINGS) || current_user_can(NORDBOOKING\Classes\Auth::CAP_MANAGE_BOOKINGS)) :
                 $workers = get_users([
-                    'meta_key'   => \MoBooking\Classes\Auth::META_KEY_OWNER_ID,
+                    'meta_key'   => \NORDBOOKING\Classes\Auth::META_KEY_OWNER_ID,
                     'meta_value' => $booking_owner_id_for_fetch, // Use the owner ID determined earlier
-                    'role__in'   => [\MoBooking\Classes\Auth::ROLE_WORKER_STAFF],
+                    'role__in'   => [\NORDBOOKING\Classes\Auth::ROLE_WORKER_STAFF],
                 ]);
             ?>
             <div class="pt-4">
-                <div class="mb-3"><strong class="block font-semibold text-sm mb-1"><?php esc_html_e('Assigned Staff:', 'mobooking'); ?></strong>
-                    <span id="mobooking-current-assigned-staff" class="text-sm text-muted-foreground">
-                        <?php echo isset($booking['assigned_staff_name']) ? esc_html($booking['assigned_staff_name']) : esc_html__('Unassigned', 'mobooking'); ?>
+                <div class="mb-3"><strong class="block font-semibold text-sm mb-1"><?php esc_html_e('Assigned Staff:', 'NORDBOOKING'); ?></strong>
+                    <span id="NORDBOOKING-current-assigned-staff" class="text-sm text-muted-foreground">
+                        <?php echo isset($booking['assigned_staff_name']) ? esc_html($booking['assigned_staff_name']) : esc_html__('Unassigned', 'NORDBOOKING'); ?>
                     </span>
                 </div>
                 <div class="flex items-center gap-3 flex-wrap">
-                    <label for="mobooking-single-assign-staff-select" class="font-semibold text-sm flex items-center gap-1"><?php echo mobooking_get_feather_icon('user-plus', 'width="16" height="16"'); ?> <?php esc_html_e('Assign to Staff:', 'mobooking'); ?></label>
-                    <select id="mobooking-single-assign-staff-select" data-booking-id="<?php echo esc_attr($booking['booking_id']); ?>" class="mobooking-filter-select">
-                        <option value="0"><?php esc_html_e('-- Unassign --', 'mobooking'); ?></option>
+                    <label for="NORDBOOKING-single-assign-staff-select" class="font-semibold text-sm flex items-center gap-1"><?php echo nordbooking_get_feather_icon('user-plus', 'width="16" height="16"'); ?> <?php esc_html_e('Assign to Staff:', 'NORDBOOKING'); ?></label>
+                    <select id="NORDBOOKING-single-assign-staff-select" data-booking-id="<?php echo esc_attr($booking['booking_id']); ?>" class="NORDBOOKING-filter-select">
+                        <option value="0"><?php esc_html_e('-- Unassign --', 'NORDBOOKING'); ?></option>
                         <?php if (!empty($workers)) : ?>
                             <?php foreach ($workers as $worker) : ?>
                                 <option value="<?php echo esc_attr($worker->ID); ?>" <?php selected(isset($booking['assigned_staff_id']) ? $booking['assigned_staff_id'] : 0, $worker->ID); ?>>
@@ -231,50 +231,50 @@ if (!function_exists('mobooking_get_status_badge_icon_svg')) {
                                 </option>
                             <?php endforeach; ?>
                         <?php else: ?>
-                            <option value="" disabled><?php esc_html_e('No staff available for this business.', 'mobooking'); ?></option>
+                            <option value="" disabled><?php esc_html_e('No staff available for this business.', 'NORDBOOKING'); ?></option>
                         <?php endif; ?>
                     </select>
-                    <button id="mobooking-single-save-staff-assignment-btn" class="btn btn-primary btn-sm"><?php esc_html_e('Save Assignment', 'mobooking'); ?></button>
+                    <button id="NORDBOOKING-single-save-staff-assignment-btn" class="btn btn-primary btn-sm"><?php esc_html_e('Save Assignment', 'NORDBOOKING'); ?></button>
                 </div>
-                <div id="mobooking-single-staff-assignment-feedback" class="text-sm mt-2"></div>
+                <div id="NORDBOOKING-single-staff-assignment-feedback" class="text-sm mt-2"></div>
             </div>
             <?php endif; ?>
             <!-- End Staff Assignment Section -->
 
              <div class="text-xs text-muted-foreground text-right mt-4">
-                <p><?php esc_html_e('Created:', 'mobooking'); ?> <?php echo esc_html($created_at_formatted); ?> | <?php esc_html_e('Last Updated:', 'mobooking'); ?> <?php echo esc_html($updated_at_formatted); ?></p>
+                <p><?php esc_html_e('Created:', 'NORDBOOKING'); ?> <?php echo esc_html($created_at_formatted); ?> | <?php esc_html_e('Last Updated:', 'NORDBOOKING'); ?> <?php echo esc_html($updated_at_formatted); ?></p>
             </div>
         </div>
     </div>
 
     <!-- Services & Pricing Card -->
-    <div class="mobooking-card card-bs">
-        <div class="mobooking-card-header">
-            <div class="mobooking-card-title-group">
-                <span class="mobooking-card-icon"><?php echo mobooking_get_feather_icon('list'); ?></span>
-                <h3 class="mobooking-card-title"><?php esc_html_e('Services & Pricing', 'mobooking'); ?></h3>
+    <div class="NORDBOOKING-card card-bs">
+        <div class="NORDBOOKING-card-header">
+            <div class="NORDBOOKING-card-title-group">
+                <span class="NORDBOOKING-card-icon"><?php echo nordbooking_get_feather_icon('list'); ?></span>
+                <h3 class="NORDBOOKING-card-title"><?php esc_html_e('Services & Pricing', 'NORDBOOKING'); ?></h3>
             </div>
         </div>
-        <div class="mobooking-card-content">
+        <div class="NORDBOOKING-card-content">
             <?php if (isset($booking['items']) && is_array($booking['items']) && !empty($booking['items'])): ?>
-                <table class="mobooking-services-table">
+                <table class="NORDBOOKING-services-table">
                     <thead>
                         <tr>
-                            <th><?php esc_html_e('Service / Option', 'mobooking'); ?></th>
-                            <th><?php esc_html_e('Details', 'mobooking'); ?></th>
-                            <th class="price-cell"><?php esc_html_e('Price', 'mobooking'); ?></th>
+                            <th><?php esc_html_e('Service / Option', 'NORDBOOKING'); ?></th>
+                            <th><?php esc_html_e('Details', 'NORDBOOKING'); ?></th>
+                            <th class="price-cell"><?php esc_html_e('Price', 'NORDBOOKING'); ?></th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php $subtotal_calc = 0; foreach ($booking['items'] as $item): $subtotal_calc += floatval($item['item_total_price']); ?>
                             <tr>
-                                <td data-label="<?php esc_attr_e('Service', 'mobooking'); ?>" class="service-name-cell">
+                                <td data-label="<?php esc_attr_e('Service', 'NORDBOOKING'); ?>" class="service-name-cell">
                                     <?php echo esc_html($item['service_name']); ?>
                                 </td>
-                                <td data-label="<?php esc_attr_e('Base Price', 'mobooking'); ?>" class="price-cell">
+                                <td data-label="<?php esc_attr_e('Base Price', 'NORDBOOKING'); ?>" class="price-cell">
                                     <?php echo esc_html($currency_symbol . number_format_i18n(floatval($item['service_price']), 2)); ?>
                                 </td>
-                                <td data-label="<?php esc_attr_e('Item Total', 'mobooking'); ?>" class="price-cell">
+                                <td data-label="<?php esc_attr_e('Item Total', 'NORDBOOKING'); ?>" class="price-cell">
                                     <?php echo esc_html($currency_symbol . number_format_i18n(floatval($item['item_total_price']), 2)); ?>
                                 </td>
                             </tr>
@@ -341,10 +341,10 @@ if (!function_exists('mobooking_get_status_badge_icon_svg')) {
 										<td data-label="<?php echo esc_attr($option_field_label); ?>" class="option-name">
 											└ <?php echo esc_html($option_field_label); ?>
 										</td>
-										<td data-label="<?php esc_attr_e('Selected', 'mobooking'); ?>">
+										<td data-label="<?php esc_attr_e('Selected', 'NORDBOOKING'); ?>">
 											<?php echo $option_selected_value_display; ?>
 										</td>
-										<td data-label="<?php esc_attr_e('Price', 'mobooking'); ?>" class="price-cell">
+										<td data-label="<?php esc_attr_e('Price', 'NORDBOOKING'); ?>" class="price-cell">
 											<?php echo $option_price_text; ?>
 										</td>
 									</tr>
@@ -354,48 +354,48 @@ if (!function_exists('mobooking_get_status_badge_icon_svg')) {
                     </tbody>
                 </table>
                 <hr style="margin: 1.5rem 0;">
-                <div class="mobooking-pricing-summary">
-                    <p><span><?php esc_html_e('Subtotal:', 'mobooking'); ?></span> <span><?php echo esc_html($currency_symbol . number_format_i18n($subtotal_calc, 2)); ?></span></p>
-                    <p><span><?php esc_html_e('Discount Applied:', 'mobooking'); ?></span> <span><?php echo esc_html($discount_amount_formatted); ?></span></p>
-                    <p><strong><?php esc_html_e('Final Total:', 'mobooking'); ?></strong> <strong class="final-total"><?php echo $total_price_formatted; ?></strong></p>
+                <div class="NORDBOOKING-pricing-summary">
+                    <p><span><?php esc_html_e('Subtotal:', 'NORDBOOKING'); ?></span> <span><?php echo esc_html($currency_symbol . number_format_i18n($subtotal_calc, 2)); ?></span></p>
+                    <p><span><?php esc_html_e('Discount Applied:', 'NORDBOOKING'); ?></span> <span><?php echo esc_html($discount_amount_formatted); ?></span></p>
+                    <p><strong><?php esc_html_e('Final Total:', 'NORDBOOKING'); ?></strong> <strong class="final-total"><?php echo $total_price_formatted; ?></strong></p>
                 </div>
             <?php else: ?>
-                <p><?php esc_html_e('No service items found for this booking.', 'mobooking'); ?></p>
+                <p><?php esc_html_e('No service items found for this booking.', 'NORDBOOKING'); ?></p>
             <?php endif; ?>
-             <p style="margin-top: 1rem;"><strong><?php esc_html_e('Payment Status:', 'mobooking'); ?></strong> <?php echo esc_html(ucfirst($booking['payment_status'] ?? 'N/A')); ?></p>
+             <p style="margin-top: 1rem;"><strong><?php esc_html_e('Payment Status:', 'NORDBOOKING'); ?></strong> <?php echo esc_html(ucfirst($booking['payment_status'] ?? 'N/A')); ?></p>
         </div>
     </div>
 
-    <div class="mobooking-card card-bs">
-        <div class="mobooking-card-header">
-            <div class="mobooking-card-title-group">
-                <span class="mobooking-card-icon"><?php echo mobooking_get_feather_icon('info'); ?></span>
-                <h3 class="mobooking-card-title"><?php esc_html_e('Advanced Details', 'mobooking'); ?></h3>
+    <div class="NORDBOOKING-card card-bs">
+        <div class="NORDBOOKING-card-header">
+            <div class="NORDBOOKING-card-title-group">
+                <span class="NORDBOOKING-card-icon"><?php echo nordbooking_get_feather_icon('info'); ?></span>
+                <h3 class="NORDBOOKING-card-title"><?php esc_html_e('Advanced Details', 'NORDBOOKING'); ?></h3>
             </div>
         </div>
-        <div class="mobooking-card-content">
+        <div class="NORDBOOKING-card-content">
             <div class="kpi-grid">
                 <div class="mb-3">
-                    <strong class="block font-semibold text-sm mb-1"><?php esc_html_e('Service Frequency:', 'mobooking'); ?></strong>
+                    <strong class="block font-semibold text-sm mb-1"><?php esc_html_e('Service Frequency:', 'NORDBOOKING'); ?></strong>
                     <span class="text-sm text-muted-foreground"><?php echo esc_html(ucfirst($booking['service_frequency'] ?? 'one-time')); ?></span>
                 </div>
                 <div class="mb-3">
-                    <strong class="block font-semibold text-sm mb-1"><?php esc_html_e('Has Pets:', 'mobooking'); ?></strong>
+                    <strong class="block font-semibold text-sm mb-1"><?php esc_html_e('Has Pets:', 'NORDBOOKING'); ?></strong>
                     <span class="text-sm text-muted-foreground"><?php echo ($booking['has_pets'] ?? false) ? 'Yes' : 'No'; ?></span>
                 </div>
                 <?php if ($booking['has_pets'] ?? false): ?>
                 <div class="mb-3">
-                    <strong class="block font-semibold text-sm mb-1"><?php esc_html_e('Pet Details:', 'mobooking'); ?></strong>
+                    <strong class="block font-semibold text-sm mb-1"><?php esc_html_e('Pet Details:', 'NORDBOOKING'); ?></strong>
                     <span class="text-sm text-muted-foreground"><?php echo nl2br(esc_html($booking['pet_details'] ?? '')); ?></span>
                 </div>
                 <?php endif; ?>
                 <div class="mb-3">
-                    <strong class="block font-semibold text-sm mb-1"><?php esc_html_e('Property Access Method:', 'mobooking'); ?></strong>
+                    <strong class="block font-semibold text-sm mb-1"><?php esc_html_e('Property Access Method:', 'NORDBOOKING'); ?></strong>
                     <span class="text-sm text-muted-foreground"><?php echo esc_html(ucfirst($booking['property_access_method'] ?? 'N/A')); ?></span>
                 </div>
                 <?php if (!empty($booking['property_access_details'])): ?>
                 <div class="mb-3">
-                    <strong class="block font-semibold text-sm mb-1"><?php esc_html_e('Property Access Details:', 'mobooking'); ?></strong>
+                    <strong class="block font-semibold text-sm mb-1"><?php esc_html_e('Property Access Details:', 'NORDBOOKING'); ?></strong>
                     <span class="text-sm text-muted-foreground"><?php echo nl2br(esc_html($booking['property_access_details'])); ?></span>
                 </div>
                 <?php endif; ?>
@@ -404,14 +404,14 @@ if (!function_exists('mobooking_get_status_badge_icon_svg')) {
     </div>
 
     <?php if (!empty($booking['special_instructions'])): ?>
-    <div class="mobooking-card card-bs">
-        <div class="mobooking-card-header">
-            <div class="mobooking-card-title-group">
-                <span class="mobooking-card-icon"><?php echo mobooking_get_feather_icon('message-square'); ?></span>
-                <h3 class="mobooking-card-title"><?php esc_html_e('Special Instructions', 'mobooking'); ?></h3>
+    <div class="NORDBOOKING-card card-bs">
+        <div class="NORDBOOKING-card-header">
+            <div class="NORDBOOKING-card-title-group">
+                <span class="NORDBOOKING-card-icon"><?php echo nordbooking_get_feather_icon('message-square'); ?></span>
+                <h3 class="NORDBOOKING-card-title"><?php esc_html_e('Special Instructions', 'NORDBOOKING'); ?></h3>
             </div>
         </div>
-        <div class="mobooking-card-content">
+        <div class="NORDBOOKING-card-content">
             <p><?php echo nl2br(esc_html($booking['special_instructions'])); ?></p>
         </div>
     </div>
@@ -428,32 +428,32 @@ jQuery(document).ready(function($) {
     <?php
         foreach (array_keys($booking_statuses_for_select) as $status_key) {
             // Ensure SVG output is properly escaped for JavaScript string literal
-            echo "statusIcons['" . esc_js($status_key) . "'] = '" . str_replace(["\r", "\n"], "", addslashes(mobooking_get_status_badge_icon_svg($status_key))) . "';\n";
+            echo "statusIcons['" . esc_js($status_key) . "'] = '" . str_replace(["\r", "\n"], "", addslashes(nordbooking_get_status_badge_icon_svg($status_key))) . "';\n";
         }
     ?>
 
-    $('#mobooking-single-save-status-btn').on('click', function() {
+    $('#NORDBOOKING-single-save-status-btn').on('click', function() {
         var $button = $(this);
-        var bookingId = $('#mobooking-single-booking-status-select').data('booking-id');
-        var newStatus = $('#mobooking-single-booking-status-select').val();
-        var $feedback = $('#mobooking-single-status-feedback');
-        var $currentStatusDisplay = $('#mobooking-current-status-display');
+        var bookingId = $('#NORDBOOKING-single-booking-status-select').data('booking-id');
+        var newStatus = $('#NORDBOOKING-single-booking-status-select').val();
+        var $feedback = $('#NORDBOOKING-single-status-feedback');
+        var $currentStatusDisplay = $('#NORDBOOKING-current-status-display');
 
-        $feedback.text('<?php echo esc_js( __( 'Updating...', 'mobooking' ) ); ?>').removeClass('success error');
+        $feedback.text('<?php echo esc_js( __( 'Updating...', 'NORDBOOKING' ) ); ?>').removeClass('success error');
         $button.prop('disabled', true);
 
         $.ajax({
-            url: mobooking_dashboard_params.ajax_url, // Use localized ajax_url
+            url: nordbooking_dashboard_params.ajax_url, // Use localized ajax_url
             type: 'POST',
             data: {
-                action: 'mobooking_update_booking_status',
-                nonce: '<?php echo wp_create_nonce('mobooking_dashboard_nonce'); ?>',
+                action: 'nordbooking_update_booking_status',
+                nonce: '<?php echo wp_create_nonce('nordbooking_dashboard_nonce'); ?>',
                 booking_id: bookingId,
                 new_status: newStatus
             },
             success: function(response) {
                 if (response.success) {
-                    window.showAlert(response.data.message || '<?php echo esc_js( __( 'Status updated successfully!', 'mobooking' ) ); ?>', 'success');
+                    window.showAlert(response.data.message || '<?php echo esc_js( __( 'Status updated successfully!', 'NORDBOOKING' ) ); ?>', 'success');
 
                     var newStatusText = newStatus.charAt(0).toUpperCase() + newStatus.slice(1).replace('-', ' ');
                     $currentStatusDisplay.find('.status-text').text(newStatusText);
@@ -471,11 +471,11 @@ jQuery(document).ready(function($) {
                     }
 
                 } else {
-                    window.showAlert(response.data.message || '<?php echo esc_js( __( 'Error updating status.', 'mobooking' ) ); ?>', 'error');
+                    window.showAlert(response.data.message || '<?php echo esc_js( __( 'Error updating status.', 'NORDBOOKING' ) ); ?>', 'error');
                 }
             },
             error: function() {
-                window.showAlert('<?php echo esc_js( __( 'AJAX request failed.', 'mobooking' ) ); ?>', 'error');
+                window.showAlert('<?php echo esc_js( __( 'AJAX request failed.', 'NORDBOOKING' ) ); ?>', 'error');
             },
             complete: function() {
                 $button.prop('disabled', false);
@@ -483,38 +483,38 @@ jQuery(document).ready(function($) {
         });
     });
 
-    $('#mobooking-single-save-staff-assignment-btn').on('click', function() {
+    $('#NORDBOOKING-single-save-staff-assignment-btn').on('click', function() {
         var $button = $(this);
-        var bookingId = $('#mobooking-single-assign-staff-select').data('booking-id');
-        var staffId = $('#mobooking-single-assign-staff-select').val();
-        var $currentStaffDisplay = $('#mobooking-current-assigned-staff');
-        var selectedStaffName = $('#mobooking-single-assign-staff-select option:selected').text();
+        var bookingId = $('#NORDBOOKING-single-assign-staff-select').data('booking-id');
+        var staffId = $('#NORDBOOKING-single-assign-staff-select').val();
+        var $currentStaffDisplay = $('#NORDBOOKING-current-assigned-staff');
+        var selectedStaffName = $('#NORDBOOKING-single-assign-staff-select option:selected').text();
 
         $button.prop('disabled', true);
 
         $.ajax({
-            url: mobooking_dashboard_params.ajax_url,
+            url: nordbooking_dashboard_params.ajax_url,
             type: 'POST',
             data: {
-                action: 'mobooking_assign_staff_to_booking',
-                nonce: '<?php echo wp_create_nonce('mobooking_dashboard_nonce'); ?>',
+                action: 'nordbooking_assign_staff_to_booking',
+                nonce: '<?php echo wp_create_nonce('nordbooking_dashboard_nonce'); ?>',
                 booking_id: bookingId,
                 staff_id: staffId
             },
             success: function(response) {
                 if (response.success) {
-                    window.showAlert(response.data.message || '<?php echo esc_js( __( 'Assignment updated successfully!', 'mobooking' ) ); ?>', 'success');
+                    window.showAlert(response.data.message || '<?php echo esc_js( __( 'Assignment updated successfully!', 'NORDBOOKING' ) ); ?>', 'success');
                     if (staffId === "0" || staffId === 0) {
-                        $currentStaffDisplay.text('<?php echo esc_js(__('Unassigned', 'mobooking')); ?>');
+                        $currentStaffDisplay.text('<?php echo esc_js(__('Unassigned', 'NORDBOOKING')); ?>');
                     } else {
                         $currentStaffDisplay.text(selectedStaffName.split(' (')[0]);
                     }
                 } else {
-                    window.showAlert(response.data.message || '<?php echo esc_js( __( 'Error updating assignment.', 'mobooking' ) ); ?>', 'error');
+                    window.showAlert(response.data.message || '<?php echo esc_js( __( 'Error updating assignment.', 'NORDBOOKING' ) ); ?>', 'error');
                 }
             },
             error: function() {
-                window.showAlert('<?php echo esc_js( __( 'AJAX request failed.', 'mobooking' ) ); ?>', 'error');
+                window.showAlert('<?php echo esc_js( __( 'AJAX request failed.', 'NORDBOOKING' ) ); ?>', 'error');
             },
             complete: function() {
                 $button.prop('disabled', false);

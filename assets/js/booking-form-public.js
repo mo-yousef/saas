@@ -1,5 +1,5 @@
 /**
- * Complete MoBooking Booking Form JavaScript with ShadCN UI Design
+ * Complete NORDBOOKING Booking Form JavaScript with ShadCN UI Design
  * Fully fixed with working AJAX and modern UI components
  * Updated to skip location step and auto-load service options
  */
@@ -13,28 +13,28 @@ jQuery(document).ready(function ($) {
 
   const CONFIG = {
     ajax_url:
-      window.MOBOOKING_CONFIG?.ajax_url ||
-      window.mobooking_booking_form_params?.ajax_url ||
+      window.NORDBOOKING_CONFIG?.ajax_url ||
+      window.nordbooking_booking_form_params?.ajax_url ||
       "/wp-admin/admin-ajax.php",
     tenant_id:
-      window.MOBOOKING_CONFIG?.tenant_id ||
-      window.mobooking_booking_form_params?.tenant_id ||
+      window.NORDBOOKING_CONFIG?.tenant_id ||
+      window.nordbooking_booking_form_params?.tenant_id ||
       0,
     nonce:
-      window.MOBOOKING_CONFIG?.nonce ||
-      window.mobooking_booking_form_params?.nonce ||
+      window.NORDBOOKING_CONFIG?.nonce ||
+      window.nordbooking_booking_form_params?.nonce ||
       "",
     currency_symbol:
-      window.MOBOOKING_CONFIG?.currency?.symbol ||
-      window.mobooking_booking_form_params?.currency_symbol ||
+      window.NORDBOOKING_CONFIG?.currency?.symbol ||
+      window.nordbooking_booking_form_params?.currency_symbol ||
       "$",
     i18n:
-      window.MOBOOKING_CONFIG?.i18n ||
-      window.mobooking_booking_form_params?.i18n ||
+      window.NORDBOOKING_CONFIG?.i18n ||
+      window.nordbooking_booking_form_params?.i18n ||
       {},
     settings:
-      window.MOBOOKING_CONFIG?.settings ||
-      window.mobooking_booking_form_params?.settings ||
+      window.NORDBOOKING_CONFIG?.settings ||
+      window.nordbooking_booking_form_params?.settings ||
       {},
   };
 
@@ -62,38 +62,38 @@ jQuery(document).ready(function ($) {
 
   // DOM refs
   const els = {
-    layout: $(".mobooking-layout"),
-    progressFill: $("#mobooking-progress-fill"),
-    stepIndicators: $(".mobooking-step-indicator"),
-    steps: $(".mobooking-step-content"),
+    layout: $(".NORDBOOKING-layout"),
+    progressFill: $("#NORDBOOKING-progress-fill"),
+    stepIndicators: $(".NORDBOOKING-step-indicator"),
+    steps: $(".NORDBOOKING-step-content"),
     // Step 1
-    areaForm: $("#mobooking-area-check-form"),
-    areaFeedback: $("#mobooking-location-feedback"),
+    areaForm: $("#NORDBOOKING-area-check-form"),
+    areaFeedback: $("#NORDBOOKING-location-feedback"),
     // Step 2
-    servicesContainer: $("#mobooking-services-container"),
-    serviceFeedback: $("#mobooking-service-feedback"),
+    servicesContainer: $("#NORDBOOKING-services-container"),
+    serviceFeedback: $("#NORDBOOKING-service-feedback"),
     // Step 3
-    optionsContainer: $("#mobooking-service-options-container"),
-    optionsFeedback: $("#mobooking-options-feedback"),
+    optionsContainer: $("#NORDBOOKING-service-options-container"),
+    optionsFeedback: $("#NORDBOOKING-options-feedback"),
     // Step 6
-    dateInput: $("#mobooking-service-date"),
-    timeSlots: $("#mobooking-time-slots"),
-    dateTimeFeedback: $("#mobooking-datetime-feedback"),
+    dateInput: $("#NORDBOOKING-service-date"),
+    timeSlots: $("#NORDBOOKING-time-slots"),
+    dateTimeFeedback: $("#NORDBOOKING-datetime-feedback"),
     // Step 7
-    nameInput: $("#mobooking-customer-name"),
-    emailInput: $("#mobooking-customer-email"),
-    phoneInput: $("#mobooking-customer-phone"),
-    addressInput: $("#mobooking-service-address"),
-    contactFeedback: $("#mobooking-contact-feedback"),
-    accessDetailsWrap: $("#mobooking-custom-access-details"),
+    nameInput: $("#NORDBOOKING-customer-name"),
+    emailInput: $("#NORDBOOKING-customer-email"),
+    phoneInput: $("#NORDBOOKING-customer-phone"),
+    addressInput: $("#NORDBOOKING-service-address"),
+    contactFeedback: $("#NORDBOOKING-contact-feedback"),
+    accessDetailsWrap: $("#NORDBOOKING-custom-access-details"),
     // Step 8 (Confirmation)
-    confirmationSummary: $("#mobooking-confirmation-summary"),
-    confirmationFeedback: $("#mobooking-confirmation-feedback"),
+    confirmationSummary: $("#NORDBOOKING-confirmation-summary"),
+    confirmationFeedback: $("#NORDBOOKING-confirmation-feedback"),
     // Live summary
-    liveSummaryContainer: $("#mobooking-live-summary"),
-    liveSummaryContent: $("#mobooking-summary-content"),
+    liveSummaryContainer: $("#NORDBOOKING-live-summary"),
+    liveSummaryContent: $("#NORDBOOKING-summary-content"),
     // Success
-    successMessage: $("#mobooking-success-message"),
+    successMessage: $("#NORDBOOKING-success-message"),
   };
 
   // ==========================================
@@ -104,9 +104,9 @@ jQuery(document).ready(function ($) {
     const service = state.service;
     if (!service) {
       // Show all conditional steps if no service is selected
-      $("#mobooking-step-4, #mobooking-step-5").removeClass("hidden");
+      $("#NORDBOOKING-step-4, #NORDBOOKING-step-5").removeClass("hidden");
       $(
-        '.mobooking-step-indicator[data-step="4"], .mobooking-step-indicator[data-step="5"]'
+        '.NORDBOOKING-step-indicator[data-step="4"], .NORDBOOKING-step-indicator[data-step="5"]'
       ).removeClass("hidden");
       return;
     }
@@ -114,14 +114,14 @@ jQuery(document).ready(function ($) {
     const disablePets = service.disable_pet_question == "1";
     const disableFreq = service.disable_frequency_option == "1";
 
-    $("#mobooking-step-4").toggleClass("hidden", disablePets);
-    $('.mobooking-step-indicator[data-step="4"]').toggleClass(
+    $("#NORDBOOKING-step-4").toggleClass("hidden", disablePets);
+    $('.NORDBOOKING-step-indicator[data-step="4"]').toggleClass(
       "hidden",
       disablePets
     );
 
-    $("#mobooking-step-5").toggleClass("hidden", disableFreq);
-    $('.mobooking-step-indicator[data-step="5"]').toggleClass(
+    $("#NORDBOOKING-step-5").toggleClass("hidden", disableFreq);
+    $('.NORDBOOKING-step-indicator[data-step="5"]').toggleClass(
       "hidden",
       disableFreq
     );
@@ -132,14 +132,14 @@ jQuery(document).ready(function ($) {
 
     // Add active step class to the form card
     els.layout
-      .find(".mobooking-form-card")
+      .find(".NORDBOOKING-form-card")
       .removeClass(function (index, className) {
         return (className.match(/(^|\s)step-active-\S+/g) || []).join(" ");
       })
       .addClass(`step-active-${step}`);
 
     els.steps.removeClass("active").hide();
-    $(`#mobooking-step-${step}`).addClass("active").show();
+    $(`#NORDBOOKING-step-${step}`).addClass("active").show();
 
     const visibleIndicators = els.stepIndicators;
     visibleIndicators.removeClass("active completed");
@@ -160,15 +160,15 @@ jQuery(document).ready(function ($) {
     if (step === 4) {
       // Ensure the active class is set on the correct pet radio button
       $('input[name="has_pets"]:checked')
-        .closest(".mobooking-radio-option")
+        .closest(".NORDBOOKING-radio-option")
         .addClass("active");
     }
     if (step === 6) initDatePicker();
     if (step === 7) {
-      $("#mobooking-zip-readonly").val(state.zip);
+      $("#NORDBOOKING-zip-readonly").val(state.zip);
       // Ensure the active class is set on the correct property access radio
       $('input[name="property_access"]:checked')
-        .closest(".mobooking-radio-option")
+        .closest(".NORDBOOKING-radio-option")
         .addClass("active");
       // TODO: Initialize Google Maps Places Autocomplete here when API key is available
     }
@@ -191,11 +191,11 @@ jQuery(document).ready(function ($) {
     let next = state.currentStep + 1;
 
     // Skip step 4 if it's hidden
-    if (next === 4 && $("#mobooking-step-4").hasClass("hidden")) {
+    if (next === 4 && $("#NORDBOOKING-step-4").hasClass("hidden")) {
       next++;
     }
     // Skip step 5 if it's hidden
-    if (next === 5 && $("#mobooking-step-5").hasClass("hidden")) {
+    if (next === 5 && $("#NORDBOOKING-step-5").hasClass("hidden")) {
       next++;
     }
 
@@ -208,11 +208,11 @@ jQuery(document).ready(function ($) {
     let prev = state.currentStep - 1;
 
     // Skip step 5 if it's hidden
-    if (prev === 5 && $("#mobooking-step-5").hasClass("hidden")) {
+    if (prev === 5 && $("#NORDBOOKING-step-5").hasClass("hidden")) {
       prev--;
     }
     // Skip step 4 if it's hidden
-    if (prev === 4 && $("#mobooking-step-4").hasClass("hidden")) {
+    if (prev === 4 && $("#NORDBOOKING-step-4").hasClass("hidden")) {
       prev--;
     }
 
@@ -227,22 +227,22 @@ jQuery(document).ready(function ($) {
       case 2: // Reset service selection
         state.service = null;
         els.servicesContainer
-          .find('input[name="mobooking-selected-service"]')
+          .find('input[name="NORDBOOKING-selected-service"]')
           .prop("checked", false);
         els.servicesContainer
-          .find(".mobooking-service-card")
+          .find(".NORDBOOKING-service-card")
           .removeClass("active");
         break;
       case 3: // Reset service options
         state.optionsById = {};
         state.pricing.options = 0;
-        els.optionsContainer.find(".mobooking-option-input").val("");
+        els.optionsContainer.find(".NORDBOOKING-option-input").val("");
         els.optionsContainer
           .find('input[type="checkbox"]')
           .prop("checked", false);
         els.optionsContainer.find('input[type="radio"]').prop("checked", false);
         els.optionsContainer
-          .find(".mobooking-form-group, .mobooking-radio-option")
+          .find(".NORDBOOKING-form-group, .NORDBOOKING-radio-option")
           .removeClass("active");
         recalcTotal();
         break;
@@ -251,7 +251,7 @@ jQuery(document).ready(function ($) {
         $('input[name="has_pets"][value="no"]')
           .prop("checked", true)
           .trigger("change");
-        $("#mobooking-pet-details").val("");
+        $("#NORDBOOKING-pet-details").val("");
         break;
       case 5: // Reset frequency
         state.frequency = "one-time";
@@ -282,20 +282,20 @@ jQuery(document).ready(function ($) {
         els.emailInput.val("");
         els.phoneInput.val("");
         els.addressInput.val("");
-        $("#mobooking-special-instructions").val("");
+        $("#NORDBOOKING-special-instructions").val("");
         $('input[name="property_access"][value="home"]')
           .prop("checked", true)
           .trigger("change");
-        $("#mobooking-access-instructions").val("");
+        $("#NORDBOOKING-access-instructions").val("");
         break;
       case 8: // Reset confirmation summary
-        $("#mobooking-confirmation-details").html("");
+        $("#NORDBOOKING-confirmation-details").html("");
         break;
     }
   }
 
   function validateStep(step) {
-    const stepContainer = $(`#mobooking-step-${step}`);
+    const stepContainer = $(`#NORDBOOKING-step-${step}`);
     clearFieldErrors(stepContainer);
     let isValid = true;
 
@@ -307,10 +307,10 @@ jQuery(document).ready(function ($) {
         )
           return true;
 
-        const zip = $("#mobooking-zip").val()?.trim();
+        const zip = $("#NORDBOOKING-zip").val()?.trim();
         if (!/^\d{5}$/.test(zip)) {
           showFieldError(
-            $("#mobooking-zip"),
+            $("#NORDBOOKING-zip"),
             CONFIG.i18n.zip_required || "Please enter a valid 5-digit ZIP code."
           );
           isValid = false;
@@ -326,10 +326,10 @@ jQuery(document).ready(function ($) {
         }
         return isValid;
       case 3:
-        els.optionsContainer.find(".mobooking-form-group").each(function () {
+        els.optionsContainer.find(".NORDBOOKING-form-group").each(function () {
           const $group = $(this);
           const requiredInputs = $group.find(
-            ".mobooking-option-input[data-required='1']"
+            ".NORDBOOKING-option-input[data-required='1']"
           );
           if (!requiredInputs.length) return;
 
@@ -344,9 +344,7 @@ jQuery(document).ready(function ($) {
           let isGroupValid = true;
 
           if (type === "checkbox") {
-            if (
-              $group.find("input[type='checkbox']:checked").length === 0
-            ) {
+            if ($group.find("input[type='checkbox']:checked").length === 0) {
               isGroupValid = false;
             }
           } else if (type === "radio") {
@@ -363,8 +361,7 @@ jQuery(document).ready(function ($) {
           if (!isGroupValid) {
             showFieldError(
               $group,
-              (CONFIG.i18n.fill_required_options ||
-                "This field is required.") +
+              (CONFIG.i18n.fill_required_options || "This field is required.") +
                 " " +
                 name
             );
@@ -376,10 +373,10 @@ jQuery(document).ready(function ($) {
       case 4:
         const hasPets = $('input[name="has_pets"]:checked').val() === "yes";
         if (hasPets) {
-          const details = $("#mobooking-pet-details").val().trim();
+          const details = $("#NORDBOOKING-pet-details").val().trim();
           if (!details) {
             showFieldError(
-              $("#mobooking-pet-details"),
+              $("#NORDBOOKING-pet-details"),
               CONFIG.i18n.pet_details_required || "Please add pet details"
             );
             isValid = false;
@@ -446,7 +443,7 @@ jQuery(document).ready(function ($) {
 
   function showFieldError(field, message) {
     const $field = $(field);
-    const $group = $field.closest(".mobooking-form-group");
+    const $group = $field.closest(".NORDBOOKING-form-group");
 
     // Add error class to the most relevant element
     if ($group.length) {
@@ -456,12 +453,12 @@ jQuery(document).ready(function ($) {
     }
 
     // Remove any existing error message for this field/group
-    $group.find(".mobooking-error-message").remove();
-    $field.siblings(".mobooking-error-message").remove();
+    $group.find(".NORDBOOKING-error-message").remove();
+    $field.siblings(".NORDBOOKING-error-message").remove();
 
     // Add new error message after the field or at the end of the group
     const errorHtml =
-      '<div class="mobooking-error-message">' + message + "</div>";
+      '<div class="NORDBOOKING-error-message">' + message + "</div>";
     if ($group.length) {
       $group.append(errorHtml);
     } else {
@@ -471,29 +468,29 @@ jQuery(document).ready(function ($) {
 
   function clearFieldError(field) {
     const $field = $(field);
-    const $group = $field.closest(".mobooking-form-group.error");
+    const $group = $field.closest(".NORDBOOKING-form-group.error");
 
     $field.removeClass("error");
-    $field.siblings(".mobooking-error-message").remove();
-    $field.next(".mobooking-error-message").remove(); // Ensure message after field is removed
+    $field.siblings(".NORDBOOKING-error-message").remove();
+    $field.next(".NORDBOOKING-error-message").remove(); // Ensure message after field is removed
 
     if ($group.length) {
       $group.removeClass("error");
-      $group.find(".mobooking-error-message").remove();
+      $group.find(".NORDBOOKING-error-message").remove();
     }
   }
 
   function clearFieldErrors(stepContainer) {
     $(stepContainer).find(".error").removeClass("error");
-    $(stepContainer).find(".mobooking-error-message").remove();
+    $(stepContainer).find(".NORDBOOKING-error-message").remove();
   }
 
   function showFeedback(element, type, message) {
     if (!element || !element.length) return;
     const typeToClass = {
-      success: "mobooking-feedback-success",
-      error: "mobooking-feedback-error",
-      info: "mobooking-feedback-info",
+      success: "NORDBOOKING-feedback-success",
+      error: "NORDBOOKING-feedback-error",
+      info: "NORDBOOKING-feedback-info",
     };
     const cssClass = typeToClass[type] || typeToClass.info;
     element
@@ -520,25 +517,25 @@ jQuery(document).ready(function ($) {
     };
   }
 
-  $("#mobooking-zip").on(
+  $("#NORDBOOKING-zip").on(
     "input",
     debounce(function () {
       const zip = $(this).val()?.trim();
       state.zip = zip;
-      const $submitBtn = $("#mobooking-step-1 button[type=submit]");
+      const $submitBtn = $("#NORDBOOKING-step-1 button[type=submit]");
 
       // Always disable the button when input changes, until a successful check.
       $submitBtn.prop("disabled", true);
       els.areaFeedback.hide();
       state.areaName = ""; // Reset area name
-      const $zipInput = $("#mobooking-zip");
+      const $zipInput = $("#NORDBOOKING-zip");
       clearFieldError($zipInput);
 
       if (!/^\d{5}$/.test(zip)) {
         if (zip.length > 0) {
-          showFieldError($zipInput, 'Please enter a valid 5-digit ZIP code.');
+          showFieldError($zipInput, "Please enter a valid 5-digit ZIP code.");
         }
-        $("#mobooking-area-name").text("");
+        $("#NORDBOOKING-area-name").text("");
         return;
       }
 
@@ -549,7 +546,7 @@ jQuery(document).ready(function ($) {
       );
 
       $.post(CONFIG.ajax_url, {
-        action: "mobooking_check_service_area",
+        action: "nordbooking_check_service_area",
         nonce: CONFIG.nonce,
         tenant_id: CONFIG.tenant_id,
         location: zip,
@@ -558,7 +555,7 @@ jQuery(document).ready(function ($) {
           if (res.success) {
             state.areaName = res.data.area_name || "";
             $(".area-name-wrap").addClass("valid");
-            $("#mobooking-area-name").text(state.areaName).addClass("valid");
+            $("#NORDBOOKING-area-name").text(state.areaName).addClass("valid");
             showFeedback(
               els.areaFeedback,
               "success",
@@ -568,7 +565,7 @@ jQuery(document).ready(function ($) {
             $submitBtn.prop("disabled", false);
           } else {
             state.areaName = "";
-            $("#mobooking-area-name").text("").removeClass("valid");
+            $("#NORDBOOKING-area-name").text("").removeClass("valid");
             showFeedback(
               els.areaFeedback,
               "error",
@@ -612,7 +609,7 @@ jQuery(document).ready(function ($) {
   function loadServices() {
     els.servicesContainer.html(`
       <div style="text-align:center;padding:40px 0;">
-        <div class="mobooking-spinner" style="margin:0 auto;"></div>
+        <div class="NORDBOOKING-spinner" style="margin:0 auto;"></div>
         <div style="margin-top:10px;">${
           CONFIG.i18n.loading_services || "Loading services..."
         }</div>
@@ -620,7 +617,7 @@ jQuery(document).ready(function ($) {
     `);
 
     $.post(CONFIG.ajax_url, {
-      action: "mobooking_get_public_services",
+      action: "nordbooking_get_public_services",
       nonce: CONFIG.nonce,
       tenant_id: CONFIG.tenant_id,
     })
@@ -641,9 +638,9 @@ jQuery(document).ready(function ($) {
         // Fallback to direct endpoint if admin-ajax is not available
         if (
           xhr?.status === 404 &&
-          window.mobooking_booking_form_params?.direct_url
+          window.nordbooking_booking_form_params?.direct_url
         ) {
-          $.get(window.mobooking_booking_form_params.direct_url)
+          $.get(window.nordbooking_booking_form_params.direct_url)
             .done(function (resp) {
               if (resp?.success && resp?.data?.services) {
                 renderServices(resp.data.services);
@@ -675,19 +672,19 @@ jQuery(document).ready(function ($) {
   }
 
   function renderServices(services) {
-    let html = '<div class="mobooking-services-grid">';
+    let html = '<div class="NORDBOOKING-services-grid">';
     services.forEach((svc) => {
       const price = parseFloat(svc.price) || 0;
       const priceDisplay = `${CONFIG.currency_symbol}${price.toFixed(2)}`;
       const duration = parseInt(svc.duration) || 0;
       html += `
-      <label class="mobooking-service-card" style="cursor:pointer;">
-        <input type="radio" name="mobooking-selected-service" value="${
+      <label class="NORDBOOKING-service-card" style="cursor:pointer;">
+        <input type="radio" name="NORDBOOKING-selected-service" value="${
           svc.service_id
         }" data-service='${JSON.stringify(
         svc
       )}' style="position:absolute;opacity:0;pointer-events:none;">
-        <div class="mobooking-service-header">
+        <div class="NORDBOOKING-service-header">
           ${(() => {
             if (
               CONFIG.settings.bf_service_card_display === "icon" &&
@@ -696,7 +693,7 @@ jQuery(document).ready(function ($) {
               // Fix: Convert preset identifier to actual path
               if (svc.icon.startsWith("preset:")) {
                 const filename = svc.icon.substring(7); // Remove 'preset:' prefix
-                return `<img src="/wp-content/themes/mobooking/assets/svg-icons/presets/${filename}" alt="Service Icon" class="mobooking-preset-icon"/>`;
+                return `<img src="/wp-content/themes/NORDBOOKING/assets/svg-icons/presets/${filename}" alt="Service Icon" class="NORDBOOKING-preset-icon"/>`;
               }
               return svc.icon;
             }
@@ -704,17 +701,17 @@ jQuery(document).ready(function ($) {
               CONFIG.settings.bf_service_card_display === "image" &&
               svc.image_url
             ) {
-              return `<div class="mobooking-service-image"><img src="${
+              return `<div class="NORDBOOKING-service-image"><img src="${
                 svc.image_url
               }" alt="${escapeHtml(svc.name)}"></div>`;
             }
             return "";
           })()}
           <div style="flex:1;">
-            <div class="mobooking-service-title">${escapeHtml(svc.name)}</div>
+            <div class="NORDBOOKING-service-title">${escapeHtml(svc.name)}</div>
             ${
               svc.description
-                ? `<div class="mobooking-service-description">${escapeHtml(
+                ? `<div class="NORDBOOKING-service-description">${escapeHtml(
                     svc.description
                   )}</div>`
                 : ""
@@ -740,14 +737,14 @@ jQuery(document).ready(function ($) {
     });
 
     els.servicesContainer
-      .find('input[name="mobooking-selected-service"]')
+      .find('input[name="NORDBOOKING-selected-service"]')
       .on("change", function () {
         const svc = $(this).data("service");
         // Toggle active class on selected card
         els.servicesContainer
-          .find(".mobooking-service-card")
+          .find(".NORDBOOKING-service-card")
           .removeClass("active");
-        $(this).closest(".mobooking-service-card").addClass("active");
+        $(this).closest(".NORDBOOKING-service-card").addClass("active");
 
         state.service = svc;
         state.pricing.base = parseFloat(svc.price) || 0;
@@ -775,16 +772,16 @@ jQuery(document).ready(function ($) {
     }
 
     els.optionsContainer.html(`
-      <div class="mobooking-card">
-        <div class="mobooking-text-center">
-          <div class="mobooking-spinner" style="margin: 2rem auto;"></div>
+      <div class="NORDBOOKING-card">
+        <div class="NORDBOOKING-text-center">
+          <div class="NORDBOOKING-spinner" style="margin: 2rem auto;"></div>
           <p>${CONFIG.i18n.loading_options || "Loading service options..."}</p>
         </div>
       </div>
     `);
 
     $.post(CONFIG.ajax_url, {
-      action: "mobooking_get_public_service_options",
+      action: "nordbooking_get_public_service_options",
       nonce: CONFIG.nonce,
       tenant_id: CONFIG.tenant_id,
       service_ids: [state.service.service_id],
@@ -845,36 +842,36 @@ jQuery(document).ready(function ($) {
       const impactValue = parseFloat(opt.price_impact_value) || 0;
       const values = Array.isArray(opt.option_values) ? opt.option_values : [];
 
-      html += `<div class="mobooking-form-group mobooking-form-group-${type}" data-option-id="${id}">`;
+      html += `<div class="NORDBOOKING-form-group NORDBOOKING-form-group-${type}" data-option-id="${id}">`;
 
       // Define label and description parts
-      const labelHtml = `<label class="mobooking-label">${escapeHtml(name)}${
+      const labelHtml = `<label class="NORDBOOKING-label">${escapeHtml(name)}${
         impactValue > 0 && !["select", "radio", "checkbox"].includes(type)
           ? priceImpactLabel(impactType, impactValue)
           : ""
       }${isReq ? ' <span style="color:#ef4444">*</span>' : ""}</label>`;
 
       const descriptionHtml = opt.description
-        ? `<div class="mobooking-option-description">${escapeHtml(
+        ? `<div class="NORDBOOKING-option-description">${escapeHtml(
             opt.description
           )}</div>`
         : "";
 
       if (type === "toggle") {
-        html += `<div class="mobooking-input-group">`;
+        html += `<div class="NORDBOOKING-input-group">`;
         html += labelHtml;
-        html += `<label class="mobooking-toggle-switch"><input type="checkbox" class="mobooking-option-input" data-type="toggle" data-required="${isReq}" data-name="${escapeHtml(
+        html += `<label class="NORDBOOKING-toggle-switch"><input type="checkbox" class="NORDBOOKING-option-input" data-type="toggle" data-required="${isReq}" data-name="${escapeHtml(
           name
         )}" data-impact-type="${impactType}" data-impact-value="${impactValue}" value="1"> <span class="slider"></span></label>`;
         html += `</div>`;
         html += descriptionHtml;
       } else if (type === "quantity") {
-        html += `<div class="mobooking-input-group">`;
+        html += `<div class="NORDBOOKING-input-group">`;
         html += labelHtml;
-        html += `<div class="mobooking-quantity-stepper">`;
+        html += `<div class="NORDBOOKING-quantity-stepper">`;
         html += `<button type="button" class="stepper-btn stepper-minus" aria-label="Decrease quantity">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg></button>`;
-        html += `<input type="number" min="0" class="form-input mobooking-option-input" data-type="quantity" data-required="${isReq}" data-name="${escapeHtml(
+        html += `<input type="number" min="0" class="form-input NORDBOOKING-option-input" data-type="quantity" data-required="${isReq}" data-name="${escapeHtml(
           name
         )}" data-impact-type="${impactType}" data-impact-value="${impactValue}" value="${
           isReq ? 1 : 0
@@ -893,8 +890,8 @@ jQuery(document).ready(function ($) {
             const label = v.label || v.value || v;
             const value = v.value || v.label || v;
             const price = parseFloat(v.price) || 0;
-            const cid = `mobooking-opt-${id}-${idx}`;
-            html += `<label class="mobooking-checkbox-option mobooking-selectable-option"><input type="checkbox" name="mobooking-option-${id}[]" id="${cid}" class="mobooking-option-input" data-type="checkbox" data-required="${isReq}" data-name="${escapeHtml(
+            const cid = `NORDBOOKING-opt-${id}-${idx}`;
+            html += `<label class="NORDBOOKING-checkbox-option NORDBOOKING-selectable-option"><input type="checkbox" name="NORDBOOKING-option-${id}[]" id="${cid}" class="NORDBOOKING-option-input" data-type="checkbox" data-required="${isReq}" data-name="${escapeHtml(
               name
             )}" value="${escapeHtml(
               value
@@ -906,7 +903,7 @@ jQuery(document).ready(function ($) {
           });
           html += descriptionHtml;
         } else if (type === "select") {
-          html += `<select class="form-select mobooking-option-input" data-type="select" data-required="${isReq}" data-name="${escapeHtml(
+          html += `<select class="form-select NORDBOOKING-option-input" data-type="select" data-required="${isReq}" data-name="${escapeHtml(
             name
           )}">`;
           html += `<option value="">${"Choose an option"}</option>`;
@@ -929,8 +926,8 @@ jQuery(document).ready(function ($) {
             const label = v.label || v.value || v;
             const value = v.value || v.label || v;
             const price = parseFloat(v.price) || 0;
-            const rid = `mobooking-opt-${id}-${idx}`;
-            html += `<label class="mobooking-radio-option mobooking-selectable-option"><input type="radio" name="mobooking-option-${id}" id="${rid}" class="mobooking-option-input" data-type="radio" data-required="${isReq}" data-name="${escapeHtml(
+            const rid = `NORDBOOKING-opt-${id}-${idx}`;
+            html += `<label class="NORDBOOKING-radio-option NORDBOOKING-selectable-option"><input type="radio" name="NORDBOOKING-option-${id}" id="${rid}" class="NORDBOOKING-option-input" data-type="radio" data-required="${isReq}" data-name="${escapeHtml(
               name
             )}" value="${escapeHtml(
               value
@@ -942,30 +939,30 @@ jQuery(document).ready(function ($) {
           });
           html += descriptionHtml;
         } else if (type === "number") {
-          html += `<input type="number" min="0" class="form-input mobooking-option-input" data-type="number" data-required="${isReq}" data-name="${escapeHtml(
+          html += `<input type="number" min="0" class="form-input NORDBOOKING-option-input" data-type="number" data-required="${isReq}" data-name="${escapeHtml(
             name
           )}" data-impact-type="${impactType}" data-impact-value="${impactValue}" value="${
             isReq ? 1 : 0
           }">`;
           html += descriptionHtml;
         } else if (type === "textarea") {
-          html += `<textarea class="form-textarea mobooking-option-input" data-type="textarea" data-required="${isReq}" data-name="${escapeHtml(
+          html += `<textarea class="form-textarea NORDBOOKING-option-input" data-type="textarea" data-required="${isReq}" data-name="${escapeHtml(
             name
           )}" data-impact-type="${impactType}" data-impact-value="${impactValue}"></textarea>`;
           html += descriptionHtml;
         } else if (type === "sqm") {
-          html += `<input type="number" min="1" step="0.1" placeholder="Enter square meters" class="form-input mobooking-option-input" data-type="sqm" data-required="${isReq}" data-name="${escapeHtml(
+          html += `<input type="number" min="1" step="0.1" placeholder="Enter square meters" class="form-input NORDBOOKING-option-input" data-type="sqm" data-required="${isReq}" data-name="${escapeHtml(
             name
           )}" data-price-per-unit="${impactValue}">`;
           html += descriptionHtml;
         } else if (type === "kilometers") {
-          html += `<input type="number" min="1" step="0.1" placeholder="Enter kilometers" class="form-input mobooking-option-input" data-type="kilometers" data-required="${isReq}" data-name="${escapeHtml(
+          html += `<input type="number" min="1" step="0.1" placeholder="Enter kilometers" class="form-input NORDBOOKING-option-input" data-type="kilometers" data-required="${isReq}" data-name="${escapeHtml(
             name
           )}" data-price-per-unit="${impactValue}">`;
           html += descriptionHtml;
         } else {
           // text default
-          html += `<input type="text" class="form-input mobooking-option-input" data-type="text" data-required="${isReq}" data-name="${escapeHtml(
+          html += `<input type="text" class="form-input NORDBOOKING-option-input" data-type="text" data-required="${isReq}" data-name="${escapeHtml(
             name
           )}" data-impact-type="${impactType}" data-impact-value="${impactValue}" placeholder="Enter ${escapeHtml(
             name.toLowerCase()
@@ -980,23 +977,23 @@ jQuery(document).ready(function ($) {
     els.optionsContainer.html(html);
 
     els.optionsContainer
-      .find(".mobooking-option-input")
+      .find(".NORDBOOKING-option-input")
       .on("change input", function () {
         // Toggle active class for UI feedback
         const $input = $(this);
         const type = $input.attr("type");
-        const $group = $input.closest(".mobooking-form-group");
+        const $group = $input.closest(".NORDBOOKING-form-group");
         if (type === "radio") {
           // Clear actives for this radio group
           const name = $input.attr("name");
           $(`input[name="${name}"]`).each(function () {
-            $(this).closest(".mobooking-radio-option").removeClass("active");
+            $(this).closest(".NORDBOOKING-radio-option").removeClass("active");
           });
           if ($input.is(":checked"))
-            $input.closest(".mobooking-radio-option").addClass("active");
+            $input.closest(".NORDBOOKING-radio-option").addClass("active");
         } else if (type === "checkbox") {
           $input
-            .closest(".mobooking-radio-option")
+            .closest(".NORDBOOKING-radio-option")
             .toggleClass("active", $input.is(":checked"));
         } else if ($input.is("select")) {
           $group.toggleClass("active", !!$input.val());
@@ -1058,10 +1055,10 @@ jQuery(document).ready(function ($) {
     let optionsTotal = 0;
     const opts = {};
 
-    els.optionsContainer.find(".mobooking-form-group").each(function () {
+    els.optionsContainer.find(".NORDBOOKING-form-group").each(function () {
       const optWrap = $(this);
       const optionId = parseInt(optWrap.data("option-id"), 10);
-      const firstInput = optWrap.find(".mobooking-option-input").first();
+      const firstInput = optWrap.find(".NORDBOOKING-option-input").first();
       if (!firstInput.length) return;
 
       const type = firstInput.data("type");
@@ -1171,9 +1168,9 @@ jQuery(document).ready(function ($) {
     const val = $(this).val();
     const show = val === "yes";
     if (show) {
-      $("#mobooking-pet-details-container").removeClass("is-collapsed");
+      $("#NORDBOOKING-pet-details-container").removeClass("is-collapsed");
     } else {
-      $("#mobooking-pet-details-container").addClass("is-collapsed");
+      $("#NORDBOOKING-pet-details-container").addClass("is-collapsed");
     }
   });
 
@@ -1190,7 +1187,7 @@ jQuery(document).ready(function ($) {
   // ==========================================
 
   function initDatePicker() {
-    const dateContainer = $("#mobooking-service-date");
+    const dateContainer = $("#NORDBOOKING-service-date");
     if (!dateContainer.length) return;
 
     // If instance exists, just redraw and exit
@@ -1213,12 +1210,14 @@ jQuery(document).ready(function ($) {
           loadTimeSlots(dateStr);
         } else {
           // Show placeholder if date is cleared
-          els.timeSlots.html('<p class="mobooking-time-placeholder">Select a date to see available times.</p>');
+          els.timeSlots.html(
+            '<p class="NORDBOOKING-time-placeholder">Select a date to see available times.</p>'
+          );
         }
       },
-       onReady: function (selectedDates, dateStr, instance) {
+      onReady: function (selectedDates, dateStr, instance) {
         // We can add a class to the container if needed, but not to the instance itself
-        $(instance.calendarContainer).addClass("mobooking-flatpickr");
+        $(instance.calendarContainer).addClass("NORDBOOKING-flatpickr");
       },
     });
     dateContainer.data("fp", fp);
@@ -1227,11 +1226,11 @@ jQuery(document).ready(function ($) {
   function loadTimeSlots(dateStr) {
     els.dateTimeFeedback.text("").hide();
     els.timeSlots.html(
-      `<div class="mobooking-spinner" style="margin: 10px auto;"></div>`
+      `<div class="NORDBOOKING-spinner" style="margin: 10px auto;"></div>`
     );
 
     $.post(CONFIG.ajax_url, {
-      action: "mobooking_get_available_time_slots",
+      action: "nordbooking_get_available_time_slots",
       nonce: CONFIG.nonce,
       tenant_id: CONFIG.tenant_id,
       date: dateStr,
@@ -1242,20 +1241,20 @@ jQuery(document).ready(function ($) {
         state.latestTimeSlots = slots;
         if (!slots.length) {
           els.timeSlots.html(
-            `<p class="mobooking-time-placeholder">No time slots available for this date.</p>`
+            `<p class="NORDBOOKING-time-placeholder">No time slots available for this date.</p>`
           );
           return;
         }
         let html = "";
         slots.forEach((s, i) => {
-          html += `<a class="mobooking-btn mobooking-btn-outline mobooking-time-slot" data-time="${
+          html += `<a class="NORDBOOKING-btn NORDBOOKING-btn-outline NORDBOOKING-time-slot" data-time="${
             s.start_time
           }">${escapeHtml(s.display || `${s.start_time}`)}</a>`;
         });
         els.timeSlots.html(html);
-        els.timeSlots.find(".mobooking-time-slot").on("click", function () {
+        els.timeSlots.find(".NORDBOOKING-time-slot").on("click", function () {
           els.timeSlots
-            .find(".mobooking-time-slot")
+            .find(".NORDBOOKING-time-slot")
             .removeClass("selected active");
           $(this).addClass("selected active");
           state.time = $(this).data("time");
@@ -1276,10 +1275,10 @@ jQuery(document).ready(function ($) {
   $(document).on("change", 'input[name="property_access"]', function () {
     const name = $(this).attr("name");
     $(`input[name="${name}"]`).each(function () {
-      $(this).closest(".mobooking-radio-option").removeClass("active");
+      $(this).closest(".NORDBOOKING-radio-option").removeClass("active");
     });
     if ($(this).is(":checked"))
-      $(this).closest(".mobooking-radio-option").addClass("active");
+      $(this).closest(".NORDBOOKING-radio-option").addClass("active");
     const val = $(this).val();
     state.propertyAccess.method = val;
     if (val === "other") {
@@ -1349,14 +1348,14 @@ jQuery(document).ready(function ($) {
   }
 
   function getConfirmationSummaryHtml() {
-    let html = '<div class="mobooking-confirmation-grid">';
+    let html = '<div class="NORDBOOKING-confirmation-grid">';
 
     // --- Service Details Column ---
-    html += '<div class="mobooking-confirmation-column">';
+    html += '<div class="NORDBOOKING-confirmation-column">';
     html += "<h4>Service Details</h4>";
 
     if (state.service) {
-      html += `<div class="mobooking-summary-item">
+      html += `<div class="NORDBOOKING-summary-item">
           <span class="item-label">${escapeHtml(state.service.name)}</span>
           <span class="item-value">${CONFIG.currency_symbol}${(
         parseFloat(state.service.price) || 0
@@ -1366,9 +1365,9 @@ jQuery(document).ready(function ($) {
 
     const optList = Object.values(state.optionsById || {});
     if (optList.length) {
-      html += '<div class="mobooking-summary-options">';
+      html += '<div class="NORDBOOKING-summary-options">';
       optList.forEach((o) => {
-        html += `<div class="mobooking-summary-item">
+        html += `<div class="NORDBOOKING-summary-item">
             <span class="item-label">${escapeHtml(o.name)}${
           o.value && !["checkbox", "toggle"].includes(o.type)
             ? `: ${escapeHtml(String(o.value))}`
@@ -1386,11 +1385,11 @@ jQuery(document).ready(function ($) {
     html += "</div>"; // end column
 
     // --- Booking Details Column ---
-    html += '<div class="mobooking-confirmation-column">';
+    html += '<div class="NORDBOOKING-confirmation-column">';
     html += "<h4>Booking Details</h4>";
 
     if (state.date || state.time) {
-      html += `<div class="mobooking-summary-item">
+      html += `<div class="NORDBOOKING-summary-item">
           <span class="item-label">Date & Time</span>
           <span class="item-value">${escapeHtml(state.date || "")}${
         state.time ? ` @ ${escapeHtml(state.time)}` : ""
@@ -1398,7 +1397,7 @@ jQuery(document).ready(function ($) {
       </div>`;
     }
 
-    html += `<div class="mobooking-summary-item">
+    html += `<div class="NORDBOOKING-summary-item">
         <span class="item-label">Frequency</span>
         <span class="item-value" style="text-transform: capitalize;">${escapeHtml(
           state.frequency
@@ -1406,7 +1405,7 @@ jQuery(document).ready(function ($) {
     </div>`;
 
     if (state.pets.has_pets) {
-      html += `<div class="mobooking-summary-item">
+      html += `<div class="NORDBOOKING-summary-item">
           <span class="item-label">Pets</span>
           <span class="item-value">Yes</span>
       </div>`;
@@ -1416,7 +1415,7 @@ jQuery(document).ready(function ($) {
     html += "</div>"; // end grid
 
     // --- Total ---
-    html += `<div class="mobooking-summary-item mobooking-summary-total">
+    html += `<div class="NORDBOOKING-summary-item NORDBOOKING-summary-total">
         <span class="item-label">Total</span>
         <span class="item-value">${CONFIG.currency_symbol}${(
       state.pricing.total || 0
@@ -1428,7 +1427,7 @@ jQuery(document).ready(function ($) {
 
   function renderConfirmationSummary() {
     const html = getConfirmationSummaryHtml();
-    $("#mobooking-confirmation-details").html(html);
+    $("#NORDBOOKING-confirmation-details").html(html);
   }
 
   // ==========================================
@@ -1447,17 +1446,17 @@ jQuery(document).ready(function ($) {
 
     // Hide form content and show a larger spinner
     $(
-      "#mobooking-step-8 .mobooking-step-title, #mobooking-confirmation-details, #mobooking-step-8 .mobooking-button-group"
+      "#NORDBOOKING-step-8 .NORDBOOKING-step-title, #NORDBOOKING-confirmation-details, #NORDBOOKING-step-8 .NORDBOOKING-button-group"
     ).slideUp();
     els.confirmationFeedback
       .html(
-        '<div class="mobooking-spinner" style="margin: 3rem auto; width: 40px; height: 40px;"></div>'
+        '<div class="NORDBOOKING-spinner" style="margin: 3rem auto; width: 40px; height: 40px;"></div>'
       )
       .show();
 
     // Collect all data
     state.pets.has_pets = $('input[name="has_pets"]:checked').val() === "yes";
-    state.pets.details = $("#mobooking-pet-details").val().trim();
+    state.pets.details = $("#NORDBOOKING-pet-details").val().trim();
     state.frequency =
       $('input[name="frequency"]:checked').val() || state.frequency;
     state.customer = {
@@ -1467,15 +1466,15 @@ jQuery(document).ready(function ($) {
       address: els.addressInput.val().trim(),
       date: state.date,
       time: state.time,
-      instructions: $("#mobooking-special-instructions").val()?.trim() || "",
+      instructions: $("#NORDBOOKING-special-instructions").val()?.trim() || "",
     };
     state.propertyAccess.method =
       $('input[name="property_access"]:checked').val() || "home";
     state.propertyAccess.details =
-      $("#mobooking-access-instructions").val()?.trim() || "";
+      $("#NORDBOOKING-access-instructions").val()?.trim() || "";
 
     const payload = {
-      action: "mobooking_create_booking",
+      action: "nordbooking_create_booking",
       tenant_id: CONFIG.tenant_id,
       nonce: CONFIG.nonce,
       selected_services: JSON.stringify([
@@ -1504,7 +1503,7 @@ jQuery(document).ready(function ($) {
       setTimeout(() => {
         // Restore form and show error
         $(
-          "#mobooking-step-8 .mobooking-step-title, #mobooking-confirmation-details, #mobooking-step-8 .mobooking-button-group"
+          "#NORDBOOKING-step-8 .NORDBOOKING-step-title, #NORDBOOKING-confirmation-details, #NORDBOOKING-step-8 .NORDBOOKING-button-group"
         ).slideDown();
         showFeedback(els.confirmationFeedback, "error", message);
       }, remainingTime);
@@ -1548,14 +1547,14 @@ jQuery(document).ready(function ($) {
   // ==========================================
 
   // If step 1 is disabled, start at step 2
-  const startStep = $("#mobooking-step-1").length ? 1 : 2;
+  const startStep = $("#NORDBOOKING-step-1").length ? 1 : 2;
 
   // If location check is disabled, make the ZIP input in step 7 editable
   if (
     !CONFIG.settings?.bf_enable_location_check ||
     CONFIG.settings.bf_enable_location_check === "0"
   ) {
-    const zipInput = $("#mobooking-zip-readonly");
+    const zipInput = $("#NORDBOOKING-zip-readonly");
     zipInput.prop("readonly", false);
 
     // Also, update state when user types in their zip
@@ -1564,15 +1563,15 @@ jQuery(document).ready(function ($) {
     });
 
     // Also, hide the "previous" button on step 2, as there's no step 1
-    $("#mobooking-step-2 .mobooking-btn-secondary").hide();
+    $("#NORDBOOKING-step-2 .NORDBOOKING-btn-secondary").hide();
   }
 
   // Add collapsible classes
-  $("#mobooking-custom-access-details").addClass(
-    "mobooking-collapsible is-collapsed"
+  $("#NORDBOOKING-custom-access-details").addClass(
+    "NORDBOOKING-collapsible is-collapsed"
   );
-  $("#mobooking-pet-details-container").addClass(
-    "mobooking-collapsible is-collapsed"
+  $("#NORDBOOKING-pet-details-container").addClass(
+    "NORDBOOKING-collapsible is-collapsed"
   );
 
   showStep(startStep);
@@ -1581,20 +1580,20 @@ jQuery(document).ready(function ($) {
   $(document).on("change", 'input[name="has_pets"]', function () {
     const name = $(this).attr("name");
     $(`input[name="${name}"]`).each(function () {
-      $(this).closest(".mobooking-radio-option").removeClass("active");
+      $(this).closest(".NORDBOOKING-radio-option").removeClass("active");
     });
     if ($(this).is(":checked"))
-      $(this).closest(".mobooking-radio-option").addClass("active");
+      $(this).closest(".NORDBOOKING-radio-option").addClass("active");
   });
 
   // Frequency radios active styling
   $(document).on("change", 'input[name="frequency"]', function () {
     const name = $(this).attr("name");
     $(`input[name="${name}"]`).each(function () {
-      $(this).closest(".mobooking-radio-option").removeClass("active");
+      $(this).closest(".NORDBOOKING-radio-option").removeClass("active");
     });
     if ($(this).is(":checked"))
-      $(this).closest(".mobooking-radio-option").addClass("active");
+      $(this).closest(".NORDBOOKING-radio-option").addClass("active");
     state.frequency = $(this).val();
   });
 
@@ -1606,26 +1605,26 @@ jQuery(document).ready(function ($) {
   // Clear validation errors on user input for simple fields
   $(document).on(
     "input change",
-    "#mobooking-zip, #mobooking-pet-details, #mobooking-customer-name, #mobooking-customer-email, #mobooking-customer-phone, #mobooking-service-address",
+    "#NORDBOOKING-zip, #NORDBOOKING-pet-details, #NORDBOOKING-customer-name, #NORDBOOKING-customer-email, #NORDBOOKING-customer-phone, #NORDBOOKING-service-address",
     function () {
       clearFieldError($(this));
     }
   );
 
   // Clear validation on complex components
-  $(document).on("change", ".mobooking-option-input", function () {
+  $(document).on("change", ".NORDBOOKING-option-input", function () {
     clearFieldError($(this));
   });
 
   els.servicesContainer.on(
     "change",
-    'input[name="mobooking-selected-service"]',
+    'input[name="NORDBOOKING-selected-service"]',
     function () {
       clearFieldError(els.servicesContainer);
     }
   );
 
-  els.timeSlots.on("click", ".mobooking-time-slot", function () {
+  els.timeSlots.on("click", ".NORDBOOKING-time-slot", function () {
     clearFieldError(els.timeSlotsWrap);
   });
 });
