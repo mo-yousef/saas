@@ -104,8 +104,8 @@ if ( isset( $_GET['invitation_token'] ) ) {
                             <input type="email" name="email" id="NORDBOOKING-user-email" class="input" value="<?php echo esc_attr( $worker_email ); ?>" required <?php if ( $is_invitation && !empty($worker_email) ) echo 'readonly'; ?> />
                         </p>
                         <p class="register-password">
-                            <label for="NORDBOOKING-user-pass"><?php esc_html_e( 'Password (min. 8 characters)', 'NORDBOOKING' ); ?></label>
-                            <input type="password" name="password" id="NORDBOOKING-user-pass" class="input" value="" required />
+                            <label for="NORDBOOKING-user-pass-register"><?php esc_html_e( 'Password (min. 8 characters)', 'NORDBOOKING' ); ?></label>
+                            <input type="password" name="password" id="NORDBOOKING-user-pass-register" class="input" value="" required />
                         </p>
                         <p class="register-password-confirm">
                             <label for="NORDBOOKING-user-pass-confirm"><?php esc_html_e( 'Confirm Password', 'NORDBOOKING' ); ?></label>
