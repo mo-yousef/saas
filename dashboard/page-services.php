@@ -126,6 +126,7 @@ function get_default_service_icon() {
                                         <?php if ($options_count > 0): ?>
                                             <span class="service-list-item__options"><?php echo esc_html($options_count); ?> Options</span>
                                         <?php endif; ?>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
