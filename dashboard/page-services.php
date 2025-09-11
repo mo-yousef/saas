@@ -115,8 +115,12 @@ function get_default_service_icon() {
                                     <?php endif; ?>
                                 </div>
                                 <div class="service-list-item__details">
-                                    <h3 class="service-list-item__title"><?php echo esc_html($service['name']); ?></h3>
-                                    <div class="service-list-item__meta">
+                                    <div class="service-list-item__icon">
+                                        <?php echo $service_icon; ?>
+                                    </div>
+                                    <div>
+                                        <h3 class="service-list-item__title"><?php echo esc_html($service['name']); ?></h3>
+                                        <div class="service-list-item__meta">
                                         <span class="service-list-item__price"><?php echo esc_html($price_formatted); ?></span>
                                         <span class="service-list-item__duration"><?php echo esc_html($service['duration']); ?> min</span>
                                         <?php if ($options_count > 0): ?>

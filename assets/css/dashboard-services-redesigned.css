@@ -1,465 +1,194 @@
-/* ============================================================================
-   NORDBOOKING Service Card Redesign CSS
-   Inspired by the modern shadcn/ui styling of the dashboard
-   ============================================================================ */
+/* ==========================================================================
+   Services Page - Redesigned Service List
+   ========================================================================== */
 
-/* ============================================================================
-   CSS Variables - Copied from dashboard-overview-enhanced.css for consistency
-   ============================================================================ */
-:root {
-    /* Light theme colors */
-    --mobk-background: 0 0% 100%;
-    --mobk-foreground: 222.2 84% 4.9%;
-    --mobk-card: 0 0% 100%;
-    --mobk-card-foreground: 222.2 84% 4.9%;
-    --mobk-popover: 0 0% 100%;
-    --mobk-popover-foreground: 222.2 84% 4.9%;
-    --mobk-primary: 221.2 83.2% 53.3%;
-    --mobk-primary-foreground: 210 40% 98%;
-    --mobk-secondary: 210 40% 96.1%;
-    --mobk-secondary-foreground: 222.2 84% 4.9%;
-    --mobk-muted: 210 40% 96.1%;
-    --mobk-muted-foreground: 215.4 16.3% 46.9%;
-    --mobk-accent: 210 40% 96.1%;
-    --mobk-accent-foreground: 222.2 84% 4.9%;
-    --mobk-destructive: 0 84.2% 60.2%;
-    --mobk-destructive-foreground: 210 40% 98%;
-    --mobk-border: 214.3 31.8% 91.4%;
-    --mobk-input: 214.3 31.8% 91.4%;
-    --mobk-ring: 221.2 83.2% 53.3%;
-    --mobk-radius: 0.75rem;
-    /* Slightly larger radius for a more modern feel */
-    --mobk-success: 142.1 76.2% 36.3%;
-    --mobk-badge-bg-active: #D1FAE5;
-    --mobk-badge-text-active: #065F46;
-    --mobk-badge-bg-inactive: #F3F4F6;
-    --mobk-badge-text-inactive: #4B5563;
-
-
-    /* Shadows */
-    --mobk-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-    --mobk-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-    --mobk-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1),
-        0 2px 4px -2px rgb(0 0 0 / 0.1);
-
-    /* Animation */
-    --mobk-duration-fast: 150ms;
-    --mobk-duration-normal: 200ms;
-}
-
-/* Dark theme support */
-@media (prefers-color-scheme: dark) {
-    :root {
-        --mobk-background: 222.2 84% 4.9%;
-        --mobk-foreground: 210 40% 98%;
-        --mobk-card: 222.2 84% 4.9%;
-        --mobk-card-foreground: 210 40% 98%;
-        --mobk-border: 217.2 32.6% 17.5%;
-        --mobk-muted: 217.2 32.6% 17.5%;
-        --mobk-muted-foreground: 215 20.2% 65.1%;
-        --mobk-badge-bg-active: #064E3B;
-        --mobk-badge-text-active: #A7F3D0;
-        --mobk-badge-bg-inactive: #374151;
-        --mobk-badge-text-inactive: #D1D5DB;
-    }
-}
-
-
-/* ============================================================================
-   Service Card Component
-   ============================================================================ */
-
-.service-card {
-    background: hsl(var(--mobk-card));
-    border: 1px solid hsl(var(--mobk-border));
-    border-radius: var(--mobk-radius);
-    box-shadow: var(--mobk-shadow-sm);
-    transition: all var(--mobk-duration-normal) ease;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    /* Ensure cards in a row are same height */
-}
-
-.service-card:hover {
-    box-shadow: var(--mobk-shadow-md);
-    transform: translateY(-2px);
-}
-
-/* Card Image Section */
-.service-card__image-wrapper {
-    position: relative;
-    height: 180px;
-    /* Fixed height for the image area */
-    background-color: hsl(var(--mobk-muted));
-}
-
-.service-card__image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.service-card__image-placeholder {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: hsl(var(--mobk-muted-foreground));
-}
-
-.service-card__image-placeholder svg {
-    width: 3rem;
-    height: 3rem;
-}
-
-.service-card__status-badge {
-    position: absolute;
-    top: 0.75rem;
-    right: 0.75rem;
-    padding: 0.25rem 0.75rem;
-    border-radius: 9999px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    text-transform: capitalize;
-    border: 1px solid hsl(var(--mobk-border) / 0.5);
-}
-
-.service-card__status-badge.status-active {
-    background-color: var(--mobk-badge-bg-active);
-    color: var(--mobk-badge-text-active);
-}
-
-.service-card__status-badge.status-inactive {
-    background-color: var(--mobk-badge-bg-inactive);
-    color: var(--mobk-badge-text-inactive);
-}
-
-/* Card Content Section */
-.service-card__content {
-    padding: 1rem;
-    display: flex;
-    flex-direction: column;
-    flex-grow: 1;
-    /* Allows content to fill space */
-}
-
-.service-card__header {
-    display: flex;
-    gap: 0.75rem;
-    margin-bottom: 0.75rem;
-    align-items: flex-start;
-}
-
-.service-card__icon {
-    flex-shrink: 0;
-    color: hsl(var(--mobk-primary));
-}
-
-.service-card__icon svg {
-    width: 1.5rem;
-    height: 1.5rem;
-}
-
-.service-card__title-wrapper {
-    flex-grow: 1;
-}
-
-.service-card__title {
-    font-size: 1.125rem;
-    font-weight: 600;
-    color: hsl(var(--mobk-card-foreground));
-    margin: 0 0 0.25rem 0;
-    line-height: 1.3;
-}
-
-.service-card__price {
-    font-size: 1rem;
-    font-weight: 700;
-    color: hsl(var(--mobk-primary));
-}
-
-.service-card__description {
-    font-size: 0.875rem;
-    color: hsl(var(--mobk-muted-foreground));
-    margin-bottom: 1rem;
-    flex-grow: 1;
-    /* Pushes meta and footer down */
-    line-height: 1.5;
-    /* Clamp to 3 lines */
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-}
-
-.service-card__meta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1rem;
-    font-size: 0.8rem;
-    color: hsl(var(--mobk-muted-foreground));
-    padding-top: 1rem;
-    border-top: 1px solid hsl(var(--mobk-border));
-    margin-top: auto;
-    /* Pushes itself to the bottom */
-}
-
-.service-card__meta-item {
-    display: flex;
-    align-items: center;
-    gap: 0.375rem;
-}
-
-.service-card__meta-item svg {
-    width: 1rem;
-    height: 1rem;
-}
-
-/* Card Footer Section */
-.service-card__footer {
-    padding: 1rem;
-    border-top: 1px solid hsl(var(--mobk-border));
-    display: flex;
-    gap: 0.75rem;
-    background-color: hsl(var(--mobk-muted) / 0.3);
-}
-
-/* Button Styles - Reused from dashboard */
-.service-card__footer .btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0.5rem 1rem;
-    border-radius: 0.375rem;
-    font-weight: 500;
-    text-decoration: none;
-    transition: all 0.2s;
-    border: 1px solid transparent;
-    cursor: pointer;
-    font-size: 0.875rem;
-}
-
-.service-card__footer .btn-primary {
-    background-color: hsl(var(--mobk-primary));
-    color: hsl(var(--mobk-primary-foreground));
-    flex-grow: 1;
-    /* Make primary button take more space */
-}
-
-.service-card__footer .btn-primary:hover {
-    opacity: 0.9;
-}
-
-.service-card__footer .btn-destructive {
-    background-color: transparent;
-    color: hsl(var(--mobk-destructive));
-    border: 1px solid hsl(var(--mobk-destructive));
-    padding: 0.5rem;
-    /* Make it a square icon button */
-}
-
-.service-card__footer .btn-destructive:hover {
-    background-color: hsl(var(--mobk-destructive));
-    color: hsl(var(--mobk-destructive-foreground));
-}
-
-.service-card__footer .btn svg {
-    width: 1rem;
-    height: 1rem;
-}
-
-.service-card__footer .btn-primary svg {
-    margin-right: 0.5rem;
-}
-
-/* Grid container adjustments if necessary */
-.NORDBOOKING-services-page-wrapper .grid {
-    align-items: stretch;
-    /* Make grid items stretch to fill height */
-}
-
-/* Service List Item Styles */
+/* Service List Container */
 #services-list {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
 }
 
+/* Individual Service Item Card */
 .service-list-item {
+    background-color: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
     display: flex;
-    align-items: center;
-    background: hsl(var(--mobk-card));
-    border: 1px solid hsl(var(--mobk-border));
-    border-radius: var(--mobk-radius);
-    padding: 0.75rem;
-    transition: all var(--mobk-duration-normal) ease;
-    box-shadow: var(--mobk-shadow-sm);
+    flex-direction: column;
+    overflow: hidden;
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
 }
 
 .service-list-item:hover {
-    box-shadow: var(--mobk-shadow-md);
-    border-color: hsl(var(--mobk-border) / 0.7);
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
 }
 
+/* Drag Handle - Optional, can be removed if not needed */
 .service-list-item__drag-handle {
-    cursor: grab;
-    color: hsl(var(--mobk-muted-foreground));
-    padding: 0.5rem;
+    display: none; /* Hidden for a cleaner look, enable if sorting is implemented */
 }
 
-.service-list-item__drag-handle:hover {
-    color: hsl(var(--mobk-foreground));
-}
-
+/* Main Content Area */
 .service-list-item__content {
     display: flex;
-    align-items: center;
-    gap: 1rem;
+    flex-direction: column;
+    padding: 1.5rem;
     flex-grow: 1;
 }
 
+/* Image Wrapper and Placeholder */
 .service-list-item__image-wrapper {
-    width: 48px;
-    height: 48px;
-    flex-shrink: 0;
-    border-radius: var(--mobk-radius);
-    overflow: hidden;
-    background: hsl(var(--mobk-muted));
+    width: 100%;
+    padding-top: 56.25%; /* 16:9 Aspect Ratio */
+    position: relative;
+    background-color: #f0f2f5;
 }
 
 .service-list-item__image {
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
     object-fit: cover;
 }
 
 .service-list-item__image-placeholder {
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: hsl(var(--mobk-muted-foreground));
+    color: #a0aec0;
 }
 
 .service-list-item__image-placeholder svg {
-    width: 1.5rem;
-    height: 1.5rem;
+    width: 48px;
+    height: 48px;
 }
 
+/* Details Section (Icon, Title, Meta) */
 .service-list-item__details {
-    flex-grow: 1;
+    display: flex;
+    align-items: flex-start;
+    margin-top: 1.5rem;
+}
+
+.service-list-item__icon {
+    flex-shrink: 0;
+    margin-right: 1rem;
+    color: #4a5568;
+    background-color: #edf2f7;
+    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.service-list-item__icon svg {
+    width: 24px;
+    height: 24px;
 }
 
 .service-list-item__title {
+    font-size: 1.25rem;
     font-weight: 600;
-    color: hsl(var(--mobk-card-foreground));
-    margin: 0;
+    margin: 0 0 0.5rem;
+    color: #2d3748;
+    line-height: 1.3;
 }
 
 .service-list-item__meta {
     display: flex;
-    gap: 0.75rem;
+    flex-wrap: wrap;
+    gap: 0.5rem 1rem;
     font-size: 0.875rem;
-    color: hsl(var(--mobk-muted-foreground));
-    margin-top: 0.25rem;
+    color: #718096;
 }
 
-.service-list-item__meta span:not(:last-child)::after {
-    content: '·';
-    margin-left: 0.75rem;
-}
-
-.service-list-item__actions {
+.service-list-item__price,
+.service-list-item__duration,
+.service-list-item__options {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+}
+
+.service-list-item__price::before,
+.service-list-item__duration::before,
+.service-list-item__options::before {
+    content: '';
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    margin-right: 0.5rem;
+    background-color: currentColor;
+    mask-repeat: no-repeat;
+    mask-size: contain;
+}
+
+.service-list-item__price::before {
+    mask-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" x2="12" y1="2" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>');
+}
+
+.service-list-item__duration::before {
+    mask-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>');
+}
+
+.service-list-item__options::before {
+    mask-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="m9 12 2 2 4-4"/></svg>');
+}
+
+
+/* Actions Section */
+.service-list-item__actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    background-color: #f7fafc;
+    border-top: 1px solid #e0e0e0;
 }
 
 .service-list-item__status {
-    font-size: 0.8rem;
-    font-weight: 600;
+    font-size: 0.875rem;
+    font-weight: 500;
     padding: 0.25rem 0.75rem;
     border-radius: 9999px;
     text-transform: capitalize;
 }
 
-.service-list-item__status.status-active {
-    background-color: var(--mobk-badge-bg-active);
-    color: var(--mobk-badge-text-active);
+.status-active {
+    background-color: #c6f6d5;
+    color: #2f855a;
 }
 
-.service-list-item__status.status-inactive {
-    background-color: var(--mobk-badge-bg-inactive);
-    color: var(--mobk-badge-text-inactive);
+.status-inactive {
+    background-color: #fed7d7;
+    color: #c53030;
 }
 
-.ui-sortable-helper {
-    box-shadow: var(--mobk-shadow-md);
-    transform: scale(1.02);
-    background: hsl(var(--mobk-card));
-    border: 1px solid hsl(var(--mobk-primary));
+.status-draft {
+    background-color: #e2e8f0;
+    color: #4a5568;
 }
 
-.service-list-item-placeholder {
-    height: 60px;
-    background-color: hsl(var(--mobk-muted));
-    border: 2px dashed hsl(var(--mobk-border));
-    border-radius: var(--mobk-radius);
-    margin-bottom: 0.5rem;
+.service-list-item__actions .btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
 }
 
-/* ============================================================================
-   Responsive Design
-   ============================================================================ */
-
-@media (max-width: 768px) {
-    .service-card__image-wrapper {
-        height: 160px;
-        /* Slightly smaller image on tablets */
-    }
-
-    .service-card__title {
-        font-size: 1rem;
-    }
-
-    .service-card__price {
-        font-size: 0.9rem;
-    }
-
-    .service-card__content,
-    .service-card__footer {
-        padding: 0.75rem;
-    }
+.service-list-item__actions form {
+    margin: 0;
 }
-
-@media (max-width: 480px) {
-    .service-card__image-wrapper {
-        height: 140px;
-        /* Even smaller for mobile */
-    }
-
-    .service-card__header {
-        gap: 0.5rem;
-    }
-
-    .service-card__icon svg {
-        width: 1.25rem;
-        height: 1.25rem;
-    }
-
-    .service-card__title {
-        font-size: 0.9rem;
-    }
-
-    .service-card__description {
-        font-size: 0.8rem;
-    }
-
-    .service-card__meta {
-        gap: 0.75rem;
-    }
+.service-list-item__details>div{
+    display: flex;
+    flex-direction: column;
 }
