@@ -38,23 +38,12 @@ jQuery(document).ready(function ($) {
 
       this.templatesData = nordbooking_email_settings_params.email_templates_data || {};
       this.initializeRenderers();
-      this.populateHiddenFields();
       this.bindEvents();
       this.fetchBaseTemplate();
 
       this.currentTemplateKey = this.selector.val();
       this.loadTemplateIntoEditor();
       this.isInitialized = true;
-    },
-
-    populateHiddenFields: function() {
-        for (const key in this.templatesData) {
-            if (this.templatesData.hasOwnProperty(key)) {
-                const template = this.templatesData[key];
-                $(`#hidden-subject-${key}`).val(template.subject);
-                $(`#hidden-body-${key}`).val(JSON.stringify(template.body));
-            }
-        }
     },
 
     initializeRenderers: function () {
@@ -117,7 +106,7 @@ jQuery(document).ready(function ($) {
       this.subjectInput.on(
         "input",
         this.debounce(() => {
-          this.saveSubject();
+          this.templatesData[this.currentTemplateKey].subject = this.subjectInput.val();
           this.updatePreview();
         }, 300)
       );
@@ -126,14 +115,14 @@ jQuery(document).ready(function ($) {
         "input",
         ".component-input, .component-url-input",
         this.debounce((e) => {
-          this.saveBodyState();
+          this.updateBodyState();
           this.updatePreview();
         }, 300)
       );
 
       this.bodyContainer.on("click", ".delete-component", (e) => {
         $(e.target).closest(".email-component").remove();
-        this.saveBodyState();
+        this.updateBodyState();
         this.updatePreview();
       });
 
@@ -210,14 +199,7 @@ jQuery(document).ready(function ($) {
       }
     },
 
-    saveSubject: function () {
-      if (!this.currentTemplateKey) return;
-      const newSubject = this.subjectInput.val();
-      this.templatesData[this.currentTemplateKey].subject = newSubject;
-      $(`#hidden-subject-${this.currentTemplateKey}`).val(newSubject);
-    },
-
-    saveBodyState: function () {
+    updateBodyState: function () {
       if (!this.currentTemplateKey) return;
       const newBody = [];
       this.bodyContainer.find(".email-component").each(function () {
@@ -233,7 +215,6 @@ jQuery(document).ready(function ($) {
         newBody.push(componentData);
       });
       this.templatesData[this.currentTemplateKey].body = newBody;
-      $(`#hidden-body-${this.currentTemplateKey}`).val(JSON.stringify(newBody));
     },
 
     renderBodyForPreview: function () {
@@ -247,7 +228,7 @@ jQuery(document).ready(function ($) {
     },
 
     updatePreview: function () {
-      if (!this.baseEmailTemplateHtml || !this.currentTemplateKey) return;
+      if (!this.baseEmailTemplateHtml || !this.currentTemplateKey || !this.templatesData[this.currentTemplateKey]) return;
       let previewHtml = this.baseEmailTemplateHtml;
       const bodyHtml = this.renderBodyForPreview();
       previewHtml = previewHtml.replace(/{{BODY_CONTENT}}/g, bodyHtml);
@@ -256,8 +237,7 @@ jQuery(document).ready(function ($) {
         ...nordbooking_email_settings_params.biz_settings,
         ...nordbooking_email_settings_params.dummy_data,
       };
-      allVars["{{SUBJECT}}"] =
-        this.templatesData[this.currentTemplateKey].subject;
+      allVars["{{SUBJECT}}"] = this.templatesData[this.currentTemplateKey].subject;
 
       for (const [key, value] of Object.entries(allVars)) {
         const regex = new RegExp(
@@ -280,5 +260,6 @@ jQuery(document).ready(function ($) {
     },
   };
 
-  EmailEditor.init();
+  window.EmailEditor = EmailEditor;
+  window.EmailEditor.init();
 });
