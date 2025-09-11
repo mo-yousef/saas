@@ -222,9 +222,12 @@ class BookingFormRouter {
 
 
         // Enqueue scripts specific to the dashboard page being loaded
-        if (function_exists('nordbooking_enqueue_dashboard_scripts')) {
-            nordbooking_enqueue_dashboard_scripts($dashboard_page_slug);
-        }
+        // The script enqueueing is now handled by the `nordbooking_scripts` function
+        // in `functions/theme-setup.php`, which is hooked to `wp_enqueue_scripts`.
+        // This call is deprecated and was causing conflicts.
+        // if (function_exists('nordbooking_enqueue_dashboard_scripts')) {
+        //    nordbooking_enqueue_dashboard_scripts($dashboard_page_slug);
+        // }
 
         $dashboard_shell_template = $theme_dir . 'dashboard/dashboard-shell.php';
         if (file_exists($dashboard_shell_template)) {
