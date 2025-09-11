@@ -133,17 +133,6 @@
     box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
 }
 
-.email-component .drag-handle {
-    width: 16px;
-    height: 16px;
-    cursor: move;
-    background-image: url('data:image/svg+xml;charset=UTF-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="%23888"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v12a1 1 0 11-2 0V4a1 1 0 011-1zM4 9a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1z" clip-rule="evenodd" /></svg>');
-    opacity: 0.4;
-}
-
-.email-component:hover .drag-handle {
-    opacity: 1;
-}
 
 .email-component .component-input,
 .email-component .component-url-input,
