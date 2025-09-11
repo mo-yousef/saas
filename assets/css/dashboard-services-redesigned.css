@@ -205,3 +205,11 @@
 .service-list-item__content {
     justify-content: space-between;
 }
+
+/* Make icon sizing robust */
+.service-list-item__icon .NORDBOOKING-preset-icon,
+.service-list-item__icon .NORDBOOKING-preset-icon svg {
+    width: 20px !important;
+    height: 20px !important;
+    display: block;
+}
