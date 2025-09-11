@@ -391,6 +391,7 @@ if ( is_page_template('templates/booking-form-public.php') || $page_type_for_scr
             wp_localize_script('nordbooking-dashboard-business-settings', 'nordbooking_biz_settings_params', [
                 'ajax_url' => admin_url('admin-ajax.php'),
                 'nonce' => wp_create_nonce('nordbooking_dashboard_nonce'),
+                'templates' => $email_templates,
                 'i18n' => [
                     'saving' => __('Saving...', 'NORDBOOKING'),
                     'save_success' => __('Settings saved successfully.', 'NORDBOOKING'),

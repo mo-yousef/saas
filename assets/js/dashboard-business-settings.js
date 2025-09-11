@@ -143,7 +143,7 @@ jQuery(document).ready(function ($) {
     // Add email template data if the editor is present and initialized
     if (window.EmailEditor && window.EmailEditor.isInitialized) {
         const emailData = window.EmailEditor.templatesData;
-        const emailTemplates = nordbooking_email_settings_params.templates;
+        const emailTemplates = nordbooking_biz_settings_params.templates;
         for (const key in emailData) {
             if (emailData.hasOwnProperty(key) && emailTemplates.hasOwnProperty(key)) {
                 const subjectKey = emailTemplates[key].subject_key;
