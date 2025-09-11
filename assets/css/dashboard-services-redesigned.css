@@ -1,65 +1,71 @@
 /* ==========================================================================
-   Services Page - Redesigned Service List
+   Services Page - Redesigned Service List (Compact List View)
    ========================================================================== */
 
 /* Service List Container */
 #services-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem; /* Compact gap */
 }
 
-/* Individual Service Item Card */
+/* Individual Service Item */
 .service-list-item {
     background-color: #fff;
     border: 1px solid #e0e0e0;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    border-radius: 6px; /* Slightly smaller radius */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
     display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    transition: box-shadow 0.3s ease, transform 0.3s ease;
+    align-items: center;
+    padding: 0.75rem;
+    transition: box-shadow 0.2s ease;
 }
 
 .service-list-item:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
 }
 
-/* Drag Handle - Optional, can be removed if not needed */
+/* Drag Handle */
 .service-list-item__drag-handle {
-    display: none; /* Hidden for a cleaner look, enable if sorting is implemented */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: grab;
+    color: #a0aec0;
+    padding: 0 0.75rem;
 }
+.service-list-item__drag-handle:active {
+    cursor: grabbing;
+}
+
 
 /* Main Content Area */
 .service-list-item__content {
     display: flex;
-    flex-direction: column;
-    padding: 1.5rem;
+    align-items: center;
     flex-grow: 1;
+    gap: 1rem;
+    padding: 0; /* Removed padding from here */
 }
 
 /* Image Wrapper and Placeholder */
 .service-list-item__image-wrapper {
-    width: 100%;
-    padding-top: 56.25%; /* 16:9 Aspect Ratio */
+    width: 64px; /* Fixed width */
+    height: 64px; /* Fixed height */
+    flex-shrink: 0;
     position: relative;
     background-color: #f0f2f5;
+    border-radius: 4px;
+    overflow: hidden;
 }
 
 .service-list-item__image {
-    position: absolute;
-    top: 0;
-    left: 0;
     width: 100%;
     height: 100%;
     object-fit: cover;
 }
 
 .service-list-item__image-placeholder {
-    position: absolute;
-    top: 0;
-    left: 0;
     width: 100%;
     height: 100%;
     display: flex;
@@ -69,49 +75,51 @@
 }
 
 .service-list-item__image-placeholder svg {
-    width: 48px;
-    height: 48px;
+    width: 32px;
+    height: 32px;
 }
 
 /* Details Section (Icon, Title, Meta) */
 .service-list-item__details {
     display: flex;
-    align-items: flex-start;
-    margin-top: 1.5rem;
+    align-items: center; /* Align icon and text */
+    flex-grow: 1;
+    gap: 1rem;
+    margin-top: 0;
 }
 
 .service-list-item__icon {
     flex-shrink: 0;
-    margin-right: 1rem;
     color: #4a5568;
     background-color: #edf2f7;
     border-radius: 50%;
-    width: 48px;
-    height: 48px;
+    width: 40px; /* Compact icon */
+    height: 40px; /* Compact icon */
     display: flex;
     align-items: center;
     justify-content: center;
+    margin-right: 0;
 }
 
 .service-list-item__icon svg {
-    width: 24px;
-    height: 24px;
+    width: 20px;
+    height: 20px;
 }
 
 .service-list-item__title {
-    font-size: 1.25rem;
+    font-size: 1rem; /* Compact title */
     font-weight: 600;
-    margin: 0 0 0.5rem;
+    margin: 0;
     color: #2d3748;
-    line-height: 1.3;
 }
 
 .service-list-item__meta {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem 1rem;
-    font-size: 0.875rem;
+    font-size: 0.8rem; /* Compact meta */
     color: #718096;
+    margin-top: 0.25rem;
 }
 
 .service-list-item__price,
@@ -126,9 +134,9 @@
 .service-list-item__options::before {
     content: '';
     display: inline-block;
-    width: 16px;
-    height: 16px;
-    margin-right: 0.5rem;
+    width: 14px;
+    height: 14px;
+    margin-right: 0.35rem;
     background-color: currentColor;
     mask-repeat: no-repeat;
     mask-size: contain;
@@ -150,17 +158,17 @@
 /* Actions Section */
 .service-list-item__actions {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    padding: 1rem 1.5rem;
-    background-color: #f7fafc;
-    border-top: 1px solid #e0e0e0;
+    gap: 0.5rem;
+    padding: 0;
+    background-color: transparent;
+    border-top: none;
 }
 
 .service-list-item__status {
-    font-size: 0.875rem;
+    font-size: 0.75rem;
     font-weight: 500;
-    padding: 0.25rem 0.75rem;
+    padding: 0.2rem 0.6rem;
     border-radius: 9999px;
     text-transform: capitalize;
 }
@@ -181,8 +189,8 @@
 }
 
 .service-list-item__actions .btn {
-    padding: 0.5rem 1rem;
-    font-size: 0.875rem;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.8rem;
 }
 
 .service-list-item__actions form {
@@ -191,4 +199,9 @@
 .service-list-item__details>div{
     display: flex;
     flex-direction: column;
+}
+
+/* Ensure details and actions are spaced out */
+.service-list-item__content {
+    justify-content: space-between;
 }
