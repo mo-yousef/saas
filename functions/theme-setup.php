@@ -405,6 +405,7 @@ if ( is_page_template('templates/booking-form-public.php') || $page_type_for_scr
         }
 
         if ( $current_page_slug === 'services' ) {
+            wp_enqueue_style('nordbooking-dashboard', NORDBOOKING_THEME_URI . 'assets/css/dashboard.css', array('nordbooking-dashboard-main'), NORDBOOKING_VERSION);
             wp_enqueue_style('nordbooking-dashboard-services-redesigned', NORDBOOKING_THEME_URI . 'assets/css/dashboard-services-redesigned.css', array('nordbooking-dashboard-main'), NORDBOOKING_VERSION);
             wp_enqueue_script('nordbooking-dashboard-services', NORDBOOKING_THEME_URI . 'assets/js/dashboard-services.js', array('jquery', 'jquery-ui-sortable'), NORDBOOKING_VERSION, true);
             wp_localize_script('nordbooking-dashboard-services', 'nordbooking_services_params', [
