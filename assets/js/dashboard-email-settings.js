@@ -60,7 +60,6 @@ jQuery(document).ready(function ($) {
     initializeRenderers: function () {
       this.componentRenderers = {
         header: (component) => `<div class="email-component" data-type="header">
-                                            <span class="drag-handle"></span>
                                             <input type="text" class="component-input" value="${
                                               component.text || ""
                                             }" placeholder="${
@@ -71,7 +70,6 @@ jQuery(document).ready(function ($) {
                                             }"></button>
                                          </div>`,
         text: (component) => `<div class="email-component" data-type="text">
-                                            <span class="drag-handle"></span>
                                             <textarea class="component-input" placeholder="${
                                               this.i18n.text_placeholder
                                             }">${
@@ -82,7 +80,6 @@ jQuery(document).ready(function ($) {
                                             }"></button>
                                          </div>`,
         button: (component) => `<div class="email-component" data-type="button">
-                                            <span class="drag-handle"></span>
                                             <input type="text" class="component-input" value="${
                                               component.text || ""
                                             }" placeholder="${
@@ -98,7 +95,6 @@ jQuery(document).ready(function ($) {
                                             }"></button>
                                          </div>`,
         spacer: (component) => `<div class="email-component" data-type="spacer">
-                                            <span class="drag-handle"></span>
                                             <span>${this.i18n.spacer_text}</span>
                                             <button class="delete-component" title="${this.i18n.delete_component_title}"></button>
                                          </div>`,
@@ -142,22 +138,43 @@ jQuery(document).ready(function ($) {
       });
 
       this.variablesList.on("click", "li", function () {
-        navigator.clipboard.writeText($(this).text());
-        const originalText = $(this).text();
-        $(this).text("Copied!");
-        setTimeout(() => $(this).text(originalText), 1000);
+        const textToCopy = $(this).text();
+        const originalText = textToCopy;
+
+        const copyToClipboard = (text) => {
+            if (navigator.clipboard && window.isSecureContext) {
+                return navigator.clipboard.writeText(text);
+            } else {
+                let textArea = document.createElement("textarea");
+                textArea.value = text;
+                textArea.style.position = "fixed";
+                textArea.style.top = "0";
+                textArea.style.left = "0";
+                textArea.style.opacity = "0";
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                } catch (err) {
+                    console.error('Fallback: Oops, unable to copy', err);
+                    return Promise.reject(err);
+                }
+                document.body.removeChild(textArea);
+                return Promise.resolve();
+            }
+        };
+
+        copyToClipboard(textToCopy).then(() => {
+            $(this).text("Copied!");
+            setTimeout(() => $(this).text(originalText), 1000);
+        }).catch(err => {
+            console.error('Could not copy text: ', err);
+            $(this).text("Copy Failed");
+            setTimeout(() => $(this).text(originalText), 1500);
+        });
       });
 
-      if (typeof Sortable !== "undefined") {
-        new Sortable(this.bodyContainer[0], {
-          animation: 150,
-          handle: ".drag-handle",
-          onEnd: () => {
-            this.saveBodyState();
-            this.updatePreview();
-          },
-        });
-      }
     },
 
     loadTemplateIntoEditor: function () {

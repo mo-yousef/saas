@@ -360,14 +360,11 @@ if ( is_page_template('templates/booking-form-public.php') || $page_type_for_scr
 
             wp_enqueue_script( 'nordbooking-dashboard-booking-form-settings', NORDBOOKING_THEME_URI . 'assets/js/dashboard-booking-form-settings.js', array('jquery', 'wp-color-picker'), NORDBOOKING_VERSION, true );
 
-            // Enqueue SortableJS for the email builder
-            wp_enqueue_script( 'sortable-js', 'https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js', array(), '1.15.0', true );
-
             // Enqueue the business settings script (handles tabs, saving, logo upload)
             wp_enqueue_script( 'nordbooking-dashboard-business-settings', NORDBOOKING_THEME_URI . 'assets/js/dashboard-business-settings.js', array('jquery', 'wp-color-picker'), NORDBOOKING_VERSION, true );
 
             // Enqueue the email settings script (handles the new editor)
-            wp_enqueue_script( 'nordbooking-dashboard-email-settings', NORDBOOKING_THEME_URI . 'assets/js/dashboard-email-settings.js', array('jquery', 'sortable-js'), NORDBOOKING_VERSION, true );
+            wp_enqueue_script( 'nordbooking-dashboard-email-settings', NORDBOOKING_THEME_URI . 'assets/js/dashboard-email-settings.js', array('jquery'), NORDBOOKING_VERSION, true );
 
             // Localize data for both scripts
             $settings_manager = new \NORDBOOKING\Classes\Settings();
