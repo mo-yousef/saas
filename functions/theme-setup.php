@@ -111,8 +111,11 @@ if ( is_page_template('templates/booking-form-public.php') || $page_type_for_scr
 
     wp_enqueue_style( 'flatpickr', 'https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css', array(), '4.6.9' );
     wp_enqueue_script( 'flatpickr', 'https://cdn.jsdelivr.net/npm/flatpickr', array(), '4.6.9', true );
+    // TODO: It is recommended to store the API key in a secure way, for example, as a WordPress option or an environment variable.
+    $api_key = 'AIzaSyB41DRUbKWJHPxaFjMAwdrzWzbVKartNGg';
+    wp_enqueue_script('google-places', "https://maps.googleapis.com/maps/api/js?key={$api_key}&libraries=places&callback=initAutocomplete", array(), null, true);
     // wp_enqueue_script('nordbooking-booking-form', NORDBOOKING_THEME_URI . 'assets/js/booking-form.js', array('jquery', 'jquery-ui-datepicker'), NORDBOOKING_VERSION, true); // Commented out old script
-    wp_enqueue_script('NORDBOOKING-public-booking-form', NORDBOOKING_THEME_URI . 'assets/js/booking-form-public.js', array('jquery', 'flatpickr'), NORDBOOKING_VERSION, true); // Enqueue new script
+    wp_enqueue_script('NORDBOOKING-public-booking-form', NORDBOOKING_THEME_URI . 'assets/js/booking-form-public.js', array('jquery', 'flatpickr', 'google-places'), NORDBOOKING_VERSION, true); // Enqueue new script
 
     $effective_tenant_id_for_public_form = 0;
 
