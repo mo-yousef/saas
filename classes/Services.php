@@ -73,6 +73,12 @@ class Services {
             $filename = substr($icon_identifier_or_url, strlen('preset:'));
             $svg_content = self::get_preset_icon_svg($filename);
             if ($svg_content) {
+                // Remove width and height attributes to allow CSS to control the size
+                $svg_content = preg_replace('/(width|height)="[^"]*"/i', '', $svg_content);
+                // Ensure a viewBox is present for better scaling
+                if (strpos($svg_content, 'viewBox') === false) {
+                    $svg_content = str_replace('<svg', '<svg viewBox="0 0 24 24"', $svg_content);
+                }
                 return '<div class="NORDBOOKING-preset-icon">' . $svg_content . '</div>';
             }
             return '';
