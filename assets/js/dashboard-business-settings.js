@@ -132,13 +132,27 @@ jQuery(document).ready(function ($) {
       .prop("disabled", true)
       .text(nordbooking_biz_settings_params.i18n.saving || "Saving...");
 
-    // Serialize form data, including dynamically updated hidden fields from the email editor
+    // Serialize form data
     let settingsData = $(this)
       .serializeArray()
       .reduce((obj, item) => {
         obj[item.name] = item.value;
         return obj;
       }, {});
+
+    // Add email template data if the editor is present and initialized
+    if (window.EmailEditor && window.EmailEditor.isInitialized) {
+        const emailData = window.EmailEditor.templatesData;
+        const emailTemplates = nordbooking_email_settings_params.templates;
+        for (const key in emailData) {
+            if (emailData.hasOwnProperty(key) && emailTemplates.hasOwnProperty(key)) {
+                const subjectKey = emailTemplates[key].subject_key;
+                const bodyKey = emailTemplates[key].body_key;
+                settingsData[subjectKey] = emailData[key].subject;
+                settingsData[bodyKey] = JSON.stringify(emailData[key].body);
+            }
+        }
+    }
 
     $.ajax({
       url: nordbooking_biz_settings_params.ajax_url,

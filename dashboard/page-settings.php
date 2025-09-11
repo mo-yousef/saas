@@ -30,7 +30,11 @@ function nordbooking_select_biz_setting_value($settings, $key, $value, $default_
             <span class="nordbooking-page-header-icon">
                 <?php echo nordbooking_get_dashboard_menu_icon('settings'); ?>
             </span>
-            <h1><?php esc_html_e('Settings', 'NORDBOOKING'); ?></h1>
+            <?php
+            $biz_name = nordbooking_get_biz_setting_value($biz_settings, 'biz_name');
+            $page_title = !empty($biz_name) ? sprintf(esc_html__('%s Settings', 'NORDBOOKING'), esc_html($biz_name)) : esc_html__('Business Settings', 'NORDBOOKING');
+            ?>
+            <h1><?php echo $page_title; ?></h1>
         </div>
         <div class="nordbooking-page-header-actions">
             <button type="submit" form="NORDBOOKING-business-settings-form" name="save_business_settings" id="NORDBOOKING-save-biz-settings-btn" class="btn btn-primary"><?php esc_html_e('Save All Settings', 'NORDBOOKING'); ?></button>
@@ -235,25 +239,6 @@ function nordbooking_select_biz_setting_value($settings, $key, $value, $default_
                 </div>
             </div>
 
-            <!-- Hidden data store for form submission -->
-            <div class="NORDBOOKING-hidden-email-data" style="display: none;">
-            <?php
-            foreach ($email_templates as $key => $template) {
-                $subject_key = $template['subject_key'];
-                $body_key = $template['body_key'];
-            ?>
-                <input type="hidden"
-                       id="hidden-subject-<?php echo esc_attr($key); ?>"
-                       name="<?php echo esc_attr($subject_key); ?>"
-                       value="">
-
-                <textarea class="hidden-body-json"
-                          id="hidden-body-<?php echo esc_attr($key); ?>"
-                          name="<?php echo esc_attr($body_key); ?>"></textarea>
-            <?php
-            }
-            ?>
-            </div>
         </div>
 
         <!-- This button is outside the tabs for global save -->
