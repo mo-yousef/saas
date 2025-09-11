@@ -1626,27 +1626,8 @@ jQuery(document).ready(function ($) {
   els.timeSlots.on("click", ".NORDBOOKING-time-slot", function () {
     clearFieldError(els.timeSlotsWrap);
   });
-});
 
-window.initAutocomplete = function () {
-  const input = document.getElementById("NORDBOOKING-service-address");
-  const searchBox = new google.maps.places.SearchBox(input);
-
-  searchBox.addListener("places_changed", () => {
-    const places = searchBox.getPlaces();
-
-    if (places.length == 0) {
-      return;
-    }
-
-    const place = places[0];
-
-    if (place.formatted_address) {
-      input.value = place.formatted_address;
-      // Also update the state
-      if (typeof state !== 'undefined') {
-        state.customer.address = place.formatted_address;
-      }
-    }
+  els.addressInput.on('change', function() {
+    state.customer.address = $(this).val();
   });
-};
+});
