@@ -161,36 +161,25 @@ class Settings {
     }
 
     public function handle_save_business_settings_ajax() {
-        error_log('[SAVE DEBUG] handle_save_business_settings_ajax triggered.');
-
         check_ajax_referer('nordbooking_dashboard_nonce', 'nonce');
-        error_log('[SAVE DEBUG] Nonce check passed.');
-
         $user_id = get_current_user_id();
         if (!$user_id) {
-            error_log('[SAVE DEBUG] User not authenticated. Exiting.');
             wp_send_json_error(['message' => __('User not authenticated.', 'NORDBOOKING')], 403);
             return;
         }
-        error_log('[SAVE DEBUG] User ID: ' . $user_id);
 
         $settings_data = isset($_POST['settings']) ? (array) $_POST['settings'] : [];
 
         if (empty($settings_data)) {
-            error_log('[SAVE DEBUG] Settings data is empty. Exiting.');
             wp_send_json_error(['message' => __('No settings data received.', 'NORDBOOKING')], 400);
             return;
         }
-        error_log('[SAVE DEBUG] Received settings data: ' . print_r($settings_data, true));
 
         $result = $this->save_business_settings($user_id, $settings_data);
-        error_log('[SAVE DEBUG] save_business_settings result: ' . ($result ? 'true' : 'false'));
 
         if ($result) {
-            error_log('[SAVE DEBUG] Sending success response.');
             wp_send_json_success(['message' => __('Business settings saved successfully.', 'NORDBOOKING')]);
         } else {
-            error_log('[SAVE DEBUG] Sending error response.');
             wp_send_json_error(['message' => __('Failed to save some business settings.', 'NORDBOOKING')], 500);
         }
     }
