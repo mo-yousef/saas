@@ -241,18 +241,15 @@ function nordbooking_select_biz_setting_value($settings, $key, $value, $default_
             foreach ($email_templates as $key => $template) {
                 $subject_key = $template['subject_key'];
                 $body_key = $template['body_key'];
-                $subject = nordbooking_get_biz_setting_value($biz_settings, $subject_key);
-                // Get the raw JSON string. DO NOT use a helper that escapes it here.
-                $body_json = isset($biz_settings[$body_key]) ? $biz_settings[$body_key] : '[]';
             ?>
                 <input type="hidden"
                        id="hidden-subject-<?php echo esc_attr($key); ?>"
                        name="<?php echo esc_attr($subject_key); ?>"
-                       value="<?php echo esc_attr($subject); ?>">
+                       value="">
 
                 <textarea class="hidden-body-json"
                           id="hidden-body-<?php echo esc_attr($key); ?>"
-                          name="<?php echo esc_attr($body_key); ?>"><?php echo esc_textarea($body_json); ?></textarea>
+                          name="<?php echo esc_attr($body_key); ?>"></textarea>
             <?php
             }
             ?>

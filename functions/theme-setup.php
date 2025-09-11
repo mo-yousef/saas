@@ -372,6 +372,24 @@ if ( is_page_template('templates/booking-form-public.php') || $page_type_for_scr
             // Localize data for both scripts
             $settings_manager = new \NORDBOOKING\Classes\Settings();
             $user_id = get_current_user_id();
+            $biz_settings = $settings_manager->get_business_settings($user_id);
+            $email_templates = $settings_manager->get_email_templates();
+
+            $email_templates_data = [];
+            foreach ($email_templates as $key => $template) {
+                $subject = isset($biz_settings[$template['subject_key']]) ? $biz_settings[$template['subject_key']] : '';
+                $body_json = isset($biz_settings[$template['body_key']]) ? $biz_settings[$template['body_key']] : '[]';
+                $body = json_decode($body_json, true);
+
+                if (!is_array($body)) {
+                    $body = [];
+                }
+
+                $email_templates_data[$key] = [
+                    'subject' => $subject,
+                    'body' => $body,
+                ];
+            }
 
             wp_localize_script('nordbooking-dashboard-business-settings', 'nordbooking_biz_settings_params', [
                 'ajax_url' => admin_url('admin-ajax.php'),
@@ -387,8 +405,9 @@ if ( is_page_template('templates/booking-form-public.php') || $page_type_for_scr
             wp_localize_script('nordbooking-dashboard-email-settings', 'nordbooking_email_settings_params', [
                 'ajax_url' => admin_url('admin-ajax.php'),
                 'nonce' => wp_create_nonce('nordbooking_dashboard_nonce'),
-                'templates' => $settings_manager->get_email_templates(),
-                'biz_settings' => $settings_manager->get_business_settings($user_id),
+                'templates' => $email_templates,
+                'email_templates_data' => $email_templates_data,
+                'biz_settings' => $biz_settings,
                 'base_template_url' => NORDBOOKING_THEME_URI . 'templates/email/base-email-template.php',
                 'site_url' => site_url(),
                 'dummy_data' => \NORDBOOKING\Classes\Notifications::get_dummy_data_for_preview(),
