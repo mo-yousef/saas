@@ -58,9 +58,9 @@ if ( ! empty( $bookings ) ) {
 }
 
 ?>
-<div class="wrap NORDBOOKING-dashboard-wrap NORDBOOKING-customer-details-page">
-    <div class="NORDBOOKING-page-header">
-        <div class="NORDBOOKING-page-header-heading">
+<div class="wrap nordbooking-dashboard-wrap NORDBOOKING-customer-details-page">
+    <div class="nordbooking-page-header">
+        <div class="nordbooking-page-header-heading">
             <a href="<?php echo esc_url( home_url('/dashboard/customers/') ); ?>" class="btn btn-outline btn-sm back-btn">
                 <?php echo nordbooking_get_feather_icon('arrow-left'); ?>
             </a>
@@ -72,7 +72,7 @@ if ( ! empty( $bookings ) ) {
                 </span>
             </div>
         </div>
-        <div class="NORDBOOKING-page-header-actions">
+        <div class="nordbooking-page-header-actions">
             <a href="#" id="NORDBOOKING-edit-customer-btn" class="btn btn-secondary"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg><?php esc_html_e('Edit', 'NORDBOOKING'); ?></a>
         </div>
     </div>
@@ -80,11 +80,11 @@ if ( ! empty( $bookings ) ) {
     <div class="customer-details-grid">
         <div class="customer-details-main">
             <!-- Key Information Card -->
-            <div class="NORDBOOKING-card card-bs">
-                <div class="NORDBOOKING-card-header">
-                    <h3 class="NORDBOOKING-card-title"><?php esc_html_e('Key Information', 'NORDBOOKING'); ?></h3>
+            <div class="nordbooking-card card-bs">
+                <div class="nordbooking-card-header">
+                    <h3 class="nordbooking-card-title"><?php esc_html_e('Key Information', 'NORDBOOKING'); ?></h3>
                 </div>
-                <div class="NORDBOOKING-card-content">
+                <div class="nordbooking-card-content">
                     <div class="key-info-grid">
                         <div class="key-info-item">
                             <?php echo nordbooking_get_feather_icon('dollar-sign'); ?>
@@ -141,14 +141,14 @@ if ( ! empty( $bookings ) ) {
                 </div>
             </div>
             <!-- Booking History Card -->
-            <div class="NORDBOOKING-card">
-                <div class="NORDBOOKING-card-header">
-                    <h3 class="NORDBOOKING-card-title"><?php esc_html_e('Booking History', 'NORDBOOKING'); ?></h3>
+            <div class="nordbooking-card">
+                <div class="nordbooking-card-header">
+                    <h3 class="nordbooking-card-title"><?php esc_html_e('Booking History', 'NORDBOOKING'); ?></h3>
                 </div>
-                <div class="NORDBOOKING-card-content">
+                <div class="nordbooking-card-content">
                     <?php if ( ! empty( $bookings ) && ! is_wp_error( $bookings ) ) : ?>
-                        <div class="NORDBOOKING-table-responsive-wrapper">
-                            <table class="NORDBOOKING-table">
+                        <div class="nordbooking-table-responsive-wrapper">
+                            <table class="nordbooking-table">
                                 <thead>
                                     <tr>
                                         <th><?php esc_html_e('Reference', 'NORDBOOKING'); ?></th>
@@ -190,11 +190,11 @@ if ( ! empty( $bookings ) ) {
         </div>
         <div class="customer-details-sidebar">
             <!-- Quick Actions Card -->
-            <div class="NORDBOOKING-card">
-                <div class="NORDBOOKING-card-header">
-                    <h3 class="NORDBOOKING-card-title"><?php esc_html_e('Quick Actions', 'NORDBOOKING'); ?></h3>
+            <div class="nordbooking-card">
+                <div class="nordbooking-card-header">
+                    <h3 class="nordbooking-card-title"><?php esc_html_e('Quick Actions', 'NORDBOOKING'); ?></h3>
                 </div>
-                <div class="NORDBOOKING-card-content">
+                <div class="nordbooking-card-content">
                     <div class="quick-actions-buttons">
                         <a href="mailto:<?php echo esc_attr( $customer->email ); ?>" class="btn btn-secondary">
                             <?php echo nordbooking_get_feather_icon('mail'); ?>
@@ -208,11 +208,11 @@ if ( ! empty( $bookings ) ) {
                 </div>
             </div>
             <!-- Upcoming Appointment -->
-            <div class="NORDBOOKING-card">
-                <div class="NORDBOOKING-card-header">
-                    <h3 class="NORDBOOKING-card-title"><?php esc_html_e('Upcoming Appointment', 'NORDBOOKING'); ?></h3>
+            <div class="nordbooking-card">
+                <div class="nordbooking-card-header">
+                    <h3 class="nordbooking-card-title"><?php esc_html_e('Upcoming Appointment', 'NORDBOOKING'); ?></h3>
                 </div>
-                <div class="NORDBOOKING-card-content">
+                <div class="nordbooking-card-content">
                     <?php if ( $upcoming_appointment ) : ?>
                         <div class="upcoming-appointment-details">
                             <span class="upcoming-date"><?php echo date_i18n( 'F j, Y', strtotime($upcoming_appointment->booking_date) ); ?></span>

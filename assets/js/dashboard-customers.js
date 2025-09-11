@@ -59,8 +59,8 @@ jQuery(document).ready(function ($) {
   function getTableHTML() {
     const i18n = nordbooking_customers_params.i18n;
     return `
-            <div class="NORDBOOKING-table-responsive-wrapper">
-                <table class="NORDBOOKING-table">
+            <div class="nordbooking-table-responsive-wrapper">
+                <table class="nordbooking-table">
                     <thead>
                         <tr>
                             <th>${i18n.customer || "Customer"}</th>

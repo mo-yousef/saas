@@ -176,9 +176,9 @@ if ( $edit_mode && $service_id > 0 ) {
 
 <div class="NORDBOOKING-service-edit-page">
 	<!-- Page Header -->
-	<div class="NORDBOOKING-page-header">
-		<div class="NORDBOOKING-page-header-heading">
-			<span class="NORDBOOKING-page-header-icon">
+	<div class="nordbooking-page-header">
+		<div class="nordbooking-page-header-heading">
+			<span class="nordbooking-page-header-icon">
 				<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-briefcase"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
 			</span>
 			<div class="heading-wrapper">
@@ -192,7 +192,7 @@ if ( $edit_mode && $service_id > 0 ) {
 				</p>
 			</div>
 		</div>
-		<div class="NORDBOOKING-page-header-actions">
+		<div class="nordbooking-page-header-actions">
 			<a href="<?php echo esc_url( $breadcrumb_services ); ?>" class="btn btn-secondary btn-sm">
 				<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
 				<?php esc_html_e( 'Back', 'NORDBOOKING' ); ?>
@@ -222,14 +222,14 @@ if ( $edit_mode && $service_id > 0 ) {
 		<div class="NORDBOOKING-edit-layout-grid">
 			<div class="NORDBOOKING-main-content">
 				<!-- Basic Information Card -->
-				<div class="NORDBOOKING-card">
-					<div class="NORDBOOKING-card-header">
-						<h3 class="NORDBOOKING-card-title">Basic Information</h3>
+				<div class="nordbooking-card">
+					<div class="nordbooking-card-header">
+						<h3 class="nordbooking-card-title">Basic Information</h3>
 					</div>
-					<div class="NORDBOOKING-card-content space-y-4">
+					<div class="nordbooking-card-content space-y-4">
 						<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
 							<div class="md:col-span-3">
-								<label class="NORDBOOKING-filter-item label" for="service-name">
+								<label class="nordbooking-filter-item label" for="service-name">
 									<?php esc_html_e( 'Service Name', 'NORDBOOKING' ); ?> <span class="text-destructive">*</span>
 								</label>
 								<input
@@ -245,7 +245,7 @@ if ( $edit_mode && $service_id > 0 ) {
 						</div>
 
 						<div>
-							<label class="NORDBOOKING-filter-item label" for="service-description"><?php esc_html_e( 'Description', 'NORDBOOKING' ); ?></label>
+							<label class="nordbooking-filter-item label" for="service-description"><?php esc_html_e( 'Description', 'NORDBOOKING' ); ?></label>
 							<textarea
 								id="service-description"
 								name="description"
@@ -257,7 +257,7 @@ if ( $edit_mode && $service_id > 0 ) {
 
 						<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 							<div>
-								<label class="NORDBOOKING-filter-item label" for="service-price">
+								<label class="nordbooking-filter-item label" for="service-price">
 									<?php esc_html_e( 'Base Price', 'NORDBOOKING' ); ?> <span class="text-destructive">*</span>
 								</label>
 								<div class="relative">
@@ -282,7 +282,7 @@ if ( $edit_mode && $service_id > 0 ) {
 							</div>
 
 							<div>
-								<label class="NORDBOOKING-filter-item label" for="service-duration">
+								<label class="nordbooking-filter-item label" for="service-duration">
 									<?php esc_html_e( 'Duration (minutes)', 'NORDBOOKING' ); ?> <span class="text-destructive">*</span>
 								</label>
 								<input
@@ -302,15 +302,15 @@ if ( $edit_mode && $service_id > 0 ) {
 				</div>
 
 				<!-- Service Options Card -->
-				<div class="NORDBOOKING-card">
-					<div class="NORDBOOKING-card-header">
-						<h3 class="NORDBOOKING-card-title"><?php esc_html_e( 'Service Options', 'NORDBOOKING' ); ?></h3>
+				<div class="nordbooking-card">
+					<div class="nordbooking-card-header">
+						<h3 class="nordbooking-card-title"><?php esc_html_e( 'Service Options', 'NORDBOOKING' ); ?></h3>
 						<button type="button" id="add-option-btn" class="btn btn-secondary btn-sm">
 							<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
 							<?php esc_html_e( 'Add Option', 'NORDBOOKING' ); ?>
 						</button>
 					</div>
-					<div class="NORDBOOKING-card-content">
+					<div class="nordbooking-card-content">
 						<div id="options-container" class="options-container">
 							<?php if ( empty( $service_options_data ) ) : ?>
 								<div class="empty-state">
@@ -345,11 +345,11 @@ if ( $edit_mode && $service_id > 0 ) {
 
 			<div class="NORDBOOKING-sidebar">
 				<!-- Actions Card -->
-				<div class="NORDBOOKING-card">
-					<div class="NORDBOOKING-card-header">
-						<h3 class="NORDBOOKING-card-title"><?php esc_html_e( 'Actions', 'NORDBOOKING' ); ?></h3>
+				<div class="nordbooking-card">
+					<div class="nordbooking-card-header">
+						<h3 class="nordbooking-card-title"><?php esc_html_e( 'Actions', 'NORDBOOKING' ); ?></h3>
 					</div>
-					<div class="NORDBOOKING-card-content">
+					<div class="nordbooking-card-content">
 						<button type="submit" class="btn btn-primary w-full" id="save-service-btn">
 							<?php if ( $edit_mode ) : ?>
 								<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><path d="M20 6L9 17l-5-5"/></svg>
@@ -374,7 +374,7 @@ if ( $edit_mode && $service_id > 0 ) {
 						<?php else : ?>
 						<div class="flex items-center justify-between mt-4">
 						<?php endif; ?>
-							<label class="NORDBOOKING-filter-item label"><?php esc_html_e( 'Status', 'NORDBOOKING' ); ?></label>
+							<label class="nordbooking-filter-item label"><?php esc_html_e( 'Status', 'NORDBOOKING' ); ?></label>
 							<div class="flex items-center space-x-2">
 								<button type="button" class="switch <?php echo 'active' === $service_status ? 'switch-checked' : ''; ?>" data-switch="status">
 									<span class="switch-thumb"></span>
@@ -387,7 +387,7 @@ if ( $edit_mode && $service_id > 0 ) {
 						</div>
 						<hr class="my-4">
 						<div class="flex items-center justify-between">
-							<label class="NORDBOOKING-filter-item label" for="disable_pet_question"><?php esc_html_e( 'Disable Pet Question', 'NORDBOOKING' ); ?></label>
+							<label class="nordbooking-filter-item label" for="disable_pet_question"><?php esc_html_e( 'Disable Pet Question', 'NORDBOOKING' ); ?></label>
 							<div class="flex items-center space-x-2">
 								<button type="button" class="switch <?php echo $disable_pet_question ? 'switch-checked' : ''; ?>" data-switch="disable_pet_question">
 									<span class="switch-thumb"></span>
@@ -396,7 +396,7 @@ if ( $edit_mode && $service_id > 0 ) {
 							</div>
 						</div>
 						<div class="flex items-center justify-between mt-4">
-							<label class="NORDBOOKING-filter-item label" for="disable_frequency_option"><?php esc_html_e( 'Disable Frequency Option', 'NORDBOOKING' ); ?></label>
+							<label class="nordbooking-filter-item label" for="disable_frequency_option"><?php esc_html_e( 'Disable Frequency Option', 'NORDBOOKING' ); ?></label>
 							<div class="flex items-center space-x-2">
 								<button type="button" class="switch <?php echo $disable_frequency_option ? 'switch-checked' : ''; ?>" data-switch="disable_frequency_option">
 									<span class="switch-thumb"></span>
@@ -407,14 +407,14 @@ if ( $edit_mode && $service_id > 0 ) {
 					</div>
 				</div>
 				<!-- Visual Settings Card -->
-				<div class="NORDBOOKING-card">
-					<div class="NORDBOOKING-card-header">
-						<h3 class="NORDBOOKING-card-title"><?php esc_html_e( 'Visuals', 'NORDBOOKING' ); ?></h3>
+				<div class="nordbooking-card">
+					<div class="nordbooking-card-header">
+						<h3 class="nordbooking-card-title"><?php esc_html_e( 'Visuals', 'NORDBOOKING' ); ?></h3>
 					</div>
-					<div class="NORDBOOKING-card-content space-y-6">
+					<div class="nordbooking-card-content space-y-6">
 						<!-- Service Image -->
 						<div>
-							<label class="NORDBOOKING-filter-item label"><?php esc_html_e( 'Service Image', 'NORDBOOKING' ); ?></label>
+							<label class="nordbooking-filter-item label"><?php esc_html_e( 'Service Image', 'NORDBOOKING' ); ?></label>
 							<div class="NORDBOOKING-image-upload">
 								<div id="image-preview" class="NORDBOOKING-image-preview <?php echo empty( $service_image_url ) ? 'empty' : ''; ?>">
 									<?php if ( ! empty( $service_image_url ) ) : ?>
@@ -436,7 +436,7 @@ if ( $edit_mode && $service_id > 0 ) {
 						</div>
 						<!-- Service Icon -->
 						<div class="service-icon-section">
-							<label class="NORDBOOKING-filter-item label"><?php esc_html_e( 'Service Icon', 'NORDBOOKING' ); ?></label>
+							<label class="nordbooking-filter-item label"><?php esc_html_e( 'Service Icon', 'NORDBOOKING' ); ?></label>
 							<div class="NORDBOOKING-icon-selector">
 								<div class="NORDBOOKING-icon-preview">
 									<div id="current-icon" class="NORDBOOKING-icon-display">

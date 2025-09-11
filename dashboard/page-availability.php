@@ -11,9 +11,9 @@ if ( ! current_user_can( \NORDBOOKING\Classes\Auth::CAP_MANAGE_AVAILABILITY ) ) 
 }
 ?>
 <div class="NORDBOOKING-availability-page">
-    <div class="NORDBOOKING-page-header">
-        <div class="NORDBOOKING-page-header-heading">
-            <span class="NORDBOOKING-page-header-icon">
+    <div class="nordbooking-page-header">
+        <div class="nordbooking-page-header-heading">
+            <span class="nordbooking-page-header-icon">
                 <?php echo nordbooking_get_dashboard_menu_icon('availability'); ?>
             </span>
             <h1><?php esc_html_e('Manage Availability', 'NORDBOOKING'); ?></h1>
@@ -32,7 +32,7 @@ if ( ! current_user_can( \NORDBOOKING\Classes\Auth::CAP_MANAGE_AVAILABILITY ) ) 
 
     <!-- Recurring Weekly Availability Section -->
 
-        <div class="NORDBOOKING-card-availability-content">
+        <div class="nordbooking-card-availability-content">
             <div id="recurring-schedule-container">
                 <!-- JS will populate this with the schedule editor -->
                 <p><?php esc_html_e('Loading schedule editor...', 'NORDBOOKING'); ?></p>

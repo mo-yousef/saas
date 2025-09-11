@@ -36,10 +36,10 @@ if (!empty($current_slug)) {
 }
 
 ?>
-<div id="NORDBOOKING-booking-form-settings-page" class="wrap NORDBOOKING-settings-page">
-    <div class="NORDBOOKING-page-header">
-        <div class="NORDBOOKING-page-header-heading">
-            <span class="NORDBOOKING-page-header-icon">
+<div id="nordbooking-booking-form-settings-page" class="wrap NORDBOOKING-settings-page">
+    <div class="nordbooking-page-header">
+        <div class="nordbooking-page-header-heading">
+            <span class="nordbooking-page-header-icon">
                 <?php echo nordbooking_get_dashboard_menu_icon('booking_form'); ?>
             </span>
             <div class="heading-wrapper">
@@ -47,8 +47,8 @@ if (!empty($current_slug)) {
                 <p class="dashboard-subtitle"><?php esc_html_e('Customize the appearance and behavior of your public booking form.', 'NORDBOOKING'); ?></p>
             </div>
         </div>
-        <div class="NORDBOOKING-page-header-actions">
-            <button type="submit" form="NORDBOOKING-booking-form-settings-form" name="save_booking_form_settings" id="NORDBOOKING-save-bf-settings-btn" class="btn btn-primary"><?php esc_html_e('Save Changes', 'NORDBOOKING'); ?></button>
+        <div class="nordbooking-page-header-actions">
+            <button type="submit" form="nordbooking-booking-form-settings-form" name="save_booking_form_settings" id="NORDBOOKING-save-bf-settings-btn" class="btn btn-primary"><?php esc_html_e('Save Changes', 'NORDBOOKING'); ?></button>
         </div>
     </div>
 
@@ -69,7 +69,7 @@ if (!empty($current_slug)) {
 
     <div class="NORDBOOKING-settings-grid">
         <div class="NORDBOOKING-settings-main">
-            <form id="NORDBOOKING-booking-form-settings-form" method="post" class="NORDBOOKING-settings-form">
+            <form id="nordbooking-booking-form-settings-form" method="post" class="NORDBOOKING-settings-form">
                 <?php wp_nonce_field('nordbooking_dashboard_nonce', 'nordbooking_dashboard_nonce_field'); ?>
 
                 <!-- Tab Navigation -->
@@ -99,11 +99,11 @@ if (!empty($current_slug)) {
                 <div class="NORDBOOKING-settings-content">
                     <!-- General Settings Tab -->
                     <div id="general" class="NORDBOOKING-settings-tab-pane active" role="tabpanel">
-                        <div class="NORDBOOKING-card">
-                            <div class="NORDBOOKING-card-header">
-                                <h3 class="NORDBOOKING-card-title"><?php esc_html_e('Basic Information', 'NORDBOOKING'); ?></h3>
+                        <div class="nordbooking-card">
+                            <div class="nordbooking-card-header">
+                                <h3 class="nordbooking-card-title"><?php esc_html_e('Basic Information', 'NORDBOOKING'); ?></h3>
                             </div>
-                            <div class="NORDBOOKING-card-content">
+                            <div class="nordbooking-card-content">
                                 <div class="form-group">
                                     <label for="bf_success_message"><?php esc_html_e('Success Message', 'NORDBOOKING'); ?></label>
                                     <textarea name="bf_success_message" id="bf_success_message" class="form-textarea" rows="3"><?php echo nordbooking_get_setting_textarea($bf_settings, 'bf_success_message', 'Thank you for your booking! We will contact you soon to confirm the details.'); ?></textarea>
@@ -115,11 +115,11 @@ if (!empty($current_slug)) {
 
                     <!-- Form Control Tab -->
                     <div id="form-control" class="NORDBOOKING-settings-tab-pane" role="tabpanel">
-                        <div class="NORDBOOKING-card">
-                            <div class="NORDBOOKING-card-header">
-                                <h3 class="NORDBOOKING-card-title"><?php esc_html_e('Form Availability', 'NORDBOOKING'); ?></h3>
+                        <div class="nordbooking-card">
+                            <div class="nordbooking-card-header">
+                                <h3 class="nordbooking-card-title"><?php esc_html_e('Form Availability', 'NORDBOOKING'); ?></h3>
                             </div>
-                            <div class="NORDBOOKING-card-content">
+                            <div class="nordbooking-card-content">
                                 <div class="form-group form-group-toggle">
                                     <label class="NORDBOOKING-toggle-switch">
                                         <input name="bf_form_enabled" type="checkbox" id="bf_form_enabled" value="1" <?php echo nordbooking_is_setting_checked($bf_settings, 'bf_form_enabled', true); ?>>
@@ -137,11 +137,11 @@ if (!empty($current_slug)) {
                                 </div>
                             </div>
                         </div>
-                        <div class="NORDBOOKING-card">
-                            <div class="NORDBOOKING-card-header">
-                                <h3 class="NORDBOOKING-card-title"><?php esc_html_e('Form Fields', 'NORDBOOKING'); ?></h3>
+                        <div class="nordbooking-card">
+                            <div class="nordbooking-card-header">
+                                <h3 class="nordbooking-card-title"><?php esc_html_e('Form Fields', 'NORDBOOKING'); ?></h3>
                             </div>
-                            <div class="NORDBOOKING-card-content">
+                            <div class="nordbooking-card-content">
                                 <div class="form-group form-group-toggle">
                                     <label class="NORDBOOKING-toggle-switch">
                                         <input name="bf_enable_location_check" type="checkbox" id="bf_enable_location_check" value="1" <?php echo nordbooking_is_setting_checked($bf_settings, 'bf_enable_location_check', true); ?>>
@@ -200,11 +200,11 @@ if (!empty($current_slug)) {
                     <div id="design" class="NORDBOOKING-settings-tab-pane" role="tabpanel">
                         <div class="NORDBOOKING-design-grid">
                             <div class="NORDBOOKING-design-settings">
-                                <div class="NORDBOOKING-card">
-                                    <div class="NORDBOOKING-card-header">
-                                        <h3 class="NORDBOOKING-card-title"><?php esc_html_e('Form Appearance', 'NORDBOOKING'); ?></h3>
+                                <div class="nordbooking-card">
+                                    <div class="nordbooking-card-header">
+                                        <h3 class="nordbooking-card-title"><?php esc_html_e('Form Appearance', 'NORDBOOKING'); ?></h3>
                                     </div>
-                                    <div class="NORDBOOKING-card-content">
+                                    <div class="nordbooking-card-content">
                                         <div class="form-group">
                                             <label for="bf_header_text"><?php esc_html_e('Header Text', 'NORDBOOKING'); ?></label>
                                             <input name="bf_header_text" type="text" id="bf_header_text" value="<?php echo nordbooking_get_setting_value($bf_settings, 'bf_header_text', 'Book Our Services Online'); ?>" class="form-input">
@@ -253,11 +253,11 @@ if (!empty($current_slug)) {
                                         </div>
                                     </div>
                                 </div>
-                                <div class="NORDBOOKING-card">
-                                    <div class="NORDBOOKING-card-header">
-                                        <h3 class="NORDBOOKING-card-title"><?php esc_html_e('Theme Colors', 'NORDBOOKING'); ?></h3>
+                                <div class="nordbooking-card">
+                                    <div class="nordbooking-card-header">
+                                        <h3 class="nordbooking-card-title"><?php esc_html_e('Theme Colors', 'NORDBOOKING'); ?></h3>
                                     </div>
-                                    <div class="NORDBOOKING-card-content">
+                                    <div class="nordbooking-card-content">
                                         <div class="form-group-grid two-cols">
                                             <div class="form-group">
                                                 <label for="bf_theme_color"><?php esc_html_e('Primary Color', 'NORDBOOKING'); ?></label>
@@ -284,11 +284,11 @@ if (!empty($current_slug)) {
                                         </div>
                                     </div>
                                 </div>
-                                <div class="NORDBOOKING-card">
-                                    <div class="NORDBOOKING-card-header">
-                                        <h3 class="NORDBOOKING-card-title"><?php esc_html_e('Custom CSS', 'NORDBOOKING'); ?></h3>
+                                <div class="nordbooking-card">
+                                    <div class="nordbooking-card-header">
+                                        <h3 class="nordbooking-card-title"><?php esc_html_e('Custom CSS', 'NORDBOOKING'); ?></h3>
                                     </div>
-                                    <div class="NORDBOOKING-card-content">
+                                    <div class="nordbooking-card-content">
                                         <div class="form-group">
                                             <label for="bf_custom_css"><?php esc_html_e('Custom CSS Rules', 'NORDBOOKING'); ?></label>
                                             <textarea name="bf_custom_css" id="bf_custom_css" class="form-textarea code" rows="8" placeholder="<?php esc_attr_e('/* Your custom CSS rules here */', 'NORDBOOKING'); ?>"><?php echo nordbooking_get_setting_textarea($bf_settings, 'bf_custom_css'); ?></textarea>
@@ -345,11 +345,11 @@ if (!empty($current_slug)) {
 
                     <!-- Advanced Settings Tab -->
                     <div id="advanced" class="NORDBOOKING-settings-tab-pane" role="tabpanel">
-                        <div class="NORDBOOKING-card">
-                            <div class="NORDBOOKING-card-header">
-                                <h3 class="NORDBOOKING-card-title"><?php esc_html_e('Booking Logic', 'NORDBOOKING'); ?></h3>
+                        <div class="nordbooking-card">
+                            <div class="nordbooking-card-header">
+                                <h3 class="nordbooking-card-title"><?php esc_html_e('Booking Logic', 'NORDBOOKING'); ?></h3>
                             </div>
-                            <div class="NORDBOOKING-card-content">
+                            <div class="nordbooking-card-content">
                                 <div class="form-group-grid two-cols">
                                     <div class="form-group">
                                         <label for="bf_allow_cancellation_hours"><?php esc_html_e('Cancellation Lead Time (Hours)', 'NORDBOOKING'); ?></label>
@@ -381,11 +381,11 @@ if (!empty($current_slug)) {
                                 </div>
                             </div>
                         </div>
-                        <div class="NORDBOOKING-card">
-                            <div class="NORDBOOKING-card-header">
-                                <h3 class="NORDBOOKING-card-title"><?php esc_html_e('Notification Settings', 'NORDBOOKING'); ?></h3>
+                        <div class="nordbooking-card">
+                            <div class="nordbooking-card-header">
+                                <h3 class="nordbooking-card-title"><?php esc_html_e('Notification Settings', 'NORDBOOKING'); ?></h3>
                             </div>
-                            <div class="NORDBOOKING-card-content">
+                            <div class="nordbooking-card-content">
                                 <div class="form-group">
                                     <label for="bf_admin_email"><?php esc_html_e('Admin Notification Email', 'NORDBOOKING'); ?></label>
                                     <input name="bf_admin_email" type="email" id="bf_admin_email" value="<?php echo nordbooking_get_setting_value($bf_settings, 'bf_admin_email', get_option('admin_email')); ?>" class="form-input">
@@ -417,11 +417,11 @@ if (!empty($current_slug)) {
 
                     <!-- Share & Embed Tab -->
                     <div id="share-embed" class="NORDBOOKING-settings-tab-pane" role="tabpanel">
-                        <div class="NORDBOOKING-card">
-                            <div class="NORDBOOKING-card-header">
-                                <h3 class="NORDBOOKING-card-title"><?php esc_html_e('Public Booking Link', 'NORDBOOKING'); ?></h3>
+                        <div class="nordbooking-card">
+                            <div class="nordbooking-card-header">
+                                <h3 class="nordbooking-card-title"><?php esc_html_e('Public Booking Link', 'NORDBOOKING'); ?></h3>
                             </div>
-                            <div class="NORDBOOKING-card-content">
+                            <div class="nordbooking-card-content">
                                 <div class="form-group">
                                     <label for="bf_business_slug"><?php esc_html_e('Business Slug', 'NORDBOOKING'); ?></label>
                                     <input name="bf_business_slug" type="text" id="bf_business_slug" value="<?php echo esc_attr($current_slug); ?>" class="form-input" pattern="[a-z0-9-]+" title="<?php esc_attr_e('Only lowercase letters, numbers, and hyphens allowed', 'NORDBOOKING'); ?>">
@@ -452,11 +452,11 @@ if (!empty($current_slug)) {
                                 <?php endif; ?>
                             </div>
                         </div>
-                        <div class="NORDBOOKING-card">
-                            <div class="NORDBOOKING-card-header">
-                                <h3 class="NORDBOOKING-card-title"><?php esc_html_e('Embed Code', 'NORDBOOKING'); ?></h3>
+                        <div class="nordbooking-card">
+                            <div class="nordbooking-card-header">
+                                <h3 class="nordbooking-card-title"><?php esc_html_e('Embed Code', 'NORDBOOKING'); ?></h3>
                             </div>
-                            <div class="NORDBOOKING-card-content">
+                            <div class="nordbooking-card-content">
                                 <div class="form-group">
                                     <label for="NORDBOOKING-embed-code"><?php esc_html_e('Embed Code', 'NORDBOOKING'); ?></label>
                                     <textarea id="NORDBOOKING-embed-code" class="form-textarea code" rows="4" readonly><?php if (!empty($public_booking_url)): ?><iframe src="<?php echo esc_url($public_booking_url); ?>" width="100%" height="600" frameborder="0" scrolling="auto"></iframe><?php endif; ?></textarea>

@@ -75,36 +75,36 @@
   MoBookingDialog.prototype._create = function () {
     // Create overlay
     this.overlayEl = document.createElement("div");
-    this.overlayEl.className = "NORDBOOKING-dialog-overlay";
+    this.overlayEl.className = "nordbooking-dialog-overlay";
 
     // Create dialog
     this.dialogEl = document.createElement("div");
-    this.dialogEl.className = "NORDBOOKING-dialog";
+    this.dialogEl.className = "nordbooking-dialog";
     this.dialogEl.setAttribute("role", "dialog");
     this.dialogEl.setAttribute("aria-modal", "true");
-    this.dialogEl.setAttribute("aria-labelledby", "NORDBOOKING-dialog-title");
+    this.dialogEl.setAttribute("aria-labelledby", "nordbooking-dialog-title");
 
     // Header
     const header = document.createElement("div");
-    header.className = "NORDBOOKING-dialog-header";
+    header.className = "nordbooking-dialog-header";
 
     let iconHtml = "";
     if (this.options.icon) {
       const iconSvg = ICONS[this.options.icon] || this.options.icon;
-      iconHtml = `<div class="NORDBOOKING-dialog-icon">${iconSvg}</div>`;
+      iconHtml = `<div class="nordbooking-dialog-icon">${iconSvg}</div>`;
     }
 
     header.innerHTML = `
             ${iconHtml}
-            <h2 id="NORDBOOKING-dialog-title" class="NORDBOOKING-dialog-title">${this.options.title}</h2>
-            <button class="NORDBOOKING-dialog-close-btn">
+            <h2 id="nordbooking-dialog-title" class="nordbooking-dialog-title">${this.options.title}</h2>
+            <button class="nordbooking-dialog-close-btn">
                 ${ICONS.close}
             </button>
         `;
 
     // Content
     const content = document.createElement("div");
-    content.className = "NORDBOOKING-dialog-content";
+    content.className = "nordbooking-dialog-content";
     if (typeof this.options.content === "string") {
       content.innerHTML = this.options.content;
     } else if (this.options.content instanceof HTMLElement) {
@@ -117,7 +117,7 @@
     // Footer
     if (this.options.buttons.length > 0) {
       const footer = document.createElement("div");
-      footer.className = "NORDBOOKING-dialog-footer";
+      footer.className = "nordbooking-dialog-footer";
       this.options.buttons.forEach((btnOptions) => {
         const button = document.createElement("button");
         button.className = `btn btn-${btnOptions.class || "secondary"}`;
@@ -131,7 +131,7 @@
     // Event listeners
     this.overlayEl.addEventListener("click", () => this.close());
     this.dialogEl
-      .querySelector(".NORDBOOKING-dialog-close-btn")
+      .querySelector(".nordbooking-dialog-close-btn")
       .addEventListener("click", () => this.close());
 
     document.body.appendChild(this.overlayEl);

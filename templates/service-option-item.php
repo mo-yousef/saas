@@ -113,7 +113,7 @@ $choices_visible = in_array($type, ['select', 'radio', 'checkbox']);
             <input type="hidden" name="options[<?php echo esc_attr($option_index); ?>][price_impact_type]" value="<?php echo esc_attr($price_impact_type); ?>" class="price-impact-type-input">
 
             <div>
-                <label class="NORDBOOKING-filter-item label" for="option-name-<?php echo esc_attr($option_index); ?>">
+                <label class="nordbooking-filter-item label" for="option-name-<?php echo esc_attr($option_index); ?>">
                     <?php esc_html_e('Option Name', 'NORDBOOKING'); ?>
                 </label>
                 <input
@@ -128,7 +128,7 @@ $choices_visible = in_array($type, ['select', 'radio', 'checkbox']);
             </div>
 
             <div>
-                <label class="NORDBOOKING-filter-item label">
+                <label class="nordbooking-filter-item label">
                     <?php esc_html_e('Description', 'NORDBOOKING'); ?>
                 </label>
                 <textarea
@@ -141,7 +141,7 @@ $choices_visible = in_array($type, ['select', 'radio', 'checkbox']);
 
             <div>
                 <div class="flex items-center justify-between">
-                    <label class="NORDBOOKING-filter-item label">
+                    <label class="nordbooking-filter-item label">
                         <?php esc_html_e('Settings', 'NORDBOOKING'); ?>
                     </label>
                     <div class="flex items-center gap-3">
@@ -157,7 +157,7 @@ $choices_visible = in_array($type, ['select', 'radio', 'checkbox']);
             <hr>
 
             <div>
-                <label class="NORDBOOKING-filter-item label price-impact-label">
+                <label class="nordbooking-filter-item label price-impact-label">
                     <?php if ($type === 'sqm'): ?>
                         <?php esc_html_e('Price per Square Meter', 'NORDBOOKING'); ?>
                     <?php elseif ($type === 'kilometers'): ?>
@@ -187,7 +187,7 @@ $choices_visible = in_array($type, ['select', 'radio', 'checkbox']);
                 </div>
 
                 <div class="price-impact-value-container mt-4" style="display: <?php echo (!empty($price_impact_type) && $price_impact_type !== '') || in_array($type, ['sqm', 'kilometers']) ? 'block' : 'none'; ?>;">
-                    <label class="NORDBOOKING-filter-item label price-impact-value-label" for="price-impact-value-<?php echo esc_attr($option_index); ?>">
+                    <label class="nordbooking-filter-item label price-impact-value-label" for="price-impact-value-<?php echo esc_attr($option_index); ?>">
                         <?php if ($type === 'sqm'): ?>
                             <?php esc_html_e('Price per Square Meter', 'NORDBOOKING'); ?>
                         <?php elseif ($type === 'kilometers'): ?>
@@ -212,7 +212,7 @@ $choices_visible = in_array($type, ['select', 'radio', 'checkbox']);
             <hr>
 
             <div>
-                <label class="NORDBOOKING-filter-item label"><?php esc_html_e('Option Type', 'NORDBOOKING'); ?></label>
+                <label class="nordbooking-filter-item label"><?php esc_html_e('Option Type', 'NORDBOOKING'); ?></label>
                 <p class="form-description text-xs mb-2"><?php esc_html_e('Select how the user will interact with this option.', 'NORDBOOKING'); ?></p>
                 <div class="option-types-grid">
                     <?php foreach ($option_types as $type_key => $type_data): ?>
@@ -234,7 +234,7 @@ $choices_visible = in_array($type, ['select', 'radio', 'checkbox']);
             <div class="choices-container" style="display: <?php echo $choices_visible ? 'block' : 'none'; ?>;">
                 <hr>
                 <div class="mt-4">
-                    <label class="NORDBOOKING-filter-item label">
+                    <label class="nordbooking-filter-item label">
                         <?php esc_html_e('Choices', 'NORDBOOKING'); ?>
                     </label>
                     <p class="form-description text-xs mb-2">

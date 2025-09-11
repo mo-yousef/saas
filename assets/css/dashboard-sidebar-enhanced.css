@@ -204,7 +204,7 @@ body {
 /* ============================================================================
    Sidebar Base Structure
    ============================================================================ */
-.NORDBOOKING-dashboard-sidebar {
+.nordbooking-dashboard-sidebar {
   width: 280px;
   background-color: hsl(var(--background));
   border-right: 1px solid hsl(var(--border));
@@ -220,7 +220,7 @@ body {
 /* ============================================================================
    Sidebar Header/Branding
    ============================================================================ */
-.NORDBOOKING-dashboard-sidebar .dashboard-branding {
+.nordbooking-dashboard-sidebar .dashboard-branding {
   display: flex;
   align-items: center;
   padding: 1rem 1.5rem;
@@ -228,13 +228,13 @@ body {
   background-color: hsl(var(--background));
 }
 
-.NORDBOOKING-dashboard-sidebar .dashboard-branding .logo-container {
+.nordbooking-dashboard-sidebar .dashboard-branding .logo-container {
   display: flex;
   align-items: center;
   gap: 0.75rem;
 }
 
-.NORDBOOKING-dashboard-sidebar .dashboard-branding .logo-icon {
+.nordbooking-dashboard-sidebar .dashboard-branding .logo-icon {
   width: 2rem;
   height: 2rem;
   background: linear-gradient(135deg, hsl(271 81% 56%), hsl(271 91% 65%));
@@ -245,7 +245,7 @@ body {
   flex-shrink: 0;
 }
 
-.NORDBOOKING-dashboard-sidebar .dashboard-branding h3 {
+.nordbooking-dashboard-sidebar .dashboard-branding h3 {
   font-size: 1.25rem;
   font-weight: 600;
   color: hsl(var(--foreground));
@@ -254,7 +254,7 @@ body {
   line-height: 1.6;
 }
 
-.NORDBOOKING-dashboard-sidebar .dashboard-branding a {
+.nordbooking-dashboard-sidebar .dashboard-branding a {
   text-decoration: none;
   color: inherit;
   transition: opacity 0.2s;
@@ -263,14 +263,14 @@ body {
   gap: 0.75rem;
 }
 
-.NORDBOOKING-dashboard-sidebar .dashboard-branding a:hover {
+.nordbooking-dashboard-sidebar .dashboard-branding a:hover {
   opacity: 0.8;
 }
 
 /* ============================================================================
    User Role Display
    ============================================================================ */
-.NORDBOOKING-dashboard-sidebar .dashboard-user-role {
+.nordbooking-dashboard-sidebar .dashboard-user-role {
   padding: 0.75rem 1.5rem;
   background-color: hsl(var(--muted));
   border-bottom: 1px solid hsl(var(--border));
@@ -284,7 +284,7 @@ body {
 /* ============================================================================
    Navigation Container
    ============================================================================ */
-.NORDBOOKING-dashboard-sidebar .dashboard-nav {
+.nordbooking-dashboard-sidebar .dashboard-nav {
   flex-grow: 1;
   padding: 1rem 0;
   overflow-y: auto;
@@ -292,35 +292,35 @@ body {
   scrollbar-color: hsl(var(--border)) transparent;
 }
 
-.NORDBOOKING-dashboard-sidebar .dashboard-nav::-webkit-scrollbar {
+.nordbooking-dashboard-sidebar .dashboard-nav::-webkit-scrollbar {
   width: 6px;
 }
 
-.NORDBOOKING-dashboard-sidebar .dashboard-nav::-webkit-scrollbar-track {
+.nordbooking-dashboard-sidebar .dashboard-nav::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.NORDBOOKING-dashboard-sidebar .dashboard-nav::-webkit-scrollbar-thumb {
+.nordbooking-dashboard-sidebar .dashboard-nav::-webkit-scrollbar-thumb {
   background: hsl(var(--border));
   border-radius: 3px;
 }
 
-.NORDBOOKING-dashboard-sidebar .dashboard-nav::-webkit-scrollbar-thumb:hover {
+.nordbooking-dashboard-sidebar .dashboard-nav::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--muted-foreground));
 }
 
 /* ============================================================================
    Navigation Groups
    ============================================================================ */
-.NORDBOOKING-dashboard-sidebar .dashboard-nav .nav-group {
+.nordbooking-dashboard-sidebar .dashboard-nav .nav-group {
   margin-bottom: 1.5rem;
 }
 
-.NORDBOOKING-dashboard-sidebar .dashboard-nav .nav-group:last-child {
+.nordbooking-dashboard-sidebar .dashboard-nav .nav-group:last-child {
   margin-bottom: 0;
 }
 
-.NORDBOOKING-dashboard-sidebar .dashboard-nav .nav-group-title {
+.nordbooking-dashboard-sidebar .dashboard-nav .nav-group-title {
   font-size: 0.8125rem;
   font-weight: 600;
   color: hsl(var(--muted-foreground));
@@ -334,7 +334,7 @@ body {
 /* ============================================================================
    Navigation Lists and Items
    ============================================================================ */
-.NORDBOOKING-dashboard-sidebar .dashboard-nav ul {
+.nordbooking-dashboard-sidebar .dashboard-nav ul {
   list-style: none;
   padding: 0;
   margin: 0;
@@ -343,7 +343,7 @@ body {
   gap: 0.125rem;
 }
 
-.NORDBOOKING-dashboard-sidebar .dashboard-nav li {
+.nordbooking-dashboard-sidebar .dashboard-nav li {
   position: relative;
   padding: 0 0.75rem;
 }
@@ -351,7 +351,7 @@ body {
 /* ============================================================================
    Navigation Links - shadcn/ui Button Style
    ============================================================================ */
-.NORDBOOKING-dashboard-sidebar .dashboard-nav li a {
+.nordbooking-dashboard-sidebar .dashboard-nav li a {
   display: flex;
   align-items: center;
   width: 100%;
@@ -369,12 +369,12 @@ body {
   border: 1px solid transparent;
 }
 
-.NORDBOOKING-dashboard-sidebar .dashboard-nav li a:hover {
+.nordbooking-dashboard-sidebar .dashboard-nav li a:hover {
   background-color: hsl(var(--accent));
   color: hsl(var(--accent-foreground));
 }
 
-.NORDBOOKING-dashboard-sidebar .dashboard-nav li a:focus-visible {
+.nordbooking-dashboard-sidebar .dashboard-nav li a:focus-visible {
   outline: 2px solid hsl(var(--ring));
   outline-offset: 2px;
 }
@@ -383,7 +383,7 @@ body {
 /* ============================================================================
    Navigation Badges
    ============================================================================ */
-.NORDBOOKING-dashboard-sidebar .nav-badge {
+.nordbooking-dashboard-sidebar .nav-badge {
   margin-left: auto;
   background-color: hsl(var(--secondary));
   color: hsl(var(--secondary-foreground));
@@ -399,7 +399,7 @@ body {
   line-height: 1;
 }
 
-.NORDBOOKING-dashboard-sidebar .dashboard-nav li.active a .nav-badge {
+.nordbooking-dashboard-sidebar .dashboard-nav li.active a .nav-badge {
   background-color: hsl(var(--primary-foreground));
   color: hsl(var(--primary));
 }
@@ -481,7 +481,7 @@ body.NORDBOOKING-sidebar-open {
     display: block;
   }
 
-  .NORDBOOKING-dashboard-sidebar {
+  .nordbooking-dashboard-sidebar {
     position: fixed;
     left: -280px;
     top: 0;
@@ -493,17 +493,17 @@ body.NORDBOOKING-sidebar-open {
       0 4px 6px -4px rgb(0 0 0 / 0.1);
   }
 
-  .NORDBOOKING-dashboard-sidebar.open {
+  .nordbooking-dashboard-sidebar.open {
     left: 0;
   }
 
   /* Enhanced touch targets */
-  .NORDBOOKING-dashboard-sidebar .dashboard-nav li a {
+  .nordbooking-dashboard-sidebar .dashboard-nav li a {
     padding: 0.75rem;
     min-height: 2.75rem;
   }
 
-  .NORDBOOKING-dashboard-sidebar .dashboard-branding {
+  .nordbooking-dashboard-sidebar .dashboard-branding {
     padding: 1rem 1.5rem;
   }
 }
@@ -512,11 +512,11 @@ body.NORDBOOKING-sidebar-open {
    Tablet Responsive Design
    ============================================================================ */
 @media (max-width: 1024px) and (min-width: 769px) {
-  .NORDBOOKING-dashboard-sidebar {
+  .nordbooking-dashboard-sidebar {
     width: 260px;
   }
 
-  .NORDBOOKING-dashboard-sidebar .dashboard-nav li {
+  .nordbooking-dashboard-sidebar .dashboard-nav li {
     padding: 0 0.5rem;
   }
 
@@ -557,10 +557,10 @@ body.NORDBOOKING-sidebar-open {
    ============================================================================ */
 @media (prefers-reduced-motion: reduce) {
 
-  .NORDBOOKING-dashboard-sidebar,
-  .NORDBOOKING-dashboard-sidebar *,
-  .NORDBOOKING-dashboard-sidebar *::before,
-  .NORDBOOKING-dashboard-sidebar *::after {
+  .nordbooking-dashboard-sidebar,
+  .nordbooking-dashboard-sidebar *,
+  .nordbooking-dashboard-sidebar *::before,
+  .nordbooking-dashboard-sidebar *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
@@ -568,27 +568,27 @@ body.NORDBOOKING-sidebar-open {
 }
 
 /* Focus management for keyboard navigation */
-.NORDBOOKING-dashboard-sidebar a:focus-visible,
-.NORDBOOKING-dashboard-sidebar button:focus-visible {
+.nordbooking-dashboard-sidebar a:focus-visible,
+.nordbooking-dashboard-sidebar button:focus-visible {
   outline: 2px solid hsl(var(--ring));
   outline-offset: 2px;
 }
 
 /* High contrast mode support */
 @media (prefers-contrast: high) {
-  .NORDBOOKING-dashboard-sidebar {
+  .nordbooking-dashboard-sidebar {
     border-right: 2px solid hsl(var(--border));
   }
 
-  .NORDBOOKING-dashboard-sidebar .dashboard-nav li a {
+  .nordbooking-dashboard-sidebar .dashboard-nav li a {
     border: 1px solid transparent;
   }
 
-  .NORDBOOKING-dashboard-sidebar .dashboard-nav li a:hover {
+  .nordbooking-dashboard-sidebar .dashboard-nav li a:hover {
     border-color: hsl(var(--border));
   }
 
-  .NORDBOOKING-dashboard-sidebar .dashboard-nav li.active a {
+  .nordbooking-dashboard-sidebar .dashboard-nav li.active a {
     border-color: hsl(var(--primary));
   }
 }

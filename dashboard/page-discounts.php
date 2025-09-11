@@ -29,17 +29,17 @@ wp_nonce_field('nordbooking_dashboard_nonce', 'nordbooking_dashboard_nonce_field
 
 ?>
 <div class="NORDBOOKING-discounts-page">
-    <div class="NORDBOOKING-page-header">
-        <div class="NORDBOOKING-page-header-heading">
-            <span class="NORDBOOKING-page-header-icon">
+    <div class="nordbooking-page-header">
+        <div class="nordbooking-page-header-heading">
+            <span class="nordbooking-page-header-icon">
                 <?php echo nordbooking_get_dashboard_menu_icon('discounts'); ?>
             </span>
             <h1 class="card-content-value text-2xl font-bold"><?php esc_html_e('Manage Discount Codes', 'NORDBOOKING'); ?></h1>
         </div>
-        <button id="NORDBOOKING-add-new-discount-btn" class="btn btn-primary btn-sm"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class=""><path d="M5 12h14"/><path d="M12 5v14"/></svg><?php esc_html_e('Add New Discount Code', 'NORDBOOKING'); ?></button>
+        <button id="nordbooking-add-new-discount-btn" class="btn btn-primary btn-sm"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class=""><path d="M5 12h14"/><path d="M12 5v14"/></svg><?php esc_html_e('Add New Discount Code', 'NORDBOOKING'); ?></button>
     </div>
 
-    <div id="NORDBOOKING-discounts-list-container" class="NORDBOOKING-table-container">
+    <div id="NORDBOOKING-discounts-list-container" class="nordbooking-table-container">
     <table class="wp-list-table widefat striped">
         <thead>
             <tr>

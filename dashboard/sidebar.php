@@ -46,7 +46,7 @@ if ( $current_user_id > 0 ) {
     }
 }
 ?>
-<aside class="NORDBOOKING-dashboard-sidebar">
+<aside class="nordbooking-dashboard-sidebar">
     <div class="dashboard-branding">
         <a href="<?php echo esc_url($dashboard_base_url); ?>">
             <h3><?php echo $display_brand_name; ?></h3>

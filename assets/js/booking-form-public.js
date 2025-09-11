@@ -772,7 +772,7 @@ jQuery(document).ready(function ($) {
     }
 
     els.optionsContainer.html(`
-      <div class="NORDBOOKING-card">
+      <div class="nordbooking-card">
         <div class="NORDBOOKING-text-center">
           <div class="NORDBOOKING-spinner" style="margin: 2rem auto;"></div>
           <p>${CONFIG.i18n.loading_options || "Loading service options..."}</p>

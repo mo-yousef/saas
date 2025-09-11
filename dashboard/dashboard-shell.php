@@ -108,8 +108,8 @@ error_log('[NORDBOOKING Shell Debug] dashboard-shell.php execution started. User
 
     <?php wp_head(); ?>
 </head>
-<body <?php body_class('NORDBOOKING-dashboard'); ?>>
-    <div class="NORDBOOKING-dashboard-layout">
+<body <?php body_class('nordbooking-dashboard'); ?>>
+    <div class="nordbooking-dashboard-layout">
         <?php
         error_log('[NORDBOOKING Shell Debug] Including sidebar.php. Current view for sidebar: ' . $requested_page);
         // Set the global variable for the sidebar to use
@@ -117,7 +117,7 @@ error_log('[NORDBOOKING Shell Debug] dashboard-shell.php execution started. User
         include_once NORDBOOKING_THEME_DIR . 'dashboard/sidebar.php';
         error_log('[NORDBOOKING Shell Debug] sidebar.php included.');
         ?>
-        <div class="NORDBOOKING-dashboard-main-wrapper">
+        <div class="nordbooking-dashboard-main-wrapper">
             <?php
             error_log('[NORDBOOKING Shell Debug] Including header.php.');
             include_once NORDBOOKING_THEME_DIR . 'dashboard/header.php';
@@ -157,7 +157,7 @@ error_log('[NORDBOOKING Shell Debug] dashboard-shell.php execution started. User
     <script>
         // Basic mobile nav toggle
         const mobileNavToggle = document.getElementById('NORDBOOKING-mobile-nav-toggle');
-        const sidebar = document.querySelector('.NORDBOOKING-dashboard-sidebar');
+        const sidebar = document.querySelector('.nordbooking-dashboard-sidebar');
         if (mobileNavToggle && sidebar) {
             mobileNavToggle.addEventListener('click', function() {
                 sidebar.classList.toggle('open');

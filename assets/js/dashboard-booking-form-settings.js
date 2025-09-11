@@ -70,7 +70,7 @@ jQuery(document).ready(function ($) {
   initializeTabs();
 
   // --- Form Submission ---
-  $("#NORDBOOKING-booking-form-settings-form").on("submit", function (e) {
+  $("#nordbooking-booking-form-settings-form").on("submit", function (e) {
     e.preventDefault();
     const form = $(this);
     const saveButton = $("#NORDBOOKING-save-bf-settings-btn");

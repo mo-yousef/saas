@@ -10,7 +10,7 @@ jQuery(document).ready(function ($) {
 
     const editDialog = new MoBookingDialog({
       title: "Edit Customer",
-      content: `<form id="NORDBOOKING-dialog-edit-form">${formHtml}</form>`,
+      content: `<form id="nordbooking-dialog-edit-form">${formHtml}</form>`,
       buttons: [
         {
           label: "Cancel",
@@ -21,7 +21,7 @@ jQuery(document).ready(function ($) {
           label: "Save Changes",
           class: "primary",
           onClick: (dialog) => {
-            const form = dialog.findElement("#NORDBOOKING-dialog-edit-form");
+            const form = dialog.findElement("#nordbooking-dialog-edit-form");
             const formData = $(form).serializeArray();
             let data = {
               action: "nordbooking_update_customer_details",

@@ -81,7 +81,7 @@ jQuery(document).ready(function ($) {
 
   // Mobile Sidebar Toggle
   const mobileNavToggle = $("#NORDBOOKING-mobile-nav-toggle");
-  const sidebar = $(".NORDBOOKING-dashboard-sidebar");
+  const sidebar = $(".nordbooking-dashboard-sidebar");
   const body = $("body");
 
   mobileNavToggle.on("click", function (e) {
@@ -93,7 +93,7 @@ jQuery(document).ready(function ($) {
   $(document).on("click", function (e) {
     if (
       sidebar.hasClass("open") &&
-      !$(e.target).closest(".NORDBOOKING-dashboard-sidebar").length
+      !$(e.target).closest(".nordbooking-dashboard-sidebar").length
     ) {
       sidebar.removeClass("open");
       body.removeClass("NORDBOOKING-sidebar-open");

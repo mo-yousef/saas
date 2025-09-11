@@ -6,7 +6,7 @@
  */
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 ?>
-<header class="NORDBOOKING-dashboard-header">
+<header class="nordbooking-dashboard-header">
     <div class="dashboard-header-left">
         <button id="NORDBOOKING-mobile-nav-toggle" aria-label="<?php esc_attr_e('Toggle navigation', 'NORDBOOKING'); ?>">&#9776;</button>
 

@@ -843,7 +843,7 @@ class BookingFormAjax {
                 'total_price' => number_format($booking_data['pricing']['total'], 2),
                 'special_instructions' => $booking_data['customer']['instructions'] ?? 'None',
                 'business_name' => $business_settings['biz_name'] ?? 'NORDBOOKING',
-                'admin_booking_link' => admin_url('admin.php?page=NORDBOOKING-bookings&booking_id=' . $booking_id)
+                'admin_booking_link' => admin_url('admin.php?page=nordbooking-bookings&booking_id=' . $booking_id)
             ];
 
             // Send customer confirmation email

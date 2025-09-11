@@ -72,8 +72,8 @@ if ($current_user_id) {
     $bookings_result = $bookings_manager->get_bookings_by_tenant($current_user_id, $default_args);
 
     if (!empty($bookings_result['bookings'])) {
-        $initial_bookings_html .= '<div class="NORDBOOKING-table-responsive-wrapper">';
-        $initial_bookings_html .= '<table class="NORDBOOKING-table">';
+        $initial_bookings_html .= '<div class="nordbooking-table-responsive-wrapper">';
+        $initial_bookings_html .= '<table class="nordbooking-table">';
         $initial_bookings_html .= '<thead><tr>';
         $initial_bookings_html .= '<th>' . esc_html__('Ref', 'NORDBOOKING') . '</th>';
         $initial_bookings_html .= '<th>' . esc_html__('Customer', 'NORDBOOKING') . '</th>';
@@ -104,7 +104,7 @@ if ($current_user_id) {
             $initial_bookings_html .= '<td data-label="' . esc_attr__('Assigned Staff', 'NORDBOOKING') . '">' . $assigned_staff_name . '</td>';
             $initial_bookings_html .= '<td data-label="' . esc_attr__('Total', 'NORDBOOKING') . '">' . $total_price_formatted . '</td>';
             $initial_bookings_html .= '<td data-label="' . esc_attr__('Status', 'NORDBOOKING') . '"><span class="status-badge status-' . esc_attr($status_val) . '">' . $status_icon_html . '<span class="status-text">' . esc_html($status_display) . '</span></span></td>';
-            $initial_bookings_html .= '<td data-label="' . esc_attr__('Actions', 'NORDBOOKING') . '" class="NORDBOOKING-table-actions">';
+            $initial_bookings_html .= '<td data-label="' . esc_attr__('Actions', 'NORDBOOKING') . '" class="nordbooking-table-actions">';
             $initial_bookings_html .= '<a href="' . esc_url($details_page_url) . '" class="btn btn-outline btn-sm">' . __('View Details', 'NORDBOOKING') . '</a> ';
             if (class_exists('NORDBOOKING\Classes\Auth') && !\NORDBOOKING\Classes\Auth::is_user_worker($current_user_id)) {
                 $initial_bookings_html .= '<button class="btn btn-destructive btn-sm NORDBOOKING-delete-booking-btn" data-booking-id="' . esc_attr($booking['booking_id']) . '">' . __('Delete', 'NORDBOOKING') . '</button>';
@@ -143,11 +143,11 @@ $booking_statuses = [
 ];
 ?>
 
-<div class="wrap NORDBOOKING-dashboard-wrap NORDBOOKING-bookings-page-wrapper">
+<div class="wrap nordbooking-dashboard-wrap nordbooking-bookings-page-wrapper">
 
-    <div class="NORDBOOKING-page-header">
-        <div class="NORDBOOKING-page-header-heading">
-            <span class="NORDBOOKING-page-header-icon">
+    <div class="nordbooking-page-header">
+        <div class="nordbooking-page-header-heading">
+            <span class="nordbooking-page-header-icon">
                 <?php echo nordbooking_get_dashboard_menu_icon('bookings'); ?>
             </span>
             <h1 class="wp-heading-inline"><?php esc_html_e('Manage Bookings', 'NORDBOOKING'); ?></h1>
@@ -159,80 +159,73 @@ $booking_statuses = [
         }
         if ($current_user_can_add_booking) :
         ?>
-        <button id="NORDBOOKING-add-booking-btn" class="btn btn-primary">
+        <button id="nordbooking-add-booking-btn" class="btn btn-primary">
             <?php esc_html_e('Add New Booking', 'NORDBOOKING'); ?>
         </button>
         <?php endif; ?>
     </div>
 
     <div class="kpi-grid">
-        <div class="NORDBOOKING-card">
-            <div class="NORDBOOKING-card-header">
-                <div class="NORDBOOKING-card-title-group">
-                    <span class="NORDBOOKING-card-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg></span>
-                    <h3 class="NORDBOOKING-card-title"><?php esc_html_e('Bookings This Month', 'NORDBOOKING'); ?></h3>
+        <div class="nordbooking-card">
+            <div class="nordbooking-card-header">
+                <div class="nordbooking-card-title-group">
+                    <span class="nordbooking-card-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg></span>
+                    <h3 class="nordbooking-card-title"><?php esc_html_e('Bookings This Month', 'NORDBOOKING'); ?></h3>
                 </div>
             </div>
-            <div class="NORDBOOKING-card-content">
+            <div class="nordbooking-card-content">
                 <div class="card-content-value text-2xl font-bold"><?php echo esc_html($kpi_data['bookings_month']); ?></div>
             </div>
         </div>
 
         <?php if ($kpi_data['revenue_month'] !== null) : ?>
-        <div class="NORDBOOKING-card">
-            <div class="NORDBOOKING-card-header">
-                <div class="NORDBOOKING-card-title-group">
-                    <span class="NORDBOOKING-card-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg></span>
-                    <h3 class="NORDBOOKING-card-title"><?php esc_html_e('Revenue This Month', 'NORDBOOKING'); ?></h3>
+        <div class="nordbooking-card">
+            <div class="nordbooking-card-header">
+                <div class="nordbooking-card-title-group">
+                    <span class="nordbooking-card-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg></span>
+                    <h3 class="nordbooking-card-title"><?php esc_html_e('Revenue This Month', 'NORDBOOKING'); ?></h3>
                 </div>
             </div>
-            <div class="NORDBOOKING-card-content">
+            <div class="nordbooking-card-content">
                 <div class="card-content-value text-2xl font-bold"><?php echo esc_html($currency_symbol . number_format_i18n(floatval($kpi_data['revenue_month']), 2)); ?></div>
             </div>
         </div>
         <?php endif; ?>
 
-        <div class="NORDBOOKING-card">
-            <div class="NORDBOOKING-card-header">
-                <div class="NORDBOOKING-card-title-group">
-                    <span class="NORDBOOKING-card-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg></span>
-                    <h3 class="NORDBOOKING-card-title"><?php esc_html_e('Upcoming Confirmed Bookings', 'NORDBOOKING'); ?></h3>
+        <div class="nordbooking-card">
+            <div class="nordbooking-card-header">
+                <div class="nordbooking-card-title-group">
+                    <span class="nordbooking-card-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg></span>
+                    <h3 class="nordbooking-card-title"><?php esc_html_e('Upcoming Confirmed Bookings', 'NORDBOOKING'); ?></h3>
                 </div>
             </div>
-            <div class="NORDBOOKING-card-content">
+            <div class="nordbooking-card-content">
                 <div class="card-content-value text-2xl font-bold"><?php echo esc_html($kpi_data['upcoming_count']); ?></div>
             </div>
         </div>
     </div>
 
     <style>
-        .NORDBOOKING-filters-form {
+        .nordbooking-filters-form {
             display: flex;
             flex-wrap: wrap;
             gap: 1rem;
-        }
-        .NORDBOOKING-filters-main, .NORDBOOKING-filters-secondary {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 1rem;
-            align-items: flex-end;
-        }
-        .NORDBOOKING-filters-main {
+        }        .nordbooking-filters-main {
             flex-grow: 1;
         }
-        .NORDBOOKING-filter-item {
+        .nordbooking-filter-item {
             display: flex;
             flex-direction: column;
             gap: 0.25rem;
         }
-        .NORDBOOKING-filter-item-search {
+        .nordbooking-filter-item-search {
             flex-grow: 1;
         }
-        .NORDBOOKING-filters-secondary {
+        .nordbooking-filters-secondary {
             width: 100%;
             display: none; /* Hidden by default */
         }
-        .NORDBOOKING-filters-secondary-inner {
+        .nordbooking-filters-secondary-inner {
     display: flex
 ;
     gap: 1.5rem;
@@ -248,7 +241,7 @@ div#ui-datepicker-div {
 }
 
 
-        .NORDBOOKING-filter-actions {
+        .nordbooking-filter-actions {
             display: flex;
             gap: 0.5rem;
             align-items: flex-end;
@@ -277,50 +270,50 @@ div#ui-datepicker-div {
             color: #64748b;
             margin: 0;
         }
-        .NORDBOOKING-filters-secondary .NORDBOOKING-filter-item {
+        .nordbooking-filters-secondary .nordbooking-filter-item {
             flex-basis: calc(50% - 1rem);
             flex-grow: 1;
         }
-        .NORDBOOKING-filters-secondary .NORDBOOKING-datepicker {
+        .nordbooking-filters-secondary .NORDBOOKING-datepicker {
             background-color: #ffffff;
             box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
         }
     </style>
-    <div class="NORDBOOKING-card NORDBOOKING-filters-wrapper">
-        <div class="NORDBOOKING-card-content">
-            <form id="NORDBOOKING-bookings-filter-form" class="NORDBOOKING-filters-form">
-                <div class="NORDBOOKING-filters-main">
-                    <div class="NORDBOOKING-filter-item NORDBOOKING-filter-item-search">
+    <div class="nordbooking-card nordbooking-filters-wrapper">
+        <div class="nordbooking-card-content">
+            <form id="nordbooking-bookings-filter-form" class="nordbooking-filters-form">
+                <div class="nordbooking-filters-main">
+                    <div class="nordbooking-filter-item nordbooking-filter-item-search">
                         <label for="NORDBOOKING-search-query"><?php esc_html_e('Search', 'NORDBOOKING'); ?></label>
                         <input type="search" id="NORDBOOKING-search-query" name="search_query" class="regular-text" placeholder="<?php esc_attr_e('Ref, Name, Email', 'NORDBOOKING'); ?>">
                     </div>
-                    <div class="NORDBOOKING-filter-item">
+                    <div class="nordbooking-filter-item">
                         <label for="NORDBOOKING-status-filter"><?php esc_html_e('Status', 'NORDBOOKING'); ?></label>
-                        <select id="NORDBOOKING-status-filter" name="status_filter" class="NORDBOOKING-filter-select">
+                        <select id="NORDBOOKING-status-filter" name="status_filter" class="nordbooking-filter-select">
                             <?php foreach ($booking_statuses as $value => $label) : ?>
                                 <option value="<?php echo esc_attr($value); ?>"><?php echo esc_html($label); ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>
-                    <div class="NORDBOOKING-filter-actions">
+                    <div class="nordbooking-filter-actions">
                         <button type="submit" class="btn btn-secondary" style="display:none;"><?php echo nordbooking_get_feather_icon('filter'); ?> <?php esc_html_e('Filter', 'NORDBOOKING'); ?></button>
                         <button type="button" id="NORDBOOKING-toggle-more-filters-btn" class="btn btn-outline"><?php echo nordbooking_get_feather_icon('sliders'); ?> <span class="btn-text"><?php esc_html_e('More', 'NORDBOOKING'); ?></span></button>
-                        <button type="button" id="NORDBOOKING-clear-filters-btn" class="btn btn-outline" style="display: none;"><?php echo nordbooking_get_feather_icon('x'); ?> <span class="btn-text"><?php esc_html_e('Clear', 'NORDBOOKING'); ?></span></button>
+                        <button type="button" id="NORDBOOKING-clear-filters-btn" class="btn btn-outline"><?php echo nordbooking_get_feather_icon('x'); ?> <span class="btn-text"><?php esc_html_e('Clear', 'NORDBOOKING'); ?></span></button>
                     </div>
                 </div>
-                <div class="NORDBOOKING-filters-secondary">
-                    <div class="NORDBOOKING-filters-secondary-inner">
-                        <div class="NORDBOOKING-filter-item">
+                <div class="nordbooking-filters-secondary">
+                    <div class="nordbooking-filters-secondary-inner">
+                        <div class="nordbooking-filter-item">
                             <label for="NORDBOOKING-date-from-filter"><?php esc_html_e('From:', 'NORDBOOKING'); ?></label>
                             <input type="text" id="NORDBOOKING-date-from-filter" name="date_from_filter" class="NORDBOOKING-datepicker regular-text" placeholder="YYYY-MM-DD">
                         </div>
-                        <div class="NORDBOOKING-filter-item">
+                        <div class="nordbooking-filter-item">
                             <label for="NORDBOOKING-date-to-filter"><?php esc_html_e('To:', 'NORDBOOKING'); ?></label>
                             <input type="text" id="NORDBOOKING-date-to-filter" name="date_to_filter" class="NORDBOOKING-datepicker regular-text" placeholder="YYYY-MM-DD">
                         </div>
-                        <div class="NORDBOOKING-filter-item">
+                        <div class="nordbooking-filter-item">
                             <label for="NORDBOOKING-staff-filter"><?php esc_html_e('Staff:', 'NORDBOOKING'); ?></label>
-                            <select id="NORDBOOKING-staff-filter" name="staff_filter" class="NORDBOOKING-filter-select">
+                            <select id="NORDBOOKING-staff-filter" name="staff_filter" class="nordbooking-filter-select">
                                 <option value=""><?php esc_html_e('All Staff', 'NORDBOOKING'); ?></option>
                                 <option value="0"><?php esc_html_e('Unassigned', 'NORDBOOKING'); ?></option>
                                 <?php
@@ -350,11 +343,11 @@ div#ui-datepicker-div {
         </div>
     </div>
 
-    <div id="NORDBOOKING-bookings-list-container" class="NORDBOOKING-list-table-wrapper">
+    <div id="nordbooking-bookings-list-container" class="nordbooking-list-table-wrapper">
         <?php echo $initial_bookings_html; // WPCS: XSS ok. Escaped above. ?>
     </div>
 
-    <div id="NORDBOOKING-bookings-pagination-container" class="tablenav bottom">
+    <div id="nordbooking-bookings-pagination-container" class="tablenav bottom">
         <div class="tablenav-pages">
             <span class="pagination-links">
                  <?php echo $initial_pagination_html; // WPCS: XSS ok. Escaped above. ?>
@@ -362,7 +355,7 @@ div#ui-datepicker-div {
         </div>
     </div>
 
-<script type="text/template" id="NORDBOOKING-booking-item-template">
+<script type="text/template" id="nordbooking-booking-item-template">
     <tr data-booking-id="<%= booking_id %>">
         <td data-colname="<?php esc_attr_e('Ref', 'NORDBOOKING'); ?>"><%= booking_reference %></td>
         <td data-colname="<?php esc_attr_e('Customer', 'NORDBOOKING'); ?>"><%= customer_name %><br><small><%= customer_email %></small></td>
@@ -374,7 +367,7 @@ div#ui-datepicker-div {
                 <%= icon_html %> <span class="status-text"><%= status_display %></span>
             </span>
         </td>
-        <td data-colname="<?php esc_attr_e('Actions', 'NORDBOOKING'); ?>" class="NORDBOOKING-table-actions">
+        <td data-colname="<?php esc_attr_e('Actions', 'NORDBOOKING'); ?>" class="nordbooking-table-actions">
             <a href="<%= details_page_url %>" class="btn btn-outline btn-sm"><?php esc_html_e('View Details', 'NORDBOOKING'); ?></a>
             <%= delete_button_html %>
         </td>

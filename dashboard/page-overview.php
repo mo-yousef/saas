@@ -318,8 +318,8 @@ $currency_symbol = get_option('nordbooking_currency_symbol', '$');
     <?php else : ?>
 
         <div class="dashboard-header">
-            <div class="NORDBOOKING-page-header-heading">
-                <span class="NORDBOOKING-page-header-icon">
+            <div class="nordbooking-page-header-heading">
+                <span class="nordbooking-page-header-icon">
                     <?php echo nordbooking_get_dashboard_menu_icon('overview'); ?>
                 </span>
                 <div class="heading-wrapper">
@@ -334,14 +334,14 @@ $currency_symbol = get_option('nordbooking_currency_symbol', '$');
 
         <!-- KPI Widgets -->
         <div class="kpi-grid">
-        <div class="NORDBOOKING-card">
-            <div class="NORDBOOKING-card-header">
-                <div class="NORDBOOKING-card-title-group">
-                    <span class="NORDBOOKING-card-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg></span>
-                    <h3 class="NORDBOOKING-card-title"><?php esc_html_e('Total Bookings', 'NORDBOOKING'); ?></h3>
+        <div class="nordbooking-card">
+            <div class="nordbooking-card-header">
+                <div class="nordbooking-card-title-group">
+                    <span class="nordbooking-card-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg></span>
+                    <h3 class="nordbooking-card-title"><?php esc_html_e('Total Bookings', 'NORDBOOKING'); ?></h3>
                 </div>
             </div>
-            <div class="NORDBOOKING-card-content">
+            <div class="nordbooking-card-content">
                 <div class="card-content-value text-2xl font-bold"><?php echo esc_html($total_bookings); ?></div>
                 <p class="text-xs text-muted-foreground <?php echo $bookings_change[0] === '+' ? 'text-success' : 'text-destructive'; ?>">
                     <?php echo esc_html($bookings_change); ?> <?php esc_html_e('vs last month', 'NORDBOOKING'); ?>
@@ -349,14 +349,14 @@ $currency_symbol = get_option('nordbooking_currency_symbol', '$');
             </div>
         </div>
 
-        <div class="NORDBOOKING-card">
-            <div class="NORDBOOKING-card-header">
-                <div class="NORDBOOKING-card-title-group">
-                    <span class="NORDBOOKING-card-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg></span>
-                    <h3 class="NORDBOOKING-card-title"><?php esc_html_e('Monthly Revenue', 'NORDBOOKING'); ?></h3>
+        <div class="nordbooking-card">
+            <div class="nordbooking-card-header">
+                <div class="nordbooking-card-title-group">
+                    <span class="nordbooking-card-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg></span>
+                    <h3 class="nordbooking-card-title"><?php esc_html_e('Monthly Revenue', 'NORDBOOKING'); ?></h3>
                 </div>
             </div>
-            <div class="NORDBOOKING-card-content">
+            <div class="nordbooking-card-content">
                 <div class="card-content-value text-2xl font-bold"><?php echo esc_html($currency_symbol . number_format($monthly_revenue, 2)); ?></div>
                 <p class="text-xs text-muted-foreground <?php echo $revenue_change[0] === '+' ? 'text-success' : 'text-destructive'; ?>">
                     <?php echo esc_html($revenue_change); ?> <?php esc_html_e('vs last month', 'NORDBOOKING'); ?>
@@ -364,14 +364,14 @@ $currency_symbol = get_option('nordbooking_currency_symbol', '$');
             </div>
         </div>
 
-        <div class="NORDBOOKING-card">
-            <div class="NORDBOOKING-card-header">
-                <div class="NORDBOOKING-card-title-group">
-                    <span class="NORDBOOKING-card-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg></span>
-                    <h3 class="NORDBOOKING-card-title"><?php esc_html_e('Completed Jobs', 'NORDBOOKING'); ?></h3>
+        <div class="nordbooking-card">
+            <div class="nordbooking-card-header">
+                <div class="nordbooking-card-title-group">
+                    <span class="nordbooking-card-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg></span>
+                    <h3 class="nordbooking-card-title"><?php esc_html_e('Completed Jobs', 'NORDBOOKING'); ?></h3>
                 </div>
             </div>
-            <div class="NORDBOOKING-card-content">
+            <div class="nordbooking-card-content">
                 <div class="card-content-value text-2xl font-bold"><?php echo esc_html($completed_jobs); ?></div>
                 <p class="text-xs text-muted-foreground <?php echo $completed_change[0] === '+' ? 'text-success' : 'text-destructive'; ?>">
                     <?php echo esc_html($completed_change); ?> <?php esc_html_e('vs last month', 'NORDBOOKING'); ?>
@@ -379,14 +379,14 @@ $currency_symbol = get_option('nordbooking_currency_symbol', '$');
             </div>
         </div>
 
-        <div class="NORDBOOKING-card">
-            <div class="NORDBOOKING-card-header">
-                <div class="NORDBOOKING-card-title-group">
-                    <span class="NORDBOOKING-card-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg></span>
-                    <h3 class="NORDBOOKING-card-title"><?php esc_html_e('New Customers', 'NORDBOOKING'); ?></h3>
+        <div class="nordbooking-card">
+            <div class="nordbooking-card-header">
+                <div class="nordbooking-card-title-group">
+                    <span class="nordbooking-card-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg></span>
+                    <h3 class="nordbooking-card-title"><?php esc_html_e('New Customers', 'NORDBOOKING'); ?></h3>
                 </div>
             </div>
-            <div class="NORDBOOKING-card-content">
+            <div class="nordbooking-card-content">
                 <div class="card-content-value text-2xl font-bold"><?php echo esc_html($new_customers); ?></div>
                 <p class="text-xs text-muted-foreground <?php echo $customers_change[0] === '+' ? 'text-success' : 'text-destructive'; ?>">
                     <?php echo esc_html($customers_change); ?> <?php esc_html_e('vs last month', 'NORDBOOKING'); ?>
@@ -398,17 +398,17 @@ $currency_symbol = get_option('nordbooking_currency_symbol', '$');
         <!-- Main Content Grid -->
         <div class="content-grid">
             <!-- Recent Bookings -->
-            <div class="NORDBOOKING-card">
-                <div class="NORDBOOKING-card-header">
-                    <div class="NORDBOOKING-card-title-group">
-                        <span class="NORDBOOKING-card-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg></span>
-                        <h3 class="NORDBOOKING-card-title"><?php esc_html_e('Recent Bookings', 'NORDBOOKING'); ?></h3>
+            <div class="nordbooking-card">
+                <div class="nordbooking-card-header">
+                    <div class="nordbooking-card-title-group">
+                        <span class="nordbooking-card-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg></span>
+                        <h3 class="nordbooking-card-title"><?php esc_html_e('Recent Bookings', 'NORDBOOKING'); ?></h3>
                     </div>
-                    <div class="NORDBOOKING-card-actions">
-                        <a href="<?php echo esc_url(admin_url('admin.php?page=NORDBOOKING-bookings')); ?>" class="btn btn-sm"><?php esc_html_e('View All', 'NORDBOOKING'); ?></a>
+                    <div class="nordbooking-card-actions">
+                        <a href="<?php echo esc_url(admin_url('admin.php?page=nordbooking-bookings')); ?>" class="btn btn-sm"><?php esc_html_e('View All', 'NORDBOOKING'); ?></a>
                     </div>
                 </div>
-                <div class="NORDBOOKING-card-content">
+                <div class="nordbooking-card-content">
                     <?php if (!empty($recent_bookings)) : ?>
                         <?php
                         foreach ($recent_bookings as $booking) :
@@ -452,14 +452,14 @@ $currency_symbol = get_option('nordbooking_currency_symbol', '$');
             <!-- Sidebar Content -->
             <div>
                 <!-- Staff Performance -->
-                <div class="NORDBOOKING-card" style="margin-bottom: 1.5rem;">
-                    <div class="NORDBOOKING-card-header">
-                         <div class="NORDBOOKING-card-title-group">
-                            <span class="NORDBOOKING-card-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg></span>
-                            <h3 class="NORDBOOKING-card-title"><?php esc_html_e('Staff Performance', 'NORDBOOKING'); ?></h3>
+                <div class="nordbooking-card" style="margin-bottom: 1.5rem;">
+                    <div class="nordbooking-card-header">
+                         <div class="nordbooking-card-title-group">
+                            <span class="nordbooking-card-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg></span>
+                            <h3 class="nordbooking-card-title"><?php esc_html_e('Staff Performance', 'NORDBOOKING'); ?></h3>
                         </div>
                     </div>
-                    <div class="NORDBOOKING-card-content">
+                    <div class="nordbooking-card-content">
                         <?php if (!empty($staff_stats)) : ?>
                             <?php foreach ($staff_stats as $staff) : ?>
                                 <div class="staff-item">
@@ -477,16 +477,16 @@ $currency_symbol = get_option('nordbooking_currency_symbol', '$');
                 </div>
 
                 <!-- Quick Actions -->
-                <div class="NORDBOOKING-card">
-                    <div class="NORDBOOKING-card-header">
-                        <div class="NORDBOOKING-card-title-group">
-                            <span class="NORDBOOKING-card-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg></span>
-                            <h3 class="NORDBOOKING-card-title"><?php esc_html_e('Quick Actions', 'NORDBOOKING'); ?></h3>
+                <div class="nordbooking-card">
+                    <div class="nordbooking-card-header">
+                        <div class="nordbooking-card-title-group">
+                            <span class="nordbooking-card-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg></span>
+                            <h3 class="nordbooking-card-title"><?php esc_html_e('Quick Actions', 'NORDBOOKING'); ?></h3>
                         </div>
                     </div>
-                    <div class="NORDBOOKING-card-content">
+                    <div class="nordbooking-card-content">
                         <div class="quick-actions">
-                            <a href="<?php echo esc_url(admin_url('admin.php?page=NORDBOOKING-bookings')); ?>" class="quick-action">
+                            <a href="<?php echo esc_url(admin_url('admin.php?page=nordbooking-bookings')); ?>" class="quick-action">
                                 <div class="quick-action-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg></div>
                                 <div class="quick-action-text"><?php esc_html_e('Manage Bookings', 'NORDBOOKING'); ?></div>
                             </a>

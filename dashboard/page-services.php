@@ -48,10 +48,10 @@ function get_default_service_icon() {
 ?>
 
 
-<div class="wrap NORDBOOKING-dashboard-wrap NORDBOOKING-services-page-wrapper">
-    <div class="NORDBOOKING-page-header">
-        <div class="NORDBOOKING-page-header-heading">
-            <span class="NORDBOOKING-page-header-icon">
+<div class="wrap nordbooking-dashboard-wrap NORDBOOKING-services-page-wrapper">
+    <div class="nordbooking-page-header">
+        <div class="nordbooking-page-header-heading">
+            <span class="nordbooking-page-header-icon">
                 <?php echo nordbooking_get_dashboard_menu_icon('services'); ?>
             </span>
             <h1 class="wp-heading-inline"><?php esc_html_e('Manage Your Services', 'NORDBOOKING'); ?></h1>
@@ -63,10 +63,10 @@ function get_default_service_icon() {
     </div>
 
     <!-- Controls Section -->
-    <div class="NORDBOOKING-card NORDBOOKING-filters-wrapper">
-        <div class="NORDBOOKING-card-content">
-            <div class="NORDBOOKING-filter-row">
-                <div class="NORDBOOKING-filter-item NORDBOOKING-filter-item-search">
+    <div class="nordbooking-filters-wrapper">
+        <div class="nordbooking-card-content">
+            <div class="nordbooking-filter-row">
+                <div class="nordbooking-filter-item nordbooking-filter-item-search">
                     <label for="services-search"><?php esc_html_e('Search:', 'NORDBOOKING'); ?></label>
                     <input type="text" id="services-search" class="regular-text" placeholder="<?php esc_attr_e('Search services...', 'NORDBOOKING'); ?>" value="">
                 </div>
