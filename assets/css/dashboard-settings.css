@@ -145,7 +145,7 @@
 }
 
 .email-component textarea.component-input {
-    min-height: 60px;
+    min-height: 100px;
     resize: vertical;
 }
 
