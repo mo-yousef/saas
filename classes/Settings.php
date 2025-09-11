@@ -797,7 +797,7 @@ public function save_booking_form_settings(int $user_id, array $settings_data): 
 
     public function save_business_settings(int $user_id, array $settings_data): bool {
         $business_setting_keys = array_filter(array_keys(self::get_default_settings()), function($key) {
-            return strpos($key, 'biz_') === 0 || strpos($key, 'email_') === 0;
+            return strpos($key, 'biz_') === 0 || strpos($key, 'email_') === 0 || strpos($key, 'bf_') === 0;
         });
         $business_defaults = array_intersect_key(self::get_default_settings(), array_flip($business_setting_keys));
         return $this->save_settings_group($user_id, $settings_data, $business_defaults);
