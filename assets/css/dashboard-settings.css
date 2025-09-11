@@ -90,53 +90,55 @@
 
 /* Email Settings Layout */
 .email-settings-layout {
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 20px;
+    align-items: flex-start;
 }
 
-.email-editor-column {
-    flex: 1;
-    min-width: 0;
-}
-
+.email-editor-column,
 .email-preview-column {
-    flex: 1;
     min-width: 0;
+}
+
+.email-editor-column .nordbooking-card,
+.email-preview-column .nordbooking-card {
+    margin-bottom: 20px;
 }
 
 /* Email Editor */
 #email-editor-container {
     border-top: 1px solid #eee;
-    margin-top: 15px;
-    padding-top: 15px;
+    margin-top: 10px;
+    padding-top: 10px;
 }
 
 .email-editor-fields-wrapper {
     border: 1px solid #ddd;
     border-radius: 4px;
-    padding: 10px;
-    min-height: 200px;
+    padding: 8px;
+    min-height: 150px;
     background-color: #fdfdfd;
 }
 
 .email-component {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 10px;
+    gap: 8px;
+    padding: 8px;
     border: 1px solid #eee;
     border-radius: 4px;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
     background-color: #fff;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
 }
 
 .email-component .drag-handle {
-    width: 20px;
-    height: 20px;
+    width: 16px;
+    height: 16px;
     cursor: move;
     background-image: url('data:image/svg+xml;charset=UTF-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="%23888"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v12a1 1 0 11-2 0V4a1 1 0 011-1zM4 9a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1z" clip-rule="evenodd" /></svg>');
-    opacity: 0.5;
+    opacity: 0.4;
 }
 
 .email-component:hover .drag-handle {
@@ -148,23 +150,24 @@
 .email-component textarea.component-input {
     flex-grow: 1;
     border: 1px solid #ddd;
-    padding: 8px;
+    padding: 6px;
     border-radius: 4px;
+    font-size: 13px;
 }
 
 .email-component textarea.component-input {
-    min-height: 80px;
+    min-height: 60px;
     resize: vertical;
 }
 
 .email-component .delete-component {
-    width: 20px;
-    height: 20px;
+    width: 18px;
+    height: 18px;
     border: none;
     background-color: transparent;
     cursor: pointer;
-    background-image: url('data:image/svg+xml;charset=UTF-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="%23f00"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" /></svg>');
-    opacity: 0.6;
+    background-image: url('data:image/svg+xml;charset=UTF-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="%23d9534f"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" /></svg>');
+    opacity: 0.5;
     transition: opacity 0.2s;
 }
 
@@ -179,25 +182,30 @@
     padding: 0;
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 6px;
 }
 
 #email-variables-list li {
-    background-color: #eef;
-    padding: 5px 10px;
-    border-radius: 4px;
+    background-color: #f0f4f8;
+    color: #4a5568;
+    padding: 4px 8px;
+    border-radius: 12px;
     font-family: monospace;
+    font-size: 12px;
     cursor: pointer;
-    transition: background-color 0.2s;
+    transition: all 0.2s;
+    border: 1px solid #e2e8f0;
 }
 
 #email-variables-list li:hover {
-    background-color: #ddf;
+    background-color: #e2e8f0;
+    color: #2d3748;
+    border-color: #cbd5e0;
 }
 
 #email-preview-iframe {
     width: 100%;
-    height: 500px;
+    height: 450px;
     border: 1px solid #ddd;
     border-radius: 4px;
 }
