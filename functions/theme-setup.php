@@ -112,7 +112,7 @@ if ( is_page_template('templates/booking-form-public.php') || $page_type_for_scr
     wp_enqueue_style( 'flatpickr', 'https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css', array(), '4.6.9' );
     wp_enqueue_script( 'flatpickr', 'https://cdn.jsdelivr.net/npm/flatpickr', array(), '4.6.9', true );
     // TODO: It is recommended to store the API key in a secure way, for example, as a WordPress option or an environment variable.
-    $api_key = 'AIzaSyB41DRUbKWJHPxaFjMAwdrzWzbVKartNGg';
+    $api_key = 'AIzaSyAMvlc1J7g_7WKiHaxmpwh7rUfqZs1feFc';
     wp_enqueue_script('google-places', "https://maps.googleapis.com/maps/api/js?key={$api_key}&libraries=places&callback=initAutocomplete", array(), null, true);
 
     $inline_script = "
@@ -120,12 +120,13 @@ if ( is_page_template('templates/booking-form-public.php') || $page_type_for_scr
       var input = document.getElementById('NORDBOOKING-service-address');
       if (!input) return;
 
-      var searchBox = new google.maps.places.SearchBox(input);
+      var autocomplete = new google.maps.places.Autocomplete(input);
+      autocomplete.setFields(['formatted_address']);
 
-      searchBox.addListener('places_changed', function() {
-        var places = searchBox.getPlaces();
-        if (places.length > 0 && places[0].formatted_address) {
-          input.value = places[0].formatted_address;
+      autocomplete.addListener('place_changed', function() {
+        var place = autocomplete.getPlace();
+        if (place && place.formatted_address) {
+          input.value = place.formatted_address;
           // Trigger a 'change' event so our main script can pick it up.
           var event = new Event('change', { bubbles: true });
           input.dispatchEvent(event);
