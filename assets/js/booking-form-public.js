@@ -1630,4 +1630,55 @@ jQuery(document).ready(function ($) {
   els.addressInput.on('change', function() {
     state.customer.address = $(this).val();
   });
+
+  // OpenCage Autocomplete
+  const opencageApiKey = '0dbeb04971144effb03b9981ab50834e';
+  let autocompleteTimeout;
+
+  els.addressInput.on('input', function() {
+    const query = $(this).val();
+    const suggestionsContainer = $('#NORDBOOKING-address-suggestions');
+
+    if (query.length < 3) {
+      suggestionsContainer.hide();
+      return;
+    }
+
+    clearTimeout(autocompleteTimeout);
+    autocompleteTimeout = setTimeout(() => {
+      fetch(`https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(query)}&key=${opencageApiKey}&limit=5`)
+        .then(response => response.json())
+        .then(data => {
+          if (data.results && data.results.length > 0) {
+            let suggestionsHtml = '';
+            data.results.forEach(result => {
+              suggestionsHtml += `<div class="suggestion-item">${result.formatted}</div>`;
+            });
+
+            if (suggestionsContainer.length === 0) {
+              els.addressInput.after('<div id="NORDBOOKING-address-suggestions"></div>');
+            }
+            $('#NORDBOOKING-address-suggestions').html(suggestionsHtml).show();
+
+            $('.suggestion-item').on('click', function() {
+              const selectedAddress = $(this).text();
+              els.addressInput.val(selectedAddress).trigger('change');
+              $('#NORDBOOKING-address-suggestions').hide();
+            });
+          } else {
+            suggestionsContainer.hide();
+          }
+        })
+        .catch(error => {
+          console.error('Error fetching address suggestions:', error);
+          suggestionsContainer.hide();
+        });
+    }, 300);
+  });
+
+  $(document).on('click', function(e) {
+    if (!$(e.target).closest('#NORDBOOKING-service-address, #NORDBOOKING-address-suggestions').length) {
+      $('#NORDBOOKING-address-suggestions').hide();
+    }
+  });
 });
