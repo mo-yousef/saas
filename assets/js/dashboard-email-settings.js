@@ -13,7 +13,6 @@ jQuery(document).ready(function ($) {
     bodyContainer: $("#email-editor-body"),
     variablesList: $("#email-variables-list"),
     previewIframe: $("#email-preview-iframe"),
-    hiddenDataContainer: $(".NORDBOOKING-hidden-email-data"),
 
     // State
     currentTemplateKey: null,
@@ -37,14 +36,25 @@ jQuery(document).ready(function ($) {
     init: function () {
       if (!this.selector.length) return;
 
+      this.templatesData = nordbooking_email_settings_params.email_templates_data || {};
       this.initializeRenderers();
-      this.parseInitialData();
+      this.populateHiddenFields();
       this.bindEvents();
       this.fetchBaseTemplate();
 
       this.currentTemplateKey = this.selector.val();
       this.loadTemplateIntoEditor();
       this.isInitialized = true;
+    },
+
+    populateHiddenFields: function() {
+        for (const key in this.templatesData) {
+            if (this.templatesData.hasOwnProperty(key)) {
+                const template = this.templatesData[key];
+                $(`#hidden-subject-${key}`).val(template.subject);
+                $(`#hidden-body-${key}`).val(JSON.stringify(template.body));
+            }
+        }
     },
 
     initializeRenderers: function () {
@@ -93,29 +103,6 @@ jQuery(document).ready(function ($) {
                                             <button class="delete-component" title="${this.i18n.delete_component_title}"></button>
                                          </div>`,
       };
-    },
-
-    parseInitialData: function () {
-      const self = this;
-      this.hiddenDataContainer
-        .find("textarea.hidden-body-json")
-        .each(function () {
-          const textarea = $(this);
-          const key = textarea.attr("id").replace("hidden-body-", "");
-          const subject = self.hiddenDataContainer
-            .find(`#hidden-subject-${key}`)
-            .val();
-          let body = [];
-          try {
-            const parsedBody = JSON.parse(textarea.val());
-            if (Array.isArray(parsedBody) && parsedBody.length > 0) {
-              body = parsedBody;
-            }
-          } catch (e) {
-            console.error(`Could not parse JSON for ${key}:`, textarea.val());
-          }
-          self.templatesData[key] = { subject, body };
-        });
     },
 
     fetchBaseTemplate: function () {
