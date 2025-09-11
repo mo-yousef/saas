@@ -87,8 +87,8 @@ function nordbooking_enqueue_dashboard_scripts($current_page_slug = '') {
 
     // Specific to Services page
     if ($current_page_slug === 'services') {
-        wp_enqueue_style('NORDBOOKING-dashboard-services-enhanced', NORDBOOKING_THEME_URI . 'assets/css/dashboard-services-enhanced.css', array(), NORDBOOKING_VERSION);
-        wp_enqueue_script('NORDBOOKING-dashboard-services', NORDBOOKING_THEME_URI . 'assets/js/dashboard-services.js', array('jquery', 'jquery-ui-sortable', 'NORDBOOKING-dialog'), NORDBOOKING_VERSION, true);
+        wp_enqueue_style('nordbooking-dashboard-services-enhanced', NORDBOOKING_THEME_URI . 'assets/css/dashboard-services-enhanced.css', array(), NORDBOOKING_VERSION);
+        wp_enqueue_script('nordbooking-dashboard-services', NORDBOOKING_THEME_URI . 'assets/js/dashboard-services.js', array('jquery', 'jquery-ui-sortable', 'nordbooking-dialog'), NORDBOOKING_VERSION, true);
 
         $services_params = array_merge($dashboard_params, [
             'i18n' => [
@@ -102,7 +102,7 @@ function nordbooking_enqueue_dashboard_scripts($current_page_slug = '') {
                 'confirm_delete' => __('Are you sure you want to delete this service?', 'NORDBOOKING'),
             ]
         ]);
-        wp_localize_script('NORDBOOKING-dashboard-services', 'nordbooking_services_params', $services_params);
+        wp_localize_script('nordbooking-dashboard-services', 'nordbooking_services_params', $services_params);
     }
 
 // Specific to Service Edit page
@@ -153,7 +153,7 @@ function nordbooking_enqueue_dashboard_scripts($current_page_slug = '') {
     // Specific to Bookings page
     if ($current_page_slug === 'bookings') {
         wp_enqueue_script('jquery-ui-datepicker');
-        wp_enqueue_script('NORDBOOKING-dashboard-bookings', NORDBOOKING_THEME_URI . 'assets/js/dashboard-bookings.js', array('jquery', 'jquery-ui-datepicker', 'NORDBOOKING-dialog', 'NORDBOOKING-dashboard-global'), NORDBOOKING_VERSION, true);
+        wp_enqueue_script('nordbooking-dashboard-bookings', NORDBOOKING_THEME_URI . 'assets/js/dashboard-bookings.js', array('jquery', 'jquery-ui-datepicker', 'nordbooking-dialog', 'nordbooking-dashboard-global'), NORDBOOKING_VERSION, true);
         $bookings_params = array_merge($dashboard_params, [
             'statuses' => [
                 'pending' => __('Pending', 'NORDBOOKING'),
@@ -188,13 +188,13 @@ function nordbooking_enqueue_dashboard_scripts($current_page_slug = '') {
                 'delete_btn_text' => __('Delete', 'NORDBOOKING'),
             ]
         ]);
-        wp_localize_script('NORDBOOKING-dashboard-bookings', 'nordbooking_bookings_params', $bookings_params);
+        wp_localize_script('nordbooking-dashboard-bookings', 'nordbooking_bookings_params', $bookings_params);
     }
 
     // Specific to Discounts page
     if ($current_page_slug === 'discounts') {
-        wp_enqueue_style('NORDBOOKING-dashboard-discounts', NORDBOOKING_THEME_URI . 'assets/css/dashboard-discounts.css', array(), NORDBOOKING_VERSION);
-        wp_enqueue_script('NORDBOOKING-dashboard-discounts', NORDBOOKING_THEME_URI . 'assets/js/dashboard-discounts.js', array('jquery', 'NORDBOOKING-dialog'), NORDBOOKING_VERSION, true);
+        wp_enqueue_style('nordbooking-dashboard-discounts', NORDBOOKING_THEME_URI . 'assets/css/dashboard-discounts.css', array(), NORDBOOKING_VERSION);
+        wp_enqueue_script('nordbooking-dashboard-discounts', NORDBOOKING_THEME_URI . 'assets/js/dashboard-discounts.js', array('jquery', 'nordbooking-dialog'), NORDBOOKING_VERSION, true);
         $discounts_params = array_merge($dashboard_params, [
             'i18n' => [
                 'loading_discounts' => __('Loading discounts...', 'NORDBOOKING'),
@@ -217,13 +217,13 @@ function nordbooking_enqueue_dashboard_scripts($current_page_slug = '') {
                 'inactive' => __('Inactive', 'NORDBOOKING'),
             ],
         ]);
-        wp_localize_script('NORDBOOKING-dashboard-discounts', 'nordbooking_discounts_params', $discounts_params);
+        wp_localize_script('nordbooking-dashboard-discounts', 'nordbooking_discounts_params', $discounts_params);
     }
 
     // Specific to Areas page
     if ($current_page_slug === 'areas') {
         wp_enqueue_style('NORDBOOKING-enhanced-areas', NORDBOOKING_THEME_URI . 'assets/css/enhanced-areas.css', array(), NORDBOOKING_VERSION);
-        wp_enqueue_script('NORDBOOKING-enhanced-areas', NORDBOOKING_THEME_URI . 'assets/js/enhanced-areas.js', array('jquery', 'wp-i18n', 'NORDBOOKING-dialog'), NORDBOOKING_VERSION, true);
+        wp_enqueue_script('NORDBOOKING-enhanced-areas', NORDBOOKING_THEME_URI . 'assets/js/enhanced-areas.js', array('jquery', 'wp-i18n', 'nordbooking-dialog'), NORDBOOKING_VERSION, true);
         $areas_params = array_merge($dashboard_params, [
             'i18n' => [
                 'loading_areas' => __('Loading areas...', 'NORDBOOKING'),
@@ -251,15 +251,15 @@ if ($current_page_slug === 'booking-form') {
     
     // Enqueue specific CSS for booking form settings page
     wp_enqueue_style(
-        'NORDBOOKING-booking-form-settings-css',
+        'nordbooking-booking-form-settings-css',
         NORDBOOKING_THEME_URI . 'assets/css/booking-form-modern.css',
-        array('NORDBOOKING-dashboard-main', 'wp-color-picker'),
+        array('nordbooking-dashboard-main', 'wp-color-picker'),
         NORDBOOKING_VERSION
     );
     
     // Enqueue the JavaScript
     wp_enqueue_script(
-        'NORDBOOKING-dashboard-booking-form-settings',
+        'nordbooking-dashboard-booking-form-settings',
         NORDBOOKING_THEME_URI . 'assets/js/dashboard-booking-form-settings.js',
         array('jquery'),
         NORDBOOKING_VERSION,
@@ -283,7 +283,7 @@ if ($current_page_slug === 'booking-form') {
         ]
     ]);
     
-    wp_localize_script('NORDBOOKING-dashboard-booking-form-settings', 'nordbooking_bf_settings_params', $bf_settings_params);
+    wp_localize_script('nordbooking-dashboard-booking-form-settings', 'nordbooking_bf_settings_params', $bf_settings_params);
     
     // Debug output (remove this in production)
     error_log('[NORDBOOKING] Booking form settings assets enqueued successfully');
@@ -293,7 +293,7 @@ if ($current_page_slug === 'booking-form') {
     // Specific to Business Settings page
     if ($current_page_slug === 'settings') {
         wp_enqueue_script(
-            'NORDBOOKING-dashboard-business-settings',
+            'nordbooking-dashboard-business-settings',
             NORDBOOKING_THEME_URI . 'assets/js/dashboard-business-settings.js',
             array('jquery'),
             NORDBOOKING_VERSION,
@@ -309,7 +309,7 @@ if ($current_page_slug === 'booking-form') {
                 'invalid_json' => __('Business Hours JSON is not valid.', 'NORDBOOKING'),
             ]
         ]);
-        wp_localize_script('NORDBOOKING-dashboard-business-settings', 'nordbooking_biz_settings_params', $biz_settings_params);
+        wp_localize_script('nordbooking-dashboard-business-settings', 'nordbooking_biz_settings_params', $biz_settings_params);
     }
 
     // Specific to Overview page (Dashboard)
@@ -336,7 +336,7 @@ if ($current_page_slug === 'booking-form') {
 
         // Enqueue enhanced dashboard CSS
         wp_enqueue_style(
-            'NORDBOOKING-dashboard-enhanced-css',
+            'nordbooking-dashboard-enhanced-css',
             NORDBOOKING_THEME_URI . 'assets/css/dashboard-overview-enhanced.css',
             array(),
             $version
@@ -344,7 +344,7 @@ if ($current_page_slug === 'booking-form') {
 
         // Enqueue enhanced dashboard JavaScript (depends on feather and chart)
         wp_enqueue_script(
-            'NORDBOOKING-dashboard-enhanced-js',
+            'nordbooking-dashboard-enhanced-js',
             NORDBOOKING_THEME_URI . 'assets/js/dashboard-overview-enhanced.js',
             array('jquery', 'feather-icons', 'chart-js'),
             $version,
@@ -407,7 +407,7 @@ if ($current_page_slug === 'booking-form') {
 	    // Get currency symbol
 	    $currency_symbol = \NORDBOOKING\Classes\Utils::get_currency_symbol($settings_manager->get_setting($data_user_id, 'biz_currency_code', 'USD'));
 
-	    wp_localize_script('NORDBOOKING-dashboard-enhanced-js', 'nordbooking_overview_params', array(
+	    wp_localize_script('nordbooking-dashboard-enhanced-js', 'nordbooking_overview_params', array(
 	        'ajax_url' => admin_url('admin-ajax.php'),
 	        'nonce' => wp_create_nonce('nordbooking_dashboard_nonce'),
 	        'currency_symbol' => $currency_symbol,
@@ -452,9 +452,9 @@ if ($current_page_slug === 'booking-form') {
 
     // Specific to Availability page
     if ($current_page_slug === 'availability') {
-        wp_enqueue_style('NORDBOOKING-dashboard-availability', NORDBOOKING_THEME_URI . 'assets/css/dashboard-availability.css', array(), NORDBOOKING_VERSION);
+        wp_enqueue_style('nordbooking-dashboard-availability', NORDBOOKING_THEME_URI . 'assets/css/dashboard-availability.css', array(), NORDBOOKING_VERSION);
         wp_enqueue_script('jquery-ui-datepicker'); // For calendar
-        wp_enqueue_script('NORDBOOKING-dashboard-availability', NORDBOOKING_THEME_URI . 'assets/js/dashboard-availability.js', array('jquery', 'jquery-ui-datepicker', 'NORDBOOKING-dialog'), NORDBOOKING_VERSION, true);
+        wp_enqueue_script('nordbooking-dashboard-availability', NORDBOOKING_THEME_URI . 'assets/js/dashboard-availability.js', array('jquery', 'jquery-ui-datepicker', 'nordbooking-dialog'), NORDBOOKING_VERSION, true);
 
         $availability_i18n_strings = [
             'sunday' => __('Sunday', 'NORDBOOKING'),
@@ -504,13 +504,13 @@ if ($current_page_slug === 'booking-form') {
             $availability_params['icons']['copy'] = file_get_contents($copy_icon_path);
         }
 
-        wp_localize_script('NORDBOOKING-dashboard-availability', 'nordbooking_availability_params', $availability_params);
+        wp_localize_script('nordbooking-dashboard-availability', 'nordbooking_availability_params', $availability_params);
     }
 
     // Specific to Workers page (if exists)
     if ($current_page_slug === 'workers') {
         wp_enqueue_style('NORDBOOKING-workers-enhanced', NORDBOOKING_THEME_URI . 'assets/css/dashboard-workers-enhanced.css', [], NORDBOOKING_VERSION);
-        wp_enqueue_script('NORDBOOKING-dashboard-workers', NORDBOOKING_THEME_URI . 'assets/js/dashboard-workers.js', array('jquery', 'NORDBOOKING-dialog'), NORDBOOKING_VERSION, true);
+        wp_enqueue_script('nordbooking-dashboard-workers', NORDBOOKING_THEME_URI . 'assets/js/dashboard-workers.js', array('jquery', 'nordbooking-dialog'), NORDBOOKING_VERSION, true);
         $workers_params = array_merge($dashboard_params, [
             'i18n' => [
                 'loading_workers' => __('Loading workers...', 'NORDBOOKING'),
@@ -525,16 +525,16 @@ if ($current_page_slug === 'booking-form') {
                 'saving' => __('Saving...', 'NORDBOOKING'),
             ]
         ]);
-        wp_localize_script('NORDBOOKING-dashboard-workers', 'nordbooking_workers_params', $workers_params);
+        wp_localize_script('nordbooking-dashboard-workers', 'nordbooking_workers_params', $workers_params);
     }
 
     // Specific to Customers page
     if ($current_page_slug === 'customers' || $current_page_slug === 'customer-details') {
-        wp_enqueue_style('NORDBOOKING-dashboard-customer-details', NORDBOOKING_THEME_URI . 'assets/css/dashboard-customer-details.css', array(), NORDBOOKING_VERSION);
+        wp_enqueue_style('nordbooking-dashboard-customer-details', NORDBOOKING_THEME_URI . 'assets/css/dashboard-customer-details.css', array(), NORDBOOKING_VERSION);
     }
 
     // Global dashboard script (always load for all dashboard pages)
-    wp_enqueue_script('NORDBOOKING-dashboard-global', NORDBOOKING_THEME_URI . 'assets/js/dashboard.js', array('jquery'), NORDBOOKING_VERSION, true);
-    wp_localize_script('NORDBOOKING-dashboard-global', 'nordbooking_dashboard_params', $dashboard_params);
+    wp_enqueue_script('nordbooking-dashboard-global', NORDBOOKING_THEME_URI . 'assets/js/dashboard.js', array('jquery'), NORDBOOKING_VERSION, true);
+    wp_localize_script('nordbooking-dashboard-global', 'nordbooking_dashboard_params', $dashboard_params);
 }
 ?>

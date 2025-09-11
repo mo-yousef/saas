@@ -145,7 +145,7 @@ input#NORDBOOKING-discount-code {
 }
 
 @media screen and (max-width: 768px) {
-  .NORDBOOKING-table-container {
+  .nordbooking-table-container {
     overflow-x: auto;
   }
 

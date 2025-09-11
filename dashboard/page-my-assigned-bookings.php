@@ -59,11 +59,11 @@ if (isset($_GET['action']) && $_GET['action'] === 'view_booking' && isset($_GET[
 
 ?>
 
-<div class="wrap NORDBOOKING-dashboard-wrap NORDBOOKING-bookings-page-wrapper">
+<div class="wrap nordbooking-dashboard-wrap nordbooking-bookings-page-wrapper">
 
-    <div class="NORDBOOKING-page-header">
-        <div class="NORDBOOKING-page-header-heading">
-            <span class="NORDBOOKING-page-header-icon">
+    <div class="nordbooking-page-header">
+        <div class="nordbooking-page-header-heading">
+            <span class="nordbooking-page-header-icon">
                 <?php echo nordbooking_get_dashboard_menu_icon('bookings'); ?>
             </span>
             <h1 class="wp-heading-inline"><?php esc_html_e('My Assigned Bookings', 'NORDBOOKING'); ?></h1>
@@ -80,8 +80,8 @@ if (isset($_GET['action']) && $_GET['action'] === 'view_booking' && isset($_GET[
         </div>
     </div>
 
-    <div class="NORDBOOKING-card">
-        <div class="NORDBOOKING-card-content">
+    <div class="nordbooking-card">
+        <div class="nordbooking-card-content">
             <?php
             $paged = isset( $_GET['paged'] ) ? max( 1, intval( $_GET['paged'] ) ) : 1;
             $limit = 20;

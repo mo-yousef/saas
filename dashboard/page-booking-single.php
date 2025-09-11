@@ -138,20 +138,20 @@ if (!function_exists('nordbooking_get_status_badge_icon_svg')) {
 ?>
 
 <div class="NORDBOOKING-single-booking-page-wrapper">
-    <div class="NORDBOOKING-page-header">
+    <div class="nordbooking-page-header">
         <h1><?php printf(esc_html__('Booking: %s', 'NORDBOOKING'), esc_html($booking['booking_reference'])); ?></h1>
         <a href="<?php echo esc_url($main_bookings_page_url); ?>" class="btn btn-secondary"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-left"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg><?php esc_html_e(' Back to Bookings List', 'NORDBOOKING'); ?></a>
     </div>
 
     <!-- Booking & Customer Details Card -->
-    <div class="NORDBOOKING-card card-bs">
-        <div class="NORDBOOKING-card-header">
-            <div class="NORDBOOKING-card-title-group">
-                <span class="NORDBOOKING-card-icon"><?php echo nordbooking_get_feather_icon('info'); ?></span>
-                <h3 class="NORDBOOKING-card-title"><?php esc_html_e('Booking & Customer Details', 'NORDBOOKING'); ?></h3>
+    <div class="nordbooking-card card-bs">
+        <div class="nordbooking-card-header">
+            <div class="nordbooking-card-title-group">
+                <span class="nordbooking-card-icon"><?php echo nordbooking_get_feather_icon('info'); ?></span>
+                <h3 class="nordbooking-card-title"><?php esc_html_e('Booking & Customer Details', 'NORDBOOKING'); ?></h3>
             </div>
         </div>
-        <div class="NORDBOOKING-card-content">
+        <div class="nordbooking-card-content">
             <div class="kpi-grid">
                 <div>
                     <div class="mb-3"><strong class="block font-semibold text-sm mb-1"><?php esc_html_e('Reference:', 'NORDBOOKING'); ?></strong> <span class="text-sm text-muted-foreground"><?php echo esc_html($booking['booking_reference']); ?></span></div>
@@ -169,14 +169,14 @@ if (!function_exists('nordbooking_get_status_badge_icon_svg')) {
     </div>
 
     <!-- Status & Admin Actions Card -->
-    <div class="NORDBOOKING-card card-bs">
-        <div class="NORDBOOKING-card-header">
-            <div class="NORDBOOKING-card-title-group">
-                <span class="NORDBOOKING-card-icon"><?php echo nordbooking_get_feather_icon('activity'); ?></span>
-                <h3 class="NORDBOOKING-card-title"><?php esc_html_e('Status & Actions', 'NORDBOOKING'); ?></h3>
+    <div class="nordbooking-card card-bs">
+        <div class="nordbooking-card-header">
+            <div class="nordbooking-card-title-group">
+                <span class="nordbooking-card-icon"><?php echo nordbooking_get_feather_icon('activity'); ?></span>
+                <h3 class="nordbooking-card-title"><?php esc_html_e('Status & Actions', 'NORDBOOKING'); ?></h3>
             </div>
         </div>
-        <div class="NORDBOOKING-card-content">
+        <div class="nordbooking-card-content">
             <div class="border-b border-dashed pb-4 mb-4">
                 <div class="mb-3"><strong class="block font-semibold text-sm mb-1"><?php esc_html_e('Current Status:', 'NORDBOOKING'); ?></strong>
                     <span id="NORDBOOKING-current-status-display" class="status-badge status-<?php echo esc_attr($booking['status']); ?>">
@@ -186,7 +186,7 @@ if (!function_exists('nordbooking_get_status_badge_icon_svg')) {
                 </div>
                 <div class="flex items-center gap-3 flex-wrap">
                     <label for="NORDBOOKING-single-booking-status-select" class="font-semibold text-sm flex items-center gap-1"><?php echo nordbooking_get_feather_icon('edit', 'width="16" height="16"'); ?> <?php esc_html_e('Change Status:', 'NORDBOOKING'); ?></label>
-                    <select id="NORDBOOKING-single-booking-status-select" data-booking-id="<?php echo esc_attr($booking['booking_id']); ?>" class="NORDBOOKING-filter-select">
+                    <select id="NORDBOOKING-single-booking-status-select" data-booking-id="<?php echo esc_attr($booking['booking_id']); ?>" class="nordbooking-filter-select">
                         <?php foreach ($booking_statuses_for_select as $value => $label) : ?>
                             <option value="<?php echo esc_attr($value); ?>" <?php selected($booking['status'], $value); ?>><?php echo esc_html($label); ?></option>
                         <?php endforeach; ?>
@@ -222,7 +222,7 @@ if (!function_exists('nordbooking_get_status_badge_icon_svg')) {
                 </div>
                 <div class="flex items-center gap-3 flex-wrap">
                     <label for="NORDBOOKING-single-assign-staff-select" class="font-semibold text-sm flex items-center gap-1"><?php echo nordbooking_get_feather_icon('user-plus', 'width="16" height="16"'); ?> <?php esc_html_e('Assign to Staff:', 'NORDBOOKING'); ?></label>
-                    <select id="NORDBOOKING-single-assign-staff-select" data-booking-id="<?php echo esc_attr($booking['booking_id']); ?>" class="NORDBOOKING-filter-select">
+                    <select id="NORDBOOKING-single-assign-staff-select" data-booking-id="<?php echo esc_attr($booking['booking_id']); ?>" class="nordbooking-filter-select">
                         <option value="0"><?php esc_html_e('-- Unassign --', 'NORDBOOKING'); ?></option>
                         <?php if (!empty($workers)) : ?>
                             <?php foreach ($workers as $worker) : ?>
@@ -248,14 +248,14 @@ if (!function_exists('nordbooking_get_status_badge_icon_svg')) {
     </div>
 
     <!-- Services & Pricing Card -->
-    <div class="NORDBOOKING-card card-bs">
-        <div class="NORDBOOKING-card-header">
-            <div class="NORDBOOKING-card-title-group">
-                <span class="NORDBOOKING-card-icon"><?php echo nordbooking_get_feather_icon('list'); ?></span>
-                <h3 class="NORDBOOKING-card-title"><?php esc_html_e('Services & Pricing', 'NORDBOOKING'); ?></h3>
+    <div class="nordbooking-card card-bs">
+        <div class="nordbooking-card-header">
+            <div class="nordbooking-card-title-group">
+                <span class="nordbooking-card-icon"><?php echo nordbooking_get_feather_icon('list'); ?></span>
+                <h3 class="nordbooking-card-title"><?php esc_html_e('Services & Pricing', 'NORDBOOKING'); ?></h3>
             </div>
         </div>
-        <div class="NORDBOOKING-card-content">
+        <div class="nordbooking-card-content">
             <?php if (isset($booking['items']) && is_array($booking['items']) && !empty($booking['items'])): ?>
                 <table class="NORDBOOKING-services-table">
                     <thead>
@@ -366,14 +366,14 @@ if (!function_exists('nordbooking_get_status_badge_icon_svg')) {
         </div>
     </div>
 
-    <div class="NORDBOOKING-card card-bs">
-        <div class="NORDBOOKING-card-header">
-            <div class="NORDBOOKING-card-title-group">
-                <span class="NORDBOOKING-card-icon"><?php echo nordbooking_get_feather_icon('info'); ?></span>
-                <h3 class="NORDBOOKING-card-title"><?php esc_html_e('Advanced Details', 'NORDBOOKING'); ?></h3>
+    <div class="nordbooking-card card-bs">
+        <div class="nordbooking-card-header">
+            <div class="nordbooking-card-title-group">
+                <span class="nordbooking-card-icon"><?php echo nordbooking_get_feather_icon('info'); ?></span>
+                <h3 class="nordbooking-card-title"><?php esc_html_e('Advanced Details', 'NORDBOOKING'); ?></h3>
             </div>
         </div>
-        <div class="NORDBOOKING-card-content">
+        <div class="nordbooking-card-content">
             <div class="kpi-grid">
                 <div class="mb-3">
                     <strong class="block font-semibold text-sm mb-1"><?php esc_html_e('Service Frequency:', 'NORDBOOKING'); ?></strong>
@@ -404,14 +404,14 @@ if (!function_exists('nordbooking_get_status_badge_icon_svg')) {
     </div>
 
     <?php if (!empty($booking['special_instructions'])): ?>
-    <div class="NORDBOOKING-card card-bs">
-        <div class="NORDBOOKING-card-header">
-            <div class="NORDBOOKING-card-title-group">
-                <span class="NORDBOOKING-card-icon"><?php echo nordbooking_get_feather_icon('message-square'); ?></span>
-                <h3 class="NORDBOOKING-card-title"><?php esc_html_e('Special Instructions', 'NORDBOOKING'); ?></h3>
+    <div class="nordbooking-card card-bs">
+        <div class="nordbooking-card-header">
+            <div class="nordbooking-card-title-group">
+                <span class="nordbooking-card-icon"><?php echo nordbooking_get_feather_icon('message-square'); ?></span>
+                <h3 class="nordbooking-card-title"><?php esc_html_e('Special Instructions', 'NORDBOOKING'); ?></h3>
             </div>
         </div>
-        <div class="NORDBOOKING-card-content">
+        <div class="nordbooking-card-content">
             <p><?php echo nl2br(esc_html($booking['special_instructions'])); ?></p>
         </div>
     </div>

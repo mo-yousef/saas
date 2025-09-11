@@ -22,14 +22,14 @@ $all_worker_roles = [
 
 ?>
 
-<div class="NORDBOOKING-dashboard-wrap NORDBOOKING-workers-page">
+<div class="nordbooking-dashboard-wrap NORDBOOKING-workers-page">
     <!-- Page Header -->
-    <div class="NORDBOOKING-page-header">
-        <div class="NORDBOOKING-page-header-heading">
-            <span class="NORDBOOKING-page-header-icon">
+    <div class="nordbooking-page-header">
+        <div class="nordbooking-page-header-heading">
+            <span class="nordbooking-page-header-icon">
                 <?php echo nordbooking_get_dashboard_menu_icon('workers'); ?>
             </span>
-            <h1 class="NORDBOOKING-page-title"><?php esc_html_e( 'Manage Workers', 'NORDBOOKING' ); ?></h1>
+            <h1 class="nordbooking-page-title"><?php esc_html_e( 'Manage Workers', 'NORDBOOKING' ); ?></h1>
         </div>
     </div>
 
@@ -53,9 +53,9 @@ $all_worker_roles = [
     </div>
 
     <!-- Add New Worker Section -->
-    <div class="NORDBOOKING-card card-bs">
-        <div class="NORDBOOKING-card-header">
-            <h2 class="NORDBOOKING-card-title">
+    <div class="nordbooking-card card-bs">
+        <div class="nordbooking-card-header">
+            <h2 class="nordbooking-card-title">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="12" cy="12" r="10"></circle>
                     <line x1="12" y1="8" x2="12" y2="16"></line>
@@ -65,7 +65,7 @@ $all_worker_roles = [
             </h2>
         </div>
 
-        <div class="NORDBOOKING-card-content">
+        <div class="nordbooking-card-content">
             <!-- Invite Worker Section -->
             <div class="NORDBOOKING-accordion">
                 <div class="NORDBOOKING-accordion-item">
@@ -249,9 +249,9 @@ $all_worker_roles = [
     </div>
 
     <!-- Current Workers Section -->
-    <div class="NORDBOOKING-card">
-        <div class="NORDBOOKING-card-header">
-            <h2 class="NORDBOOKING-card-title">
+    <div class="nordbooking-card">
+        <div class="nordbooking-card-header">
+            <h2 class="nordbooking-card-title">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
                     <circle cx="9" cy="7" r="4"></circle>
@@ -262,7 +262,7 @@ $all_worker_roles = [
             </h2>
         </div>
 
-        <div class="NORDBOOKING-card-content">
+        <div class="nordbooking-card-content">
             <div id="current-workers-feedback" class="NORDBOOKING-inline-alert" style="display:none;">
                 <div class="NORDBOOKING-inline-alert-content">
                     <div class="NORDBOOKING-inline-alert-icon">
@@ -299,7 +299,7 @@ $all_worker_roles = [
                         }
                         ?>
                         <div id="worker-card-<?php echo esc_attr( $worker->ID ); ?>" class="NORDBOOKING-worker-card">
-                            <div class="NORDBOOKING-card-inner-content">
+                            <div class="nordbooking-card-inner-content">
                                 <div class="NORDBOOKING-worker-info">
                                     <div class="NORDBOOKING-avatar">
                                         <?php echo get_avatar($worker->ID, 40, '', '', ['class' => 'NORDBOOKING-avatar-img']); ?>

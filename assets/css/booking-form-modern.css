@@ -115,12 +115,12 @@
   margin-top: 0;
 }
 
-.NORDBOOKING-settings-content .NORDBOOKING-card {
+.NORDBOOKING-settings-content .nordbooking-card {
   margin-bottom: 1.5rem;
 }
 
 /* Card Styles */
-.NORDBOOKING-card {
+.nordbooking-card {
   background-color: hsl(var(--background));
   border: 1px solid hsl(var(--border));
   border-radius: var(--radius);
@@ -128,14 +128,14 @@
   overflow: hidden;
 }
 
-.NORDBOOKING-card-title {
+.nordbooking-card-title {
   margin: 0;
   font-size: 1.125rem;
   font-weight: 600;
   color: hsl(var(--foreground));
 }
 
-.NORDBOOKING-card-content {
+.nordbooking-card-content {
   padding: 1.5rem;
 }
 
@@ -642,11 +642,11 @@
     font-size: 0.8125rem;
   }
 
-  .NORDBOOKING-card-content {
+  .nordbooking-card-content {
     padding: 1rem;
   }
 
-  .NORDBOOKING-card-header {
+  .nordbooking-card-header {
     padding: 1rem 1rem;
   }
 
@@ -691,8 +691,8 @@
     min-width: unset;
   }
 
-  .NORDBOOKING-card-content,
-  .NORDBOOKING-card-header {
+  .nordbooking-card-content,
+  .nordbooking-card-header {
     padding: 0.875rem;
   }
 

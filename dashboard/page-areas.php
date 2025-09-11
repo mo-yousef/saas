@@ -15,27 +15,27 @@ if (!is_user_logged_in()) {
 $current_user_id = get_current_user_id();
 ?>
 
-<div class="NORDBOOKING-dashboard-page">
-    <div class="NORDBOOKING-page-header">
-        <div class="NORDBOOKING-page-header-heading">
-            <span class="NORDBOOKING-page-header-icon">
+<div class="nordbooking-dashboard-page">
+    <div class="nordbooking-page-header">
+        <div class="nordbooking-page-header-heading">
+            <span class="nordbooking-page-header-icon">
                 <?php echo nordbooking_get_dashboard_menu_icon('areas'); ?>
             </span>
-            <h1 class="NORDBOOKING-page-title"><?php esc_html_e('Service Areas', 'NORDBOOKING'); ?></h1>
+            <h1 class="nordbooking-page-title"><?php esc_html_e('Service Areas', 'NORDBOOKING'); ?></h1>
         </div>
-        <p class="NORDBOOKING-page-description">
+        <p class="nordbooking-page-description">
             <?php esc_html_e('Manage your service coverage by selecting cities and their specific areas within Sweden.', 'NORDBOOKING'); ?>
         </p>
     </div>
 
-    <div class="NORDBOOKING-dashboard-content">
+    <div class="nordbooking-dashboard-content">
         <!-- City Selection Card -->
-        <div class="NORDBOOKING-card card-bs">
-            <div class="NORDBOOKING-card-header">
-                <h3 class="NORDBOOKING-card-title">
+        <div class="nordbooking-card card-bs">
+            <div class="nordbooking-card-header">
+                <h3 class="nordbooking-card-title">
                     <?php esc_html_e('Select Swedish Cities', 'NORDBOOKING'); ?>
                 </h3>
-                <p class="NORDBOOKING-card-description">
+                <p class="nordbooking-card-description">
                     <?php esc_html_e('Click on a city to manage its service areas. Areas can be enabled or disabled individually.', 'NORDBOOKING'); ?>
                 </p>
             </div>
@@ -49,42 +49,42 @@ $current_user_id = get_current_user_id();
         </div>
 
         <!-- Current Service Coverage -->
-        <div class="NORDBOOKING-card NORDBOOKING-card-full-width">
-            <div class="NORDBOOKING-card-header">
-                <h3 class="NORDBOOKING-card-title">
+        <div class="nordbooking-card nordbooking-card-full-width">
+            <div class="nordbooking-card-header">
+                <h3 class="nordbooking-card-title">
                     <svg class="NORDBOOKING-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
                     <?php esc_html_e('Your Service Coverage', 'NORDBOOKING'); ?>
                 </h3>
-                <p class="NORDBOOKING-card-description">
+                <p class="nordbooking-card-description">
                     <?php esc_html_e('Manage your active service areas by country. You can enable/disable specific cities or areas, or remove entire countries.', 'NORDBOOKING'); ?>
                 </p>
             </div>
 
             <!-- Search and Filter Controls -->
-            <div class="NORDBOOKING-filters-wrapper">
-                <form id="NORDBOOKING-areas-filter-form" class="NORDBOOKING-filters-form">
-                    <div class="NORDBOOKING-filters-main">
-                        <div class="NORDBOOKING-filter-item NORDBOOKING-filter-item-search">
+            <div class="nordbooking-filters-wrapper">
+                <form id="NORDBOOKING-areas-filter-form" class="nordbooking-filters-form">
+                    <div class="nordbooking-filters-main">
+                        <div class="nordbooking-filter-item nordbooking-filter-item-search">
                             <label for="coverage-search"><?php esc_html_e('Search', 'NORDBOOKING'); ?></label>
                             <input type="search" id="coverage-search" class="regular-text" placeholder="<?php esc_attr_e('Search cities...', 'NORDBOOKING'); ?>">
                         </div>
-                        <div class="NORDBOOKING-filter-item">
+                        <div class="nordbooking-filter-item">
                             <label for="city-filter"><?php esc_html_e('City', 'NORDBOOKING'); ?></label>
-                            <select id="city-filter" class="NORDBOOKING-filter-select">
+                            <select id="city-filter" class="nordbooking-filter-select">
                                 <option value=""><?php esc_html_e('All Cities', 'NORDBOOKING'); ?></option>
                             </select>
                         </div>
-                        <div class="NORDBOOKING-filter-item">
+                        <div class="nordbooking-filter-item">
                             <label for="status-filter"><?php esc_html_e('Status', 'NORDBOOKING'); ?></label>
-                            <select id="status-filter" class="NORDBOOKING-filter-select">
+                            <select id="status-filter" class="nordbooking-filter-select">
                                 <option value=""><?php esc_html_e('All Statuses', 'NORDBOOKING'); ?></option>
                                 <option value="active"><?php esc_html_e('Active', 'NORDBOOKING'); ?></option>
                                 <option value="inactive"><?php esc_html_e('Inactive', 'NORDBOOKING'); ?></option>
                             </select>
                         </div>
-                        <div class="NORDBOOKING-filter-actions">
+                        <div class="nordbooking-filter-actions">
                             <button type="button" id="clear-coverage-filters-btn" class="btn btn-outline">
                                 <?php echo nordbooking_get_feather_icon('x'); ?>
                                 <span class="btn-text"><?php esc_html_e('Clear', 'NORDBOOKING'); ?></span>

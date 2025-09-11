@@ -1421,14 +1421,14 @@ if (!function_exists('nordbooking_ajax_export_dashboard_data')) {
             if ($format === 'json') {
                 wp_send_json_success(array(
                     'data' => $export_data,
-                    'filename' => 'NORDBOOKING-dashboard-' . date('Y-m-d') . '.json'
+                    'filename' => 'nordbooking-dashboard-' . date('Y-m-d') . '.json'
                 ));
             } else {
                 // CSV format
                 $csv_data = nordbooking_convert_to_csv($export_data);
                 wp_send_json_success(array(
                     'csv' => $csv_data,
-                    'filename' => 'NORDBOOKING-dashboard-' . date('Y-m-d') . '.csv'
+                    'filename' => 'nordbooking-dashboard-' . date('Y-m-d') . '.csv'
                 ));
             }
             

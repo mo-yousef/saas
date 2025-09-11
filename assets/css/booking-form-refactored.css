@@ -467,7 +467,7 @@ body {
     width: 100%;
 }
 
-#NORDBOOKING-booking-summary {
+#nordbooking-booking-summary {
     background-color: hsl(var(--muted));
     border-radius: var(--radius-sm);
     padding: 1rem;

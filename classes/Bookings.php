@@ -617,7 +617,7 @@ foreach ($calculated_service_items as $service_item) {
                 'customer_phone' => $customer['phone'],
                 'service_address' => $customer['address'],
                 'special_instructions' => $customer['instructions'] ?? '',
-                'admin_booking_link' => admin_url('admin.php?page=NORDBOOKING-bookings&booking_id=' . $new_booking_id)
+                'admin_booking_link' => admin_url('admin.php?page=nordbooking-bookings&booking_id=' . $new_booking_id)
             ];
 
             $this->notifications_manager->send_booking_confirmation_customer($email_booking_details, $customer['email'], $tenant_user_id);

@@ -61,7 +61,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-body.NORDBOOKING-dashboard {
+body.nordbooking-dashboard {
   display: flex;
   flex-direction: column;
 }
@@ -515,7 +515,7 @@ tbody tr:hover {
 }
 
 /* Filters Bar */
-.NORDBOOKING-filters-bar {
+.nordbooking-filters-bar {
   display: flex;
   align-items: center;
   gap: 1rem;
@@ -526,18 +526,18 @@ tbody tr:hover {
   margin-bottom: 1.5rem;
 }
 
-.NORDBOOKING-filters-bar label {
+.nordbooking-filters-bar label {
   margin-bottom: 0;
   font-weight: 500;
 }
 
-.NORDBOOKING-filters-bar input[type="text"],
-.NORDBOOKING-filters-bar select {
+.nordbooking-filters-bar input[type="text"],
+.nordbooking-filters-bar select {
   margin-bottom: 0;
   max-width: 12rem;
 }
 
-.NORDBOOKING-filters-bar input[type="text"].NORDBOOKING-datepicker {
+.nordbooking-filters-bar input[type="text"].NORDBOOKING-datepicker {
   max-width: 10rem;
 }
 
@@ -584,14 +584,14 @@ tbody tr:hover {
 /*--------------------------------------------------------------
 8.0 Dashboard Layout
 --------------------------------------------------------------*/
-.NORDBOOKING-dashboard-layout {
+.nordbooking-dashboard-layout {
   display: flex;
   flex-grow: 1;
   min-height: 0;
 }
 
 /* Sidebar Styles */
-.NORDBOOKING-dashboard-sidebar {
+.nordbooking-dashboard-sidebar {
   width: 250px;
   background: hsl(222.2 84% 4.9%);
   color: hsl(210 40% 98%);
@@ -603,7 +603,7 @@ tbody tr:hover {
   z-index: 100;
 }
 
-.NORDBOOKING-dashboard-sidebar .dashboard-branding h3 {
+.nordbooking-dashboard-sidebar .dashboard-branding h3 {
   margin: 0;
   color: hsl(210 40% 98%);
   font-size: 1.125rem;
@@ -611,22 +611,22 @@ tbody tr:hover {
   letter-spacing: -0.025em;
 }
 
-.NORDBOOKING-dashboard-sidebar .dashboard-branding a {
+.nordbooking-dashboard-sidebar .dashboard-branding a {
   text-decoration: none;
   color: inherit;
   transition: opacity 0.15s ease;
 }
 
-.NORDBOOKING-dashboard-sidebar .dashboard-branding a:hover {
+.nordbooking-dashboard-sidebar .dashboard-branding a:hover {
   opacity: 0.8;
 }
 
-.NORDBOOKING-dashboard-sidebar .dashboard-nav {
+.nordbooking-dashboard-sidebar .dashboard-nav {
   flex-grow: 1;
   padding: 1rem;
 }
 
-.NORDBOOKING-dashboard-sidebar .dashboard-nav ul {
+.nordbooking-dashboard-sidebar .dashboard-nav ul {
   list-style: none;
   padding: 0;
   margin: 0;
@@ -635,7 +635,7 @@ tbody tr:hover {
   gap: 0.325rem;
 }
 
-.NORDBOOKING-dashboard-sidebar .dashboard-nav li a {
+.nordbooking-dashboard-sidebar .dashboard-nav li a {
   display: flex;
   padding: 0.5rem 0.75rem;
   color: hsl(0, 0%, 91%);
@@ -653,19 +653,19 @@ span.NORDBOOKING-menu-icon {
   display: flex;
 }
 
-.NORDBOOKING-dashboard-sidebar .dashboard-nav li a:hover {
+.nordbooking-dashboard-sidebar .dashboard-nav li a:hover {
   background: hsl(217.2 32.6% 17.5%);
   color: hsl(210 40% 98%);
 }
 
-.NORDBOOKING-dashboard-sidebar .dashboard-nav li.active a {
+.nordbooking-dashboard-sidebar .dashboard-nav li.active a {
   background: hsl(var(--primary));
   color: hsl(var(--primary-foreground));
   font-weight: 500;
 }
 
 /* Main Content Area */
-.NORDBOOKING-dashboard-main-wrapper {
+.nordbooking-dashboard-main-wrapper {
   flex-grow: 1;
   display: flex;
   flex-direction: column;
@@ -674,7 +674,7 @@ span.NORDBOOKING-menu-icon {
 }
 
 /* Header Styles */
-.NORDBOOKING-dashboard-header {
+.nordbooking-dashboard-header {
   background: #fff;
   padding: 0 1.5rem;
   border-bottom: 1px solid #e4e7ec;
@@ -687,37 +687,37 @@ span.NORDBOOKING-menu-icon {
   z-index: 90;
 }
 
-.NORDBOOKING-dashboard-header .dashboard-header-left,
-.NORDBOOKING-dashboard-header .dashboard-header-right {
+.nordbooking-dashboard-header .dashboard-header-left,
+.nordbooking-dashboard-header .dashboard-header-right {
   display: flex;
   align-items: center;
   gap: 1rem;
 }
 
-.NORDBOOKING-dashboard-header .NORDBOOKING-breadcrumbs,
-.NORDBOOKING-dashboard-header .NORDBOOKING-breadcrumbs a {
+.nordbooking-dashboard-header .NORDBOOKING-breadcrumbs,
+.nordbooking-dashboard-header .NORDBOOKING-breadcrumbs a {
   color: hsl(215.4 16.3% 46.9%);
   text-decoration: none;
   font-size: 0.875rem;
   transition: color 0.15s ease;
 }
 
-.NORDBOOKING-dashboard-header .NORDBOOKING-breadcrumbs a:hover {
+.nordbooking-dashboard-header .NORDBOOKING-breadcrumbs a:hover {
   color: hsl(222.2 84% 4.9%);
 }
 
-.NORDBOOKING-dashboard-header .user-menu {
+.nordbooking-dashboard-header .user-menu {
   display: flex;
   align-items: center;
   gap: 0.75rem;
 }
 
-.NORDBOOKING-dashboard-header .user-menu span {
+.nordbooking-dashboard-header .user-menu span {
   font-size: 0.875rem;
   color: hsl(215.4 16.3% 46.9%);
 }
 
-.NORDBOOKING-dashboard-header .user-menu a {
+.nordbooking-dashboard-header .user-menu a {
   text-decoration: none;
   color: hsl(222.2 84% 4.9%);
   font-weight: 500;
@@ -727,7 +727,7 @@ span.NORDBOOKING-menu-icon {
   font-size: 0.875rem;
 }
 
-.NORDBOOKING-dashboard-header .user-menu a:hover {
+.nordbooking-dashboard-header .user-menu a:hover {
   background-color: hsl(210 40% 96%);
 }
 
@@ -767,7 +767,7 @@ span.NORDBOOKING-menu-icon {
     display: block;
   }
 
-  .NORDBOOKING-dashboard-sidebar {
+  .nordbooking-dashboard-sidebar {
     position: fixed;
     left: -250px;
     top: 0;
@@ -777,11 +777,11 @@ span.NORDBOOKING-menu-icon {
     transition: left 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
-  .NORDBOOKING-dashboard-sidebar.open {
+  .nordbooking-dashboard-sidebar.open {
     left: 0;
   }
 
-  .NORDBOOKING-dashboard-header {
+  .nordbooking-dashboard-header {
     padding: 0 1rem;
     height: 3.25rem;
   }
@@ -812,7 +812,7 @@ span.NORDBOOKING-menu-icon {
 
 /* Tablet Styles */
 @media (max-width: 1024px) and (min-width: 769px) {
-  .NORDBOOKING-dashboard-sidebar {
+  .nordbooking-dashboard-sidebar {
     width: 220px;
   }
 
@@ -943,7 +943,7 @@ span.NORDBOOKING-menu-icon {
 
 /* Service, Booking, Discount Items */
 .NORDBOOKING-service-item,
-.NORDBOOKING-booking-item,
+.nordbooking-booking-item,
 .NORDBOOKING-area-item {
   padding: 1rem;
   margin-bottom: 1rem;
@@ -957,7 +957,7 @@ span.NORDBOOKING-menu-icon {
 }
 
 .wp-admin .NORDBOOKING-service-item h3,
-.wp-admin .NORDBOOKING-booking-item h3 {
+.wp-admin .nordbooking-booking-item h3 {
   font-size: 1.125rem;
   font-weight: 600;
   margin-bottom: 0.75rem;
@@ -966,7 +966,7 @@ span.NORDBOOKING-menu-icon {
 }
 
 .wp-admin .NORDBOOKING-service-item p,
-.wp-admin .NORDBOOKING-booking-item p {
+.wp-admin .nordbooking-booking-item p {
   margin-bottom: 0.5rem;
   color: hsl(215.4 16.3% 46.9%);
   font-size: 0.875rem;

@@ -229,7 +229,7 @@ jQuery(document).ready(function ($) {
     });
   }
 
-  $("#NORDBOOKING-add-new-discount-btn").on("click", function () {
+  $("#nordbooking-add-new-discount-btn").on("click", function () {
     openDiscountDialog();
   });
 

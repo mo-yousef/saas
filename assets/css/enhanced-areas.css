@@ -785,7 +785,7 @@ span.city-name svg {
         gap: 1rem;
     }
 
-    .NORDBOOKING-filter-group {
+    .nordbooking-filter-group {
         flex-wrap: wrap;
         gap: 0.5rem;
     }

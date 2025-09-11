@@ -19,7 +19,9 @@
     <header>
         <div class="container">
             <nav>
-                <div class="logo">Nord Booking</div>
+                <div class="logo"> <a href="/">
+                Nord Booking
+            </a></div>
                 <ul class="nav-links">
                     <li><a href="<?php echo esc_url(home_url('/features/')); ?>">Features</a></li>
                     <li><a href="#how-it-works">How It Works</a></li>

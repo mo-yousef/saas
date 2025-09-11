@@ -1,10 +1,10 @@
 jQuery(document).ready(function ($) {
   "use strict";
 
-  const bookingsListContainer = $("#NORDBOOKING-bookings-list-container");
-  const paginationContainer = $("#NORDBOOKING-bookings-pagination-container");
-  const filterForm = $("#NORDBOOKING-bookings-filter-form");
-  const bookingItemTemplate = $("#NORDBOOKING-booking-item-template").html();
+  const bookingsListContainer = $("#nordbooking-bookings-list-container");
+  const paginationContainer = $("#nordbooking-bookings-pagination-container");
+  const filterForm = $("#nordbooking-bookings-filter-form");
+  const bookingItemTemplate = $("#nordbooking-booking-item-template").html();
   const currencyCode = nordbooking_bookings_params.currency_code || "USD";
 
   // Store current filters and page
@@ -48,8 +48,8 @@ jQuery(document).ready(function ($) {
 
   function getTableHTML() {
     return `
-            <div class="NORDBOOKING-table-responsive-wrapper">
-                <table class="NORDBOOKING-table">
+            <div class="nordbooking-table-responsive-wrapper">
+                <table class="nordbooking-table">
                     <thead>
                         <tr>
                             <th>${
@@ -148,7 +148,7 @@ jQuery(document).ready(function ($) {
 
             let baseUrl =
               nordbooking_bookings_params.bookings_page_url ||
-              "admin.php?page=NORDBOOKING-bookings";
+              "admin.php?page=nordbooking-bookings";
             bookingDataForTemplate.details_page_url =
               baseUrl + "&action=view_booking&booking_id=" + booking.booking_id;
 
@@ -292,7 +292,7 @@ jQuery(document).ready(function ($) {
   // Toggle more filters
   $("#NORDBOOKING-toggle-more-filters-btn").on("click", function () {
     const button = $(this);
-    $(".NORDBOOKING-filters-secondary").slideToggle(function () {
+    $(".nordbooking-filters-secondary").slideToggle(function () {
       const text = $(this).is(":visible")
         ? nordbooking_bookings_params.i18n.less_filters || "Less"
         : nordbooking_bookings_params.i18n.more_filters || "More";
@@ -331,7 +331,7 @@ jQuery(document).ready(function ($) {
   // CREATE BOOKING (Placeholder - Needs UI: Add Booking Button & Modal)
   // This functionality is not part of the current refactor to table view / single page details.
   // If it were to be re-implemented, it would likely involve a separate page or a new modal.
-  $("#NORDBOOKING-add-booking-btn").on("click", function () {
+  $("#nordbooking-add-booking-btn").on("click", function () {
     // For now, this button might link to a future "Add New Booking" page,
     // or trigger a new modal designed for creation if that's preferred.
     // The existing alert is a placeholder.

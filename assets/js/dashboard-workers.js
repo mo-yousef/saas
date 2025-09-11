@@ -221,7 +221,7 @@
       });
 
       // Enter key on table rows to edit
-      $(document).on("keydown", ".NORDBOOKING-table-row", function (e) {
+      $(document).on("keydown", ".nordbooking-table-row", function (e) {
         if (e.key === "Enter") {
           var $editBtn = $(this).find(".NORDBOOKING-edit-worker-details-btn");
           if ($editBtn.length) {
@@ -671,7 +671,7 @@
           $(this).remove();
 
           // Check if table is now empty
-          if ($(".NORDBOOKING-table-row").length === 0) {
+          if ($(".nordbooking-table-row").length === 0) {
             setTimeout(function () {
               location.reload();
             }, 1000);
@@ -693,7 +693,7 @@
     setupAccessibilityFeatures: function () {
       // Add ARIA labels and roles
       $(".NORDBOOKING-accordion-trigger").attr("role", "button");
-      $(".NORDBOOKING-table").attr("role", "table");
+      $(".nordbooking-table").attr("role", "table");
       $(".NORDBOOKING-password-toggle").attr(
         "aria-label",
         "Toggle password visibility"
@@ -712,7 +712,7 @@
         "title",
         "Press Enter or Space to toggle"
       );
-      $(".NORDBOOKING-table-row").attr("title", "Press Enter to edit");
+      $(".nordbooking-table-row").attr("title", "Press Enter to edit");
     },
 
     setupFocusManagement: function () {

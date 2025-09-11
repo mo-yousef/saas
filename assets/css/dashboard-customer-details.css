@@ -2,7 +2,7 @@
    Customer Details Page
    ========================================================================== */
 
-.NORDBOOKING-customer-details-page .NORDBOOKING-page-header-heading {
+.NORDBOOKING-customer-details-page .nordbooking-page-header-heading {
   display: flex;
   align-items: center;
   gap: 1rem;

@@ -25,14 +25,14 @@ function nordbooking_select_biz_setting_value($settings, $key, $value, $default_
 }
 ?>
 <div id="NORDBOOKING-business-settings-page" class="wrap NORDBOOKING-settings-page">
-    <div class="NORDBOOKING-page-header">
-        <div class="NORDBOOKING-page-header-heading">
-            <span class="NORDBOOKING-page-header-icon">
+    <div class="nordbooking-page-header">
+        <div class="nordbooking-page-header-heading">
+            <span class="nordbooking-page-header-icon">
                 <?php echo nordbooking_get_dashboard_menu_icon('settings'); ?>
             </span>
             <h1><?php esc_html_e('Settings', 'NORDBOOKING'); ?></h1>
         </div>
-        <div class="NORDBOOKING-page-header-actions">
+        <div class="nordbooking-page-header-actions">
             <button type="submit" form="NORDBOOKING-business-settings-form" name="save_business_settings" id="NORDBOOKING-save-biz-settings-btn" class="btn btn-primary"><?php esc_html_e('Save All Settings', 'NORDBOOKING'); ?></button>
         </div>
     </div>
@@ -53,11 +53,11 @@ function nordbooking_select_biz_setting_value($settings, $key, $value, $default_
                 <!-- Left Column -->
                 <div class="settings-column">
                     <!-- Business Details Card -->
-                    <div class="NORDBOOKING-card">
-                        <div class="NORDBOOKING-card-header">
-                            <h3 class="NORDBOOKING-card-title"><?php esc_html_e('Business Details', 'NORDBOOKING'); ?></h3>
+                    <div class="nordbooking-card">
+                        <div class="nordbooking-card-header">
+                            <h3 class="nordbooking-card-title"><?php esc_html_e('Business Details', 'NORDBOOKING'); ?></h3>
                         </div>
-                        <div class="NORDBOOKING-card-content">
+                        <div class="nordbooking-card-content">
                             <div class="form-group">
                                 <label for="biz_name"><?php esc_html_e('Business Name', 'NORDBOOKING'); ?></label>
                                 <input name="biz_name" type="text" id="biz_name" value="<?php echo nordbooking_get_biz_setting_value($biz_settings, 'biz_name'); ?>" class="regular-text">
@@ -83,11 +83,11 @@ function nordbooking_select_biz_setting_value($settings, $key, $value, $default_
                  <!-- Right Column -->
                 <div class="settings-column">
                     <!-- Localization Card -->
-                    <div class="NORDBOOKING-card">
-                        <div class="NORDBOOKING-card-header">
-                            <h3 class="NORDBOOKING-card-title"><?php esc_html_e('Localization', 'NORDBOOKING'); ?></h3>
+                    <div class="nordbooking-card">
+                        <div class="nordbooking-card-header">
+                            <h3 class="nordbooking-card-title"><?php esc_html_e('Localization', 'NORDBOOKING'); ?></h3>
                         </div>
-                        <div class="NORDBOOKING-card-content">
+                        <div class="nordbooking-card-content">
                             <div class="form-group">
                                 <label for="biz_currency_code"><?php esc_html_e('Currency', 'NORDBOOKING'); ?></label>
                                 <select name="biz_currency_code" id="biz_currency_code" class="regular-text">
@@ -120,11 +120,11 @@ function nordbooking_select_biz_setting_value($settings, $key, $value, $default_
             <div class="settings-layout">
                 <div class="settings-column">
                     <!-- Logo Card -->
-                    <div class="NORDBOOKING-card">
-                        <div class="NORDBOOKING-card-header">
-                            <h3 class="NORDBOOKING-card-title"><?php esc_html_e('Company Logo', 'NORDBOOKING'); ?></h3>
+                    <div class="nordbooking-card">
+                        <div class="nordbooking-card-header">
+                            <h3 class="nordbooking-card-title"><?php esc_html_e('Company Logo', 'NORDBOOKING'); ?></h3>
                         </div>
-                        <div class="NORDBOOKING-card-content">
+                        <div class="nordbooking-card-content">
                             <div class="form-group">
                                 <div class="logo-uploader-wrapper">
                                     <div class="logo-preview">
@@ -155,11 +155,11 @@ function nordbooking_select_biz_setting_value($settings, $key, $value, $default_
                 </div>
                 <div class="settings-column">
                     <!-- Theme Colors Card -->
-                    <div class="NORDBOOKING-card">
-                        <div class="NORDBOOKING-card-header">
-                            <h3 class="NORDBOOKING-card-title"><?php esc_html_e('Theme Colors', 'NORDBOOKING'); ?></h3>
+                    <div class="nordbooking-card">
+                        <div class="nordbooking-card-header">
+                            <h3 class="nordbooking-card-title"><?php esc_html_e('Theme Colors', 'NORDBOOKING'); ?></h3>
                         </div>
-                        <div class="NORDBOOKING-card-content">
+                        <div class="nordbooking-card-content">
                             <div class="form-group">
                                 <label for="bf_theme_color"><?php esc_html_e('Primary Color', 'NORDBOOKING'); ?></label>
                                 <input name="bf_theme_color" type="text" id="bf_theme_color" value="<?php echo nordbooking_get_biz_setting_value($bf_settings, 'bf_theme_color', '#1abc9c'); ?>" class="form-input NORDBOOKING-color-picker">
@@ -181,11 +181,11 @@ function nordbooking_select_biz_setting_value($settings, $key, $value, $default_
         <div id="email-notifications-tab" class="settings-tab-content" style="display:none;">
             <div class="email-settings-layout">
                 <div class="email-editor-column">
-                    <div class="NORDBOOKING-card">
-                        <div class="NORDBOOKING-card-header">
-                            <h3 class="NORDBOOKING-card-title"><?php esc_html_e('Edit Email Template', 'NORDBOOKING'); ?></h3>
+                    <div class="nordbooking-card">
+                        <div class="nordbooking-card-header">
+                            <h3 class="nordbooking-card-title"><?php esc_html_e('Edit Email Template', 'NORDBOOKING'); ?></h3>
                         </div>
-                        <div class="NORDBOOKING-card-content">
+                        <div class="nordbooking-card-content">
                             <div class="form-group">
                                 <label for="email-template-selector"><?php esc_html_e('Select Email to Edit', 'NORDBOOKING'); ?></label>
                                 <select id="email-template-selector" class="regular-text">
@@ -211,11 +211,11 @@ function nordbooking_select_biz_setting_value($settings, $key, $value, $default_
                             </div>
                         </div>
                     </div>
-                    <div class="NORDBOOKING-card">
-                        <div class="NORDBOOKING-card-header">
-                            <h3 class="NORDBOOKING-card-title"><?php esc_html_e('Available Variables', 'NORDBOOKING'); ?></h3>
+                    <div class="nordbooking-card">
+                        <div class="nordbooking-card-header">
+                            <h3 class="nordbooking-card-title"><?php esc_html_e('Available Variables', 'NORDBOOKING'); ?></h3>
                         </div>
-                        <div class="NORDBOOKING-card-content">
+                        <div class="nordbooking-card-content">
                             <p class="description"><?php esc_html_e('Click any variable to copy it to your clipboard.', 'NORDBOOKING'); ?></p>
                             <ul id="email-variables-list">
                                 <!-- Variables will be loaded by JS -->
@@ -224,11 +224,11 @@ function nordbooking_select_biz_setting_value($settings, $key, $value, $default_
                     </div>
                 </div>
                 <div class="email-preview-column">
-                    <div class="NORDBOOKING-card">
-                        <div class="NORDBOOKING-card-header">
-                            <h3 class="NORDBOOKING-card-title"><?php esc_html_e('Live Preview', 'NORDBOOKING'); ?></h3>
+                    <div class="nordbooking-card">
+                        <div class="nordbooking-card-header">
+                            <h3 class="nordbooking-card-title"><?php esc_html_e('Live Preview', 'NORDBOOKING'); ?></h3>
                         </div>
-                        <div class="NORDBOOKING-card-content">
+                        <div class="nordbooking-card-content">
                             <iframe id="email-preview-iframe" src="about:blank"></iframe>
                         </div>
                     </div>
