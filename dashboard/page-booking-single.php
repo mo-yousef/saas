@@ -167,12 +167,12 @@ if (!function_exists('nordbooking_get_status_badge_icon_svg')) {
                 </div>
             </div>
 
-            <!-- Booking Details Card -->
+            <!-- Booking Information Card -->
             <div class="nordbooking-card card-bs">
                 <div class="nordbooking-card-header">
                     <div class="nordbooking-card-title-group">
                         <span class="nordbooking-card-icon"><?php echo nordbooking_get_feather_icon('info'); ?></span>
-                        <h3 class="nordbooking-card-title"><?php esc_html_e('Booking Details', 'NORDBOOKING'); ?></h3>
+                        <h3 class="nordbooking-card-title"><?php esc_html_e('Booking Information', 'NORDBOOKING'); ?></h3>
                     </div>
                 </div>
                 <div class="nordbooking-card-content">
@@ -203,18 +203,10 @@ if (!function_exists('nordbooking_get_status_badge_icon_svg')) {
                         <p class="text-sm text-muted-foreground"><?php echo nl2br(esc_html($booking['special_instructions'])); ?></p>
                     </div>
                     <?php endif; ?>
-                </div>
-            </div>
 
-            <!-- Booking Pricing Card -->
-            <div class="nordbooking-card card-bs">
-                <div class="nordbooking-card-header">
-                    <div class="nordbooking-card-title-group">
-                        <span class="nordbooking-card-icon"><?php echo nordbooking_get_feather_icon('dollar-sign'); ?></span>
-                        <h3 class="nordbooking-card-title"><?php esc_html_e('Booking Pricing', 'NORDBOOKING'); ?></h3>
-                    </div>
-                </div>
-                <div class="nordbooking-card-content">
+                    <hr style="margin: 1.5rem 0;">
+
+                    <h4 class="font-semibold text-md mb-2"><?php esc_html_e('Pricing Details', 'NORDBOOKING'); ?></h4>
                     <?php if (isset($booking['items']) && is_array($booking['items']) && !empty($booking['items'])): ?>
                         <table class="NORDBOOKING-services-table">
                             <thead>
