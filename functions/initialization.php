@@ -200,4 +200,10 @@ if (class_exists('NORDBOOKING\Classes\AvailabilityAjax')) {
         $GLOBALS['nordbooking_availability_ajax']->register_ajax_actions();
     }
 }
+
+// Register Customer Monitoring Page
+if ( class_exists( 'NORDBOOKING\Classes\Admin\CustomerMonitoringPage' ) ) {
+    add_action( 'admin_menu', array( 'NORDBOOKING\Classes\Admin\CustomerMonitoringPage', 'register_page' ) );
+    add_action( 'admin_enqueue_scripts', array( 'NORDBOOKING\Classes\Admin\CustomerMonitoringPage', 'enqueue_assets' ) );
+}
 ?>
