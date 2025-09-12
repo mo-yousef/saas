@@ -1,4 +1,26 @@
-/*
- * Styles for the single booking page.
- * This file is intended to hold styles specific to the single booking page that are not covered by the main dashboard.css.
- */
+.NORDBOOKING-single-booking-page-wrapper .NORDBOOKING-edit-layout-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    align-items: flex-start;
+}
+
+@media (min-width: 1024px) {
+    .NORDBOOKING-single-booking-page-wrapper .NORDBOOKING-edit-layout-grid {
+        grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    }
+}
+
+.NORDBOOKING-single-booking-page-wrapper .NORDBOOKING-main-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.NORDBOOKING-single-booking-page-wrapper .NORDBOOKING-sidebar {
+    position: sticky;
+    top: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
