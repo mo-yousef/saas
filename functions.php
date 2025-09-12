@@ -29,7 +29,6 @@ require_once NORDBOOKING_THEME_DIR . 'functions/utilities.php';
 require_once NORDBOOKING_THEME_DIR . 'functions/debug.php';
 require_once NORDBOOKING_THEME_DIR . 'functions/email.php';
 require_once NORDBOOKING_THEME_DIR . 'functions/ajax-fixes.php';
-require_once NORDBOOKING_THEME_DIR . 'functions/debug-utils.php';
 
 
 /**
@@ -1337,13 +1336,15 @@ function nordbooking_hide_admin_bar_for_non_admins($show) {
 // The correct resolution is to wait for a future WordPress core update that addresses this.
 // For more information, see WordPress Trac ticket #60929.
 
-function nordbooking_set_trial_period_for_new_business_owner( $user_id ) {
-    $user = get_user_by( 'id', $user_id );
-    if ( in_array( 'nordbooking_business_owner', (array) $user->roles ) ) {
-        $trial_ends_at = strtotime( '+7 days' );
-        update_user_meta( $user_id, '_nordbooking_trial_ends_at', $trial_ends_at );
+function nordbooking_enqueue_admin_dashboard_assets( $hook ) {
+    if ( 'toplevel_page_NORDBOOKING-admin' === $hook || 'nordbooking_page_NORDBOOKING-user-management' === $hook ) {
+        wp_enqueue_style(
+            'nordbooking-admin-dashboard',
+            get_template_directory_uri() . '/assets/css/admin-dashboard.css',
+            [],
+            NORDBOOKING_VERSION
+        );
     }
 }
-add_action( 'user_register', 'nordbooking_set_trial_period_for_new_business_owner', 10, 1 );
-
+add_action( 'admin_enqueue_scripts', 'nordbooking_enqueue_admin_dashboard_assets' );
 ?>
