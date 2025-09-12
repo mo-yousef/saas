@@ -36,9 +36,9 @@ jQuery(document).ready(function ($) {
       window.NORDBOOKING_CONFIG?.settings ||
       window.nordbooking_booking_form_params?.settings ||
       {},
-    opencage_api_key:
-      window.NORDBOOKING_CONFIG?.opencage_api_key ||
-      window.nordbooking_booking_form_params?.opencage_api_key ||
+    locationiq_api_key:
+      window.NORDBOOKING_CONFIG?.locationiq_api_key ||
+      window.nordbooking_booking_form_params?.locationiq_api_key ||
       "",
   };
 
@@ -1659,8 +1659,8 @@ jQuery(document).ready(function ($) {
     state.customer.address = $(this).val();
   });
 
-  // OpenCage Autocomplete
-  const opencageApiKey = CONFIG.opencage_api_key;
+  // LocationIQ Autocomplete
+  const locationiqApiKey = CONFIG.locationiq_api_key;
   let autocompleteTimeout;
   const suggestionsContainer = $('<div id="NORDBOOKING-address-suggestions"></div>').insertAfter(els.addressInput).hide();
   const clearButton = $('<span class="clear-address-btn">&times;</span>').insertAfter(els.addressInput).hide();
@@ -1688,11 +1688,8 @@ jQuery(document).ready(function ($) {
     clearTimeout(autocompleteTimeout);
     autocompleteTimeout = setTimeout(() => {
       const fullQuery = `${query}, ${state.areaName}, ${state.zip}`;
-      let apiUrl = `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(fullQuery)}&key=${opencageApiKey}&limit=5`;
-      if (state.zipBounds) {
-        const { southwest, northeast } = state.zipBounds;
-        apiUrl += `&bounds=${southwest.lng},${southwest.lat},${northeast.lng},${northeast.lat}`;
-      }
+      let apiUrl = `https://us1.locationiq.com/v1/search.php?key=${locationiqApiKey}&q=${encodeURIComponent(fullQuery)}&format=json&limit=5`;
+
       fetch(apiUrl)
         .then(response => {
           if (!response.ok) {
@@ -1701,8 +1698,8 @@ jQuery(document).ready(function ($) {
           return response.json();
         })
         .then(data => {
-          if (data.results && data.results.length > 0) {
-            const suggestionsHtml = data.results.map(result => `<div class="suggestion-item">${result.formatted}</div>`).join('');
+          if (data && data.length > 0) {
+            const suggestionsHtml = data.map(result => `<div class="suggestion-item">${result.display_name}</div>`).join('');
             suggestionsContainer.html(suggestionsHtml).show();
           } else {
             suggestionsContainer.hide();
