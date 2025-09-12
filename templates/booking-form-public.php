@@ -301,6 +301,10 @@ $script_data = [
                         <input type="tel" id="NORDBOOKING-customer-phone" class="NORDBOOKING-input" required>
                     </div>
                     <div class="NORDBOOKING-form-group">
+                        <label for="NORDBOOKING-city-readonly" class="NORDBOOKING-label"><?php _e('City', 'NORDBOOKING'); ?></label>
+                        <input type="text" id="NORDBOOKING-city-readonly" class="NORDBOOKING-input" readonly>
+                    </div>
+                    <div class="NORDBOOKING-form-group">
                         <label for="NORDBOOKING-zip-readonly" class="NORDBOOKING-label"><?php _e('ZIP/Postal Code', 'NORDBOOKING'); ?></label>
                         <input type="text" id="NORDBOOKING-zip-readonly" class="NORDBOOKING-input" readonly>
                     </div>
