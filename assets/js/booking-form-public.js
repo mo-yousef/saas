@@ -569,19 +569,20 @@ jQuery(document).ready(function ($) {
             // Enable the next button ONLY on success
             $submitBtn.prop("disabled", false);
 
-            // Fetch bounds for the ZIP code
-            fetch(`https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(zip)}&key=${opencageApiKey}&limit=1`)
+            // Fetch city name from LocationIQ
+            fetch(`https://us1.locationiq.com/v1/search.php?key=${locationiqApiKey}&q=${encodeURIComponent(zip)}&format=json&addressdetails=1&limit=1`)
               .then(response => response.json())
               .then(data => {
-                if (data.results && data.results.length > 0 && data.results[0].bounds) {
-                  state.zipBounds = data.results[0].bounds;
-                } else {
-                  state.zipBounds = null;
+                if (data && data.length > 0 && data[0].address) {
+                  const city = data[0].address.city || data[0].address.town || data[0].address.village || data[0].address.hamlet;
+                  if (city) {
+                    state.areaName = city;
+                    $("#NORDBOOKING-area-name").text(city).addClass("valid");
+                  }
                 }
               })
               .catch(error => {
-                console.error('Error fetching ZIP code bounds:', error);
-                state.zipBounds = null;
+                console.error('Error fetching city from ZIP:', error);
               });
 
           } else {
