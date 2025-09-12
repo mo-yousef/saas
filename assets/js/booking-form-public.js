@@ -167,6 +167,7 @@ jQuery(document).ready(function ($) {
     if (step === 6) initDatePicker();
     if (step === 7) {
       $("#NORDBOOKING-zip-readonly").val(state.zip);
+      $("#NORDBOOKING-city-readonly").val(state.areaName);
       // Ensure the active class is set on the correct property access radio
       $('input[name="property_access"]:checked')
         .closest(".NORDBOOKING-radio-option")
@@ -1571,11 +1572,17 @@ jQuery(document).ready(function ($) {
     CONFIG.settings.bf_enable_location_check === "0"
   ) {
     const zipInput = $("#NORDBOOKING-zip-readonly");
+    const cityInput = $("#NORDBOOKING-city-readonly");
     zipInput.prop("readonly", false);
+    cityInput.prop("readonly", false);
 
     // Also, update state when user types in their zip
     zipInput.on("input", function () {
       state.zip = $(this).val();
+    });
+
+    cityInput.on("input", function () {
+      state.areaName = $(this).val();
     });
 
     // Also, hide the "previous" button on step 2, as there's no step 1
@@ -1676,7 +1683,8 @@ jQuery(document).ready(function ($) {
 
     clearTimeout(autocompleteTimeout);
     autocompleteTimeout = setTimeout(() => {
-      let apiUrl = `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(query)}&key=${opencageApiKey}&limit=5`;
+      const fullQuery = `${query}, ${state.areaName}, ${state.zip}`;
+      let apiUrl = `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(fullQuery)}&key=${opencageApiKey}&limit=5`;
       if (state.zipBounds) {
         const { southwest, northeast } = state.zipBounds;
         apiUrl += `&bounds=${southwest.lng},${southwest.lat},${northeast.lng},${northeast.lat}`;
