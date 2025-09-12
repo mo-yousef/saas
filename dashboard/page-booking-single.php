@@ -143,8 +143,10 @@ if (!function_exists('nordbooking_get_status_badge_icon_svg')) {
         <a href="<?php echo esc_url($main_bookings_page_url); ?>" class="btn btn-secondary"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-left"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg><?php esc_html_e(' Back to Bookings List', 'NORDBOOKING'); ?></a>
     </div>
 
-    <!-- Booking & Customer Details Card -->
-    <div class="nordbooking-card card-bs">
+    <div class="NORDBOOKING-edit-layout-grid">
+        <div class="NORDBOOKING-main-content">
+            <!-- Booking & Customer Details Card -->
+            <div class="nordbooking-card card-bs">
         <div class="nordbooking-card-header">
             <div class="nordbooking-card-title-group">
                 <span class="nordbooking-card-icon"><?php echo nordbooking_get_feather_icon('info'); ?></span>
@@ -168,254 +170,257 @@ if (!function_exists('nordbooking_get_status_badge_icon_svg')) {
         </div>
     </div>
 
-    <!-- Status & Admin Actions Card -->
-    <div class="nordbooking-card card-bs">
-        <div class="nordbooking-card-header">
-            <div class="nordbooking-card-title-group">
-                <span class="nordbooking-card-icon"><?php echo nordbooking_get_feather_icon('activity'); ?></span>
-                <h3 class="nordbooking-card-title"><?php esc_html_e('Status & Actions', 'NORDBOOKING'); ?></h3>
-            </div>
-        </div>
-        <div class="nordbooking-card-content">
-            <div class="border-b border-dashed pb-4 mb-4">
-                <div class="mb-3"><strong class="block font-semibold text-sm mb-1"><?php esc_html_e('Current Status:', 'NORDBOOKING'); ?></strong>
-                    <span id="NORDBOOKING-current-status-display" class="status-badge status-<?php echo esc_attr($booking['status']); ?>">
-                        <?php echo nordbooking_get_status_badge_icon_svg($booking['status']); ?>
-                        <span class="status-text"><?php echo esc_html($status_display); ?></span>
-                    </span>
-                </div>
-                <div class="flex items-center gap-3 flex-wrap">
-                    <label for="NORDBOOKING-single-booking-status-select" class="font-semibold text-sm flex items-center gap-1"><?php echo nordbooking_get_feather_icon('edit', 'width="16" height="16"'); ?> <?php esc_html_e('Change Status:', 'NORDBOOKING'); ?></label>
-                    <select id="NORDBOOKING-single-booking-status-select" data-booking-id="<?php echo esc_attr($booking['booking_id']); ?>" class="nordbooking-filter-select">
-                        <?php foreach ($booking_statuses_for_select as $value => $label) : ?>
-                            <option value="<?php echo esc_attr($value); ?>" <?php selected($booking['status'], $value); ?>><?php echo esc_html($label); ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                    <button id="NORDBOOKING-single-save-status-btn" class="btn btn-primary btn-sm"><?php esc_html_e('Save Status', 'NORDBOOKING'); ?></button>
-                </div>
-                <div id="NORDBOOKING-single-status-feedback" class="text-sm mt-2"></div>
-            </div>
-
-            <!-- Download Invoice Button -->
-            <div class="pt-4 border-b border-dashed pb-4 mb-4">
-                <strong class="block font-semibold text-sm mb-2"><?php esc_html_e('Downloads', 'NORDBOOKING'); ?></strong>
-                <a href="<?php echo esc_url( add_query_arg( 'download_invoice', 'true' ) ); ?>" class="btn btn-secondary" target="_blank">
-                    <?php echo nordbooking_get_feather_icon('download', 'width="16" height="16" style="vertical-align:middle; margin-right:0.25rem;"'); ?>
-                    <?php esc_html_e('Download Invoice', 'NORDBOOKING'); ?>
-                </a>
-            </div>
-
-            <!-- Staff Assignment Section -->
-            <?php
-            if (current_user_can(NORDBOOKING\Classes\Auth::CAP_ASSIGN_BOOKINGS) || current_user_can(NORDBOOKING\Classes\Auth::CAP_MANAGE_BOOKINGS)) :
-                $workers = get_users([
-                    'meta_key'   => \NORDBOOKING\Classes\Auth::META_KEY_OWNER_ID,
-                    'meta_value' => $booking_owner_id_for_fetch, // Use the owner ID determined earlier
-                    'role__in'   => [\NORDBOOKING\Classes\Auth::ROLE_WORKER_STAFF],
-                ]);
-            ?>
-            <div class="pt-4">
-                <div class="mb-3"><strong class="block font-semibold text-sm mb-1"><?php esc_html_e('Assigned Staff:', 'NORDBOOKING'); ?></strong>
-                    <span id="NORDBOOKING-current-assigned-staff" class="text-sm text-muted-foreground">
-                        <?php echo isset($booking['assigned_staff_name']) ? esc_html($booking['assigned_staff_name']) : esc_html__('Unassigned', 'NORDBOOKING'); ?>
-                    </span>
-                </div>
-                <div class="flex items-center gap-3 flex-wrap">
-                    <label for="NORDBOOKING-single-assign-staff-select" class="font-semibold text-sm flex items-center gap-1"><?php echo nordbooking_get_feather_icon('user-plus', 'width="16" height="16"'); ?> <?php esc_html_e('Assign to Staff:', 'NORDBOOKING'); ?></label>
-                    <select id="NORDBOOKING-single-assign-staff-select" data-booking-id="<?php echo esc_attr($booking['booking_id']); ?>" class="nordbooking-filter-select">
-                        <option value="0"><?php esc_html_e('-- Unassign --', 'NORDBOOKING'); ?></option>
-                        <?php if (!empty($workers)) : ?>
-                            <?php foreach ($workers as $worker) : ?>
-                                <option value="<?php echo esc_attr($worker->ID); ?>" <?php selected(isset($booking['assigned_staff_id']) ? $booking['assigned_staff_id'] : 0, $worker->ID); ?>>
-                                    <?php echo esc_html($worker->display_name); ?> (<?php echo esc_html($worker->user_email); ?>)
-                                </option>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <option value="" disabled><?php esc_html_e('No staff available for this business.', 'NORDBOOKING'); ?></option>
-                        <?php endif; ?>
-                    </select>
-                    <button id="NORDBOOKING-single-save-staff-assignment-btn" class="btn btn-primary btn-sm"><?php esc_html_e('Save Assignment', 'NORDBOOKING'); ?></button>
-                </div>
-                <div id="NORDBOOKING-single-staff-assignment-feedback" class="text-sm mt-2"></div>
-            </div>
-            <?php endif; ?>
-            <!-- End Staff Assignment Section -->
-
-             <div class="text-xs text-muted-foreground text-right mt-4">
-                <p><?php esc_html_e('Created:', 'NORDBOOKING'); ?> <?php echo esc_html($created_at_formatted); ?> | <?php esc_html_e('Last Updated:', 'NORDBOOKING'); ?> <?php echo esc_html($updated_at_formatted); ?></p>
-            </div>
-        </div>
-    </div>
-
     <!-- Services & Pricing Card -->
-    <div class="nordbooking-card card-bs">
-        <div class="nordbooking-card-header">
-            <div class="nordbooking-card-title-group">
-                <span class="nordbooking-card-icon"><?php echo nordbooking_get_feather_icon('list'); ?></span>
-                <h3 class="nordbooking-card-title"><?php esc_html_e('Services & Pricing', 'NORDBOOKING'); ?></h3>
-            </div>
-        </div>
-        <div class="nordbooking-card-content">
-            <?php if (isset($booking['items']) && is_array($booking['items']) && !empty($booking['items'])): ?>
-                <table class="NORDBOOKING-services-table">
-                    <thead>
-                        <tr>
-                            <th><?php esc_html_e('Service / Option', 'NORDBOOKING'); ?></th>
-                            <th><?php esc_html_e('Details', 'NORDBOOKING'); ?></th>
-                            <th class="price-cell"><?php esc_html_e('Price', 'NORDBOOKING'); ?></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php $subtotal_calc = 0; foreach ($booking['items'] as $item): $subtotal_calc += floatval($item['item_total_price']); ?>
-                            <tr>
-                                <td data-label="<?php esc_attr_e('Service', 'NORDBOOKING'); ?>" class="service-name-cell">
-                                    <?php echo esc_html($item['service_name']); ?>
-                                </td>
-                                <td data-label="<?php esc_attr_e('Base Price', 'NORDBOOKING'); ?>" class="price-cell">
-                                    <?php echo esc_html($currency_symbol . number_format_i18n(floatval($item['service_price']), 2)); ?>
-                                </td>
-                                <td data-label="<?php esc_attr_e('Item Total', 'NORDBOOKING'); ?>" class="price-cell">
-                                    <?php echo esc_html($currency_symbol . number_format_i18n(floatval($item['item_total_price']), 2)); ?>
-                                </td>
-                            </tr>
-                            <?php
-								// Ensure selected options are available as an array (decode JSON string if needed)
-								$selected_options_raw = $item['selected_options'] ?? [];
-								if (is_string($selected_options_raw)) {
-									$decoded = json_decode($selected_options_raw, true);
-									if (json_last_error() === JSON_ERROR_NONE) {
-										$selected_options = $decoded;
-									} else {
-										$selected_options = [];
-									}
-								} else {
-									$selected_options = is_array($selected_options_raw) ? $selected_options_raw : [];
-								}
-							?>
-							<?php if (!empty($selected_options) && is_array($selected_options)): ?>
-								<?php
-									foreach ($selected_options as $option_key => $option_data):
-										$option_field_label = '';
-										$option_selected_value_display = '';
-										$option_price_text = '';
-										if (is_array($option_data) && isset($option_data['name'])) {
-											$option_field_label = $option_data['name'];
-											$value_from_db = $option_data['value'] ?? '';
-											if (is_string($value_from_db)) {
-												$decoded_value = json_decode($value_from_db, true);
-												if (is_array($decoded_value) && isset($decoded_value['name']) && isset($decoded_value['value'])) {
-													$option_field_label = $decoded_value['name'];
-													$option_selected_value_display = esc_html($decoded_value['value']);
-													$current_option_price = isset($decoded_value['price']) ? floatval($decoded_value['price']) : 0;
-													$option_price_text = ($current_option_price >= 0 ? '+' : '') . esc_html($currency_symbol . number_format_i18n($current_option_price, 2));
-												} elseif (is_array($decoded_value)) {
-													$option_selected_value_display = esc_html(wp_json_encode($decoded_value));
-													$current_option_price = isset($option_data['price']) ? floatval($option_data['price']) : (isset($decoded_value['price']) ? floatval($decoded_value['price']) : 0);
-													$option_price_text = ($current_option_price >= 0 ? '+' : '') . esc_html($currency_symbol . number_format_i18n($current_option_price, 2));
-												} else {
-													$option_selected_value_display = esc_html($value_from_db);
-													$current_option_price = isset($option_data['price']) ? floatval($option_data['price']) : 0;
-													if ($current_option_price != 0) {
-														$option_price_text = ($current_option_price >= 0 ? '+' : '') . esc_html($currency_symbol . number_format_i18n($current_option_price, 2));
-													}
-												}
-											} elseif (is_array($value_from_db)) {
-												$option_selected_value_display = esc_html(wp_json_encode($value_from_db));
-												$current_option_price = isset($option_data['price']) ? floatval($option_data['price']) : 0;
-												if ($current_option_price != 0) {
-													$option_price_text = ($current_option_price >= 0 ? '+' : '') . esc_html($currency_symbol . number_format_i18n($current_option_price, 2));
-												}
-											} else {
-												$option_selected_value_display = esc_html($value_from_db);
-												$current_option_price = isset($option_data['price']) ? floatval($option_data['price']) : 0;
-												if ($current_option_price != 0) {
-													$option_price_text = ($current_option_price >= 0 ? '+' : '') . esc_html($currency_symbol . number_format_i18n($current_option_price, 2));
-												}
-											}
-										} else {
-											$option_field_label = is_string($option_key) ? esc_html($option_key) : 'Additional Option';
-											$option_selected_value_display = esc_html(wp_json_encode($option_data));
-										}
-									?>
-									<tr class="option-row">
-										<td data-label="<?php echo esc_attr($option_field_label); ?>" class="option-name">
-											└ <?php echo esc_html($option_field_label); ?>
-										</td>
-										<td data-label="<?php esc_attr_e('Selected', 'NORDBOOKING'); ?>">
-											<?php echo $option_selected_value_display; ?>
-										</td>
-										<td data-label="<?php esc_attr_e('Price', 'NORDBOOKING'); ?>" class="price-cell">
-											<?php echo $option_price_text; ?>
-										</td>
-									</tr>
-								<?php endforeach; ?>
-							<?php endif; ?>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-                <hr style="margin: 1.5rem 0;">
-                <div class="NORDBOOKING-pricing-summary">
-                    <p><span><?php esc_html_e('Subtotal:', 'NORDBOOKING'); ?></span> <span><?php echo esc_html($currency_symbol . number_format_i18n($subtotal_calc, 2)); ?></span></p>
-                    <p><span><?php esc_html_e('Discount Applied:', 'NORDBOOKING'); ?></span> <span><?php echo esc_html($discount_amount_formatted); ?></span></p>
-                    <p><strong><?php esc_html_e('Final Total:', 'NORDBOOKING'); ?></strong> <strong class="final-total"><?php echo $total_price_formatted; ?></strong></p>
+            <div class="nordbooking-card card-bs">
+                <div class="nordbooking-card-header">
+                    <div class="nordbooking-card-title-group">
+                        <span class="nordbooking-card-icon"><?php echo nordbooking_get_feather_icon('list'); ?></span>
+                        <h3 class="nordbooking-card-title"><?php esc_html_e('Services & Pricing', 'NORDBOOKING'); ?></h3>
+                    </div>
                 </div>
-            <?php else: ?>
-                <p><?php esc_html_e('No service items found for this booking.', 'NORDBOOKING'); ?></p>
+                <div class="nordbooking-card-content">
+                    <?php if (isset($booking['items']) && is_array($booking['items']) && !empty($booking['items'])): ?>
+                        <table class="NORDBOOKING-services-table">
+                            <thead>
+                                <tr>
+                                    <th><?php esc_html_e('Service / Option', 'NORDBOOKING'); ?></th>
+                                    <th><?php esc_html_e('Details', 'NORDBOOKING'); ?></th>
+                                    <th class="price-cell"><?php esc_html_e('Price', 'NORDBOOKING'); ?></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php $subtotal_calc = 0; foreach ($booking['items'] as $item): $subtotal_calc += floatval($item['item_total_price']); ?>
+                                    <tr>
+                                        <td data-label="<?php esc_attr_e('Service', 'NORDBOOKING'); ?>" class="service-name-cell">
+                                            <?php echo esc_html($item['service_name']); ?>
+                                        </td>
+                                        <td data-label="<?php esc_attr_e('Base Price', 'NORDBOOKING'); ?>" class="price-cell">
+                                            <?php echo esc_html($currency_symbol . number_format_i18n(floatval($item['service_price']), 2)); ?>
+                                        </td>
+                                        <td data-label="<?php esc_attr_e('Item Total', 'NORDBOOKING'); ?>" class="price-cell">
+                                            <?php echo esc_html($currency_symbol . number_format_i18n(floatval($item['item_total_price']), 2)); ?>
+                                        </td>
+                                    </tr>
+                                    <?php
+                                        // Ensure selected options are available as an array (decode JSON string if needed)
+                                        $selected_options_raw = $item['selected_options'] ?? [];
+                                        if (is_string($selected_options_raw)) {
+                                            $decoded = json_decode($selected_options_raw, true);
+                                            if (json_last_error() === JSON_ERROR_NONE) {
+                                                $selected_options = $decoded;
+                                            } else {
+                                                $selected_options = [];
+                                            }
+                                        } else {
+                                            $selected_options = is_array($selected_options_raw) ? $selected_options_raw : [];
+                                        }
+                                    ?>
+                                    <?php if (!empty($selected_options) && is_array($selected_options)): ?>
+                                        <?php
+                                            foreach ($selected_options as $option_key => $option_data):
+                                                $option_field_label = '';
+                                                $option_selected_value_display = '';
+                                                $option_price_text = '';
+                                                if (is_array($option_data) && isset($option_data['name'])) {
+                                                    $option_field_label = $option_data['name'];
+                                                    $value_from_db = $option_data['value'] ?? '';
+                                                    if (is_string($value_from_db)) {
+                                                        $decoded_value = json_decode($value_from_db, true);
+                                                        if (is_array($decoded_value) && isset($decoded_value['name']) && isset($decoded_value['value'])) {
+                                                            $option_field_label = $decoded_value['name'];
+                                                            $option_selected_value_display = esc_html($decoded_value['value']);
+                                                            $current_option_price = isset($decoded_value['price']) ? floatval($decoded_value['price']) : 0;
+                                                            $option_price_text = ($current_option_price >= 0 ? '+' : '') . esc_html($currency_symbol . number_format_i18n($current_option_price, 2));
+                                                        } elseif (is_array($decoded_value)) {
+                                                            $option_selected_value_display = esc_html(wp_json_encode($decoded_value));
+                                                            $current_option_price = isset($option_data['price']) ? floatval($option_data['price']) : (isset($decoded_value['price']) ? floatval($decoded_value['price']) : 0);
+                                                            $option_price_text = ($current_option_price >= 0 ? '+' : '') . esc_html($currency_symbol . number_format_i18n($current_option_price, 2));
+                                                        } else {
+                                                            $option_selected_value_display = esc_html($value_from_db);
+                                                            $current_option_price = isset($option_data['price']) ? floatval($option_data['price']) : 0;
+                                                            if ($current_option_price != 0) {
+                                                                $option_price_text = ($current_option_price >= 0 ? '+' : '') . esc_html($currency_symbol . number_format_i18n($current_option_price, 2));
+                                                            }
+                                                        }
+                                                    } elseif (is_array($value_from_db)) {
+                                                        $option_selected_value_display = esc_html(wp_json_encode($value_from_db));
+                                                        $current_option_price = isset($option_data['price']) ? floatval($option_data['price']) : 0;
+                                                        if ($current_option_price != 0) {
+                                                            $option_price_text = ($current_option_price >= 0 ? '+' : '') . esc_html($currency_symbol . number_format_i18n($current_option_price, 2));
+                                                        }
+                                                    } else {
+                                                        $option_selected_value_display = esc_html($value_from_db);
+                                                        $current_option_price = isset($option_data['price']) ? floatval($option_data['price']) : 0;
+                                                        if ($current_option_price != 0) {
+                                                            $option_price_text = ($current_option_price >= 0 ? '+' : '') . esc_html($currency_symbol . number_format_i18n($current_option_price, 2));
+                                                        }
+                                                    }
+                                                } else {
+                                                    $option_field_label = is_string($option_key) ? esc_html($option_key) : 'Additional Option';
+                                                    $option_selected_value_display = esc_html(wp_json_encode($option_data));
+                                                }
+                                            ?>
+                                            <tr class="option-row">
+                                                <td data-label="<?php echo esc_attr($option_field_label); ?>" class="option-name">
+                                                    └ <?php echo esc_html($option_field_label); ?>
+                                                </td>
+                                                <td data-label="<?php esc_attr_e('Selected', 'NORDBOOKING'); ?>">
+                                                    <?php echo $option_selected_value_display; ?>
+                                                </td>
+                                                <td data-label="<?php esc_attr_e('Price', 'NORDBOOKING'); ?>" class="price-cell">
+                                                    <?php echo $option_price_text; ?>
+                                                </td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                        <hr style="margin: 1.5rem 0;">
+                        <div class="NORDBOOKING-pricing-summary">
+                            <p><span><?php esc_html_e('Subtotal:', 'NORDBOOKING'); ?></span> <span><?php echo esc_html($currency_symbol . number_format_i18n($subtotal_calc, 2)); ?></span></p>
+                            <p><span><?php esc_html_e('Discount Applied:', 'NORDBOOKING'); ?></span> <span><?php echo esc_html($discount_amount_formatted); ?></span></p>
+                            <p><strong><?php esc_html_e('Final Total:', 'NORDBOOKING'); ?></strong> <strong class="final-total"><?php echo $total_price_formatted; ?></strong></p>
+                        </div>
+                    <?php else: ?>
+                        <p><?php esc_html_e('No service items found for this booking.', 'NORDBOOKING'); ?></p>
+                    <?php endif; ?>
+                     <p style="margin-top: 1rem;"><strong><?php esc_html_e('Payment Status:', 'NORDBOOKING'); ?></strong> <?php echo esc_html(ucfirst($booking['payment_status'] ?? 'N/A')); ?></p>
+                </div>
+            </div>
+
+            <div class="nordbooking-card card-bs">
+                <div class="nordbooking-card-header">
+                    <div class="nordbooking-card-title-group">
+                        <span class="nordbooking-card-icon"><?php echo nordbooking_get_feather_icon('info'); ?></span>
+                        <h3 class="nordbooking-card-title"><?php esc_html_e('Advanced Details', 'NORDBOOKING'); ?></h3>
+                    </div>
+                </div>
+                <div class="nordbooking-card-content">
+                    <div class="kpi-grid">
+                        <div class="mb-3">
+                            <strong class="block font-semibold text-sm mb-1"><?php esc_html_e('Service Frequency:', 'NORDBOOKING'); ?></strong>
+                            <span class="text-sm text-muted-foreground"><?php echo esc_html(ucfirst($booking['service_frequency'] ?? 'one-time')); ?></span>
+                        </div>
+                        <div class="mb-3">
+                            <strong class="block font-semibold text-sm mb-1"><?php esc_html_e('Has Pets:', 'NORDBOOKING'); ?></strong>
+                            <span class="text-sm text-muted-foreground"><?php echo ($booking['has_pets'] ?? false) ? 'Yes' : 'No'; ?></span>
+                        </div>
+                        <?php if ($booking['has_pets'] ?? false): ?>
+                        <div class="mb-3">
+                            <strong class="block font-semibold text-sm mb-1"><?php esc_html_e('Pet Details:', 'NORDBOOKING'); ?></strong>
+                            <span class="text-sm text-muted-foreground"><?php echo nl2br(esc_html($booking['pet_details'] ?? '')); ?></span>
+                        </div>
+                        <?php endif; ?>
+                        <div class="mb-3">
+                            <strong class="block font-semibold text-sm mb-1"><?php esc_html_e('Property Access Method:', 'NORDBOOKING'); ?></strong>
+                            <span class="text-sm text-muted-foreground"><?php echo esc_html(ucfirst($booking['property_access_method'] ?? 'N/A')); ?></span>
+                        </div>
+                        <?php if (!empty($booking['property_access_details'])): ?>
+                        <div class="mb-3">
+                            <strong class="block font-semibold text-sm mb-1"><?php esc_html_e('Property Access Details:', 'NORDBOOKING'); ?></strong>
+                            <span class="text-sm text-muted-foreground"><?php echo nl2br(esc_html($booking['property_access_details'])); ?></span>
+                        </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+
+            <?php if (!empty($booking['special_instructions'])): ?>
+            <div class="nordbooking-card card-bs">
+                <div class="nordbooking-card-header">
+                    <div class="nordbooking-card-title-group">
+                        <span class="nordbooking-card-icon"><?php echo nordbooking_get_feather_icon('message-square'); ?></span>
+                        <h3 class="nordbooking-card-title"><?php esc_html_e('Special Instructions', 'NORDBOOKING'); ?></h3>
+                    </div>
+                </div>
+                <div class="nordbooking-card-content">
+                    <p><?php echo nl2br(esc_html($booking['special_instructions'])); ?></p>
+                </div>
+            </div>
             <?php endif; ?>
-             <p style="margin-top: 1rem;"><strong><?php esc_html_e('Payment Status:', 'NORDBOOKING'); ?></strong> <?php echo esc_html(ucfirst($booking['payment_status'] ?? 'N/A')); ?></p>
         </div>
-    </div>
+        <div class="NORDBOOKING-sidebar">
+            <!-- Status & Admin Actions Card -->
+            <div class="nordbooking-card card-bs">
+                <div class="nordbooking-card-header">
+                    <div class="nordbooking-card-title-group">
+                        <span class="nordbooking-card-icon"><?php echo nordbooking_get_feather_icon('activity'); ?></span>
+                        <h3 class="nordbooking-card-title"><?php esc_html_e('Status & Actions', 'NORDBOOKING'); ?></h3>
+                    </div>
+                </div>
+                <div class="nordbooking-card-content">
+                    <div class="border-b border-dashed pb-4 mb-4">
+                        <div class="mb-3"><strong class="block font-semibold text-sm mb-1"><?php esc_html_e('Current Status:', 'NORDBOOKING'); ?></strong>
+                            <span id="NORDBOOKING-current-status-display" class="status-badge status-<?php echo esc_attr($booking['status']); ?>">
+                                <?php echo nordbooking_get_status_badge_icon_svg($booking['status']); ?>
+                                <span class="status-text"><?php echo esc_html($status_display); ?></span>
+                            </span>
+                        </div>
+                        <div class="flex items-center gap-3 flex-wrap">
+                            <label for="NORDBOOKING-single-booking-status-select" class="font-semibold text-sm flex items-center gap-1"><?php echo nordbooking_get_feather_icon('edit', 'width="16" height="16"'); ?> <?php esc_html_e('Change Status:', 'NORDBOOKING'); ?></label>
+                            <select id="NORDBOOKING-single-booking-status-select" data-booking-id="<?php echo esc_attr($booking['booking_id']); ?>" class="nordbooking-filter-select">
+                                <?php foreach ($booking_statuses_for_select as $value => $label) : ?>
+                                    <option value="<?php echo esc_attr($value); ?>" <?php selected($booking['status'], $value); ?>><?php echo esc_html($label); ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                            <button id="NORDBOOKING-single-save-status-btn" class="btn btn-primary btn-sm"><?php echo nordbooking_get_feather_icon('save', 'width="16" height="16" style="vertical-align:middle; margin-right:0.25rem;"'); ?> <?php esc_html_e('Save Status', 'NORDBOOKING'); ?></button>
+                        </div>
+                        <div id="NORDBOOKING-single-status-feedback" class="text-sm mt-2"></div>
+                    </div>
 
-    <div class="nordbooking-card card-bs">
-        <div class="nordbooking-card-header">
-            <div class="nordbooking-card-title-group">
-                <span class="nordbooking-card-icon"><?php echo nordbooking_get_feather_icon('info'); ?></span>
-                <h3 class="nordbooking-card-title"><?php esc_html_e('Advanced Details', 'NORDBOOKING'); ?></h3>
-            </div>
-        </div>
-        <div class="nordbooking-card-content">
-            <div class="kpi-grid">
-                <div class="mb-3">
-                    <strong class="block font-semibold text-sm mb-1"><?php esc_html_e('Service Frequency:', 'NORDBOOKING'); ?></strong>
-                    <span class="text-sm text-muted-foreground"><?php echo esc_html(ucfirst($booking['service_frequency'] ?? 'one-time')); ?></span>
-                </div>
-                <div class="mb-3">
-                    <strong class="block font-semibold text-sm mb-1"><?php esc_html_e('Has Pets:', 'NORDBOOKING'); ?></strong>
-                    <span class="text-sm text-muted-foreground"><?php echo ($booking['has_pets'] ?? false) ? 'Yes' : 'No'; ?></span>
-                </div>
-                <?php if ($booking['has_pets'] ?? false): ?>
-                <div class="mb-3">
-                    <strong class="block font-semibold text-sm mb-1"><?php esc_html_e('Pet Details:', 'NORDBOOKING'); ?></strong>
-                    <span class="text-sm text-muted-foreground"><?php echo nl2br(esc_html($booking['pet_details'] ?? '')); ?></span>
-                </div>
-                <?php endif; ?>
-                <div class="mb-3">
-                    <strong class="block font-semibold text-sm mb-1"><?php esc_html_e('Property Access Method:', 'NORDBOOKING'); ?></strong>
-                    <span class="text-sm text-muted-foreground"><?php echo esc_html(ucfirst($booking['property_access_method'] ?? 'N/A')); ?></span>
-                </div>
-                <?php if (!empty($booking['property_access_details'])): ?>
-                <div class="mb-3">
-                    <strong class="block font-semibold text-sm mb-1"><?php esc_html_e('Property Access Details:', 'NORDBOOKING'); ?></strong>
-                    <span class="text-sm text-muted-foreground"><?php echo nl2br(esc_html($booking['property_access_details'])); ?></span>
-                </div>
-                <?php endif; ?>
-            </div>
-        </div>
-    </div>
+                    <!-- Download Invoice Button -->
+                    <div class="pt-4 border-b border-dashed pb-4 mb-4">
+                        <strong class="block font-semibold text-sm mb-2"><?php echo nordbooking_get_feather_icon('download', 'width="16" height="16" style="vertical-align:middle; margin-right:0.25rem;"'); ?> <?php esc_html_e('Downloads', 'NORDBOOKING'); ?></strong>
+                        <a href="<?php echo esc_url( add_query_arg( 'download_invoice', 'true' ) ); ?>" class="btn btn-secondary" target="_blank">
+                            <?php echo nordbooking_get_feather_icon('download', 'width="16" height="16" style="vertical-align:middle; margin-right:0.25rem;"'); ?>
+                            <?php esc_html_e('Download Invoice', 'NORDBOOKING'); ?>
+                        </a>
+                    </div>
 
-    <?php if (!empty($booking['special_instructions'])): ?>
-    <div class="nordbooking-card card-bs">
-        <div class="nordbooking-card-header">
-            <div class="nordbooking-card-title-group">
-                <span class="nordbooking-card-icon"><?php echo nordbooking_get_feather_icon('message-square'); ?></span>
-                <h3 class="nordbooking-card-title"><?php esc_html_e('Special Instructions', 'NORDBOOKING'); ?></h3>
+                    <!-- Staff Assignment Section -->
+                    <?php
+                    if (current_user_can(NORDBOOKING\Classes\Auth::CAP_ASSIGN_BOOKINGS) || current_user_can(NORDBOOKING\Classes\Auth::CAP_MANAGE_BOOKINGS)) :
+                        $workers = get_users([
+                            'meta_key'   => \NORDBOOKING\Classes\Auth::META_KEY_OWNER_ID,
+                            'meta_value' => $booking_owner_id_for_fetch, // Use the owner ID determined earlier
+                            'role__in'   => [\NORDBOOKING\Classes\Auth::ROLE_WORKER_STAFF],
+                        ]);
+                    ?>
+                    <div class="pt-4">
+                        <div class="mb-3"><strong class="block font-semibold text-sm mb-1"><?php echo nordbooking_get_feather_icon('user', 'width="16" height="16" style="vertical-align:middle; margin-right:0.25rem;"'); ?> <?php esc_html_e('Assigned Staff:', 'NORDBOOKING'); ?></strong>
+                            <span id="NORDBOOKING-current-assigned-staff" class="text-sm text-muted-foreground">
+                                <?php echo isset($booking['assigned_staff_name']) ? esc_html($booking['assigned_staff_name']) : esc_html__('Unassigned', 'NORDBOOKING'); ?>
+                            </span>
+                        </div>
+                        <div class="flex items-center gap-3 flex-wrap">
+                            <label for="NORDBOOKING-single-assign-staff-select" class="font-semibold text-sm flex items-center gap-1"><?php echo nordbooking_get_feather_icon('user-plus', 'width="16" height="16"'); ?> <?php esc_html_e('Assign to Staff:', 'NORDBOOKING'); ?></label>
+                            <select id="NORDBOOKING-single-assign-staff-select" data-booking-id="<?php echo esc_attr($booking['booking_id']); ?>" class="nordbooking-filter-select">
+                                <option value="0"><?php esc_html_e('-- Unassign --', 'NORDBOOKING'); ?></option>
+                                <?php if (!empty($workers)) : ?>
+                                    <?php foreach ($workers as $worker) : ?>
+                                        <option value="<?php echo esc_attr($worker->ID); ?>" <?php selected(isset($booking['assigned_staff_id']) ? $booking['assigned_staff_id'] : 0, $worker->ID); ?>>
+                                            <?php echo esc_html($worker->display_name); ?> (<?php echo esc_html($worker->user_email); ?>)
+                                        </option>
+                                    <?php endforeach; ?>
+                                <?php else: ?>
+                                    <option value="" disabled><?php esc_html_e('No staff available for this business.', 'NORDBOOKING'); ?></option>
+                                <?php endif; ?>
+                            </select>
+                            <button id="NORDBOOKING-single-save-staff-assignment-btn" class="btn btn-primary btn-sm"><?php echo nordbooking_get_feather_icon('save', 'width="16" height="16" style="vertical-align:middle; margin-right:0.25rem;"'); ?> <?php esc_html_e('Save Assignment', 'NORDBOOKING'); ?></button>
+                        </div>
+                        <div id="NORDBOOKING-single-staff-assignment-feedback" class="text-sm mt-2"></div>
+                    </div>
+                    <?php endif; ?>
+                    <!-- End Staff Assignment Section -->
+
+                     <div class="text-xs text-muted-foreground text-right mt-4">
+                        <p><?php esc_html_e('Created:', 'NORDBOOKING'); ?> <?php echo esc_html($created_at_formatted); ?> | <?php esc_html_e('Last Updated:', 'NORDBOOKING'); ?> <?php echo esc_html($updated_at_formatted); ?></p>
+                    </div>
+                </div>
             </div>
         </div>
-        <div class="nordbooking-card-content">
-            <p><?php echo nl2br(esc_html($booking['special_instructions'])); ?></p>
-        </div>
     </div>
-    <?php endif; ?>
 </div>
 
 <?php
