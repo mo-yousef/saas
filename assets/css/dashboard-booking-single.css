@@ -24,3 +24,46 @@
     flex-direction: column;
     gap: 1.5rem;
 }
+
+.booking-details-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.booking-details-list li {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #eee;
+}
+
+.booking-details-list li:last-child {
+    border-bottom: none;
+}
+
+.booking-details-list .detail-icon {
+    margin-right: 0.75rem;
+    color: #666;
+}
+
+.booking-details-list .detail-label {
+    font-weight: 500;
+    color: #333;
+    flex-basis: 150px;
+}
+
+.booking-details-list .detail-value {
+    color: #666;
+}
+
+.booking-details-list .nested-detail {
+    padding-left: 2.5rem;
+}
+
+.special-instructions-section {
+    margin-top: 1rem;
+}
