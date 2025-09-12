@@ -42,15 +42,6 @@ class UserManagementPage {
             [ __CLASS__, 'render_user_management_page_content' ] // Callback function
         );
 
-        // Add the Stripe Settings submenu page under the main NORDBOOKING Admin menu.
-        add_submenu_page(
-            'NORDBOOKING-admin',                           // Parent slug
-            __( 'Stripe Settings', 'nordbooking' ),       // Page title
-            __( 'Stripe Settings', 'nordbooking' ),       // Menu title
-            'manage_options',                            // Capability
-            'nordbooking-stripe-settings',               // Menu slug
-            [ __CLASS__, 'render_stripe_settings_page' ] // Callback function
-        );
     }
 
     /**
@@ -58,10 +49,94 @@ class UserManagementPage {
      * This page serves as a placeholder or overview page for the NORDBOOKING admin section.
      */
     public static function render_main_page_content() {
+        $business_owners = self::get_business_owners();
+
+        // Calculate KPIs
+        $total_owners = count($business_owners);
+        $active_subscriptions = 0;
+        $trial_users = 0;
+        $mrr = 0;
+        $subscription_price = get_option('nordbooking_stripe_subscription_price', 49);
+
+        foreach ($business_owners as $owner) {
+            if (get_user_meta($owner->ID, '_nordbooking_subscription_status', true) === 'active') {
+                $active_subscriptions++;
+                $mrr += $subscription_price;
+            } elseif (get_user_meta($owner->ID, '_nordbooking_trial_ends_at', true) && time() < get_user_meta($owner->ID, '_nordbooking_trial_ends_at', true)) {
+                $trial_users++;
+            }
+        }
         ?>
         <div class="wrap">
             <h1><?php _e( 'NORDBOOKING Admin', 'NORDBOOKING' ); ?></h1>
-            <p><?php _e( 'Welcome to the NORDBOOKING Admin area. Use the submenus to manage specific features.', 'NORDBOOKING' ); ?></p>
+
+            <div id="dashboard-widgets-wrap">
+                <div id="dashboard-widgets" class="metabox-holder">
+                    <div id="postbox-container-1" class="postbox-container">
+                        <div class="meta-box-sortables">
+                            <div class="postbox">
+                                <h2 class="hndle"><span><?php _e('Key Metrics', 'nordbooking'); ?></span></h2>
+                                <div class="inside">
+                                    <ul>
+                                        <li><?php printf( '<strong>%d</strong> %s', $total_owners, __( 'Total Business Owners', 'nordbooking' ) ); ?></li>
+                                        <li><?php printf( '<strong>%d</strong> %s', $active_subscriptions, __( 'Active Subscriptions', 'nordbooking' ) ); ?></li>
+                                        <li><?php printf( '<strong>%d</strong> %s', $trial_users, __( 'Users on Trial', 'nordbooking' ) ); ?></li>
+                                        <li><?php printf( '<strong>$%s</strong> %s', number_format($mrr, 2), __( 'Monthly Recurring Revenue', 'nordbooking' ) ); ?></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <h2><?php _e('Business Owners', 'nordbooking'); ?></h2>
+            <table class="wp-list-table widefat fixed striped table-view-list">
+                <thead>
+                    <tr>
+                        <th scope="col" class="manage-column column-primary"><?php _e( 'Display Name', 'nordbooking' ); ?></th>
+                        <th scope="col" class="manage-column"><?php _e( 'Email', 'nordbooking' ); ?></th>
+                        <th scope="col" class="manage-column"><?php _e( 'Subscription', 'nordbooking' ); ?></th>
+                        <th scope="col" class="manage-column"><?php _e( 'Trial Ends', 'nordbooking' ); ?></th>
+                        <th scope="col" class="manage-column"><?php _e( 'Registered', 'nordbooking' ); ?></th>
+                        <th scope="col" class="manage-column"><?php _e( 'Actions', 'nordbooking' ); ?></th>
+                    </tr>
+                </thead>
+                <tbody id="the-list">
+                    <?php if ( ! empty( $business_owners ) ) : ?>
+                        <?php foreach ( $business_owners as $user ) : ?>
+                            <tr>
+                                <td class="column-primary">
+                                    <strong><?php echo esc_html( $user->display_name ); ?></strong>
+                                </td>
+                                <td><?php echo esc_html( $user->user_email ); ?></td>
+                                <td><?php echo esc_html( get_user_meta($user->ID, '_nordbooking_subscription_status', true) ? ucfirst(get_user_meta($user->ID, '_nordbooking_subscription_status', true)) : 'None' ); ?></td>
+                                <td><?php echo esc_html( get_user_meta($user->ID, '_nordbooking_trial_ends_at', true) ? date( get_option( 'date_format' ), get_user_meta($user->ID, '_nordbooking_trial_ends_at', true) ) : 'N/A' ); ?></td>
+                                <td><?php echo esc_html( date( get_option( 'date_format' ), strtotime( $user->user_registered ) ) ); ?></td>
+                                <td>
+                                    <?php
+                                    $switch_url = wp_nonce_url(
+                                        add_query_arg(
+                                            [
+                                                'action' => 'switch_to_user',
+                                                'user_id' => $user->ID,
+                                            ],
+                                            admin_url()
+                                        ),
+                                        'switch_to_user_' . $user->ID
+                                    );
+                                    ?>
+                                    <a href="<?php echo esc_url( $switch_url ); ?>" class="button"><?php _e( 'Login as User', 'nordbooking' ); ?></a>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php else : ?>
+                        <tr class="no-items">
+                            <td class="colspanchange" colspan="6"><?php _e( 'No business owners found.', 'nordbooking' ); ?></td>
+                        </tr>
+                    <?php endif; ?>
+                </tbody>
+            </table>
         </div>
         <?php
     }
@@ -556,50 +631,109 @@ class UserManagementPage {
     // Methods for handling form submissions or AJAX requests specific to this page will be added here.
 
     /**
-     * Renders the content for the Stripe Settings page.
+     * Retrieves all business owners from the database.
+     *
+     * @return array
      */
-    public static function render_stripe_settings_page() {
-        // Check user capabilities
-        if ( ! current_user_can( 'manage_options' ) ) {
+    private static function get_business_owners() {
+        $args = [
+            'role__in' => ['nordbooking_business_owner'],
+            'orderby' => 'user_registered',
+            'order' => 'DESC',
+        ];
+        $users = get_users($args);
+
+        foreach ($users as $user) {
+            $user->subscription_status = get_user_meta($user->ID, '_nordbooking_subscription_status', true);
+            $user->trial_ends_at = get_user_meta($user->ID, '_nordbooking_trial_ends_at', true);
+        }
+
+        return $users;
+    }
+
+
+    /**
+     * Handles user switching.
+     */
+    public static function handle_user_switching() {
+        if ( isset( $_GET['action'] ) && $_GET['action'] === 'switch_to_user' && isset( $_GET['user_id'] ) ) {
+            $user_id = (int) $_GET['user_id'];
+            check_admin_referer( 'switch_to_user_' . $user_id );
+
+            if ( ! current_user_can( 'manage_options' ) ) {
+                wp_die( __( 'You do not have permission to do this.', 'nordbooking' ) );
+            }
+
+            $user = get_user_by( 'id', $user_id );
+            if ( $user ) {
+                $admin_id = get_current_user_id();
+                set_transient( 'nordbooking_admin_id_' . $user_id, $admin_id, 3600 ); // Store admin ID for 1 hour
+
+                wp_set_current_user( $user_id, $user->user_login );
+                wp_set_auth_cookie( $user_id );
+                do_action( 'wp_login', $user->user_login, $user );
+
+                wp_redirect( admin_url() );
+                exit;
+            }
+        }
+    }
+
+    /**
+     * Handles switching back to the admin user.
+     */
+    public static function handle_switch_back() {
+        if ( isset( $_GET['action'] ) && $_GET['action'] === 'switch_back' ) {
+            check_admin_referer( 'switch_back' );
+
+            $user_id = get_current_user_id();
+            $admin_id = get_transient( 'nordbooking_admin_id_' . $user_id );
+
+            if ( $admin_id ) {
+                $admin = get_user_by( 'id', $admin_id );
+                if ( $admin ) {
+                    delete_transient( 'nordbooking_admin_id_' . $user_id );
+                    wp_set_current_user( $admin_id, $admin->user_login );
+                    wp_set_auth_cookie( $admin_id );
+                    do_action( 'wp_login', $admin->user_login, $admin );
+                }
+            }
+
+            wp_redirect( admin_url( 'admin.php?page=NORDBOOKING-admin' ) );
+            exit;
+        }
+    }
+
+    /**
+     * Adds a "Switch Back" link to the admin bar when an admin is impersonating a user.
+     */
+    public static function add_switch_back_link( $wp_admin_bar ) {
+        if ( ! is_user_logged_in() ) {
             return;
         }
 
-        // Check if the user has submitted the form
-        if ( isset( $_POST['nordbooking_stripe_settings_nonce'] ) && wp_verify_nonce( $_POST['nordbooking_stripe_settings_nonce'], 'nordbooking_stripe_settings' ) ) {
-            update_option( 'nordbooking_stripe_publishable_key', sanitize_text_field( $_POST['nordbooking_stripe_publishable_key'] ) );
-            update_option( 'nordbooking_stripe_secret_key', sanitize_text_field( $_POST['nordbooking_stripe_secret_key'] ) );
-            update_option( 'nordbooking_stripe_webhook_secret', sanitize_text_field( $_POST['nordbooking_stripe_webhook_secret'] ) );
-            update_option( 'nordbooking_stripe_subscription_price', sanitize_text_field( $_POST['nordbooking_stripe_subscription_price'] ) );
-            echo '<div class="notice notice-success is-dismissible"><p>' . __( 'Settings saved.', 'nordbooking' ) . '</p></div>';
-        }
+        $user_id = get_current_user_id();
+        $admin_id = get_transient( 'nordbooking_admin_id_' . $user_id );
 
-        ?>
-        <div class="wrap">
-            <h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
-            <form method="post" action="">
-                <?php wp_nonce_field( 'nordbooking_stripe_settings', 'nordbooking_stripe_settings_nonce' ); ?>
-                <table class="form-table">
-                    <tr valign="top">
-                        <th scope="row"><?php _e( 'Publishable Key', 'nordbooking' ); ?></th>
-                        <td><input type="text" name="nordbooking_stripe_publishable_key" value="<?php echo esc_attr( get_option( 'nordbooking_stripe_publishable_key' ) ); ?>" class="regular-text" /></td>
-                    </tr>
-                    <tr valign="top">
-                        <th scope="row"><?php _e( 'Secret Key', 'nordbooking' ); ?></th>
-                        <td><input type="text" name="nordbooking_stripe_secret_key" value="<?php echo esc_attr( get_option( 'nordbooking_stripe_secret_key' ) ); ?>" class="regular-text" /></td>
-                    </tr>
-                    <tr valign="top">
-                        <th scope="row"><?php _e( 'Webhook Secret', 'nordbooking' ); ?></th>
-                        <td><input type="text" name="nordbooking_stripe_webhook_secret" value="<?php echo esc_attr( get_option( 'nordbooking_stripe_webhook_secret' ) ); ?>" class="regular-text" /></td>
-                    </tr>
-                    <tr valign="top">
-                        <th scope="row"><?php _e( 'Subscription Price', 'nordbooking' ); ?></th>
-                        <td><input type="number" step="0.01" name="nordbooking_stripe_subscription_price" value="<?php echo esc_attr( get_option( 'nordbooking_stripe_subscription_price' ) ); ?>" class="regular-text" /></td>
-                    </tr>
-                </table>
-                <?php submit_button(); ?>
-            </form>
-        </div>
-        <?php
+        if ( $admin_id ) {
+            $switch_back_url = wp_nonce_url(
+                add_query_arg(
+                    [
+                        'action' => 'switch_back',
+                    ],
+                    admin_url()
+                ),
+                'switch_back'
+            );
+            $wp_admin_bar->add_node(
+                [
+                    'id'    => 'switch_back',
+                    'title' => __( 'Switch Back to Admin', 'nordbooking' ),
+                    'href'  => $switch_back_url,
+                    'meta'  => ['class' => 'switch-back-link'],
+                ]
+            );
+        }
     }
 }
 ?>
