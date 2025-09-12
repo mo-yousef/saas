@@ -42,6 +42,15 @@ class UserManagementPage {
             [ __CLASS__, 'render_user_management_page_content' ] // Callback function
         );
 
+        // Add the Stripe Settings submenu page under the main NORDBOOKING Admin menu.
+        add_submenu_page(
+            'NORDBOOKING-admin',                           // Parent slug
+            __( 'Stripe Settings', 'nordbooking' ),       // Page title
+            __( 'Stripe Settings', 'nordbooking' ),       // Menu title
+            'manage_options',                            // Capability
+            'nordbooking-stripe-settings',               // Menu slug
+            [ __CLASS__, 'render_stripe_settings_page' ] // Callback function
+        );
     }
 
     /**
@@ -545,5 +554,52 @@ class UserManagementPage {
     }
 
     // Methods for handling form submissions or AJAX requests specific to this page will be added here.
+
+    /**
+     * Renders the content for the Stripe Settings page.
+     */
+    public static function render_stripe_settings_page() {
+        // Check user capabilities
+        if ( ! current_user_can( 'manage_options' ) ) {
+            return;
+        }
+
+        // Check if the user has submitted the form
+        if ( isset( $_POST['nordbooking_stripe_settings_nonce'] ) && wp_verify_nonce( $_POST['nordbooking_stripe_settings_nonce'], 'nordbooking_stripe_settings' ) ) {
+            update_option( 'nordbooking_stripe_publishable_key', sanitize_text_field( $_POST['nordbooking_stripe_publishable_key'] ) );
+            update_option( 'nordbooking_stripe_secret_key', sanitize_text_field( $_POST['nordbooking_stripe_secret_key'] ) );
+            update_option( 'nordbooking_stripe_webhook_secret', sanitize_text_field( $_POST['nordbooking_stripe_webhook_secret'] ) );
+            update_option( 'nordbooking_stripe_subscription_price', sanitize_text_field( $_POST['nordbooking_stripe_subscription_price'] ) );
+            echo '<div class="notice notice-success is-dismissible"><p>' . __( 'Settings saved.', 'nordbooking' ) . '</p></div>';
+        }
+
+        ?>
+        <div class="wrap">
+            <h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
+            <form method="post" action="">
+                <?php wp_nonce_field( 'nordbooking_stripe_settings', 'nordbooking_stripe_settings_nonce' ); ?>
+                <table class="form-table">
+                    <tr valign="top">
+                        <th scope="row"><?php _e( 'Publishable Key', 'nordbooking' ); ?></th>
+                        <td><input type="text" name="nordbooking_stripe_publishable_key" value="<?php echo esc_attr( get_option( 'nordbooking_stripe_publishable_key' ) ); ?>" class="regular-text" /></td>
+                    </tr>
+                    <tr valign="top">
+                        <th scope="row"><?php _e( 'Secret Key', 'nordbooking' ); ?></th>
+                        <td><input type="text" name="nordbooking_stripe_secret_key" value="<?php echo esc_attr( get_option( 'nordbooking_stripe_secret_key' ) ); ?>" class="regular-text" /></td>
+                    </tr>
+                    <tr valign="top">
+                        <th scope="row"><?php _e( 'Webhook Secret', 'nordbooking' ); ?></th>
+                        <td><input type="text" name="nordbooking_stripe_webhook_secret" value="<?php echo esc_attr( get_option( 'nordbooking_stripe_webhook_secret' ) ); ?>" class="regular-text" /></td>
+                    </tr>
+                    <tr valign="top">
+                        <th scope="row"><?php _e( 'Subscription Price', 'nordbooking' ); ?></th>
+                        <td><input type="number" step="0.01" name="nordbooking_stripe_subscription_price" value="<?php echo esc_attr( get_option( 'nordbooking_stripe_subscription_price' ) ); ?>" class="regular-text" /></td>
+                    </tr>
+                </table>
+                <?php submit_button(); ?>
+            </form>
+        </div>
+        <?php
+    }
 }
 ?>
