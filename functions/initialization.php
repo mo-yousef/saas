@@ -38,6 +38,11 @@ function nordbooking_create_authentication_pages() {
             'title' => 'Forgot Password',
             'template' => 'page-forgot-password.php',
         ),
+        array(
+            'slug' => 'subscription-required',
+            'title' => 'Subscription Required',
+            'template' => 'page-subscription-required.php',
+        ),
     );
 
     foreach ( $pages as $page ) {
@@ -180,6 +185,7 @@ if ( class_exists( 'NORDBOOKING\Classes\Database' ) ) {
 // Register Business Owner Dashboard Page
 if ( class_exists( 'NORDBOOKING\Classes\Admin\BusinessOwnerDashboardPage' ) ) {
     add_action( 'admin_menu', array( 'NORDBOOKING\Classes\Admin\BusinessOwnerDashboardPage', 'register_page' ) );
+    add_action( 'admin_menu', array( 'NORDBOOKING\Classes\Admin\BusinessOwnerDashboardPage', 'register_subscription_page' ) );
     add_action( 'admin_init', array( 'NORDBOOKING\Classes\Admin\BusinessOwnerDashboardPage', 'handle_user_switching' ) );
     add_action( 'admin_init', array( 'NORDBOOKING\Classes\Admin\BusinessOwnerDashboardPage', 'handle_switch_back' ) );
     add_action( 'admin_bar_menu', array( 'NORDBOOKING\Classes\Admin\BusinessOwnerDashboardPage', 'add_switch_back_link' ), 999 );

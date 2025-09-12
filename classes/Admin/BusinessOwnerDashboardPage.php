@@ -121,41 +121,9 @@ class BusinessOwnerDashboardPage {
                 wp_set_auth_cookie( $user_id );
                 do_action( 'wp_login', $user->user_login, $user );
 
-                wp_redirect( home_url( '/dashboard/' ) );
+                wp_redirect( admin_url() );
                 exit;
             }
-        }
-    }
-
-    /**
-     * Adds a "Switch Back" link to the admin bar when an admin is impersonating a user.
-     */
-    public static function add_switch_back_link( $wp_admin_bar ) {
-        if ( ! is_user_logged_in() ) {
-            return;
-        }
-
-        $user_id = get_current_user_id();
-        $admin_id = get_transient( 'nordbooking_admin_id_' . $user_id );
-
-        if ( $admin_id ) {
-            $switch_back_url = wp_nonce_url(
-                add_query_arg(
-                    [
-                        'action' => 'switch_back',
-                    ],
-                    admin_url( 'admin.php?page=nordbooking-business-owners' )
-                ),
-                'switch_back'
-            );
-            $wp_admin_bar->add_node(
-                [
-                    'id'    => 'switch_back',
-                    'title' => __( 'Switch Back to Admin', 'nordbooking' ),
-                    'href'  => $switch_back_url,
-                    'meta'  => ['class' => 'switch-back-link'],
-                ]
-            );
         }
     }
 
@@ -179,8 +147,62 @@ class BusinessOwnerDashboardPage {
                 }
             }
 
-            wp_redirect( admin_url( 'admin.php?page=nordbooking-business-owners' ) );
+            wp_redirect( admin_url() );
             exit;
         }
+    }
+
+    /**
+     * Adds a "Switch Back" link to the admin bar when an admin is impersonating a user.
+     */
+    public static function add_switch_back_link( $wp_admin_bar ) {
+        if ( ! is_user_logged_in() ) {
+            return;
+        }
+
+        $user_id = get_current_user_id();
+        $admin_id = get_transient( 'nordbooking_admin_id_' . $user_id );
+
+        if ( $admin_id ) {
+            $switch_back_url = wp_nonce_url(
+                add_query_arg(
+                    [
+                        'action' => 'switch_back',
+                    ],
+                    admin_url()
+                ),
+                'switch_back'
+            );
+            $wp_admin_bar->add_node(
+                [
+                    'id'    => 'switch_back',
+                    'title' => __( 'Switch Back to Admin', 'nordbooking' ),
+                    'href'  => $switch_back_url,
+                    'meta'  => ['class' => 'switch-back-link'],
+                ]
+            );
+        }
+    }
+
+    public static function register_subscription_page() {
+        add_menu_page(
+            __( 'Subscription', 'nordbooking' ),
+            __( 'Subscription', 'nordbooking' ),
+            'nordbooking_business_owner',
+            'nordbooking-subscription',
+            [ __CLASS__, 'render_subscription_page' ],
+            'dashicons-money-alt',
+            80
+        );
+    }
+
+    public static function render_subscription_page() {
+        ?>
+        <div class="wrap">
+            <h1><?php _e( 'Subscription', 'nordbooking' ); ?></h1>
+            <p><?php _e( 'Your trial has ended or your subscription has expired. Please subscribe to continue using the dashboard.', 'nordbooking' ); ?></p>
+            <a href="#" id="nordbooking-subscribe-button" class="button button-primary"><?php _e('Subscribe Now', 'nordbooking'); ?></a>
+        </div>
+        <?php
     }
 }
