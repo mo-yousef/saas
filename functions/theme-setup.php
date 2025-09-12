@@ -265,6 +265,7 @@ if ( is_page_template('templates/booking-form-public.php') || $page_type_for_scr
     wp_add_inline_style('nordbooking-booking-form-modern', $dynamic_css);
 
     wp_localize_script('NORDBOOKING-public-booking-form', 'NORDBOOKING_CONFIG', [
+        'opencage_api_key' => '0dbeb04971144effb03b9981ab50834e',
         'ajax_url' => admin_url('admin-ajax.php'),
         'nonce' => wp_create_nonce('nordbooking_booking_form_nonce'),
         'tenant_id' => $effective_tenant_id_for_public_form,
