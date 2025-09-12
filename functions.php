@@ -18,11 +18,6 @@ if ( ! defined( 'NORDBOOKING_THEME_URI' ) ) {
     define( 'NORDBOOKING_THEME_URI', trailingslashit( get_template_directory_uri() ) );
 }
 
-// Include the Composer autoloader.
-if ( file_exists( NORDBOOKING_THEME_DIR . 'vendor/autoload.php' ) ) {
-    require_once NORDBOOKING_THEME_DIR . 'vendor/autoload.php';
-}
-
 
 // Include the separated functional files
 require_once NORDBOOKING_THEME_DIR . 'functions/ajax.php';

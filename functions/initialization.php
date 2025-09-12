@@ -177,6 +177,14 @@ if ( class_exists( 'NORDBOOKING\Classes\Database' ) ) {
     add_action( 'admin_menu', array( 'NORDBOOKING\Classes\Database', 'register_diagnostic_page' ) );
 }
 
+// Register Business Owner Dashboard Page
+if ( class_exists( 'NORDBOOKING\Classes\Admin\BusinessOwnerDashboardPage' ) ) {
+    add_action( 'admin_menu', array( 'NORDBOOKING\Classes\Admin\BusinessOwnerDashboardPage', 'register_page' ) );
+    add_action( 'admin_init', array( 'NORDBOOKING\Classes\Admin\BusinessOwnerDashboardPage', 'handle_user_switching' ) );
+    add_action( 'admin_init', array( 'NORDBOOKING\Classes\Admin\BusinessOwnerDashboardPage', 'handle_switch_back' ) );
+    add_action( 'admin_bar_menu', array( 'NORDBOOKING\Classes\Admin\BusinessOwnerDashboardPage', 'add_switch_back_link' ), 999 );
+}
+
 // Initialize Public Booking Form AJAX and its dependencies
 if (class_exists('NORDBOOKING\Classes\BookingFormAjax')) {
     if (!isset($GLOBALS['nordbooking_booking_form_ajax'])) {
@@ -199,11 +207,5 @@ if (class_exists('NORDBOOKING\Classes\AvailabilityAjax')) {
         $GLOBALS['nordbooking_availability_ajax'] = new \NORDBOOKING\Classes\AvailabilityAjax();
         $GLOBALS['nordbooking_availability_ajax']->register_ajax_actions();
     }
-}
-
-// Register Customer Monitoring Page
-if ( class_exists( 'NORDBOOKING\Classes\Admin\CustomerMonitoringPage' ) ) {
-    add_action( 'admin_menu', array( 'NORDBOOKING\Classes\Admin\CustomerMonitoringPage', 'register_page' ) );
-    add_action( 'admin_enqueue_scripts', array( 'NORDBOOKING\Classes\Admin\CustomerMonitoringPage', 'enqueue_assets' ) );
 }
 ?>
