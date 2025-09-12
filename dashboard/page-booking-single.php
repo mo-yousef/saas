@@ -145,37 +145,73 @@ if (!function_exists('nordbooking_get_status_badge_icon_svg')) {
 
     <div class="NORDBOOKING-edit-layout-grid">
         <div class="NORDBOOKING-main-content">
-            <!-- Booking & Customer Details Card -->
-            <div class="nordbooking-card card-bs">
-        <div class="nordbooking-card-header">
-            <div class="nordbooking-card-title-group">
-                <span class="nordbooking-card-icon"><?php echo nordbooking_get_feather_icon('info'); ?></span>
-                <h3 class="nordbooking-card-title"><?php esc_html_e('Booking & Customer Details', 'NORDBOOKING'); ?></h3>
-            </div>
-        </div>
-        <div class="nordbooking-card-content">
-            <div class="kpi-grid">
-                <div>
-                    <div class="mb-3"><strong class="block font-semibold text-sm mb-1"><?php esc_html_e('Reference:', 'NORDBOOKING'); ?></strong> <span class="text-sm text-muted-foreground"><?php echo esc_html($booking['booking_reference']); ?></span></div>
-                    <div class="mb-3"><strong class="block font-semibold text-sm mb-1"><?php echo nordbooking_get_feather_icon('calendar', 'width="16" height="16" style="vertical-align:middle; margin-right:0.25rem;"'); ?> <?php esc_html_e('Date:', 'NORDBOOKING'); ?></strong> <span class="text-sm text-muted-foreground"><?php echo esc_html($booking_date_formatted); ?></span></div>
-                    <div class="mb-3"><strong class="block font-semibold text-sm mb-1"><?php echo nordbooking_get_feather_icon('clock', 'width="16" height="16" style="vertical-align:middle; margin-right:0.25rem;"'); ?> <?php esc_html_e('Time:', 'NORDBOOKING'); ?></strong> <span class="text-sm text-muted-foreground"><?php echo esc_html($booking_time_formatted); ?></span></div>
-                </div>
-                <div>
-                    <div class="mb-3"><strong class="block font-semibold text-sm mb-1"><?php echo nordbooking_get_feather_icon('user', 'width="16" height="16" style="vertical-align:middle; margin-right:0.25rem;"'); ?> <?php esc_html_e('Customer:', 'NORDBOOKING'); ?></strong> <span class="text-sm text-muted-foreground"><?php echo esc_html($booking['customer_name']); ?></span></div>
-                    <div class="mb-3"><strong class="block font-semibold text-sm mb-1"><?php echo nordbooking_get_feather_icon('mail', 'width="16" height="16" style="vertical-align:middle; margin-right:0.25rem;"'); ?> <?php esc_html_e('Email:', 'NORDBOOKING'); ?></strong> <a href="mailto:<?php echo esc_attr($booking['customer_email']); ?>" class="text-sm text-primary hover:underline"><?php echo esc_html($booking['customer_email']); ?></a></div>
-                    <div class="mb-3"><strong class="block font-semibold text-sm mb-1"><?php echo nordbooking_get_feather_icon('phone', 'width="16" height="16" style="vertical-align:middle; margin-right:0.25rem;"'); ?> <?php esc_html_e('Phone:', 'NORDBOOKING'); ?></strong> <span class="text-sm text-muted-foreground"><?php echo esc_html($booking['customer_phone'] ? $booking['customer_phone'] : 'N/A'); ?></span></div>
-                </div>
-            </div>
-             <div class="mt-4"><strong class="block font-semibold text-sm mb-1"><?php echo nordbooking_get_feather_icon('map-pin', 'width="16" height="16" style="vertical-align:middle; margin-right:0.25rem;"'); ?> <?php esc_html_e('Service Address:', 'NORDBOOKING'); ?></strong> <span class="text-sm text-muted-foreground"><?php echo nl2br(esc_html($booking['service_address'])); ?><?php if (!empty($booking['zip_code'])) { echo ', ' . esc_html($booking['zip_code']); } ?></span></div>
-        </div>
-    </div>
-
-    <!-- Services & Pricing Card -->
+            <!-- Customer Details Card -->
             <div class="nordbooking-card card-bs">
                 <div class="nordbooking-card-header">
                     <div class="nordbooking-card-title-group">
-                        <span class="nordbooking-card-icon"><?php echo nordbooking_get_feather_icon('list'); ?></span>
-                        <h3 class="nordbooking-card-title"><?php esc_html_e('Services & Pricing', 'NORDBOOKING'); ?></h3>
+                        <span class="nordbooking-card-icon"><?php echo nordbooking_get_feather_icon('user'); ?></span>
+                        <h3 class="nordbooking-card-title"><?php esc_html_e('Customer Details', 'NORDBOOKING'); ?></h3>
+                    </div>
+                </div>
+                <div class="nordbooking-card-content">
+                    <div class="kpi-grid">
+                        <div>
+                            <div class="mb-3"><strong class="block font-semibold text-sm mb-1"><?php echo nordbooking_get_feather_icon('user', 'width="16" height="16" style="vertical-align:middle; margin-right:0.25rem;"'); ?> <?php esc_html_e('Customer:', 'NORDBOOKING'); ?></strong> <span class="text-sm text-muted-foreground"><?php echo esc_html($booking['customer_name']); ?></span></div>
+                            <div class="mb-3"><strong class="block font-semibold text-sm mb-1"><?php echo nordbooking_get_feather_icon('mail', 'width="16" height="16" style="vertical-align:middle; margin-right:0.25rem;"'); ?> <?php esc_html_e('Email:', 'NORDBOOKING'); ?></strong> <a href="mailto:<?php echo esc_attr($booking['customer_email']); ?>" class="text-sm text-primary hover:underline"><?php echo esc_html($booking['customer_email']); ?></a></div>
+                            <div class="mb-3"><strong class="block font-semibold text-sm mb-1"><?php echo nordbooking_get_feather_icon('phone', 'width="16" height="16" style="vertical-align:middle; margin-right:0.25rem;"'); ?> <?php esc_html_e('Phone:', 'NORDBOOKING'); ?></strong> <span class="text-sm text-muted-foreground"><?php echo esc_html($booking['customer_phone'] ? $booking['customer_phone'] : 'N/A'); ?></span></div>
+                        </div>
+                        <div>
+                             <div class="mt-4"><strong class="block font-semibold text-sm mb-1"><?php echo nordbooking_get_feather_icon('map-pin', 'width="16" height="16" style="vertical-align:middle; margin-right:0.25rem;"'); ?> <?php esc_html_e('Service Address:', 'NORDBOOKING'); ?></strong> <span class="text-sm text-muted-foreground"><?php echo nl2br(esc_html($booking['service_address'])); ?><?php if (!empty($booking['zip_code'])) { echo ', ' . esc_html($booking['zip_code']); } ?></span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Booking Details Card -->
+            <div class="nordbooking-card card-bs">
+                <div class="nordbooking-card-header">
+                    <div class="nordbooking-card-title-group">
+                        <span class="nordbooking-card-icon"><?php echo nordbooking_get_feather_icon('info'); ?></span>
+                        <h3 class="nordbooking-card-title"><?php esc_html_e('Booking Details', 'NORDBOOKING'); ?></h3>
+                    </div>
+                </div>
+                <div class="nordbooking-card-content">
+                    <div class="kpi-grid">
+                        <div>
+                            <div class="mb-3"><strong class="block font-semibold text-sm mb-1"><?php esc_html_e('Reference:', 'NORDBOOKING'); ?></strong> <span class="text-sm text-muted-foreground"><?php echo esc_html($booking['booking_reference']); ?></span></div>
+                            <div class="mb-3"><strong class="block font-semibold text-sm mb-1"><?php echo nordbooking_get_feather_icon('calendar', 'width="16" height="16" style="vertical-align:middle; margin-right:0.25rem;"'); ?> <?php esc_html_e('Date:', 'NORDBOOKING'); ?></strong> <span class="text-sm text-muted-foreground"><?php echo esc_html($booking_date_formatted); ?></span></div>
+                            <div class="mb-3"><strong class="block font-semibold text-sm mb-1"><?php echo nordbooking_get_feather_icon('clock', 'width="16" height="16" style="vertical-align:middle; margin-right:0.25rem;"'); ?> <?php esc_html_e('Time:', 'NORDBOOKING'); ?></strong> <span class="text-sm text-muted-foreground"><?php echo esc_html($booking_time_formatted); ?></span></div>
+                        </div>
+                        <div>
+                            <div class="mb-3"><strong class="block font-semibold text-sm mb-1"><?php esc_html_e('Service Frequency:', 'NORDBOOKING'); ?></strong> <span class="text-sm text-muted-foreground"><?php echo esc_html(ucfirst($booking['service_frequency'] ?? 'one-time')); ?></span></div>
+                            <div class="mb-3"><strong class="block font-semibold text-sm mb-1"><?php esc_html_e('Has Pets:', 'NORDBOOKING'); ?></strong> <span class="text-sm text-muted-foreground"><?php echo ($booking['has_pets'] ?? false) ? 'Yes' : 'No'; ?></span></div>
+                            <?php if ($booking['has_pets'] ?? false): ?>
+                            <div class="mb-3"><strong class="block font-semibold text-sm mb-1"><?php esc_html_e('Pet Details:', 'NORDBOOKING'); ?></strong> <span class="text-sm text-muted-foreground"><?php echo nl2br(esc_html($booking['pet_details'] ?? '')); ?></span></div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                    <div class="kpi-grid">
+                        <div>
+                            <div class="mb-3"><strong class="block font-semibold text-sm mb-1"><?php esc_html_e('Property Access Method:', 'NORDBOOKING'); ?></strong> <span class="text-sm text-muted-foreground"><?php echo esc_html(ucfirst($booking['property_access_method'] ?? 'N/A')); ?></span></div>
+                            <?php if (!empty($booking['property_access_details'])): ?>
+                            <div class="mb-3"><strong class="block font-semibold text-sm mb-1"><?php esc_html_e('Property Access Details:', 'NORDBOOKING'); ?></strong> <span class="text-sm text-muted-foreground"><?php echo nl2br(esc_html($booking['property_access_details'])); ?></span></div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                    <?php if (!empty($booking['special_instructions'])): ?>
+                    <div class="mt-4"><strong class="block font-semibold text-sm mb-1"><?php echo nordbooking_get_feather_icon('message-square', 'width="16" height="16" style="vertical-align:middle; margin-right:0.25rem;"'); ?> <?php esc_html_e('Special Instructions:', 'NORDBOOKING'); ?></strong>
+                        <p class="text-sm text-muted-foreground"><?php echo nl2br(esc_html($booking['special_instructions'])); ?></p>
+                    </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+
+            <!-- Booking Pricing Card -->
+            <div class="nordbooking-card card-bs">
+                <div class="nordbooking-card-header">
+                    <div class="nordbooking-card-title-group">
+                        <span class="nordbooking-card-icon"><?php echo nordbooking_get_feather_icon('dollar-sign'); ?></span>
+                        <h3 class="nordbooking-card-title"><?php esc_html_e('Booking Pricing', 'NORDBOOKING'); ?></h3>
                     </div>
                 </div>
                 <div class="nordbooking-card-content">
@@ -288,57 +324,6 @@ if (!function_exists('nordbooking_get_status_badge_icon_svg')) {
                      <p style="margin-top: 1rem;"><strong><?php esc_html_e('Payment Status:', 'NORDBOOKING'); ?></strong> <?php echo esc_html(ucfirst($booking['payment_status'] ?? 'N/A')); ?></p>
                 </div>
             </div>
-
-            <div class="nordbooking-card card-bs">
-                <div class="nordbooking-card-header">
-                    <div class="nordbooking-card-title-group">
-                        <span class="nordbooking-card-icon"><?php echo nordbooking_get_feather_icon('info'); ?></span>
-                        <h3 class="nordbooking-card-title"><?php esc_html_e('Advanced Details', 'NORDBOOKING'); ?></h3>
-                    </div>
-                </div>
-                <div class="nordbooking-card-content">
-                    <div class="kpi-grid">
-                        <div class="mb-3">
-                            <strong class="block font-semibold text-sm mb-1"><?php esc_html_e('Service Frequency:', 'NORDBOOKING'); ?></strong>
-                            <span class="text-sm text-muted-foreground"><?php echo esc_html(ucfirst($booking['service_frequency'] ?? 'one-time')); ?></span>
-                        </div>
-                        <div class="mb-3">
-                            <strong class="block font-semibold text-sm mb-1"><?php esc_html_e('Has Pets:', 'NORDBOOKING'); ?></strong>
-                            <span class="text-sm text-muted-foreground"><?php echo ($booking['has_pets'] ?? false) ? 'Yes' : 'No'; ?></span>
-                        </div>
-                        <?php if ($booking['has_pets'] ?? false): ?>
-                        <div class="mb-3">
-                            <strong class="block font-semibold text-sm mb-1"><?php esc_html_e('Pet Details:', 'NORDBOOKING'); ?></strong>
-                            <span class="text-sm text-muted-foreground"><?php echo nl2br(esc_html($booking['pet_details'] ?? '')); ?></span>
-                        </div>
-                        <?php endif; ?>
-                        <div class="mb-3">
-                            <strong class="block font-semibold text-sm mb-1"><?php esc_html_e('Property Access Method:', 'NORDBOOKING'); ?></strong>
-                            <span class="text-sm text-muted-foreground"><?php echo esc_html(ucfirst($booking['property_access_method'] ?? 'N/A')); ?></span>
-                        </div>
-                        <?php if (!empty($booking['property_access_details'])): ?>
-                        <div class="mb-3">
-                            <strong class="block font-semibold text-sm mb-1"><?php esc_html_e('Property Access Details:', 'NORDBOOKING'); ?></strong>
-                            <span class="text-sm text-muted-foreground"><?php echo nl2br(esc_html($booking['property_access_details'])); ?></span>
-                        </div>
-                        <?php endif; ?>
-                    </div>
-                </div>
-            </div>
-
-            <?php if (!empty($booking['special_instructions'])): ?>
-            <div class="nordbooking-card card-bs">
-                <div class="nordbooking-card-header">
-                    <div class="nordbooking-card-title-group">
-                        <span class="nordbooking-card-icon"><?php echo nordbooking_get_feather_icon('message-square'); ?></span>
-                        <h3 class="nordbooking-card-title"><?php esc_html_e('Special Instructions', 'NORDBOOKING'); ?></h3>
-                    </div>
-                </div>
-                <div class="nordbooking-card-content">
-                    <p><?php echo nl2br(esc_html($booking['special_instructions'])); ?></p>
-                </div>
-            </div>
-            <?php endif; ?>
         </div>
         <div class="NORDBOOKING-sidebar">
             <!-- Status & Admin Actions Card -->
