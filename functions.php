@@ -5,11 +5,6 @@
  * @package NORDBOOKING
  */
 
-// Include the Composer autoloader.
-if ( file_exists( NORDBOOKING_THEME_DIR . 'vendor/autoload.php' ) ) {
-    require_once NORDBOOKING_THEME_DIR . 'vendor/autoload.php';
-}
-
 if ( ! defined( 'NORDBOOKING_VERSION' ) ) {
     define( 'NORDBOOKING_VERSION', '0.1.24' );
 }
@@ -21,6 +16,11 @@ if ( ! defined( 'NORDBOOKING_THEME_DIR' ) ) {
 }
 if ( ! defined( 'NORDBOOKING_THEME_URI' ) ) {
     define( 'NORDBOOKING_THEME_URI', trailingslashit( get_template_directory_uri() ) );
+}
+
+// Include the Composer autoloader.
+if ( file_exists( NORDBOOKING_THEME_DIR . 'vendor/autoload.php' ) ) {
+    require_once NORDBOOKING_THEME_DIR . 'vendor/autoload.php';
 }
 
 
