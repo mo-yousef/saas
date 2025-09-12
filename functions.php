@@ -5,6 +5,11 @@
  * @package NORDBOOKING
  */
 
+// Include the Composer autoloader.
+if ( file_exists( NORDBOOKING_THEME_DIR . 'vendor/autoload.php' ) ) {
+    require_once NORDBOOKING_THEME_DIR . 'vendor/autoload.php';
+}
+
 if ( ! defined( 'NORDBOOKING_VERSION' ) ) {
     define( 'NORDBOOKING_VERSION', '0.1.24' );
 }
