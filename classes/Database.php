@@ -357,48 +357,6 @@ class Database {
         error_log('[NORDBOOKING DB Debug] SQL for booking_meta table: ' . preg_replace('/\s+/', ' ', $sql_booking_meta));
         $dbDelta_results['booking_meta'] = dbDelta( $sql_booking_meta );
 
-        // Subscriptions Table
-        $table_name = self::get_table_name('subscriptions');
-        error_log('[NORDBOOKING DB Debug] Preparing SQL for subscriptions table: ' . $table_name);
-        $sql_subscriptions = "CREATE TABLE $table_name (
-            id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-            customer_id BIGINT UNSIGNED NOT NULL,
-            tenant_id BIGINT UNSIGNED NOT NULL,
-            stripe_subscription_id VARCHAR(255) NOT NULL,
-            status VARCHAR(50) NOT NULL,
-            current_period_start DATETIME,
-            current_period_end DATETIME,
-            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-            PRIMARY KEY (id),
-            UNIQUE KEY stripe_subscription_id_unique (stripe_subscription_id),
-            INDEX customer_id_idx (customer_id),
-            INDEX tenant_id_idx (tenant_id),
-            INDEX status_idx (status)
-        ) $charset_collate;";
-        error_log('[NORDBOOKING DB Debug] SQL for subscriptions table: ' . preg_replace('/\s+/', ' ', $sql_subscriptions));
-        $dbDelta_results['subscriptions'] = dbDelta( $sql_subscriptions );
-
-        // Subscription Items Table
-        $table_name = self::get_table_name('subscription_items');
-        error_log('[NORDBOOKING DB Debug] Preparing SQL for subscription_items table: ' . $table_name);
-        $sql_subscription_items = "CREATE TABLE $table_name (
-            id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-            subscription_id BIGINT UNSIGNED NOT NULL,
-            stripe_subscription_item_id VARCHAR(255) NOT NULL,
-            service_id BIGINT UNSIGNED NOT NULL,
-            quantity INT UNSIGNED NOT NULL DEFAULT 1,
-            price DECIMAL(10,2) NOT NULL,
-            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-            PRIMARY KEY (id),
-            UNIQUE KEY stripe_subscription_item_id_unique (stripe_subscription_item_id),
-            INDEX subscription_id_idx (subscription_id),
-            INDEX service_id_idx (service_id)
-        ) $charset_collate;";
-        error_log('[NORDBOOKING DB Debug] SQL for subscription_items table: ' . preg_replace('/\s+/', ' ', $sql_subscription_items));
-        $dbDelta_results['subscription_items'] = dbDelta( $sql_subscription_items );
-
         error_log('[NORDBOOKING DB Debug] dbDelta execution results: ' . print_r($dbDelta_results, true));
         error_log('[NORDBOOKING DB Debug] Custom tables creation/update attempt finished.');
     }

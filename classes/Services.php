@@ -178,19 +178,6 @@ class Services {
         return $service;
     }
 
-    public function get_service_by_id(int $service_id) {
-        if ( empty($service_id) ) {
-            return null;
-        }
-        $table_name = Database::get_table_name('services');
-        $service = $this->wpdb->get_row( $this->wpdb->prepare( "SELECT * FROM $table_name WHERE service_id = %d", $service_id ), (object) null );
-
-        if ($service) {
-            $service->options = $this->service_options_manager->get_service_options($service->service_id, $service->user_id);
-        }
-        return $service;
-    }
-
     public function get_services_by_user(int $user_id, array $args = []) {
         error_log('[NORDBOOKING Services Debug] get_services_by_user called for user_id: ' . $user_id . ' with args: ' . print_r($args, true));
         if ( empty($user_id) ) {
