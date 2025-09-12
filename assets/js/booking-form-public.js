@@ -36,6 +36,10 @@ jQuery(document).ready(function ($) {
       window.NORDBOOKING_CONFIG?.settings ||
       window.nordbooking_booking_form_params?.settings ||
       {},
+    opencage_api_key:
+      window.NORDBOOKING_CONFIG?.opencage_api_key ||
+      window.nordbooking_booking_form_params?.opencage_api_key ||
+      "",
   };
 
   const state = {
