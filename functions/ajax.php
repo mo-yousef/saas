@@ -1535,3 +1535,45 @@ if (!function_exists('nordbooking_ajax_dashboard_live_search')) {
         wp_send_json_success(array('results' => $results));
     }
 }
+
+add_action('wp_ajax_nordbooking_create_stripe_checkout_session', 'nordbooking_create_stripe_checkout_session');
+add_action('wp_ajax_nopriv_nordbooking_create_stripe_checkout_session', 'nordbooking_create_stripe_checkout_session');
+function nordbooking_create_stripe_checkout_session() {
+    if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'nordbooking_booking_form_nonce')) {
+        wp_send_json_error(array('message' => 'Security check failed: Invalid nonce.'), 403);
+        return;
+    }
+
+    $tenant_id = isset($_POST['tenant_id']) ? intval($_POST['tenant_id']) : 0;
+    if (!$tenant_id) {
+        wp_send_json_error(array('message' => 'Tenant ID is required.'), 400);
+        return;
+    }
+
+    $service_id = isset($_POST['service_id']) ? intval($_POST['service_id']) : 0;
+    if (!$service_id) {
+        wp_send_json_error(array('message' => 'Service ID is required.'), 400);
+        return;
+    }
+
+    $customer_email = isset($_POST['customer_email']) ? sanitize_email($_POST['customer_email']) : '';
+    if (empty($customer_email)) {
+        wp_send_json_error(array('message' => 'Customer email is required.'), 400);
+        return;
+    }
+
+    try {
+        $stripe_manager = new \NORDBOOKING\Classes\Payments\StripeManager();
+        $checkout_session = $stripe_manager->create_checkout_session($tenant_id, $service_id, $customer_email);
+
+        wp_send_json_success([
+            'checkout_session_id' => $checkout_session->id,
+            'stripe_pk' => get_option('nordbooking_stripe_publishable_key'),
+        ]);
+
+    } catch (\Stripe\Exception\ApiErrorException $e) {
+        wp_send_json_error(array('message' => 'Stripe API Error: ' . $e->getMessage()), 500);
+    } catch (Exception $e) {
+        wp_send_json_error(array('message' => 'An unexpected error occurred: ' . $e->getMessage()), 500);
+    }
+}
