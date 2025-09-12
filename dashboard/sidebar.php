@@ -121,6 +121,7 @@ if ( $current_user_id > 0 ) {
 
                 <?php if (current_user_can(\NORDBOOKING\Classes\Auth::CAP_MANAGE_BUSINESS_SETTINGS)) : ?>
                 <li class="<?php echo ($current_page === 'settings') ? 'active' : ''; ?>"><a href="<?php echo esc_url(trailingslashit($dashboard_base_url) . 'settings/'); ?>"><span class="NORDBOOKING-menu-icon"><?php echo nordbooking_get_dashboard_menu_icon('settings'); ?></span><?php esc_html_e('Settings', 'NORDBOOKING'); ?></a></li>
+                <li class="<?php echo ($current_page === 'subscription') ? 'active' : ''; ?>"><a href="<?php echo esc_url(trailingslashit($dashboard_base_url) . 'subscription/'); ?>"><span class="NORDBOOKING-menu-icon"><?php echo nordbooking_get_dashboard_menu_icon('subscription'); ?></span><?php esc_html_e('Subscription', 'NORDBOOKING'); ?></a></li>
                 <?php endif; ?>
             </ul>
         </div>
