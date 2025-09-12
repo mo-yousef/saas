@@ -43,6 +43,7 @@ jQuery(document).ready(function ($) {
     totalSteps: 9,
     zip: "",
     areaName: "",
+    zipBounds: null,
     service: null, // { service_id, name, price, duration, ... }
     optionsById: {}, // { [option_id]: { id, name, type, value, price, meta } }
     pricing: {
@@ -562,6 +563,22 @@ jQuery(document).ready(function ($) {
             );
             // Enable the next button ONLY on success
             $submitBtn.prop("disabled", false);
+
+            // Fetch bounds for the ZIP code
+            fetch(`https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(zip)}&key=${opencageApiKey}&limit=1`)
+              .then(response => response.json())
+              .then(data => {
+                if (data.results && data.results.length > 0 && data.results[0].bounds) {
+                  state.zipBounds = data.results[0].bounds;
+                } else {
+                  state.zipBounds = null;
+                }
+              })
+              .catch(error => {
+                console.error('Error fetching ZIP code bounds:', error);
+                state.zipBounds = null;
+              });
+
           } else {
             state.areaName = "";
             $("#NORDBOOKING-area-name").text("").removeClass("valid");
@@ -1632,12 +1649,25 @@ jQuery(document).ready(function ($) {
   });
 
   // OpenCage Autocomplete
-  const opencageApiKey = '0dbeb04971144effb03b9981ab50834e';
+  const opencageApiKey = CONFIG.opencage_api_key;
   let autocompleteTimeout;
+  const suggestionsContainer = $('<div id="NORDBOOKING-address-suggestions"></div>').insertAfter(els.addressInput).hide();
+  const clearButton = $('<span class="clear-address-btn">&times;</span>').insertAfter(els.addressInput).hide();
+
+  clearButton.on('click', function() {
+    els.addressInput.val('').trigger('change').focus();
+    suggestionsContainer.hide();
+    $(this).hide();
+  });
 
   els.addressInput.on('input', function() {
     const query = $(this).val();
-    const suggestionsContainer = $('#NORDBOOKING-address-suggestions');
+
+    if (query.length > 0) {
+      clearButton.show();
+    } else {
+      clearButton.hide();
+    }
 
     if (query.length < 3) {
       suggestionsContainer.hide();
@@ -1646,39 +1676,42 @@ jQuery(document).ready(function ($) {
 
     clearTimeout(autocompleteTimeout);
     autocompleteTimeout = setTimeout(() => {
-      fetch(`https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(query)}&key=${opencageApiKey}&limit=5`)
-        .then(response => response.json())
+      let apiUrl = `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(query)}&key=${opencageApiKey}&limit=5`;
+      if (state.zipBounds) {
+        const { southwest, northeast } = state.zipBounds;
+        apiUrl += `&bounds=${southwest.lng},${southwest.lat},${northeast.lng},${northeast.lat}`;
+      }
+      fetch(apiUrl)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+          return response.json();
+        })
         .then(data => {
           if (data.results && data.results.length > 0) {
-            let suggestionsHtml = '';
-            data.results.forEach(result => {
-              suggestionsHtml += `<div class="suggestion-item">${result.formatted}</div>`;
-            });
-
-            if (suggestionsContainer.length === 0) {
-              els.addressInput.after('<div id="NORDBOOKING-address-suggestions"></div>');
-            }
-            $('#NORDBOOKING-address-suggestions').html(suggestionsHtml).show();
-
-            $('.suggestion-item').on('click', function() {
-              const selectedAddress = $(this).text();
-              els.addressInput.val(selectedAddress).trigger('change');
-              $('#NORDBOOKING-address-suggestions').hide();
-            });
+            const suggestionsHtml = data.results.map(result => `<div class="suggestion-item">${result.formatted}</div>`).join('');
+            suggestionsContainer.html(suggestionsHtml).show();
           } else {
             suggestionsContainer.hide();
           }
         })
         .catch(error => {
           console.error('Error fetching address suggestions:', error);
-          suggestionsContainer.hide();
+          suggestionsContainer.html('<div class="suggestion-item-error">Could not load address suggestions.</div>').show();
         });
     }, 300);
   });
 
+  suggestionsContainer.on('click', '.suggestion-item', function() {
+    const selectedAddress = $(this).text();
+    els.addressInput.val(selectedAddress).trigger('change');
+    suggestionsContainer.hide();
+  });
+
   $(document).on('click', function(e) {
     if (!$(e.target).closest('#NORDBOOKING-service-address, #NORDBOOKING-address-suggestions').length) {
-      $('#NORDBOOKING-address-suggestions').hide();
+      suggestionsContainer.hide();
     }
   });
 });
