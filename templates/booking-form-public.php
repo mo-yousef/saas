@@ -69,6 +69,7 @@ if (!$form_config['form_enabled']) {
 
 // Enqueue necessary styles and scripts
 wp_enqueue_script('jquery');
+wp_enqueue_script('stripe-js', 'https://js.stripe.com/v3/', [], null, true);
 wp_enqueue_script('flatpickr', 'https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js', ['jquery'], '4.6.13', true);
 wp_enqueue_style('flatpickr', 'https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.css', [], '4.6.13');
 
@@ -229,6 +230,10 @@ $script_data = [
                         <label class="NORDBOOKING-radio-option">
                             <input type="radio" name="frequency" value="one-time" checked>
                             <span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg><?php _e('One-time', 'NORDBOOKING'); ?></span>
+                        </label>
+                        <label class="NORDBOOKING-radio-option">
+                            <input type="radio" name="frequency" value="subscribe">
+                            <span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg><?php _e('Subscribe', 'NORDBOOKING'); ?></span>
                         </label>
                         <label class="NORDBOOKING-radio-option">
                             <input type="radio" name="frequency" value="weekly">

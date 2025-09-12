@@ -1,0 +1,19 @@
+# WordPress
+/wp-admin/
+/wp-includes/
+/wp-content/plugins/
+/wp-content/themes/
+/wp-content/upgrade/
+/wp-content/uploads/
+/xmlrpc.php
+/wp-config.php
+
+# Composer
+/vendor/
+/composer.lock
+
+# Development
+.vscode/
+.idea/
+.DS_Store
+*.log
