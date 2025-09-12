@@ -112,6 +112,11 @@ if (!function_exists('nordbooking_get_feather_icon')) {
             case 'x-circle': $svg = '<svg xmlns="http://www.w3.org/2000/svg" '.$attrs.' viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>'; break;
             case 'user-plus': $svg = '<svg xmlns="http://www.w3.org/2000/svg" '.$attrs.' viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="17" y1="11" x2="23" y2="11"></line></svg>'; break;
             case 'download': $svg = '<svg xmlns="http://www.w3.org/2000/svg" '.$attrs.' viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>'; break;
+            case 'hash': $svg = '<svg xmlns="http://www.w3.org/2000/svg" '.$attrs.' viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="9" x2="20" y2="9"></line><line x1="4" y1="15" x2="20" y2="15"></line><line x1="10" y1="3" x2="8" y2="21"></line><line x1="16" y1="3" x2="14" y2="21"></line></svg>'; break;
+            case 'repeat': $svg = '<svg xmlns="http://www.w3.org/2000/svg" '.$attrs.' viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><polyline points="7 23 3 19 7 15"></polyline><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>'; break;
+            case 'dog': $svg = '<svg xmlns="http://www.w3.org/2000/svg" '.$attrs.' viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2a4 4 0 0 0 4 4h2a4 4 0 0 0 4-4v-2z"></path><path d="M16 12a4 4 0 0 1-4-4h-2a4 4 0 0 1-4-4V4a4 4 0 0 1 4-4h2a4 4 0 0 1 4 4v2"></path><path d="M18 14v-2a4 4 0 0 0-4-4h-2"></path><path d="M22 18v-2a4 4 0 0 0-4-4h-2"></path></svg>'; break;
+            case 'key': $svg = '<svg xmlns="http://www.w3.org/2000/svg" '.$attrs.' viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path></svg>'; break;
+            case 'save': $svg = '<svg xmlns="http://www.w3.org/2000/svg" '.$attrs.' viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>'; break;
             default: $svg = '<!-- icon not found: '.esc_attr($icon_name).' -->'; break;
         }
         return $svg;
@@ -176,32 +181,64 @@ if (!function_exists('nordbooking_get_status_badge_icon_svg')) {
                     </div>
                 </div>
                 <div class="nordbooking-card-content">
-                    <div class="kpi-grid">
-                        <div>
-                            <div class="mb-3"><strong class="block font-semibold text-sm mb-1"><?php esc_html_e('Reference:', 'NORDBOOKING'); ?></strong> <span class="text-sm text-muted-foreground"><?php echo esc_html($booking['booking_reference']); ?></span></div>
-                            <div class="mb-3"><strong class="block font-semibold text-sm mb-1"><?php echo nordbooking_get_feather_icon('calendar', 'width="16" height="16" style="vertical-align:middle; margin-right:0.25rem;"'); ?> <?php esc_html_e('Date:', 'NORDBOOKING'); ?></strong> <span class="text-sm text-muted-foreground"><?php echo esc_html($booking_date_formatted); ?></span></div>
-                            <div class="mb-3"><strong class="block font-semibold text-sm mb-1"><?php echo nordbooking_get_feather_icon('clock', 'width="16" height="16" style="vertical-align:middle; margin-right:0.25rem;"'); ?> <?php esc_html_e('Time:', 'NORDBOOKING'); ?></strong> <span class="text-sm text-muted-foreground"><?php echo esc_html($booking_time_formatted); ?></span></div>
-                        </div>
-                        <div>
-                            <div class="mb-3"><strong class="block font-semibold text-sm mb-1"><?php esc_html_e('Service Frequency:', 'NORDBOOKING'); ?></strong> <span class="text-sm text-muted-foreground"><?php echo esc_html(ucfirst($booking['service_frequency'] ?? 'one-time')); ?></span></div>
-                            <div class="mb-3"><strong class="block font-semibold text-sm mb-1"><?php esc_html_e('Has Pets:', 'NORDBOOKING'); ?></strong> <span class="text-sm text-muted-foreground"><?php echo ($booking['has_pets'] ?? false) ? 'Yes' : 'No'; ?></span></div>
-                            <?php if ($booking['has_pets'] ?? false): ?>
-                            <div class="mb-3"><strong class="block font-semibold text-sm mb-1"><?php esc_html_e('Pet Details:', 'NORDBOOKING'); ?></strong> <span class="text-sm text-muted-foreground"><?php echo nl2br(esc_html($booking['pet_details'] ?? '')); ?></span></div>
-                            <?php endif; ?>
-                        </div>
-                    </div>
-                    <div class="kpi-grid">
-                        <div>
-                            <div class="mb-3"><strong class="block font-semibold text-sm mb-1"><?php esc_html_e('Property Access Method:', 'NORDBOOKING'); ?></strong> <span class="text-sm text-muted-foreground"><?php echo esc_html(ucfirst($booking['property_access_method'] ?? 'N/A')); ?></span></div>
-                            <?php if (!empty($booking['property_access_details'])): ?>
-                            <div class="mb-3"><strong class="block font-semibold text-sm mb-1"><?php esc_html_e('Property Access Details:', 'NORDBOOKING'); ?></strong> <span class="text-sm text-muted-foreground"><?php echo nl2br(esc_html($booking['property_access_details'])); ?></span></div>
-                            <?php endif; ?>
-                        </div>
-                    </div>
+                    <ul class="booking-details-list">
+                        <li>
+                            <span class="detail-icon"><?php echo nordbooking_get_feather_icon('hash', 'width="16" height="16"'); ?></span>
+                            <span class="detail-label"><?php esc_html_e('Reference:', 'NORDBOOKING'); ?></span>
+                            <span class="detail-value"><?php echo esc_html($booking['booking_reference']); ?></span>
+                        </li>
+                        <li>
+                            <span class="detail-icon"><?php echo nordbooking_get_feather_icon('calendar', 'width="16" height="16"'); ?></span>
+                            <span class="detail-label"><?php esc_html_e('Date:', 'NORDBOOKING'); ?></span>
+                            <span class="detail-value"><?php echo esc_html($booking_date_formatted); ?></span>
+                        </li>
+                        <li>
+                            <span class="detail-icon"><?php echo nordbooking_get_feather_icon('clock', 'width="16" height="16"'); ?></span>
+                            <span class="detail-label"><?php esc_html_e('Time:', 'NORDBOOKING'); ?></span>
+                            <span class="detail-value"><?php echo esc_html($booking_time_formatted); ?></span>
+                        </li>
+                    </ul>
+
+                    <hr style="margin: 1rem 0;">
+
+                    <ul class="booking-details-list">
+                        <li>
+                            <span class="detail-icon"><?php echo nordbooking_get_feather_icon('repeat', 'width="16" height="16"'); ?></span>
+                            <span class="detail-label"><?php esc_html_e('Service Frequency:', 'NORDBOOKING'); ?></span>
+                            <span class="detail-value"><?php echo esc_html(ucfirst($booking['service_frequency'] ?? 'one-time')); ?></span>
+                        </li>
+                        <li>
+                            <span class="detail-icon"><?php echo nordbooking_get_feather_icon('dog', 'width="16" height="16"'); ?></span>
+                            <span class="detail-label"><?php esc_html_e('Has Pets:', 'NORDBOOKING'); ?></span>
+                            <span class="detail-value"><?php echo ($booking['has_pets'] ?? false) ? 'Yes' : 'No'; ?></span>
+                        </li>
+                        <?php if ($booking['has_pets'] ?? false): ?>
+                        <li class="nested-detail">
+                            <span class="detail-icon"></span>
+                            <span class="detail-label"><?php esc_html_e('Pet Details:', 'NORDBOOKING'); ?></span>
+                            <span class="detail-value"><?php echo nl2br(esc_html($booking['pet_details'] ?? '')); ?></span>
+                        </li>
+                        <?php endif; ?>
+                         <li>
+                            <span class="detail-icon"><?php echo nordbooking_get_feather_icon('key', 'width="16" height="16"'); ?></span>
+                            <span class="detail-label"><?php esc_html_e('Property Access:', 'NORDBOOKING'); ?></span>
+                            <span class="detail-value"><?php echo esc_html(ucfirst($booking['property_access_method'] ?? 'N/A')); ?></span>
+                        </li>
+                        <?php if (!empty($booking['property_access_details'])): ?>
+                        <li class="nested-detail">
+                            <span class="detail-icon"></span>
+                            <span class="detail-label"><?php esc_html_e('Access Details:', 'NORDBOOKING'); ?></span>
+                            <span class="detail-value"><?php echo nl2br(esc_html($booking['property_access_details'])); ?></span>
+                        </li>
+                        <?php endif; ?>
+                    </ul>
+
                     <?php if (!empty($booking['special_instructions'])): ?>
-                    <div class="mt-4"><strong class="block font-semibold text-sm mb-1"><?php echo nordbooking_get_feather_icon('message-square', 'width="16" height="16" style="vertical-align:middle; margin-right:0.25rem;"'); ?> <?php esc_html_e('Special Instructions:', 'NORDBOOKING'); ?></strong>
-                        <p class="text-sm text-muted-foreground"><?php echo nl2br(esc_html($booking['special_instructions'])); ?></p>
-                    </div>
+                        <hr style="margin: 1rem 0;">
+                        <div class="special-instructions-section">
+                            <h4 class="font-semibold text-md mb-2 flex items-center gap-2"><?php echo nordbooking_get_feather_icon('message-square', 'width="16" height="16"'); ?> <?php esc_html_e('Special Instructions', 'NORDBOOKING'); ?></h4>
+                            <p class="text-sm text-muted-foreground"><?php echo nl2br(esc_html($booking['special_instructions'])); ?></p>
+                        </div>
                     <?php endif; ?>
 
                     <hr style="margin: 1.5rem 0;">
