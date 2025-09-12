@@ -1457,32 +1457,6 @@ jQuery(document).ready(function ($) {
   // ==========================================
 
   function confirmAndSubmitBooking() {
-    if (state.frequency === 'subscribe') {
-        // Handle subscription via Stripe Checkout
-        const payload = {
-            action: 'nordbooking_create_stripe_checkout_session',
-            nonce: CONFIG.nonce,
-            tenant_id: CONFIG.tenant_id,
-            service_id: state.service?.service_id,
-            customer_email: state.customer.email,
-        };
-
-        $.post(CONFIG.ajax_url, payload)
-            .done(function (res) {
-                if (res.success && res.data.checkout_session_id) {
-                    // Redirect to Stripe Checkout
-                    const stripe = Stripe(res.data.stripe_pk);
-                    stripe.redirectToCheckout({ sessionId: res.data.checkout_session_id });
-                } else {
-                    handleError(res.data?.message || 'Could not create a subscription session.');
-                }
-            })
-            .fail(function () {
-                handleError('Network error while creating subscription session.');
-            });
-
-        return; // Stop further execution for normal booking
-    }
     // Final validation before submission
     if (!validateStep(7)) {
       showStep(7);
