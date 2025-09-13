@@ -18,6 +18,12 @@ if ( class_exists( 'NORDBOOKING\Classes\Database' ) ) {
     add_action( 'after_switch_theme', array( 'NORDBOOKING\Classes\Database', 'create_tables' ) );
 }
 
+// Initialize Subscription and create table on activation
+if ( class_exists( 'NORDBOOKING\Classes\Subscription' ) ) {
+    add_action( 'after_switch_theme', array( 'NORDBOOKING\Classes\Subscription', 'install' ) );
+    add_action( 'after_switch_theme', array( 'NORDBOOKING\Classes\Subscription', 'schedule_events' ) );
+}
+
 /**
  * Creates the necessary authentication pages when the theme is activated.
  */

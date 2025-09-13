@@ -20,6 +20,7 @@ if ( ! defined( 'NORDBOOKING_THEME_URI' ) ) {
 
 
 // Include the separated functional files
+require_once NORDBOOKING_THEME_DIR . 'lib/stripe-php/init.php';
 require_once NORDBOOKING_THEME_DIR . 'functions/ajax.php';
 require_once NORDBOOKING_THEME_DIR . 'functions/theme-setup.php';
 require_once NORDBOOKING_THEME_DIR . 'functions/autoloader.php';
