@@ -1535,3 +1535,28 @@ if (!function_exists('nordbooking_ajax_dashboard_live_search')) {
         wp_send_json_success(array('results' => $results));
     }
 }
+
+add_action('wp_ajax_nordbooking_create_checkout_session', 'nordbooking_ajax_create_checkout_session');
+function nordbooking_ajax_create_checkout_session() {
+    if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'nordbooking_dashboard_nonce')) {
+        wp_send_json_error(array('message' => 'Security check failed: Invalid nonce.'), 403);
+        return;
+    }
+
+    $user_id = get_current_user_id();
+    if (!$user_id) {
+        wp_send_json_error(['message' => __('User not logged in.', 'NORDBOOKING')], 403);
+        return;
+    }
+
+    if (class_exists('NORDBOOKING\Classes\Subscription')) {
+        $checkout_url = \NORDBOOKING\Classes\Subscription::create_stripe_checkout_session($user_id);
+        if (!empty($checkout_url)) {
+            wp_send_json_success(['checkout_url' => $checkout_url]);
+        } else {
+            wp_send_json_error(['message' => __('Could not create a checkout session.', 'NORDBOOKING')]);
+        }
+    } else {
+        wp_send_json_error(['message' => __('Subscription class not found.', 'NORDBOOKING')]);
+    }
+}
