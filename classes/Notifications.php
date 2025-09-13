@@ -583,4 +583,62 @@ class Notifications {
         $headers = $this->get_email_headers();
         return wp_mail($worker_email, $subject, $full_email_html, $headers);
     }
+
+    public function send_trial_expired_email($user_id) {
+        $user = get_userdata($user_id);
+        if (!$user) {
+            return false;
+        }
+
+        $subject = __('Your NORDBOOKING Trial Has Expired', 'NORDBOOKING');
+        $greeting = sprintf(__('Hi %s,', 'NORDBOOKING'), $user->display_name);
+        $upgrade_link = home_url('/dashboard/');
+
+        ob_start();
+        include(get_template_directory() . '/templates/email/trial-expired.php');
+        $body_content = ob_get_clean();
+
+        $body_content = str_replace('%%NAME%%', $user->display_name, $body_content);
+        $body_content = str_replace('%%UPGRADE_LINK%%', $upgrade_link, $body_content);
+
+        $replacements = [
+            '%%SUBJECT%%'      => $subject,
+            '%%GREETING%%'     => $greeting,
+            '%%BODY_CONTENT%%' => $body_content,
+            '%%BUTTON_GROUP%%' => '<a href="' . esc_url($upgrade_link) . '" class="btn btn-primary">' . __('Upgrade Now', 'NORDBOOKING') . '</a>',
+        ];
+        $full_email_html = $this->get_styled_email_html($replacements);
+
+        $headers = $this->get_email_headers();
+        return wp_mail($user->user_email, $subject, $full_email_html, $headers);
+    }
+
+    public function send_renewal_reminder_email($user_id) {
+        $user = get_userdata($user_id);
+        if (!$user) {
+            return false;
+        }
+
+        $subject = __('Your NORDBOOKING Subscription is Expiring Soon', 'NORDBOOKING');
+        $greeting = sprintf(__('Hi %s,', 'NORDBOOKING'), $user->display_name);
+        $renewal_link = home_url('/dashboard/');
+
+        ob_start();
+        include(get_template_directory() . '/templates/email/subscription-renewal-reminder.php');
+        $body_content = ob_get_clean();
+
+        $body_content = str_replace('%%NAME%%', $user->display_name, $body_content);
+        $body_content = str_replace('%%RENEWAL_LINK%%', $renewal_link, $body_content);
+
+        $replacements = [
+            '%%SUBJECT%%'      => $subject,
+            '%%GREETING%%'     => $greeting,
+            '%%BODY_CONTENT%%' => $body_content,
+            '%%BUTTON_GROUP%%' => '<a href="' . esc_url($renewal_link) . '" class="btn btn-primary">' . __('Renew Now', 'NORDBOOKING') . '</a>',
+        ];
+        $full_email_html = $this->get_styled_email_html($replacements);
+
+        $headers = $this->get_email_headers();
+        return wp_mail($user->user_email, $subject, $full_email_html, $headers);
+    }
 }
