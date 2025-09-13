@@ -125,4 +125,52 @@ if ( $current_user_id > 0 ) {
             </ul>
         </div>
     </nav>
+
+    <div class="nav-group subscription-box">
+        <h4 class="nav-group-title"><?php esc_html_e('Subscription', 'NORDBOOKING'); ?></h4>
+        <?php
+        $user_id = get_current_user_id();
+        $status = \NORDBOOKING\Classes\Subscription::get_subscription_status($user_id);
+        $days_left = \NORDBOOKING\Classes\Subscription::get_days_until_next_payment($user_id);
+        ?>
+        <div class="subscription-status">
+            <p><strong>Status:</strong> <?php echo esc_html(ucfirst($status)); ?></p>
+            <?php if ($status === 'trial' || $status === 'active'): ?>
+                <p><strong>Days Left:</strong> <?php echo esc_html($days_left); ?></p>
+            <?php endif; ?>
+        </div>
+        <?php if ($status === 'unsubscribed' || $status === 'expired_trial' || $status === 'expired'): ?>
+            <button id="subscribe-now-btn" class="button button-primary"><?php esc_html_e('Subscribe Now', 'NORDBOOKING'); ?></button>
+        <?php endif; ?>
+    </div>
 </aside>
+
+<script>
+jQuery(document).ready(function($) {
+    $('#subscribe-now-btn').on('click', function() {
+        var $btn = $(this);
+        $btn.prop('disabled', true).text('Processing...');
+
+        $.ajax({
+            url: '<?php echo admin_url('admin-ajax.php'); ?>',
+            type: 'POST',
+            data: {
+                action: 'nordbooking_create_checkout_session',
+                nonce: '<?php echo wp_create_nonce('nordbooking_dashboard_nonce'); ?>'
+            },
+            success: function(response) {
+                if (response.success) {
+                    window.location.href = response.data.checkout_url;
+                } else {
+                    alert(response.data.message);
+                    $btn.prop('disabled', false).text('Subscribe Now');
+                }
+            },
+            error: function() {
+                alert('An error occurred. Please try again.');
+                $btn.prop('disabled', false).text('Subscribe Now');
+            }
+        });
+    });
+});
+</script>

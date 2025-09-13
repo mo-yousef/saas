@@ -723,6 +723,9 @@ public function handle_ajax_registration() {
 
         // 7. Send welcome email (only for business owners)
         if (!$is_invitation_flow) {
+            if (class_exists('NORDBOOKING\Classes\Subscription')) {
+                Subscription::create_trial_subscription($user_id);
+            }
             $this->send_welcome_email($user_id, $display_name);
         }
 
