@@ -387,39 +387,87 @@ function nordbooking_enhanced_json_decode($json_string, $context = 'data') {
 /**
  * Send booking emails
  */
-function nordbooking_enhanced_send_emails($booking_id, $booking_data, $service_details) {
+function nordbooking_enhanced_send_emails($booking_id, $booking_data, $service_details, $send_admin_email = true) {
     $site_name = get_bloginfo('name');
     $admin_email = get_option('admin_email');
+    $template_path = NORDBOOKING_THEME_DIR . 'templates/email/base-email-template.php';
 
-    // Customer email
-    $customer_subject = sprintf('[%s] Booking Confirmation - %s', $site_name, $booking_data['booking_reference']);
-    $customer_message = sprintf(
-        "Dear %s,\n\nThank you for your booking!\n\nReference: %s\nDate: %s at %s\nServices: %s\nTotal: $%.2f\n\nWe'll contact you soon!\n\n%s",
-        $booking_data['customer_name'],
-        $booking_data['booking_reference'],
-        $booking_data['booking_date'],
-        $booking_data['booking_time'],
-        implode(', ', array_column($service_details, 'name')),
-        $booking_data['total_amount'],
-        $site_name
-    );
+    if (file_exists($template_path)) {
+        $template = file_get_contents($template_path);
 
-    wp_mail($booking_data['customer_email'], $customer_subject, $customer_message);
+        // Customer email
+        $customer_subject = sprintf('[%s] Booking Confirmation - %s', $site_name, $booking_data['booking_reference']);
+        $customer_greeting = 'Hello ' . $booking_data['customer_name'];
+        $customer_body = '<p>Thank you for your booking! Your booking details are below:</p>';
+        $customer_body .= '<ul>';
+        $customer_body .= '<li><strong>Reference:</strong> ' . $booking_data['booking_reference'] . '</li>';
+        $customer_body .= '<li><strong>Date:</strong> ' . $booking_data['booking_date'] . ' at ' . $booking_data['booking_time'] . '</li>';
+        $customer_body .= '<li><strong>Services:</strong> ' . implode(', ', array_column($service_details, 'name')) . '</li>';
+        $customer_body .= '<li><strong>Total:</strong> $' . number_format($booking_data['total_amount'], 2) . '</li>';
+        $customer_body .= '</ul>';
+        $customer_body .= '<p>We will contact you soon to confirm your booking.</p>';
 
-    // Admin email
-    $admin_subject = sprintf('[%s] New Booking - %s', $site_name, $booking_data['booking_reference']);
-    $admin_message = sprintf(
-        "New booking:\n\nRef: %s\nCustomer: %s (%s)\nDate: %s at %s\nServices: %s\nTotal: $%.2f",
-        $booking_data['booking_reference'],
-        $booking_data['customer_name'],
-        $booking_data['customer_email'],
-        $booking_data['booking_date'],
-        $booking_data['booking_time'],
-        implode(', ', array_column($service_details, 'name')),
-        $booking_data['total_amount']
-    );
+        $customer_message = str_replace(
+            ['%%SUBJECT%%', '%%GREETING%%', '%%BODY_CONTENT%%', '%%BUTTON_GROUP%%'],
+            [$customer_subject, $customer_greeting, $customer_body, ''],
+            $template
+        );
 
-    wp_mail($admin_email, $admin_subject, $admin_message);
+        $headers = ['Content-Type: text/html; charset=UTF-8'];
+        wp_mail($booking_data['customer_email'], $customer_subject, $customer_message, $headers);
+
+        if ($send_admin_email) {
+            // Admin email
+            $admin_subject = sprintf('[%s] New Booking - %s', $site_name, $booking_data['booking_reference']);
+            $admin_greeting = 'New Booking Notification';
+            $admin_body = '<p>A new booking has been made. Details are below:</p>';
+            $admin_body .= '<ul>';
+            $admin_body .= '<li><strong>Reference:</strong> ' . $booking_data['booking_reference'] . '</li>';
+            $admin_body .= '<li><strong>Customer:</strong> ' . $booking_data['customer_name'] . ' (' . $booking_data['customer_email'] . ')</li>';
+            $admin_body .= '<li><strong>Date:</strong> ' . $booking_data['booking_date'] . ' at ' . $booking_data['booking_time'] . '</li>';
+            $admin_body .= '<li><strong>Services:</strong> ' . implode(', ', array_column($service_details, 'name')) . '</li>';
+            $admin_body .= '<li><strong>Total:</strong> $' . number_format($booking_data['total_amount'], 2) . '</li>';
+            $admin_body .= '</ul>';
+
+            $admin_message = str_replace(
+                ['%%SUBJECT%%', '%%GREETING%%', '%%BODY_CONTENT%%', '%%BUTTON_GROUP%%'],
+                [$admin_subject, $admin_greeting, $admin_body, ''],
+                $template
+            );
+
+            wp_mail($admin_email, $admin_subject, $admin_message, $headers);
+        }
+
+    } else {
+        // Fallback to plain text if template is not found
+        $customer_subject = sprintf('[%s] Booking Confirmation - %s', $site_name, $booking_data['booking_reference']);
+        $customer_message = sprintf(
+            "Dear %s,\n\nThank you for your booking!\n\nReference: %s\nDate: %s at %s\nServices: %s\nTotal: $%.2f\n\nWe'll contact you soon!\n\n%s",
+            $booking_data['customer_name'],
+            $booking_data['booking_reference'],
+            $booking_data['booking_date'],
+            $booking_data['booking_time'],
+            implode(', ', array_column($service_details, 'name')),
+            $booking_data['total_amount'],
+            $site_name
+        );
+        wp_mail($booking_data['customer_email'], $customer_subject, $customer_message);
+
+        if ($send_admin_email) {
+            $admin_subject = sprintf('[%s] New Booking - %s', $site_name, $booking_data['booking_reference']);
+            $admin_message = sprintf(
+                "New booking:\n\nRef: %s\nCustomer: %s (%s)\nDate: %s at %s\nServices: %s\nTotal: $%.2f",
+                $booking_data['booking_reference'],
+                $booking_data['customer_name'],
+                $booking_data['customer_email'],
+                $booking_data['booking_date'],
+                $booking_data['booking_time'],
+                implode(', ', array_column($service_details, 'name')),
+                $booking_data['total_amount']
+            );
+            wp_mail($admin_email, $admin_subject, $admin_message);
+        }
+    }
 }
 
 ?>
@@ -560,11 +608,7 @@ function nordbooking_fixed_table_booking_handler() {
 
         // Send emails
         try {
-            wp_mail(
-                $customer_details['email'],
-                'Booking Confirmation - ' . $booking_reference,
-                "Thank you for your booking!\n\nReference: {$booking_reference}\nDate: {$customer_details['date']} at {$customer_details['time']}\nTotal: \${$total_amount}"
-            );
+            nordbooking_enhanced_send_emails($booking_id, $booking_data, $valid_services, false);
         } catch (Exception $e) {
             error_log('Email sending failed: ' . $e->getMessage());
         }
@@ -713,7 +757,7 @@ function nordbooking_corrected_column_booking_handler() {
             'service_address' => sanitize_textarea_field($customer_details['address'] ?? ''), // CORRECTED: service_address not customer_address
             'booking_date' => sanitize_text_field($customer_details['date']),
             'booking_time' => sanitize_text_field($customer_details['time']),
-            'total_price' => $total_amount, // include options
+            'total_amount' => $total_amount, // include options
             'status' => 'pending',
             'special_instructions' => sanitize_textarea_field($customer_details['instructions'] ?? ''),
             'service_frequency' => $service_frequency,
@@ -801,38 +845,7 @@ function nordbooking_corrected_column_booking_handler() {
 
         // Send emails (don't fail booking if this fails)
         try {
-            $site_name = get_bloginfo('name');
-
-            // Customer email
-            $customer_subject = "[{$site_name}] Booking Confirmation - {$booking_reference}";
-            $customer_message = "Dear {$customer_details['name']},\n\n";
-            $customer_message .= "Thank you for your booking!\n\n";
-            $customer_message .= "Reference: {$booking_reference}\n";
-            $customer_message .= "Date: {$customer_details['date']} at {$customer_details['time']}\n";
-            $customer_message .= "Services: " . implode(', ', array_column($valid_services, 'name')) . "\n";
-            $customer_message .= "Total: $" . number_format($total_amount, 2) . "\n\n";
-            $customer_message .= "We'll contact you soon to confirm!\n\n";
-            $customer_message .= "Best regards,\n{$site_name}";
-
-            wp_mail($customer_details['email'], $customer_subject, $customer_message);
-
-            // Admin email
-            $admin_email = get_option('admin_email');
-            $admin_subject = "[{$site_name}] New Booking - {$booking_reference}";
-            $admin_message = "New booking received:\n\n";
-            $admin_message .= "Reference: {$booking_reference}\n";
-            $admin_message .= "Customer: {$customer_details['name']} ({$customer_details['email']})\n";
-            $admin_message .= "Phone: {$customer_details['phone']}\n";
-            $admin_message .= "Date: {$customer_details['date']} at {$customer_details['time']}\n";
-            $admin_message .= "Services: " . implode(', ', array_column($valid_services, 'name')) . "\n";
-            $admin_message .= "Total: $" . number_format($total_amount, 2) . "\n";
-            $admin_message .= "Address: {$customer_details['address']}\n";
-            if (!empty($customer_details['instructions'])) {
-                $admin_message .= "Instructions: {$customer_details['instructions']}\n";
-            }
-
-            wp_mail($admin_email, $admin_subject, $admin_message);
-
+            nordbooking_enhanced_send_emails($booking_id, $booking_data, $valid_services);
         } catch (Exception $e) {
             error_log('NORDBOOKING Corrected Handler - Email sending failed: ' . $e->getMessage());
         }
