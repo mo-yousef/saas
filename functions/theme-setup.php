@@ -361,6 +361,11 @@ if ( is_page_template('templates/booking-form-public.php') || $page_type_for_scr
             wp_enqueue_style( 'nordbooking-dashboard-settings', NORDBOOKING_THEME_URI . 'assets/css/dashboard-settings.css', array('nordbooking-dashboard-main'), NORDBOOKING_VERSION );
 
             wp_enqueue_script( 'nordbooking-dashboard-booking-form-settings', NORDBOOKING_THEME_URI . 'assets/js/dashboard-booking-form-settings.js', array('jquery', 'wp-color-picker'), NORDBOOKING_VERSION, true );
+            wp_localize_script('nordbooking-dashboard-booking-form-settings', 'nordbooking_bf_settings_params', [
+                'ajax_url' => admin_url('admin-ajax.php'),
+                'site_url' => site_url(),
+                'nonce'    => wp_create_nonce('nordbooking_dashboard_nonce')
+            ]);
 
             // Enqueue the email settings script (handles the new editor)
             wp_enqueue_script( 'nordbooking-dashboard-email-settings', NORDBOOKING_THEME_URI . 'assets/js/dashboard-email-settings.js', array('jquery'), NORDBOOKING_VERSION, true );
