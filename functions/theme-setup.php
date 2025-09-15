@@ -355,39 +355,59 @@ if ( is_page_template('templates/booking-form-public.php') || $page_type_for_scr
         ]);
 
         if ( $current_page_slug === 'settings' || $current_page_slug === 'booking-form' ) {
-            // Enqueue styles for color picker and settings page
+            // Enqueue styles for color picker
             wp_enqueue_style( 'wp-color-picker' );
+            // Enqueue the settings page specific CSS
             wp_enqueue_style( 'nordbooking-dashboard-settings', NORDBOOKING_THEME_URI . 'assets/css/dashboard-settings.css', array('nordbooking-dashboard-main'), NORDBOOKING_VERSION );
 
-            // Prepare data needed for localizing scripts
-            $settings_manager = new \NORDBOOKING\Classes\Settings();
-            $user_id = get_current_user_id();
-            $biz_settings = $settings_manager->get_business_settings($user_id);
-            $email_templates = $settings_manager->get_email_templates();
-            $email_templates_data = [];
-            foreach ($email_templates as $key => $template) {
-                $subject = isset($biz_settings[$template['subject_key']]) ? $biz_settings[$template['subject_key']] : '';
-                $body_json = isset($biz_settings[$template['body_key']]) ? $biz_settings[$template['body_key']] : '[]';
-                $body = json_decode($body_json, true);
-                if (!is_array($body)) {
-                    $body = [];
-                }
-                $email_templates_data[$key] = [
-                    'subject' => $subject,
-                    'body' => $body,
-                ];
-            }
-
-            // Enqueue and localize Booking Form Settings script
             wp_enqueue_script( 'nordbooking-dashboard-booking-form-settings', NORDBOOKING_THEME_URI . 'assets/js/dashboard-booking-form-settings.js', array('jquery', 'wp-color-picker'), NORDBOOKING_VERSION, true );
+
             wp_localize_script('nordbooking-dashboard-booking-form-settings', 'nordbooking_bf_settings_params', [
                 'ajax_url' => admin_url('admin-ajax.php'),
                 'site_url' => site_url(),
                 'nonce'    => wp_create_nonce('nordbooking_dashboard_nonce')
             ]);
 
-            // Enqueue and localize Email Settings script
+            // Enqueue the email settings script (handles the new editor)
             wp_enqueue_script( 'nordbooking-dashboard-email-settings', NORDBOOKING_THEME_URI . 'assets/js/dashboard-email-settings.js', array('jquery'), NORDBOOKING_VERSION, true );
+
+            // Enqueue the business settings script (handles tabs, saving, logo upload)
+            wp_enqueue_script( 'nordbooking-dashboard-business-settings', NORDBOOKING_THEME_URI . 'assets/js/dashboard-business-settings.js', array('jquery', 'wp-color-picker', 'nordbooking-dashboard-email-settings'), NORDBOOKING_VERSION, true );
+
+            // Localize data for both scripts
+            $settings_manager = new \NORDBOOKING\Classes\Settings();
+            $user_id = get_current_user_id();
+            $biz_settings = $settings_manager->get_business_settings($user_id);
+            $email_templates = $settings_manager->get_email_templates();
+
+            $email_templates_data = [];
+            foreach ($email_templates as $key => $template) {
+                $subject = isset($biz_settings[$template['subject_key']]) ? $biz_settings[$template['subject_key']] : '';
+                $body_json = isset($biz_settings[$template['body_key']]) ? $biz_settings[$template['body_key']] : '[]';
+                $body = json_decode($body_json, true);
+
+                if (!is_array($body)) {
+                    $body = [];
+                }
+
+                $email_templates_data[$key] = [
+                    'subject' => $subject,
+                    'body' => $body,
+                ];
+            }
+
+            wp_localize_script('nordbooking-dashboard-business-settings', 'nordbooking_biz_settings_params', [
+                'ajax_url' => admin_url('admin-ajax.php'),
+                'nonce' => wp_create_nonce('nordbooking_dashboard_nonce'),
+                'templates' => $email_templates,
+                'i18n' => [
+                    'saving' => __('Saving...', 'NORDBOOKING'),
+                    'save_success' => __('Settings saved successfully.', 'NORDBOOKING'),
+                    'error_saving' => __('Error saving settings.', 'NORDBOOKING'),
+                    'error_ajax' => __('An unexpected error occurred. Please try again.', 'NORDBOOKING'),
+                ]
+            ]);
+
             wp_localize_script('nordbooking-dashboard-email-settings', 'nordbooking_email_settings_params', [
                 'ajax_url' => admin_url('admin-ajax.php'),
                 'nonce' => wp_create_nonce('nordbooking_dashboard_nonce'),
@@ -398,26 +418,13 @@ if ( is_page_template('templates/booking-form-public.php') || $page_type_for_scr
                 'site_url' => site_url(),
                 'dummy_data' => \NORDBOOKING\Classes\Notifications::get_dummy_data_for_preview(),
                 'i18n' => [
+                    // Component-related translations
                     'header_placeholder' => __( 'Header Text', 'NORDBOOKING' ),
                     'text_placeholder' => __( 'Paragraph text...', 'NORDBOOKING' ),
                     'button_placeholder' => __( 'Button Text', 'NORDBOOKING' ),
                     'button_url_placeholder' => __( 'Button URL', 'NORDBOOKING' ),
                     'spacer_text' => __( 'Spacer', 'NORDBOOKING' ),
                     'delete_component_title' => __( 'Delete Component', 'NORDBOOKING' ),
-                ]
-            ]);
-
-            // Enqueue and localize Business Settings script (depends on email settings script)
-            wp_enqueue_script( 'nordbooking-dashboard-business-settings', NORDBOOKING_THEME_URI . 'assets/js/dashboard-business-settings.js', array('jquery', 'wp-color-picker', 'nordbooking-dashboard-email-settings'), NORDBOOKING_VERSION, true );
-            wp_localize_script('nordbooking-dashboard-business-settings', 'nordbooking_biz_settings_params', [
-                'ajax_url' => admin_url('admin-ajax.php'),
-                'nonce' => wp_create_nonce('nordbooking_dashboard_nonce'),
-                'templates' => $email_templates,
-                'i18n' => [
-                    'saving' => __('Saving...', 'NORDBOOKING'),
-                    'save_success' => __('Settings saved successfully.', 'NORDBOOKING'),
-                    'error_saving' => __('Error saving settings.', 'NORDBOOKING'),
-                    'error_ajax' => __('An unexpected error occurred. Please try again.', 'NORDBOOKING'),
                 ]
             ]);
         }
@@ -495,6 +502,7 @@ if ( is_page_template('templates/booking-form-public.php') || $page_type_for_scr
         }
 
     }
+    flush_rewrite_rules();
 }
 add_action( 'wp_enqueue_scripts', 'nordbooking_scripts' );
 
