@@ -5,9 +5,55 @@
  */
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
-// Fetch settings
 $settings_manager = new \NORDBOOKING\Classes\Settings();
 $user_id = get_current_user_id();
+$update_message = '';
+
+// Handle form submission for non-AJAX fallback
+if ( isset( $_POST['save_business_settings'] ) ) {
+    // Verify nonce
+    if ( isset( $_POST['nordbooking_dashboard_nonce_field'] ) && wp_verify_nonce( $_POST['nordbooking_dashboard_nonce_field'], 'nordbooking_dashboard_nonce' ) ) {
+
+        // Sanitize and prepare settings data from POST
+        $settings_to_save = [];
+        // A list of expected setting keys and their sanitization functions
+        $allowed_settings = [
+            'biz_name' => 'sanitize_text_field',
+            'biz_email' => 'sanitize_email',
+            'biz_phone' => 'sanitize_text_field',
+            'biz_address' => 'sanitize_textarea_field',
+            'biz_currency_code' => 'sanitize_text_field',
+            'biz_user_language' => 'sanitize_text_field',
+            'biz_logo_url' => 'esc_url_raw',
+            'bf_theme_color' => 'sanitize_hex_color',
+            'bf_secondary_color' => 'sanitize_hex_color',
+            'bf_background_color' => 'sanitize_hex_color',
+            // Note: Email templates are complex and saved via AJAX in the new design.
+            // This fallback handles the main settings.
+        ];
+
+        foreach ( $allowed_settings as $key => $sanitizer ) {
+            if ( isset( $_POST[$key] ) ) {
+                $settings_to_save[$key] = call_user_func( $sanitizer, wp_unslash($_POST[$key]) );
+            }
+        }
+
+        // Save the settings
+        $result = $settings_manager->save_business_settings( $user_id, $settings_to_save );
+
+        if ( $result ) {
+            $update_message = '<div class="notice notice-success is-dismissible" style="margin-bottom: 15px;"><p>' . esc_html__( 'Settings saved successfully.', 'NORDBOOKING' ) . '</p></div>';
+        } else {
+            $update_message = '<div class="notice notice-error is-dismissible" style="margin-bottom: 15px;"><p>' . esc_html__( 'There was an error saving the settings.', 'NORDBOOKING' ) . '</p></div>';
+        }
+
+    } else {
+        // Nonce verification failed
+        $update_message = '<div class="notice notice-error is-dismissible" style="margin-bottom: 15px;"><p>' . esc_html__( 'Security check failed. Please try again.', 'NORDBOOKING' ) . '</p></div>';
+    }
+}
+
+// Fetch settings for display (re-fetch in case they were just updated)
 $biz_settings = $settings_manager->get_business_settings($user_id);
 $bf_settings = $settings_manager->get_booking_form_settings($user_id);
 
@@ -25,6 +71,12 @@ function nordbooking_select_biz_setting_value($settings, $key, $value, $default_
 }
 ?>
 <div id="NORDBOOKING-business-settings-page" class="wrap NORDBOOKING-settings-page">
+    <?php
+    // Display any update messages
+    if ( ! empty( $update_message ) ) {
+        echo $update_message;
+    }
+    ?>
     <div class="nordbooking-page-header">
         <div class="nordbooking-page-header-heading">
             <span class="nordbooking-page-header-icon">
