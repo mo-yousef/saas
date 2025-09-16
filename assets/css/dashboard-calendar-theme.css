@@ -1,0 +1,198 @@
+/*
+ * NORDBOOKING - FullCalendar Theme (Shadcn UI Inspired)
+ *
+ * This stylesheet overrides the default FullCalendar styles to create a
+ * flatter, more modern appearance consistent with the rest of the dashboard.
+ */
+
+/* Use the dashboard's root variables for consistency */
+:root {
+  --fc-border-color: hsl(var(--border));
+  --fc-page-bg-color: hsl(var(--background));
+  --fc-neutral-bg-color: hsl(var(--muted));
+  --fc-list-event-hover-bg-color: hsl(var(--accent));
+  --fc-highlight-color: hsl(var(--accent));
+
+  --fc-button-text-color: hsl(var(--foreground));
+  --fc-button-bg-color: hsl(var(--card));
+  --fc-button-border-color: hsl(var(--input));
+  --fc-button-hover-bg-color: hsl(var(--accent));
+  --fc-button-hover-border-color: hsl(var(--input));
+  --fc-button-active-bg-color: hsl(var(--accent));
+  --fc-button-active-border-color: hsl(var(--input));
+
+  --fc-button-primary-bg-color: hsl(var(--primary));
+  --fc-button-primary-text-color: hsl(var(--primary-foreground));
+  --fc-button-primary-hover-bg-color: hsl(221.2 83.2% 47.3%);
+
+  --fc-today-bg-color: hsl(var(--accent));
+  --fc-daygrid-event-dot-width: 8px;
+}
+
+/* General Container */
+.fc {
+  font-family: "Outfit", sans-serif;
+}
+
+/* Header Toolbar */
+.fc .fc-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5em;
+  flex-wrap: wrap;
+  gap: 1em;
+}
+
+.fc .fc-toolbar.fc-header-toolbar {
+  margin-bottom: 1.5em;
+}
+
+.fc .fc-toolbar-title {
+  font-size: 1.5em;
+  font-weight: 600;
+  color: hsl(var(--foreground));
+}
+
+/* Buttons */
+.fc .fc-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  height: var(--input-height);
+  cursor: pointer;
+  transition: background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, color 0.15s ease-in-out;
+  user-select: none;
+  border: 1px solid var(--fc-button-border-color);
+  background-color: var(--fc-button-bg-color);
+  color: var(--fc-button-text-color);
+  box-shadow: none;
+  text-transform: capitalize;
+}
+
+.fc .fc-button:hover {
+  background-color: var(--fc-button-hover-bg-color);
+}
+
+.fc .fc-button:focus {
+  box-shadow: 0 0 0 2px hsl(var(--background)), 0 0 0 4px hsl(var(--ring));
+}
+
+.fc .fc-button .fc-icon {
+  font-size: 1.2em;
+}
+
+/* Primary (Today) Button */
+.fc .fc-button-primary {
+  background-color: var(--fc-button-primary-bg-color);
+  border-color: var(--fc-button-primary-bg-color);
+  color: var(--fc-button-primary-text-color);
+}
+
+.fc .fc-button-primary:hover {
+  background-color: var(--fc-button-primary-hover-bg-color);
+}
+
+.fc .fc-button-primary:not(:disabled).fc-button-active,
+.fc .fc-button-primary:not(:disabled):active {
+  background-color: var(--fc-button-primary-hover-bg-color);
+  border-color: var(--fc-button-primary-hover-bg-color);
+  box-shadow: none;
+}
+
+/* View/Group Buttons */
+.fc .fc-button-group {
+  display: inline-flex;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.fc .fc-button-group > .fc-button {
+  border-radius: 0;
+  margin: 0;
+  border-left-width: 0;
+}
+
+.fc .fc-button-group > .fc-button:first-child {
+  border-left-width: 1px;
+  border-top-left-radius: var(--radius-sm);
+  border-bottom-left-radius: var(--radius-sm);
+}
+
+.fc .fc-button-group > .fc-button:last-child {
+  border-top-right-radius: var(--radius-sm);
+  border-bottom-right-radius: var(--radius-sm);
+}
+
+/* Active View Button */
+.fc .fc-button-primary:disabled {
+    background-color: hsl(var(--primary));
+    border-color: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+    opacity: 1;
+}
+
+/* Calendar Grid */
+.fc .fc-view, .fc .fc-scrollgrid {
+  border-radius: var(--radius);
+  background-color: var(--fc-page-bg-color);
+}
+
+.fc .fc-col-header-cell {
+  background-color: hsl(var(--muted));
+  padding: 0.75rem 0;
+  font-weight: 500;
+  color: hsl(var(--muted-foreground));
+}
+
+.fc .fc-daygrid-day-number {
+  padding: 0.5em;
+  font-size: 0.875em;
+}
+
+/* Events */
+.fc .fc-daygrid-day-events {
+    margin-top: 2px;
+}
+
+.fc .fc-daygrid-event {
+  border-radius: var(--radius-sm);
+  padding: 2px 6px;
+  font-size: 0.85em;
+  font-weight: 500;
+  border: 1px solid transparent;
+  background-color: var(--fc-button-primary-bg-color); /* Fallback */
+  border-color: var(--fc-button-primary-bg-color); /* Fallback */
+  color: var(--fc-button-primary-text-color) !important;
+}
+
+.fc-h-event {
+    display: block;
+    border: 1px solid var(--fc-event-border-color);
+    background-color: var(--fc-event-bg-color);
+}
+
+.fc-direction-ltr .fc-daygrid-event.fc-event-start,
+.fc-direction-rtl .fc-daygrid-event.fc-event-end {
+    margin-left: 4px;
+}
+
+.fc-direction-ltr .fc-daygrid-event.fc-event-end,
+.fc-direction-rtl .fc-daygrid-event.fc-event-start {
+    margin-right: 4px;
+}
+
+/* List View */
+.fc .fc-list-day-cushion {
+    background-color: hsl(var(--muted));
+    padding: 0.75rem 1rem;
+}
+
+.fc .fc-list-event:hover td {
+    background-color: var(--fc-list-event-hover-bg-color);
+}

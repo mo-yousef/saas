@@ -56,7 +56,7 @@
     copy: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>',
   };
 
-  function MoBookingDialog(options) {
+  function NordbookingDialog(options) {
     const defaults = {
       title: "",
       content: "",
@@ -72,7 +72,7 @@
     this._create();
   }
 
-  MoBookingDialog.prototype._create = function () {
+  NordbookingDialog.prototype._create = function () {
     // Create overlay
     this.overlayEl = document.createElement("div");
     this.overlayEl.className = "nordbooking-dialog-overlay";
@@ -138,14 +138,14 @@
     document.body.appendChild(this.dialogEl);
   };
 
-  MoBookingDialog.prototype.show = function () {
+  NordbookingDialog.prototype.show = function () {
     this.overlayEl.style.display = "block";
     this.dialogEl.style.display = "flex";
     document.body.style.overflow = "hidden";
     this.options.onOpen(this);
   };
 
-  MoBookingDialog.prototype.close = function () {
+  NordbookingDialog.prototype.close = function () {
     this.overlayEl.classList.add("is-closing");
     this.dialogEl.classList.add("is-closing");
 
@@ -161,14 +161,14 @@
     });
   };
 
-  MoBookingDialog.prototype.getElement = function () {
+  NordbookingDialog.prototype.getElement = function () {
     return this.dialogEl;
   };
 
-  MoBookingDialog.prototype.findElement = function (selector) {
+  NordbookingDialog.prototype.findElement = function (selector) {
     return this.dialogEl.querySelector(selector);
   };
 
   // Expose to global window object
-  window.MoBookingDialog = MoBookingDialog;
+  window.NordbookingDialog = NordbookingDialog;
 })(window);
