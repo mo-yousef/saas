@@ -200,7 +200,7 @@ class BookingFormRouter {
 
         // Define valid dashboard pages to prevent arbitrary file inclusion through slugs
         $valid_dashboard_pages = [
-            'overview', 'bookings', 'services', 'service-edit',
+            'overview', 'bookings', 'calendar', 'services', 'service-edit',
             'discounts', 'areas', 'workers', 'booking-form', 'settings',
             'availability', 'customers', 'customer-details', 'my-assigned-bookings' // Added for staff
         ];
