@@ -100,10 +100,62 @@
       });
     },
 
+    initServicePerformanceChart() {
+      const ctx = document.getElementById("service-performance-chart");
+      if (!ctx) return;
+
+      $.ajax({
+          url: nordbooking_overview_params.ajax_url,
+          type: 'POST',
+          data: {
+              action: 'nordbooking_get_service_performance',
+              nonce: nordbooking_overview_params.nonce,
+          },
+          success: (response) => {
+              if (response.success) {
+                  this.charts.servicePerformance = new Chart(ctx, {
+                      type: 'bar',
+                      data: {
+                          labels: response.data.labels,
+                          datasets: [{
+                              label: 'Bookings',
+                              data: response.data.data,
+                              backgroundColor: 'hsl(221.2 83.2% 53.3%)',
+                              borderColor: 'hsl(221.2 83.2% 53.3%)',
+                              borderWidth: 1
+                          }]
+                      },
+                      options: {
+                          responsive: true,
+                          maintainAspectRatio: false,
+                          scales: {
+                              y: {
+                                  beginAtZero: true,
+                                  ticks: {
+                                      stepSize: 1
+                                  }
+                              }
+                          },
+                          plugins: {
+                              legend: {
+                                  display: false
+                              }
+                          }
+                      }
+                  });
+              }
+          },
+          error: (error) => {
+              console.error("Error fetching service performance data:", error);
+          }
+      });
+    },
+
     // Initialize Chart.js charts
     initializeCharts() {
       this.initRevenueChart();
       this.initPerformanceChart();
+      this.initServicePerformanceChart();
     },
 
     // Initialize revenue chart
