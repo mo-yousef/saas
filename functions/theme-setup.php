@@ -342,18 +342,19 @@ if ( is_page_template('templates/booking-form-public.php') || $page_type_for_scr
 
         // Enqueue calendar scripts only on the calendar page.
         if ($current_page_slug === 'calendar') {
-            wp_enqueue_style('schedule-x-css', 'https://cdn.jsdelivr.net/npm/@schedule-x/theme-default@2.2.0/dist/index.css', array(), '2.2.0');
+            // The main.min.css is correct for styling.
+            wp_enqueue_style('fullcalendar-css', 'https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/main.min.css', array(), '6.1.11');
+            // Enqueue the new custom theme for the calendar.
+            wp_enqueue_style('nordbooking-calendar-theme', NORDBOOKING_THEME_URI . 'assets/css/dashboard-calendar-theme.css', array('fullcalendar-css'), NORDBOOKING_VERSION);
 
-            wp_enqueue_script('preact', 'https://cdn.jsdelivr.net/npm/preact@10.23.2/dist/preact.min.js', array(), '10.23.2', true);
-            wp_enqueue_script('preact-hooks', 'https://cdn.jsdelivr.net/npm/preact@10.23.2/hooks/dist/hooks.umd.js', array('preact'), '10.23.2', true);
-            wp_enqueue_script('preact-signals-core', 'https://cdn.jsdelivr.net/npm/@preact/signals-core@1.8.0/dist/signals-core.min.js', array(), '1.8.0', true);
-            wp_enqueue_script('preact-signals', 'https://cdn.jsdelivr.net/npm/@preact/signals@1.3.0/dist/signals.min.js', array('preact-signals-core'), '1.3.0', true);
-            wp_enqueue_script('preact-jsx-runtime', 'https://cdn.jsdelivr.net/npm/preact@10.23.2/jsx-runtime/dist/jsxRuntime.umd.js', array('preact'), '10.23.2', true);
-            wp_enqueue_script('preact-compat', 'https://cdn.jsdelivr.net/npm/preact@10.23.2/compat/dist/compat.umd.js', array('preact'), '10.23.2', true);
-            wp_enqueue_script('schedule-x-calendar', 'https://cdn.jsdelivr.net/npm/@schedule-x/calendar@2.2.0/dist/core.umd.js', array('preact', 'preact-hooks', 'preact-signals'), '2.2.0', true);
-            wp_enqueue_script('schedule-x-drag-and-drop', 'https://cdn.jsdelivr.net/npm/@schedule-x/drag-and-drop@2.2.0/dist/core.umd.js', array('schedule-x-calendar'), '2.2.0', true);
+            // Use the correct global bundle for FullCalendar from the CDN, which creates the `FullCalendar` global object.
+            wp_enqueue_script('fullcalendar', 'https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js', array(), '6.1.11', true);
 
-            wp_enqueue_script('nordbooking-dashboard-calendar', NORDBOOKING_THEME_URI . 'assets/js/dashboard-calendar.js', array('jquery', 'schedule-x-calendar', 'nordbooking-dialog'), NORDBOOKING_VERSION, true);
+            // Enqueue Feather Icons
+            wp_enqueue_script('feather-icons', 'https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js', array(), null, true);
+
+            // This script depends on 'fullcalendar' which is now correctly loaded.
+            wp_enqueue_script('nordbooking-dashboard-calendar', NORDBOOKING_THEME_URI . 'assets/js/dashboard-calendar.js', array('jquery', 'fullcalendar', 'nordbooking-dialog', 'feather-icons'), NORDBOOKING_VERSION, true);
             wp_localize_script('nordbooking-dashboard-calendar', 'nordbooking_calendar_params', [
                 'ajax_url' => admin_url('admin-ajax.php'),
                 'nonce' => wp_create_nonce('nordbooking_calendar_nonce'),
