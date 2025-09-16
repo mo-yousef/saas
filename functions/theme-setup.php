@@ -501,22 +501,14 @@ if ( is_page_template('templates/booking-form-public.php') || $page_type_for_scr
             }
         }
 
-        if ($current_page_slug === 'calendar') {
-            wp_enqueue_style('nordbooking-fullcalendar', 'https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/main.min.css', array(), '6.1.11');
-            wp_enqueue_script('nordbooking-fullcalendar', 'https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/main.min.js', array('jquery'), '6.1.11', true);
-            wp_enqueue_script('nordbooking-dashboard-calendar', NORDBOOKING_THEME_URI . 'assets/js/dashboard-calendar.js', array('jquery', 'nordbooking-fullcalendar', 'nordbooking-dialog'), NORDBOOKING_VERSION, true);
-
-            wp_localize_script('nordbooking-dashboard-calendar', 'nordbooking_calendar_params', [
-                'ajax_url' => admin_url('admin-ajax.php'),
-                'nonce' => wp_create_nonce('nordbooking_calendar_nonce'),
-                'i18n' => [
-                    'loading_events' => __('Loading events...', 'NORDBOOKING'),
-                    'error_loading_events' => __('Error loading events.', 'NORDBOOKING'),
-                    'booking_details' => __('Booking Details', 'NORDBOOKING'),
-                ]
-            ]);
         }
     }
+
+    // Register calendar scripts so they can be enqueued later
+    wp_register_style('nordbooking-fullcalendar', 'https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/main.min.css', array(), '6.1.11');
+    wp_register_script('nordbooking-fullcalendar', 'https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/main.min.js', array('jquery'), '6.1.11', true);
+    wp_register_script('nordbooking-dashboard-calendar', NORDBOOKING_THEME_URI . 'assets/js/dashboard-calendar.js', array('jquery', 'nordbooking-fullcalendar', 'nordbooking-dialog'), NORDBOOKING_VERSION, true);
+
     flush_rewrite_rules();
 }
 add_action( 'wp_enqueue_scripts', 'nordbooking_scripts' );
