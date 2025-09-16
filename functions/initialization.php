@@ -212,4 +212,11 @@ if (class_exists('NORDBOOKING\Classes\AvailabilityAjax')) {
         $GLOBALS['nordbooking_availability_ajax']->register_ajax_actions();
     }
 }
+
+// Initialize Service Performance AJAX
+if (class_exists('NORDBOOKING\Classes\ServicePerformance')) {
+    if (!isset($GLOBALS['nordbooking_service_performance'])) {
+        $GLOBALS['nordbooking_service_performance'] = new \NORDBOOKING\Classes\ServicePerformance();
+    }
+}
 ?>
