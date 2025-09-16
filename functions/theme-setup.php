@@ -501,7 +501,6 @@ if ( is_page_template('templates/booking-form-public.php') || $page_type_for_scr
             }
         }
 
-        }
     }
 
     // Register calendar scripts so they can be enqueued later
