@@ -21,7 +21,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 <style>
     #booking-calendar {
-        max-width: 1100px;
-        margin: 40px auto;
+        /* max-width is removed to allow full width */
+        margin: 40px 0; /* Adjust margin for full-width layout */
     }
 </style>

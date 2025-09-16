@@ -77,23 +77,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 new window.NordbookingDialog({
                     title: `Booking #${booking.booking_id}`,
                     content: detailsHtml,
-                    actions: [
+                    buttons: [
                         {
-                            label: 'View Details',
-                            class: 'button-primary',
-                            callback: function() {
-                                window.location.href = info.event.url;
+                            label: 'Close',
+                            class: 'secondary',
+                            onClick: (dialog) => {
+                                dialog.close();
                             }
                         },
                         {
-                            label: 'Close',
-                            class: 'button',
-                            callback: function(dialog) {
-                                dialog.close();
+                            label: 'View Details',
+                            class: 'primary',
+                            onClick: () => {
+                                window.location.href = info.event.url;
                             }
                         }
                     ]
-                }).open();
+                }).show();
             } else {
                 // Fallback if the dialog is not available
                 alert(detailsHtml.replace(/<[^>]+>/g, '\n'));
