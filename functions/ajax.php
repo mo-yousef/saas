@@ -135,7 +135,15 @@ if ( ! function_exists( 'nordbooking_ajax_get_all_bookings_for_calendar' ) ) {
         $end_date_str = isset($_POST['end']) ? sanitize_text_field($_POST['end']) : null;
 
         try {
-            $all_bookings_result = $bookings_manager->get_bookings_by_tenant($data_user_id, ['limit' => -1, 'status' => null]);
+            // Prepare arguments for the booking query, including the date range for performance.
+            $args = [
+                'limit' => -1, // Get all bookings within the date range.
+                'status' => null, // No specific status filter.
+                'start_date' => $start_date_str,
+                'end_date' => $end_date_str,
+            ];
+
+            $all_bookings_result = $bookings_manager->get_bookings_by_tenant($data_user_id, $args);
 
             if (is_wp_error($all_bookings_result)) {
                 wp_send_json_error(array('message' => $all_bookings_result->get_error_message()), 400);

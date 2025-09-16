@@ -196,3 +196,73 @@
 .fc .fc-list-event:hover td {
     background-color: var(--fc-list-event-hover-bg-color);
 }
+
+/* --- Calendar Sidebar Styles --- */
+.calendar-sidebar {
+    background-color: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+}
+
+.calendar-sidebar .sidebar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid hsl(var(--border));
+}
+
+.calendar-sidebar .sidebar-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin: 0;
+    color: hsl(var(--foreground));
+}
+
+.calendar-sidebar .sidebar-close-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 1.5rem;
+    line-height: 1;
+    padding: 0.25rem;
+    color: hsl(var(--muted-foreground));
+    transition: color 0.15s ease;
+}
+
+.calendar-sidebar .sidebar-close-btn:hover {
+    color: hsl(var(--foreground));
+}
+
+.calendar-sidebar .sidebar-content {
+    padding: 1.5rem;
+    max-height: 70vh; /* Ensure content is scrollable */
+    overflow-y: auto;
+}
+
+.sidebar-content .booking-item {
+    padding: 1rem;
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius);
+    margin-bottom: 1rem;
+}
+.sidebar-content .booking-item:last-child {
+    margin-bottom: 0;
+}
+
+.sidebar-content .booking-time {
+    font-weight: 600;
+    color: hsl(var(--foreground));
+}
+
+.sidebar-content .booking-title {
+    color: hsl(var(--muted-foreground));
+    margin-top: 0.25rem;
+}
+
+.sidebar-content .no-bookings-message {
+    text-align: center;
+    padding: 2rem;
+    color: hsl(var(--muted-foreground));
+}

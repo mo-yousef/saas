@@ -1,8 +1,29 @@
 document.addEventListener('DOMContentLoaded', function() {
     const calendarEl = document.getElementById('booking-calendar');
-    if (!calendarEl) {
+    const sidebarEl = document.getElementById('calendar-sidebar');
+    const sidebarTitleEl = document.getElementById('sidebar-title');
+    const sidebarContentEl = document.getElementById('sidebar-content');
+    const sidebarCloseBtn = document.getElementById('sidebar-close-btn');
+
+    if (!calendarEl || !sidebarEl) {
+        console.error('Calendar or sidebar element not found.');
         return;
     }
+
+    // --- Sidebar Helper Functions ---
+    function showSidebar(title, content) {
+        sidebarTitleEl.innerHTML = title;
+        sidebarContentEl.innerHTML = content;
+        sidebarEl.classList.add('is-visible');
+    }
+
+    function hideSidebar() {
+        sidebarEl.classList.remove('is-visible');
+    }
+
+    // --- Event Handlers ---
+    sidebarCloseBtn.addEventListener('click', hideSidebar);
+
 
     const calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: 'dayGridMonth',
@@ -32,11 +53,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 return response.json();
             })
             .then(data => {
-                // Handle WordPress's standard { success: true, data: [...] } response.
                 if (data.success && Array.isArray(data.data)) {
                     successCallback(data.data);
                 } else {
-                    // If the format is wrong, or if success is false.
                     console.error('Invalid event data received from server:', data);
                     failureCallback(new Error('Invalid event data format.'));
                 }
@@ -49,18 +68,44 @@ document.addEventListener('DOMContentLoaded', function() {
         },
         loading: function(isLoading) {
             if (isLoading) {
-                // You can add a loading indicator here if you want
-                console.log(nordbooking_calendar_params.i18n.loading_events);
+                calendarEl.classList.add('is-loading');
             } else {
-                // and hide it here
+                calendarEl.classList.remove('is-loading');
             }
+        },
+        dateClick: function(info) {
+            const clickedDate = info.date;
+            const eventsOnDay = calendar.getEvents().filter(event => {
+                const eventStart = new Date(event.start);
+                // Compare dates without time
+                return eventStart.toDateString() === clickedDate.toDateString();
+            });
+
+            let contentHtml = '';
+            if (eventsOnDay.length > 0) {
+                contentHtml = eventsOnDay.map(event => {
+                    const booking = event.extendedProps;
+                    const startTime = new Date(event.start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    return `
+                        <div class="booking-item">
+                            <div class="booking-time">${startTime}</div>
+                            <div class="booking-title">${booking.customer_name} - ${booking.service_name}</div>
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                contentHtml = '<p class="no-bookings-message">No bookings for this day.</p>';
+            }
+
+            const title = `Bookings for ${clickedDate.toLocaleDateString([], { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}`;
+            showSidebar(title, contentHtml);
         },
         eventClick: function(info) {
             info.jsEvent.preventDefault(); // don't let the browser navigate
 
             const booking = info.event.extendedProps;
-            let detailsHtml = `
-                <p><strong>${nordbooking_calendar_params.i18n.booking_details}</strong></p>
+            const title = `Booking #${booking.booking_id}`;
+            const detailsHtml = `
                 <ul>
                     <li><strong>Customer:</strong> ${booking.customer_name}</li>
                     <li><strong>Email:</strong> ${booking.customer_email}</li>
@@ -71,34 +116,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     <li><strong>Status:</strong> <span class="status-badge status-${booking.status}">${booking.status}</span></li>
                     <li><strong>Price:</strong> ${booking.total_price} ${booking.currency}</li>
                 </ul>
+                <a href="${info.event.url}" class="btn btn-primary" style="margin-top: 1rem; display: inline-block;">View Full Details</a>
             `;
 
-            if (window.NordbookingDialog) {
-                new window.NordbookingDialog({
-                    title: `Booking #${booking.booking_id}`,
-                    content: detailsHtml,
-                    buttons: [
-                        {
-                            label: 'Close',
-                            class: 'secondary',
-                            onClick: (dialog) => {
-                                dialog.close();
-                            }
-                        },
-                        {
-                            label: 'View Details',
-                            class: 'primary',
-                            onClick: () => {
-                                window.location.href = info.event.url;
-                            }
-                        }
-                    ]
-                }).show();
-            } else {
-                // Fallback if the dialog is not available
-                alert(detailsHtml.replace(/<[^>]+>/g, '\n'));
-                window.open(info.event.url, "_blank");
-            }
+            showSidebar(title, detailsHtml);
         }
     });
 
