@@ -340,20 +340,25 @@ if ( is_page_template('templates/booking-form-public.php') || $page_type_for_scr
         // Enqueue the main dashboard stylesheet
         wp_enqueue_style('nordbooking-dashboard-main', NORDBOOKING_THEME_URI . 'assets/css/dashboard-main.css', array('NORDBOOKING-style'), NORDBOOKING_VERSION);
 
-        // --- Calendar Scripts (enqueued on all dashboard pages to bypass faulty slug detection) ---
-        wp_enqueue_style('fullcalendar-css', 'https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/main.min.css', array(), '6.1.11');
-        wp_enqueue_script('fullcalendar', 'https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/main.min.js', array('jquery'), '6.1.11', true);
-        wp_enqueue_script('nordbooking-dashboard-calendar', NORDBOOKING_THEME_URI . 'assets/js/dashboard-calendar.js', array('jquery', 'fullcalendar', 'nordbooking-dialog'), NORDBOOKING_VERSION, true);
-        wp_localize_script('nordbooking-dashboard-calendar', 'nordbooking_calendar_params', [
-            'ajax_url' => admin_url('admin-ajax.php'),
-            'nonce' => wp_create_nonce('nordbooking_calendar_nonce'),
-            'i18n' => [
-                'loading_events' => __('Loading events...', 'NORDBOOKING'),
-                'error_loading_events' => __('Error loading events.', 'NORDBOOKING'),
-                'booking_details' => __('Booking Details', 'NORDBOOKING'),
-            ]
-        ]);
-        // --- End Calendar Scripts ---
+        // Enqueue calendar scripts only on the calendar page.
+        if ($current_page_slug === 'calendar') {
+            // The main.min.css is correct for styling.
+            wp_enqueue_style('fullcalendar-css', 'https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/main.min.css', array(), '6.1.11');
+            // Use the correct global bundle for FullCalendar from the CDN, which creates the `FullCalendar` global object.
+            wp_enqueue_script('fullcalendar', 'https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js', array(), '6.1.11', true);
+
+            // This script depends on 'fullcalendar' which is now correctly loaded.
+            wp_enqueue_script('nordbooking-dashboard-calendar', NORDBOOKING_THEME_URI . 'assets/js/dashboard-calendar.js', array('jquery', 'fullcalendar', 'nordbooking-dialog'), NORDBOOKING_VERSION, true);
+            wp_localize_script('nordbooking-dashboard-calendar', 'nordbooking_calendar_params', [
+                'ajax_url' => admin_url('admin-ajax.php'),
+                'nonce' => wp_create_nonce('nordbooking_calendar_nonce'),
+                'i18n' => [
+                    'loading_events' => __('Loading events...', 'NORDBOOKING'),
+                    'error_loading_events' => __('Error loading events.', 'NORDBOOKING'),
+                    'booking_details' => __('Booking Details', 'NORDBOOKING'),
+                ]
+            ]);
+        }
 
         // Enqueue the single booking page stylesheet if we are on the single booking page
         if ($current_page_slug === 'bookings' && isset($_GET['action']) && $_GET['action'] === 'view_booking') {
