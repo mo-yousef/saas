@@ -17,12 +17,12 @@ if ( ! defined( 'ABSPATH' ) ) {
     </div>
 
     <div class="nordbooking-card">
-        <div id="schedule-x-calendar"></div>
+        <div id="booking-calendar"></div>
     </div>
 </div>
 
 <style>
-    #schedule-x-calendar {
+    #booking-calendar {
         max-height: 700px;
         margin: 40px 0;
     }

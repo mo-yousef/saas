@@ -196,3 +196,21 @@
 .fc .fc-list-event:hover td {
     background-color: var(--fc-list-event-hover-bg-color);
 }
+
+/* Booking Details Dialog */
+.booking-details-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.booking-detail-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.booking-detail-item i {
+    width: 16px;
+    height: 16px;
+}
