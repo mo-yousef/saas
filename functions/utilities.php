@@ -261,6 +261,103 @@ if (!function_exists('nordbooking_get_status_badge_icon_svg')) { // Check if fun
     }
 }
 
+function nordbooking_get_overview_stats() {
+    global $wpdb;
+    $current_user_id = get_current_user_id();
+    $data_user_id = $current_user_id;
+
+    if (class_exists('NORDBOOKING\Classes\Auth') && \NORDBOOKING\Classes\Auth::is_user_worker($current_user_id)) {
+        $owner_id = \NORDBOOKING\Classes\Auth::get_business_owner_id_for_worker($current_user_id);
+        if ($owner_id) {
+            $data_user_id = $owner_id;
+        }
+    }
+
+    $bookings_table = \NORDBOOKING\Classes\Database::get_table_name('bookings');
+
+    $current_month_start = date('Y-m-01');
+    $current_month_end = date('Y-m-t');
+    $previous_month_start = date('Y-m-01', strtotime('-1 month'));
+    $previous_month_end = date('Y-m-t', strtotime('-1 month'));
+    $today = date('Y-m-d');
+
+    $get_safe_booking_stats = function($wpdb, $bookings_table, $user_id, $start_date = null, $end_date = null) {
+        $where_conditions = ["user_id = %d"];
+        $where_values = [$user_id];
+
+        if ($start_date && $end_date) {
+            $where_conditions[] = "booking_date BETWEEN %s AND %s";
+            $where_values[] = $start_date;
+            $where_values[] = $end_date;
+        }
+
+        $where_clause = 'WHERE ' . implode(' AND ', $where_conditions);
+
+        $total = $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM $bookings_table $where_clause", $where_values));
+
+        $status_counts = $wpdb->get_results($wpdb->prepare("SELECT status, COUNT(*) as count FROM $bookings_table $where_clause GROUP BY status", $where_values), ARRAY_A);
+
+        $by_status = [];
+        if ($status_counts) {
+            foreach ($status_counts as $row) {
+                $by_status[$row['status']] = intval($row['count']);
+            }
+        }
+
+        $revenue_conditions = $where_conditions;
+        $revenue_conditions[] = "status IN ('completed', 'confirmed')";
+        $revenue_where = 'WHERE ' . implode(' AND ', $revenue_conditions);
+
+        $total_revenue = $wpdb->get_var($wpdb->prepare("SELECT SUM(total_price) FROM $bookings_table $revenue_where", $where_values));
+
+        return [
+            'total' => intval($total),
+            'by_status' => $by_status,
+            'total_revenue' => floatval($total_revenue ?: 0)
+        ];
+    };
+
+    $get_safe_customer_stats = function($wpdb, $bookings_table, $user_id, $start_date = null, $end_date = null) {
+        $where_conditions = ["user_id = %d"];
+        $where_values = [$user_id];
+
+        if ($start_date && $end_date) {
+            $where_conditions[] = "created_at BETWEEN %s AND %s";
+            $where_values[] = $start_date . ' 00:00:00';
+            $where_values[] = $end_date . ' 23:59:59';
+        }
+
+        $where_clause = 'WHERE ' . implode(' AND ', $where_conditions);
+
+        $new_customers = $wpdb->get_var($wpdb->prepare("SELECT COUNT(DISTINCT customer_email) FROM $bookings_table $where_clause", $where_values));
+
+        return ['new_customers' => intval($new_customers ?: 0)];
+    };
+
+    $current_month_stats = $get_safe_booking_stats($wpdb, $bookings_table, $data_user_id, $current_month_start, $current_month_end);
+    $previous_month_stats = $get_safe_booking_stats($wpdb, $bookings_table, $data_user_id, $previous_month_start, $previous_month_end);
+    $current_month_customers = $get_safe_customer_stats($wpdb, $bookings_table, $data_user_id, $current_month_start, $current_month_end);
+    $previous_month_customers = $get_safe_customer_stats($wpdb, $bookings_table, $data_user_id, $previous_month_start, $previous_month_end);
+    $today_revenue = $get_safe_booking_stats($wpdb, $bookings_table, $data_user_id, $today, $today)['total_revenue'];
+
+    $total_bookings = $current_month_stats['total'] ?? 0;
+    $completed_jobs = $current_month_stats['by_status']['completed'] ?? 0;
+    $completion_rate = ($total_bookings > 0) ? ($completed_jobs / $total_bookings) * 100 : 0;
+
+    return [
+        'total_revenue' => $current_month_stats['total_revenue'] ?? 0,
+        'total_bookings' => $total_bookings,
+        'completed_jobs' => $completed_jobs,
+        'new_customers' => $current_month_customers['new_customers'] ?? 0,
+        'today_revenue' => $today_revenue,
+        'completion_rate' => round($completion_rate, 2),
+        'prev_total_bookings' => $previous_month_stats['total'] ?? 0,
+        'prev_completed_jobs' => $previous_month_stats['by_status']['completed'] ?? 0,
+        'prev_monthly_revenue' => $previous_month_stats['total_revenue'] ?? 0,
+        'prev_new_customers' => $previous_month_customers['new_customers'] ?? 0,
+    ];
+}
+
 function nordbooking_get_booking_form_tab_icon(string $key): string {
     $icon_svg = '';
     $icon_path = NORDBOOKING_THEME_DIR . 'assets/svg-icons/' . $key . '.svg';
