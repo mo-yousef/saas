@@ -156,12 +156,22 @@ if ( ! function_exists( 'nordbooking_ajax_get_all_bookings_for_calendar' ) ) {
                 $service_duration_minutes = $booking['service_duration'] ?? 60;
                 $end_datetime->add(new DateInterval('PT' . $service_duration_minutes . 'M'));
 
-                $event_color = '#3a87ad';
+                // Use colors from the theme's CSS for status consistency.
+                $event_color = 'hsl(215, 16%, 47%)'; // Default/pending color
                 switch ($booking['status']) {
-                    case 'confirmed': $event_color = '#468847'; break;
-                    case 'pending': $event_color = '#f89406'; break;
-                    case 'cancelled': $event_color = '#b94a48'; break;
-                    case 'completed': $event_color = '#3a58ad'; break;
+                    case 'confirmed':
+                        $event_color = 'hsl(221, 83%, 53%)';
+                        break;
+                    case 'completed':
+                        $event_color = 'hsl(145, 63%, 22%)';
+                        break;
+                    case 'cancelled':
+                        $event_color = 'hsl(0, 84%, 60%)';
+                        break;
+                    case 'pending':
+                    default:
+                        $event_color = 'hsl(215, 16%, 47%)';
+                        break;
                 }
 
                 $calendar_events[] = array(

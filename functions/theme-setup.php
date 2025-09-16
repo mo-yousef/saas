@@ -344,6 +344,9 @@ if ( is_page_template('templates/booking-form-public.php') || $page_type_for_scr
         if ($current_page_slug === 'calendar') {
             // The main.min.css is correct for styling.
             wp_enqueue_style('fullcalendar-css', 'https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/main.min.css', array(), '6.1.11');
+            // Enqueue the new custom theme for the calendar.
+            wp_enqueue_style('nordbooking-calendar-theme', NORDBOOKING_THEME_URI . 'assets/css/dashboard-calendar-theme.css', array('fullcalendar-css'), NORDBOOKING_VERSION);
+
             // Use the correct global bundle for FullCalendar from the CDN, which creates the `FullCalendar` global object.
             wp_enqueue_script('fullcalendar', 'https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js', array(), '6.1.11', true);
 
