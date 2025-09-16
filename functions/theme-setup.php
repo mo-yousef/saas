@@ -340,6 +340,17 @@ if ( is_page_template('templates/booking-form-public.php') || $page_type_for_scr
         // Enqueue the main dashboard stylesheet
         wp_enqueue_style('nordbooking-dashboard-main', NORDBOOKING_THEME_URI . 'assets/css/dashboard-main.css', array('NORDBOOKING-style'), NORDBOOKING_VERSION);
 
+        if ($current_page_slug === 'overview') {
+            wp_enqueue_style('nordbooking-dashboard-overview', NORDBOOKING_THEME_URI . 'assets/css/dashboard-overview.css', array('nordbooking-dashboard-main'), NORDBOOKING_VERSION);
+            wp_enqueue_script('chart-js', 'https://cdn.jsdelivr.net/npm/chart.js', array(), '4.4.1', true);
+            wp_enqueue_script('nordbooking-dashboard-overview-enhanced', NORDBOOKING_THEME_URI . 'assets/js/dashboard-overview-enhanced.js', array('jquery', 'chart-js'), NORDBOOKING_VERSION, true);
+            wp_localize_script('nordbooking-dashboard-overview-enhanced', 'nordbooking_overview_params', [
+                'ajax_url' => admin_url('admin-ajax.php'),
+                'nonce' => wp_create_nonce('nordbooking_ajax_nonce'),
+                'currency_symbol' => get_option('nordbooking_currency_symbol', '$'),
+            ]);
+        }
+
         // Enqueue calendar scripts only on the calendar page.
         if ($current_page_slug === 'calendar') {
             // The main.min.css is correct for styling.
