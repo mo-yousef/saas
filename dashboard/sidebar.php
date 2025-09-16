@@ -79,6 +79,9 @@ if ( $current_user_id > 0 ) {
                     }
                 ?>
                 <li class="<?php echo ($current_page === 'bookings') ? 'active' : ''; ?>"><a href="<?php echo esc_url(trailingslashit($dashboard_base_url) . 'bookings/'); ?>"><span class="NORDBOOKING-menu-icon"><?php echo nordbooking_get_dashboard_menu_icon('bookings'); ?></span><?php esc_html_e('Bookings', 'NORDBOOKING'); ?><?php if ($active_bookings_count > 0) : ?><span class="nav-badge"><?php echo esc_html($active_bookings_count); ?></span><?php endif; ?></a></li>
+                <?php if (current_user_can(\NORDBOOKING\Classes\Auth::CAP_VIEW_BOOKINGS) || current_user_can(\NORDBOOKING\Classes\Auth::CAP_MANAGE_BOOKINGS)) : ?>
+                <li class="<?php echo ($current_page === 'calendar') ? 'active' : ''; ?>"><a href="<?php echo esc_url(trailingslashit($dashboard_base_url) . 'calendar/'); ?>"><span class="NORDBOOKING-menu-icon"><?php echo nordbooking_get_dashboard_menu_icon('calendar'); ?></span><?php esc_html_e('Calendar', 'NORDBOOKING'); ?></a></li>
+                <?php endif; ?>
                 <?php endif; ?>
 
                 <?php if (current_user_can(\NORDBOOKING\Classes\Auth::CAP_VIEW_CUSTOMERS) || current_user_can(\NORDBOOKING\Classes\Auth::CAP_MANAGE_CUSTOMERS)) : ?>
