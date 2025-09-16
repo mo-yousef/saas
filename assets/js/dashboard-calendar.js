@@ -11,16 +11,41 @@ document.addEventListener('DOMContentLoaded', function() {
             center: 'title',
             right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
         },
-        events: {
-            url: nordbooking_calendar_params.ajax_url,
-            method: 'POST',
-            extraParams: {
-                action: 'nordbooking_get_all_bookings_for_calendar',
-                nonce: nordbooking_calendar_params.nonce
-            },
-            failure: function() {
+        events: function(fetchInfo, successCallback, failureCallback) {
+            const params = new URLSearchParams();
+            params.append('action', 'nordbooking_get_all_bookings_for_calendar');
+            params.append('nonce', nordbooking_calendar_params.nonce);
+            params.append('start', fetchInfo.startStr);
+            params.append('end', fetchInfo.endStr);
+
+            fetch(nordbooking_calendar_params.ajax_url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: params
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Handle WordPress's standard { success: true, data: [...] } response.
+                if (data.success && Array.isArray(data.data)) {
+                    successCallback(data.data);
+                } else {
+                    // If the format is wrong, or if success is false.
+                    console.error('Invalid event data received from server:', data);
+                    failureCallback(new Error('Invalid event data format.'));
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching events:', error);
+                failureCallback(error);
                 alert(nordbooking_calendar_params.i18n.error_loading_events);
-            }
+            });
         },
         loading: function(isLoading) {
             if (isLoading) {
