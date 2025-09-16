@@ -35,80 +35,23 @@ if (class_exists('NORDBOOKING\Classes\Auth') && \NORDBOOKING\Classes\Auth::is_us
 global $wpdb;
 $bookings_table = \NORDBOOKING\Classes\Database::get_table_name('bookings');
 
-// Helper function to safely get booking statistics
-function get_safe_booking_stats($wpdb, $bookings_table, $user_id, $start_date = null, $end_date = null) {
-    $where_conditions = ["user_id = %d"];
-    $where_values = [$user_id];
-    
-    if ($start_date && $end_date) {
-        $where_conditions[] = "booking_date BETWEEN %s AND %s";
-        $where_values[] = $start_date;
-        $where_values[] = $end_date;
-    }
-    
-    $where_clause = 'WHERE ' . implode(' AND ', $where_conditions);
-    
-    // Total bookings
-    $total = $wpdb->get_var($wpdb->prepare(
-        "SELECT COUNT(*) FROM $bookings_table $where_clause",
-        $where_values
-    ));
-    
-    // Bookings by status
-    $status_counts = $wpdb->get_results($wpdb->prepare(
-        "SELECT status, COUNT(*) as count FROM $bookings_table $where_clause GROUP BY status",
-        $where_values
-    ), ARRAY_A);
-    
-    $by_status = [];
-    if ($status_counts) {
-        foreach ($status_counts as $row) {
-            $by_status[$row['status']] = intval($row['count']);
-        }
-    }
-    
-    // Revenue (only for completed/confirmed bookings)
-    $revenue_conditions = $where_conditions;
-    $revenue_conditions[] = "status IN ('completed', 'confirmed')";
-    $revenue_where = 'WHERE ' . implode(' AND ', $revenue_conditions);
-    
-    $total_revenue = $wpdb->get_var($wpdb->prepare(
-        "SELECT SUM(total_price) FROM $bookings_table $revenue_where",
-        $where_values
-    ));
-    
-    return [
-        'total' => intval($total),
-        'by_status' => $by_status,
-        'total_revenue' => floatval($total_revenue ?: 0)
-    ];
-}
+// Fetch data for KPI Widgets
+$stats = nordbooking_get_overview_stats();
 
-// Helper function to get customer statistics
-function get_safe_customer_stats($wpdb, $bookings_table, $user_id, $start_date = null, $end_date = null) {
-    $where_conditions = ["user_id = %d"];
-    $where_values = [$user_id];
-    
-    if ($start_date && $end_date) {
-        $where_conditions[] = "created_at BETWEEN %s AND %s";
-        $where_values[] = $start_date . ' 00:00:00';
-        $where_values[] = $end_date . ' 23:59:59';
-    }
-    
-    $where_clause = 'WHERE ' . implode(' AND ', $where_conditions);
-    
-    // Count unique customers by email
-    $new_customers = $wpdb->get_var($wpdb->prepare(
-        "SELECT COUNT(DISTINCT customer_email) FROM $bookings_table $where_clause",
-        $where_values
-    ));
-    
-    return [
-        'new_customers' => intval($new_customers ?: 0)
-    ];
-}
+$total_bookings = $stats['total_bookings'];
+$completed_jobs = $stats['completed_jobs'];
+$monthly_revenue = $stats['total_revenue'];
+$new_customers = $stats['new_customers'];
 
-// Helper function to calculate percentage change
+$bookings_manager = new \NORDBOOKING\Classes\Bookings(new \NORDBOOKING\Classes\Discounts(get_current_user_id()), new \NORDBOOKING\Classes\Notifications(), new \NORDBOOKING\Classes\Services());
+$upcoming_count = $bookings_manager->get_kpi_data($data_user_id)['upcoming_count'];
+
+
+$prev_total_bookings = $stats['prev_total_bookings'];
+$prev_completed_jobs = $stats['prev_completed_jobs'];
+$prev_monthly_revenue = $stats['prev_monthly_revenue'];
+$prev_new_customers = $stats['prev_new_customers'];
+
 function calculate_percentage_change($current, $previous) {
     if ($previous == 0) {
         return $current > 0 ? '+100%' : '0%';
@@ -117,31 +60,6 @@ function calculate_percentage_change($current, $previous) {
     return sprintf('%+.1f%%', $change);
 }
 
-// Fetch data for KPI Widgets
-$current_month_start = date('Y-m-01');
-$current_month_end = date('Y-m-t');
-$previous_month_start = date('Y-m-01', strtotime('-1 month'));
-$previous_month_end = date('Y-m-t', strtotime('-1 month'));
-
-// Get safe stats for current and previous month
-$current_month_stats = get_safe_booking_stats($wpdb, $bookings_table, $data_user_id, $current_month_start, $current_month_end);
-$previous_month_stats = get_safe_booking_stats($wpdb, $bookings_table, $data_user_id, $previous_month_start, $previous_month_end);
-$current_month_customers = get_safe_customer_stats($wpdb, $bookings_table, $data_user_id, $current_month_start, $current_month_end);
-$previous_month_customers = get_safe_customer_stats($wpdb, $bookings_table, $data_user_id, $previous_month_start, $previous_month_end);
-
-// Prepare data for stats widgets
-$total_bookings = $current_month_stats['total'] ?? 0;
-$completed_jobs = $current_month_stats['by_status']['completed'] ?? 0;
-$monthly_revenue = $current_month_stats['total_revenue'] ?? 0;
-$new_customers = $current_month_customers['new_customers'] ?? 0;
-$upcoming_count = $bookings_manager->get_kpi_data($data_user_id)['upcoming_count'];
-
-$prev_total_bookings = $previous_month_stats['total'] ?? 0;
-$prev_completed_jobs = $previous_month_stats['by_status']['completed'] ?? 0;
-$prev_monthly_revenue = $previous_month_stats['total_revenue'] ?? 0;
-$prev_new_customers = $previous_month_customers['new_customers'] ?? 0;
-
-// Calculate percentage changes
 $bookings_change = calculate_percentage_change($total_bookings, $prev_total_bookings);
 $revenue_change = calculate_percentage_change($monthly_revenue, $prev_monthly_revenue);
 $completed_change = calculate_percentage_change($completed_jobs, $prev_completed_jobs);
