@@ -340,6 +340,21 @@ if ( is_page_template('templates/booking-form-public.php') || $page_type_for_scr
         // Enqueue the main dashboard stylesheet
         wp_enqueue_style('nordbooking-dashboard-main', NORDBOOKING_THEME_URI . 'assets/css/dashboard-main.css', array('NORDBOOKING-style'), NORDBOOKING_VERSION);
 
+        // --- Calendar Scripts (enqueued on all dashboard pages to bypass faulty slug detection) ---
+        wp_enqueue_style('nordbooking-fullcalendar-css', 'https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/main.min.css', array(), '6.1.11');
+        wp_enqueue_script('nordbooking-fullcalendar-js', 'https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/main.min.js', array('jquery'), '6.1.11', true);
+        wp_enqueue_script('nordbooking-dashboard-calendar', NORDBOOKING_THEME_URI . 'assets/js/dashboard-calendar.js', array('jquery', 'nordbooking-fullcalendar-js', 'nordbooking-dialog'), NORDBOOKING_VERSION, true);
+        wp_localize_script('nordbooking-dashboard-calendar', 'nordbooking_calendar_params', [
+            'ajax_url' => admin_url('admin-ajax.php'),
+            'nonce' => wp_create_nonce('nordbooking_calendar_nonce'),
+            'i18n' => [
+                'loading_events' => __('Loading events...', 'NORDBOOKING'),
+                'error_loading_events' => __('Error loading events.', 'NORDBOOKING'),
+                'booking_details' => __('Booking Details', 'NORDBOOKING'),
+            ]
+        ]);
+        // --- End Calendar Scripts ---
+
         // Enqueue the single booking page stylesheet if we are on the single booking page
         if ($current_page_slug === 'bookings' && isset($_GET['action']) && $_GET['action'] === 'view_booking') {
             wp_enqueue_style('nordbooking-dashboard-booking-single', NORDBOOKING_THEME_URI . 'assets/css/dashboard-booking-single.css', array('nordbooking-dashboard-main'), NORDBOOKING_VERSION);
@@ -502,11 +517,6 @@ if ( is_page_template('templates/booking-form-public.php') || $page_type_for_scr
         }
 
     }
-
-    // Register calendar scripts so they can be enqueued later
-    wp_register_style('nordbooking-fullcalendar', 'https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/main.min.css', array(), '6.1.11');
-    wp_register_script('nordbooking-fullcalendar', 'https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/main.min.js', array('jquery'), '6.1.11', true);
-    wp_register_script('nordbooking-dashboard-calendar', NORDBOOKING_THEME_URI . 'assets/js/dashboard-calendar.js', array('jquery', 'nordbooking-fullcalendar', 'nordbooking-dialog'), NORDBOOKING_VERSION, true);
 
     flush_rewrite_rules();
 }
