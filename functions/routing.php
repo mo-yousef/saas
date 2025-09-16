@@ -191,6 +191,22 @@ function nordbooking_enqueue_dashboard_scripts($current_page_slug = '') {
         wp_localize_script('nordbooking-dashboard-bookings', 'nordbooking_bookings_params', $bookings_params);
     }
 
+    // Specific to Calendar page
+    if ($current_page_slug === 'calendar') {
+        wp_enqueue_style('nordbooking-fullcalendar');
+        wp_enqueue_script('nordbooking-dashboard-calendar'); // Enqueues the script and its registered dependencies
+
+        wp_localize_script('nordbooking-dashboard-calendar', 'nordbooking_calendar_params', [
+            'ajax_url' => admin_url('admin-ajax.php'),
+            'nonce' => wp_create_nonce('nordbooking_calendar_nonce'),
+            'i18n' => [
+                'loading_events' => __('Loading events...', 'NORDBOOKING'),
+                'error_loading_events' => __('Error loading events.', 'NORDBOOKING'),
+                'booking_details' => __('Booking Details', 'NORDBOOKING'),
+            ]
+        ]);
+    }
+
     // Specific to Discounts page
     if ($current_page_slug === 'discounts') {
         wp_enqueue_style('nordbooking-dashboard-discounts', NORDBOOKING_THEME_URI . 'assets/css/dashboard-discounts.css', array(), NORDBOOKING_VERSION);
