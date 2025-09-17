@@ -63,6 +63,9 @@ class Database {
         $charset_collate = $wpdb->get_charset_collate();
         $dbDelta_results = [];
 
+        // Run performance optimizations after table creation
+        add_action('shutdown', [__CLASS__, 'optimize_existing_tables']);
+
         // Services Table
         $table_name = self::get_table_name('services');
         error_log('[NORDBOOKING DB Debug] Preparing SQL for services table: ' . $table_name);
@@ -84,7 +87,9 @@ class Database {
             PRIMARY KEY (service_id),
             INDEX user_id_idx (user_id),
             INDEX status_idx (status),
-            INDEX sort_order_idx (sort_order)
+            INDEX sort_order_idx (sort_order),
+            INDEX idx_user_status_sort (user_id, status, sort_order),
+            INDEX idx_status_active (status)
         ) $charset_collate;";
         error_log('[NORDBOOKING DB Debug] SQL for services table: ' . preg_replace('/\s+/', ' ', $sql_services)); // Log condensed SQL
         $dbDelta_results['services'] = dbDelta( $sql_services );
@@ -108,7 +113,8 @@ class Database {
             updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             PRIMARY KEY (option_id),
             INDEX service_id_idx (service_id),
-            INDEX user_id_idx (user_id)
+            INDEX user_id_idx (user_id),
+            INDEX idx_service_user (service_id, user_id)
         ) $charset_collate;";
         error_log('[NORDBOOKING DB Debug] SQL for service_options table: ' . preg_replace('/\s+/', ' ', $sql_service_options));
         $dbDelta_results['service_options'] = dbDelta( $sql_service_options );
@@ -183,7 +189,12 @@ class Database {
             INDEX zip_code_idx (zip_code),
             INDEX status_idx (status),
             INDEX discount_id_idx (discount_id),
-            INDEX assigned_staff_id_idx (assigned_staff_id)
+            INDEX assigned_staff_id_idx (assigned_staff_id),
+            INDEX idx_user_status_date (user_id, status, booking_date),
+            INDEX idx_customer_email_date (customer_email, booking_date),
+            INDEX idx_status_created (status, created_at),
+            INDEX idx_booking_date_time (booking_date, booking_time),
+            INDEX idx_user_date_status (user_id, booking_date, status)
         ) $charset_collate;";
         error_log('[NORDBOOKING DB Debug] SQL for bookings table: ' . preg_replace('/\s+/', ' ', $sql_bookings));
         $dbDelta_results['bookings'] = dbDelta( $sql_bookings );
@@ -202,7 +213,8 @@ class Database {
             item_total_price DECIMAL(10,2) NOT NULL,
             PRIMARY KEY (item_id),
             INDEX booking_id_idx (booking_id),
-            INDEX service_id_idx (service_id)
+            INDEX service_id_idx (service_id),
+            INDEX idx_booking_service (booking_id, service_id)
         ) $charset_collate;";
         error_log('[NORDBOOKING DB Debug] SQL for booking_items table: ' . preg_replace('/\s+/', ' ', $sql_booking_items));
         $dbDelta_results['booking_items'] = dbDelta( $sql_booking_items );
@@ -337,7 +349,9 @@ class Database {
             INDEX tenant_id_email_idx (tenant_id, email), -- Unique customer per tenant by email
             INDEX tenant_id_status_idx (tenant_id, status),
             INDEX wp_user_id_idx (wp_user_id),
-            INDEX tenant_id_idx (tenant_id)
+            INDEX tenant_id_idx (tenant_id),
+            INDEX idx_tenant_status_activity (tenant_id, status, last_activity_at),
+            INDEX idx_tenant_email_unique (tenant_id, email)
         ) $charset_collate;";
         error_log('[NORDBOOKING DB Debug] SQL for customers table: ' . preg_replace('/\s+/', ' ', $sql_customers));
         $dbDelta_results['customers'] = dbDelta( $sql_customers );
@@ -359,6 +373,76 @@ class Database {
 
         error_log('[NORDBOOKING DB Debug] dbDelta execution results: ' . print_r($dbDelta_results, true));
         error_log('[NORDBOOKING DB Debug] Custom tables creation/update attempt finished.');
+    }
+
+    /**
+     * Optimize existing tables by adding missing indexes
+     */
+    public static function optimize_existing_tables() {
+        global $wpdb;
+        
+        // Only run once per day to avoid performance impact
+        $last_optimization = get_option('nordbooking_last_optimization', 0);
+        if (time() - $last_optimization < DAY_IN_SECONDS) {
+            return;
+        }
+
+        error_log('[NORDBOOKING DB Debug] Running table optimizations...');
+
+        // Add missing indexes to existing tables
+        $optimizations = [
+            // Bookings table optimizations
+            self::get_table_name('bookings') => [
+                'idx_user_status_date' => 'ADD INDEX IF NOT EXISTS idx_user_status_date (user_id, status, booking_date)',
+                'idx_customer_email_date' => 'ADD INDEX IF NOT EXISTS idx_customer_email_date (customer_email, booking_date)',
+                'idx_status_created' => 'ADD INDEX IF NOT EXISTS idx_status_created (status, created_at)',
+                'idx_booking_date_time' => 'ADD INDEX IF NOT EXISTS idx_booking_date_time (booking_date, booking_time)',
+                'idx_user_date_status' => 'ADD INDEX IF NOT EXISTS idx_user_date_status (user_id, booking_date, status)'
+            ],
+            // Services table optimizations
+            self::get_table_name('services') => [
+                'idx_user_status_sort' => 'ADD INDEX IF NOT EXISTS idx_user_status_sort (user_id, status, sort_order)',
+                'idx_status_active' => 'ADD INDEX IF NOT EXISTS idx_status_active (status)'
+            ],
+            // Service options optimizations
+            self::get_table_name('service_options') => [
+                'idx_service_user' => 'ADD INDEX IF NOT EXISTS idx_service_user (service_id, user_id)'
+            ],
+            // Customers table optimizations
+            self::get_table_name('customers') => [
+                'idx_tenant_status_activity' => 'ADD INDEX IF NOT EXISTS idx_tenant_status_activity (tenant_id, status, last_activity_at)',
+                'idx_tenant_email_unique' => 'ADD INDEX IF NOT EXISTS idx_tenant_email_unique (tenant_id, email)'
+            ],
+            // Booking items optimizations
+            self::get_table_name('booking_items') => [
+                'idx_booking_service' => 'ADD INDEX IF NOT EXISTS idx_booking_service (booking_id, service_id)'
+            ]
+        ];
+
+        foreach ($optimizations as $table_name => $indexes) {
+            // Check if table exists
+            if ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name) {
+                continue;
+            }
+
+            foreach ($indexes as $index_name => $sql) {
+                // Check if index already exists
+                $existing_indexes = $wpdb->get_results("SHOW INDEX FROM $table_name WHERE Key_name = '$index_name'");
+                
+                if (empty($existing_indexes)) {
+                    $result = $wpdb->query("ALTER TABLE $table_name $sql");
+                    if ($result === false) {
+                        error_log("[NORDBOOKING DB Optimization] Failed to add index $index_name to $table_name: " . $wpdb->last_error);
+                    } else {
+                        error_log("[NORDBOOKING DB Optimization] Successfully added index $index_name to $table_name");
+                    }
+                }
+            }
+        }
+
+        // Update the last optimization timestamp
+        update_option('nordbooking_last_optimization', time());
+        error_log('[NORDBOOKING DB Debug] Table optimizations completed.');
     }
 
     public static function register_diagnostic_page() {
