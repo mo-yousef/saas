@@ -108,15 +108,32 @@ class Customers {
      * @return array|WP_Error Array of customer objects or WP_Error on failure.
      */
     public function get_customers_by_tenant_id($tenant_id, $args = []) {
+        // Start performance profiling
+        if (class_exists('\NORDBOOKING\Performance\QueryProfiler')) {
+            \NORDBOOKING\Performance\QueryProfiler::start('get_customers_by_tenant', ['tenant_id' => $tenant_id, 'args' => $args]);
+        }
+
         $defaults = [
             'page' => 1,
             'per_page' => 20,
             'search' => '',
             'status' => '',
-            'orderby' => 'full_name', // Default sort column
-            'order' => 'ASC',       // Default sort order
+            'orderby' => 'full_name',
+            'order' => 'ASC',
         ];
         $args = wp_parse_args($args, $defaults);
+
+        // Check cache first
+        $cache_key = "customers_by_tenant_{$tenant_id}_" . md5(serialize($args));
+        if (class_exists('\NORDBOOKING\Performance\CacheManager')) {
+            $cached_data = \NORDBOOKING\Performance\CacheManager::get($cache_key);
+            if ($cached_data !== null) {
+                if (class_exists('\NORDBOOKING\Performance\QueryProfiler')) {
+                    \NORDBOOKING\Performance\QueryProfiler::end('get_customers_by_tenant', ['cache_hit' => true]);
+                }
+                return $cached_data;
+            }
+        }
 
         $offset = ($args['page'] - 1) * $args['per_page'];
 
@@ -144,10 +161,10 @@ class Customers {
         // Validate orderby column to prevent SQL injection
         $allowed_orderby_columns = ['id', 'full_name', 'email', 'phone_number', 'status', 'total_bookings', 'last_booking_date', 'created_at', 'last_activity_at'];
         if (in_array($args['orderby'], $allowed_orderby_columns)) {
-            $sql .= " ORDER BY " . esc_sql($args['orderby']); // esc_sql for column names is generally safe if validated against a whitelist
+            $sql .= " ORDER BY " . esc_sql($args['orderby']);
             $sql .= (strtoupper($args['order']) === 'DESC') ? " DESC" : " ASC";
         } else {
-            $sql .= " ORDER BY full_name ASC"; // Default sort
+            $sql .= " ORDER BY full_name ASC";
         }
 
         $sql .= " LIMIT %d OFFSET %d";
@@ -159,12 +176,20 @@ class Customers {
 
         if ($this->db->last_error) {
             error_log("NORDBOOKING DB Error (get_customers_by_tenant_id): " . $this->db->last_error);
+            if (class_exists('\NORDBOOKING\Performance\QueryProfiler')) {
+                \NORDBOOKING\Performance\QueryProfiler::end('get_customers_by_tenant', ['error' => true]);
+            }
             return new \WP_Error('db_error', __('Error fetching customers.', 'NORDBOOKING'));
         }
 
-        // TODO: Future enhancement - Calculate total_bookings and last_booking_date
-        // This might involve a JOIN or separate queries for performance.
-        // For now, these fields will be whatever is in the customers table.
+        // Cache the result for 5 minutes
+        if (class_exists('\NORDBOOKING\Performance\CacheManager')) {
+            \NORDBOOKING\Performance\CacheManager::set($cache_key, $results, 300);
+        }
+
+        if (class_exists('\NORDBOOKING\Performance\QueryProfiler')) {
+            \NORDBOOKING\Performance\QueryProfiler::end('get_customers_by_tenant', ['cache_hit' => false, 'result_count' => count($results)]);
+        }
 
         return $results;
     }
@@ -268,6 +293,10 @@ class Customers {
                 error_log("NORDBOOKING DB Error (update_customer): " . $this->db->last_error);
                 return new \WP_Error('db_error', __('Error updating customer.', 'NORDBOOKING'));
             }
+            
+            // Invalidate caches
+            $this->invalidate_customer_caches($tenant_id, $existing_customer->id);
+            
             return $existing_customer->id;
         } else {
             // Create new customer
@@ -281,7 +310,13 @@ class Customers {
                 error_log("NORDBOOKING DB Error (insert_customer): " . $this->db->last_error);
                 return new \WP_Error('db_error', __('Error creating customer.', 'NORDBOOKING'));
             }
-            return $this->db->insert_id;
+            
+            $customer_id = $this->db->insert_id;
+            
+            // Invalidate caches
+            $this->invalidate_customer_caches($tenant_id, $customer_id);
+            
+            return $customer_id;
         }
     }
 
@@ -629,6 +664,23 @@ public function update_customer_details( $customer_id, $tenant_id, $data ) {
 
 
 public function get_customer_insights($tenant_id, $start_date = null, $end_date = null) {
+    // Start performance profiling
+    if (class_exists('\NORDBOOKING\Performance\QueryProfiler')) {
+        \NORDBOOKING\Performance\QueryProfiler::start('customer_insights', ['tenant_id' => $tenant_id]);
+    }
+
+    // Check cache first
+    $cache_key = "customer_insights_{$tenant_id}_" . md5($start_date . $end_date);
+    if (class_exists('\NORDBOOKING\Performance\CacheManager')) {
+        $cached_data = \NORDBOOKING\Performance\CacheManager::get($cache_key);
+        if ($cached_data !== null) {
+            if (class_exists('\NORDBOOKING\Performance\QueryProfiler')) {
+                \NORDBOOKING\Performance\QueryProfiler::end('customer_insights', ['cache_hit' => true]);
+            }
+            return $cached_data;
+        }
+    }
+
     $customers_table = Database::get_table_name('customers');
     $bookings_table = Database::get_table_name('bookings');
 
@@ -638,60 +690,85 @@ public function get_customer_insights($tenant_id, $start_date = null, $end_date 
         $end_date = date('Y-m-t');
     }
 
-    // Get new customers in the given period (their first booking is in this period)
-    $new_customers = $this->db->get_var(
+    // Optimized single query to get all insights
+    $insights = $this->db->get_row(
         $this->db->prepare(
-            "SELECT COUNT(T.customer_email) FROM (
-                SELECT customer_email, MIN(created_at) as first_booking_date
-                FROM {$bookings_table}
-                WHERE user_id = %d
-                GROUP BY customer_email
-            ) AS T
-            WHERE T.first_booking_date BETWEEN %s AND %s",
-            $tenant_id,
+            "SELECT 
+                COUNT(DISTINCT CASE WHEN first_booking.first_booking_date BETWEEN %s AND %s THEN first_booking.customer_email END) as new_customers,
+                COUNT(DISTINCT CASE WHEN booking_counts.booking_count > 1 THEN booking_counts.customer_email END) as returning_customers,
+                COUNT(DISTINCT booking_counts.customer_email) as total_customers
+             FROM (
+                 SELECT customer_email, MIN(created_at) as first_booking_date
+                 FROM {$bookings_table}
+                 WHERE user_id = %d
+                 GROUP BY customer_email
+             ) first_booking
+             JOIN (
+                 SELECT customer_email, COUNT(*) as booking_count
+                 FROM {$bookings_table}
+                 WHERE user_id = %d
+                 GROUP BY customer_email
+             ) booking_counts ON first_booking.customer_email = booking_counts.customer_email",
             $start_date . ' 00:00:00',
-            $end_date . ' 23:59:59'
-        )
-    );
-    
-    // The rest of the stats are all-time, so we leave them for now
-    // as the overview page only needs 'new_customers' for its period comparison.
-
-    // Get returning customers (customers with more than 1 booking)
-    $returning_customers = $this->db->get_var(
-        $this->db->prepare(
-            "SELECT COUNT(DISTINCT customer_email) FROM {$bookings_table} 
-             WHERE user_id = %d 
-             AND customer_email IN (
-                 SELECT customer_email FROM {$bookings_table} 
-                 WHERE user_id = %d 
-                 GROUP BY customer_email 
-                 HAVING COUNT(*) > 1
-             )",
-            $tenant_id, $tenant_id
-        )
-    );
-    
-    // Get total customers
-    $total_customers = $this->db->get_var(
-        $this->db->prepare(
-            "SELECT COUNT(DISTINCT customer_email) FROM {$bookings_table} WHERE user_id = %d",
+            $end_date . ' 23:59:59',
+            $tenant_id,
             $tenant_id
         )
     );
     
     // Calculate retention rate
     $retention_rate = 0;
-    if ($total_customers > 0) {
-        $retention_rate = round(($returning_customers / $total_customers) * 100, 1);
+    if ($insights->total_customers > 0) {
+        $retention_rate = round(($insights->returning_customers / $insights->total_customers) * 100, 1);
     }
     
-    return [
-        'new_customers' => intval($new_customers ?: 0),
-        'returning_customers' => intval($returning_customers ?: 0),
-        'total_customers' => intval($total_customers ?: 0),
+    $result = [
+        'new_customers' => intval($insights->new_customers ?: 0),
+        'returning_customers' => intval($insights->returning_customers ?: 0),
+        'total_customers' => intval($insights->total_customers ?: 0),
         'retention_rate' => $retention_rate
     ];
+
+    // Cache the result for 10 minutes
+    if (class_exists('\NORDBOOKING\Performance\CacheManager')) {
+        \NORDBOOKING\Performance\CacheManager::set($cache_key, $result, 600);
+    }
+
+    if (class_exists('\NORDBOOKING\Performance\QueryProfiler')) {
+        \NORDBOOKING\Performance\QueryProfiler::end('customer_insights', ['cache_hit' => false]);
+    }
+    
+    return $result;
+}
+
+/**
+ * Invalidate customer-related caches
+ */
+private function invalidate_customer_caches($tenant_id, $customer_id = null) {
+    if (!class_exists('\NORDBOOKING\Performance\CacheManager')) {
+        return;
+    }
+    
+    // Invalidate tenant customer caches
+    \NORDBOOKING\Performance\CacheManager::delete("customer_insights_{$tenant_id}");
+    \NORDBOOKING\Performance\CacheManager::delete("customer_kpi_{$tenant_id}");
+    
+    // Invalidate specific customer cache if provided
+    if ($customer_id) {
+        \NORDBOOKING\Performance\CacheManager::delete("customer_{$customer_id}");
+    }
+    
+    // Clear customer list caches (simplified approach)
+    for ($page = 1; $page <= 10; $page++) {
+        $cache_patterns = [
+            "customers_by_tenant_{$tenant_id}_" . md5(serialize(['page' => $page, 'per_page' => 20, 'search' => '', 'status' => '', 'orderby' => 'full_name', 'order' => 'ASC'])),
+            "customers_by_tenant_{$tenant_id}_" . md5(serialize(['page' => $page, 'per_page' => 20, 'search' => '', 'status' => 'active', 'orderby' => 'full_name', 'order' => 'ASC']))
+        ];
+        
+        foreach ($cache_patterns as $pattern) {
+            \NORDBOOKING\Performance\CacheManager::delete($pattern);
+        }
+    }
 }
 
 }

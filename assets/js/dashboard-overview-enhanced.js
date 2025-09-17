@@ -102,52 +102,73 @@
 
     initServicePerformanceChart() {
       const ctx = document.getElementById("service-performance-chart");
-      if (!ctx) return;
+      if (!ctx) {
+        console.log("Service performance chart canvas not found");
+        return;
+      }
+
+      console.log("Initializing service performance chart...");
+
+      if (typeof nordbooking_overview_params === "undefined") {
+        console.error("nordbooking_overview_params is not defined!");
+        return;
+      }
+
+      console.log("AJAX URL:", nordbooking_overview_params.ajax_url);
+      console.log("Nonce:", nordbooking_overview_params.nonce);
 
       $.ajax({
-          url: nordbooking_overview_params.ajax_url,
-          type: 'POST',
-          data: {
-              action: 'nordbooking_get_service_performance',
-              nonce: nordbooking_overview_params.nonce,
-          },
-          success: (response) => {
-              if (response.success) {
-                  this.charts.servicePerformance = new Chart(ctx, {
-                      type: 'bar',
-                      data: {
-                          labels: response.data.labels,
-                          datasets: [{
-                              label: 'Bookings',
-                              data: response.data.data,
-                              backgroundColor: 'hsl(221.2 83.2% 53.3%)',
-                              borderColor: 'hsl(221.2 83.2% 53.3%)',
-                              borderWidth: 1
-                          }]
-                      },
-                      options: {
-                          responsive: true,
-                          maintainAspectRatio: false,
-                          scales: {
-                              y: {
-                                  beginAtZero: true,
-                                  ticks: {
-                                      stepSize: 1
-                                  }
-                              }
-                          },
-                          plugins: {
-                              legend: {
-                                  display: false
-                              }
-                          }
-                      }
-                  });
-              }
-          },
-          error: (error) => {
-              console.error("Error fetching service performance data:", error);
+        url: nordbooking_overview_params.ajax_url,
+        type: "POST",
+        data: {
+          action: "nordbooking_get_service_performance",
+          nonce: nordbooking_overview_params.nonce,
+        },
+        success: (response) => {
+          console.log("Service performance AJAX response:", response);
+          if (response.success) {
+            this.charts.servicePerformance = new Chart(ctx, {
+              type: "bar",
+              data: {
+                labels: response.data.labels,
+                datasets: [
+                  {
+                    label: "Bookings",
+                    data: response.data.data,
+                    backgroundColor: "hsl(221.2 83.2% 53.3%)",
+                    borderColor: "hsl(221.2 83.2% 53.3%)",
+                    borderWidth: 1,
+                  },
+                ],
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                  y: {
+                    beginAtZero: true,
+                    ticks: {
+                      stepSize: 1,
+                    },
+                  },
+                },
+                plugins: {
+                  legend: {
+                    display: false,
+                  },
+                },
+              },
+            });
           }
+        },
+        error: (xhr, status, error) => {
+          console.error("Error fetching service performance data:", {
+            xhr: xhr,
+            status: status,
+            error: error,
+            responseText: xhr.responseText,
+          });
+        },
       });
     },
 

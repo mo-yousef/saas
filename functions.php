@@ -31,6 +31,57 @@ require_once NORDBOOKING_THEME_DIR . 'functions/debug.php';
 require_once NORDBOOKING_THEME_DIR . 'functions/email.php';
 require_once NORDBOOKING_THEME_DIR . 'functions/ajax-fixes.php';
 
+// Include performance monitoring
+if (file_exists(NORDBOOKING_THEME_DIR . 'performance_monitoring.php')) {
+    require_once NORDBOOKING_THEME_DIR . 'performance_monitoring.php';
+}
+
+// Include performance dashboard for admins
+if (is_admin() && file_exists(NORDBOOKING_THEME_DIR . 'admin-performance-dashboard.php')) {
+    require_once NORDBOOKING_THEME_DIR . 'admin-performance-dashboard.php';
+}
+
+// Include debug page for testing (remove in production)
+if (is_admin() && file_exists(NORDBOOKING_THEME_DIR . 'debug-performance.php')) {
+    require_once NORDBOOKING_THEME_DIR . 'debug-performance.php';
+}
+
+// Add admin notice to show performance monitoring status
+add_action('admin_notices', function() {
+    if (!current_user_can('manage_options')) {
+        return;
+    }
+    
+    // Only show on NORDBOOKING related pages
+    $screen = get_current_screen();
+    if (!$screen || strpos($screen->id, 'nordbooking') === false) {
+        return;
+    }
+    
+    $performance_loaded = class_exists('\NORDBOOKING\Performance\CacheManager');
+    $cache_working = false;
+    
+    if ($performance_loaded) {
+        // Test cache
+        \NORDBOOKING\Performance\CacheManager::set('admin_test', 'working', 60);
+        $cache_working = \NORDBOOKING\Performance\CacheManager::get('admin_test') === 'working';
+    }
+    
+    if ($performance_loaded && $cache_working) {
+        echo '<div class="notice notice-success is-dismissible">';
+        echo '<p><strong>NORDBOOKING Performance:</strong> Monitoring active and cache working properly.</p>';
+        echo '</div>';
+    } elseif ($performance_loaded) {
+        echo '<div class="notice notice-warning is-dismissible">';
+        echo '<p><strong>NORDBOOKING Performance:</strong> Monitoring loaded but cache may not be working properly.</p>';
+        echo '</div>';
+    } else {
+        echo '<div class="notice notice-error is-dismissible">';
+        echo '<p><strong>NORDBOOKING Performance:</strong> Performance monitoring not loaded. Check if performance_monitoring.php exists.</p>';
+        echo '</div>';
+    }
+});
+
 
 /**
  * Initialize NORDBOOKING managers globally

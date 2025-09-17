@@ -3,11 +3,17 @@ namespace NORDBOOKING\Classes;
 
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
+// Include performance monitoring if available
+if (file_exists(NORDBOOKING_THEME_DIR . 'performance_monitoring.php')) {
+    require_once NORDBOOKING_THEME_DIR . 'performance_monitoring.php';
+}
+
 class Bookings {
     private $wpdb;
     private $discounts_manager;
     private $notifications_manager;
     private $services_manager;
+    private $cache_enabled = true;
 
     public function __construct(Discounts $discounts_manager, Notifications $notifications_manager, Services $services_manager) {
         global $wpdb;
@@ -130,6 +136,26 @@ class Bookings {
         // Enhanced logging for debugging
         error_log('NORDBOOKING - AJAX Request started');
         error_log('NORDBOOKING - $_POST data: ' . print_r($_POST, true));
+        
+        // Rate limiting check
+        if (class_exists('\NORDBOOKING\Performance\RateLimiter')) {
+            $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+            if (!empty($_POST['customer_details'])) {
+                $customer_data = json_decode(wp_unslash($_POST['customer_details']), true);
+                if (isset($customer_data['email'])) {
+                    $identifier = $customer_data['email'];
+                } else {
+                    $identifier = $ip;
+                }
+            } else {
+                $identifier = $ip;
+            }
+            
+            if (!\NORDBOOKING\Performance\RateLimiter::check('create_booking', $identifier, 5, 300)) {
+                wp_send_json_error(['message' => __('Too many booking attempts. Please wait before trying again.', 'NORDBOOKING')], 429);
+                return;
+            }
+        }
         
         // Security check - verify nonce
         if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'nordbooking_booking_form_nonce')) {
@@ -362,45 +388,88 @@ private function verify_database_tables() {
     return true;
 }
 
+/**
+ * Invalidate relevant caches when booking data changes
+ */
+private function invalidate_booking_caches($user_id, $booking_id = null) {
+    if (!class_exists('\NORDBOOKING\Performance\CacheManager')) {
+        return;
+    }
+    
+    // Invalidate user-specific caches
+    \NORDBOOKING\Performance\CacheManager::delete("kpi_data_{$user_id}");
+    \NORDBOOKING\Performance\CacheManager::delete("dashboard_stats_{$user_id}");
+    \NORDBOOKING\Performance\CacheManager::delete("user_bookings_{$user_id}");
+    
+    // Invalidate specific booking cache if provided
+    if ($booking_id) {
+        \NORDBOOKING\Performance\CacheManager::delete("booking_{$booking_id}");
+    }
+    
+    // Clear pagination caches (simplified approach)
+    for ($page = 1; $page <= 10; $page++) {
+        \NORDBOOKING\Performance\CacheManager::delete("user_bookings_{$user_id}_page_{$page}");
+    }
+}
+
 
     public function get_kpi_data(int $tenant_user_id) {
         if (empty($tenant_user_id)) {
             return ['bookings_month' => 0, 'revenue_month' => 0, 'upcoming_count' => 0];
         }
+
+        // Start performance profiling
+        if (class_exists('\NORDBOOKING\Performance\QueryProfiler')) {
+            \NORDBOOKING\Performance\QueryProfiler::start('kpi_data', ['user_id' => $tenant_user_id]);
+        }
+
+        // Check cache first
+        $cache_key = "kpi_data_{$tenant_user_id}";
+        if ($this->cache_enabled && class_exists('\NORDBOOKING\Performance\CacheManager')) {
+            $cached_data = \NORDBOOKING\Performance\CacheManager::get($cache_key);
+            if ($cached_data !== null) {
+                if (class_exists('\NORDBOOKING\Performance\QueryProfiler')) {
+                    \NORDBOOKING\Performance\QueryProfiler::end('kpi_data', ['cache_hit' => true]);
+                }
+                return $cached_data;
+            }
+        }
+
         $bookings_table = Database::get_table_name('bookings');
         $current_month_start = current_time('Y-m-01');
         $current_month_end = current_time('Y-m-t');
         $today = current_time('Y-m-d');
 
-        // Bookings this month (confirmed or completed)
-        $bookings_month = $this->wpdb->get_var($this->wpdb->prepare(
-            "SELECT COUNT(booking_id) FROM $bookings_table
-             WHERE user_id = %d AND status IN ('confirmed', 'completed')
-             AND booking_date BETWEEN %s AND %s",
-            $tenant_user_id, $current_month_start, $current_month_end
-        ));
+        // Optimized single query to get all KPI data
+        $kpi_data = $this->wpdb->get_row($this->wpdb->prepare(
+            "SELECT 
+                SUM(CASE WHEN status IN ('confirmed', 'completed') AND booking_date BETWEEN %s AND %s THEN 1 ELSE 0 END) as bookings_month,
+                SUM(CASE WHEN status IN ('confirmed', 'completed') AND booking_date BETWEEN %s AND %s THEN total_price ELSE 0 END) as revenue_month,
+                SUM(CASE WHEN status IN ('pending', 'confirmed') AND booking_date >= %s THEN 1 ELSE 0 END) as upcoming_count
+             FROM $bookings_table
+             WHERE user_id = %d",
+            $current_month_start, $current_month_end,
+            $current_month_start, $current_month_end,
+            $today,
+            $tenant_user_id
+        ), ARRAY_A);
 
-        // Revenue this month
-        $revenue_month = $this->wpdb->get_var($this->wpdb->prepare(
-            "SELECT SUM(total_price) FROM $bookings_table
-             WHERE user_id = %d AND status IN ('confirmed', 'completed')
-             AND booking_date BETWEEN %s AND %s",
-            $tenant_user_id, $current_month_start, $current_month_end
-        ));
-
-        // Upcoming bookings (from today onwards, pending or confirmed)
-        $upcoming_count = $this->wpdb->get_var($this->wpdb->prepare(
-            "SELECT COUNT(booking_id) FROM $bookings_table
-             WHERE user_id = %d AND status IN ('pending', 'confirmed')
-             AND booking_date >= %s",
-            $tenant_user_id, $today
-        ));
-
-        return [
-            'bookings_month' => intval($bookings_month),
-            'revenue_month' => floatval($revenue_month),
-            'upcoming_count' => intval($upcoming_count)
+        $result = [
+            'bookings_month' => intval($kpi_data['bookings_month'] ?? 0),
+            'revenue_month' => floatval($kpi_data['revenue_month'] ?? 0),
+            'upcoming_count' => intval($kpi_data['upcoming_count'] ?? 0)
         ];
+
+        // Cache the result for 5 minutes
+        if ($this->cache_enabled && class_exists('\NORDBOOKING\Performance\CacheManager')) {
+            \NORDBOOKING\Performance\CacheManager::set($cache_key, $result, 300);
+        }
+
+        if (class_exists('\NORDBOOKING\Performance\QueryProfiler')) {
+            \NORDBOOKING\Performance\QueryProfiler::end('kpi_data', ['cache_hit' => false]);
+        }
+
+        return $result;
     }
 
     public function create_booking(int $tenant_user_id, array $payload) {
@@ -596,6 +665,9 @@ foreach ($calculated_service_items as $service_item) {
             if ($validated_discount_info && isset($validated_discount_info['discount_id'])) {
                 $this->discounts_manager->increment_discount_usage(intval($validated_discount_info['discount_id']));
             }
+
+            // Invalidate caches
+            $this->invalidate_booking_caches($tenant_user_id, $new_booking_id);
 
             // Send email notifications
             $email_services_summary_array = array_map(function($item) {

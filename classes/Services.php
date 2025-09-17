@@ -13,10 +13,16 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 require_once __DIR__ . '/ServiceOptions.php';
 
+// Include performance monitoring if available
+if (file_exists(NORDBOOKING_THEME_DIR . 'performance_monitoring.php')) {
+    require_once NORDBOOKING_THEME_DIR . 'performance_monitoring.php';
+}
+
 class Services {
     private $wpdb;
     public $service_options_manager;
     private static $preset_icons_path; // Store the path to presets
+    private $cache_enabled = true;
 
     public function __construct() {
         global $wpdb;
@@ -97,6 +103,36 @@ class Services {
         return !is_null($service);
     }
 
+    /**
+     * Invalidate service-related caches
+     */
+    private function invalidate_service_caches($user_id, $service_id = null) {
+        if (!class_exists('\NORDBOOKING\Performance\CacheManager')) {
+            return;
+        }
+        
+        // Invalidate user services cache
+        \NORDBOOKING\Performance\CacheManager::delete("user_services_{$user_id}");
+        
+        // Invalidate specific service cache if provided
+        if ($service_id) {
+            \NORDBOOKING\Performance\CacheManager::delete("service_{$service_id}");
+        }
+        
+        // Clear services list caches (simplified approach)
+        for ($page = 0; $page < 10; $page++) {
+            $offset = $page * 20;
+            $cache_patterns = [
+                "services_by_user_{$user_id}_" . md5(serialize(['status' => 'active', 'orderby' => 'sort_order', 'order' => 'ASC', 'number' => 20, 'offset' => $offset, 'search_query' => ''])),
+                "services_by_user_{$user_id}_" . md5(serialize(['status' => '', 'orderby' => 'sort_order', 'order' => 'ASC', 'number' => 20, 'offset' => $offset, 'search_query' => '']))
+            ];
+            
+            foreach ($cache_patterns as $pattern) {
+                \NORDBOOKING\Performance\CacheManager::delete($pattern);
+            }
+        }
+    }
+
     // --- Service CRUD Methods ---
 
     public function add_service(int $user_id, array $data) {
@@ -145,6 +181,10 @@ class Services {
             error_log('[NORDBOOKING Services DB Error] add_service failed: ' . $this->wpdb->last_error);
             return new \WP_Error('db_error', __('Could not add service to the database.', 'NORDBOOKING'));
         }
+
+        // Invalidate caches
+        $this->invalidate_service_caches($user_id);
+
         return $this->wpdb->insert_id;
     }
 
@@ -183,15 +223,33 @@ class Services {
         if ( empty($user_id) ) {
             return array();
         }
+
+        // Start performance profiling
+        if (class_exists('\NORDBOOKING\Performance\QueryProfiler')) {
+            \NORDBOOKING\Performance\QueryProfiler::start('get_services_by_user', ['user_id' => $user_id, 'args' => $args]);
+        }
+
         $defaults = array(
             'status' => 'active',
             'orderby' => 'sort_order',
             'order' => 'ASC',
-            'number' => 20, // Similar to posts_per_page
+            'number' => 20,
             'offset' => 0,
-            'search_query' => '' // Added from previous correct version
+            'search_query' => ''
         );
         $args = wp_parse_args($args, $defaults);
+
+        // Check cache first
+        $cache_key = "services_by_user_{$user_id}_" . md5(serialize($args));
+        if ($this->cache_enabled && class_exists('\NORDBOOKING\Performance\CacheManager')) {
+            $cached_data = \NORDBOOKING\Performance\CacheManager::get($cache_key);
+            if ($cached_data !== null) {
+                if (class_exists('\NORDBOOKING\Performance\QueryProfiler')) {
+                    \NORDBOOKING\Performance\QueryProfiler::end('get_services_by_user', ['cache_hit' => true]);
+                }
+                return $cached_data;
+            }
+        }
 
         $table_name = Database::get_table_name('services');
 
@@ -205,10 +263,9 @@ class Services {
             $sql_where .= " AND status = %s";
             $params[] = $args['status'];
         }
-        // Category filter removed
         if ( !empty($args['search_query']) ) {
             $search_term = '%' . $this->wpdb->esc_like($args['search_query']) . '%';
-            $sql_where .= " AND (name LIKE %s OR description LIKE %s)"; // Category search removed
+            $sql_where .= " AND (name LIKE %s OR description LIKE %s)";
             $params[] = $search_term;
             $params[] = $search_term;
         }
@@ -221,8 +278,8 @@ class Services {
         $sql_select = "SELECT *" . $sql_count_base . $sql_where;
 
         // Order and pagination
-        $valid_orderby_columns = ['service_id', 'name', 'price', 'duration', 'status', 'created_at', 'updated_at', 'sort_order']; // Category removed
-        $orderby = in_array($args['orderby'], $valid_orderby_columns) ? $args['orderby'] : 'name';
+        $valid_orderby_columns = ['service_id', 'name', 'price', 'duration', 'status', 'created_at', 'updated_at', 'sort_order'];
+        $orderby = in_array($args['orderby'], $valid_orderby_columns) ? $args['orderby'] : 'sort_order';
         $order = strtoupper($args['order']) === 'DESC' ? 'DESC' : 'ASC';
         $sql_select .= " ORDER BY " . $orderby . " " . $order;
         $sql_select .= $this->wpdb->prepare(" LIMIT %d OFFSET %d", $args['number'], $args['offset']);
@@ -234,7 +291,7 @@ class Services {
 
         if ($services_data) {
             foreach ($services_data as $key => $service) {
-                if (is_array($service)) { // Ensure it's an array before trying to access by key
+                if (is_array($service)) {
                     $options_raw = $this->service_options_manager->get_service_options($service['service_id'], $user_id);
                     $options = [];
                     if (is_array($options_raw)) {
@@ -246,13 +303,24 @@ class Services {
                 }
             }
         }
-        // Return data and pagination info
-        return [
+
+        $result = [
             'services' => $services_data,
             'total_count' => intval($total_count),
             'per_page' => intval($args['number']),
             'current_page' => intval($args['offset'] / $args['number']) + 1,
         ];
+
+        // Cache the result for 10 minutes
+        if ($this->cache_enabled && class_exists('\NORDBOOKING\Performance\CacheManager')) {
+            \NORDBOOKING\Performance\CacheManager::set($cache_key, $result, 600);
+        }
+
+        if (class_exists('\NORDBOOKING\Performance\QueryProfiler')) {
+            \NORDBOOKING\Performance\QueryProfiler::end('get_services_by_user', ['cache_hit' => false, 'service_count' => count($services_data)]);
+        }
+
+        return $result;
     }
 
     public function update_service(int $service_id, int $user_id, array $data) {
@@ -307,7 +375,11 @@ class Services {
             error_log('[NORDBOOKING Services DB Error] update_service failed for service_id ' . $service_id . ': ' . $this->wpdb->last_error);
             return new \WP_Error('db_error', __('Could not update service in the database.', 'NORDBOOKING'));
         }
-        return true; // Or $updated which is number of rows affected
+
+        // Invalidate caches
+        $this->invalidate_service_caches($user_id, $service_id);
+
+        return true;
     }
 
     public function delete_service(int $service_id, int $user_id) {
@@ -331,6 +403,10 @@ class Services {
         if (false === $deleted) {
             return new \WP_Error('db_error', __('Could not delete service from the database.', 'NORDBOOKING'));
         }
+
+        // Invalidate caches
+        $this->invalidate_service_caches($user_id, $service_id);
+
         return true;
     }
 

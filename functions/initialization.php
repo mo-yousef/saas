@@ -217,6 +217,7 @@ if (class_exists('NORDBOOKING\Classes\AvailabilityAjax')) {
 if (class_exists('NORDBOOKING\Classes\ServicePerformance')) {
     if (!isset($GLOBALS['nordbooking_service_performance'])) {
         $GLOBALS['nordbooking_service_performance'] = new \NORDBOOKING\Classes\ServicePerformance();
+        error_log('NORDBOOKING: ServicePerformance class initialized successfully');
     }
 }
 ?>
