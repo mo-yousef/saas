@@ -1,24 +1,58 @@
 jQuery(document).ready(function ($) {
   "use strict";
 
+  console.log("=== NORDBOOKING Business Settings Script Starting ===");
+  console.log("jQuery version:", $.fn.jquery);
+  console.log("Document ready fired at:", new Date().toISOString());
+
   if (typeof nordbooking_biz_settings_params === "undefined") {
     console.error("Business settings parameters are not available.");
+    console.error(
+      "Available global variables:",
+      Object.keys(window).filter((k) => k.includes("nordbooking"))
+    );
     return;
+  }
+
+  console.log(
+    "Business settings params loaded:",
+    nordbooking_biz_settings_params
+  );
+
+  // Ensure showAlert function is available
+  if (typeof window.showAlert !== "function") {
+    console.warn("showAlert not available, using alert fallback");
+    window.showAlert = function (message, type) {
+      console.warn("showAlert fallback called:", message, type);
+      alert(type.toUpperCase() + ": " + message);
+    };
+  } else {
+    console.log("showAlert function is available");
   }
 
   // --- Tab Navigation ---
   const navTabs = $(".nav-tab-wrapper .nav-tab");
   const tabContents = $(".settings-tab-content");
 
+  console.log(
+    "Found tabs:",
+    navTabs.length,
+    "Found tab contents:",
+    tabContents.length
+  );
+
   navTabs.on("click", function (e) {
     e.preventDefault();
     const tabId = $(this).data("tab");
+    console.log("Tab clicked:", tabId);
 
     navTabs.removeClass("nav-tab-active");
     $(this).addClass("nav-tab-active");
 
     tabContents.hide();
-    $("#" + tabId + "-tab").show();
+    const targetTab = $("#" + tabId + "-tab");
+    console.log("Target tab element:", targetTab.length);
+    targetTab.show();
 
     if (history.pushState) {
       history.pushState(null, null, "#" + tabId);
@@ -29,9 +63,13 @@ jQuery(document).ready(function ($) {
 
   // Activate tab based on URL hash on page load
   if (window.location.hash) {
-    const activeTab = navTabs.filter('[href="' + window.location.hash + '"]');
+    const hashWithoutHash = window.location.hash.substring(1);
+    const activeTab = navTabs.filter('[data-tab="' + hashWithoutHash + '"]');
     if (activeTab.length) {
       activeTab.trigger("click");
+    } else {
+      // Default to the first tab if hash doesn't match any tab
+      navTabs.first().trigger("click");
     }
   } else {
     // Default to the first tab if no hash is present
@@ -39,7 +77,11 @@ jQuery(document).ready(function ($) {
   }
 
   // --- Color Picker ---
-  $(".NORDBOOKING-color-picker").wpColorPicker();
+  if (typeof $.fn.wpColorPicker === "function") {
+    $(".NORDBOOKING-color-picker").wpColorPicker();
+  } else {
+    console.warn("WordPress Color Picker not available");
+  }
 
   // --- Logo Uploader ---
   const logoFileInput = $("#NORDBOOKING-logo-file-input");
@@ -127,6 +169,8 @@ jQuery(document).ready(function ($) {
 
   form.on("submit", function (e) {
     e.preventDefault();
+    console.log("Form submission started");
+
     const originalButtonText = saveButtons.first().text();
     saveButtons
       .prop("disabled", true)
@@ -140,18 +184,23 @@ jQuery(document).ready(function ($) {
         return obj;
       }, {});
 
+    console.log("Settings data to save:", settingsData);
+
     // Add email template data if the editor is present and initialized
     if (window.EmailEditor && window.EmailEditor.isInitialized) {
-        const emailData = window.EmailEditor.templatesData;
-        const emailTemplates = nordbooking_biz_settings_params.templates;
-        for (const key in emailData) {
-            if (emailData.hasOwnProperty(key) && emailTemplates.hasOwnProperty(key)) {
-                const subjectKey = emailTemplates[key].subject_key;
-                const bodyKey = emailTemplates[key].body_key;
-                settingsData[subjectKey] = emailData[key].subject;
-                settingsData[bodyKey] = JSON.stringify(emailData[key].body);
-            }
+      const emailData = window.EmailEditor.templatesData;
+      const emailTemplates = nordbooking_biz_settings_params.templates;
+      for (const key in emailData) {
+        if (
+          emailData.hasOwnProperty(key) &&
+          emailTemplates.hasOwnProperty(key)
+        ) {
+          const subjectKey = emailTemplates[key].subject_key;
+          const bodyKey = emailTemplates[key].body_key;
+          settingsData[subjectKey] = emailData[key].subject;
+          settingsData[bodyKey] = JSON.stringify(emailData[key].body);
         }
+      }
     }
 
     $.ajax({
@@ -163,6 +212,7 @@ jQuery(document).ready(function ($) {
         settings: settingsData,
       },
       success: (response) => {
+        console.log("AJAX response:", response);
         if (response.success) {
           window.showAlert(
             response.data.message ||
@@ -170,6 +220,7 @@ jQuery(document).ready(function ($) {
             "success"
           );
         } else {
+          console.error("Save failed:", response.data);
           window.showAlert(
             response.data.message ||
               nordbooking_biz_settings_params.i18n.error_saving,
@@ -177,7 +228,8 @@ jQuery(document).ready(function ($) {
           );
         }
       },
-      error: () => {
+      error: (xhr, status, error) => {
+        console.error("AJAX error:", xhr, status, error);
         window.showAlert(
           nordbooking_biz_settings_params.i18n.error_ajax,
           "error"
