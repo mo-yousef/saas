@@ -298,4 +298,437 @@ function nordbooking_select_biz_setting_value($settings, $key, $value, $default_
              <button type="submit" form="NORDBOOKING-business-settings-form" name="save_business_settings" id="NORDBOOKING-save-biz-settings-btn-footer" class="btn btn-primary"><?php esc_html_e('Save All Settings', 'NORDBOOKING'); ?></button>
         </p>
     </form>
+    
+    <!-- Debug Section -->
+    <div id="debug-info" style="margin-top: 20px; padding: 15px; background: #f0f0f0; border: 1px solid #ccc;">
+        <h3>Debug Information</h3>
+        <div id="debug-output"></div>
+        <button type="button" id="test-basic-js">Test Basic JavaScript</button>
+        <button type="button" id="test-jquery">Test jQuery</button>
+        <button type="button" id="test-tabs">Test Tab Switching</button>
+        <button type="button" id="test-form-save">Test Form Save</button>
+        <button type="button" id="force-load-params">Force Load Params</button>
+        <button type="button" id="test-logo-endpoint">Test Logo Endpoint</button>
+        <button type="button" id="test-ajax-general">Test AJAX General</button>
+        <button type="button" id="test-user-caps">Test User Capabilities</button>
+    </div>
+    
+    <script>
+    // Basic JavaScript test (runs immediately)
+    console.log('=== INLINE SCRIPT TEST ===');
+    console.log('Basic JavaScript is working');
+    
+    // Test if jQuery is available
+    if (typeof jQuery !== 'undefined') {
+        console.log('jQuery is available:', jQuery.fn.jquery);
+        
+        jQuery(document).ready(function($) {
+            console.log('jQuery document ready fired');
+            
+            $('#debug-output').html('<p>✓ jQuery is working (version: ' + $.fn.jquery + ')</p>');
+            
+            // Test basic button clicks
+            $('#test-basic-js').on('click', function() {
+                alert('Basic JavaScript is working!');
+                $('#debug-output').append('<p>✓ Basic JavaScript click handler works</p>');
+            });
+            
+            $('#test-jquery').on('click', function() {
+                $('#debug-output').append('<p>✓ jQuery click handler works</p>');
+                console.log('Available nordbooking globals:', Object.keys(window).filter(k => k.includes('nordbooking')));
+            });
+            
+            $('#test-tabs').on('click', function() {
+                const tabs = $('.nav-tab-wrapper .nav-tab');
+                const contents = $('.settings-tab-content');
+                $('#debug-output').append('<p>Found ' + tabs.length + ' tabs and ' + contents.length + ' tab contents</p>');
+                
+                // Test clicking the second tab
+                if (tabs.length > 1) {
+                    $(tabs[1]).trigger('click');
+                    $('#debug-output').append('<p>✓ Triggered click on second tab</p>');
+                }
+            });
+            
+            // Check if our business settings script loaded
+            setTimeout(function() {
+                if (typeof nordbooking_biz_settings_params !== 'undefined') {
+                    $('#debug-output').append('<p>✓ Business settings params are loaded</p>');
+                    $('#debug-output').append('<p>AJAX URL: ' + nordbooking_biz_settings_params.ajax_url + '</p>');
+                    $('#debug-output').append('<p>Nonce: ' + nordbooking_biz_settings_params.nonce + '</p>');
+                } else {
+                    $('#debug-output').append('<p>✗ Business settings params are NOT loaded</p>');
+                    
+                    // Check what scripts are actually loaded
+                    var scripts = [];
+                    $('script[src*="dashboard"]').each(function() {
+                        scripts.push($(this).attr('src'));
+                    });
+                    $('#debug-output').append('<p>Dashboard scripts found: ' + scripts.length + '</p>');
+                    if (scripts.length > 0) {
+                        $('#debug-output').append('<ul><li>' + scripts.join('</li><li>') + '</li></ul>');
+                    }
+                }
+                
+                if (typeof window.showAlert !== 'undefined') {
+                    $('#debug-output').append('<p>✓ showAlert function is available</p>');
+                } else {
+                    $('#debug-output').append('<p>✗ showAlert function is NOT available</p>');
+                }
+                
+                // Test if the business settings script file is accessible
+                $.get('<?php echo NORDBOOKING_THEME_URI; ?>assets/js/dashboard-business-settings.js')
+                    .done(function() {
+                        $('#debug-output').append('<p>✓ Business settings JS file is accessible</p>');
+                    })
+                    .fail(function() {
+                        $('#debug-output').append('<p>✗ Business settings JS file is NOT accessible</p>');
+                    });
+            }, 1000);
+            
+            // Test form save functionality
+            $('#test-form-save').on('click', function() {
+                if (typeof nordbooking_biz_settings_params !== 'undefined') {
+                    $('#debug-output').append('<p>Testing AJAX save...</p>');
+                    
+                    $.ajax({
+                        url: nordbooking_biz_settings_params.ajax_url,
+                        type: 'POST',
+                        data: {
+                            action: 'nordbooking_save_business_settings',
+                            nonce: nordbooking_biz_settings_params.nonce,
+                            settings: {test: 'value'}
+                        },
+                        success: function(response) {
+                            $('#debug-output').append('<p>✓ AJAX Save Success: ' + JSON.stringify(response) + '</p>');
+                        },
+                        error: function(xhr, status, error) {
+                            $('#debug-output').append('<p>✗ AJAX Save Error: ' + error + '</p>');
+                        }
+                    });
+                } else {
+                    $('#debug-output').append('<p>✗ Cannot test save - params not loaded</p>');
+                }
+            });
+            
+            // Force load parameters manually
+            $('#force-load-params').on('click', function() {
+                if (typeof nordbooking_biz_settings_params === 'undefined') {
+                    // Create the parameters manually for testing
+                    window.nordbooking_biz_settings_params = {
+                        ajax_url: '<?php echo admin_url('admin-ajax.php'); ?>',
+                        nonce: '<?php echo wp_create_nonce('nordbooking_dashboard_nonce'); ?>',
+                        i18n: {
+                            saving: 'Saving...',
+                            save_success: 'Settings saved successfully.',
+                            error_saving: 'Error saving settings.',
+                            error_ajax: 'An unexpected error occurred.'
+                        }
+                    };
+                    $('#debug-output').append('<p>✓ Parameters manually loaded</p>');
+                    
+                    // Try to reinitialize tabs
+                    const navTabs = $('.nav-tab-wrapper .nav-tab');
+                    const tabContents = $('.settings-tab-content');
+                    
+                    navTabs.off('click').on('click', function(e) {
+                        e.preventDefault();
+                        const tabId = $(this).data('tab');
+                        
+                        navTabs.removeClass('nav-tab-active');
+                        $(this).addClass('nav-tab-active');
+                        
+                        tabContents.hide();
+                        $('#' + tabId + '-tab').show();
+                        
+                        $('#debug-output').append('<p>✓ Tab switched to: ' + tabId + '</p>');
+                    });
+                    
+                    $('#debug-output').append('<p>✓ Tab functionality manually initialized</p>');
+                } else {
+                    $('#debug-output').append('<p>Parameters already loaded</p>');
+                }
+            });
+            
+            // Test logo upload endpoint
+            $('#test-logo-endpoint').on('click', function() {
+                $('#debug-output').append('<p>Testing logo upload endpoint...</p>');
+                
+                // Test with a simple POST to see if the endpoint exists
+                $.ajax({
+                    url: '<?php echo admin_url('admin-ajax.php'); ?>',
+                    type: 'POST',
+                    data: {
+                        action: 'nordbooking_upload_logo',
+                        nonce: '<?php echo wp_create_nonce('nordbooking_dashboard_nonce'); ?>',
+                        test: 'true'
+                    },
+                    success: function(response) {
+                        $('#debug-output').append('<p>✓ Logo endpoint responded: ' + JSON.stringify(response) + '</p>');
+                    },
+                    error: function(xhr, status, error) {
+                        $('#debug-output').append('<p>✗ Logo endpoint error: ' + xhr.status + ' - ' + error + '</p>');
+                        $('#debug-output').append('<p>Response: ' + xhr.responseText + '</p>');
+                    }
+                });
+            });
+            
+            // Test general AJAX functionality
+            $('#test-ajax-general').on('click', function() {
+                $('#debug-output').append('<p>Testing general AJAX...</p>');
+                
+                $.ajax({
+                    url: '<?php echo admin_url('admin-ajax.php'); ?>',
+                    type: 'POST',
+                    data: {
+                        action: 'nordbooking_test_ajax',
+                        nonce: '<?php echo wp_create_nonce('nordbooking_dashboard_nonce'); ?>'
+                    },
+                    success: function(response) {
+                        $('#debug-output').append('<p>✓ General AJAX works: ' + JSON.stringify(response) + '</p>');
+                    },
+                    error: function(xhr, status, error) {
+                        $('#debug-output').append('<p>✗ General AJAX error: ' + xhr.status + ' - ' + error + '</p>');
+                    }
+                });
+            });
+            
+            // Test user capabilities
+            $('#test-user-caps').on('click', function() {
+                $('#debug-output').append('<p>Testing user capabilities...</p>');
+                $('#debug-output').append('<p>Current user ID: <?php echo get_current_user_id(); ?></p>');
+                $('#debug-output').append('<p>User roles: <?php $user = wp_get_current_user(); echo implode(", ", $user->roles); ?></p>');
+                $('#debug-output').append('<p>Can upload_files: <?php echo current_user_can("upload_files") ? "YES" : "NO"; ?></p>');
+                $('#debug-output').append('<p>Can edit_posts: <?php echo current_user_can("edit_posts") ? "YES" : "NO"; ?></p>');
+                $('#debug-output').append('<p>Can manage_options: <?php echo current_user_can("manage_options") ? "YES" : "NO"; ?></p>');
+            });
+        });
+    } else {
+        console.error('jQuery is NOT available');
+        document.getElementById('debug-output').innerHTML = '<p style="color: red;">✗ jQuery is NOT available</p>';
+    }
+    </script>
+    
+    <!-- Fallback Business Settings Script -->
+    <script>
+    jQuery(document).ready(function($) {
+        console.log('=== FALLBACK BUSINESS SETTINGS SCRIPT ===');
+        
+        // Create parameters if they don't exist
+        if (typeof nordbooking_biz_settings_params === 'undefined') {
+            window.nordbooking_biz_settings_params = {
+                ajax_url: '<?php echo admin_url('admin-ajax.php'); ?>',
+                nonce: '<?php echo wp_create_nonce('nordbooking_dashboard_nonce'); ?>',
+                i18n: {
+                    saving: 'Saving...',
+                    save_success: 'Settings saved successfully.',
+                    error_saving: 'Error saving settings.',
+                    error_ajax: 'An unexpected error occurred.'
+                }
+            };
+            console.log('Fallback: Created nordbooking_biz_settings_params');
+        }
+        
+        // Ensure showAlert is available
+        if (typeof window.showAlert !== 'function') {
+            window.showAlert = function(message, type) {
+                console.log('Fallback showAlert:', type, message);
+                alert(type.toUpperCase() + ': ' + message);
+            };
+            console.log('Fallback: Created showAlert function');
+        }
+        
+        // Initialize tab navigation
+        const navTabs = $('.nav-tab-wrapper .nav-tab');
+        const tabContents = $('.settings-tab-content');
+        
+        console.log('Fallback: Found', navTabs.length, 'tabs and', tabContents.length, 'tab contents');
+        
+        // Remove any existing handlers and add new ones
+        navTabs.off('click.fallback').on('click.fallback', function(e) {
+            e.preventDefault();
+            const tabId = $(this).data('tab');
+            console.log('Fallback: Tab clicked:', tabId);
+            
+            navTabs.removeClass('nav-tab-active');
+            $(this).addClass('nav-tab-active');
+            
+            tabContents.hide();
+            const targetTab = $('#' + tabId + '-tab');
+            targetTab.show();
+            
+            // Update URL hash
+            if (history.pushState) {
+                history.pushState(null, null, '#' + tabId);
+            } else {
+                location.hash = '#' + tabId;
+            }
+            
+            console.log('Fallback: Switched to tab:', tabId);
+        });
+        
+        // Activate tab based on URL hash
+        if (window.location.hash) {
+            const hashWithoutHash = window.location.hash.substring(1);
+            const activeTab = navTabs.filter('[data-tab="' + hashWithoutHash + '"]');
+            if (activeTab.length) {
+                activeTab.trigger('click.fallback');
+                console.log('Fallback: Activated tab from hash:', hashWithoutHash);
+            } else {
+                navTabs.first().trigger('click.fallback');
+            }
+        } else {
+            navTabs.first().trigger('click.fallback');
+        }
+        
+        // Initialize form submission
+        const form = $('#NORDBOOKING-business-settings-form');
+        const saveButtons = $('#NORDBOOKING-save-biz-settings-btn, #NORDBOOKING-save-biz-settings-btn-footer');
+        
+        form.off('submit.fallback').on('submit.fallback', function(e) {
+            e.preventDefault();
+            console.log('Fallback: Form submission started');
+            
+            const originalButtonText = saveButtons.first().text();
+            saveButtons.prop('disabled', true).text('Saving...');
+            
+            // Serialize form data
+            let settingsData = $(this).serializeArray().reduce((obj, item) => {
+                obj[item.name] = item.value;
+                return obj;
+            }, {});
+            
+            console.log('Fallback: Settings data:', settingsData);
+            
+            $.ajax({
+                url: nordbooking_biz_settings_params.ajax_url,
+                type: 'POST',
+                data: {
+                    action: 'nordbooking_save_business_settings',
+                    nonce: nordbooking_biz_settings_params.nonce,
+                    settings: settingsData
+                },
+                success: function(response) {
+                    console.log('Fallback: AJAX response:', response);
+                    if (response.success) {
+                        window.showAlert(response.data.message || 'Settings saved successfully.', 'success');
+                    } else {
+                        window.showAlert(response.data.message || 'Error saving settings.', 'error');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Fallback: AJAX error:', xhr, status, error);
+                    window.showAlert('An unexpected error occurred. Please try again.', 'error');
+                },
+                complete: function() {
+                    saveButtons.prop('disabled', false).text(originalButtonText);
+                }
+            });
+        });
+        
+        // Initialize color picker if available
+        if (typeof $.fn.wpColorPicker === 'function') {
+            $('.NORDBOOKING-color-picker').wpColorPicker();
+            console.log('Fallback: Color picker initialized');
+        }
+        
+        // Initialize logo upload functionality
+        const logoFileInput = $('#NORDBOOKING-logo-file-input');
+        const uploadLogoBtn = $('#NORDBOOKING-upload-logo-btn');
+        const removeLogoBtn = $('#NORDBOOKING-remove-logo-btn');
+        const logoPreview = $('.logo-preview');
+        const progressBarWrapper = $('.progress-bar-wrapper');
+        const progressBar = $('.progress-bar');
+        
+        // Completely remove ALL existing event handlers and data to prevent duplicates
+        uploadLogoBtn.off().removeData();
+        logoFileInput.off().removeData();
+        removeLogoBtn.off().removeData();
+        
+        // Add our handlers with a delay to ensure other scripts have finished
+        setTimeout(function() {
+            uploadLogoBtn.on('click.fallback-only', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Fallback: Upload button clicked (single handler)');
+                logoFileInput.trigger('click');
+            });
+        }, 100);
+        
+        setTimeout(function() {
+            logoFileInput.on('change.fallback-only', function(e) {
+                e.stopPropagation();
+                console.log('Fallback: File selected (single handler):', this.files[0]?.name);
+                if (this.files[0]) {
+                    uploadLogo(this.files[0]);
+                }
+            });
+        }, 100);
+        
+        function uploadLogo(file) {
+            console.log('Fallback: Starting logo upload:', file.name);
+            
+            const formData = new FormData();
+            formData.append('logo', file);
+            formData.append('action', 'nordbooking_upload_logo');
+            formData.append('nonce', nordbooking_biz_settings_params.nonce);
+            
+            $.ajax({
+                url: nordbooking_biz_settings_params.ajax_url,
+                type: 'POST',
+                data: formData,
+                contentType: false,
+                processData: false,
+                xhr: function() {
+                    const xhr = new window.XMLHttpRequest();
+                    xhr.upload.addEventListener('progress', function(evt) {
+                        if (evt.lengthComputable) {
+                            const percent = Math.round((evt.loaded / evt.total) * 100);
+                            progressBar.width(percent + '%');
+                        }
+                    }, false);
+                    return xhr;
+                },
+                beforeSend: function() {
+                    progressBar.width('0%');
+                    progressBarWrapper.show();
+                    console.log('Fallback: Upload started');
+                },
+                success: function(response) {
+                    console.log('Fallback: Upload response:', response);
+                    if (response.success) {
+                        $('#biz_logo_url').val(response.data.url);
+                        logoPreview.html('<img src="' + response.data.url + '" alt="Company Logo">');
+                        removeLogoBtn.show();
+                        window.showAlert('Logo uploaded successfully.', 'success');
+                    } else {
+                        window.showAlert(response.data.message || 'Error uploading logo.', 'error');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Fallback: Upload error:', xhr, status, error);
+                    window.showAlert('Upload failed: ' + error, 'error');
+                },
+                complete: function() {
+                    progressBarWrapper.hide();
+                    console.log('Fallback: Upload complete');
+                }
+            });
+        }
+        
+        setTimeout(function() {
+            removeLogoBtn.on('click.fallback-only', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                $('#biz_logo_url').val('');
+                logoPreview.html('<div class="logo-placeholder"><span>No Logo</span></div>');
+                $(this).hide();
+                console.log('Fallback: Logo removed (single handler)');
+            });
+        }, 100);
+        
+        console.log('Fallback: Logo upload functionality initialized');
+        console.log('Fallback: Business settings initialization complete');
+    });
+    </script>
 </div>

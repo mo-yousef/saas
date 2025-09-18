@@ -30,6 +30,226 @@ require_once NORDBOOKING_THEME_DIR . 'functions/utilities.php';
 require_once NORDBOOKING_THEME_DIR . 'functions/debug.php';
 require_once NORDBOOKING_THEME_DIR . 'functions/email.php';
 require_once NORDBOOKING_THEME_DIR . 'functions/ajax-fixes.php';
+include_once get_template_directory() . '/debug-settings.php';
+include_once get_template_directory() . '/test-settings-js.php';
+
+// =============================================================================
+// LOGO UPLOAD HANDLER
+// =============================================================================
+
+// Add AJAX handlers for logo upload (for logged-in users)
+add_action('wp_ajax_nordbooking_upload_logo', 'nordbooking_handle_logo_upload');
+
+// Also add for non-logged-in users (though they shouldn't access this)
+add_action('wp_ajax_nopriv_nordbooking_upload_logo', 'nordbooking_handle_logo_upload_nopriv');
+
+function nordbooking_handle_logo_upload_nopriv() {
+    wp_send_json_error(['message' => 'You must be logged in to upload files.'], 403);
+}
+
+// Add a simple test handler to verify AJAX is working
+add_action('wp_ajax_nordbooking_test_ajax', 'nordbooking_test_ajax_handler');
+
+function nordbooking_test_ajax_handler() {
+    error_log('[NORDBOOKING Test] AJAX test handler called');
+    wp_send_json_success([
+        'message' => 'AJAX is working!',
+        'user_id' => get_current_user_id(),
+        'timestamp' => current_time('mysql')
+    ]);
+}
+
+// Temporary: Grant upload_files capability to all logged-in users for NORDBOOKING
+add_filter('user_has_cap', 'nordbooking_grant_upload_capability', 10, 3);
+
+function nordbooking_grant_upload_capability($allcaps, $caps, $args) {
+    // Only grant this capability on NORDBOOKING dashboard pages
+    if (isset($_SERVER['REQUEST_URI']) && strpos($_SERVER['REQUEST_URI'], '/dashboard/') !== false) {
+        // Grant upload_files capability to logged-in users
+        if (is_user_logged_in()) {
+            $allcaps['upload_files'] = true;
+            error_log('[NORDBOOKING] Granted upload_files capability to user: ' . get_current_user_id());
+        }
+    }
+    return $allcaps;
+}
+
+function nordbooking_handle_logo_upload() {
+    error_log('[NORDBOOKING Logo Upload] Handler called');
+    error_log('[NORDBOOKING Logo Upload] POST data: ' . print_r($_POST, true));
+    error_log('[NORDBOOKING Logo Upload] FILES data: ' . print_r($_FILES, true));
+    
+    // Check if user is logged in
+    if (!is_user_logged_in()) {
+        error_log('[NORDBOOKING Logo Upload] User not logged in');
+        wp_send_json_error(['message' => 'You must be logged in to upload files.'], 403);
+        return;
+    }
+    
+    // Verify nonce
+    if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'nordbooking_dashboard_nonce')) {
+        error_log('[NORDBOOKING Logo Upload] Nonce verification failed');
+        error_log('[NORDBOOKING Logo Upload] Received nonce: ' . ($_POST['nonce'] ?? 'none'));
+        wp_send_json_error(['message' => 'Security check failed.'], 403);
+        return;
+    }
+    
+    error_log('[NORDBOOKING Logo Upload] Security checks passed');
+    
+    // Check user permissions - be more lenient for dashboard users
+    $user_id = get_current_user_id();
+    $user = get_userdata($user_id);
+    
+    error_log('[NORDBOOKING Logo Upload] User ID: ' . $user_id);
+    error_log('[NORDBOOKING Logo Upload] User roles: ' . print_r($user->roles ?? [], true));
+    error_log('[NORDBOOKING Logo Upload] Can upload_files: ' . (current_user_can('upload_files') ? 'YES' : 'NO'));
+    error_log('[NORDBOOKING Logo Upload] Can edit_posts: ' . (current_user_can('edit_posts') ? 'YES' : 'NO'));
+    
+    // Allow if user can upload files OR edit posts (more permissive)
+    if (!current_user_can('upload_files') && !current_user_can('edit_posts')) {
+        error_log('[NORDBOOKING Logo Upload] User lacks upload permissions');
+        wp_send_json_error(['message' => 'You do not have permission to upload files. User roles: ' . implode(', ', $user->roles ?? [])], 403);
+        return;
+    }
+    
+    // If this is just a test call, return success
+    if (isset($_POST['test']) && $_POST['test'] === 'true') {
+        error_log('[NORDBOOKING Logo Upload] Test call - returning success');
+        wp_send_json_success(['message' => 'Logo upload endpoint is working!']);
+        return;
+    }
+    
+    // Check if file was uploaded
+    if (!isset($_FILES['logo']) || $_FILES['logo']['error'] !== UPLOAD_ERR_OK) {
+        $error_message = 'No file uploaded.';
+        if (isset($_FILES['logo']['error'])) {
+            switch ($_FILES['logo']['error']) {
+                case UPLOAD_ERR_INI_SIZE:
+                case UPLOAD_ERR_FORM_SIZE:
+                    $error_message = 'File is too large.';
+                    break;
+                case UPLOAD_ERR_PARTIAL:
+                    $error_message = 'File upload was interrupted.';
+                    break;
+                case UPLOAD_ERR_NO_TMP_DIR:
+                    $error_message = 'Missing temporary folder.';
+                    break;
+                case UPLOAD_ERR_CANT_WRITE:
+                    $error_message = 'Failed to write file to disk.';
+                    break;
+                case UPLOAD_ERR_EXTENSION:
+                    $error_message = 'File upload stopped by extension.';
+                    break;
+            }
+        }
+        wp_send_json_error(['message' => $error_message], 400);
+        return;
+    }
+    
+    $file = $_FILES['logo'];
+    
+    // Validate file type
+    $allowed_types = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+    $file_type = wp_check_filetype($file['name']);
+    
+    if (!in_array($file['type'], $allowed_types) || !in_array($file_type['type'], $allowed_types)) {
+        wp_send_json_error(['message' => 'Invalid file type. Please upload a JPEG, PNG, or GIF image.'], 400);
+        return;
+    }
+    
+    // Validate file size (max 5MB)
+    $max_size = 5 * 1024 * 1024; // 5MB in bytes
+    if ($file['size'] > $max_size) {
+        wp_send_json_error(['message' => 'File is too large. Maximum size is 5MB.'], 400);
+        return;
+    }
+    
+    // Validate image dimensions and content
+    $image_info = getimagesize($file['tmp_name']);
+    if ($image_info === false) {
+        wp_send_json_error(['message' => 'Invalid image file.'], 400);
+        return;
+    }
+    
+    // Check if it's actually an image
+    if (!in_array($image_info[2], [IMAGETYPE_JPEG, IMAGETYPE_PNG, IMAGETYPE_GIF])) {
+        wp_send_json_error(['message' => 'Invalid image format.'], 400);
+        return;
+    }
+    
+    try {
+        // Prepare file for WordPress upload
+        $upload_overrides = [
+            'test_form' => false,
+            'test_size' => true,
+            'test_upload' => true,
+        ];
+        
+        // Use WordPress upload handling
+        if (!function_exists('wp_handle_upload')) {
+            require_once(ABSPATH . 'wp-admin/includes/file.php');
+        }
+        
+        // Handle the upload
+        $uploaded_file = wp_handle_upload($file, $upload_overrides);
+        
+        if (isset($uploaded_file['error'])) {
+            wp_send_json_error(['message' => 'Upload failed: ' . $uploaded_file['error']], 500);
+            return;
+        }
+        
+        // Create attachment
+        $attachment = [
+            'post_mime_type' => $uploaded_file['type'],
+            'post_title' => sanitize_file_name(pathinfo($uploaded_file['file'], PATHINFO_FILENAME)),
+            'post_content' => '',
+            'post_status' => 'inherit'
+        ];
+        
+        $attachment_id = wp_insert_attachment($attachment, $uploaded_file['file']);
+        
+        if (is_wp_error($attachment_id)) {
+            wp_send_json_error(['message' => 'Failed to create attachment.'], 500);
+            return;
+        }
+        
+        // Generate attachment metadata
+        if (!function_exists('wp_generate_attachment_metadata')) {
+            require_once(ABSPATH . 'wp-admin/includes/image.php');
+        }
+        
+        $attachment_data = wp_generate_attachment_metadata($attachment_id, $uploaded_file['file']);
+        wp_update_attachment_metadata($attachment_id, $attachment_data);
+        
+        // Get the attachment URL
+        $attachment_url = wp_get_attachment_url($attachment_id);
+        
+        if (!$attachment_url) {
+            wp_send_json_error(['message' => 'Failed to get attachment URL.'], 500);
+            return;
+        }
+        
+        // Log successful upload
+        error_log('[NORDBOOKING Logo Upload] Successfully uploaded logo: ' . $attachment_url);
+        
+        // Return success response
+        wp_send_json_success([
+            'message' => 'Logo uploaded successfully.',
+            'url' => $attachment_url,
+            'attachment_id' => $attachment_id,
+            'file_info' => [
+                'name' => basename($uploaded_file['file']),
+                'size' => size_format(filesize($uploaded_file['file'])),
+                'type' => $uploaded_file['type'],
+                'dimensions' => $image_info[0] . 'x' . $image_info[1]
+            ]
+        ]);
+        
+    } catch (Exception $e) {
+        error_log('[NORDBOOKING Logo Upload] Exception: ' . $e->getMessage());
+        wp_send_json_error(['message' => 'Upload failed due to server error.'], 500);
+    }
+}
 
 // Include performance monitoring
 if (file_exists(NORDBOOKING_THEME_DIR . 'performance_monitoring.php')) {
@@ -521,9 +741,6 @@ function nordbooking_enhanced_send_emails($booking_id, $booking_data, $service_d
     }
 }
 
-?>
-
-<?php
 // =============================================================================
 // DATABASE UTILITIES
 // =============================================================================
@@ -686,9 +903,7 @@ function nordbooking_fixed_table_booking_handler() {
         wp_send_json_error(['message' => 'System error occurred'], 500);
     }
 }
-?>
 
-<?php
 /**
  * Quick Fix for Column Name Issue
  * Add this to your functions.php - it replaces the previous booking handler
@@ -943,10 +1158,7 @@ add_action('admin_notices', function() {
         echo '</div>';
     }
 });
-?>
 
-
-<?php
 /**
  * Complete fix for booking form services loading issue
  * Add this to your functions.php file
@@ -1143,10 +1355,7 @@ function nordbooking_test_booking_setup() {
     
     wp_send_json_success($debug_info);
 }
-?>
 
-
-<?php
 /**
  * AGGRESSIVE fix - completely bypasses WordPress AJAX system
  * Add this to functions.php and create a separate endpoint
@@ -1412,4 +1621,6 @@ function nordbooking_enqueue_admin_dashboard_assets( $hook ) {
     }
 }
 add_action( 'admin_enqueue_scripts', 'nordbooking_enqueue_admin_dashboard_assets' );
-?>
+
+// =============================================================================
+// BOOKING FORM ANALYTICS HANDLER

@@ -69,6 +69,10 @@ jQuery(document).ready(function ($) {
   // Initialize tabs
   initializeTabs();
 
+  // Debug: Log tab elements
+  console.log("Found tabs:", tabs.length);
+  console.log("Found panes:", panes.length);
+
   // --- Form Submission ---
   $("#nordbooking-booking-form-settings-form").on("submit", function (e) {
     e.preventDefault();
@@ -259,23 +263,65 @@ jQuery(document).ready(function ($) {
     }
   });
 
-  // --- Color Picker Initialization ---
-  try {
-    if (typeof $.fn.wpColorPicker === "function") {
-      $(".NORDBOOKING-color-picker").wpColorPicker({
-        change: function (event, ui) {
-          const color = ui.color.toString();
-          $(this).trigger("colorchange", [color]);
-        },
-      });
-    } else {
-      console.warn(
-        "wpColorPicker script not loaded. Color fields will not be interactive."
+  // --- Custom Color Picker Initialization ---
+  function initializeCustomColorPicker() {
+    $(".NORDBOOKING-color-picker").each(function () {
+      const $input = $(this);
+
+      // Skip if already initialized
+      if ($input.next(".nordbooking-color-picker-wrapper").length) {
+        return;
+      }
+
+      const currentValue = $input.val() || "#1abc9c";
+
+      // Create color picker wrapper
+      const $wrapper = $(
+        '<div class="nordbooking-color-picker-wrapper"></div>'
       );
-    }
-  } catch (e) {
-    console.error("An error occurred while initializing the color picker.", e);
+      const $colorInput = $(
+        '<input type="color" class="nordbooking-color-input">'
+      );
+      const $textInput = $(
+        '<input type="text" class="nordbooking-color-text" placeholder="#1abc9c">'
+      );
+      const $preview = $('<div class="nordbooking-color-preview"></div>');
+
+      // Set initial values
+      $colorInput.val(currentValue);
+      $textInput.val(currentValue);
+      $preview.css("background-color", currentValue);
+
+      // Build the picker
+      $wrapper.append($preview, $textInput, $colorInput);
+      $input.after($wrapper).hide();
+
+      // Handle color input change
+      $colorInput.on("input change", function () {
+        const color = $(this).val().toUpperCase();
+        $textInput.val(color);
+        $preview.css("background-color", color);
+        $input.val(color).trigger("colorchange", [color]);
+      });
+
+      // Handle text input change
+      $textInput.on("input change", function () {
+        const color = $(this).val().toUpperCase();
+        if (/^#[0-9A-F]{6}$/i.test(color)) {
+          $colorInput.val(color);
+          $preview.css("background-color", color);
+          $input.val(color).trigger("colorchange", [color]);
+        }
+      });
+
+      // Handle text input focus to select all
+      $textInput.on("focus", function () {
+        $(this).select();
+      });
+    });
   }
+
+  initializeCustomColorPicker();
 
   // --- Toggle Switch for Form Enabled/Disabled ---
   const formEnabledToggle = $("#bf_form_enabled");
@@ -427,13 +473,13 @@ jQuery(document).ready(function ($) {
 
   // --- Live Preview ---
   const preview = {
+    wrapper: $(".NORDBOOKING-form-preview-wrapper"),
     form: $(".NORDBOOKING-form-preview"),
     headerText: $("#preview-header-text"),
     description: $("#preview-description"),
+    progressContainer: $("#preview-progress-wrapper"),
     progressBar: $(".preview-progress-bar"),
     progressFill: $(".preview-progress-fill"),
-    button: $(".preview-button"),
-    inputs: $(".preview-form-group input"),
     serviceCardImage: $("#preview-service-card-image"),
     serviceCardIcon: $("#preview-service-card-icon"),
   };
@@ -445,7 +491,7 @@ jQuery(document).ready(function ($) {
     backgroundColor: $("#bf_background_color"),
     textColor: $("#bf_text_color"),
     borderRadius: $("#bf_border_radius"),
-    showProgressBar: $("#bf_show_progress_bar"),
+    progressDisplayStyle: $('input[name="bf_progress_display_style"]'),
     serviceCardDisplay: $('input[name="bf_service_card_display"]'),
   };
 
@@ -454,49 +500,117 @@ jQuery(document).ready(function ($) {
     const backgroundColor = formInputs.backgroundColor.val() || "#ffffff";
     const textColor = formInputs.textColor.val() || "#333333";
     const borderRadius = (formInputs.borderRadius.val() || 8) + "px";
-    const cardDisplay = formInputs.serviceCardDisplay.filter(":checked").val();
+    const progressStyle =
+      formInputs.progressDisplayStyle.filter(":checked").val() || "bar";
+    const cardDisplay =
+      formInputs.serviceCardDisplay.filter(":checked").val() || "icon";
 
     // Update content
-    preview.headerText.text(
-      formInputs.headerText.val() || "Book Our Services Online"
-    );
-    preview.description.text(formInputs.description.val());
+    const headerText =
+      formInputs.headerText.val() || "Book Our Services Online";
+    const descriptionText =
+      formInputs.description.val() ||
+      "Complete the steps below to schedule your service";
 
-    // Update styles
-    preview.form.css({
+    preview.headerText.text(headerText);
+    preview.description.text(descriptionText);
+
+    // Update CSS custom properties on the wrapper
+    preview.wrapper.css({
       "--preview-bg": backgroundColor,
       "--preview-text": textColor,
       "--preview-primary": themeColor,
       "--preview-radius": borderRadius,
     });
 
-    // Toggle progress bar
-    if (formInputs.showProgressBar.is(":checked")) {
-      preview.progressBar.show();
+    // Toggle progress bar based on style
+    if (progressStyle === "none") {
+      preview.progressContainer.hide();
     } else {
-      preview.progressBar.hide();
+      preview.progressContainer.show();
     }
 
     // Toggle service card display
-    if (cardDisplay === "icon") {
-      preview.serviceCardImage.hide();
-      preview.serviceCardIcon.show();
-    } else {
+    if (cardDisplay === "image") {
       preview.serviceCardImage.show();
       preview.serviceCardIcon.hide();
+    } else {
+      preview.serviceCardImage.hide();
+      preview.serviceCardIcon.show();
     }
+
+    // Add a subtle animation to show the change
+    preview.form.addClass("preview-updating");
+    setTimeout(() => {
+      preview.form.removeClass("preview-updating");
+    }, 300);
   }
 
-  // Bind events
+  // Bind events to all form inputs
   Object.values(formInputs).forEach((input) => {
-    input.on("input change", updatePreview);
+    if (input.length) {
+      input.on("input change", updatePreview);
+    }
   });
 
   // Also trigger for color picker changes
   $(".NORDBOOKING-color-picker").on("colorchange", updatePreview);
 
-  // Initial call
+  // Handle radio button changes specifically
+  $(
+    'input[name="bf_progress_display_style"], input[name="bf_service_card_display"]'
+  ).on("change", updatePreview);
+
+  // Initial call to set up preview
   updatePreview();
 
+  // Add smooth transition class
+  preview.form.addClass("preview-ready");
+
   console.log("NORDBOOKING Booking Form Settings initialized successfully");
+});
+// Add realistic preview interactions
+$(document).ready(function () {
+  // Add click interaction to service card
+  $(".preview-service-card").on("click", function () {
+    $(this).addClass("selected");
+    setTimeout(() => {
+      $(this).removeClass("selected");
+    }, 1000);
+  });
+
+  // Add focus effects to form inputs
+  $(".preview-form-group input, .preview-form-group select")
+    .on("focus", function () {
+      $(this).closest(".preview-form-group").addClass("focused");
+    })
+    .on("blur", function () {
+      $(this).closest(".preview-form-group").removeClass("focused");
+    });
+
+  // Add hover effect to continue button
+  $(".preview-button")
+    .on("mouseenter", function () {
+      $(this).addClass("hovered");
+    })
+    .on("mouseleave", function () {
+      $(this).removeClass("hovered");
+    });
+
+  // Simulate progress bar animation
+  function animateProgress() {
+    const progressFill = $(".preview-progress-fill");
+    const currentWidth = parseInt(progressFill.css("width"));
+    const maxWidth = progressFill.parent().width();
+    const percentage = (currentWidth / maxWidth) * 100;
+
+    if (percentage < 100) {
+      progressFill.css("width", Math.min(percentage + 10, 100) + "%");
+    } else {
+      progressFill.css("width", "33%");
+    }
+  }
+
+  // Animate progress every 3 seconds
+  setInterval(animateProgress, 3000);
 });
