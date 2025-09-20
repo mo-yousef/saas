@@ -35,8 +35,16 @@ class Subscription {
             updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL,
             PRIMARY KEY  (id),
             UNIQUE KEY unique_user_id (user_id),
+            UNIQUE KEY stripe_subscription_id_unique (stripe_subscription_id),
             FOREIGN KEY (user_id) REFERENCES {$wpdb->prefix}users(ID) ON DELETE CASCADE
         ) $charset_collate;";
+        
+        require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+        dbDelta($sql);
+        
+        // Fix existing constraint issues
+        $wpdb->query("ALTER TABLE $table_name DROP INDEX IF EXISTS stripe_subscription_id_unique");
+        $wpdb->query("ALTER TABLE $table_name ADD UNIQUE KEY stripe_subscription_id_unique (stripe_subscription_id)");
 
         require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
         dbDelta($sql);
@@ -88,13 +96,19 @@ class Subscription {
         global $wpdb;
         $table_name = $wpdb->prefix . 'nordbooking_subscriptions';
 
+        // Check if subscription already exists
+        $existing = self::get_subscription($user_id);
+        if ($existing) {
+            return; // Don't create duplicate
+        }
+
         $trial_days = StripeConfig::get_trial_days();
         $trial_ends_at = date('Y-m-d H:i:s', strtotime("+{$trial_days} days"));
 
         // Create Stripe customer
         $stripe_customer_id = self::create_stripe_customer($user_id);
 
-        $wpdb->insert(
+        $result = $wpdb->insert(
             $table_name,
             [
                 'user_id'            => $user_id,
@@ -103,6 +117,10 @@ class Subscription {
                 'trial_ends_at'      => $trial_ends_at,
             ]
         );
+        
+        if ($result === false) {
+            error_log('Failed to create trial subscription for user ' . $user_id . ': ' . $wpdb->last_error);
+        }
     }
 
     /**
@@ -602,5 +620,34 @@ class Subscription {
             error_log('Failed to get pricing info: ' . $e->getMessage());
             return null;
         }
+    }
+    
+    /**
+     * Fix database constraint issues
+     */
+    public static function fix_database_constraints() {
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'nordbooking_subscriptions';
+        
+        // Remove duplicate empty stripe_subscription_id entries
+        $wpdb->query("
+            DELETE s1 FROM $table_name s1
+            INNER JOIN $table_name s2 
+            WHERE s1.id > s2.id 
+            AND s1.stripe_subscription_id IS NULL 
+            AND s2.stripe_subscription_id IS NULL
+        ");
+        
+        // Update empty stripe_subscription_id to NULL
+        $wpdb->query("UPDATE $table_name SET stripe_subscription_id = NULL WHERE stripe_subscription_id = ''");
+        
+        // Recreate the unique constraint properly
+        $wpdb->query("ALTER TABLE $table_name DROP INDEX IF EXISTS stripe_subscription_id_unique");
+        $wpdb->query("
+            ALTER TABLE $table_name 
+            ADD UNIQUE KEY stripe_subscription_id_unique (stripe_subscription_id)
+        ");
+        
+        return true;
     }
 }

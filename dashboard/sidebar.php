@@ -128,29 +128,106 @@ if ( $current_user_id > 0 ) {
             </ul>
         </div>
 
-        <div class="nav-group">
-            <h4 class="nav-group-title"><?php esc_html_e('Account', 'NORDBOOKING'); ?></h4>
-            <ul>
-                <li class="<?php echo ($current_page === 'subscription') ? 'active' : ''; ?>">
-                    <a href="<?php echo esc_url(trailingslashit($dashboard_base_url) . 'subscription/'); ?>">
-                        <span class="NORDBOOKING-menu-icon"><?php echo nordbooking_get_dashboard_menu_icon('subscription'); ?></span>
-                        <?php esc_html_e('Subscription', 'NORDBOOKING'); ?>
-                        <?php
-                        $user_id = get_current_user_id();
-                        $status = \NORDBOOKING\Classes\Subscription::get_subscription_status($user_id);
-                        $days_left = \NORDBOOKING\Classes\Subscription::get_days_until_next_payment($user_id);
-                        
-                        // Show status indicator
-                        if ($status === 'trial' && $days_left <= 3): ?>
-                            <span class="nav-badge nav-badge-warning"><?php echo esc_html($days_left); ?></span>
-                        <?php elseif ($status === 'expired_trial' || $status === 'expired' || $status === 'unsubscribed'): ?>
-                            <span class="nav-badge nav-badge-danger">!</span>
-                        <?php endif; ?>
-                    </a>
-                </li>
-            </ul>
-        </div>
     </nav>
+
+    <!-- Subscription Status Box -->
+    <?php
+    $user_id = get_current_user_id();
+    $subscription = \NORDBOOKING\Classes\Subscription::get_subscription($user_id);
+    
+    // Auto-create trial subscription for new users
+    if (!$subscription && current_user_can(\NORDBOOKING\Classes\Auth::ACCESS_NORDBOOKING_DASHBOARD)) {
+        try {
+            \NORDBOOKING\Classes\Subscription::create_trial_subscription($user_id);
+            $subscription = \NORDBOOKING\Classes\Subscription::get_subscription($user_id);
+        } catch (Exception $e) {
+            error_log('Failed to create trial subscription: ' . $e->getMessage());
+        }
+    }
+    
+    $status = \NORDBOOKING\Classes\Subscription::get_subscription_status($user_id);
+    $days_left = \NORDBOOKING\Classes\Subscription::get_days_until_next_payment($user_id);
+    
+    // Get subscription details
+    $status_text = '';
+    $status_class = '';
+    $expiry_text = '';
+    $action_text = '';
+    $action_class = '';
+    
+    switch($status) {
+        case 'active':
+            $status_text = __('Pro', 'NORDBOOKING');
+            $status_class = 'status-active';
+            $expiry_text = $days_left > 0 ? sprintf(_n('%d day left', '%d days left', $days_left, 'NORDBOOKING'), $days_left) : __('Renews today', 'NORDBOOKING');
+            $action_text = __('Manage', 'NORDBOOKING');
+            $action_class = 'subscription-btn-secondary';
+            break;
+        case 'trial':
+            $status_text = __('Trial', 'NORDBOOKING');
+            $status_class = 'status-trial';
+            $expiry_text = $days_left > 0 ? sprintf(_n('%d day left', '%d days left', $days_left, 'NORDBOOKING'), $days_left) : __('Expires today', 'NORDBOOKING');
+            $action_text = __('Upgrade', 'NORDBOOKING');
+            $action_class = 'subscription-btn-primary';
+            break;
+        case 'expired_trial':
+            $status_text = __('Expired', 'NORDBOOKING');
+            $status_class = 'status-expired';
+            $expiry_text = __('Trial ended', 'NORDBOOKING');
+            $action_text = __('Subscribe', 'NORDBOOKING');
+            $action_class = 'subscription-btn-primary';
+            break;
+        case 'expired':
+            $status_text = __('Expired', 'NORDBOOKING');
+            $status_class = 'status-expired';
+            $expiry_text = __('Renew now', 'NORDBOOKING');
+            $action_text = __('Renew', 'NORDBOOKING');
+            $action_class = 'subscription-btn-primary';
+            break;
+        case 'cancelled':
+            $status_text = __('Cancelled', 'NORDBOOKING');
+            $status_class = 'status-cancelled';
+            $expiry_text = $days_left > 0 ? sprintf(_n('%d day left', '%d days left', $days_left, 'NORDBOOKING'), $days_left) : __('Access ended', 'NORDBOOKING');
+            $action_text = __('Reactivate', 'NORDBOOKING');
+            $action_class = 'subscription-btn-primary';
+            break;
+        default:
+            $status_text = __('Free', 'NORDBOOKING');
+            $status_class = 'status-none';
+            $expiry_text = __('Limited access', 'NORDBOOKING');
+            $action_text = __('Start Trial', 'NORDBOOKING');
+            $action_class = 'subscription-btn-primary';
+            break;
+    }
+    ?>
+    
+    <div class="subscription-status-box">
+        <div class="subscription-compact">
+            <div class="subscription-main">
+                <div class="subscription-icon">
+                    <?php echo nordbooking_get_dashboard_menu_icon('subscription'); ?>
+                </div>
+                <div class="subscription-info">
+                    <div class="subscription-status-line">
+                        <span class="status-badge <?php echo esc_attr($status_class); ?>">
+                            <?php echo esc_html($status_text); ?>
+                        </span>
+                        <?php if ($status === 'trial' && $days_left <= 3): ?>
+                            <span class="warning-dot"></span>
+                        <?php endif; ?>
+                    </div>
+                    <div class="subscription-expiry">
+                        <?php echo esc_html($expiry_text); ?>
+                    </div>
+                </div>
+            </div>
+            <div class="subscription-action">
+                <a href="<?php echo esc_url(trailingslashit($dashboard_base_url) . 'subscription/'); ?>" class="subscription-btn <?php echo esc_attr($action_class); ?>">
+                    <?php echo esc_html($action_text); ?>
+                </a>
+            </div>
+        </div>
+    </div>
 </aside>
 
 

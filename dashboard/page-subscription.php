@@ -10,6 +10,9 @@ $subscription = \NORDBOOKING\Classes\Subscription::get_subscription($user_id);
 $status = \NORDBOOKING\Classes\Subscription::get_subscription_status($user_id);
 $days_left = \NORDBOOKING\Classes\Subscription::get_days_until_next_payment($user_id);
 
+// Check if Stripe is configured
+$stripe_configured = \NORDBOOKING\Classes\StripeConfig::is_configured();
+
 // Get user info for display
 $user = get_userdata($user_id);
 $user_email = $user ? $user->user_email : '';
@@ -48,6 +51,18 @@ if (isset($_GET['success']) && $_GET['success'] == '1') {
 <?php if ($message): ?>
 <div class="subscription-message subscription-message-<?php echo esc_attr($message_type); ?>">
     <p><?php echo esc_html($message); ?></p>
+</div>
+<?php endif; ?>
+
+<?php if (!$stripe_configured): ?>
+<div class="subscription-message subscription-message-error">
+    <?php if (\NORDBOOKING\Classes\StripeConfig::needs_price_id()): ?>
+        <p><?php esc_html_e('Subscription system is almost ready! The administrator needs to configure the pricing in Stripe Dashboard.', 'NORDBOOKING'); ?></p>
+    <?php elseif (\NORDBOOKING\Classes\StripeConfig::has_api_keys()): ?>
+        <p><?php esc_html_e('Subscription system is being configured. Please contact the administrator to complete the Stripe setup.', 'NORDBOOKING'); ?></p>
+    <?php else: ?>
+        <p><?php esc_html_e('Subscription system is not configured. Please contact the administrator to set up Stripe integration.', 'NORDBOOKING'); ?></p>
+    <?php endif; ?>
 </div>
 <?php endif; ?>
 
@@ -155,44 +170,56 @@ if (isset($_GET['success']) && $_GET['success'] == '1') {
         </div>
         <div class="nordbooking-card-content">
             <div class="subscription-actions">
-                <?php if ($status === 'unsubscribed' || $status === 'expired_trial' || $status === 'expired'): ?>
+                <?php if ($stripe_configured): ?>
+                    <?php if ($status === 'unsubscribed' || $status === 'expired_trial' || $status === 'expired'): ?>
+                        <div class="action-item">
+                            <div class="action-info">
+                                <h3><?php esc_html_e('Start Subscription', 'NORDBOOKING'); ?></h3>
+                                <p><?php esc_html_e('Subscribe to unlock all features and continue using NORDBOOKING.', 'NORDBOOKING'); ?></p>
+                            </div>
+                            <button id="subscribe-now-btn" class="button button-primary">
+                                <?php esc_html_e('Subscribe Now', 'NORDBOOKING'); ?>
+                            </button>
+                        </div>
+                    <?php elseif ($status === 'trial'): ?>
+                        <div class="action-item">
+                            <div class="action-info">
+                                <h3><?php esc_html_e('Upgrade to Full Subscription', 'NORDBOOKING'); ?></h3>
+                                <p><?php esc_html_e('Your trial expires in ' . $days_left . ' days. Upgrade now to continue without interruption.', 'NORDBOOKING'); ?></p>
+                            </div>
+                            <button id="upgrade-subscription-btn" class="button button-primary">
+                                <?php esc_html_e('Upgrade Now', 'NORDBOOKING'); ?>
+                            </button>
+                        </div>
+                    <?php elseif ($status === 'active'): ?>
+                        <div class="action-item">
+                            <div class="action-info">
+                                <h3><?php esc_html_e('Manage Billing', 'NORDBOOKING'); ?></h3>
+                                <p><?php esc_html_e('Update payment method, view invoices, or manage your billing information.', 'NORDBOOKING'); ?></p>
+                            </div>
+                            <button id="manage-billing-btn" class="button button-secondary">
+                                <?php esc_html_e('Manage Billing', 'NORDBOOKING'); ?>
+                            </button>
+                        </div>
+                        
+                        <div class="action-item">
+                            <div class="action-info">
+                                <h3><?php esc_html_e('Cancel Subscription', 'NORDBOOKING'); ?></h3>
+                                <p><?php esc_html_e('Cancel your subscription. You\'ll continue to have access until the end of your billing period.', 'NORDBOOKING'); ?></p>
+                            </div>
+                            <button id="cancel-subscription-btn" class="button button-destructive">
+                                <?php esc_html_e('Cancel Subscription', 'NORDBOOKING'); ?>
+                            </button>
+                        </div>
+                    <?php endif; ?>
+                <?php else: ?>
                     <div class="action-item">
                         <div class="action-info">
-                            <h3><?php esc_html_e('Start Subscription', 'NORDBOOKING'); ?></h3>
-                            <p><?php esc_html_e('Subscribe to unlock all features and continue using NORDBOOKING.', 'NORDBOOKING'); ?></p>
+                            <h3><?php esc_html_e('Subscription Unavailable', 'NORDBOOKING'); ?></h3>
+                            <p><?php esc_html_e('The subscription system is currently being configured. Please check back later or contact support.', 'NORDBOOKING'); ?></p>
                         </div>
-                        <button id="subscribe-now-btn" class="button button-primary">
-                            <?php esc_html_e('Subscribe Now', 'NORDBOOKING'); ?>
-                        </button>
-                    </div>
-                <?php elseif ($status === 'trial'): ?>
-                    <div class="action-item">
-                        <div class="action-info">
-                            <h3><?php esc_html_e('Upgrade to Full Subscription', 'NORDBOOKING'); ?></h3>
-                            <p><?php esc_html_e('Your trial expires in ' . $days_left . ' days. Upgrade now to continue without interruption.', 'NORDBOOKING'); ?></p>
-                        </div>
-                        <button id="upgrade-subscription-btn" class="button button-primary">
-                            <?php esc_html_e('Upgrade Now', 'NORDBOOKING'); ?>
-                        </button>
-                    </div>
-                <?php elseif ($status === 'active'): ?>
-                    <div class="action-item">
-                        <div class="action-info">
-                            <h3><?php esc_html_e('Manage Billing', 'NORDBOOKING'); ?></h3>
-                            <p><?php esc_html_e('Update payment method, view invoices, or manage your billing information.', 'NORDBOOKING'); ?></p>
-                        </div>
-                        <button id="manage-billing-btn" class="button button-secondary">
-                            <?php esc_html_e('Manage Billing', 'NORDBOOKING'); ?>
-                        </button>
-                    </div>
-                    
-                    <div class="action-item">
-                        <div class="action-info">
-                            <h3><?php esc_html_e('Cancel Subscription', 'NORDBOOKING'); ?></h3>
-                            <p><?php esc_html_e('Cancel your subscription. You\'ll continue to have access until the end of your billing period.', 'NORDBOOKING'); ?></p>
-                        </div>
-                        <button id="cancel-subscription-btn" class="button button-destructive">
-                            <?php esc_html_e('Cancel Subscription', 'NORDBOOKING'); ?>
+                        <button class="button button-secondary" disabled>
+                            <?php esc_html_e('Configuration Required', 'NORDBOOKING'); ?>
                         </button>
                     </div>
                 <?php endif; ?>

@@ -1627,6 +1627,55 @@ add_action( 'admin_enqueue_scripts', 'nordbooking_enqueue_admin_dashboard_assets
 
 if (is_admin()) {
     new \NORDBOOKING\Classes\Admin\StripeSettingsPage();
+    
+    // Auto-initialize Stripe settings on first load
+    add_action('admin_init', function() {
+        if (current_user_can('manage_options')) {
+            $settings = get_option(\NORDBOOKING\Classes\StripeConfig::OPTION_STRIPE_SETTINGS, false);
+            if ($settings === false) {
+                // First time setup - initialize with test keys
+                \NORDBOOKING\Classes\StripeConfig::initialize_test_settings();
+            } elseif (isset($settings['price_id']) && $settings['price_id'] === 'price_1QSjJMLVu8BmPxKRwPzgUcHt') {
+                // Update old placeholder with real Price ID
+                $settings['price_id'] = 'price_1S6YrQLVu8BmPxKR80pak41l';
+                \NORDBOOKING\Classes\StripeConfig::update_settings($settings);
+            }
+            
+            // Fix database constraints if needed (run once)
+            $db_fixed = get_option('nordbooking_db_constraints_fixed', false);
+            if (!$db_fixed) {
+                \NORDBOOKING\Classes\Subscription::fix_database_constraints();
+                update_option('nordbooking_db_constraints_fixed', true);
+            }
+        }
+    });
+    
+    // Show admin notice if Stripe is not configured
+    add_action('admin_notices', function() {
+        if (!current_user_can('manage_options')) {
+            return;
+        }
+        
+        if (!\NORDBOOKING\Classes\StripeConfig::is_configured()) {
+            $settings_url = admin_url('admin.php?page=nordbooking-stripe-settings');
+            
+            if (\NORDBOOKING\Classes\StripeConfig::needs_price_id()) {
+                echo '<div class="notice notice-info is-dismissible">';
+                echo '<p><strong>NORDBOOKING:</strong> ' . sprintf(
+                    __('Stripe test keys are configured! <a href="%s">Add a Price ID</a> to complete the setup.', 'NORDBOOKING'),
+                    esc_url($settings_url)
+                ) . '</p>';
+                echo '</div>';
+            } elseif (!\NORDBOOKING\Classes\StripeConfig::has_api_keys()) {
+                echo '<div class="notice notice-warning is-dismissible">';
+                echo '<p><strong>NORDBOOKING:</strong> ' . sprintf(
+                    __('Stripe integration is not configured. <a href="%s">Configure Stripe settings</a> to enable subscriptions.', 'NORDBOOKING'),
+                    esc_url($settings_url)
+                ) . '</p>';
+                echo '</div>';
+            }
+        }
+    });
 }
 
 // =============================================================================
