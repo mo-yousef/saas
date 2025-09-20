@@ -1,0 +1,290 @@
+/* Subscription Management Page Styles */
+
+.subscription-management-wrapper {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Success/Error Messages */
+.subscription-message {
+    padding: 1rem 1.25rem;
+    border-radius: var(--radius);
+    margin-bottom: 1.5rem;
+    border-left: 4px solid;
+}
+
+.subscription-message p {
+    margin: 0;
+    font-weight: 500;
+}
+
+.subscription-message-success {
+    background-color: hsl(145, 63%, 95%);
+    color: hsl(145, 63%, 22%);
+    border-left-color: hsl(145, 63%, 42%);
+}
+
+.subscription-message-info {
+    background-color: hsl(200, 80%, 95%);
+    color: hsl(200, 70%, 30%);
+    border-left-color: hsl(200, 70%, 50%);
+}
+
+.subscription-message-error {
+    background-color: hsl(var(--destructive) / 0.1);
+    color: hsl(var(--destructive));
+    border-left-color: hsl(var(--destructive));
+}
+
+/* Subscription Status Grid */
+.subscription-status-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+}
+
+.status-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.status-item label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: hsl(var(--muted-foreground));
+    margin: 0;
+}
+
+.status-value {
+    font-size: 1rem;
+    font-weight: 600;
+    color: hsl(var(--foreground));
+}
+
+/* Subscription Actions */
+.subscription-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.action-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem;
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius);
+    background-color: hsl(var(--card));
+}
+
+.action-info {
+    flex-grow: 1;
+}
+
+.action-info h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0 0 0.5rem 0;
+    color: hsl(var(--foreground));
+}
+
+.action-info p {
+    font-size: 0.875rem;
+    color: hsl(var(--muted-foreground));
+    margin: 0;
+    line-height: 1.5;
+}
+
+.action-item .button {
+    flex-shrink: 0;
+    min-width: 120px;
+}
+
+/* Account Information Grid */
+.account-info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+}
+
+.info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.info-item label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: hsl(var(--muted-foreground));
+    margin: 0;
+}
+
+.info-value {
+    font-size: 1rem;
+    font-weight: 500;
+    color: hsl(var(--foreground));
+}
+
+/* Features Grid */
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
+}
+
+.feature-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 1rem;
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius);
+    background-color: hsl(var(--muted) / 0.3);
+    transition: all 0.2s ease;
+}
+
+.feature-item:hover {
+    background-color: hsl(var(--muted) / 0.5);
+    border-color: hsl(var(--primary) / 0.3);
+}
+
+.feature-icon {
+    flex-shrink: 0;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    background-color: hsl(var(--primary) / 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: hsl(var(--primary));
+}
+
+.feature-icon svg {
+    width: 16px;
+    height: 16px;
+}
+
+.feature-text h4 {
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin: 0 0 0.25rem 0;
+    color: hsl(var(--foreground));
+}
+
+.feature-text p {
+    font-size: 0.8125rem;
+    color: hsl(var(--muted-foreground));
+    margin: 0;
+    line-height: 1.4;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+
+    .subscription-status-grid,
+    .account-info-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .action-item {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
+    }
+
+    .action-item .button {
+        min-width: auto;
+        width: 100%;
+    }
+
+    .features-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .feature-item {
+        padding: 0.75rem;
+    }
+
+    .feature-icon {
+        width: 1.5rem;
+        height: 1.5rem;
+    }
+
+    .feature-icon svg {
+        width: 14px;
+        height: 14px;
+    }
+}
+
+/* Enhanced Status Badges for Subscription */
+.status-badge.status-trial {
+    background-color: hsl(200, 80%, 95%);
+    color: hsl(200, 70%, 40%);
+    border-color: hsl(200, 70%, 70%);
+}
+
+.status-badge.status-active {
+    background-color: hsl(145, 63%, 95%);
+    color: hsl(145, 63%, 22%);
+    border-color: hsl(145, 63%, 72%);
+}
+
+.status-badge.status-expired,
+.status-badge.status-trial-expired {
+    background-color: hsl(var(--destructive) / 0.1);
+    color: hsl(var(--destructive));
+    border-color: hsl(var(--destructive) / 0.3);
+}
+
+.status-badge.status-unsubscribed {
+    background-color: hsl(var(--muted));
+    color: hsl(var(--muted-foreground));
+    border-color: hsl(var(--border));
+}
+
+/* Loading States */
+.button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.button:disabled:hover {
+    background-color: inherit;
+    border-color: inherit;
+}
+
+/* Subscription Page Specific Animations */
+.subscription-management-wrapper .nordbooking-card {
+    animation: fadeInUp 0.3s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.subscription-management-wrapper .nordbooking-card:nth-child(2) {
+    animation-delay: 0.1s;
+}
+
+.subscription-management-wrapper .nordbooking-card:nth-child(3) {
+    animation-delay: 0.2s;
+}
+
+.subscription-management-wrapper .nordbooking-card:nth-child(4) {
+    animation-delay: 0.3s;
+}

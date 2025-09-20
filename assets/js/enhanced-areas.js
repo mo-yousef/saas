@@ -9,6 +9,7 @@
   // Global state
   let currentCity = null;
   let citiesData = [];
+  let citiesWithCoverage = [];
 
   // DOM elements
   const $citiesGridContainer = $("#cities-grid-container");
@@ -65,14 +66,40 @@
   }
 
   /**
-   * Load available Swedish cities
+   * Load available Swedish cities and their coverage status
    */
   function loadCities() {
     $citiesGridContainer.html(
       `<div class="NORDBOOKING-loading-state"><div class="NORDBOOKING-spinner"></div><p>${i18n.loading_cities}</p></div>`
     );
 
-    $.ajax({
+    // Load cities and coverage data simultaneously
+    $.when(
+      getCitiesForCountry(),
+      getCitiesCoverage()
+    ).done(function(citiesResponse, coverageResponse) {
+      if (citiesResponse[0].success && citiesResponse[0].data?.cities) {
+        citiesData = citiesResponse[0].data.cities;
+        citiesWithCoverage = coverageResponse[0].success ? (coverageResponse[0].data?.cities || []) : [];
+        displayCities(citiesData);
+        populateCityFilter(citiesData);
+      } else {
+        $citiesGridContainer.html(
+          `<div class="NORDBOOKING-empty-state"><p>${i18n.no_cities_available}</p></div>`
+        );
+      }
+    }).fail(function() {
+      $citiesGridContainer.html(
+        `<div class="NORDBOOKING-error-state"><p>${i18n.error}</p></div>`
+      );
+    });
+  }
+
+  /**
+   * Get cities for country
+   */
+  function getCitiesForCountry() {
+    return $.ajax({
       url: nordbooking_areas_params.ajax_url,
       type: "POST",
       data: {
@@ -80,27 +107,29 @@
         nonce: nordbooking_areas_params.nonce,
         country_code: nordbooking_areas_params.country_code,
       },
-      success: function (response) {
-        if (response.success && response.data?.cities) {
-          citiesData = response.data.cities;
-          displayCities(citiesData);
-          populateCityFilter(citiesData);
-        } else {
-          $citiesGridContainer.html(
-            `<div class="NORDBOOKING-empty-state"><p>${i18n.no_cities_available}</p></div>`
-          );
-        }
-      },
-      error: function () {
-        $citiesGridContainer.html(
-          `<div class="NORDBOOKING-error-state"><p>${i18n.error}</p></div>`
-        );
+    });
+  }
+
+  /**
+   * Get cities with coverage data
+   */
+  function getCitiesCoverage() {
+    return $.ajax({
+      url: nordbooking_areas_params.ajax_url,
+      type: "POST",
+      data: {
+        action: "nordbooking_get_service_coverage_grouped",
+        nonce: nordbooking_areas_params.nonce,
+        filters: {
+          country_code: nordbooking_areas_params.country_code,
+          groupby: "city",
+        },
       },
     });
   }
 
   /**
-   * Display cities grid
+   * Display cities grid with coverage status
    */
   function displayCities(cities) {
     if (!cities.length) {
@@ -112,17 +141,29 @@
 
     let html = '<div class="cities-grid">';
     cities.forEach(function (city) {
+      // Check if city has coverage
+      const cityWithCoverage = citiesWithCoverage.find(c => c.city_code === city.code);
+      const hasAreas = cityWithCoverage && cityWithCoverage.area_count > 0;
+      const isActive = cityWithCoverage && cityWithCoverage.status === 'active';
+      
+      const cityCardClass = hasAreas ? (isActive ? 'city-card has-areas active' : 'city-card has-areas inactive') : 'city-card';
+      const actionText = hasAreas ? 
+        (isActive ? `View Areas (${cityWithCoverage.area_count})` : `Manage Areas (${cityWithCoverage.area_count} inactive)`) : 
+        "Add Areas";
+      
       html += `
-                <div class="city-card" data-city-code="${escapeHtml(
+                <div class="${cityCardClass}" data-city-code="${escapeHtml(
                   city.code
-                )}" data-city-name="${escapeHtml(city.name)}">
-                    <span class="city-name"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-map-pin"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>${escapeHtml(
-                      city.name
-                    )}</span>
-                    <span class="city-action-link">${wp.i18n.__(
-                      "Manage Areas",
-                      "NORDBOOKING"
-                    )} &rarr;</span>
+                )}" data-city-name="${escapeHtml(city.name)}" data-has-areas="${hasAreas}" data-area-count="${cityWithCoverage ? cityWithCoverage.area_count : 0}">
+                    <span class="city-name">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-map-pin">
+                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                            <circle cx="12" cy="10" r="3"></circle>
+                        </svg>
+                        ${escapeHtml(city.name)}
+                        ${hasAreas ? `<span class="city-status-badge ${isActive ? 'active' : 'inactive'}">${isActive ? 'Active' : 'Inactive'}</span>` : ''}
+                    </span>
+                    <span class="city-action-link">${actionText} &rarr;</span>
                 </div>
             `;
     });
@@ -160,6 +201,16 @@
    * Open and prepare the area selection dialog
    */
   function openModal() {
+    // Check if city has existing areas
+    const cityWithCoverage = citiesWithCoverage.find(c => c.city_code === currentCity.code);
+    const hasAreas = cityWithCoverage && cityWithCoverage.area_count > 0;
+    const isActive = cityWithCoverage && cityWithCoverage.status === 'active';
+    
+    let dialogTitle = `${i18n.select_areas || "Select Areas for"} ${currentCity.name}`;
+    if (hasAreas) {
+      dialogTitle = `Manage Areas for ${currentCity.name} (${cityWithCoverage.area_count} areas - ${isActive ? 'Active' : 'Inactive'})`;
+    }
+
     const dialogContent = `
             <div class="dialog-search-wrapper">
                 <input type="search" id="dialog-area-search" placeholder="Search areas..." class="nordbooking-dialog-search-input">
@@ -172,6 +223,14 @@
                   i18n.deselect_all || "Deselect All"
                 }</button>
             </div>
+            ${hasAreas ? `<div class="dialog-info-banner ${isActive ? 'active' : 'inactive'}">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="16" x2="12" y2="12"></line>
+                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                </svg>
+                This city currently has ${cityWithCoverage.area_count} service areas and is ${isActive ? 'active' : 'inactive'}.
+            </div>` : ''}
             <div id="dialog-areas-grid" class="modal-areas-grid">
                 <div class="NORDBOOKING-loading-state"><div class="NORDBOOKING-spinner"></div><p>${
                   i18n.loading_areas
@@ -180,7 +239,7 @@
         `;
 
     areaDialog = new MoBookingDialog({
-      title: `${i18n.select_areas || "Select Areas for"} ${currentCity.name}`,
+      title: dialogTitle,
       content: dialogContent,
       buttons: [
         {
@@ -343,11 +402,11 @@
     let html = "";
     sortedPlaceNames.forEach(function (placeName) {
       const locations = areas[placeName];
-      const allZipsSaved = savedPlaceNames.includes(placeName); // We already know this, just reuse for the checkbox
+      const allZipsSaved = savedPlaceNames.includes(placeName);
       const areaData = escapeHtml(JSON.stringify(locations));
 
       html += `
-                <div class="modal-area-item">
+                <div class="modal-area-item ${allZipsSaved ? 'is-selected' : ''}">
                     <label class="modal-area-item-main">
                         <input type="checkbox" value="${escapeHtml(
                           placeName
@@ -355,6 +414,7 @@
         allZipsSaved ? "checked" : ""
       }>
                         <span class="area-name">${escapeHtml(placeName)}</span>
+                        ${allZipsSaved ? '<span class="area-selected-indicator">✓ Selected</span>' : ''}
                         <button type="button" class="area-zip-toggle">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-down"><polyline points="6 9 12 15 18 9"></polyline></svg>
                         </button>
@@ -415,6 +475,7 @@
           setTimeout(() => {
             dialog.close();
             loadServiceCoverage(); // Refresh coverage list
+            loadCities(); // Refresh cities to show updated status
           }, 1500);
         } else {
           window.showAlert(
@@ -550,6 +611,7 @@
             "success"
           );
           loadServiceCoverage(); // Reload the list to show changes
+          loadCities(); // Refresh cities to show updated status
         } else {
           window.showAlert(
             response.data.message || "Error updating status.",
@@ -603,6 +665,7 @@
           $btn.closest(".coverage-city-item").fadeOut(300, function () {
             $(this).remove();
           });
+          loadCities(); // Refresh cities to show updated status
         } else {
           window.showAlert(
             response.data.message || i18n.error_removing_city,

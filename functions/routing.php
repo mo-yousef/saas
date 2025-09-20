@@ -109,7 +109,7 @@ function nordbooking_enqueue_dashboard_scripts($current_page_slug = '') {
     if ($current_page_slug === 'service-edit') {
         error_log('[NORDBOOKING Debug] Correctly identified service-edit page. Enqueueing scripts.');
         // FIXED: Added jquery-ui-sortable dependency for drag and drop functionality
-        wp_enqueue_script('NORDBOOKING-service-edit', NORDBOOKING_THEME_URI . 'assets/js/dashboard-service-edit.js', array('jquery', 'jquery-ui-sortable'), NORDBOOKING_VERSION, true);
+        wp_enqueue_script('NORDBOOKING-service-edit', NORDBOOKING_THEME_URI . 'assets/js/dashboard-service-edit.js', array('jquery', 'jquery-ui-sortable', 'nordbooking-dialog'), NORDBOOKING_VERSION, true);
 
         $service_id = isset($_GET['service_id']) ? intval($_GET['service_id']) : 0;
         $option_count = 0;

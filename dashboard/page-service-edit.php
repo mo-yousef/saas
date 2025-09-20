@@ -49,102 +49,82 @@ $currency_pos        = $biz_settings['biz_currency_position'];
 // Define option types.
 $option_types = array(
 	'toggle'   => array(
-		'label'       => __( 'Option Toggle / Yes or No', 'NORDBOOKING' ),
-		'description' => __( 'A single yes/no toggle switch.', 'NORDBOOKING' ),
+		'label'       => __( 'Yes or No', 'NORDBOOKING' ),
+		'description' => __( 'Simple choice', 'NORDBOOKING' ),
 		'icon'        => 'toggle-right',
 	),
 	'checkbox'   => array(
-		'label'       => __( 'Multiple Choice', 'NORDBOOKING' ),
-		'description' => __( 'A list of checkboxes where multiple can be selected.', 'NORDBOOKING' ),
+		'label'       => __( 'Pick Multiple', 'NORDBOOKING' ),
+		'description' => __( 'Select many', 'NORDBOOKING' ),
 		'icon'        => 'check-square',
 	),
-	'text'       => array(
-		'label'       => __( 'Short Answer', 'NORDBOOKING' ),
-		'description' => __( 'A single-line text input field.', 'NORDBOOKING' ),
-		'icon'        => 'type',
-	),
-	'number'     => array(
-		'label'       => __( 'Number Field', 'NORDBOOKING' ),
-		'description' => __( 'A field for entering a number.', 'NORDBOOKING' ),
-		'icon'        => 'hash',
-	),
-	'select'     => array(
-		'label'       => __( 'Select from List', 'NORDBOOKING' ),
-		'description' => __( 'A dropdown list to select a single option.', 'NORDBOOKING' ),
-		'icon'        => 'chevron-down',
-	),
 	'radio'      => array(
-		'label'       => __( 'Single Choice', 'NORDBOOKING' ),
-		'description' => __( 'A list of radio buttons to select a single option.', 'NORDBOOKING' ),
+		'label'       => __( 'Pick One', 'NORDBOOKING' ),
+		'description' => __( 'Select only one', 'NORDBOOKING' ),
 		'icon'        => 'circle',
 	),
+	'select'     => array(
+		'label'       => __( 'Drop Down', 'NORDBOOKING' ),
+		'description' => __( 'Menu list', 'NORDBOOKING' ),
+		'icon'        => 'chevron-down',
+	),
+	'text'       => array(
+		'label'       => __( 'Short Text', 'NORDBOOKING' ),
+		'description' => __( 'Brief answer', 'NORDBOOKING' ),
+		'icon'        => 'type',
+	),
 	'textarea'   => array(
-		'label'       => __( 'Long Answer / Additional Notes', 'NORDBOOKING' ),
-		'description' => __( 'A multi-line text input field for longer answers.', 'NORDBOOKING' ),
+		'label'       => __( 'Long Text', 'NORDBOOKING' ),
+		'description' => __( 'Detailed answer', 'NORDBOOKING' ),
 		'icon'        => 'file-text',
 	),
+	'number'     => array(
+		'label'       => __( 'Numbers Only', 'NORDBOOKING' ),
+		'description' => __( 'Enter a number', 'NORDBOOKING' ),
+		'icon'        => 'hash',
+	),
 	'quantity'   => array(
-		'label'       => __( 'Item Quantity / Number of Items', 'NORDBOOKING' ),
-		'description' => __( 'A field for entering a quantity, often with steppers.', 'NORDBOOKING' ),
+		'label'       => __( 'Item Counter', 'NORDBOOKING' ),
+		'description' => __( 'Add/remove items', 'NORDBOOKING' ),
 		'icon'        => 'plus-minus',
 	),
 	'sqm'        => array(
-		'label'       => __( 'Area (m²)', 'NORDBOOKING' ),
-		'description' => __( 'A field for entering an area in square meters (m²).', 'NORDBOOKING' ),
+		'label'       => __( 'm²', 'NORDBOOKING' ),
+		'description' => __( 'Room Size - Square meters', 'NORDBOOKING' ),
 		'icon'        => 'square',
 	),
 	'kilometers' => array(
-		'label'       => __( 'Distance (km)', 'NORDBOOKING' ),
-		'description' => __( 'A field for entering a distance in kilometers (km).', 'NORDBOOKING' ),
+		'label'       => __( 'km', 'NORDBOOKING' ),
+		'description' => __( 'Travel Distance - How far to go', 'NORDBOOKING' ),
 		'icon'        => 'truck',
 	),
 );
 
 // Define price types.
 $price_types = array(
+	'fixed'      => array(
+		'label'       => __( 'Fixed Amount', 'NORDBOOKING' ),
+		'description' => __( 'Add a fixed amount to the total.', 'NORDBOOKING' ),
+		'icon'        => 'dollar-sign',
+	),
 	''           => array(
 		'label'       => __( 'No Price', 'NORDBOOKING' ),
 		'description' => __( "This option doesn't affect the price.", 'NORDBOOKING' ),
 		'icon'        => 'minus-circle',
-	),
-	'fixed'      => array(
-		'label'       => __( 'Fixed', 'NORDBOOKING' ),
-		'description' => __( 'Add a fixed amount to the total.', 'NORDBOOKING' ),
-		'icon'        => 'dollar-sign',
-	),
-	'percentage' => array(
-		'label'       => __( 'Percentage', 'NORDBOOKING' ),
-		'description' => __( 'Increase total by a percentage.', 'NORDBOOKING' ),
-		'icon'        => 'percent',
-	),
-	'multiply'   => array(
-		'label'       => __( 'Multiply', 'NORDBOOKING' ),
-		'description' => __( 'Multiply price by a value.', 'NORDBOOKING' ),
-		'icon'        => 'x-circle',
 	),
 );
 
 // Define price impact types for the entire option.
 $price_impact_types = array(
-	''           => array(
-		'label'       => __( 'No Price', 'NORDBOOKING' ),
-		'description' => __( "This option doesn't affect the price.", 'NORDBOOKING' ),
-		'icon'        => 'minus-circle',
-	),
 	'fixed'      => array(
 		'label'       => __( 'Fixed Amount', 'NORDBOOKING' ),
 		'description' => __( 'Add/subtract a fixed amount', 'NORDBOOKING' ),
 		'icon'        => 'dollar-sign',
 	),
-	'percentage' => array(
-		'label'       => __( 'Percentage', 'NORDBOOKING' ),
-		'description' => __( 'Increase/decrease by percentage', 'NORDBOOKING' ),
-		'icon'        => 'percent',
-	),
-	'multiply'   => array(
-		'label'       => __( 'Multiply', 'NORDBOOKING' ),
-		'description' => __( 'Multiply price by option value', 'NORDBOOKING' ),
-		'icon'        => 'x',
+	''           => array(
+		'label'       => __( 'No Price', 'NORDBOOKING' ),
+		'description' => __( "This option doesn't affect the price.", 'NORDBOOKING' ),
+		'icon'        => 'minus-circle',
 	),
 );
 
@@ -165,6 +145,8 @@ if ( $edit_mode && $service_id > 0 ) {
 			$disable_pet_question = $service_data['disable_pet_question'] ?? 0;
 			$disable_frequency_option = $service_data['disable_frequency_option'] ?? 0;
 			$service_options_data = isset( $service_data['options'] ) && is_array( $service_data['options'] ) ? $service_data['options'] : array();
+			
+
 		} else {
 			$error_message = __( 'Service not found or you do not have permission to edit it.', 'NORDBOOKING' );
 		}

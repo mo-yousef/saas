@@ -171,4 +171,6 @@
 
   // Expose to global window object
   window.NordbookingDialog = NordbookingDialog;
+  // Alias for backward compatibility
+  window.MoBookingDialog = NordbookingDialog;
 })(window);

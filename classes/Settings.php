@@ -861,7 +861,7 @@ public function save_booking_form_settings(int $user_id, array $settings_data): 
         if (!is_wp_error($home_cleaning_id)) {
             $services_manager->service_options_manager->add_service_option($user_id, $home_cleaning_id, [
                 'name' => 'Number of Bedrooms',
-                'type' => 'dropdown',
+                'type' => 'select',
                 'is_required' => true,
                 'option_values' => json_encode([
                     ['label' => '1 Bedroom', 'price' => 0],
@@ -871,24 +871,52 @@ public function save_booking_form_settings(int $user_id, array $settings_data): 
             ]);
             $services_manager->service_options_manager->add_service_option($user_id, $home_cleaning_id, [
                 'name' => 'Deep Cleaning',
-                'type' => 'checkbox',
+                'type' => 'toggle',
                 'is_required' => false,
                 'price_impact_type' => 'fixed',
                 'price_impact_value' => 50,
             ]);
             $services_manager->service_options_manager->add_service_option($user_id, $home_cleaning_id, [
                 'name' => 'Inside Fridge',
-                'type' => 'checkbox',
+                'type' => 'toggle',
                 'is_required' => false,
                 'price_impact_type' => 'fixed',
                 'price_impact_value' => 25,
             ]);
             $services_manager->service_options_manager->add_service_option($user_id, $home_cleaning_id, [
                 'name' => 'Inside Oven',
-                'type' => 'checkbox',
+                'type' => 'toggle',
                 'is_required' => false,
                 'price_impact_type' => 'fixed',
                 'price_impact_value' => 25,
+            ]);
+            $services_manager->service_options_manager->add_service_option($user_id, $home_cleaning_id, [
+                'name' => 'Cleaning Frequency',
+                'type' => 'radio',
+                'is_required' => true,
+                'option_values' => json_encode([
+                    ['label' => 'One-time Cleaning', 'price' => 0],
+                    ['label' => 'Weekly (10% discount)', 'price' => -10],
+                    ['label' => 'Bi-weekly (5% discount)', 'price' => -5],
+                    ['label' => 'Monthly', 'price' => 0],
+                ]),
+            ]);
+            $services_manager->service_options_manager->add_service_option($user_id, $home_cleaning_id, [
+                'name' => 'Additional Services',
+                'type' => 'checkbox',
+                'is_required' => false,
+                'option_values' => json_encode([
+                    ['label' => 'Garage Cleaning', 'price' => 30],
+                    ['label' => 'Basement Cleaning', 'price' => 25],
+                    ['label' => 'Attic Cleaning', 'price' => 35],
+                    ['label' => 'Laundry Room Deep Clean', 'price' => 20],
+                ]),
+            ]);
+            $services_manager->service_options_manager->add_service_option($user_id, $home_cleaning_id, [
+                'name' => 'Special Instructions',
+                'type' => 'textarea',
+                'is_required' => false,
+                'description' => 'Any special requests or areas that need extra attention?',
             ]);
         }
 
@@ -906,12 +934,22 @@ public function save_booking_form_settings(int $user_id, array $settings_data): 
                 'name' => 'Number of Windows',
                 'type' => 'number',
                 'is_required' => true,
-                'price_impact_type' => 'per_unit',
+                'price_impact_type' => 'fixed',
                 'price_impact_value' => 5,
             ]);
             $services_manager->service_options_manager->add_service_option($user_id, $window_cleaning_id, [
+                'name' => 'Window Type',
+                'type' => 'radio',
+                'is_required' => true,
+                'option_values' => json_encode([
+                    ['label' => 'Standard Windows', 'price' => 0],
+                    ['label' => 'French Windows', 'price' => 10],
+                    ['label' => 'Bay Windows', 'price' => 15],
+                ]),
+            ]);
+            $services_manager->service_options_manager->add_service_option($user_id, $window_cleaning_id, [
                 'name' => 'Skylights',
-                'type' => 'checkbox',
+                'type' => 'toggle',
                 'is_required' => false,
                 'price_impact_type' => 'fixed',
                 'price_impact_value' => 30,
@@ -932,22 +970,43 @@ public function save_booking_form_settings(int $user_id, array $settings_data): 
                 'name' => 'Square Footage',
                 'type' => 'sqm',
                 'is_required' => true,
-                'price_impact_type' => 'per_unit',
+                'price_impact_type' => 'fixed',
                 'price_impact_value' => 0.1,
             ]);
             $services_manager->service_options_manager->add_service_option($user_id, $moving_cleaning_id, [
                 'name' => 'Carpet Shampooing',
-                'type' => 'checkbox',
+                'type' => 'toggle',
                 'is_required' => false,
                 'price_impact_type' => 'fixed',
                 'price_impact_value' => 80,
             ]);
             $services_manager->service_options_manager->add_service_option($user_id, $moving_cleaning_id, [
                 'name' => 'Wall Washing',
-                'type' => 'checkbox',
+                'type' => 'toggle',
                 'is_required' => false,
                 'price_impact_type' => 'fixed',
                 'price_impact_value' => 60,
+            ]);
+            $services_manager->service_options_manager->add_service_option($user_id, $moving_cleaning_id, [
+                'name' => 'Property Condition',
+                'type' => 'select',
+                'is_required' => true,
+                'option_values' => json_encode([
+                    ['label' => 'Light Cleaning Needed', 'price' => 0],
+                    ['label' => 'Moderate Cleaning Required', 'price' => 50],
+                    ['label' => 'Heavy Cleaning Required', 'price' => 100],
+                ]),
+            ]);
+            $services_manager->service_options_manager->add_service_option($user_id, $moving_cleaning_id, [
+                'name' => 'Extra Services',
+                'type' => 'checkbox',
+                'is_required' => false,
+                'option_values' => json_encode([
+                    ['label' => 'Paint Touch-ups', 'price' => 75],
+                    ['label' => 'Light Fixture Cleaning', 'price' => 40],
+                    ['label' => 'Cabinet Interior Cleaning', 'price' => 60],
+                    ['label' => 'Appliance Deep Clean', 'price' => 85],
+                ]),
             ]);
         }
 

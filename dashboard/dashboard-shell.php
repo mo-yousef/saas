@@ -64,6 +64,7 @@ $page_capabilities = [
     'settings' => \NORDBOOKING\Classes\Auth::CAP_MANAGE_BUSINESS_SETTINGS,
     'availability' => \NORDBOOKING\Classes\Auth::CAP_MANAGE_AVAILABILITY,
     'customers' => \NORDBOOKING\Classes\Auth::CAP_VIEW_CUSTOMERS, // Use view capability for page access
+    'subscription' => \NORDBOOKING\Classes\Auth::ACCESS_NORDBOOKING_DASHBOARD, // All dashboard users can access subscription
     // Add other specific pages like 'discount-edit', 'area-edit' if they exist and need specific manage caps
 ];
 

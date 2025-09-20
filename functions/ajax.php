@@ -1533,14 +1533,72 @@ function nordbooking_ajax_create_checkout_session() {
         return;
     }
 
-    if (class_exists('NORDBOOKING\Classes\Subscription')) {
-        $checkout_url = \NORDBOOKING\Classes\Subscription::create_stripe_checkout_session($user_id);
-        if (!empty($checkout_url)) {
-            wp_send_json_success(['checkout_url' => $checkout_url]);
-        } else {
-            wp_send_json_error(['message' => __('Could not create a checkout session.', 'NORDBOOKING')]);
-        }
-    } else {
+    if (!class_exists('NORDBOOKING\Classes\Subscription')) {
         wp_send_json_error(['message' => __('Subscription class not found.', 'NORDBOOKING')]);
+        return;
+    }
+
+    if (!\NORDBOOKING\Classes\StripeConfig::is_configured()) {
+        wp_send_json_error(['message' => __('Stripe is not properly configured. Please contact support.', 'NORDBOOKING')]);
+        return;
+    }
+
+    $checkout_url = \NORDBOOKING\Classes\Subscription::create_stripe_checkout_session($user_id);
+    if ($checkout_url) {
+        wp_send_json_success(['checkout_url' => $checkout_url]);
+    } else {
+        wp_send_json_error(['message' => __('Could not create a checkout session. Please try again or contact support.', 'NORDBOOKING')]);
+    }
+}
+
+add_action('wp_ajax_nordbooking_cancel_subscription', 'nordbooking_ajax_cancel_subscription');
+function nordbooking_ajax_cancel_subscription() {
+    if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'nordbooking_dashboard_nonce')) {
+        wp_send_json_error(array('message' => 'Security check failed: Invalid nonce.'), 403);
+        return;
+    }
+
+    $user_id = get_current_user_id();
+    if (!$user_id) {
+        wp_send_json_error(['message' => __('User not logged in.', 'NORDBOOKING')], 403);
+        return;
+    }
+
+    if (!class_exists('NORDBOOKING\Classes\Subscription')) {
+        wp_send_json_error(['message' => __('Subscription class not found.', 'NORDBOOKING')]);
+        return;
+    }
+
+    $success = \NORDBOOKING\Classes\Subscription::cancel_subscription($user_id);
+    if ($success) {
+        wp_send_json_success(['message' => __('Subscription cancelled successfully. You will continue to have access until the end of your billing period.', 'NORDBOOKING')]);
+    } else {
+        wp_send_json_error(['message' => __('Failed to cancel subscription. Please try again or contact support.', 'NORDBOOKING')]);
+    }
+}
+
+add_action('wp_ajax_nordbooking_create_customer_portal_session', 'nordbooking_ajax_create_customer_portal_session');
+function nordbooking_ajax_create_customer_portal_session() {
+    if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'nordbooking_dashboard_nonce')) {
+        wp_send_json_error(array('message' => 'Security check failed: Invalid nonce.'), 403);
+        return;
+    }
+
+    $user_id = get_current_user_id();
+    if (!$user_id) {
+        wp_send_json_error(['message' => __('User not logged in.', 'NORDBOOKING')], 403);
+        return;
+    }
+
+    if (!class_exists('NORDBOOKING\Classes\Subscription')) {
+        wp_send_json_error(['message' => __('Subscription class not found.', 'NORDBOOKING')]);
+        return;
+    }
+
+    $portal_url = \NORDBOOKING\Classes\Subscription::create_customer_portal_session($user_id);
+    if ($portal_url) {
+        wp_send_json_success(['portal_url' => $portal_url]);
+    } else {
+        wp_send_json_error(['message' => __('Could not create customer portal session. Please try again or contact support.', 'NORDBOOKING')]);
     }
 }

@@ -1,0 +1,324 @@
+/*
+ * Footer Section - Cal.com Style
+ * Professional footer with company information and legal compliance
+ */
+
+/* === FOOTER STYLES === */
+.site-footer {
+    background: var(--color-gray-900);
+    color: var(--color-white);
+    position: relative;
+}
+
+.footer-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+    gap: var(--space-8);
+    padding: var(--space-16) 0;
+}
+
+.footer-section h3,
+.footer-section h4 {
+    color: var(--color-white);
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    margin-bottom: var(--space-4);
+}
+
+.footer-brand .brand-name {
+    color: var(--color-white);
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-bold);
+}
+
+.footer-brand p {
+    color: #9ca3af;
+    line-height: var(--line-height-relaxed);
+    margin-top: var(--space-4);
+}
+
+/* === FOOTER LINKS === */
+.footer-links {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.footer-links li {
+    margin-bottom: var(--space-3);
+}
+
+.footer-links a {
+    color: #9ca3af;
+    text-decoration: none;
+    font-size: var(--font-size-sm);
+    transition: var(--transition-fast);
+}
+
+.footer-links a:hover {
+    color: var(--color-white);
+}
+
+/* === CERTIFICATION BADGES === */
+.footer-certifications {
+    margin-top: var(--space-8);
+}
+
+.cert-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+}
+
+.cert-badge {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--color-success);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--radius-full);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+}
+
+/* === FOOTER BOTTOM === */
+.footer-bottom {
+    border-top: 1px solid #374151;
+    padding: var(--space-8) 0;
+}
+
+.footer-company-info {
+    color: #9ca3af;
+    font-size: var(--font-size-sm);
+}
+
+.footer-social {
+    display: flex;
+    gap: var(--space-4);
+}
+
+.footer-social a {
+    color: #9ca3af;
+    transition: var(--transition-fast);
+}
+
+.footer-social a:hover {
+    color: var(--color-white);
+}
+
+/* === FAQ STYLES === */
+.faq-item {
+    background: var(--color-white);
+    border: 1px solid var(--color-gray-200);
+    border-radius: var(--radius-lg);
+    margin-bottom: var(--space-4);
+    overflow: hidden;
+    transition: var(--transition-all);
+}
+
+.faq-item:hover {
+    box-shadow: var(--shadow-md);
+}
+
+.faq-question {
+    width: 100%;
+    padding: var(--space-4);
+    background: none;
+    border: none;
+    text-align: left;
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-gray-900);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: var(--transition-fast);
+}
+
+.faq-question:hover {
+    background: var(--color-gray-50);
+}
+
+.faq-question::after {
+    content: '+';
+    font-size: var(--font-size-xl);
+    color: var(--color-gray-500);
+    transition: var(--transition-fast);
+}
+
+.faq-question.active::after {
+    content: '−';
+    transform: rotate(180deg);
+}
+
+.faq-answer {
+    padding: 0 var(--space-4) var(--space-4);
+    color: var(--color-gray-600);
+    line-height: var(--line-height-relaxed);
+    display: none;
+}
+
+.faq-answer.active {
+    display: block;
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* === RESPONSIVE DESIGN === */
+@media (max-width: 1023px) {
+    .footer-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: var(--space-6);
+    }
+
+    .footer-section:first-child {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 767px) {
+    .footer-grid {
+        grid-template-columns: 1fr;
+        gap: var(--space-6);
+        padding: var(--space-12) 0;
+    }
+
+    .footer-bottom {
+        padding: var(--space-6) 0;
+    }
+
+    .footer-bottom .flex {
+        flex-direction: column;
+        gap: var(--space-4);
+        text-align: center;
+    }
+}
+
+@media (max-width: 479px) {
+    .cert-badges {
+        flex-direction: column;
+    }
+
+    .cert-badge {
+        text-align: center;
+    }
+}
+
+/* === UTILITY CLASSES === */
+.bg-gray-900 {
+    background-color: var(--color-gray-900);
+}
+
+.bg-gray-50 {
+    background-color: var(--color-gray-50);
+}
+
+.text-white {
+    color: var(--color-white);
+}
+
+.text-gray-400 {
+    color: #9ca3af;
+}
+
+.border-gray-800 {
+    border-color: #374151;
+}
+
+.py-16 {
+    padding-top: var(--space-16);
+    padding-bottom: var(--space-16);
+}
+
+.py-8 {
+    padding-top: var(--space-8);
+    padding-bottom: var(--space-8);
+}
+
+.py-6 {
+    padding-top: var(--space-6);
+    padding-bottom: var(--space-6);
+}
+
+.mb-6 {
+    margin-bottom: var(--space-6);
+}
+
+.mb-4 {
+    margin-bottom: var(--space-4);
+}
+
+.mt-4 {
+    margin-top: var(--space-4);
+}
+
+.mt-6 {
+    margin-top: var(--space-6);
+}
+
+.mt-8 {
+    margin-top: var(--space-8);
+}
+
+.flex {
+    display: flex;
+}
+
+.flex-col {
+    flex-direction: column;
+}
+
+.flex-row {
+    flex-direction: row;
+}
+
+.justify-between {
+    justify-content: space-between;
+}
+
+.items-center {
+    align-items: center;
+}
+
+.gap-4 {
+    gap: var(--space-4);
+}
+
+.border-t {
+    border-top-width: 1px;
+    border-top-style: solid;
+}
+
+.text-sm {
+    font-size: var(--font-size-sm);
+}
+
+.max-width-48 {
+    max-width: 48rem;
+}
+
+.margin-auto {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+@media (min-width: 768px) {
+    .md\\:flex-row {
+        flex-direction: row;
+    }
+
+    .md\\:mb-0 {
+        margin-bottom: 0;
+    }
+}

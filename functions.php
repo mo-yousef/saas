@@ -1623,4 +1623,11 @@ function nordbooking_enqueue_admin_dashboard_assets( $hook ) {
 add_action( 'admin_enqueue_scripts', 'nordbooking_enqueue_admin_dashboard_assets' );
 
 // =============================================================================
+// STRIPE SETTINGS INITIALIZATION
+
+if (is_admin()) {
+    new \NORDBOOKING\Classes\Admin\StripeSettingsPage();
+}
+
+// =============================================================================
 // BOOKING FORM ANALYTICS HANDLER

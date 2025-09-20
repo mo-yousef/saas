@@ -174,7 +174,7 @@ window.nordbooking_areas_i18n = <?php echo json_encode([
 
 <?php
 // Enqueue enhanced scripts and styles
-wp_enqueue_script('NORDBOOKING-enhanced-areas', get_template_directory_uri() . '/assets/js/enhanced-areas.js', ['jquery', 'wp-i18n'], '1.0.0', true);
+wp_enqueue_script('NORDBOOKING-enhanced-areas', get_template_directory_uri() . '/assets/js/enhanced-areas.js', ['jquery', 'wp-i18n', 'nordbooking-dialog'], '1.0.0', true);
 
 wp_localize_script('NORDBOOKING-enhanced-areas', 'nordbooking_areas_params', [
     'ajax_url' => admin_url('admin-ajax.php'),

@@ -1,0 +1,528 @@
+/*
+ * Trust & Credibility Section - Cal.com Style
+ * Professional trust indicators and company information
+ */
+
+/* === TRUST SECTION === */
+.trust-section {
+    padding: var(--space-12) 0;
+    background: linear-gradient(135deg, #f8fafc 0%, #ffffff 50%, #f8fafc 100%);
+    position: relative;
+}
+
+.trust-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at 30% 100%, rgba(99, 102, 241, 0.03) 0%, transparent 50%);
+    pointer-events: none;
+}
+
+.trust-container {
+    max-width: var(--container-xl);
+    margin: 0 auto;
+    padding: 0 var(--space-4);
+    position: relative;
+    z-index: 2;
+}
+
+/* === TRUST GRID === */
+.trust-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: var(--space-8);
+    margin-bottom: var(--space-16);
+}
+
+/* === TRUST CARDS === */
+.trust-card {
+    background: var(--color-white);
+    border: 1px solid var(--color-gray-200);
+    border-radius: var(--radius-2xl);
+    padding: var(--space-8);
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition-all);
+    position: relative;
+    overflow: hidden;
+}
+
+.trust-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--gradient-primary);
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+}
+
+.trust-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-xl);
+    border-color: rgba(99, 102, 241, 0.2);
+}
+
+.trust-card:hover::before {
+    transform: scaleX(1);
+}
+
+/* === TRUST ICONS === */
+.trust-icon {
+    width: 64px;
+    height: 64px;
+    background: rgba(99, 102, 241, 0.1);
+    border-radius: var(--radius-2xl);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--font-size-2xl);
+    margin-bottom: var(--space-6);
+    transition: var(--transition-all);
+}
+
+.trust-card:hover .trust-icon {
+    background: rgba(99, 102, 241, 0.15);
+    transform: scale(1.05);
+}
+
+/* === TRUST CARD CONTENT === */
+.trust-card h3 {
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-gray-900);
+    margin-bottom: var(--space-3);
+    line-height: var(--line-height-tight);
+}
+
+.trust-card p {
+    font-size: var(--font-size-base);
+    color: var(--color-gray-600);
+    line-height: var(--line-height-relaxed);
+    margin-bottom: var(--space-4);
+}
+
+/* === TRUST DETAILS === */
+.trust-details {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    margin-top: var(--space-4);
+}
+
+.trust-details span {
+    font-size: var(--font-size-sm);
+    color: var(--color-gray-500);
+    font-weight: var(--font-weight-medium);
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.trust-details span::before {
+    content: '✓';
+    color: var(--color-success);
+    font-weight: var(--font-weight-bold);
+    font-size: var(--font-size-sm);
+}
+
+/* === SECURITY BADGES === */
+.security-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-top: var(--space-4);
+}
+
+.security-badges .badge {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--color-success);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--radius-full);
+    transition: var(--transition-fast);
+}
+
+.security-badges .badge:hover {
+    background: rgba(16, 185, 129, 0.15);
+    border-color: rgba(16, 185, 129, 0.3);
+    transform: translateY(-1px);
+}
+
+/* === STATS MINI === */
+.stats-mini {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    margin-top: var(--space-4);
+}
+
+.stats-mini span {
+    font-size: var(--font-size-sm);
+    color: var(--color-gray-600);
+    font-weight: var(--font-weight-medium);
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.stats-mini span::before {
+    content: '📊';
+    font-size: var(--font-size-sm);
+}
+
+/* === SOCIAL PROOF SECTION === */
+.social-proof-section {
+    text-align: center;
+    padding: var(--space-12) 0;
+    border-top: 1px solid var(--color-gray-200);
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: var(--radius-2xl);
+    backdrop-filter: blur(10px);
+}
+
+.social-proof-text {
+    font-size: var(--font-size-lg);
+    color: var(--color-gray-600);
+    font-weight: var(--font-weight-medium);
+    margin-bottom: var(--space-8);
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* === CUSTOMER LOGOS GRID === */
+.customer-logos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--space-6);
+    align-items: center;
+    justify-items: center;
+}
+
+.logo-item {
+    padding: var(--space-4) var(--space-6);
+    background: var(--color-white);
+    border: 1px solid var(--color-gray-200);
+    border-radius: var(--radius-lg);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-gray-500);
+    transition: var(--transition-all);
+    text-align: center;
+    min-height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.logo-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.1), transparent);
+    transition: left 0.5s;
+}
+
+.logo-item:hover {
+    color: var(--color-gray-700);
+    border-color: var(--color-gray-300);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.logo-item:hover::before {
+    left: 100%;
+}
+
+/* === TRUST METRICS === */
+.trust-metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: var(--space-6);
+    margin-top: var(--space-12);
+    padding: var(--space-8);
+    background: var(--color-white);
+    border: 1px solid var(--color-gray-200);
+    border-radius: var(--radius-2xl);
+    box-shadow: var(--shadow-sm);
+}
+
+.metric-item {
+    text-align: center;
+    padding: var(--space-4);
+}
+
+.metric-number {
+    font-size: var(--font-size-3xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-primary);
+    line-height: 1;
+    margin-bottom: var(--space-2);
+    display: block;
+}
+
+.metric-label {
+    font-size: var(--font-size-sm);
+    color: var(--color-gray-600);
+    font-weight: var(--font-weight-medium);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* === CERTIFICATIONS SHOWCASE === */
+.certifications-showcase {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: var(--space-4);
+    margin-top: var(--space-8);
+    padding: var(--space-6);
+    background: rgba(248, 250, 252, 0.5);
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--color-gray-200);
+}
+
+.cert-badge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-3);
+    background: var(--color-white);
+    border-radius: var(--radius-lg);
+    transition: var(--transition-fast);
+    cursor: default;
+}
+
+.cert-badge:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.cert-icon {
+    width: 40px;
+    height: 40px;
+    background: rgba(99, 102, 241, 0.1);
+    border-radius: var(--radius-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--font-size-lg);
+}
+
+.cert-name {
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-gray-600);
+    text-align: center;
+    line-height: var(--line-height-tight);
+}
+
+/* === RESPONSIVE DESIGN === */
+@media (max-width: 1023px) {
+    .trust-grid {
+        grid-template-columns: 1fr;
+        gap: var(--space-6);
+    }
+
+    .customer-logos-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .trust-metrics {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 767px) {
+    .trust-section {
+        padding: var(--space-16) 0;
+    }
+
+    .trust-card {
+        padding: var(--space-6);
+    }
+
+    .trust-icon {
+        width: 56px;
+        height: 56px;
+        font-size: var(--font-size-xl);
+    }
+
+    .customer-logos-grid {
+        grid-template-columns: 1fr;
+        gap: var(--space-4);
+    }
+
+    .trust-metrics {
+        grid-template-columns: 1fr;
+        gap: var(--space-4);
+    }
+
+    .certifications-showcase {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .social-proof-text {
+        font-size: var(--font-size-base);
+    }
+}
+
+@media (max-width: 479px) {
+    .trust-container {
+        padding: 0 var(--space-3);
+    }
+
+    .trust-card {
+        padding: var(--space-4);
+    }
+
+    .trust-card h3 {
+        font-size: var(--font-size-lg);
+    }
+
+    .certifications-showcase {
+        grid-template-columns: 1fr;
+    }
+
+    .cert-badge {
+        flex-direction: row;
+        justify-content: flex-start;
+        text-align: left;
+    }
+}
+
+/* === ACCESSIBILITY ENHANCEMENTS === */
+@media (prefers-reduced-motion: reduce) {
+
+    .trust-card,
+    .logo-item,
+    .cert-badge,
+    .trust-icon {
+        transition: none;
+    }
+
+    .trust-card:hover,
+    .logo-item:hover,
+    .cert-badge:hover {
+        transform: none;
+    }
+
+    .logo-item::before {
+        display: none;
+    }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+    .trust-card {
+        border: 2px solid var(--color-gray-400);
+    }
+
+    .trust-card:hover {
+        border: 2px solid var(--color-primary);
+    }
+
+    .security-badges .badge {
+        border: 2px solid var(--color-success);
+    }
+
+    .logo-item {
+        border: 2px solid var(--color-gray-400);
+    }
+
+    .cert-badge {
+        border: 1px solid var(--color-gray-400);
+    }
+}
+
+/* === LOADING STATES === */
+.trust-section.loading .trust-card {
+    opacity: 0.7;
+}
+
+.trust-card.loading h3,
+.trust-card.loading p {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+    color: transparent;
+    border-radius: var(--radius-base);
+}
+
+@keyframes loading {
+    0% {
+        background-position: 200% 0;
+    }
+
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+/* === ANIMATION CLASSES === */
+.trust-card.animate-in {
+    animation: slideInUp 0.6s ease-out;
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.logo-item.animate-in {
+    animation: fadeInScale 0.5s ease-out;
+}
+
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* === PRINT STYLES === */
+@media print {
+    .trust-section {
+        background: none;
+        padding: var(--space-8) 0;
+    }
+
+    .trust-card {
+        break-inside: avoid;
+        box-shadow: none;
+        border: 1px solid var(--color-gray-400);
+    }
+
+    .trust-icon {
+        background: none;
+        border: 1px solid var(--color-gray-400);
+    }
+
+    .logo-item::before {
+        display: none;
+    }
+}

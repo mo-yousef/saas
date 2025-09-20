@@ -230,3 +230,60 @@
     max-width: 32px;
     margin: auto;
 }
+
+/* Service Option Choice Items Styling */
+.choice-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.choice-item input[type="text"] {
+    flex: 1;
+    min-width: 0;
+    /* Allow flex item to shrink below its content size */
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--card-border);
+    border-radius: 0.375rem;
+    background-color: var(--card-bg);
+    font-size: 0.875rem;
+    min-width: 330px;
+}
+
+.choice-item input[type="number"] {
+    width: 150px;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--card-border);
+    border-radius: 0.375rem;
+    background-color: var(--card-bg);
+    font-size: 0.875rem;
+}
+
+.choice-item .remove-choice-btn {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: transparent;
+    border: 1px solid var(--card-border);
+    border-radius: 0.375rem;
+    color: var(--destructive-color);
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    flex-shrink: 0;
+}
+
+.choice-item .remove-choice-btn:hover {
+    background-color: var(--destructive-color);
+    color: white;
+    border-color: var(--destructive-color);
+}
+
+.choice-item input:focus {
+    outline: 2px solid transparent;
+    outline-offset: 2px;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}

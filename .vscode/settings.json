@@ -3,5 +3,8 @@
   "intelephense.diagnostics.undefinedClassConstants": false,
   "editor.formatOnSave": true,
   "editor.defaultFormatter": "esbenp.prettier-vscode",
-  "kiroAgent.configureMCP": "Disabled"
+  "kiroAgent.configureMCP": "Disabled",
+  "[css]": {
+    "editor.defaultFormatter": "vscode.css-language-features"
+  }
 }

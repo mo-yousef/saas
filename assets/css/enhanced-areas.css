@@ -64,6 +64,68 @@ span.city-name svg {
     transition: color 0.2s ease;
 }
 
+/* City status styles */
+.city-card.has-areas {
+    position: relative;
+}
+
+.city-card.has-areas.active {
+    border-color: #28a745;
+    background: rgba(40, 167, 69, 0.05);
+}
+
+.city-card.has-areas.active:hover {
+    border-color: #28a745;
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.2);
+}
+
+.city-card.has-areas.inactive {
+    border-color: #ffc107;
+    background: rgba(255, 193, 7, 0.05);
+}
+
+.city-card.has-areas.inactive:hover {
+    border-color: #ffc107;
+    box-shadow: 0 4px 12px rgba(255, 193, 7, 0.2);
+}
+
+.city-status-badge {
+    display: inline-block;
+    padding: 0.2rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 0.25rem;
+}
+
+.city-status-badge.active {
+    background: #28a745;
+    color: white;
+}
+
+.city-status-badge.inactive {
+    background: #ffc107;
+    color: #212529;
+}
+
+.city-card.has-areas .city-name {
+    text-align: center;
+}
+
+.city-card.has-areas .city-name svg {
+    color: inherit;
+}
+
+.city-card.has-areas.active .city-name svg {
+    color: #28a745;
+}
+
+.city-card.has-areas.inactive .city-name svg {
+    color: #ffc107;
+}
+
 .areas-selection-controls {
     display: flex;
     gap: 16px;
@@ -75,6 +137,36 @@ span.city-name svg {
 .areas-selection-controls .btn {
     width: 100%;
 }
+
+.dialog-info-banner {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin-bottom: 1rem;
+    border: 1px solid;
+}
+
+.dialog-info-banner.active {
+    background: rgba(40, 167, 69, 0.1);
+    border-color: rgba(40, 167, 69, 0.3);
+    color: #155724;
+}
+
+.dialog-info-banner.inactive {
+    background: rgba(255, 193, 7, 0.1);
+    border-color: rgba(255, 193, 7, 0.3);
+    color: #856404;
+}
+
+.dialog-info-banner svg {
+    flex-shrink: 0;
+}
+
+
 
 .country-badge {
     display: inline-block;
@@ -869,4 +961,18 @@ span.city-name svg {
         opacity: 1;
         transform: translateY(0);
     }
+}
+
+/* Active area highlighting */
+.modal-area-item.is-selected {
+    border-left: 4px solid #28a745;
+    background: rgba(40, 167, 69, 0.05);
+}
+
+.area-selected-indicator {
+    color: #28a745;
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-left: auto;
+    margin-right: 0.5rem;
 }
