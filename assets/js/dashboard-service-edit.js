@@ -290,19 +290,17 @@ jQuery(function ($) {
         const choiceIndex = $list.children().length;
 
         let newChoiceHtml = `
-          <div class="choice-item flex items-center gap-2">
+          <div class="choice-item">
               <input type="text" 
                      name="options[${optionIndex}][choices][${choiceIndex}][label]" 
-                     class="form-input flex-1" 
                      placeholder="Choice Label"
                      required>
               <input type="number" 
                      name="options[${optionIndex}][choices][${choiceIndex}][price]" 
-                     class="form-input w-24" 
                      placeholder="Price" 
                      step="0.01"
                      value="0">
-              <button type="button" class="btn-icon remove-choice-btn">
+              <button type="button" class="remove-choice-btn">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <path d="M3 6h18"/>
                       <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>

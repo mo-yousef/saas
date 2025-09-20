@@ -41,6 +41,8 @@ if (isset($option['choices'])) {
     }
 }
 
+
+
 // Clean up choices array to ensure proper structure
 $cleaned_choices = [];
 if (!empty($choices)) {
@@ -59,6 +61,8 @@ if (!empty($choices)) {
     }
 }
 $choices = $cleaned_choices;
+
+
 
 // Determine if choices container should be visible
 $choices_visible = in_array($type, ['select', 'radio', 'checkbox']);
@@ -243,20 +247,18 @@ $choices_visible = in_array($type, ['select', 'radio', 'checkbox']);
                     <div class="choices-list">
                         <?php if (!empty($choices)): ?>
                             <?php foreach ($choices as $choice_index => $choice): ?>
-                                <div class="choice-item flex items-center gap-2">
+                                <div class="choice-item">
                                     <input type="text" 
                                            name="options[<?php echo esc_attr($option_index); ?>][choices][<?php echo $choice_index; ?>][label]" 
-                                           class="regular-text flex-1" 
                                            placeholder="<?php esc_attr_e('Choice Label', 'NORDBOOKING'); ?>" 
                                            value="<?php echo esc_attr($choice['label'] ?? ''); ?>"
                                            required>
                                     <input type="number" 
                                            name="options[<?php echo esc_attr($option_index); ?>][choices][<?php echo $choice_index; ?>][price]" 
-                                           class="regular-text w-24" 
                                            placeholder="<?php esc_attr_e('Price', 'NORDBOOKING'); ?>" 
                                            value="<?php echo esc_attr($choice['price'] ?? '0'); ?>" 
                                            step="0.01">
-                                    <button type="button" class="btn-icon remove-choice-btn" title="<?php esc_attr_e('Remove choice', 'NORDBOOKING'); ?>">
+                                    <button type="button" class="remove-choice-btn" title="<?php esc_attr_e('Remove choice', 'NORDBOOKING'); ?>">
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                             <path d="M3 6h18"/>
                                             <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>

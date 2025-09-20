@@ -1,0 +1,82 @@
+<svg width="400" height="300" viewBox="0 0 400 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="400" height="300" rx="12" fill="#ffffff"/>
+  <rect width="400" height="300" rx="12" stroke="#e2e8f0" stroke-width="1"/>
+  
+  <!-- Header -->
+  <rect x="0" y="0" width="400" height="50" rx="12" fill="#6366f1"/>
+  <rect x="20" y="15" width="100" height="20" rx="4" fill="#ffffff" fill-opacity="0.9"/>
+  <text x="25" y="28" font-family="Inter, sans-serif" font-size="12" fill="#6366f1" font-weight="600">Book Cleaning</text>
+  
+  <!-- Service Selection -->
+  <text x="20" y="80" font-family="Inter, sans-serif" font-size="14" fill="#1e293b" font-weight="600">Select Service</text>
+  
+  <!-- Service Cards -->
+  <rect x="20" y="90" width="110" height="60" rx="8" fill="#f8fafc" stroke="#e2e8f0"/>
+  <rect x="25" y="95" width="20" height="20" rx="4" fill="#10b981"/>
+  <text x="50" y="108" font-family="Inter, sans-serif" font-size="12" fill="#1e293b" font-weight="500">House Cleaning</text>
+  <text x="50" y="125" font-family="Inter, sans-serif" font-size="10" fill="#64748b">$80 - 2 hours</text>
+  <circle cx="115" cy="105" r="8" fill="#10b981"/>
+  <path d="M111 105 L114 108 L119 101" stroke="white" stroke-width="2" fill="none"/>
+  
+  <rect x="140" y="90" width="110" height="60" rx="8" fill="#ffffff" stroke="#e2e8f0"/>
+  <rect x="145" y="95" width="20" height="20" rx="4" fill="#6366f1"/>
+  <text x="170" y="108" font-family="Inter, sans-serif" font-size="12" fill="#1e293b" font-weight="500">Deep Cleaning</text>
+  <text x="170" y="125" font-family="Inter, sans-serif" font-size="10" fill="#64748b">$150 - 4 hours</text>
+  
+  <rect x="260" y="90" width="110" height="60" rx="8" fill="#ffffff" stroke="#e2e8f0"/>
+  <rect x="265" y="95" width="20" height="20" rx="4" fill="#f59e0b"/>
+  <text x="290" y="108" font-family="Inter, sans-serif" font-size="12" fill="#1e293b" font-weight="500">Office Cleaning</text>
+  <text x="290" y="125" font-family="Inter, sans-serif" font-size="10" fill="#64748b">$120 - 3 hours</text>
+  
+  <!-- Date Selection -->
+  <text x="20" y="180" font-family="Inter, sans-serif" font-size="14" fill="#1e293b" font-weight="600">Select Date & Time</text>
+  
+  <!-- Calendar -->
+  <rect x="20" y="190" width="180" height="80" rx="8" fill="#ffffff" stroke="#e2e8f0"/>
+  <rect x="25" y="195" width="170" height="25" rx="4" fill="#f8fafc"/>
+  <text x="105" y="210" font-family="Inter, sans-serif" font-size="12" fill="#1e293b" font-weight="600">March 2024</text>
+  
+  <!-- Calendar Days -->
+  <rect x="30" y="225" width="20" height="20" rx="4" fill="#ffffff" stroke="#e2e8f0"/>
+  <text x="37" y="238" font-family="Inter, sans-serif" font-size="10" fill="#64748b">15</text>
+  
+  <rect x="55" y="225" width="20" height="20" rx="4" fill="#6366f1"/>
+  <text x="62" y="238" font-family="Inter, sans-serif" font-size="10" fill="#ffffff" font-weight="600">16</text>
+  
+  <rect x="80" y="225" width="20" height="20" rx="4" fill="#ffffff" stroke="#e2e8f0"/>
+  <text x="87" y="238" font-family="Inter, sans-serif" font-size="10" fill="#64748b">17</text>
+  
+  <rect x="105" y="225" width="20" height="20" rx="4" fill="#ffffff" stroke="#e2e8f0"/>
+  <text x="112" y="238" font-family="Inter, sans-serif" font-size="10" fill="#64748b">18</text>
+  
+  <rect x="130" y="225" width="20" height="20" rx="4" fill="#ffffff" stroke="#e2e8f0"/>
+  <text x="137" y="238" font-family="Inter, sans-serif" font-size="10" fill="#64748b">19</text>
+  
+  <rect x="155" y="225" width="20" height="20" rx="4" fill="#ffffff" stroke="#e2e8f0"/>
+  <text x="162" y="238" font-family="Inter, sans-serif" font-size="10" fill="#64748b">20</text>
+  
+  <!-- Time Slots -->
+  <rect x="220" y="190" width="150" height="80" rx="8" fill="#ffffff" stroke="#e2e8f0"/>
+  <text x="230" y="210" font-family="Inter, sans-serif" font-size="12" fill="#1e293b" font-weight="600">Available Times</text>
+  
+  <rect x="230" y="220" width="60" height="25" rx="4" fill="#10b981"/>
+  <text x="250" y="235" font-family="Inter, sans-serif" font-size="10" fill="#ffffff" font-weight="500">9:00 AM</text>
+  
+  <rect x="300" y="220" width="60" height="25" rx="4" fill="#ffffff" stroke="#e2e8f0"/>
+  <text x="318" y="235" font-family="Inter, sans-serif" font-size="10" fill="#64748b">11:00 AM</text>
+  
+  <rect x="230" y="250" width="60" height="25" rx="4" fill="#ffffff" stroke="#e2e8f0"/>
+  <text x="250" y="265" font-family="Inter, sans-serif" font-size="10" fill="#64748b">2:00 PM</text>
+  
+  <rect x="300" y="250" width="60" height="25" rx="4" fill="#ffffff" stroke="#e2e8f0"/>
+  <text x="320" y="265" font-family="Inter, sans-serif" font-size="10" fill="#64748b">4:00 PM</text>
+  
+  <!-- Book Button -->
+  <rect x="280" y="280" width="100" height="35" rx="8" fill="#6366f1"/>
+  <text x="315" y="300" font-family="Inter, sans-serif" font-size="12" fill="#ffffff" font-weight="600">Book Now</text>
+  
+  <!-- Floating Success Message -->
+  <rect x="50" y="30" width="120" height="30" rx="6" fill="#10b981" filter="drop-shadow(0 4px 6px rgba(0,0,0,0.1))"/>
+  <text x="60" y="48" font-family="Inter, sans-serif" font-size="10" fill="#ffffff" font-weight="500">✓ Booking Confirmed!</text>
+</svg>

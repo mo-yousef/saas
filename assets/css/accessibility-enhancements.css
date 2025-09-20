@@ -1,0 +1,220 @@
+/*
+ * Accessibility Enhancements
+ * Additional styles for keyboard navigation and screen readers
+ */
+
+/* === KEYBOARD NAVIGATION === */
+.keyboard-navigation *:focus {
+    outline: 2px solid var(--color-primary) !important;
+    outline-offset: 2px !important;
+}
+
+.keyboard-navigation .btn:focus {
+    outline: 2px solid var(--color-white) !important;
+    outline-offset: 2px !important;
+    box-shadow: 0 0 0 4px var(--color-primary) !important;
+}
+
+/* === SCREEN READER ONLY === */
+.sr-only {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+}
+
+/* === SKIP LINKS === */
+.skip-to-content {
+    position: absolute;
+    top: -40px;
+    left: 6px;
+    background: var(--color-gray-900);
+    color: var(--color-white);
+    padding: var(--space-2) var(--space-4);
+    text-decoration: none;
+    border-radius: var(--radius-md);
+    z-index: var(--z-tooltip);
+    transition: var(--transition-fast);
+    font-weight: var(--font-weight-medium);
+}
+
+.skip-to-content:focus {
+    top: 6px;
+}
+
+/* === HIGH CONTRAST MODE === */
+@media (prefers-contrast: high) {
+
+    .hero-badge,
+    .section-badge,
+    .feature-badge {
+        border: 2px solid currentColor !important;
+    }
+
+    .btn {
+        border: 2px solid currentColor !important;
+    }
+
+    .card,
+    .trust-card,
+    .feature-card,
+    .feature-card-large {
+        border: 2px solid var(--color-gray-600) !important;
+    }
+}
+
+/* === REDUCED MOTION === */
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+
+    .gradient-text {
+        color: var(--color-primary) !important;
+        animation: none !important;
+    }
+
+    .floating-cards .booking-card,
+    .floating-cards .revenue-card {
+        animation: none !important;
+    }
+}
+
+/* === FOCUS MANAGEMENT === */
+.modal-open {
+    overflow: hidden;
+}
+
+.modal-open .modal {
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+/* === ARIA LIVE REGIONS === */
+#page-announcer {
+    position: absolute;
+    left: -10000px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+}
+
+/* === TOUCH TARGETS === */
+@media (pointer: coarse) {
+
+    .btn,
+    .nav-link,
+    .mobile-nav-link,
+    .feature-card,
+    .trust-card {
+        min-height: 44px;
+        min-width: 44px;
+    }
+
+    .mobile-menu-toggle {
+        min-height: 44px;
+        min-width: 44px;
+    }
+}
+
+/* === COLOR CONTRAST IMPROVEMENTS === */
+.text-muted {
+    color: var(--color-gray-600) !important;
+}
+
+.hero-description,
+.section-description {
+    color: var(--color-gray-700);
+}
+
+/* === PRINT STYLES === */
+@media print {
+
+    .skip-to-content,
+    .mobile-menu-toggle,
+    .mobile-menu,
+    .mobile-menu-overlay,
+    .floating-cards {
+        display: none !important;
+    }
+
+    .hero-section,
+    .trust-section,
+    .features-section {
+        background: none !important;
+        box-shadow: none !important;
+    }
+
+    .gradient-text {
+        color: var(--color-gray-900) !important;
+    }
+
+    .btn {
+        border: 1px solid var(--color-gray-600) !important;
+        background: none !important;
+        color: var(--color-gray-900) !important;
+    }
+}
+
+/* === ERROR STATES === */
+.error-boundary {
+    padding: var(--space-8);
+    text-align: center;
+    background: var(--color-gray-50);
+    border: 1px solid var(--color-gray-200);
+    border-radius: var(--radius-lg);
+    margin: var(--space-4) 0;
+}
+
+.error-boundary h3 {
+    color: var(--color-error);
+    margin-bottom: var(--space-4);
+}
+
+.error-boundary p {
+    color: var(--color-gray-600);
+    margin-bottom: var(--space-4);
+}
+
+/* === LOADING STATES === */
+.loading-skeleton {
+    background: var(--color-gray-200);
+    border-radius: var(--radius-base);
+}
+
+@keyframes loading {
+    0% {
+        background-position: 200% 0;
+    }
+
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+/* === RESPONSIVE TEXT === */
+@media (max-width: 479px) {
+    .hero-title {
+        font-size: var(--font-size-3xl) !important;
+    }
+
+    .section-title {
+        font-size: var(--font-size-3xl) !important;
+    }
+
+    .hero-description,
+    .section-description {
+        font-size: var(--font-size-base) !important;
+    }
+}

@@ -524,6 +524,10 @@ if ( is_page_template('templates/booking-form-public.php') || $page_type_for_scr
             ]);
         }
 
+        if ( $current_page_slug === 'subscription' ) {
+            wp_enqueue_style('nordbooking-subscription-page', NORDBOOKING_THEME_URI . 'assets/css/subscription-page.css', array('nordbooking-dashboard-main'), NORDBOOKING_VERSION);
+        }
+
         if ( $current_page_slug === 'workers' ) {
             wp_enqueue_script( 'nordbooking-dashboard-workers', NORDBOOKING_THEME_URI . 'assets/js/dashboard-workers.js', array( 'jquery', 'nordbooking-dialog' ), NORDBOOKING_VERSION, true );
             wp_localize_script( 'nordbooking-dashboard-workers', 'nordbooking_workers_params', array(
@@ -576,7 +580,7 @@ if ( is_page_template('templates/booking-form-public.php') || $page_type_for_scr
             }
 
             if ($current_page_slug === 'customer-details') {
-                wp_enqueue_script('nordbooking-dashboard-customer-details', NORDBOOKING_THEME_URI . 'assets/js/dashboard-customer-details.js', array('jquery'), NORDBOOKING_VERSION, true);
+                wp_enqueue_script('nordbooking-dashboard-customer-details', NORDBOOKING_THEME_URI . 'assets/js/dashboard-customer-details.js', array('jquery', 'nordbooking-dialog'), NORDBOOKING_VERSION, true);
                 wp_localize_script('nordbooking-dashboard-customer-details', 'nordbooking_customers_params', $customer_params);
             }
         }
