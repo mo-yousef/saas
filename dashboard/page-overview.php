@@ -166,35 +166,68 @@ $currency_symbol = get_option('nordbooking_currency_symbol', '$');
 
         <!-- Worker-specific content will go here -->
         <?php
-        // Get worker-specific data
+        // Define current month date range for worker queries
+        $current_month_start = date('Y-m-01');
+        $current_month_end = date('Y-m-t');
+        
+        // Get worker-specific data - upcoming bookings assigned to this worker
+        $worker_upcoming_count = $wpdb->get_var($wpdb->prepare(
+            "SELECT COUNT(*) FROM $bookings_table WHERE assigned_staff_id = %d AND status IN ('confirmed', 'pending') AND booking_date >= CURDATE()",
+            $current_user_id
+        ));
+        
+        // Get worker-specific data - completed jobs this month
         $worker_completed_jobs_month = $wpdb->get_var($wpdb->prepare(
             "SELECT COUNT(*) FROM $bookings_table WHERE assigned_staff_id = %d AND status = 'completed' AND booking_date BETWEEN %s AND %s",
             $current_user_id, $current_month_start, $current_month_end
         ));
         ?>
+        <!-- KPI Widgets -->
         <div class="kpi-grid">
-            <div class="kpi-card">
-                <div class="kpi-header">
-                    <div class="kpi-title"><?php esc_html_e('Your Upcoming Bookings', 'NORDBOOKING'); ?></div>
-                    <div class="kpi-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg></div>
+            <div class="nordbooking-card">
+                <div class="nordbooking-card-header">
+                    <div class="nordbooking-card-title-group">
+                        <span class="nordbooking-card-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg></span>
+                        <h3 class="nordbooking-card-title"><?php esc_html_e('Your Upcoming Bookings', 'NORDBOOKING'); ?></h3>
+                    </div>
                 </div>
-                <div class="kpi-value"><?php echo esc_html($upcoming_count); ?></div>
+                <div class="nordbooking-card-content">
+                    <div class="card-content-value text-2xl font-bold"><?php echo esc_html($worker_upcoming_count); ?></div>
+                    <p class="text-xs text-muted-foreground">
+                        <?php esc_html_e('Assigned to you', 'NORDBOOKING'); ?>
+                    </p>
+                </div>
             </div>
-            <div class="kpi-card">
-                <div class="kpi-header">
-                    <div class="kpi-title"><?php esc_html_e('Your Completed Jobs (This Month)', 'NORDBOOKING'); ?></div>
-                    <div class="kpi-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg></div>
+
+            <div class="nordbooking-card">
+                <div class="nordbooking-card-header">
+                    <div class="nordbooking-card-title-group">
+                        <span class="nordbooking-card-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg></span>
+                        <h3 class="nordbooking-card-title"><?php esc_html_e('Completed Jobs (This Month)', 'NORDBOOKING'); ?></h3>
+                    </div>
                 </div>
-                <div class="kpi-value"><?php echo esc_html($worker_completed_jobs_month); ?></div>
+                <div class="nordbooking-card-content">
+                    <div class="card-content-value text-2xl font-bold"><?php echo esc_html($worker_completed_jobs_month); ?></div>
+                    <p class="text-xs text-muted-foreground">
+                        <?php esc_html_e('Jobs you completed', 'NORDBOOKING'); ?>
+                    </p>
+                </div>
             </div>
         </div>
 
+        <!-- Main Content Grid -->
         <div class="content-grid">
-            <div class="content-card">
-                <h2 class="card-title">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>
-                    <?php esc_html_e('Your Upcoming Assigned Bookings', 'NORDBOOKING'); ?>
-                </h2>
+            <div class="nordbooking-card">
+                <div class="nordbooking-card-header">
+                    <div class="nordbooking-card-title-group">
+                        <span class="nordbooking-card-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg></span>
+                        <h3 class="nordbooking-card-title"><?php esc_html_e('Your Upcoming Assigned Bookings', 'NORDBOOKING'); ?></h3>
+                    </div>
+                    <div class="nordbooking-card-actions">
+                        <a href="<?php echo esc_url(home_url('/dashboard/my-assigned-bookings/')); ?>" class="btn btn-sm"><?php esc_html_e('View All', 'NORDBOOKING'); ?></a>
+                    </div>
+                </div>
+                <div class="nordbooking-card-content">
                 <?php
                 $upcoming_bookings = $bookings_manager->get_bookings_by_tenant($current_user_id, [
                     'limit' => 5,
@@ -219,17 +252,13 @@ $currency_symbol = get_option('nordbooking_currency_symbol', '$');
                             </div>
                         </div>
                     <?php endforeach; ?>
-                    <div style="margin-top: 1rem; text-align: center;">
-                        <a href="<?php echo esc_url(home_url('/dashboard/my-assigned-bookings/')); ?>" style="color: hsl(var(--primary)); text-decoration: none; font-weight: 500;">
-                            <?php esc_html_e('View All Your Bookings', 'NORDBOOKING'); ?> →
-                        </a>
-                    </div>
                 <?php else : ?>
                     <div class="empty-state">
                         <div class="empty-state-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"></polyline><rect x="2" y="7" width="20" height="5"></rect><line x1="12" y1="22" x2="12" y2="7"></line><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"></path><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"></path></svg></div>
                         <div><?php esc_html_e('No upcoming bookings assigned to you. Enjoy the break!', 'NORDBOOKING'); ?></div>
                     </div>
                 <?php endif; ?>
+                </div>
             </div>
         </div>
 
@@ -315,8 +344,10 @@ $currency_symbol = get_option('nordbooking_currency_symbol', '$');
 
         <!-- Main Content Grid -->
         <div class="content-grid">
+
+        <div>
             <!-- Service Performance Chart -->
-            <div class="nordbooking-card">
+            <div class="nordbooking-card card-bs">
                 <div class="nordbooking-card-header">
                     <div class="nordbooking-card-title-group">
                         <span class="nordbooking-card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-bar-chart-3"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg></span>
@@ -379,6 +410,7 @@ $currency_symbol = get_option('nordbooking_currency_symbol', '$');
                     <?php endif; ?>
                 </div>
             </div>
+            </div>
 
             <!-- Sidebar Content -->
             <div>
@@ -437,6 +469,7 @@ $currency_symbol = get_option('nordbooking_currency_symbol', '$');
                     </div>
                 </div>
             </div>
+
         </div>
     <?php endif; ?>
 </div>

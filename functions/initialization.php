@@ -179,9 +179,13 @@ if (class_exists('NORDBOOKING\Classes\Bookings') &&
 }
 
 
-// Register Admin Pages
+// Register Consolidated Admin Page
+if ( class_exists( 'NORDBOOKING\Classes\Admin\ConsolidatedAdminPage' ) ) {
+    new NORDBOOKING\Classes\Admin\ConsolidatedAdminPage();
+}
+
+// Keep user switching functionality from UserManagementPage
 if ( class_exists( 'NORDBOOKING\Classes\Admin\UserManagementPage' ) ) {
-    add_action( 'admin_menu', array( 'NORDBOOKING\Classes\Admin\UserManagementPage', 'register_page' ) );
     add_action( 'admin_init', array( 'NORDBOOKING\Classes\Admin\UserManagementPage', 'handle_user_switching' ) );
     add_action( 'admin_init', array( 'NORDBOOKING\Classes\Admin\UserManagementPage', 'handle_switch_back' ) );
     add_action( 'admin_bar_menu', array( 'NORDBOOKING\Classes\Admin\UserManagementPage', 'add_switch_back_link' ), 999 );
@@ -218,6 +222,14 @@ if (class_exists('NORDBOOKING\Classes\ServicePerformance')) {
     if (!isset($GLOBALS['nordbooking_service_performance'])) {
         $GLOBALS['nordbooking_service_performance'] = new \NORDBOOKING\Classes\ServicePerformance();
         error_log('NORDBOOKING: ServicePerformance class initialized successfully');
+    }
+}
+
+// Initialize Invoice Manager
+if (class_exists('NORDBOOKING\Classes\InvoiceManager')) {
+    if (!isset($GLOBALS['nordbooking_invoice_manager'])) {
+        $GLOBALS['nordbooking_invoice_manager'] = \NORDBOOKING\Classes\InvoiceManager::getInstance();
+        error_log('NORDBOOKING: InvoiceManager class initialized successfully');
     }
 }
 ?>

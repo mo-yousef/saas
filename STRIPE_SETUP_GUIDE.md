@@ -1,5 +1,8 @@
 # Stripe Integration Setup Guide
 
+> **Note**: This file has been moved to `docs/STRIPE_INTEGRATION.md` for better organization.
+> This file will be removed in a future update.
+
 ## Overview
 This guide will help you set up Stripe integration for the NORDBOOKING subscription system.
 

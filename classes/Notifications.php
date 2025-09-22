@@ -161,13 +161,21 @@ class Notifications {
         if ($tenant_user_id) {
             $tenant_info = get_userdata($tenant_user_id);
             if ($tenant_info) {
-                 $tenant_business_name_setting = get_user_meta($tenant_user_id, 'nordbooking_business_name', true);
-                 // Use business name setting, fallback to display name (if not login), then site name
-                 if (!empty($tenant_business_name_setting)) {
+                // Try to get business name from settings first
+                $settings_manager = new Settings();
+                $tenant_business_name_setting = $settings_manager->get_setting($tenant_user_id, 'biz_name', '');
+                
+                // Fallback to user meta if not in settings
+                if (empty($tenant_business_name_setting)) {
+                    $tenant_business_name_setting = get_user_meta($tenant_user_id, 'nordbooking_company_name', true);
+                }
+                
+                // Use business name setting, fallback to display name (if not login), then site name
+                if (!empty($tenant_business_name_setting)) {
                     $tenant_business_name = $tenant_business_name_setting;
-                 } elseif (!empty($tenant_info->display_name) && $tenant_info->display_name !== $tenant_info->user_login) {
+                } elseif (!empty($tenant_info->display_name) && $tenant_info->display_name !== $tenant_info->user_login) {
                     $tenant_business_name = $tenant_info->display_name;
-                 }
+                }
             }
         }
 
@@ -202,7 +210,26 @@ class Notifications {
             $body_content .= "<p>" . sprintf(__('Thank you for your booking with %s. Your booking (Ref: %s) is confirmed.', 'NORDBOOKING'), "<strong>{$tenant_business_name}</strong>", "<strong>{$ref}</strong>") . "</p>";
         }
 
-        $button_group = '<a href="#" class="btn btn-primary">' . __('View Booking', 'NORDBOOKING') . '</a>';
+        // Generate customer booking management link
+        $booking_management_link = '';
+        if (isset($booking_details['booking_id'])) {
+            $booking_management_link = \NORDBOOKING\Classes\Bookings::generate_customer_booking_link(
+                $booking_details['booking_id'], 
+                $customer_email
+            );
+        }
+
+        $button_group = '';
+        if (!empty($booking_management_link)) {
+            $button_group = '<a href="' . esc_url($booking_management_link) . '" class="btn btn-primary" style="display: inline-block; padding: 12px 24px; background-color: #007cba; color: white; text-decoration: none; border-radius: 6px; font-weight: 600; margin: 10px 5px;">' . __('Manage Your Booking', 'NORDBOOKING') . '</a>';
+            
+            // Add the management link to the body content as well
+            $body_content .= '<div style="margin: 20px 0; padding: 15px; background-color: #f8f9fa; border-radius: 8px; border-left: 4px solid #007cba;">';
+            $body_content .= '<h3 style="margin: 0 0 10px 0; color: #333;">' . __('Need to make changes?', 'NORDBOOKING') . '</h3>';
+            $body_content .= '<p style="margin: 0 0 15px 0; color: #666;">' . __('You can reschedule or cancel your booking anytime using the link below:', 'NORDBOOKING') . '</p>';
+            $body_content .= '<a href="' . esc_url($booking_management_link) . '" style="display: inline-block; padding: 10px 20px; background-color: #007cba; color: white; text-decoration: none; border-radius: 6px; font-weight: 600;">' . __('Manage Your Booking', 'NORDBOOKING') . '</a>';
+            $body_content .= '</div>';
+        }
 
         $replacements = [
             '%%SUBJECT%%'      => $subject,
@@ -560,13 +587,17 @@ class Notifications {
      * @return bool
      */
     public function send_invitation_email(string $worker_email, string $assigned_role, string $inviter_name, string $registration_link): bool {
-        $subject = sprintf(__('You have been invited to %s', 'NORDBOOKING'), get_bloginfo('name'));
+        // Get the business name from the inviter (current user)
+        $inviter_user_id = get_current_user_id();
+        $business_name = $this->get_business_name_for_user($inviter_user_id);
+        
+        $subject = sprintf(__('You have been invited to join %s', 'NORDBOOKING'), $business_name);
         $greeting = sprintf(__('Hi %s,', 'NORDBOOKING'), $worker_email);
 
         $role_display_name = ucfirst(str_replace('nordbooking_worker_', '', $assigned_role));
 
         $body_content = '<h2>' . __('You\'re Invited!', 'NORDBOOKING') . '</h2>';
-        $body_content .= '<p>' . sprintf(__('You have been invited to join %s as a %s by %s.', 'NORDBOOKING'), '<strong>' . get_bloginfo('name') . '</strong>', '<strong>' . $role_display_name . '</strong>', '<strong>' . $inviter_name . '</strong>') . '</p>';
+        $body_content .= '<p>' . sprintf(__('You have been invited to join %s as a %s by %s.', 'NORDBOOKING'), '<strong>' . $business_name . '</strong>', '<strong>' . $role_display_name . '</strong>', '<strong>' . $inviter_name . '</strong>') . '</p>';
         $body_content .= '<p>' . __('To accept this invitation and complete your registration, please click the button below. This link is valid for 7 days.', 'NORDBOOKING') . '</p>';
         $body_content .= '<p style="font-size: 12px; color: #718096;">' . __('If you were not expecting this invitation, please ignore this email.', 'NORDBOOKING') . '</p>';
 
@@ -582,6 +613,38 @@ class Notifications {
 
         $headers = $this->get_email_headers();
         return wp_mail($worker_email, $subject, $full_email_html, $headers);
+    }
+
+    /**
+     * Get business name for a user
+     * 
+     * @param int $user_id
+     * @return string
+     */
+    private function get_business_name_for_user($user_id) {
+        if (!$user_id) {
+            return get_bloginfo('name');
+        }
+        
+        // Try to get business name from settings first
+        $settings_manager = new Settings();
+        $business_name = $settings_manager->get_setting($user_id, 'biz_name', '');
+        
+        // Fallback to user meta if not in settings
+        if (empty($business_name)) {
+            $business_name = get_user_meta($user_id, 'nordbooking_company_name', true);
+        }
+        
+        // Fallback to user display name if not login
+        if (empty($business_name)) {
+            $user_info = get_userdata($user_id);
+            if ($user_info && !empty($user_info->display_name) && $user_info->display_name !== $user_info->user_login) {
+                $business_name = $user_info->display_name;
+            }
+        }
+        
+        // Final fallback to site name
+        return !empty($business_name) ? $business_name : get_bloginfo('name');
     }
 
     public function send_trial_expired_email($user_id) {

@@ -2,6 +2,26 @@
 
 This is a WordPress theme designed to provide booking and service management functionalities for businesses. It operates on a multi-tenant model where "Business Owners" can manage their own services, bookings, and customers.
 
+## Documentation Structure
+
+All documentation has been organized into the `/docs/` directory:
+
+- `docs/README.md` - Documentation overview and quick start
+- `docs/SYSTEM_OVERVIEW.md` - Complete system overview and architecture
+- `docs/INSTALLATION_GUIDE.md` - Installation and setup instructions
+- `docs/ADMIN_GUIDE.md` - Consolidated admin interface guide
+- `docs/SUBSCRIPTION_SYSTEM.md` - Subscription management documentation
+- `docs/STRIPE_INTEGRATION.md` - Stripe setup and configuration guide
+- `docs/DISCOUNT_SYSTEM.md` - Discount system implementation and usage
+- `docs/INVOICE_SYSTEM.md` - Invoice management system
+- `docs/WORKER_MANAGEMENT.md` - Worker invitation and management system
+- `docs/TROUBLESHOOTING.md` - Common issues and solutions
+- `docs/DEVELOPMENT_NOTES.md` - Development guidelines and technical notes
+
+Debug and test files have been moved to `/debug/` directory for better organization.
+
+**Quick Start**: Read `docs/SYSTEM_OVERVIEW.md` first, then follow `docs/INSTALLATION_GUIDE.md` for setup.
+
 ## Core Features
 
 - **Service Management:** Create and manage services with detailed options, pricing, and visuals.

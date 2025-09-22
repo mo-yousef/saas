@@ -151,7 +151,8 @@ class Services {
             'image_url' => '',
             'status' => 'active',
             'disable_pet_question' => 0,
-            'disable_frequency_option' => 0
+            'disable_frequency_option' => 0,
+            'disable_discount_code' => 0
         );
         $service_data = wp_parse_args($data, $defaults);
 
@@ -170,6 +171,7 @@ class Services {
                 'status' => sanitize_text_field($service_data['status']),
                 'disable_pet_question' => intval($service_data['disable_pet_question']),
                 'disable_frequency_option' => intval($service_data['disable_frequency_option']),
+                'disable_discount_code' => intval($service_data['disable_discount_code']),
                 'created_at' => current_time('mysql', 1), // GMT
                 'updated_at' => current_time('mysql', 1), // GMT
             ),
@@ -351,6 +353,7 @@ class Services {
         if (isset($data['status'])) { $update_data['status'] = sanitize_text_field($data['status']); $update_formats[] = '%s'; }
 		if (isset($data['disable_pet_question'])) { $update_data['disable_pet_question'] = intval($data['disable_pet_question']); $update_formats[] = '%d'; }
 		if (isset($data['disable_frequency_option'])) { $update_data['disable_frequency_option'] = intval($data['disable_frequency_option']); $update_formats[] = '%d'; }
+		if (isset($data['disable_discount_code'])) { $update_data['disable_discount_code'] = intval($data['disable_discount_code']); $update_formats[] = '%d'; }
 
         if (empty($update_data)) {
             // If only 'category' was provided, $update_data might be empty now.
@@ -1201,6 +1204,7 @@ class Services {
                 'status' => sanitize_text_field(isset($_POST['status']) ? $_POST['status'] : 'active'),
                 'disable_pet_question' => isset($_POST['disable_pet_question']) && '1' === $_POST['disable_pet_question'] ? 1 : 0,
                 'disable_frequency_option' => isset($_POST['disable_frequency_option']) && '1' === $_POST['disable_frequency_option'] ? 1 : 0,
+                'disable_discount_code' => isset($_POST['disable_discount_code']) && '1' === $_POST['disable_discount_code'] ? 1 : 0,
             ];
         error_log('[NORDBOOKING SaveSvc Debug] Data for add/update_service (with nulls for empty optionals): ' . print_r($data_for_service_method, true));
  

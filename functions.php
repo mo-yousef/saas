@@ -343,6 +343,402 @@ function nordbooking_initialize_managers() {
 // Hook to initialize managers early
 add_action('init', 'nordbooking_initialize_managers', 1);
 
+// Register AJAX handlers after managers are initialized
+add_action('init', function() {
+    if (isset($GLOBALS['nordbooking_bookings_manager'])) {
+        $GLOBALS['nordbooking_bookings_manager']->register_ajax_actions();
+    }
+    
+    // Register Availability AJAX handlers
+    if (class_exists('NORDBOOKING\Classes\Availability')) {
+        $availability_manager = new \NORDBOOKING\Classes\Availability();
+        $availability_manager->register_ajax_actions();
+    }
+}, 2);
+
+// Temporary debug AJAX handler for customer booking management
+add_action('wp_ajax_nopriv_nordbooking_reschedule_booking', 'nordbooking_debug_reschedule_handler');
+add_action('wp_ajax_nordbooking_reschedule_booking', 'nordbooking_debug_reschedule_handler');
+
+function nordbooking_debug_reschedule_handler() {
+    // Enable error logging
+    error_log('NORDBOOKING DEBUG: Reschedule AJAX handler called');
+    error_log('NORDBOOKING DEBUG: POST data: ' . print_r($_POST, true));
+    
+    try {
+        // Verify nonce
+        if (!wp_verify_nonce($_POST['nonce'], 'nordbooking_customer_booking_management')) {
+            error_log('NORDBOOKING DEBUG: Nonce verification failed');
+            wp_send_json_error(['message' => 'Security check failed.']);
+            return;
+        }
+        
+        $booking_token = sanitize_text_field($_POST['booking_token'] ?? '');
+        $booking_id = intval($_POST['booking_id'] ?? 0);
+        $new_date = sanitize_text_field($_POST['new_date'] ?? '');
+        $new_time = sanitize_text_field($_POST['new_time'] ?? '');
+        $reschedule_reason = sanitize_textarea_field($_POST['reschedule_reason'] ?? '');
+        
+        error_log("NORDBOOKING DEBUG: Parsed data - ID: $booking_id, Date: $new_date, Time: $new_time");
+        
+        if (empty($booking_token) || empty($booking_id) || empty($new_date) || empty($new_time)) {
+            error_log('NORDBOOKING DEBUG: Missing required information');
+            wp_send_json_error(['message' => 'Missing required information.']);
+            return;
+        }
+        
+        // Get booking from database
+        global $wpdb;
+        $bookings_table = \NORDBOOKING\Classes\Database::get_table_name('bookings');
+        
+        $booking = $wpdb->get_row($wpdb->prepare(
+            "SELECT * FROM $bookings_table WHERE booking_id = %d AND status IN ('pending', 'confirmed')",
+            $booking_id
+        ));
+        
+        if (!$booking) {
+            error_log('NORDBOOKING DEBUG: Booking not found');
+            wp_send_json_error(['message' => 'Booking not found.']);
+            return;
+        }
+        
+        // Verify token
+        $expected_token = hash('sha256', $booking->booking_id . $booking->customer_email . wp_salt());
+        if (!hash_equals($expected_token, $booking_token)) {
+            error_log('NORDBOOKING DEBUG: Token verification failed');
+            wp_send_json_error(['message' => 'Invalid token.']);
+            return;
+        }
+        
+        // Validate date and time
+        $date_obj = DateTime::createFromFormat('Y-m-d', $new_date);
+        $time_obj = DateTime::createFromFormat('H:i', $new_time);
+        
+        if (!$date_obj || !$time_obj) {
+            error_log('NORDBOOKING DEBUG: Invalid date/time format');
+            wp_send_json_error(['message' => 'Invalid date or time format.']);
+            return;
+        }
+        
+        // Check if new date/time is not in the past
+        $new_datetime = DateTime::createFromFormat('Y-m-d H:i', $new_date . ' ' . $new_time);
+        $now = new DateTime();
+        if ($new_datetime < $now) {
+            error_log('NORDBOOKING DEBUG: Date is in the past');
+            wp_send_json_error(['message' => 'New booking date and time cannot be in the past.']);
+            return;
+        }
+        
+        // Update the booking
+        $update_result = $wpdb->update(
+            $bookings_table,
+            [
+                'booking_date' => $new_date,
+                'booking_time' => $new_time,
+                'updated_at' => current_time('mysql')
+            ],
+            ['booking_id' => $booking_id],
+            ['%s', '%s', '%s'],
+            ['%d']
+        );
+        
+        if ($update_result === false) {
+            error_log('NORDBOOKING DEBUG: Database update failed: ' . $wpdb->last_error);
+            wp_send_json_error(['message' => 'Failed to update booking. Please try again.']);
+            return;
+        }
+        
+        error_log("NORDBOOKING DEBUG: Booking updated successfully");
+        
+        wp_send_json_success([
+            'message' => 'Your booking has been successfully rescheduled.',
+            'new_date' => $new_date,
+            'new_time' => $new_time,
+            'new_date_formatted' => date('F j, Y', strtotime($new_date)),
+            'new_time_formatted' => date('g:i A', strtotime($new_time))
+        ]);
+        
+    } catch (Exception $e) {
+        error_log('NORDBOOKING DEBUG: Exception caught: ' . $e->getMessage());
+        wp_send_json_error(['message' => 'An error occurred: ' . $e->getMessage()]);
+    }
+}
+
+// Temporary debug AJAX handler for booking cancellation
+add_action('wp_ajax_nopriv_nordbooking_cancel_booking', 'nordbooking_debug_cancel_handler');
+add_action('wp_ajax_nordbooking_cancel_booking', 'nordbooking_debug_cancel_handler');
+
+function nordbooking_debug_cancel_handler() {
+    error_log('NORDBOOKING DEBUG: Cancel AJAX handler called');
+    
+    try {
+        // Verify nonce
+        if (!wp_verify_nonce($_POST['nonce'], 'nordbooking_customer_booking_management')) {
+            wp_send_json_error(['message' => 'Security check failed.']);
+            return;
+        }
+        
+        $booking_token = sanitize_text_field($_POST['booking_token'] ?? '');
+        $booking_id = intval($_POST['booking_id'] ?? 0);
+        $cancel_reason = sanitize_textarea_field($_POST['cancel_reason'] ?? '');
+        
+        if (empty($booking_token) || empty($booking_id)) {
+            wp_send_json_error(['message' => 'Missing required information.']);
+            return;
+        }
+        
+        // Get booking from database
+        global $wpdb;
+        $bookings_table = \NORDBOOKING\Classes\Database::get_table_name('bookings');
+        
+        $booking = $wpdb->get_row($wpdb->prepare(
+            "SELECT * FROM $bookings_table WHERE booking_id = %d AND status IN ('pending', 'confirmed')",
+            $booking_id
+        ));
+        
+        if (!$booking) {
+            wp_send_json_error(['message' => 'Booking not found.']);
+            return;
+        }
+        
+        // Verify token
+        $expected_token = hash('sha256', $booking->booking_id . $booking->customer_email . wp_salt());
+        if (!hash_equals($expected_token, $booking_token)) {
+            wp_send_json_error(['message' => 'Invalid token.']);
+            return;
+        }
+        
+        // Update booking status to cancelled
+        $update_result = $wpdb->update(
+            $bookings_table,
+            [
+                'status' => 'cancelled',
+                'updated_at' => current_time('mysql')
+            ],
+            ['booking_id' => $booking_id],
+            ['%s', '%s'],
+            ['%d']
+        );
+        
+        if ($update_result === false) {
+            wp_send_json_error(['message' => 'Failed to cancel booking. Please try again.']);
+            return;
+        }
+        
+        error_log("NORDBOOKING DEBUG: Booking cancelled successfully");
+        
+        wp_send_json_success([
+            'message' => 'Your booking has been cancelled.'
+        ]);
+        
+    } catch (Exception $e) {
+        error_log('NORDBOOKING DEBUG: Cancel exception: ' . $e->getMessage());
+        wp_send_json_error(['message' => 'An error occurred: ' . $e->getMessage()]);
+    }
+}
+
+// Simple fallback AJAX handler for time slots (highest priority to override any issues)
+add_action('wp_ajax_nopriv_nordbooking_get_available_time_slots', 'nordbooking_simple_time_slots_handler', 1);
+add_action('wp_ajax_nordbooking_get_available_time_slots', 'nordbooking_simple_time_slots_handler', 1);
+
+function nordbooking_simple_time_slots_handler() {
+    // Prevent any output before JSON
+    ob_clean();
+    
+    // Set JSON header
+    header('Content-Type: application/json');
+    
+    try {
+        error_log('NORDBOOKING SIMPLE: Time slots handler called');
+        
+        $tenant_id = intval($_POST['tenant_id'] ?? 0);
+        $date = sanitize_text_field($_POST['date'] ?? '');
+        
+        error_log("NORDBOOKING SIMPLE: tenant_id=$tenant_id, date=$date");
+        
+        if (empty($tenant_id) || empty($date)) {
+            echo json_encode([
+                'success' => false,
+                'data' => ['message' => 'Missing required parameters.']
+            ]);
+            wp_die();
+        }
+        
+        // Try to get real availability data first
+        $time_slots = nordbooking_get_real_availability($tenant_id, $date);
+        
+        // If no real availability found, use fallback
+        if (empty($time_slots)) {
+            error_log('NORDBOOKING SIMPLE: No real availability found, using fallback');
+            $time_slots = nordbooking_get_fallback_time_slots();
+            $source = 'fallback';
+        } else {
+            error_log('NORDBOOKING SIMPLE: Using real availability data');
+            $source = 'database';
+        }
+        
+        error_log('NORDBOOKING SIMPLE: Generated ' . count($time_slots) . ' time slots');
+        
+        echo json_encode([
+            'success' => true,
+            'data' => [
+                'date' => $date,
+                'time_slots' => $time_slots,
+                'source' => $source
+            ]
+        ]);
+        
+    } catch (Exception $e) {
+        error_log('NORDBOOKING SIMPLE: Exception: ' . $e->getMessage());
+        echo json_encode([
+            'success' => false,
+            'data' => ['message' => 'Error: ' . $e->getMessage()]
+        ]);
+    }
+    
+    wp_die();
+}
+
+function nordbooking_get_real_availability($tenant_id, $date) {
+    global $wpdb;
+    
+    try {
+        // Check if availability tables exist
+        $availability_table = \NORDBOOKING\Classes\Database::get_table_name('availability_rules');
+        $table_exists = $wpdb->get_var("SHOW TABLES LIKE '$availability_table'") == $availability_table;
+        
+        if (!$table_exists) {
+            error_log('NORDBOOKING: Availability table does not exist');
+            return [];
+        }
+        
+        // Validate date and get day of week
+        $date_obj = DateTime::createFromFormat('Y-m-d', $date);
+        if (!$date_obj) {
+            error_log('NORDBOOKING: Invalid date format: ' . $date);
+            return [];
+        }
+        
+        $day_of_week = $date_obj->format('w'); // 0 = Sunday, 1 = Monday, etc.
+        error_log("NORDBOOKING: Looking for availability on day $day_of_week for tenant $tenant_id");
+        
+        // Get availability rules for this day
+        $availability_rules = $wpdb->get_results(
+            $wpdb->prepare(
+                "SELECT start_time, end_time FROM $availability_table 
+                 WHERE user_id = %d AND day_of_week = %d AND is_active = 1 
+                 ORDER BY start_time ASC",
+                $tenant_id,
+                $day_of_week
+            ),
+            ARRAY_A
+        );
+        
+        if ($wpdb->last_error) {
+            error_log('NORDBOOKING: Database error: ' . $wpdb->last_error);
+            return [];
+        }
+        
+        error_log('NORDBOOKING: Found ' . count($availability_rules) . ' availability rules');
+        
+        if (empty($availability_rules)) {
+            return [];
+        }
+        
+        // Generate time slots based on availability rules
+        $time_slots = [];
+        $bookings_table = \NORDBOOKING\Classes\Database::get_table_name('bookings');
+        
+        foreach ($availability_rules as $rule) {
+            $start_time = $rule['start_time'];
+            $end_time = $rule['end_time'];
+            
+            // Parse times (handle both H:i and H:i:s formats)
+            $start_parts = explode(':', $start_time);
+            $end_parts = explode(':', $end_time);
+            
+            $start_hour = intval($start_parts[0]);
+            $start_minute = intval($start_parts[1]);
+            $end_hour = intval($end_parts[0]);
+            $end_minute = intval($end_parts[1]);
+            
+            // Generate 30-minute slots
+            $current_hour = $start_hour;
+            $current_minute = $start_minute;
+            
+            while (($current_hour < $end_hour) || ($current_hour == $end_hour && $current_minute < $end_minute)) {
+                $time_24 = sprintf('%02d:%02d', $current_hour, $current_minute);
+                
+                // Check if this slot is already booked
+                $is_booked = $wpdb->get_var(
+                    $wpdb->prepare(
+                        "SELECT booking_id FROM $bookings_table 
+                         WHERE user_id = %d AND booking_date = %s AND booking_time = %s 
+                         AND status IN ('pending', 'confirmed') 
+                         LIMIT 1",
+                        $tenant_id,
+                        $date,
+                        $time_24 . ':00'
+                    )
+                );
+                
+                if (!$is_booked) {
+                    // Format time for display
+                    $am_pm = $current_hour >= 12 ? 'PM' : 'AM';
+                    $display_hour = $current_hour > 12 ? $current_hour - 12 : ($current_hour == 0 ? 12 : $current_hour);
+                    $time_12 = sprintf('%d:%02d %s', $display_hour, $current_minute, $am_pm);
+                    
+                    $time_slots[] = [
+                        'time' => $time_24,
+                        'display' => $time_12,
+                        'available' => true
+                    ];
+                }
+                
+                // Add 30 minutes
+                $current_minute += 30;
+                if ($current_minute >= 60) {
+                    $current_minute = 0;
+                    $current_hour++;
+                }
+            }
+        }
+        
+        error_log('NORDBOOKING: Generated ' . count($time_slots) . ' real availability slots');
+        return $time_slots;
+        
+    } catch (Exception $e) {
+        error_log('NORDBOOKING: Exception in get_real_availability: ' . $e->getMessage());
+        return [];
+    }
+}
+
+function nordbooking_get_fallback_time_slots() {
+    $time_slots = [];
+    
+    // Generate standard business hours (9 AM to 5 PM, 30-minute intervals)
+    for ($hour = 9; $hour <= 17; $hour++) {
+        for ($minute = 0; $minute < 60; $minute += 30) {
+            if ($hour === 17 && $minute > 0) break; // Stop at 5:00 PM
+            
+            $time_24 = sprintf('%02d:%02d', $hour, $minute);
+            $am_pm = $hour >= 12 ? 'PM' : 'AM';
+            $hour_12 = $hour > 12 ? $hour - 12 : ($hour == 0 ? 12 : $hour);
+            $time_12 = sprintf('%d:%02d %s', $hour_12, $minute, $am_pm);
+            
+            $time_slots[] = [
+                'time' => $time_24,
+                'display' => $time_12,
+                'available' => true
+            ];
+        }
+    }
+    
+    return $time_slots;
+}
+
+// Removed complex debug handler to prevent conflicts
+
 
 // =============================================================================
 // BOOKING FORM AJAX HANDLERS & FIXES
@@ -536,6 +932,34 @@ function nordbooking_enhanced_create_booking_handler() {
             return;
         }
 
+        // 8.5. Process Discount Code
+        $discount_amount = 0;
+        $discount_id = null;
+        $discount_code = sanitize_text_field($_POST['discount_code'] ?? '');
+        
+        if (!empty($discount_code)) {
+            $discounts_manager = $GLOBALS['nordbooking_discounts_manager'] ?? null;
+            if ($discounts_manager) {
+                $discount_validation = $discounts_manager->validate_discount($discount_code, $tenant_id);
+                if (!is_wp_error($discount_validation)) {
+                    $discount_id = $discount_validation['discount_id'];
+                    
+                    if ($discount_validation['type'] === 'percentage') {
+                        $discount_amount = ($total_amount * floatval($discount_validation['value'])) / 100;
+                    } elseif ($discount_validation['type'] === 'fixed_amount') {
+                        $discount_amount = min(floatval($discount_validation['value']), $total_amount);
+                    }
+                    
+                    $total_amount = max(0, $total_amount - $discount_amount);
+                    
+                    // Increment discount usage
+                    $discounts_manager->increment_discount_usage($discount_id);
+                    
+                    error_log("NORDBOOKING Enhanced Handler - Discount applied: {$discount_code}, Amount: {$discount_amount}");
+                }
+            }
+        }
+
         // 9. Create Booking Record
         error_log('NORDBOOKING Enhanced Handler - Creating booking record...');
         $booking_reference = 'MB-' . date('Ymd') . '-' . rand(1000, 9999);
@@ -546,16 +970,19 @@ function nordbooking_enhanced_create_booking_handler() {
             'customer_name' => sanitize_text_field($customer_details['name']),
             'customer_email' => sanitize_email($customer_details['email']),
             'customer_phone' => sanitize_text_field($customer_details['phone']),
-            'customer_address' => sanitize_textarea_field($customer_details['address'] ?? ''),
+            'service_address' => sanitize_textarea_field($customer_details['address'] ?? ''),
             'booking_date' => sanitize_text_field($customer_details['date']),
             'booking_time' => sanitize_text_field($customer_details['time']),
-            'total_amount' => $total_amount,
+            'total_price' => $total_amount,
+            'discount_id' => $discount_id,
+            'discount_amount' => $discount_amount,
             'status' => 'pending',
             'special_instructions' => sanitize_textarea_field($customer_details['instructions'] ?? ''),
             'service_frequency' => $service_frequency,
-            'selected_services' => wp_json_encode($valid_services),
-            'pet_information' => wp_json_encode($pet_information ?: []),
-            'property_access' => wp_json_encode($property_access ?: []),
+            'has_pets' => !empty($pet_information['has_pets']) ? 1 : 0,
+            'pet_details' => !empty($pet_information['details']) ? sanitize_textarea_field($pet_information['details']) : '',
+            'property_access_method' => !empty($property_access['method']) ? sanitize_text_field($property_access['method']) : '',
+            'property_access_details' => !empty($property_access['details']) ? sanitize_textarea_field($property_access['details']) : '',
             'created_at' => current_time('mysql'),
             'updated_at' => current_time('mysql')
         ];
@@ -565,7 +992,7 @@ function nordbooking_enhanced_create_booking_handler() {
             $booking_data,
             [
                 '%d', '%s', '%s', '%s', '%s', '%s', '%s', '%s',
-                '%f', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s'
+                '%f', '%d', '%f', '%s', '%s', '%s', '%d', '%s', '%s', '%s', '%s', '%s'
             ]
         );
 
@@ -590,7 +1017,7 @@ function nordbooking_enhanced_create_booking_handler() {
             'message' => 'Booking submitted successfully! We will contact you soon to confirm.',
             'booking_id' => $booking_id,
             'booking_reference' => $booking_reference,
-            'total_amount' => $total_amount,
+            'total_price' => $total_amount,
             'booking_data' => [
                 'booking_id' => $booking_id,
                 'booking_reference' => $booking_reference,
@@ -598,7 +1025,7 @@ function nordbooking_enhanced_create_booking_handler() {
                 'customer_email' => $customer_details['email'],
                 'booking_date' => $customer_details['date'],
                 'booking_time' => $customer_details['time'],
-                'total_amount' => $total_amount
+                'total_price' => $total_amount
             ]
         ]);
 
@@ -674,9 +1101,17 @@ function nordbooking_enhanced_send_emails($booking_id, $booking_data, $service_d
         $customer_body .= '<li><strong>Reference:</strong> ' . $booking_data['booking_reference'] . '</li>';
         $customer_body .= '<li><strong>Date:</strong> ' . $booking_data['booking_date'] . ' at ' . $booking_data['booking_time'] . '</li>';
         $customer_body .= '<li><strong>Services:</strong> ' . implode(', ', array_column($service_details, 'name')) . '</li>';
-        $customer_body .= '<li><strong>Total:</strong> $' . number_format($booking_data['total_amount'], 2) . '</li>';
+        $customer_body .= '<li><strong>Total:</strong> $' . number_format($booking_data['total_price'], 2) . '</li>';
         $customer_body .= '</ul>';
         $customer_body .= '<p>We will contact you soon to confirm your booking.</p>';
+        
+        // Add booking management link
+        $booking_management_link = \NORDBOOKING\Classes\Bookings::generate_customer_booking_link($booking_id, $booking_data['customer_email']);
+        $customer_body .= '<div style="margin: 20px 0; padding: 15px; background-color: #f8f9fa; border-radius: 8px; border-left: 4px solid #007cba;">';
+        $customer_body .= '<h3 style="margin: 0 0 10px 0; color: #333;">Need to make changes?</h3>';
+        $customer_body .= '<p style="margin: 0 0 15px 0; color: #666;">You can reschedule or cancel your booking anytime using the link below:</p>';
+        $customer_body .= '<a href="' . esc_url($booking_management_link) . '" style="display: inline-block; padding: 10px 20px; background-color: #007cba; color: white; text-decoration: none; border-radius: 6px; font-weight: 600;">Manage Your Booking</a>';
+        $customer_body .= '</div>';
 
         $customer_message = str_replace(
             ['%%SUBJECT%%', '%%GREETING%%', '%%BODY_CONTENT%%', '%%BUTTON_GROUP%%'],
@@ -697,7 +1132,7 @@ function nordbooking_enhanced_send_emails($booking_id, $booking_data, $service_d
             $admin_body .= '<li><strong>Customer:</strong> ' . $booking_data['customer_name'] . ' (' . $booking_data['customer_email'] . ')</li>';
             $admin_body .= '<li><strong>Date:</strong> ' . $booking_data['booking_date'] . ' at ' . $booking_data['booking_time'] . '</li>';
             $admin_body .= '<li><strong>Services:</strong> ' . implode(', ', array_column($service_details, 'name')) . '</li>';
-            $admin_body .= '<li><strong>Total:</strong> $' . number_format($booking_data['total_amount'], 2) . '</li>';
+            $admin_body .= '<li><strong>Total:</strong> $' . number_format($booking_data['total_price'], 2) . '</li>';
             $admin_body .= '</ul>';
 
             $admin_message = str_replace(
@@ -719,7 +1154,7 @@ function nordbooking_enhanced_send_emails($booking_id, $booking_data, $service_d
             $booking_data['booking_date'],
             $booking_data['booking_time'],
             implode(', ', array_column($service_details, 'name')),
-            $booking_data['total_amount'],
+            $booking_data['total_price'],
             $site_name
         );
         wp_mail($booking_data['customer_email'], $customer_subject, $customer_message);
@@ -734,7 +1169,7 @@ function nordbooking_enhanced_send_emails($booking_id, $booking_data, $service_d
                 $booking_data['booking_date'],
                 $booking_data['booking_time'],
                 implode(', ', array_column($service_details, 'name')),
-                $booking_data['total_amount']
+                $booking_data['total_price']
             );
             wp_mail($admin_email, $admin_subject, $admin_message);
         }
@@ -831,6 +1266,32 @@ function nordbooking_fixed_table_booking_handler() {
             return;
         }
 
+        // Process Discount Code
+        $discount_amount = 0;
+        $discount_id = null;
+        $discount_code = sanitize_text_field($_POST['discount_code'] ?? '');
+        
+        if (!empty($discount_code)) {
+            $discounts_manager = $GLOBALS['nordbooking_discounts_manager'] ?? null;
+            if ($discounts_manager) {
+                $discount_validation = $discounts_manager->validate_discount($discount_code, $tenant_id);
+                if (!is_wp_error($discount_validation)) {
+                    $discount_id = $discount_validation['discount_id'];
+                    
+                    if ($discount_validation['type'] === 'percentage') {
+                        $discount_amount = ($total_amount * floatval($discount_validation['value'])) / 100;
+                    } elseif ($discount_validation['type'] === 'fixed_amount') {
+                        $discount_amount = min(floatval($discount_validation['value']), $total_amount);
+                    }
+                    
+                    $total_amount = max(0, $total_amount - $discount_amount);
+                    
+                    // Increment discount usage
+                    $discounts_manager->increment_discount_usage($discount_id);
+                }
+            }
+        }
+
         // Prepare booking data to match actual table structure
         $booking_reference = 'MB-' . date('Ymd') . '-' . rand(1000, 9999);
         $bookings_table = $wpdb->prefix . 'nordbooking_bookings';
@@ -841,16 +1302,19 @@ function nordbooking_fixed_table_booking_handler() {
             'customer_name' => sanitize_text_field($customer_details['name']),
             'customer_email' => sanitize_email($customer_details['email']),
             'customer_phone' => sanitize_text_field($customer_details['phone']),
-            'customer_address' => sanitize_textarea_field($customer_details['address'] ?? ''),
+            'service_address' => sanitize_textarea_field($customer_details['address'] ?? ''),
             'booking_date' => sanitize_text_field($customer_details['date']),
             'booking_time' => sanitize_text_field($customer_details['time']),
-            'total_amount' => $total_amount,
+            'total_price' => $total_amount,
+            'discount_id' => $discount_id,
+            'discount_amount' => $discount_amount,
             'status' => 'pending',
             'special_instructions' => sanitize_textarea_field($customer_details['instructions'] ?? ''),
             'service_frequency' => $service_frequency,
-            'selected_services' => wp_json_encode($valid_services),
-            'pet_information' => wp_json_encode($pet_information ?: []),
-            'property_access' => wp_json_encode($property_access ?: []),
+            'has_pets' => !empty($pet_information['has_pets']) ? 1 : 0,
+            'pet_details' => !empty($pet_information['details']) ? sanitize_textarea_field($pet_information['details']) : '',
+            'property_access_method' => !empty($property_access['method']) ? sanitize_text_field($property_access['method']) : '',
+            'property_access_details' => !empty($property_access['details']) ? sanitize_textarea_field($property_access['details']) : '',
             'created_at' => current_time('mysql'),
             'updated_at' => current_time('mysql')
         ];
@@ -861,7 +1325,7 @@ function nordbooking_fixed_table_booking_handler() {
         $insert_result = $wpdb->insert(
             $bookings_table,
             $booking_data,
-            ['%d', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%f', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s']
+            ['%d', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%f', '%s', '%s', '%s', '%d', '%s', '%s', '%s', '%s', '%s']
         );
 
         if ($insert_result === false) {
@@ -886,7 +1350,7 @@ function nordbooking_fixed_table_booking_handler() {
             'message' => 'Booking submitted successfully!',
             'booking_id' => $booking_id,
             'booking_reference' => $booking_reference,
-            'total_amount' => $total_amount,
+            'total_price' => $total_amount,
             'booking_data' => [
                 'booking_id' => $booking_id,
                 'booking_reference' => $booking_reference,
@@ -894,7 +1358,7 @@ function nordbooking_fixed_table_booking_handler() {
                 'customer_email' => $customer_details['email'],
                 'booking_date' => $customer_details['date'],
                 'booking_time' => $customer_details['time'],
-                'total_amount' => $total_amount
+                'total_price' => $total_amount
             ]
         ]);
 
@@ -1009,6 +1473,32 @@ function nordbooking_corrected_column_booking_handler() {
             return;
         }
 
+        // Process Discount Code
+        $discount_amount = 0;
+        $discount_id = null;
+        $discount_code = sanitize_text_field($_POST['discount_code'] ?? '');
+        
+        if (!empty($discount_code)) {
+            $discounts_manager = $GLOBALS['nordbooking_discounts_manager'] ?? null;
+            if ($discounts_manager) {
+                $discount_validation = $discounts_manager->validate_discount($discount_code, $tenant_id);
+                if (!is_wp_error($discount_validation)) {
+                    $discount_id = $discount_validation['discount_id'];
+                    
+                    if ($discount_validation['type'] === 'percentage') {
+                        $discount_amount = ($total_amount * floatval($discount_validation['value'])) / 100;
+                    } elseif ($discount_validation['type'] === 'fixed_amount') {
+                        $discount_amount = min(floatval($discount_validation['value']), $total_amount);
+                    }
+                    
+                    $total_amount = max(0, $total_amount - $discount_amount);
+                    
+                    // Increment discount usage
+                    $discounts_manager->increment_discount_usage($discount_id);
+                }
+            }
+        }
+
         // Generate booking reference
         $booking_reference = 'MB-' . date('Ymd') . '-' . rand(1000, 9999);
         $bookings_table = $wpdb->prefix . 'nordbooking_bookings';
@@ -1023,7 +1513,9 @@ function nordbooking_corrected_column_booking_handler() {
             'service_address' => sanitize_textarea_field($customer_details['address'] ?? ''), // CORRECTED: service_address not customer_address
             'booking_date' => sanitize_text_field($customer_details['date']),
             'booking_time' => sanitize_text_field($customer_details['time']),
-            'total_amount' => $total_amount, // include options
+            'total_price' => $total_amount, // include options
+            'discount_id' => $discount_id,
+            'discount_amount' => $discount_amount,
             'status' => 'pending',
             'special_instructions' => sanitize_textarea_field($customer_details['instructions'] ?? ''),
             'service_frequency' => $service_frequency,
@@ -1043,7 +1535,7 @@ function nordbooking_corrected_column_booking_handler() {
             $booking_data,
             [
                 '%d', '%s', '%s', '%s', '%s', '%s', '%s', '%s',
-                '%f', '%s', '%s', '%s', '%d', '%s', '%s', '%s', '%s', '%s'
+                '%f', '%d', '%f', '%s', '%s', '%s', '%d', '%s', '%s', '%s', '%s', '%s'
             ]
         );
 
@@ -1116,12 +1608,16 @@ function nordbooking_corrected_column_booking_handler() {
             error_log('NORDBOOKING Corrected Handler - Email sending failed: ' . $e->getMessage());
         }
 
+        // Generate customer booking management link
+        $booking_management_link = \NORDBOOKING\Classes\Bookings::generate_customer_booking_link($booking_id, $customer_details['email']);
+
         // Success response
         wp_send_json_success([
             'message' => 'Booking submitted successfully! We will contact you soon to confirm.',
             'booking_id' => $booking_id,
             'booking_reference' => $booking_reference,
-            'total_amount' => $total_amount,
+            'total_price' => $total_amount,
+            'booking_management_link' => $booking_management_link,
             'booking_data' => [
                 'booking_id' => $booking_id,
                 'booking_reference' => $booking_reference,
@@ -1129,7 +1625,8 @@ function nordbooking_corrected_column_booking_handler() {
                 'customer_email' => $customer_details['email'],
                 'booking_date' => $customer_details['date'],
                 'booking_time' => $customer_details['time'],
-                'total_amount' => $total_amount
+                'total_price' => $total_amount,
+                'management_link' => $booking_management_link
             ]
         ]);
 
@@ -1626,7 +2123,8 @@ add_action( 'admin_enqueue_scripts', 'nordbooking_enqueue_admin_dashboard_assets
 // STRIPE SETTINGS INITIALIZATION
 
 if (is_admin()) {
-    new \NORDBOOKING\Classes\Admin\StripeSettingsPage();
+    // Stripe settings are now handled by ConsolidatedAdminPage
+    // new \NORDBOOKING\Classes\Admin\StripeSettingsPage();
     
     // Auto-initialize Stripe settings on first load
     add_action('admin_init', function() {

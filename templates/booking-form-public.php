@@ -401,6 +401,29 @@ $script_data = [
                 <div id="NORDBOOKING-summary-content">
                     <p><?php _e('Your selections will appear here.', 'NORDBOOKING'); ?></p>
                 </div>
+                
+                <!-- Discount Code Section -->
+                <div class="NORDBOOKING-discount-section" id="NORDBOOKING-discount-section" style="display: none;">
+                    <div class="NORDBOOKING-discount-header">
+                        <h4><?php _e('Discount Code', 'NORDBOOKING'); ?></h4>
+                    </div>
+                    <div class="NORDBOOKING-discount-input-group">
+                        <div class="NORDBOOKING-input-with-icon">
+                            <svg class="NORDBOOKING-discount-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 12c.552 0 1-.448 1-1V5c0-.552-.448-1-1-1H3c-.552 0-1 .448-1 1v6c0 .552.448 1 1 1h18z"/>
+                                <path d="M3 12v6c0 .552.448 1 1 1h16c.552 0 1-.448 1-1v-6"/>
+                                <path d="M12 8v8"/>
+                                <path d="M8 8v8"/>
+                                <path d="M16 8v8"/>
+                            </svg>
+                            <input type="text" id="NORDBOOKING-discount-code" class="NORDBOOKING-discount-input" placeholder="<?php esc_attr_e('Enter discount code', 'NORDBOOKING'); ?>" maxlength="50">
+                            <button type="button" id="NORDBOOKING-apply-discount" class="NORDBOOKING-apply-discount-btn">
+                                <?php _e('Apply', 'NORDBOOKING'); ?>
+                            </button>
+                        </div>
+                    </div>
+                    <div id="NORDBOOKING-discount-feedback" class="NORDBOOKING-discount-feedback"></div>
+                </div>
             </div>
         </div>
     </div>

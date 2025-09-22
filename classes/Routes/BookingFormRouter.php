@@ -59,6 +59,13 @@ class BookingFormRouter {
             'index.php?nordbooking_slug=$matches[1]&nordbooking_page_type=embed',
             'top'
         );
+
+        // Customer Booking Management Rule
+        add_rewrite_rule(
+            '^customer-booking-management/?$',
+            'index.php?nordbooking_page_type=customer_booking_management',
+            'top'
+        );
         
         error_log('[NORDBOOKING Router] Rewrite rules registered');
     }
@@ -100,6 +107,11 @@ class BookingFormRouter {
         // --- Match /dashboard/... ---
         else if (isset($path_segments[0]) && $path_segments[0] === 'dashboard') {
             return $this->handle_dashboard_route($path_segments, $theme_dir, $template, $request_path);
+        }
+
+        // --- Match /customer-booking-management ---
+        else if (isset($path_segments[0]) && $path_segments[0] === 'customer-booking-management') {
+            return $this->handle_customer_booking_management_route($theme_dir, $template);
         }
 
         // --- Default: Not a NORDBOOKING custom route ---
@@ -303,6 +315,32 @@ class BookingFormRouter {
         }
 
         return null;
+    }
+
+    /**
+     * Handle customer booking management route
+     */
+    private function handle_customer_booking_management_route($theme_dir, $template) {
+        error_log('[NORDBOOKING Router] Handling customer booking management route');
+        
+        set_query_var('nordbooking_page_type', 'customer_booking_management');
+        
+        $customer_booking_template = $theme_dir . 'page-customer-booking-management.php';
+        error_log('[NORDBOOKING Router] Checking template: ' . $customer_booking_template);
+        
+        if (file_exists($customer_booking_template)) {
+            error_log('[NORDBOOKING Router] SUCCESS: Loading customer booking management template');
+            
+            // Prevent canonical redirects that might interfere
+            remove_filter('template_redirect', 'redirect_canonical');
+            status_header(200);
+            
+            return $customer_booking_template;
+        } else {
+            error_log('[NORDBOOKING Router] ERROR: Customer booking management template not found: ' . $customer_booking_template);
+        }
+        
+        return $template;
     }
 
     /**

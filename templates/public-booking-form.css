@@ -644,3 +644,196 @@ body {
     color: #FFA500;
     /* Orange */
 }
+
+/*
+ Discount Code Styles */
+.NORDBOOKING-discount-section {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+}
+
+.NORDBOOKING-discount-header h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--foreground);
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.NORDBOOKING-discount-input-group {
+    margin-bottom: 0.75rem;
+}
+
+.NORDBOOKING-input-with-icon {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: var(--muted);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    transition: all 0.2s ease;
+}
+
+.NORDBOOKING-input-with-icon:focus-within {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.1);
+}
+
+.NORDBOOKING-discount-icon {
+    position: absolute;
+    left: 0.75rem;
+    color: var(--muted-foreground);
+    z-index: 1;
+    pointer-events: none;
+}
+
+.NORDBOOKING-discount-input {
+    flex: 1;
+    padding: 0.75rem 0.75rem 0.75rem 2.75rem;
+    border: none;
+    background: transparent;
+    font-size: 0.875rem;
+    color: var(--foreground);
+    outline: none;
+}
+
+.NORDBOOKING-discount-input::placeholder {
+    color: var(--muted-foreground);
+}
+
+.NORDBOOKING-apply-discount-btn {
+    padding: 0.75rem 1rem;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.NORDBOOKING-apply-discount-btn:hover {
+    background: var(--primary-hover);
+}
+
+.NORDBOOKING-apply-discount-btn:disabled {
+    background: var(--muted-foreground);
+    cursor: not-allowed;
+}
+
+.NORDBOOKING-discount-feedback {
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: calc(var(--radius) - 2px);
+    display: none;
+}
+
+.NORDBOOKING-discount-feedback.success {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--success);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    display: block;
+}
+
+.NORDBOOKING-discount-feedback.error {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--error);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    display: block;
+}
+
+.NORDBOOKING-discount-applied {
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    padding: 0.75rem;
+    border-radius: var(--radius);
+    margin-top: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.NORDBOOKING-discount-applied-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--success);
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.NORDBOOKING-discount-remove-btn {
+    background: none;
+    border: none;
+    color: var(--success);
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: calc(var(--radius) - 2px);
+    transition: all 0.2s ease;
+}
+
+.NORDBOOKING-discount-remove-btn:hover {
+    background: rgba(16, 185, 129, 0.1);
+}
+
+/* Summary pricing styles */
+.NORDBOOKING-summary-pricing {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+}
+
+.NORDBOOKING-pricing-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+}
+
+.NORDBOOKING-pricing-row.subtotal {
+    color: var(--muted-foreground);
+}
+
+.NORDBOOKING-pricing-row.discount {
+    color: var(--success);
+}
+
+.NORDBOOKING-pricing-row.total {
+    font-weight: 600;
+    font-size: 1rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--border);
+    margin-top: 0.5rem;
+    margin-bottom: 0;
+}
+
+.NORDBOOKING-discount-amount {
+    font-weight: 500;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .NORDBOOKING-input-with-icon {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .NORDBOOKING-discount-input {
+        padding: 0.75rem;
+        padding-left: 2.75rem;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .NORDBOOKING-apply-discount-btn {
+        border-radius: 0;
+        border-bottom-left-radius: var(--radius);
+        border-bottom-right-radius: var(--radius);
+    }
+}

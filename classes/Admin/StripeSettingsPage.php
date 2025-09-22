@@ -52,8 +52,8 @@ class StripeSettingsPage {
     public function main_admin_page() {
         ?>
         <div class="wrap">
-            <h1><?php _e('NORDBOOKING Administration', 'NORDBOOKING'); ?></h1>
-            <p><?php _e('Welcome to NORDBOOKING administration. Use the menu items below to configure your booking system.', 'NORDBOOKING'); ?></p>
+            <h1><?php _e('Nord Booking Administration', 'NORDBOOKING'); ?></h1>
+            <p><?php _e('Welcome to Nord Booking administration. Use the menu items below to configure your booking system.', 'NORDBOOKING'); ?></p>
             
             <div class="nordbooking-admin-cards" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 30px;">
                 <div class="admin-card" style="background: #fff; padding: 20px; border: 1px solid #ccd0d4; border-radius: 4px;">
@@ -169,6 +169,14 @@ class StripeSettingsPage {
             'nordbooking_stripe_test'
         );
         
+        add_settings_field(
+            'test_price_id',
+            __('Test Price ID', 'NORDBOOKING'),
+            array($this, 'test_price_id_callback'),
+            'nordbooking_stripe_settings',
+            'nordbooking_stripe_test'
+        );
+        
         // Live mode settings
         add_settings_field(
             'live_publishable_key',
@@ -195,9 +203,9 @@ class StripeSettingsPage {
         );
         
         add_settings_field(
-            'price_id',
-            __('Price ID', 'NORDBOOKING'),
-            array($this, 'price_id_callback'),
+            'live_price_id',
+            __('Live Price ID', 'NORDBOOKING'),
+            array($this, 'live_price_id_callback'),
             'nordbooking_stripe_settings',
             'nordbooking_stripe_live'
         );
@@ -218,6 +226,13 @@ class StripeSettingsPage {
             $test_result = StripeConfig::test_stripe_connection();
             $notice_class = $test_result['success'] ? 'notice-success' : 'notice-error';
             echo '<div class="notice ' . $notice_class . ' is-dismissible"><p>' . esc_html($test_result['message']) . '</p></div>';
+        }
+        
+        // Handle database fix action
+        if (isset($_POST['fix_database']) && wp_verify_nonce($_POST['_wpnonce'], 'nordbooking_fix_database')) {
+            $fix_result = $this->fix_subscription_database();
+            $notice_class = $fix_result['success'] ? 'notice-success' : 'notice-error';
+            echo '<div class="notice ' . $notice_class . ' is-dismissible"><p>' . esc_html($fix_result['message']) . '</p></div>';
         }
         ?>
         <div class="wrap">
@@ -295,6 +310,18 @@ class StripeSettingsPage {
                 </form>
             </div>
             <?php endif; ?>
+            
+            <div style="margin-top: 20px; padding: 15px; background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 5px;">
+                <h3 style="margin-top: 0;"><?php _e('Database Fix', 'NORDBOOKING'); ?></h3>
+                <p><?php _e('If you\'re experiencing database errors with subscription creation, click the button below to fix database constraints.', 'NORDBOOKING'); ?></p>
+                <form method="post" style="display: inline;">
+                    <?php wp_nonce_field('nordbooking_fix_database'); ?>
+                    <input type="hidden" name="fix_database" value="1">
+                    <button type="submit" class="button button-warning">
+                        <?php _e('🔧 Fix Database Constraints', 'NORDBOOKING'); ?>
+                    </button>
+                </form>
+            </div>
         </div>
         <?php
     }
@@ -372,6 +399,21 @@ class StripeSettingsPage {
         <?php
     }
     
+    public function test_price_id_callback() {
+        $settings = StripeConfig::get_settings();
+        $validation_message = StripeConfig::get_price_id_validation_message($settings['test_price_id']);
+        ?>
+        <input type="text" name="<?php echo StripeConfig::OPTION_STRIPE_SETTINGS; ?>[test_price_id]" value="<?php echo esc_attr($settings['test_price_id']); ?>" class="regular-text" placeholder="price_..." />
+        <p class="description"><?php _e('Your Stripe test price ID for the subscription (starts with price_).', 'NORDBOOKING'); ?></p>
+        
+        <?php if (!empty($validation_message)): ?>
+        <div style="margin-top: 5px; padding: 8px; background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 4px;">
+            <p style="margin: 0; color: #856404;"><strong><?php _e('Validation:', 'NORDBOOKING'); ?></strong> <?php echo esc_html($validation_message); ?></p>
+        </div>
+        <?php endif; ?>
+        <?php
+    }
+    
     public function live_publishable_key_callback() {
         $settings = StripeConfig::get_settings();
         ?>
@@ -396,12 +438,12 @@ class StripeSettingsPage {
         <?php
     }
     
-    public function price_id_callback() {
+    public function live_price_id_callback() {
         $settings = StripeConfig::get_settings();
-        $validation_message = StripeConfig::get_price_id_validation_message($settings['price_id']);
+        $validation_message = StripeConfig::get_price_id_validation_message($settings['live_price_id']);
         ?>
-        <input type="text" name="<?php echo StripeConfig::OPTION_STRIPE_SETTINGS; ?>[price_id]" value="<?php echo esc_attr($settings['price_id']); ?>" class="regular-text" placeholder="price_..." />
-        <p class="description"><?php _e('Your Stripe price ID for the subscription (starts with price_).', 'NORDBOOKING'); ?></p>
+        <input type="text" name="<?php echo StripeConfig::OPTION_STRIPE_SETTINGS; ?>[live_price_id]" value="<?php echo esc_attr($settings['live_price_id']); ?>" class="regular-text" placeholder="price_..." />
+        <p class="description"><?php _e('Your Stripe live price ID for the subscription (starts with price_).', 'NORDBOOKING'); ?></p>
         
         <?php if (!empty($validation_message)): ?>
         <div style="margin-top: 5px; padding: 8px; background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 4px;">
@@ -409,28 +451,80 @@ class StripeSettingsPage {
         </div>
         <?php endif; ?>
         
-        <?php if (empty($settings['price_id']) || $settings['price_id'] === 'price_1QSjJMLVu8BmPxKRwPzgUcHt' || !StripeConfig::is_valid_price_id($settings['price_id'])): ?>
+        <?php if (empty($settings['live_price_id']) || !StripeConfig::is_valid_price_id($settings['live_price_id'])): ?>
         <div style="margin-top: 10px; padding: 10px; background: #f0f8ff; border-left: 4px solid #0073aa;">
             <h4 style="margin-top: 0;"><?php _e('How to get your Price ID:', 'NORDBOOKING'); ?></h4>
             <ol style="margin: 0;">
                 <li><?php _e('Go to your <a href="https://dashboard.stripe.com/products" target="_blank">Stripe Dashboard → Products</a>', 'NORDBOOKING'); ?></li>
-                <li><?php _e('Find your product (ID: prod_T2e9kSp0dB2q5s) or create a new one', 'NORDBOOKING'); ?></li>
+                <li><?php _e('Find your product or create a new one', 'NORDBOOKING'); ?></li>
                 <li><?php _e('Click on the product to view its prices', 'NORDBOOKING'); ?></li>
                 <li><?php _e('Find the recurring price you want to use', 'NORDBOOKING'); ?></li>
                 <li><?php _e('Copy the <strong>Price ID</strong> (starts with "price_") - NOT the Product ID', 'NORDBOOKING'); ?></li>
                 <li><?php _e('Paste the Price ID in the field above', 'NORDBOOKING'); ?></li>
             </ol>
-            <?php if ($settings['price_id'] !== 'price_1S6YrQLVu8BmPxKR80pak41l'): ?>
+            <?php if (strpos($settings['live_price_id'], 'prod_') === 0): ?>
             <div style="margin-top: 10px; padding: 8px; background: #fff3cd; border: 1px solid #ffeaa7;">
-                <p style="margin: 0;"><strong><?php _e('Important:', 'NORDBOOKING'); ?></strong> <?php _e('You have Product ID "prod_T2e9kSp0dB2q5s" but we need the Price ID. In Stripe, a Product can have multiple Prices (e.g., monthly, yearly). Make sure to copy the Price ID, not the Product ID.', 'NORDBOOKING'); ?></p>
-            </div>
-            <?php else: ?>
-            <div style="margin-top: 10px; padding: 8px; background: #d4edda; border: 1px solid #c3e6cb;">
-                <p style="margin: 0;"><strong><?php _e('✅ Configured:', 'NORDBOOKING'); ?></strong> <?php _e('Using your Price ID from Product "prod_T2e9kSp0dB2q5s". The subscription system is ready!', 'NORDBOOKING'); ?></p>
+                <p style="margin: 0;"><strong><?php _e('Important:', 'NORDBOOKING'); ?></strong> <?php _e('This appears to be a Product ID, not a Price ID. In Stripe, a Product can have multiple Prices (e.g., monthly, yearly). Make sure to copy the Price ID, not the Product ID.', 'NORDBOOKING'); ?></p>
             </div>
             <?php endif; ?>
         </div>
+        <?php else: ?>
+        <div style="margin-top: 10px; padding: 8px; background: #d4edda; border: 1px solid #c3e6cb;">
+            <p style="margin: 0;"><strong><?php _e('✅ Configured:', 'NORDBOOKING'); ?></strong> <?php _e('Price ID is properly configured. The subscription system is ready!', 'NORDBOOKING'); ?></p>
+        </div>
         <?php endif; ?>
         <?php
+    }
+    
+    /**
+     * Fix subscription database constraints
+     */
+    public function fix_subscription_database() {
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'nordbooking_subscriptions';
+        
+        try {
+            // Check if table exists
+            $table_exists = $wpdb->get_var("SHOW TABLES LIKE '$table_name'") == $table_name;
+            
+            if (!$table_exists) {
+                // Install the table
+                \NORDBOOKING\Classes\Subscription::install();
+                return [
+                    'success' => true,
+                    'message' => 'Subscription table created successfully.'
+                ];
+            }
+            
+            // Fix constraints
+            $messages = [];
+            
+            // Drop the problematic unique constraint
+            $result = $wpdb->query("ALTER TABLE $table_name DROP INDEX IF EXISTS stripe_subscription_id_unique");
+            if ($result !== false) {
+                $messages[] = 'Removed problematic unique constraint on stripe_subscription_id.';
+            }
+            
+            // Clean up empty string values
+            $result = $wpdb->query("UPDATE $table_name SET stripe_subscription_id = NULL WHERE stripe_subscription_id = ''");
+            if ($result !== false) {
+                $messages[] = 'Cleaned up empty string values in stripe_subscription_id.';
+            }
+            
+            // Show current table structure
+            $structure = $wpdb->get_results("DESCRIBE $table_name");
+            $messages[] = 'Current table structure updated.';
+            
+            return [
+                'success' => true,
+                'message' => implode(' ', $messages)
+            ];
+            
+        } catch (Exception $e) {
+            return [
+                'success' => false,
+                'message' => 'Database fix failed: ' . $e->getMessage()
+            ];
+        }
     }
 }

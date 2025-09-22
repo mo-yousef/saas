@@ -35,19 +35,20 @@ class Subscription {
             updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL,
             PRIMARY KEY  (id),
             UNIQUE KEY unique_user_id (user_id),
-            UNIQUE KEY stripe_subscription_id_unique (stripe_subscription_id),
             FOREIGN KEY (user_id) REFERENCES {$wpdb->prefix}users(ID) ON DELETE CASCADE
         ) $charset_collate;";
         
         require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
         dbDelta($sql);
         
-        // Fix existing constraint issues
+        // Fix existing constraint issues - remove problematic unique constraint
         $wpdb->query("ALTER TABLE $table_name DROP INDEX IF EXISTS stripe_subscription_id_unique");
-        $wpdb->query("ALTER TABLE $table_name ADD UNIQUE KEY stripe_subscription_id_unique (stripe_subscription_id)");
-
-        require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
-        dbDelta($sql);
+        
+        // Clean up any existing empty values that might cause issues
+        $wpdb->query("UPDATE $table_name SET stripe_subscription_id = NULL WHERE stripe_subscription_id = ''");
+        
+        // Note: We're not adding the unique constraint back because it causes issues with NULL values
+        // The stripe_subscription_id should be unique when not NULL, but NULL values are allowed
     }
 
     public static function schedule_events() {
@@ -108,18 +109,21 @@ class Subscription {
         // Create Stripe customer
         $stripe_customer_id = self::create_stripe_customer($user_id);
 
-        $result = $wpdb->insert(
-            $table_name,
-            [
-                'user_id'            => $user_id,
-                'status'             => 'trial',
-                'stripe_customer_id' => $stripe_customer_id,
-                'trial_ends_at'      => $trial_ends_at,
-            ]
-        );
+        // Prepare data for insertion - exclude stripe_subscription_id to avoid constraint issues
+        $data = [
+            'user_id'            => $user_id,
+            'status'             => 'trial',
+            'stripe_customer_id' => $stripe_customer_id,
+            'trial_ends_at'      => $trial_ends_at,
+        ];
+
+        $result = $wpdb->insert($table_name, $data);
         
         if ($result === false) {
             error_log('Failed to create trial subscription for user ' . $user_id . ': ' . $wpdb->last_error);
+            error_log('Database error details: ' . print_r($wpdb->last_query, true));
+        } else {
+            error_log('Successfully created trial subscription for user ' . $user_id . ' with ID: ' . $wpdb->insert_id);
         }
     }
 
@@ -157,6 +161,25 @@ class Subscription {
             return 'unsubscribed';
         }
 
+        // If there's a Stripe subscription ID, try to sync with Stripe first
+        if (!empty($subscription['stripe_subscription_id']) && StripeConfig::is_configured()) {
+            try {
+                \Stripe\Stripe::setApiKey(StripeConfig::get_secret_key());
+                $stripe_subscription = \Stripe\Subscription::retrieve($subscription['stripe_subscription_id']);
+                
+                // Update local status if it differs from Stripe
+                $stripe_status = self::map_stripe_status($stripe_subscription->status);
+                if ($stripe_status !== $subscription['status']) {
+                    self::update_subscription_from_stripe($user_id, $stripe_subscription);
+                    // Refresh subscription data
+                    $subscription = self::get_subscription($user_id);
+                }
+            } catch (\Exception $e) {
+                // Log error but continue with local status
+                error_log('Failed to sync subscription status with Stripe: ' . $e->getMessage());
+            }
+        }
+
         // Check for expired trial
         if ($subscription['status'] === 'trial' && !empty($subscription['trial_ends_at'])) {
             $trial_ends_at = new \DateTime($subscription['trial_ends_at']);
@@ -185,8 +208,27 @@ class Subscription {
              }
         }
 
-
         return $subscription['status'];
+    }
+
+    /**
+     * Map Stripe subscription status to our internal status
+     */
+    private static function map_stripe_status($stripe_status) {
+        switch ($stripe_status) {
+            case 'active':
+                return 'active';
+            case 'canceled':
+                return 'cancelled';
+            case 'past_due':
+                return 'past_due';
+            case 'unpaid':
+                return 'unpaid';
+            case 'trialing':
+                return 'trial';
+            default:
+                return 'active'; // Default to active for unknown statuses
+        }
     }
 
     /**
@@ -623,26 +665,124 @@ class Subscription {
     }
     
     /**
+     * Manually sync subscription status with Stripe
+     */
+    public static function sync_subscription_status($user_id) {
+        if (!StripeConfig::is_configured()) {
+            return false;
+        }
+
+        $subscription = self::get_subscription($user_id);
+        $user = get_userdata($user_id);
+        
+        if (!$user) {
+            return false;
+        }
+
+        try {
+            \Stripe\Stripe::setApiKey(StripeConfig::get_secret_key());
+            
+            // If we have a subscription ID, sync with it
+            if ($subscription && !empty($subscription['stripe_subscription_id'])) {
+                $stripe_subscription = \Stripe\Subscription::retrieve($subscription['stripe_subscription_id']);
+                self::update_subscription_from_stripe($user_id, $stripe_subscription);
+                return true;
+            }
+            
+            // If no subscription ID, search for subscriptions by email
+            $customers = \Stripe\Customer::all(['email' => $user->user_email, 'limit' => 10]);
+            
+            foreach ($customers->data as $customer) {
+                $subscriptions = \Stripe\Subscription::all(['customer' => $customer->id]);
+                
+                foreach ($subscriptions->data as $stripe_subscription) {
+                    // Only link active or trialing subscriptions
+                    if (in_array($stripe_subscription->status, ['active', 'trialing'])) {
+                        // Update or create local subscription
+                        if ($subscription) {
+                            // Update existing subscription
+                            global $wpdb;
+                            $table_name = $wpdb->prefix . 'nordbooking_subscriptions';
+                            
+                            $wpdb->update(
+                                $table_name,
+                                [
+                                    'stripe_subscription_id' => $stripe_subscription->id,
+                                    'stripe_customer_id' => $customer->id,
+                                    'status' => self::map_stripe_status($stripe_subscription->status),
+                                    'ends_at' => date('Y-m-d H:i:s', $stripe_subscription->current_period_end),
+                                ],
+                                ['user_id' => $user_id]
+                            );
+                        } else {
+                            // Create new subscription record
+                            self::create_subscription_from_stripe($user_id, $stripe_subscription, $customer->id);
+                        }
+                        
+                        error_log("Linked Stripe subscription {$stripe_subscription->id} to user {$user_id}");
+                        return true;
+                    }
+                }
+            }
+            
+            return false;
+        } catch (\Exception $e) {
+            error_log('Failed to sync subscription status: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Create subscription record from Stripe subscription
+     */
+    private static function create_subscription_from_stripe($user_id, $stripe_subscription, $customer_id) {
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'nordbooking_subscriptions';
+        
+        $status = self::map_stripe_status($stripe_subscription->status);
+        $trial_ends_at = null;
+        
+        if ($stripe_subscription->trial_end) {
+            $trial_ends_at = date('Y-m-d H:i:s', $stripe_subscription->trial_end);
+        }
+        
+        $data = [
+            'user_id' => $user_id,
+            'status' => $status,
+            'stripe_customer_id' => $customer_id,
+            'stripe_subscription_id' => $stripe_subscription->id,
+            'trial_ends_at' => $trial_ends_at,
+            'ends_at' => date('Y-m-d H:i:s', $stripe_subscription->current_period_end),
+            'created_at' => date('Y-m-d H:i:s', $stripe_subscription->created),
+        ];
+        
+        return $wpdb->insert($table_name, $data);
+    }
+
+    /**
      * Fix database constraint issues
      */
     public static function fix_database_constraints() {
         global $wpdb;
         $table_name = $wpdb->prefix . 'nordbooking_subscriptions';
         
-        // Remove duplicate empty stripe_subscription_id entries
+        // First, update all empty strings to NULL
+        $wpdb->query("UPDATE $table_name SET stripe_subscription_id = NULL WHERE stripe_subscription_id = ''");
+        
+        // Remove duplicate NULL entries (keep only the first one)
         $wpdb->query("
             DELETE s1 FROM $table_name s1
             INNER JOIN $table_name s2 
             WHERE s1.id > s2.id 
             AND s1.stripe_subscription_id IS NULL 
             AND s2.stripe_subscription_id IS NULL
+            AND s1.user_id = s2.user_id
         ");
         
-        // Update empty stripe_subscription_id to NULL
-        $wpdb->query("UPDATE $table_name SET stripe_subscription_id = NULL WHERE stripe_subscription_id = ''");
-        
-        // Recreate the unique constraint properly
+        // Drop the existing unique constraint
         $wpdb->query("ALTER TABLE $table_name DROP INDEX IF EXISTS stripe_subscription_id_unique");
+        
+        // Add the unique constraint back (MySQL allows multiple NULL values in unique constraints)
         $wpdb->query("
             ALTER TABLE $table_name 
             ADD UNIQUE KEY stripe_subscription_id_unique (stripe_subscription_id)

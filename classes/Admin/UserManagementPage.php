@@ -23,8 +23,8 @@ class UserManagementPage {
     public static function register_page() {
         // Add the main top-level menu page for NORDBOOKING Admin.
         add_menu_page(
-            __( 'NORDBOOKING Admin', 'NORDBOOKING' ),        // Page title (visible in browser tab)
-            __( 'NORDBOOKING Admin', 'NORDBOOKING' ),        // Menu title (visible in sidebar)
+            __( 'Nord Booking Admin', 'NORDBOOKING' ),        // Page title (visible in browser tab)
+            __( 'Nord Booking Admin', 'NORDBOOKING' ),        // Menu title (visible in sidebar)
             'manage_options',                            // Capability required to see this menu
             'NORDBOOKING-admin',                           // Menu slug (unique identifier)
             [ __CLASS__, 'render_main_page_content' ],   // Callback function to render the page content
@@ -68,7 +68,7 @@ class UserManagementPage {
         }
         ?>
         <div class="wrap">
-            <h1><?php _e( 'NORDBOOKING Admin', 'NORDBOOKING' ); ?></h1>
+            <h1><?php _e( 'Nord Booking Admin', 'NORDBOOKING' ); ?></h1>
 
             <div class="kpi-card-container">
                 <div class="kpi-card">

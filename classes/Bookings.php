@@ -39,6 +39,12 @@ class Bookings {
         add_action('wp_ajax_nordbooking_update_dashboard_booking_fields', [$this, 'handle_update_dashboard_booking_fields_ajax']);
         add_action('wp_ajax_nordbooking_delete_dashboard_booking', [$this, 'handle_delete_dashboard_booking_ajax']);
         add_action('wp_ajax_nordbooking_assign_staff_to_booking', [$this, 'handle_assign_staff_to_booking_ajax']);
+        
+        // Customer booking management (public access)
+        add_action('wp_ajax_nopriv_nordbooking_reschedule_booking', [$this, 'handle_reschedule_booking_ajax']);
+        add_action('wp_ajax_nordbooking_reschedule_booking', [$this, 'handle_reschedule_booking_ajax']);
+        add_action('wp_ajax_nopriv_nordbooking_cancel_booking', [$this, 'handle_cancel_booking_ajax']);
+        add_action('wp_ajax_nordbooking_cancel_booking', [$this, 'handle_cancel_booking_ajax']);
     }
 
     /**
@@ -680,6 +686,7 @@ foreach ($calculated_service_items as $service_item) {
             }, $calculated_service_items);
 
             $email_booking_details = [
+                'booking_id' => $new_booking_id, // Added booking_id for customer management link
                 'booking_reference' => $booking_reference,
                 'service_names' => implode('; ', $email_services_summary_array),
                 'booking_date_time' => $customer['date'] . ' at ' . $time_slot,
@@ -2065,6 +2072,266 @@ public function get_chart_data($tenant_id, $period = 'week') {
         }
 
         return $counts;
+    }
+
+    /**
+     * Handle customer booking reschedule request
+     */
+    public function handle_reschedule_booking_ajax() {
+        // Verify nonce
+        if (!wp_verify_nonce($_POST['nonce'], 'nordbooking_customer_booking_management')) {
+            wp_send_json_error(['message' => __('Security check failed.', 'NORDBOOKING')]);
+            return;
+        }
+
+        $booking_token = sanitize_text_field($_POST['booking_token'] ?? '');
+        $booking_id = intval($_POST['booking_id'] ?? 0);
+        $new_date = sanitize_text_field($_POST['new_date'] ?? '');
+        $new_time = sanitize_text_field($_POST['new_time'] ?? '');
+        $reschedule_reason = sanitize_textarea_field($_POST['reschedule_reason'] ?? '');
+
+        if (empty($booking_token) || empty($booking_id) || empty($new_date) || empty($new_time)) {
+            wp_send_json_error(['message' => __('Missing required information.', 'NORDBOOKING')]);
+            return;
+        }
+
+        // Verify the booking token
+        $booking = $this->verify_booking_token($booking_token, $booking_id);
+        if (!$booking) {
+            wp_send_json_error(['message' => __('Invalid booking or token.', 'NORDBOOKING')]);
+            return;
+        }
+
+        // Validate new date and time
+        $date_obj = DateTime::createFromFormat('Y-m-d', $new_date);
+        $time_obj = DateTime::createFromFormat('H:i', $new_time);
+        
+        if (!$date_obj || !$time_obj) {
+            wp_send_json_error(['message' => __('Invalid date or time format.', 'NORDBOOKING')]);
+            return;
+        }
+
+        // Check if new date/time is not in the past
+        $new_datetime = DateTime::createFromFormat('Y-m-d H:i', $new_date . ' ' . $new_time);
+        $now = new DateTime();
+        if ($new_datetime < $now) {
+            wp_send_json_error(['message' => __('New booking date and time cannot be in the past.', 'NORDBOOKING')]);
+            return;
+        }
+
+        // Update the booking
+        $bookings_table = Database::get_table_name('bookings');
+        $update_result = $this->wpdb->update(
+            $bookings_table,
+            [
+                'booking_date' => $new_date,
+                'booking_time' => $new_time,
+                'updated_at' => current_time('mysql')
+            ],
+            ['booking_id' => $booking_id],
+            ['%s', '%s', '%s'],
+            ['%d']
+        );
+
+        if ($update_result === false) {
+            wp_send_json_error(['message' => __('Failed to update booking. Please try again.', 'NORDBOOKING')]);
+            return;
+        }
+
+        // Log the reschedule action
+        error_log("NORDBOOKING: Booking {$booking_id} rescheduled by customer from {$booking->booking_date} {$booking->booking_time} to {$new_date} {$new_time}. Reason: {$reschedule_reason}");
+
+        // Send notification to business owner
+        $this->send_reschedule_notification($booking, $new_date, $new_time, $reschedule_reason);
+
+        // Invalidate caches
+        $this->invalidate_booking_caches($booking->user_id, $booking_id);
+
+        wp_send_json_success([
+            'message' => __('Your booking has been successfully rescheduled. The business owner has been notified.', 'NORDBOOKING'),
+            'new_date' => $new_date,
+            'new_time' => $new_time,
+            'new_date_formatted' => date('F j, Y', strtotime($new_date)),
+            'new_time_formatted' => date('g:i A', strtotime($new_time))
+        ]);
+    }
+
+    /**
+     * Handle customer booking cancellation request
+     */
+    public function handle_cancel_booking_ajax() {
+        // Verify nonce
+        if (!wp_verify_nonce($_POST['nonce'], 'nordbooking_customer_booking_management')) {
+            wp_send_json_error(['message' => __('Security check failed.', 'NORDBOOKING')]);
+            return;
+        }
+
+        $booking_token = sanitize_text_field($_POST['booking_token'] ?? '');
+        $booking_id = intval($_POST['booking_id'] ?? 0);
+        $cancel_reason = sanitize_textarea_field($_POST['cancel_reason'] ?? '');
+
+        if (empty($booking_token) || empty($booking_id)) {
+            wp_send_json_error(['message' => __('Missing required information.', 'NORDBOOKING')]);
+            return;
+        }
+
+        // Verify the booking token
+        $booking = $this->verify_booking_token($booking_token, $booking_id);
+        if (!$booking) {
+            wp_send_json_error(['message' => __('Invalid booking or token.', 'NORDBOOKING')]);
+            return;
+        }
+
+        // Update the booking status to cancelled
+        $bookings_table = Database::get_table_name('bookings');
+        $update_result = $this->wpdb->update(
+            $bookings_table,
+            [
+                'status' => 'cancelled',
+                'updated_at' => current_time('mysql')
+            ],
+            ['booking_id' => $booking_id],
+            ['%s', '%s'],
+            ['%d']
+        );
+
+        if ($update_result === false) {
+            wp_send_json_error(['message' => __('Failed to cancel booking. Please try again.', 'NORDBOOKING')]);
+            return;
+        }
+
+        // Log the cancellation
+        error_log("NORDBOOKING: Booking {$booking_id} cancelled by customer. Reason: {$cancel_reason}");
+
+        // Send notification to business owner
+        $this->send_cancellation_notification($booking, $cancel_reason);
+
+        // Invalidate caches
+        $this->invalidate_booking_caches($booking->user_id, $booking_id);
+
+        wp_send_json_success([
+            'message' => __('Your booking has been cancelled. The business owner has been notified.', 'NORDBOOKING')
+        ]);
+    }
+
+    /**
+     * Verify booking token for customer access
+     */
+    private function verify_booking_token($token, $booking_id) {
+        $bookings_table = Database::get_table_name('bookings');
+        
+        $booking = $this->wpdb->get_row($this->wpdb->prepare(
+            "SELECT * FROM $bookings_table WHERE booking_id = %d AND status IN ('pending', 'confirmed')",
+            $booking_id
+        ));
+
+        if (!$booking) {
+            return false;
+        }
+
+        // Generate expected token
+        $expected_token = hash('sha256', $booking->booking_id . $booking->customer_email . wp_salt());
+        
+        // Use hash_equals for timing-safe comparison
+        if (!hash_equals($expected_token, $token)) {
+            return false;
+        }
+
+        return $booking;
+    }
+
+    /**
+     * Send reschedule notification to business owner
+     */
+    private function send_reschedule_notification($booking, $new_date, $new_time, $reason) {
+        $business_owner = get_userdata($booking->user_id);
+        if (!$business_owner) {
+            return;
+        }
+
+        $subject = sprintf(__('Booking Rescheduled - %s', 'NORDBOOKING'), $booking->booking_reference);
+        
+        $message_lines = [
+            sprintf(__('Hi %s,', 'NORDBOOKING'), $business_owner->display_name),
+            '',
+            sprintf(__('A customer has rescheduled their booking:', 'NORDBOOKING')),
+            '',
+            sprintf(__('Booking Reference: %s', 'NORDBOOKING'), $booking->booking_reference),
+            sprintf(__('Customer: %s (%s)', 'NORDBOOKING'), $booking->customer_name, $booking->customer_email),
+            '',
+            sprintf(__('Original Date & Time: %s at %s', 'NORDBOOKING'), 
+                date('F j, Y', strtotime($booking->booking_date)), 
+                date('g:i A', strtotime($booking->booking_time))
+            ),
+            sprintf(__('New Date & Time: %s at %s', 'NORDBOOKING'), 
+                date('F j, Y', strtotime($new_date)), 
+                date('g:i A', strtotime($new_time))
+            ),
+            '',
+        ];
+
+        if (!empty($reason)) {
+            $message_lines[] = sprintf(__('Reason: %s', 'NORDBOOKING'), $reason);
+            $message_lines[] = '';
+        }
+
+        $message_lines[] = sprintf(__('You can view and manage this booking in your dashboard: %s', 'NORDBOOKING'), home_url('/dashboard/bookings/'));
+        $message_lines[] = '';
+        $message_lines[] = sprintf(__('Best regards,', 'NORDBOOKING'));
+        $message_lines[] = sprintf(__('The %s Team', 'NORDBOOKING'), get_bloginfo('name'));
+
+        $message = implode("\r\n", $message_lines);
+
+        wp_mail($business_owner->user_email, $subject, $message);
+    }
+
+    /**
+     * Send cancellation notification to business owner
+     */
+    private function send_cancellation_notification($booking, $reason) {
+        $business_owner = get_userdata($booking->user_id);
+        if (!$business_owner) {
+            return;
+        }
+
+        $subject = sprintf(__('Booking Cancelled - %s', 'NORDBOOKING'), $booking->booking_reference);
+        
+        $message_lines = [
+            sprintf(__('Hi %s,', 'NORDBOOKING'), $business_owner->display_name),
+            '',
+            sprintf(__('A customer has cancelled their booking:', 'NORDBOOKING')),
+            '',
+            sprintf(__('Booking Reference: %s', 'NORDBOOKING'), $booking->booking_reference),
+            sprintf(__('Customer: %s (%s)', 'NORDBOOKING'), $booking->customer_name, $booking->customer_email),
+            sprintf(__('Date & Time: %s at %s', 'NORDBOOKING'), 
+                date('F j, Y', strtotime($booking->booking_date)), 
+                date('g:i A', strtotime($booking->booking_time))
+            ),
+            sprintf(__('Service Address: %s', 'NORDBOOKING'), $booking->service_address),
+            '',
+        ];
+
+        if (!empty($reason)) {
+            $message_lines[] = sprintf(__('Reason: %s', 'NORDBOOKING'), $reason);
+            $message_lines[] = '';
+        }
+
+        $message_lines[] = sprintf(__('You can view this booking in your dashboard: %s', 'NORDBOOKING'), home_url('/dashboard/bookings/'));
+        $message_lines[] = '';
+        $message_lines[] = sprintf(__('Best regards,', 'NORDBOOKING'));
+        $message_lines[] = sprintf(__('The %s Team', 'NORDBOOKING'), get_bloginfo('name'));
+
+        $message = implode("\r\n", $message_lines);
+
+        wp_mail($business_owner->user_email, $subject, $message);
+    }
+
+    /**
+     * Generate customer booking management link
+     */
+    public static function generate_customer_booking_link($booking_id, $customer_email) {
+        $token = hash('sha256', $booking_id . $customer_email . wp_salt());
+        return add_query_arg(['token' => $token], home_url('/customer-booking-management/'));
     }
 }
 ?>

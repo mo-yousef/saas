@@ -27,21 +27,42 @@ if ($actual_booking_owner_id === null) {
 }
 
 $can_view = false;
+
+// Debug logging
+error_log("NORDBOOKING Single Booking: user_id_for_permission_check = {$user_id_for_permission_check}");
+error_log("NORDBOOKING Single Booking: actual_booking_owner_id = {$actual_booking_owner_id}");
+error_log("NORDBOOKING Single Booking: booking_id_to_fetch = {$booking_id_to_fetch}");
+
 if ( NORDBOOKING\Classes\Auth::is_user_business_owner( $user_id_for_permission_check ) ) {
+    error_log("NORDBOOKING Single Booking: User is business owner");
     if ( $user_id_for_permission_check === $actual_booking_owner_id ) {
         $can_view = true;
         $booking_owner_id_for_fetch = $user_id_for_permission_check;
+        error_log("NORDBOOKING Single Booking: Business owner access granted");
     }
 } elseif ( NORDBOOKING\Classes\Auth::is_user_worker( $user_id_for_permission_check ) ) {
+    error_log("NORDBOOKING Single Booking: User is worker");
     $worker_owner_id = NORDBOOKING\Classes\Auth::get_business_owner_id_for_worker( $user_id_for_permission_check );
+    error_log("NORDBOOKING Single Booking: worker_owner_id = " . ($worker_owner_id ?? 'null'));
+    
     $booking_to_check = $bookings_manager->get_booking( $booking_id_to_fetch, $actual_booking_owner_id );
+    error_log("NORDBOOKING Single Booking: booking_to_check found = " . ($booking_to_check ? 'yes' : 'no'));
+    
+    if ($booking_to_check) {
+        error_log("NORDBOOKING Single Booking: booking assigned_staff_id = " . ($booking_to_check['assigned_staff_id'] ?? 'null'));
+    }
+    
     if ( $worker_owner_id && $worker_owner_id === $actual_booking_owner_id && $booking_to_check && (int)$booking_to_check['assigned_staff_id'] === $user_id_for_permission_check ) {
         $can_view = true;
         $booking_owner_id_for_fetch = $worker_owner_id;
+        error_log("NORDBOOKING Single Booking: Worker access granted");
+    } else {
+        error_log("NORDBOOKING Single Booking: Worker access denied - conditions not met");
     }
 }
 
 if ( ! $can_view ) {
+    error_log("NORDBOOKING Single Booking: Access denied for user {$user_id_for_permission_check}");
     echo '<div class="notice notice-error"><p>' . esc_html__( 'You do not have permission to view this booking.', 'NORDBOOKING' ) . '</p></div>';
     return;
 }
@@ -53,19 +74,7 @@ if ( ! $booking ) {
     return;
 }
 
-// Handle invoice download request
-if ( isset( $_GET['download_invoice'] ) && $_GET['download_invoice'] === 'true' ) {
-    $invoice_template_path = get_template_directory() . '/includes/invoice-generator.php';
-    if ( file_exists( $invoice_template_path ) ) {
-        // The included file will have access to variables in the current scope,
-        // such as $single_booking_id, $bookings_manager, $currency_symbol, etc.
-        include $invoice_template_path;
-        exit; // Stop further execution to prevent rendering the HTML page
-    } else {
-        // Optional: handle case where invoice template is missing
-        wp_die( 'Invoice template not found. Please contact support.' );
-    }
-}
+// Invoice handling is now done via standalone invoice page
 
 // Prepare data for display
 $status_display = !empty($booking['status']) ? ucfirst(str_replace('-', ' ', $booking['status'])) : __('N/A', 'NORDBOOKING');
@@ -385,11 +394,20 @@ if (!function_exists('nordbooking_get_status_badge_icon_svg')) {
 
                     <!-- Download Invoice Button -->
                     <div class="pt-4 border-b border-dashed pb-4 mb-4">
-                        <strong class="block font-semibold text-sm mb-2"><?php echo nordbooking_get_feather_icon('download', 'width="16" height="16" style="vertical-align:middle; margin-right:0.25rem;"'); ?> <?php esc_html_e('Downloads', 'NORDBOOKING'); ?></strong>
-                        <a href="<?php echo esc_url( add_query_arg( 'download_invoice', 'true' ) ); ?>" class="btn btn-secondary" target="_blank">
-                            <?php echo nordbooking_get_feather_icon('download', 'width="16" height="16" style="vertical-align:middle; margin-right:0.25rem;"'); ?>
-                            <?php esc_html_e('Download Invoice', 'NORDBOOKING'); ?>
-                        </a>
+                        <strong class="block font-semibold text-sm mb-2"><?php echo nordbooking_get_feather_icon('download', 'width="16" height="16" style="vertical-align:middle; margin-right:0.25rem;"'); ?> <?php esc_html_e('Invoice & Downloads', 'NORDBOOKING'); ?></strong>
+                        <div class="flex flex-wrap gap-2">
+                            <a href="<?php echo esc_url( home_url('/invoice-standalone.php?booking_id=' . $single_booking_id) ); ?>" class="btn btn-primary">
+                                <?php echo nordbooking_get_feather_icon('download', 'width="16" height="16" style="vertical-align:middle; margin-right:0.25rem;"'); ?>
+                                <?php esc_html_e('View/Print Invoice', 'NORDBOOKING'); ?>
+                            </a>
+                            <a href="<?php echo esc_url( home_url('/invoice-standalone.php?booking_id=' . $single_booking_id . '&download_as_file=true') ); ?>" class="btn btn-secondary">
+                                <?php echo nordbooking_get_feather_icon('download', 'width="16" height="16" style="vertical-align:middle; margin-right:0.25rem;"'); ?>
+                                <?php esc_html_e('Download HTML', 'NORDBOOKING'); ?>
+                            </a>
+                        </div>
+                        <p class="text-xs text-muted-foreground mt-2">
+                            <?php esc_html_e('Use "View/Print Invoice" to print or save as PDF using your browser. Use "Download HTML" to save the invoice as an HTML file.', 'NORDBOOKING'); ?>
+                        </p>
                     </div>
 
                     <!-- Staff Assignment Section -->

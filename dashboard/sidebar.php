@@ -11,13 +11,23 @@ $dashboard_base_url = home_url('/dashboard/');
 $user_nordbooking_role_display_name = '';
 $current_user_id = get_current_user_id();
 
-// Determine the display brand name
+// Determine the display brand name - for workers, show business owner's name
 $display_brand_name = esc_html__('NORDBOOKING', 'NORDBOOKING'); // Default brand name
-if ($current_user_id > 0 && isset($GLOBALS['nordbooking_settings_manager']) && class_exists('NORDBOOKING\Classes\Settings')) {
+$effective_user_id = $current_user_id;
+
+// If user is a worker, get the business owner's information
+if (class_exists('NORDBOOKING\Classes\Auth') && \NORDBOOKING\Classes\Auth::is_user_worker($current_user_id)) {
+    $owner_id = \NORDBOOKING\Classes\Auth::get_business_owner_id_for_worker($current_user_id);
+    if ($owner_id) {
+        $effective_user_id = $owner_id;
+    }
+}
+
+if ($effective_user_id > 0 && isset($GLOBALS['nordbooking_settings_manager']) && class_exists('NORDBOOKING\Classes\Settings')) {
     // Ensure get_setting method exists before calling
     if (method_exists($GLOBALS['nordbooking_settings_manager'], 'get_setting')) {
         // Use the correct string key 'biz_name' as defined in Settings.php
-        $business_name_setting = $GLOBALS['nordbooking_settings_manager']->get_setting($current_user_id, 'biz_name', '');
+        $business_name_setting = $GLOBALS['nordbooking_settings_manager']->get_setting($effective_user_id, 'biz_name', '');
         if (!empty(trim($business_name_setting))) {
             $display_brand_name = esc_html(trim($business_name_setting));
         }
@@ -90,6 +100,7 @@ if ( $current_user_id > 0 ) {
             </ul>
         </div>
 
+        <?php if (!current_user_can(\NORDBOOKING\Classes\Auth::ROLE_WORKER_STAFF)) : ?>
         <div class="nav-group">
             <h4 class="nav-group-title"><?php esc_html_e('Business', 'NORDBOOKING'); ?></h4>
             <ul>
@@ -127,10 +138,12 @@ if ( $current_user_id > 0 ) {
                 <?php endif; ?>
             </ul>
         </div>
+        <?php endif; ?>
 
     </nav>
 
-    <!-- Subscription Status Box -->
+    <!-- Subscription Status Box - Only show for business owners -->
+    <?php if (!current_user_can(\NORDBOOKING\Classes\Auth::ROLE_WORKER_STAFF)) : ?>
     <?php
     $user_id = get_current_user_id();
     $subscription = \NORDBOOKING\Classes\Subscription::get_subscription($user_id);
@@ -147,6 +160,13 @@ if ( $current_user_id > 0 ) {
     
     $status = \NORDBOOKING\Classes\Subscription::get_subscription_status($user_id);
     $days_left = \NORDBOOKING\Classes\Subscription::get_days_until_next_payment($user_id);
+    
+    // Auto-sync if user just came from a successful payment
+    if (isset($_GET['success']) && $_GET['success'] == '1' && $status === 'trial') {
+        \NORDBOOKING\Classes\Subscription::sync_subscription_status($user_id);
+        $status = \NORDBOOKING\Classes\Subscription::get_subscription_status($user_id);
+        $days_left = \NORDBOOKING\Classes\Subscription::get_days_until_next_payment($user_id);
+    }
     
     // Get subscription details
     $status_text = '';
@@ -222,12 +242,13 @@ if ( $current_user_id > 0 ) {
                 </div>
             </div>
             <div class="subscription-action">
-                <a href="<?php echo esc_url(trailingslashit($dashboard_base_url) . 'subscription/'); ?>" class="subscription-btn <?php echo esc_attr($action_class); ?>">
+                <a href="<?php echo esc_url(trailingslashit($dashboard_base_url) . 'subscription/'); ?>" class="subscription-btn btn btn-outline btn-sm <?php echo esc_attr($action_class); ?>">
                     <?php echo esc_html($action_text); ?>
                 </a>
             </div>
         </div>
     </div>
+    <?php endif; ?>
 </aside>
 
 

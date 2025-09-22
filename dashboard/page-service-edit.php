@@ -35,6 +35,7 @@ $service_image_url    = '';
 $service_status       = 'active';
 $disable_pet_question = 0;
 $disable_frequency_option = 0;
+$disable_discount_code = 0;
 $service_options_data = array();
 $error_message        = '';
 
@@ -144,6 +145,7 @@ if ( $edit_mode && $service_id > 0 ) {
 			$service_status       = $service_data['status'];
 			$disable_pet_question = $service_data['disable_pet_question'] ?? 0;
 			$disable_frequency_option = $service_data['disable_frequency_option'] ?? 0;
+			$disable_discount_code = $service_data['disable_discount_code'] ?? 0;
 			$service_options_data = isset( $service_data['options'] ) && is_array( $service_data['options'] ) ? $service_data['options'] : array();
 			
 
@@ -384,6 +386,15 @@ if ( $edit_mode && $service_id > 0 ) {
 									<span class="switch-thumb"></span>
 								</button>
 								<input type="hidden" name="disable_frequency_option" value="<?php echo esc_attr( $disable_frequency_option ); ?>">
+							</div>
+						</div>
+						<div class="flex items-center justify-between mt-4">
+							<label class="nordbooking-filter-item label" for="disable_discount_code"><?php esc_html_e( 'Disable Discount Code', 'NORDBOOKING' ); ?></label>
+							<div class="flex items-center space-x-2">
+								<button type="button" class="switch <?php echo $disable_discount_code ? 'switch-checked' : ''; ?>" data-switch="disable_discount_code">
+									<span class="switch-thumb"></span>
+								</button>
+								<input type="hidden" name="disable_discount_code" value="<?php echo esc_attr( $disable_discount_code ); ?>">
 							</div>
 						</div>
 					</div>

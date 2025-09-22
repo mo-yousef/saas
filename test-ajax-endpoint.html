@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test AJAX Registration</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <h1>Test AJAX Registration Endpoint</h1>
+    
+    <form id="test-form">
+        <div>
+            <label>First Name:</label>
+            <input type="text" id="first_name" value="Test" required>
+        </div>
+        <div>
+            <label>Last Name:</label>
+            <input type="text" id="last_name" value="User" required>
+        </div>
+        <div>
+            <label>Email:</label>
+            <input type="email" id="email" value="test@example.com" required>
+        </div>
+        <div>
+            <label>Password:</label>
+            <input type="password" id="password" value="password123" required>
+        </div>
+        <div>
+            <label>Confirm Password:</label>
+            <input type="password" id="password_confirm" value="password123" required>
+        </div>
+        <div>
+            <label>Company Name:</label>
+            <input type="text" id="company_name" value="Test Company" required>
+        </div>
+        <button type="submit">Test Registration</button>
+    </form>
+    
+    <div id="result" style="margin-top: 20px; padding: 10px; border: 1px solid #ccc;"></div>
+    
+    <script>
+    $(document).ready(function() {
+        $('#test-form').on('submit', function(e) {
+            e.preventDefault();
+            
+            // First test company name validation
+            testCompanyNameValidation();
+        });
+        
+        function testCompanyNameValidation() {
+            const companyName = $('#company_name').val();
+            
+            $('#result').html('<p>Testing company name validation...</p>');
+            
+            $.ajax({
+                url: '/wp-admin/admin-ajax.php',
+                type: 'POST',
+                data: {
+                    action: 'nordbooking_check_company_slug_exists',
+                    company_name: companyName
+                },
+                success: function(response) {
+                    $('#result').append('<h3>Company Name Validation Result:</h3>');
+                    $('#result').append('<pre>' + JSON.stringify(response, null, 2) + '</pre>');
+                    
+                    // Now test registration
+                    testRegistration();
+                },
+                error: function(xhr, status, error) {
+                    $('#result').html('<h3>Company Name Validation Error:</h3>');
+                    $('#result').append('<p>Status: ' + status + '</p>');
+                    $('#result').append('<p>Error: ' + error + '</p>');
+                    $('#result').append('<p>Response: ' + xhr.responseText + '</p>');
+                }
+            });
+        }
+        
+        function testRegistration() {
+            $('#result').append('<p>Testing registration...</p>');
+            
+            // Get nonce from WordPress (this would normally be in the page)
+            const nonce = 'test_nonce'; // This won't work, but we'll see the error
+            
+            $.ajax({
+                url: '/wp-admin/admin-ajax.php',
+                type: 'POST',
+                data: {
+                    action: 'nordbooking_register',
+                    nonce: nonce,
+                    first_name: $('#first_name').val(),
+                    last_name: $('#last_name').val(),
+                    email: $('#email').val(),
+                    password: $('#password').val(),
+                    password_confirm: $('#password_confirm').val(),
+                    company_name: $('#company_name').val()
+                },
+                success: function(response) {
+                    $('#result').append('<h3>Registration Result:</h3>');
+                    $('#result').append('<pre>' + JSON.stringify(response, null, 2) + '</pre>');
+                },
+                error: function(xhr, status, error) {
+                    $('#result').append('<h3>Registration Error:</h3>');
+                    $('#result').append('<p>Status: ' + status + '</p>');
+                    $('#result').append('<p>Error: ' + error + '</p>');
+                    $('#result').append('<p>Response Text:</p>');
+                    $('#result').append('<pre>' + xhr.responseText + '</pre>');
+                }
+            });
+        }
+    });
+    </script>
+</body>
+</html>

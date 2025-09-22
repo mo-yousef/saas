@@ -252,6 +252,7 @@ body {
   margin: 0;
   letter-spacing: -0.025em;
   line-height: 1.6;
+  text-transform: capitalize;
 }
 
 .nordbooking-dashboard-sidebar .dashboard-branding a {

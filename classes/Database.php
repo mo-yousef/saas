@@ -81,6 +81,7 @@ class Database {
             status VARCHAR(20) NOT NULL DEFAULT 'active',
             disable_pet_question BOOLEAN NOT NULL DEFAULT 0,
             disable_frequency_option BOOLEAN NOT NULL DEFAULT 0,
+            disable_discount_code BOOLEAN NOT NULL DEFAULT 0,
             sort_order INT NOT NULL DEFAULT 0,
             created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
             updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -498,10 +499,10 @@ class Database {
             // Check for required columns
             $required_columns = [
                 'booking_id', 'user_id', 'booking_reference', 'customer_name',
-                'customer_email', 'customer_phone', 'customer_address',
-                'booking_date', 'booking_time', 'total_amount', 'status',
-                'special_instructions', 'service_frequency', 'selected_services',
-                'pet_information', 'property_access', 'created_at', 'updated_at'
+                'customer_email', 'customer_phone', 'service_address',
+                'booking_date', 'booking_time', 'total_price', 'status',
+                'special_instructions', 'service_frequency', 'has_pets',
+                'pet_details', 'property_access_method', 'created_at', 'updated_at'
             ];
 
             echo '<h3>Required Columns Check:</h3>';

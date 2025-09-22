@@ -10,10 +10,14 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-// Add admin menu item
-add_action('admin_menu', 'nordbooking_add_performance_menu');
+// Performance dashboard is now integrated into ConsolidatedAdminPage
+// Keeping functions for backward compatibility but not adding menu items
+
+// add_action('admin_menu', 'nordbooking_add_performance_menu');
 
 function nordbooking_add_performance_menu() {
+    // Menu item disabled - now part of consolidated admin
+    /*
     add_submenu_page(
         'tools.php',
         'NORDBOOKING Performance',
@@ -22,6 +26,7 @@ function nordbooking_add_performance_menu() {
         'nordbooking-performance',
         'nordbooking_performance_dashboard_page'
     );
+    */
 }
 
 function nordbooking_performance_dashboard_page() {

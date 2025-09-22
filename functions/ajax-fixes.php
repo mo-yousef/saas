@@ -120,6 +120,32 @@ function nordbooking_create_booking_fixed() {
 
         $sub_total = $base_price + $options_price;
         $total_amount = $sub_total + ($sub_total * ($percentage_impact / 100));
+        
+        // 4.5. Process Discount Code
+        $discount_amount = 0;
+        $discount_id = null;
+        $discount_code = sanitize_text_field($_POST['discount_code'] ?? '');
+        
+        if (!empty($discount_code)) {
+            $discounts_manager = $GLOBALS['nordbooking_discounts_manager'] ?? null;
+            if ($discounts_manager) {
+                $discount_validation = $discounts_manager->validate_discount($discount_code, $tenant_id);
+                if (!is_wp_error($discount_validation)) {
+                    $discount_id = $discount_validation['discount_id'];
+                    
+                    if ($discount_validation['type'] === 'percentage') {
+                        $discount_amount = ($total_amount * floatval($discount_validation['value'])) / 100;
+                    } elseif ($discount_validation['type'] === 'fixed_amount') {
+                        $discount_amount = min(floatval($discount_validation['value']), $total_amount);
+                    }
+                    
+                    $total_amount = max(0, $total_amount - $discount_amount);
+                    
+                    // Increment discount usage
+                    $discounts_manager->increment_discount_usage($discount_id);
+                }
+            }
+        }
 
         // 5. Create Booking Record
         $booking_data = [
@@ -128,16 +154,19 @@ function nordbooking_create_booking_fixed() {
             'customer_name' => sanitize_text_field($customer_details['name']),
             'customer_email' => sanitize_email($customer_details['email']),
             'customer_phone' => sanitize_text_field($customer_details['phone']),
-            'customer_address' => sanitize_textarea_field($customer_details['address'] ?? ''),
+            'service_address' => sanitize_textarea_field($customer_details['address'] ?? ''),
             'booking_date' => sanitize_text_field($customer_details['date']),
             'booking_time' => sanitize_text_field($customer_details['time']),
-            'total_amount' => $total_amount,
+            'total_price' => $total_amount,
+            'discount_id' => $discount_id,
+            'discount_amount' => $discount_amount,
             'status' => 'pending',
             'special_instructions' => sanitize_textarea_field($customer_details['instructions'] ?? ''),
             'service_frequency' => sanitize_text_field($_POST['service_frequency'] ?? 'one-time'),
-            'selected_services' => wp_json_encode($selected_services_raw), // Save the raw submitted structure
-            'pet_information' => $_POST['pet_information'] ?? '{}',
-            'property_access' => $_POST['property_access'] ?? '{}',
+            'has_pets' => !empty($_POST['pet_information']) && json_decode($_POST['pet_information'], true)['has_pets'] ? 1 : 0,
+            'pet_details' => !empty($_POST['pet_information']) ? sanitize_textarea_field(json_decode($_POST['pet_information'], true)['details'] ?? '') : '',
+            'property_access_method' => !empty($_POST['property_access']) ? sanitize_text_field(json_decode($_POST['property_access'], true)['method'] ?? '') : '',
+            'property_access_details' => !empty($_POST['property_access']) ? sanitize_textarea_field(json_decode($_POST['property_access'], true)['details'] ?? '') : '',
             'created_at' => current_time('mysql'),
             'updated_at' => current_time('mysql')
         ];
@@ -157,7 +186,7 @@ function nordbooking_create_booking_fixed() {
             'message' => 'Booking submitted successfully!',
             'booking_id' => $booking_id,
             'booking_reference' => $booking_data['booking_reference'],
-            'total_amount' => $total_amount,
+            'total_price' => $total_amount,
         ]);
 
     } catch (Exception $e) {
@@ -223,7 +252,7 @@ function nordbooking_send_booking_emails($booking_id, $booking_data, $service_de
         $booking_data['booking_date'],
         $booking_data['booking_time'],
         implode(', ', array_column($service_details, 'name')),
-        $booking_data['total_amount'],
+        $booking_data['total_price'],
         $site_name
     );
 
@@ -241,7 +270,7 @@ function nordbooking_send_booking_emails($booking_id, $booking_data, $service_de
         $booking_data['booking_date'],
         $booking_data['booking_time'],
         implode(', ', array_column($service_details, 'name')),
-        $booking_data['total_amount']
+        $booking_data['total_price']
     );
 
     wp_mail($admin_email, $admin_subject, $admin_message);

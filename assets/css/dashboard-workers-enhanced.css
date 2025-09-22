@@ -99,6 +99,68 @@
   animation: slideInDown 0.3s ease-out;
 }
 
+/* Inline Alert Components */
+.NORDBOOKING-inline-alert {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: var(--mobk-radius-sm);
+  border: 1px solid;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+  animation: slideInDown 0.3s ease-out;
+}
+
+.NORDBOOKING-inline-alert-content {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.NORDBOOKING-inline-alert-icon {
+  flex-shrink: 0;
+  width: 1rem;
+  height: 1rem;
+}
+
+.NORDBOOKING-inline-alert-message {
+  flex-grow: 1;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.NORDBOOKING-inline-alert-success {
+  border-color: hsl(142 76% 36% / 0.3);
+  background-color: hsl(142 76% 36% / 0.1);
+  color: hsl(142 76% 36%);
+}
+
+.NORDBOOKING-inline-alert-error {
+  border-color: var(--mobk-destructive) / 0.3;
+  background-color: var(--mobk-destructive) / 0.1;
+  color: var(--mobk-destructive);
+}
+
+.NORDBOOKING-inline-alert-info {
+  border-color: var(--mobk-primary) / 0.3;
+  background-color: var(--mobk-primary) / 0.1;
+  color: var(--mobk-primary);
+}
+
+.NORDBOOKING-inline-alert-warning {
+  border-color: hsl(45 93% 47% / 0.3);
+  background-color: hsl(45 93% 47% / 0.1);
+  color: hsl(45 93% 47%);
+}
+
+/* Hide/show icons based on alert type */
+.NORDBOOKING-inline-alert-success .NORDBOOKING-inline-alert-icon-error,
+.NORDBOOKING-inline-alert-error .NORDBOOKING-inline-alert-icon-success {
+  display: none;
+}
+
 @keyframes slideInDown {
   from {
     opacity: 0;
@@ -218,13 +280,14 @@
   position: relative;
   display: flex;
   width: 100%;
-  flex-direction: column;
+  align-items: stretch;
 }
 
 .NORDBOOKING-input-group .NORDBOOKING-input {
   border-top-right-radius: 0;
   border-bottom-right-radius: 0;
   border-right: 0;
+  flex: 1;
 }
 
 .NORDBOOKING-input-addon {
@@ -245,6 +308,37 @@
 
 .NORDBOOKING-input-addon:hover {
   background-color: var(--mobk-accent);
+}
+
+/* Password Toggle Button Styles */
+.NORDBOOKING-input-group .btn[data-target] {
+  height: var(--mobk-input-height);
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  border-left: 0;
+  background-color: var(--mobk-muted);
+  border-color: var(--mobk-input);
+  color: var(--mobk-muted-foreground);
+  padding: 0 0.75rem;
+  min-width: auto;
+}
+
+.NORDBOOKING-input-group .btn[data-target]:hover {
+  background-color: var(--mobk-accent);
+  color: var(--mobk-accent-foreground);
+}
+
+/* Password toggle icon visibility */
+.NORDBOOKING-eye-closed {
+  display: none;
+}
+
+.NORDBOOKING-password-visible .NORDBOOKING-eye-open {
+  display: none;
+}
+
+.NORDBOOKING-password-visible .NORDBOOKING-eye-closed {
+  display: block;
 }
 
 /* ============================================================================

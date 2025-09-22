@@ -32,27 +32,70 @@ if (isset($GLOBALS['nordbooking_settings_manager'])) {
     $currency_symbol = \NORDBOOKING\Classes\Utils::get_currency_symbol($currency_code_setting);
 }
 
-// KPIs for staff might be different. Let's focus on upcoming bookings.
+// KPIs for staff - get upcoming bookings assigned to this worker
 $upcoming_args = [
     'limit' => 999,
     'filter_by_exactly_assigned_staff_id' => $current_staff_id,
-    'status' => 'confirmed'
+    'status' => ['confirmed', 'pending']
 ];
-$upcoming_bookings_result = $bookings_manager->get_bookings_by_tenant($current_staff_id, $upcoming_args);
+$upcoming_bookings_result = $bookings_manager->get_bookings_by_tenant($business_owner_id, $upcoming_args);
 $upcoming_count = $upcoming_bookings_result['total_count'];
 
 // Handle single booking view
 if (isset($_GET['action']) && $_GET['action'] === 'view_booking' && isset($_GET['booking_id'])) {
     $single_booking_id = intval($_GET['booking_id']);
+    
+    // For workers, we need to use the business owner ID to fetch the booking
+    // since bookings are stored under the business owner's tenant ID
     $booking_to_view = $bookings_manager->get_booking($single_booking_id, $business_owner_id);
 
+    // Debug: Log the booking retrieval attempt
+    error_log("NORDBOOKING: Worker {$current_staff_id} attempting to view booking {$single_booking_id}");
+    error_log("NORDBOOKING: Business owner ID: {$business_owner_id}");
+    
+    // Additional debug: Check if the booking exists in the database at all
+    global $wpdb;
+    $bookings_table = \NORDBOOKING\Classes\Database::get_table_name('bookings');
+    $booking_exists = $wpdb->get_row($wpdb->prepare(
+        "SELECT booking_id, user_id, assigned_staff_id, customer_name FROM {$bookings_table} WHERE booking_id = %d",
+        $single_booking_id
+    ), ARRAY_A);
+    
+    if ($booking_exists) {
+        error_log("NORDBOOKING: Raw booking data from DB: " . print_r($booking_exists, true));
+    } else {
+        error_log("NORDBOOKING: Booking {$single_booking_id} does not exist in database");
+    }
+    
+    // Check if booking exists and is assigned to this worker
     if ($booking_to_view && (int)$booking_to_view['assigned_staff_id'] === $current_staff_id) {
-        $single_page_path = __DIR__ . '/page-booking-single.php';
-        if (file_exists($single_page_path)) {
-            include $single_page_path;
+        error_log("NORDBOOKING: Booking access granted for worker {$current_staff_id}");
+        
+        // Use the worker-specific booking view instead of the complex general one
+        $worker_booking_path = __DIR__ . '/page-worker-booking-single.php';
+        if (file_exists($worker_booking_path)) {
+            include $worker_booking_path;
             return;
+        } else {
+            // Fallback to the original booking single page with proper variables
+            $single_booking_id = $single_booking_id;  // Already set above
+            $current_user_id = $current_staff_id;  // Set current_user_id to the worker ID
+            
+            $single_page_path = __DIR__ . '/page-booking-single.php';
+            if (file_exists($single_page_path)) {
+                include $single_page_path;
+                return;
+            }
         }
     } else {
+        // Debug information
+        error_log("NORDBOOKING: Worker {$current_staff_id} DENIED access to booking {$single_booking_id}");
+        if ($booking_to_view) {
+            error_log("NORDBOOKING: Booking found but assigned_staff_id is " . ($booking_to_view['assigned_staff_id'] ?? 'null') . " (expected: {$current_staff_id})");
+            error_log("NORDBOOKING: Booking data: " . print_r($booking_to_view, true));
+        } else {
+            error_log("NORDBOOKING: Booking not found or no permission");
+        }
         wp_die(esc_html__('You do not have permission to view this booking.', 'NORDBOOKING'));
     }
 }
@@ -70,13 +113,21 @@ if (isset($_GET['action']) && $_GET['action'] === 'view_booking' && isset($_GET[
         </div>
     </div>
 
-    <div class="dashboard-kpi-grid NORDBOOKING-overview-kpis">
-        <div class="dashboard-kpi-card">
-            <div class="kpi-header">
-                <span class="kpi-title"><?php esc_html_e('Upcoming Confirmed Bookings', 'NORDBOOKING'); ?></span>
-                 <div class="kpi-icon upcoming">⏰</div>
+    <!-- KPI Widgets -->
+    <div class="kpi-grid">
+        <div class="nordbooking-card">
+            <div class="nordbooking-card-header">
+                <div class="nordbooking-card-title-group">
+                    <span class="nordbooking-card-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg></span>
+                    <h3 class="nordbooking-card-title"><?php esc_html_e('Upcoming Confirmed Bookings', 'NORDBOOKING'); ?></h3>
+                </div>
             </div>
-            <div class="kpi-value"><?php echo esc_html($upcoming_count); ?></div>
+            <div class="nordbooking-card-content">
+                <div class="card-content-value text-2xl font-bold"><?php echo esc_html($upcoming_count); ?></div>
+                <p class="text-xs text-muted-foreground">
+                    <?php esc_html_e('Assigned to you', 'NORDBOOKING'); ?>
+                </p>
+            </div>
         </div>
     </div>
 
@@ -94,7 +145,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'view_booking' && isset($_GET[
                 'filter_by_exactly_assigned_staff_id' => $current_staff_id,
             ];
 
-            $bookings_result = $bookings_manager->get_bookings_by_tenant($current_staff_id, $args);
+            $bookings_result = $bookings_manager->get_bookings_by_tenant($business_owner_id, $args);
 
             if ( ! empty( $bookings_result['bookings'] ) ) :
             ?>

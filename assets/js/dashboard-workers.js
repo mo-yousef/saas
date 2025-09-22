@@ -185,7 +185,7 @@
      * Password toggle functionality
      */
     bindPasswordToggleEvents: function () {
-      $(document).on("click", ".NORDBOOKING-password-toggle", function (e) {
+      $(document).on("click", ".btn[data-target]", function (e) {
         e.preventDefault();
         var $toggle = $(this);
         var targetId = $toggle.data("target");
@@ -195,10 +195,14 @@
           $input.attr("type", "text");
           $toggle.addClass("NORDBOOKING-password-visible");
           $toggle.attr("aria-label", "Hide password");
+          $toggle.find(".NORDBOOKING-eye-open").hide();
+          $toggle.find(".NORDBOOKING-eye-closed").show();
         } else {
           $input.attr("type", "password");
           $toggle.removeClass("NORDBOOKING-password-visible");
           $toggle.attr("aria-label", "Show password");
+          $toggle.find(".NORDBOOKING-eye-open").show();
+          $toggle.find(".NORDBOOKING-eye-closed").hide();
         }
       });
     },
@@ -459,9 +463,9 @@
      * Form validation
      */
     validateInviteForm: function ($form) {
-      var emailValue = $form.find("#invite_email").val();
+      var emailValue = $form.find("#worker_email").val();
       var email = emailValue ? emailValue.trim() : "";
-      var role = $form.find("#invite_role").val();
+      var role = $form.find("#worker_role").val();
 
       if (!email) {
         this.showInlineAlert(
@@ -469,7 +473,7 @@
           "Email address is required.",
           false
         );
-        $form.find("#invite_email").focus();
+        $form.find("#worker_email").focus();
         return false;
       }
 
@@ -479,7 +483,7 @@
           "Please enter a valid email address.",
           false
         );
-        $form.find("#invite_email").focus();
+        $form.find("#worker_email").focus();
         return false;
       }
 
@@ -489,7 +493,7 @@
           "Please select a role.",
           false
         );
-        $form.find("#invite_role").focus();
+        $form.find("#worker_role").focus();
         return false;
       }
 

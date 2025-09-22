@@ -11,17 +11,19 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-// Add debug menu item
-add_action('admin_menu', function() {
-    add_submenu_page(
-        'tools.php',
-        'NORDBOOKING Debug',
-        'NORDBOOKING Debug',
-        'manage_options',
-        'nordbooking-debug-performance',
-        'nordbooking_debug_performance_page'
-    );
-});
+// Debug functionality is now integrated into ConsolidatedAdminPage
+// Keeping functions for backward compatibility but not adding menu items
+
+// add_action('admin_menu', function() {
+//     add_submenu_page(
+//         'tools.php',
+//         'NORDBOOKING Debug',
+//         'NORDBOOKING Debug',
+//         'manage_options',
+//         'nordbooking-debug-performance',
+//         'nordbooking_debug_performance_page'
+//     );
+// });
 
 function nordbooking_debug_performance_page() {
     ?>

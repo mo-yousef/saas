@@ -1602,3 +1602,45 @@ function nordbooking_ajax_create_customer_portal_session() {
         wp_send_json_error(['message' => __('Could not create customer portal session. Please try again or contact support.', 'NORDBOOKING')]);
     }
 }
+// AJAX handler for syncing subscription status
+add_action('wp_ajax_nordbooking_sync_subscription_status', 'nordbooking_ajax_sync_subscription_status');
+function nordbooking_ajax_sync_subscription_status() {
+    if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'nordbooking_dashboard_nonce')) {
+        wp_send_json_error(array('message' => 'Security check failed: Invalid nonce.'), 403);
+        return;
+    }
+
+    $user_id = get_current_user_id();
+    if (!$user_id) {
+        wp_send_json_error(['message' => __('User not logged in.', 'NORDBOOKING')], 403);
+        return;
+    }
+
+    if (!class_exists('NORDBOOKING\Classes\Subscription')) {
+        wp_send_json_error(['message' => __('Subscription class not found.', 'NORDBOOKING')]);
+        return;
+    }
+
+    // Get status before sync
+    $old_status = \NORDBOOKING\Classes\Subscription::get_subscription_status($user_id);
+    
+    $success = \NORDBOOKING\Classes\Subscription::sync_subscription_status($user_id);
+    
+    // Get status after sync
+    $new_status = \NORDBOOKING\Classes\Subscription::get_subscription_status($user_id);
+    
+    if ($success) {
+        $message = __('Subscription status synced successfully.', 'NORDBOOKING');
+        if ($old_status !== $new_status) {
+            $message .= ' ' . sprintf(__('Status updated from %s to %s.', 'NORDBOOKING'), $old_status, $new_status);
+        }
+        
+        wp_send_json_success([
+            'message' => $message,
+            'status' => $new_status,
+            'changed' => $old_status !== $new_status
+        ]);
+    } else {
+        wp_send_json_error(['message' => __('No subscription found in Stripe to sync. If you just completed a payment, please wait a few minutes and try again.', 'NORDBOOKING')]);
+    }
+}

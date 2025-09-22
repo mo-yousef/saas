@@ -56,6 +56,12 @@ jQuery(document).ready(function ($) {
       discount: 0,
       total: 0,
     },
+    discount: {
+      code: "",
+      applied: false,
+      data: null,
+      amount: 0,
+    },
     pets: { has_pets: false, details: "" },
     frequency: "one-time",
     date: "",
@@ -97,6 +103,11 @@ jQuery(document).ready(function ($) {
     // Live summary
     liveSummaryContainer: $("#NORDBOOKING-live-summary"),
     liveSummaryContent: $("#NORDBOOKING-summary-content"),
+    // Discount
+    discountSection: $("#NORDBOOKING-discount-section"),
+    discountInput: $("#NORDBOOKING-discount-code"),
+    applyDiscountBtn: $("#NORDBOOKING-apply-discount"),
+    discountFeedback: $("#NORDBOOKING-discount-feedback"),
     // Success
     successMessage: $("#NORDBOOKING-success-message"),
   };
@@ -1163,6 +1174,12 @@ jQuery(document).ready(function ($) {
 
     state.optionsById = opts;
     state.pricing.options = optionsTotal;
+    
+    // Recalculate discount amount if discount is applied
+    if (state.discount.applied && state.discount.data) {
+      state.discount.amount = calculateDiscountAmount(state.discount.data);
+    }
+    
     recalcTotal();
   }
 
@@ -1352,6 +1369,28 @@ jQuery(document).ready(function ($) {
           </div>`;
     }
 
+    // Add pricing breakdown if there are options or discount
+    if (optList.length > 0 || state.discount.applied) {
+      html += '<div class="NORDBOOKING-summary-pricing">';
+      
+      // Subtotal
+      const subtotal = state.pricing.base + state.pricing.options;
+      html += `<div class="NORDBOOKING-pricing-row subtotal">
+        <span>Subtotal</span>
+        <span>${CONFIG.currency_symbol}${subtotal.toFixed(2)}</span>
+      </div>`;
+      
+      // Discount
+      if (state.discount.applied && state.discount.amount > 0) {
+        html += `<div class="NORDBOOKING-pricing-row discount">
+          <span>Discount (${state.discount.data.code})</span>
+          <span class="NORDBOOKING-discount-amount">-${CONFIG.currency_symbol}${state.discount.amount.toFixed(2)}</span>
+        </div>`;
+      }
+      
+      html += '</div>';
+    }
+
     html += `<div class="summary-item summary-total">
           <strong>Total</strong>
           <strong>${CONFIG.currency_symbol}${(state.pricing.total || 0).toFixed(
@@ -1511,12 +1550,28 @@ jQuery(document).ready(function ($) {
       pet_information: JSON.stringify(state.pets),
       property_access: JSON.stringify(state.propertyAccess),
       pricing: JSON.stringify(state.pricing),
+      discount_code: state.discount.applied ? state.discount.code : "",
+      discount_data: state.discount.applied ? JSON.stringify(state.discount.data) : "",
     };
 
-    const handleSuccess = () => {
+    const handleSuccess = (response) => {
       const elapsedTime = Date.now() - startTime;
       const remainingTime = Math.max(0, minDisplayTime - elapsedTime);
-      setTimeout(() => showStep(9), remainingTime);
+      setTimeout(() => {
+        showStep(9);
+        
+        // Add booking management link if provided
+        if (response.data && response.data.booking_management_link) {
+          const managementLinkHtml = `
+            <div style="margin: 20px 0; padding: 15px; background-color: #f8f9fa; border-radius: 8px; border-left: 4px solid #007cba;">
+              <h3 style="margin: 0 0 10px 0; color: #333;">Need to make changes?</h3>
+              <p style="margin: 0 0 15px 0; color: #666;">You can reschedule or cancel your booking anytime using the link below:</p>
+              <a href="${response.data.booking_management_link}" style="display: inline-block; padding: 10px 20px; background-color: #007cba; color: white; text-decoration: none; border-radius: 6px; font-weight: 600;" target="_blank">Manage Your Booking</a>
+            </div>
+          `;
+          $("#NORDBOOKING-success-message").after(managementLinkHtml);
+        }
+      }, remainingTime);
     };
 
     const handleError = (message) => {
@@ -1534,7 +1589,7 @@ jQuery(document).ready(function ($) {
     $.post(CONFIG.ajax_url, payload)
       .done(function (res) {
         if (res.success) {
-          handleSuccess();
+          handleSuccess(res);
         } else {
           handleError(
             res.data?.message || CONFIG.i18n.booking_error || "Submission error"
@@ -1724,4 +1779,179 @@ jQuery(document).ready(function ($) {
       suggestionsContainer.hide();
     }
   });
+
+  // ==========================================
+  // DISCOUNT CODE FUNCTIONALITY
+  // ==========================================
+
+  // Apply discount code
+  els.applyDiscountBtn.on('click', function() {
+    const code = els.discountInput.val().trim();
+    if (!code) {
+      showDiscountFeedback('Please enter a discount code.', 'error');
+      return;
+    }
+    
+    if (!state.service) {
+      showDiscountFeedback('Please select a service first.', 'error');
+      return;
+    }
+    
+    // Check if discount is disabled for this service
+    if (state.service.disable_discount_code) {
+      showDiscountFeedback('Discount codes are not available for this service.', 'error');
+      return;
+    }
+    
+    applyDiscountCode(code);
+  });
+
+  // Allow Enter key to apply discount
+  els.discountInput.on('keypress', function(e) {
+    if (e.which === 13) {
+      els.applyDiscountBtn.click();
+    }
+  });
+
+  // Clear discount feedback when typing
+  els.discountInput.on('input', function() {
+    hideDiscountFeedback();
+  });
+
+  function applyDiscountCode(code) {
+    els.applyDiscountBtn.prop('disabled', true).text('Applying...');
+    hideDiscountFeedback();
+
+    $.ajax({
+      url: CONFIG.ajax_url,
+      type: 'POST',
+      data: {
+        action: 'nordbooking_validate_discount_public',
+        discount_code: code,
+        tenant_id: CONFIG.tenant_id,
+        nonce: CONFIG.nonce
+      },
+      success: function(response) {
+        if (response.success && response.data.valid) {
+          // Discount is valid
+          state.discount = {
+            code: code,
+            applied: true,
+            data: response.data.discount,
+            amount: calculateDiscountAmount(response.data.discount)
+          };
+          
+          showDiscountApplied(response.data.discount);
+          updatePricingWithDiscount();
+          updateLiveSummary();
+          showDiscountFeedback(response.data.message || 'Discount applied successfully!', 'success');
+        } else {
+          // Discount is invalid
+          showDiscountFeedback(response.data.message || 'Invalid discount code.', 'error');
+        }
+      },
+      error: function() {
+        showDiscountFeedback('Error validating discount code. Please try again.', 'error');
+      },
+      complete: function() {
+        els.applyDiscountBtn.prop('disabled', false).text('Apply');
+      }
+    });
+  }
+
+  function calculateDiscountAmount(discountData) {
+    const subtotal = state.pricing.base + state.pricing.options;
+    
+    if (discountData.type === 'percentage') {
+      return (subtotal * parseFloat(discountData.value)) / 100;
+    } else if (discountData.type === 'fixed_amount') {
+      return Math.min(parseFloat(discountData.value), subtotal);
+    }
+    
+    return 0;
+  }
+
+  function updatePricingWithDiscount() {
+    if (state.discount.applied) {
+      state.pricing.discount = state.discount.amount;
+    } else {
+      state.pricing.discount = 0;
+    }
+    
+    state.pricing.total = Math.max(0, state.pricing.base + state.pricing.options - state.pricing.discount);
+  }
+
+  function showDiscountApplied(discountData) {
+    const discountType = discountData.type === 'percentage' ? `${discountData.value}%` : `${CONFIG.currency_symbol}${discountData.value}`;
+    const appliedHtml = `
+      <div class="NORDBOOKING-discount-applied">
+        <div class="NORDBOOKING-discount-applied-info">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 12l2 2 4-4"/>
+            <circle cx="12" cy="12" r="10"/>
+          </svg>
+          <span>${discountData.code} (${discountType} off)</span>
+        </div>
+        <button type="button" class="NORDBOOKING-discount-remove-btn" onclick="removeDiscount()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+    `;
+    
+    els.discountInput.parent().after(appliedHtml);
+    els.discountInput.parent().hide();
+  }
+
+  function removeDiscount() {
+    state.discount = {
+      code: "",
+      applied: false,
+      data: null,
+      amount: 0
+    };
+    
+    $('.NORDBOOKING-discount-applied').remove();
+    els.discountInput.parent().show();
+    els.discountInput.val('');
+    hideDiscountFeedback();
+    updatePricingWithDiscount();
+    updateLiveSummary();
+  }
+
+  // Make removeDiscount globally available
+  window.removeDiscount = removeDiscount;
+
+  function showDiscountFeedback(message, type) {
+    els.discountFeedback
+      .removeClass('success error')
+      .addClass(type)
+      .text(message)
+      .show();
+  }
+
+  function hideDiscountFeedback() {
+    els.discountFeedback.hide();
+  }
+
+  // Show discount section when service is selected and discount is enabled
+  function checkDiscountAvailability() {
+    if (state.service && !state.service.disable_discount_code) {
+      els.discountSection.show();
+    } else {
+      els.discountSection.hide();
+      if (state.discount.applied) {
+        removeDiscount();
+      }
+    }
+  }
+
+  // Hook into service selection to check discount availability
+  const originalUpdateLiveSummary = updateLiveSummary;
+  updateLiveSummary = function() {
+    checkDiscountAvailability();
+    originalUpdateLiveSummary();
+  };
 });

@@ -813,16 +813,31 @@ public function save_booking_form_settings(int $user_id, array $settings_data): 
             $value_to_set = $default_value;
 
             if ($user_info) {
+                // Set business name from user meta if available
+                if ($key === 'biz_name' && empty($default_value)) {
+                    $company_name_meta = get_user_meta($user_id, 'nordbooking_company_name', true);
+                    if (!empty($company_name_meta)) {
+                        $value_to_set = $company_name_meta;
+                    }
+                }
+                
                 if ($key === 'biz_email' && empty($default_value)) {
                     $value_to_set = $user_info->user_email;
                 }
+                
                 if ($key === 'email_from_name' && empty($default_value)) {
                     $biz_name_val = $settings_instance->get_setting($user_id, 'biz_name');
+                    if (empty($biz_name_val)) {
+                        // Try to get from user meta first
+                        $company_name_meta = get_user_meta($user_id, 'nordbooking_company_name', true);
+                        $biz_name_val = !empty($company_name_meta) ? $company_name_meta : '';
+                    }
                     if (empty($biz_name_val)) $biz_name_val = isset(self::get_default_settings()['biz_name']) ? self::get_default_settings()['biz_name'] : '';
                     if (empty($biz_name_val)) $biz_name_val = $user_info->display_name;
 
                     $value_to_set = !empty($biz_name_val) ? $biz_name_val : get_bloginfo('name');
                 }
+                
                 if ($key === 'email_from_address' && empty($default_value)) {
                     $biz_email_val = $settings_instance->get_setting($user_id, 'biz_email');
                     if (empty($biz_email_val)) $biz_email_val = $user_info->user_email;

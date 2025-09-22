@@ -20,7 +20,7 @@ get_header();
                     </div>
                     
                     <h1 class="hero-title">
-                        The scheduling infrastructure for 
+                        Booking system for 
                         <span class="gradient-text">cleaning businesses</span>
                     </h1>
                     

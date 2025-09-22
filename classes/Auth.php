@@ -154,6 +154,7 @@ class Auth {
         add_action( 'wp_ajax_nordbooking_revoke_worker_access', [ $this, 'handle_ajax_revoke_worker_access' ] );
         add_action( 'wp_ajax_nordbooking_direct_add_staff', [ $this, 'handle_ajax_direct_add_staff' ] );
         add_action( 'wp_ajax_nordbooking_edit_worker_details', [ $this, 'handle_ajax_edit_worker_details' ] );
+        add_action( 'wp_ajax_nordbooking_worker_update_booking_status', [ $this, 'handle_ajax_worker_update_booking_status' ] );
         // wp_ajax_nordbooking_login for logged-in users if needed, but login is for non-logged-in
     }
 
@@ -236,6 +237,118 @@ class Auth {
             // Nothing to update, but not an error per se. Could be considered success.
             wp_send_json_success( array( 'message' => __( 'No changes detected for worker details.', 'NORDBOOKING' ) ) );
         }
+    }
+
+    public function handle_ajax_worker_update_booking_status() {
+        // Verify nonce
+        if (!wp_verify_nonce($_POST['worker_status_nonce'], 'nordbooking_worker_update_status')) {
+            wp_send_json_error(['message' => __('Security check failed.', 'NORDBOOKING')]);
+            return;
+        }
+
+        // Check if user is a worker
+        $current_user_id = get_current_user_id();
+        if (!current_user_can(self::ROLE_WORKER_STAFF)) {
+            wp_send_json_error(['message' => __('You do not have permission to update booking status.', 'NORDBOOKING')]);
+            return;
+        }
+
+        // Get and validate input
+        $booking_id = intval($_POST['booking_id']);
+        $new_status = sanitize_text_field($_POST['new_status']);
+        $status_notes = sanitize_textarea_field($_POST['status_notes']);
+
+        if (empty($booking_id) || empty($new_status)) {
+            wp_send_json_error(['message' => __('Missing required information.', 'NORDBOOKING')]);
+            return;
+        }
+
+        // Validate status
+        $allowed_statuses = ['confirmed', 'in_progress', 'completed', 'cancelled'];
+        if (!in_array($new_status, $allowed_statuses)) {
+            wp_send_json_error(['message' => __('Invalid status.', 'NORDBOOKING')]);
+            return;
+        }
+
+        // Get business owner ID
+        $business_owner_id = self::get_business_owner_id_for_worker($current_user_id);
+        if (!$business_owner_id) {
+            wp_send_json_error(['message' => __('Could not determine your business owner.', 'NORDBOOKING')]);
+            return;
+        }
+
+        // Initialize managers
+        $services_manager = new \NORDBOOKING\Classes\Services();
+        $discounts_manager = new \NORDBOOKING\Classes\Discounts($business_owner_id);
+        $notifications_manager = new \NORDBOOKING\Classes\Notifications();
+        $bookings_manager = new \NORDBOOKING\Classes\Bookings($discounts_manager, $notifications_manager, $services_manager);
+
+        // Get the booking and verify it's assigned to this worker
+        $booking = $bookings_manager->get_booking($booking_id, $business_owner_id);
+        if (!$booking) {
+            wp_send_json_error(['message' => __('Booking not found.', 'NORDBOOKING')]);
+            return;
+        }
+
+        if ((int)$booking['assigned_staff_id'] !== $current_user_id) {
+            wp_send_json_error(['message' => __('You are not assigned to this booking.', 'NORDBOOKING')]);
+            return;
+        }
+
+        // Update the booking status
+        global $wpdb;
+        $bookings_table = \NORDBOOKING\Classes\Database::get_table_name('bookings');
+        
+        $update_data = [
+            'status' => $new_status,
+            'updated_at' => current_time('mysql')
+        ];
+        
+        $update_result = $wpdb->update(
+            $bookings_table,
+            $update_data,
+            ['booking_id' => $booking_id],
+            ['%s', '%s'],
+            ['%d']
+        );
+
+        if ($update_result === false) {
+            wp_send_json_error(['message' => __('Failed to update booking status.', 'NORDBOOKING')]);
+            return;
+        }
+
+        // Log the status change if notes were provided
+        if (!empty($status_notes)) {
+            // You could add a booking notes/history table here if needed
+            error_log("NORDBOOKING: Worker {$current_user_id} updated booking {$booking_id} status to {$new_status}. Notes: {$status_notes}");
+        }
+
+        // Send notification to business owner about status change
+        try {
+            $worker_user = get_userdata($current_user_id);
+            $worker_name = $worker_user ? $worker_user->display_name : __('Worker', 'NORDBOOKING');
+            
+            // You could send an email notification here if needed
+            // $notifications_manager->send_status_change_notification(...);
+            
+        } catch (Exception $e) {
+            // Don't fail the whole operation if notification fails
+            error_log("NORDBOOKING: Failed to send status change notification: " . $e->getMessage());
+        }
+
+        // Prepare response
+        $status_display_names = [
+            'confirmed' => __('Confirmed', 'NORDBOOKING'),
+            'in_progress' => __('In Progress', 'NORDBOOKING'),
+            'completed' => __('Completed', 'NORDBOOKING'),
+            'cancelled' => __('Cancelled', 'NORDBOOKING')
+        ];
+
+        wp_send_json_success([
+            'message' => __('Booking status updated successfully.', 'NORDBOOKING'),
+            'new_status' => $new_status,
+            'new_status_display' => $status_display_names[$new_status] ?? ucfirst($new_status)
+        ]);
     }
 
     public function handle_ajax_direct_add_staff() {
@@ -508,7 +621,7 @@ private function setup_invited_worker(\WP_User $user, array $post_data): array {
     error_log('NORDBOOKING: Processing invitation flow for user ID: ' . $user->ID);
 
     $inviter_id = intval($post_data['inviter_id']);
-    $role_to_assign = sanitize_text_field($post_data['role_to_assign']);
+    $role_to_assign = sanitize_text_field($post_data['assigned_role']);
     $invitation_token = sanitize_text_field($post_data['invitation_token']);
 
     // Validate invitation
@@ -548,64 +661,87 @@ private function setup_new_business_owner(\WP_User $user, string $company_name):
 
     error_log('NORDBOOKING: Business owner role assigned and company name saved');
 
+    // Initialize settings manager
+    if (!isset($GLOBALS['nordbooking_settings_manager'])) {
+        $GLOBALS['nordbooking_settings_manager'] = new \NORDBOOKING\Classes\Settings();
+    }
+    $settings_manager = $GLOBALS['nordbooking_settings_manager'];
+
+    // Save company name to business settings immediately
+    if (!empty($company_name)) {
+        try {
+            $settings_manager->update_setting($user->ID, 'biz_name', $company_name);
+            error_log("NORDBOOKING: Company name saved to business settings: {$company_name}");
+        } catch (Exception $e) {
+            error_log("NORDBOOKING: Error saving company name to settings: " . $e->getMessage());
+            // Continue with registration even if settings save fails
+        }
+    }
+
     // Generate and save unique business slug
     if (!empty($company_name)) {
         error_log('NORDBOOKING: Generating business slug');
 
-        if (class_exists('NORDBOOKING\Classes\Settings') && class_exists('NORDBOOKING\Classes\Routes\BookingFormRouter')) {
-            // Initialize settings manager
-            if (!isset($GLOBALS['nordbooking_settings_manager'])) {
-                $GLOBALS['nordbooking_settings_manager'] = new \NORDBOOKING\Classes\Settings();
-            }
-            $settings_manager = $GLOBALS['nordbooking_settings_manager'];
+        try {
+            if (class_exists('NORDBOOKING\Classes\Routes\BookingFormRouter') && class_exists('NORDBOOKING\Classes\Database')) {
+                // Generate unique slug
+                $base_slug = sanitize_title($company_name);
+                $final_slug = $base_slug;
+                $counter = 1;
 
-            // Generate unique slug
-            $base_slug = sanitize_title($company_name);
-            $final_slug = $base_slug;
-            $counter = 1;
+                global $wpdb;
+                $settings_table = \NORDBOOKING\Classes\Database::get_table_name('tenant_settings');
 
-            global $wpdb;
-            $settings_table = \NORDBOOKING\Classes\Database::get_table_name('tenant_settings');
-
-            if (empty($settings_table)) {
-                throw new \Exception('Database settings table name could not be retrieved.');
-            }
-
-            $slug_is_taken = true;
-            error_log("NORDBOOKING: Starting slug generation for base: {$base_slug}");
-
-            while ($slug_is_taken) {
-                $query = $wpdb->prepare(
-                    "SELECT user_id FROM {$settings_table} WHERE setting_name = %s AND setting_value = %s",
-                    'bf_business_slug',
-                    $final_slug
-                );
-                $existing_user_id = $wpdb->get_var($query);
-
-                if ($existing_user_id === null) {
-                    $slug_is_taken = false;
+                if (empty($settings_table)) {
+                    error_log('NORDBOOKING: Database settings table name could not be retrieved, skipping slug generation');
                 } else {
-                    $counter++;
-                    $final_slug = $base_slug . '-' . $counter;
-                    error_log("NORDBOOKING: Slug collision detected. Trying next slug: {$final_slug}");
-                    if ($counter > 50) {
-                        error_log("NORDBOOKING: Slug generation loop exceeded 50 iterations. Breaking loop.");
-                        $final_slug .= '-' . wp_rand(100, 999);
-                        break;
-                    }
-                }
-            }
+                    $slug_is_taken = true;
+                    error_log("NORDBOOKING: Starting slug generation for base: {$base_slug}");
 
-            $settings_manager->update_setting($user->ID, 'bf_business_slug', $final_slug);
-            error_log("NORDBOOKING: Business slug created and saved: {$final_slug}");
+                    while ($slug_is_taken) {
+                        $query = $wpdb->prepare(
+                            "SELECT user_id FROM {$settings_table} WHERE setting_name = %s AND setting_value = %s",
+                            'bf_business_slug',
+                            $final_slug
+                        );
+                        $existing_user_id = $wpdb->get_var($query);
+
+                        if ($existing_user_id === null) {
+                            $slug_is_taken = false;
+                        } else {
+                            $counter++;
+                            $final_slug = $base_slug . '-' . $counter;
+                            error_log("NORDBOOKING: Slug collision detected. Trying next slug: {$final_slug}");
+                            if ($counter > 50) {
+                                error_log("NORDBOOKING: Slug generation loop exceeded 50 iterations. Breaking loop.");
+                                $final_slug .= '-' . wp_rand(100, 999);
+                                break;
+                            }
+                        }
+                    }
+
+                    $settings_manager->update_setting($user->ID, 'bf_business_slug', $final_slug);
+                    error_log("NORDBOOKING: Business slug created and saved: {$final_slug}");
+                }
+            } else {
+                error_log('NORDBOOKING: Required classes not available for slug generation');
+            }
+        } catch (Exception $e) {
+            error_log('NORDBOOKING: Error during slug generation: ' . $e->getMessage());
+            // Continue with registration even if slug generation fails
         }
     }
 
     // Initialize default settings for new business owner
     error_log('NORDBOOKING: Initializing default settings');
-    if (class_exists('NORDBOOKING\Classes\Settings') && method_exists('NORDBOOKING\Classes\Settings', 'initialize_default_settings')) {
-        \NORDBOOKING\Classes\Settings::initialize_default_settings($user->ID);
-        error_log('NORDBOOKING: Default settings initialized successfully');
+    try {
+        if (class_exists('NORDBOOKING\Classes\Settings') && method_exists('NORDBOOKING\Classes\Settings', 'initialize_default_settings')) {
+            \NORDBOOKING\Classes\Settings::initialize_default_settings($user->ID);
+            error_log('NORDBOOKING: Default settings initialized successfully');
+        }
+    } catch (Exception $e) {
+        error_log('NORDBOOKING: Error initializing default settings: ' . $e->getMessage());
+        // Continue with registration even if default settings initialization fails
     }
 
     return [
@@ -619,6 +755,11 @@ private function setup_new_business_owner(\WP_User $user, string $company_name):
 
 
 public function handle_ajax_registration() {
+    // Clean any output that might have been generated
+    if (ob_get_level()) {
+        ob_clean();
+    }
+    
     error_log('NORDBOOKING: Registration process started');
     $user_id = null; // Initialize user_id to null
 
@@ -674,7 +815,7 @@ public function handle_ajax_registration() {
         $password = isset($_POST['password']) ? $_POST['password'] : '';
         $password_confirm = isset($_POST['password_confirm']) ? $_POST['password_confirm'] : '';
         $company_name = isset($_POST['company_name']) ? sanitize_text_field(trim($_POST['company_name'])) : '';
-        $is_invitation_flow = isset($_POST['inviter_id']) && isset($_POST['role_to_assign']);
+        $is_invitation_flow = isset($_POST['inviter_id']) && isset($_POST['assigned_role']);
 
         error_log("NORDBOOKING: Registration attempt for email: {$email}");
 
@@ -718,26 +859,49 @@ public function handle_ajax_registration() {
         error_log('NORDBOOKING: Logging user in and setting auth cookie');
         wp_set_current_user($user_id, $user->user_login);
         wp_set_auth_cookie($user_id, true, is_ssl());
+        
+        // Start output buffering before wp_login action to catch any output
+        ob_start();
         do_action('wp_login', $user->user_login, $user);
+        ob_end_clean(); // Discard any output from wp_login hooks
+        
         error_log("NORDBOOKING: User {$user_id} logged in, wp_login action hook fired.");
 
         // 7. Send welcome email (only for business owners)
         if (!$is_invitation_flow) {
             if (class_exists('NORDBOOKING\Classes\Subscription')) {
+                ob_start();
                 Subscription::create_trial_subscription($user_id);
+                ob_end_clean(); // Discard any output from subscription creation
             }
+            
+            ob_start();
             $this->send_welcome_email($user_id, $display_name);
+            ob_end_clean(); // Discard any output from email sending
         }
 
         // 8. Send success response
         error_log(sprintf('NORDBOOKING: Successful registration for %s (%s) - User ID: %d, Type: %s', $display_name, $email, $user_id, $is_invitation_flow ? 'Worker' : 'Business Owner'));
+        
+        // Final cleanup of any remaining output
+        while (ob_get_level()) {
+            ob_end_clean();
+        }
+        
         wp_send_json_success([
             'message' => $result['message'],
             'redirect_url' => $result['redirect_url'],
             'user_data' => ['id' => $user_id, 'name' => $display_name, 'email' => $email, 'type' => $is_invitation_flow ? 'worker' : 'business_owner']
         ]);
+        
+        // wp_send_json_success() calls wp_die() internally, so we should not reach this point
 
     } catch (\Throwable $e) {
+        // Clean any output that might have been generated
+        if (ob_get_level()) {
+            ob_clean();
+        }
+        
         // Centralized error handling and cleanup for both Error and Exception.
         if ($user_id && is_int($user_id)) {
             wp_delete_user($user_id);
@@ -745,11 +909,15 @@ public function handle_ajax_registration() {
         }
         error_log('NORDBOOKING Registration Error: ' . $e->getMessage() . ' in ' . $e->getFile() . ' on line ' . $e->getLine());
         
-        // Return a generic error to the user for security, but log the specific one.
-        wp_send_json_error(['message' => __('An unexpected error occurred during registration. Please contact support.', 'NORDBOOKING')]);
+        // Return the actual error message for debugging (in production, you might want to use a generic message)
+        wp_send_json_error(['message' => $e->getMessage(), 'debug' => [
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
+            'trace' => $e->getTraceAsString()
+        ]]);
+        
+        // wp_send_json_error() calls wp_die() internally, so we should not reach this point
     }
-
-    wp_die();
 }
 
     /**
@@ -768,6 +936,11 @@ public function handle_ajax_registration() {
     }
 
     public function handle_check_company_slug_exists_ajax() {
+        // Clean any output that might have been generated
+        if (ob_get_level()) {
+            ob_clean();
+        }
+        
         // Consider adding a nonce check for security if desired
         // check_ajax_referer('nordbooking_check_slug_nonce_action', 'nonce');
 
@@ -775,31 +948,92 @@ public function handle_ajax_registration() {
 
         if (empty($company_name)) {
             wp_send_json_error(['message' => __('Company name not provided for check.', 'NORDBOOKING')]);
-            wp_die();
+            return; // wp_send_json_error calls wp_die() internally
         }
 
-        if (!class_exists('NORDBOOKING\Classes\Routes\BookingFormRouter')) {
-            wp_send_json_error(['message' => __('System error: Router class not found.', 'NORDBOOKING')]);
-            wp_die();
+        try {
+            if (!class_exists('NORDBOOKING\Classes\Routes\BookingFormRouter')) {
+                wp_send_json_error(['message' => __('System error: Router class not found.', 'NORDBOOKING')]);
+                return; // wp_send_json_error calls wp_die() internally
+            }
+
+            // Check if exact company name already exists
+            $existing_company_user_id = $this->get_user_id_by_company_name($company_name);
+            if ($existing_company_user_id !== null) {
+                wp_send_json_success([
+                    'exists' => true,
+                    'message' => __('This company name is already taken. Please choose a different name.', 'NORDBOOKING')
+                ]);
+                return; // wp_send_json_success calls wp_die() internally
+            }
+
+            // Also check if the generated slug would conflict
+            $base_slug = sanitize_title($company_name);
+            $original_slug_check_user_id = \NORDBOOKING\Classes\Routes\BookingFormRouter::get_user_id_by_slug($base_slug);
+
+            if ($original_slug_check_user_id !== null) {
+                // Slug already exists, return a hard error message.
+                wp_send_json_success([
+                    'exists' => true,
+                    'message' => __('This company name would create a conflicting business URL. Please choose another.', 'NORDBOOKING')
+                ]);
+            } else {
+                wp_send_json_success([
+                    'exists' => false,
+                    'message' => __('This company name looks available!', 'NORDBOOKING'),
+                    'slug_preview' => $base_slug
+                ]);
+            }
+        } catch (Exception $e) {
+            error_log('NORDBOOKING: Error in company name validation: ' . $e->getMessage());
+            wp_send_json_error(['message' => __('Error checking company name availability. Please try again.', 'NORDBOOKING')]);
+        }
+        
+        // wp_send_json_* functions call wp_die() internally, so we should not reach this point
+    }
+
+    /**
+     * Get user ID by exact company name match
+     * 
+     * @param string $company_name
+     * @return int|null User ID if found, null otherwise
+     */
+    private function get_user_id_by_company_name($company_name) {
+        global $wpdb;
+        
+        if (empty($company_name)) {
+            return null;
         }
 
-        $base_slug = sanitize_title($company_name);
-        $original_slug_check_user_id = \NORDBOOKING\Classes\Routes\BookingFormRouter::get_user_id_by_slug($base_slug);
+        try {
+            // Check in user meta for nordbooking_company_name
+            $user_id = $wpdb->get_var($wpdb->prepare(
+                "SELECT user_id FROM {$wpdb->usermeta} 
+                 WHERE meta_key = 'nordbooking_company_name' 
+                 AND meta_value = %s 
+                 LIMIT 1",
+                $company_name
+            ));
 
-        if ($original_slug_check_user_id !== null) {
-            // Slug already exists, return a hard error message.
-            wp_send_json_success([
-                'exists' => true,
-                'message' => __('This company name is already taken. Please choose another.', 'NORDBOOKING')
-            ]);
-        } else {
-            wp_send_json_success([
-                'exists' => false,
-                'message' => __('This company name looks available!', 'NORDBOOKING'),
-                'slug_preview' => $base_slug
-            ]);
+            // Also check in settings table for biz_name
+            if (!$user_id && class_exists('NORDBOOKING\Classes\Database')) {
+                $settings_table = \NORDBOOKING\Classes\Database::get_table_name('tenant_settings');
+                if (!empty($settings_table)) {
+                    $user_id = $wpdb->get_var($wpdb->prepare(
+                        "SELECT user_id FROM {$settings_table} 
+                         WHERE setting_name = 'biz_name' 
+                         AND setting_value = %s 
+                         LIMIT 1",
+                        $company_name
+                    ));
+                }
+            }
+
+            return $user_id ? (int) $user_id : null;
+        } catch (Exception $e) {
+            error_log('NORDBOOKING: Error in get_user_id_by_company_name: ' . $e->getMessage());
+            return null;
         }
-        wp_die();
     }
 
     public function handle_send_password_reset_link_ajax() {
