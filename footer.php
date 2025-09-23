@@ -1,175 +1,336 @@
-    <!-- Footer with GDPR compliance -->
-    <footer class="site-footer bg-gray-900 text-white">
-        <div class="container">
-            <div class="footer-grid py-12">
-                <div class="footer-section">
-                    <div class="footer-brand mb-4">
-                        <div class="logo-container">
-                            <svg class="logo-icon" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M12 2L2 7v10c0 5.55 3.84 9.739 9 11 5.16-1.261 9-5.45 9-11V7l-10-5z"/>
-                                <path d="M9 12l2 2 4-4" stroke="white" stroke-width="2" fill="none"/>
-                            </svg>
-                            <span class="brand-name">NordBK</span>
-                        </div>
-                        <p class="text-gray-400 mt-3">
-                            Professional booking management for cleaning services. 
-                            Trusted by 500+ businesses worldwide.
-                        </p>
-                    </div>
-                    
-                    <div class="footer-certifications">
-                        <h4 class="text-white mb-3">Security & Compliance</h4>
-                        <div class="cert-badges flex gap-3">
-                            <span class="cert-badge">SSL Secured</span>
-                            <span class="cert-badge">GDPR Compliant</span>
-                            <span class="cert-badge">SOC 2 Type II</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="footer-section">
-                    <h3 class="text-white mb-3">Product</h3>
-                    <ul class="footer-links">
-                        <li><a href="#features">Features</a></li>
-                        <li><a href="#pricing">Pricing</a></li>
-                        <li><a href="/integrations">Integrations</a></li>
-                        <li><a href="/api">API</a></li>
-                        <li><a href="/changelog">Changelog</a></li>
-                    </ul>
-                </div>
-                
-                <div class="footer-section">
-                    <h3 class="text-white mb-3">Company</h3>
-                    <ul class="footer-links">
-                        <li><a href="/about">About Us</a></li>
-                        <li><a href="/careers">Careers</a></li>
-                        <li><a href="/press">Press</a></li>
-                        <li><a href="/partners">Partners</a></li>
-                        <li><a href="/contact">Contact</a></li>
-                    </ul>
-                </div>
-                
-                <div class="footer-section">
-                    <h3 class="text-white mb-3">Support</h3>
-                    <ul class="footer-links">
-                        <li><a href="/help">Help Center</a></li>
-                        <li><a href="/documentation">Documentation</a></li>
-                        <li><a href="/status">System Status</a></li>
-                        <li><a href="/community">Community</a></li>
-                        <li><a href="/support">Contact Support</a></li>
-                    </ul>
-                </div>
-                
-                <div class="footer-section">
-                    <h3 class="text-white mb-3">Legal</h3>
-                    <ul class="footer-links">
-                        <li><a href="/privacy">Privacy Policy</a></li>
-                        <li><a href="/terms">Terms of Service</a></li>
-                        <li><a href="/gdpr">GDPR Compliance</a></li>
-                        <li><a href="/cookies">Cookie Policy</a></li>
-                        <li><a href="/security">Security</a></li>
-                    </ul>
+<?php
+/**
+ * The template for displaying the footer.
+ *
+ * @package Nord Booking
+ */
+
+// Text domain for translations
+$nbk_text_domain = 'nord-booking';
+?>
+
+<style>
+    /* ==================================================
+     * NBK FOOTER STYLES WITH DARK BACKGROUND
+     * ================================================== */
+    .nbk-footer {
+        background-color: #1a1a1a;
+        color: #ffffff;
+        border-top: 1px solid #333333;
+        padding: 4rem 0 2rem;
+    }
+    .nbk-footer__section h3 {
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+        color: #ffffff;
+        font-size: 1.25rem;
+        letter-spacing: -0.025em;
+    }
+
+    .nbk-footer__section p {
+        color: #a0a0a0;
+        line-height: 1.6;
+        margin-bottom: 1.5rem;
+        font-size: 0.95rem;
+    }
+
+    .nbk-footer__section ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .nbk-footer__section ul li {
+        margin-bottom: 0.75rem;
+    }
+
+    .nbk-footer__section ul li a {
+        color: #a0a0a0;
+        text-decoration: none;
+        font-size: 0.9rem;
+        font-weight: 400;
+        transition: all 0.2s ease;
+        display: inline-block;
+        position: relative;
+    }
+
+    .nbk-footer__section ul li a:hover {
+        color: #ffffff;
+        transform: translateX(4px);
+    }
+
+    .nbk-footer__section ul li a:hover::before {
+        content: '→';
+        position: absolute;
+        left: -20px;
+        color: hsl(var(--nbk-primary));
+        font-weight: 600;
+    }
+
+    .nbk-footer__social-links {
+        display: flex;
+        gap: 1.5rem;
+        margin-top: 1.5rem;
+    }
+
+    .nbk-footer__social-links a {
+        color: #a0a0a0;
+        text-decoration: none;
+        font-size: 0.9rem;
+        font-weight: 500;
+        padding: 0.5rem 1rem;
+        border: 1px solid #333333;
+        border-radius: 6px;
+        transition: all 0.3s ease;
+        background-color: transparent;
+    }
+
+    .nbk-footer__social-links a:hover {
+        color: #ffffff;
+        border-color: hsl(var(--nbk-primary));
+        background-color: hsl(var(--nbk-primary) / 0.1);
+        transform: translateY(-2px);
+    }
+
+    .nbk-footer__brand-description {
+        color: #a0a0a0;
+        margin-bottom: 1.5rem;
+        line-height: 1.6;
+        font-size: 0.95rem;
+    }
+
+    .nbk-footer__bottom {
+        border-top: 1px solid #333333;
+        padding-top: 2rem;
+        text-align: center;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .nbk-footer__bottom p {
+        color: #a0a0a0;
+        font-size: 0.875rem;
+        margin: 0;
+    }
+
+    .nbk-footer__bottom-links {
+        display: flex;
+        gap: 2rem;
+        flex-wrap: wrap;
+    }
+
+    .nbk-footer__bottom-links a {
+        color: #a0a0a0;
+        text-decoration: none;
+        font-size: 0.875rem;
+        transition: color 0.2s ease;
+    }
+
+    .nbk-footer__bottom-links a:hover {
+        color: #ffffff;
+    }
+
+    /* NBK Brand Logo Styling */
+    .nbk-footer__brand-title {
+        font-size: 1.5rem;
+        font-weight: 800;
+        margin-bottom: 1rem;
+        color: #ffffff;
+        letter-spacing: -0.025em;
+    }
+
+    /* NBK Responsive Footer */
+    @media (max-width: 768px) {
+        .nbk-footer {
+            padding: 3rem 0 1.5rem;
+        }
+
+        .nbk-footer__grid {
+            grid-template-columns: 1fr;
+            gap: 2.5rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .nbk-footer__social-links {
+            justify-content: flex-start;
+            flex-wrap: wrap;
+        }
+
+        .nbk-footer__bottom {
+            flex-direction: column;
+            text-align: center;
+            gap: 1.5rem;
+        }
+
+        .nbk-footer__bottom-links {
+            justify-content: center;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .nbk-footer__social-links {
+            gap: 1rem;
+        }
+
+        .nbk-footer__social-links a {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.85rem;
+        }
+
+        .nbk-footer__bottom-links {
+            gap: 1.5rem;
+        }
+    }
+
+    /* ==================================================
+     * NBK ANIMATION OBSERVER STYLES
+     * ================================================== */
+    .nbk-animation-paused {
+        animation-play-state: paused;
+    }
+
+    .nbk-animation-running {
+        animation-play-state: running;
+    }
+</style>
+
+<!-- NBK Footer -->
+<footer class="nbk-footer">
+    <div class="nbk-container">
+        <div class="nbk-footer__grid">
+            <div class="nbk-footer__section">
+                <h3 class="nbk-footer__brand-title"><?php _e('Nord Booking', $nbk_text_domain); ?></h3>
+                <p class="nbk-footer__brand-description">
+                    <?php _e('The ultimate SaaS platform for cleaning service companies. Streamline your bookings, manage customers, and grow your business.', $nbk_text_domain); ?>
+                </p>
+                <div class="nbk-footer__social-links">
+                    <a href="<?php echo esc_url('#'); ?>" class="nbk-link" aria-label="<?php esc_attr_e('Twitter', $nbk_text_domain); ?>">
+                        <?php _e('Twitter', $nbk_text_domain); ?>
+                    </a>
+                    <a href="<?php echo esc_url('#'); ?>" class="nbk-link" aria-label="<?php esc_attr_e('LinkedIn', $nbk_text_domain); ?>">
+                        <?php _e('LinkedIn', $nbk_text_domain); ?>
+                    </a>
+                    <a href="<?php echo esc_url('#'); ?>" class="nbk-link" aria-label="<?php esc_attr_e('Facebook', $nbk_text_domain); ?>">
+                        <?php _e('Facebook', $nbk_text_domain); ?>
+                    </a>
                 </div>
             </div>
-            
-            <div class="footer-bottom py-6 border-t border-gray-800">
-                <div class="flex flex-col md:flex-row justify-between items-center">
-                    <div class="footer-company-info mb-3 md:mb-0">
-                        <p class="text-gray-400 text-sm">
-                            © 2024 NordBK. All rights reserved. 
-                            <span class="mx-2">•</span>
-                            Business Registration: [Registration Number]
-                            <span class="mx-2">•</span>
-                            Founded 2020
-                        </p>
-                    </div>
-                    
-                    <div class="footer-social">
-                        <div class="flex gap-3">
-                            <a href="#" class="text-gray-400 hover:text-white transition-colors" aria-label="Twitter">
-                                <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M23 3a10.9 10.9 0 01-3.14 1.53 4.48 4.48 0 00-7.86 3v1A10.66 10.66 0 013 4s-4 9 5 13a11.64 11.64 0 01-7 2c9 5 20 0 20-11.5a4.5 4.5 0 00-.08-.83A7.72 7.72 0 0023 3z"/>
-                                </svg>
-                            </a>
-                            <a href="#" class="text-gray-400 hover:text-white transition-colors" aria-label="LinkedIn">
-                                <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6zM2 9h4v12H2z"/>
-                                    <circle cx="4" cy="4" r="2"/>
-                                </svg>
-                            </a>
-                            <a href="#" class="text-gray-400 hover:text-white transition-colors" aria-label="GitHub">
-                                <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 00-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0020 4.77 5.07 5.07 0 0019.91 1S18.73.65 16 2.48a13.38 13.38 0 00-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 005 4.77a5.44 5.44 0 00-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 009 18.13V22"/>
-                                </svg>
-                            </a>
-                        </div>
-                    </div>
-                </div>
+
+            <div class="nbk-footer__section">
+                <h3><?php _e('Product', $nbk_text_domain); ?></h3>
+                <ul>
+                    <li><a href="<?php echo esc_url(home_url('/#features')); ?>" class="nbk-link"><?php _e('Features', $nbk_text_domain); ?></a></li>
+                    <li><a href="<?php echo esc_url(home_url('/#pricing')); ?>" class="nbk-link"><?php _e('Pricing', $nbk_text_domain); ?></a></li>
+                    <li><a href="<?php echo esc_url(home_url('/api/')); ?>" class="nbk-link"><?php _e('API', $nbk_text_domain); ?></a></li>
+                    <li><a href="<?php echo esc_url(home_url('/integrations/')); ?>" class="nbk-link"><?php _e('Integrations', $nbk_text_domain); ?></a></li>
+                    <li><a href="<?php echo esc_url(home_url('/changelog/')); ?>" class="nbk-link"><?php _e('Changelog', $nbk_text_domain); ?></a></li>
+                </ul>
+            </div>
+
+            <div class="nbk-footer__section">
+                <h3><?php _e('Company', $nbk_text_domain); ?></h3>
+                <ul>
+                    <li><a href="<?php echo esc_url(home_url('/about/')); ?>" class="nbk-link"><?php _e('About', $nbk_text_domain); ?></a></li>
+                    <li><a href="<?php echo esc_url(home_url('/blog/')); ?>" class="nbk-link"><?php _e('Blog', $nbk_text_domain); ?></a></li>
+                    <li><a href="<?php echo esc_url(home_url('/careers/')); ?>" class="nbk-link"><?php _e('Careers', $nbk_text_domain); ?></a></li>
+                    <li><a href="<?php echo esc_url(home_url('/press/')); ?>" class="nbk-link"><?php _e('Press', $nbk_text_domain); ?></a></li>
+                    <li><a href="<?php echo esc_url(home_url('/partners/')); ?>" class="nbk-link"><?php _e('Partners', $nbk_text_domain); ?></a></li>
+                </ul>
+            </div>
+
+            <div class="nbk-footer__section">
+                <h3><?php _e('Support', $nbk_text_domain); ?></h3>
+                <ul>
+                    <li><a href="<?php echo esc_url(home_url('/help/')); ?>" class="nbk-link"><?php _e('Help Center', $nbk_text_domain); ?></a></li>
+                    <li><a href="<?php echo esc_url(home_url('/contact/')); ?>" class="nbk-link"><?php _e('Contact Us', $nbk_text_domain); ?></a></li>
+                    <li><a href="<?php echo esc_url(home_url('/status/')); ?>" class="nbk-link"><?php _e('Status', $nbk_text_domain); ?></a></li>
+                    <li><a href="<?php echo esc_url(home_url('/privacy/')); ?>" class="nbk-link"><?php _e('Privacy Policy', $nbk_text_domain); ?></a></li>
+                    <li><a href="<?php echo esc_url(home_url('/terms/')); ?>" class="nbk-link"><?php _e('Terms of Service', $nbk_text_domain); ?></a></li>
+                </ul>
             </div>
         </div>
-    </footer>
 
-    <!-- JavaScript Components -->
-    <script src="<?php echo get_template_directory_uri(); ?>/assets/js/header-component.js"></script>
-    <script src="<?php echo get_template_directory_uri(); ?>/assets/js/hero-section.js"></script>
-    <script src="<?php echo get_template_directory_uri(); ?>/assets/js/trust-section.js"></script>
-    <script src="<?php echo get_template_directory_uri(); ?>/assets/js/features-section.js"></script>
-    <script src="<?php echo get_template_directory_uri(); ?>/assets/js/testimonials-section.js"></script>
-    <script src="<?php echo get_template_directory_uri(); ?>/assets/js/pricing-section.js"></script>
-    
-    <!-- Analytics and Performance -->
-    <script>
-        // Performance monitoring
-        window.addEventListener('load', function() {
-            // Track page load time
-            const loadTime = performance.timing.loadEventEnd - performance.timing.navigationStart;
-            
-            // Google Analytics 4 (if available)
-            if (typeof gtag !== 'undefined') {
-                gtag('event', 'page_load_time', {
-                    event_category: 'performance',
-                    value: Math.round(loadTime),
-                    custom_parameter: 'homepage'
-                });
-            }
-        });
-        
-        // Accessibility enhancements
-        document.addEventListener('DOMContentLoaded', function() {
-            // Add focus indicators for keyboard navigation
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Tab') {
-                    document.body.classList.add('keyboard-navigation');
+        <div class="nbk-footer__bottom">
+            <p>&copy; <?php echo date('Y'); ?> <?php _e('Nord Booking. All rights reserved.', $nbk_text_domain); ?></p>
+            <div class="nbk-footer__bottom-links">
+                <a href="<?php echo esc_url(home_url('/privacy/')); ?>" class="nbk-link"><?php _e('Privacy', $nbk_text_domain); ?></a>
+                <a href="<?php echo esc_url(home_url('/terms/')); ?>" class="nbk-link"><?php _e('Terms', $nbk_text_domain); ?></a>
+                <a href="<?php echo esc_url(home_url('/cookies/')); ?>" class="nbk-link"><?php _e('Cookies', $nbk_text_domain); ?></a>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<script>
+    // NBK Animation Observer for smooth animations
+    document.addEventListener('DOMContentLoaded', function() {
+        const nbkObserverOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const nbkAnimationObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.remove('nbk-animation-paused');
+                    entry.target.classList.add('nbk-animation-running');
+                    entry.target.style.animationPlayState = 'running';
                 }
             });
-            
-            document.addEventListener('mousedown', function() {
-                document.body.classList.remove('keyboard-navigation');
+        }, nbkObserverOptions);
+
+        // Observe all NBK animated elements
+        document.querySelectorAll('.nbk-fade-in, .nbk-slide-up').forEach(el => {
+            el.classList.add('nbk-animation-paused');
+            el.style.animationPlayState = 'paused';
+            nbkAnimationObserver.observe(el);
+        });
+
+        // NBK Mobile menu toggle (if mobile menu exists)
+        const mobileMenuToggle = document.querySelector('.nbk-mobile-menu-toggle');
+        if (mobileMenuToggle) {
+            mobileMenuToggle.addEventListener('click', function() {
+                const navLinks = document.querySelector('.nbk-nav-links');
+                if (navLinks) {
+                    const isVisible = navLinks.style.display === 'flex';
+                    navLinks.style.display = isVisible ? 'none' : 'flex';
+                    
+                    // Update aria-expanded for accessibility
+                    this.setAttribute('aria-expanded', !isVisible);
+                }
+            });
+        }
+
+        // NBK Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // NBK Footer link hover effects enhancement
+        document.querySelectorAll('.nbk-footer__section ul li a').forEach(link => {
+            link.addEventListener('mouseenter', function() {
+                this.style.paddingLeft = '20px';
             });
             
-            // Announce page changes to screen readers
-            const announcer = document.createElement('div');
-            announcer.setAttribute('aria-live', 'polite');
-            announcer.setAttribute('aria-atomic', 'true');
-            announcer.className = 'sr-only';
-            announcer.id = 'page-announcer';
-            document.body.appendChild(announcer);
+            link.addEventListener('mouseleave', function() {
+                this.style.paddingLeft = '0px';
+            });
         });
-        
-        // Error tracking
-        window.addEventListener('error', function(e) {
-            console.error('JavaScript error:', e.error);
-            
-            // Track errors in analytics
-            if (typeof gtag !== 'undefined') {
-                gtag('event', 'exception', {
-                    description: e.error.toString(),
-                    fatal: false
-                });
-            }
-        });
-    </script>
+    });
+</script>
 
-    <?php wp_footer(); ?>
+<?php wp_footer(); ?>
 </body>
 </html>

@@ -26,7 +26,7 @@
 
 /* Left column: Illustration/Image */
 .NORDBOOKING-auth-image-column {
-    background-color: hsl(222.2 47.4% 11.2%);
+    background-color: hsl( 221.2 83.2% 53.3%);
     /* bg-slate-900 (primary dark) */
     background-size: cover;
     background-position: center;
@@ -173,15 +173,15 @@
 }
 
 .NORDBOOKING-auth-form-wrapper .button.button-primary {
-    background-color: hsl(222.2 47.4% 11.2%);
+    background-color: hsl( 221.2 83.2% 53.3%);
     /* bg-primary (dark blue) */
     color: hsl(210 40% 98%);
     /* text-primary-foreground (light) */
-    border-color: hsl(222.2 47.4% 11.2%);
+    border-color: hsl( 221.2 83.2% 53.3%);
 }
 
 .NORDBOOKING-auth-form-wrapper .button.button-primary:hover {
-    background-color: hsl(222.2 47.4% 11.2% / 0.9);
+    background-color: hsl( 221.2 83.2% 53.3% / 0.9);
     /* bg-primary/90 */
 }
 
@@ -397,11 +397,11 @@
 }
 
 .NORDBOOKING-progress-step.active {
-    background-color: hsl(222.2 47.4% 11.2%);
+    background-color: hsl( 221.2 83.2% 53.3%);
     /* bg-primary */
     color: hsl(210 40% 98%);
     /* text-primary-foreground */
-    border-color: hsl(222.2 47.4% 11.2%);
+    border-color: hsl( 221.2 83.2% 53.3%);
     font-weight: 500;
 }
 

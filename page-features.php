@@ -29,7 +29,7 @@ get_header(); // Even if front-page doesn't use it, page templates generally sho
             --card-foreground: 222.2 84% 4.9%;
             --popover: 0 0% 100%;
             --popover-foreground: 222.2 84% 4.9%;
-            --primary: 222.2 47.4% 11.2%;
+            --primary:  221.2 83.2% 53.3%;
             --primary-foreground: 210 40% 98%;
             --secondary: 210 40% 96%;
             --secondary-foreground: 222.2 84% 4.9%;

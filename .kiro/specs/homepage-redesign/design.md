@@ -2,7 +2,7 @@
 
 ## Overview
 
-The homepage redesign will transform the current NordBK landing page into a trustworthy, professional, and conversion-focused experience that addresses previous domain reputation concerns. The design will follow Cal.com's design language principles: clean minimalism, generous white space, subtle gradients, professional typography, and strategic use of color. This approach emphasizes credibility, transparency, and clear value communication while maintaining a modern, sophisticated aesthetic that builds trust.
+The homepage redesign will transform the current NordBK landing page into a trustworthy, professional, and conversion-focused experience that addresses previous domain reputation concerns. The design will follow 's design language principles: clean minimalism, generous white space, subtle gradients, professional typography, and strategic use of color. This approach emphasizes credibility, transparency, and clear value communication while maintaining a modern, sophisticated aesthetic that builds trust.
 
 ## Architecture
 
@@ -64,13 +64,15 @@ Homepage Layout:
 ### Content Strategy
 
 #### Trust-Building Elements
+
 - **Company Transparency**: Full business registration details, physical address, founding date
-- **Team Information**: Leadership profiles with LinkedIn links and professional backgrounds  
+- **Team Information**: Leadership profiles with LinkedIn links and professional backgrounds
 - **Security Certifications**: SSL certificates, SOC 2 compliance, GDPR compliance badges
 - **Customer Verification**: Real customer logos with permission, verifiable testimonials
 - **Industry Recognition**: Awards, certifications, partnership badges
 
 #### Value Communication Framework
+
 - **Problem-Solution Fit**: Clear articulation of cleaning business pain points and solutions
 - **Quantified Benefits**: Specific metrics (time saved, revenue increased, efficiency gains)
 - **Use Case Scenarios**: Detailed examples for different business types and sizes
@@ -78,7 +80,8 @@ Homepage Layout:
 
 ## Components and Interfaces
 
-### Header Component (Cal.com Style)
+### Header Component ( Style)
+
 ```html
 <header class="site-header">
   <nav class="main-navigation">
@@ -108,13 +111,15 @@ Homepage Layout:
 ```
 
 **Design Specifications:**
+
 - **Background**: Pure white (#FFFFFF) with subtle border-bottom
 - **Typography**: Inter font family, 16px base size
 - **Logo**: Minimalist icon + wordmark, no tagline clutter
 - **Navigation**: Clean, spaced links with hover states
-- **Buttons**: Rounded corners (8px), subtle shadows, Cal.com-style gradients
+- **Buttons**: Rounded corners (8px), subtle shadows, -style gradients
 
-### Hero Section Component (Cal.com Style)
+### Hero Section Component ( Style)
+
 ```html
 <section class="hero-section">
   <div class="hero-container">
@@ -123,17 +128,18 @@ Homepage Layout:
         <span class="badge-icon">✨</span>
         <span class="badge-text">Trusted by 500+ cleaning businesses</span>
       </div>
-      
+
       <h1 class="hero-title">
-        The scheduling infrastructure for 
+        The scheduling infrastructure for
         <span class="gradient-text">cleaning businesses</span>
       </h1>
-      
+
       <p class="hero-description">
-        Connect your calendar, set your availability, and let customers book appointments seamlessly. 
-        Built for professional cleaning services that value their time.
+        Connect your calendar, set your availability, and let customers book
+        appointments seamlessly. Built for professional cleaning services that
+        value their time.
       </p>
-      
+
       <div class="hero-cta-group">
         <a href="/register" class="btn btn-primary btn-hero">
           Get started for free
@@ -143,7 +149,7 @@ Homepage Layout:
           Watch demo
         </a>
       </div>
-      
+
       <div class="hero-social-proof">
         <div class="proof-item">
           <span class="proof-number">500+</span>
@@ -159,11 +165,15 @@ Homepage Layout:
         </div>
       </div>
     </div>
-    
+
     <div class="hero-visual">
       <div class="dashboard-container">
         <div class="dashboard-mockup">
-          <img src="dashboard-hero.png" alt="NordBK Dashboard" class="dashboard-image">
+          <img
+            src="dashboard-hero.png"
+            alt="NordBK Dashboard"
+            class="dashboard-image"
+          />
           <div class="floating-cards">
             <div class="booking-card">New booking from Sarah M.</div>
             <div class="revenue-card">+$2,400 this week</div>
@@ -176,14 +186,16 @@ Homepage Layout:
 ```
 
 **Design Specifications:**
+
 - **Layout**: Centered content with max-width 1200px, generous padding
 - **Typography**: Large, bold headlines (48-64px) with Inter font
-- **Colors**: Gradient text using Cal.com's purple-to-blue gradient
+- **Colors**: Gradient text using 's purple-to-blue gradient
 - **Spacing**: Generous white space, 80px+ section padding
 - **Visual**: Clean dashboard mockup with subtle floating elements
-- **Buttons**: Cal.com style with subtle gradients and hover animations
+- **Buttons**: style with subtle gradients and hover animations
 
-### Trust & Credibility Section (Cal.com Style)
+### Trust & Credibility Section ( Style)
+
 ```html
 <section class="trust-section">
   <div class="trust-container">
@@ -198,7 +210,7 @@ Homepage Layout:
           <span>Headquarters: [Address]</span>
         </div>
       </div>
-      
+
       <div class="trust-card">
         <div class="trust-icon">🔒</div>
         <h3>Enterprise Security</h3>
@@ -209,7 +221,7 @@ Homepage Layout:
           <span class="badge">SOC 2 Type II</span>
         </div>
       </div>
-      
+
       <div class="trust-card">
         <div class="trust-icon">🎯</div>
         <h3>Proven Results</h3>
@@ -220,10 +232,12 @@ Homepage Layout:
         </div>
       </div>
     </div>
-    
-    <!-- Customer logos section - Cal.com style -->
+
+    <!-- Customer logos section -   style -->
     <div class="social-proof-section">
-      <p class="social-proof-text">Trusted by cleaning businesses of all sizes</p>
+      <p class="social-proof-text">
+        Trusted by cleaning businesses of all sizes
+      </p>
       <div class="customer-logos-grid">
         <!-- Subtle, grayscale customer logos -->
         <div class="logo-item">CleanPro Services</div>
@@ -237,34 +251,39 @@ Homepage Layout:
 ```
 
 **Design Specifications:**
+
 - **Background**: Light gray (#F9FAFB) section background
 - **Cards**: White cards with subtle shadows and rounded corners
 - **Icons**: Simple, consistent iconography
 - **Typography**: Clean hierarchy with subtle text colors
 - **Badges**: Minimal design with soft colors
 
-### Features Section (Cal.com Style)
+### Features Section ( Style)
+
 ```html
 <section class="features-section">
   <div class="features-container">
     <div class="section-header">
       <div class="section-badge">Features</div>
       <h2 class="section-title">
-        Everything you need to 
+        Everything you need to
         <span class="gradient-text">scale your business</span>
       </h2>
       <p class="section-description">
-        Powerful tools designed specifically for cleaning businesses. 
-        Simple to use, built to scale.
+        Powerful tools designed specifically for cleaning businesses. Simple to
+        use, built to scale.
       </p>
     </div>
-    
+
     <div class="features-grid">
       <div class="feature-card-large">
         <div class="feature-content">
           <div class="feature-badge">Most Popular</div>
           <h3>Smart Booking System</h3>
-          <p>Let customers book instantly while you sleep. Our intelligent system handles availability, pricing, and confirmations automatically.</p>
+          <p>
+            Let customers book instantly while you sleep. Our intelligent system
+            handles availability, pricing, and confirmations automatically.
+          </p>
           <ul class="feature-benefits">
             <li>40% increase in bookings</li>
             <li>Save 10+ hours per week</li>
@@ -273,54 +292,69 @@ Homepage Layout:
           <a href="#" class="feature-cta">Learn more →</a>
         </div>
         <div class="feature-visual">
-          <img src="booking-system-demo.png" alt="Booking System Demo">
+          <img src="booking-system-demo.png" alt="Booking System Demo" />
         </div>
       </div>
-      
+
       <div class="feature-card">
         <div class="feature-icon">📊</div>
         <h3>Business Analytics</h3>
-        <p>Track revenue, customer trends, and business growth with beautiful, actionable insights.</p>
+        <p>
+          Track revenue, customer trends, and business growth with beautiful,
+          actionable insights.
+        </p>
         <div class="feature-stats">
           <span class="stat">Real-time reporting</span>
           <span class="stat">Revenue tracking</span>
         </div>
       </div>
-      
+
       <div class="feature-card">
         <div class="feature-icon">💳</div>
         <h3>Secure Payments</h3>
-        <p>Accept payments online with Stripe integration. Automatic invoicing and payment reminders.</p>
+        <p>
+          Accept payments online with Stripe integration. Automatic invoicing
+          and payment reminders.
+        </p>
         <div class="feature-stats">
           <span class="stat">Stripe integration</span>
           <span class="stat">Auto invoicing</span>
         </div>
       </div>
-      
+
       <div class="feature-card">
         <div class="feature-icon">📱</div>
         <h3>Mobile Optimized</h3>
-        <p>Your customers can book from any device. Responsive design that works perfectly on mobile.</p>
+        <p>
+          Your customers can book from any device. Responsive design that works
+          perfectly on mobile.
+        </p>
         <div class="feature-stats">
           <span class="stat">Mobile-first design</span>
           <span class="stat">Fast loading</span>
         </div>
       </div>
-      
+
       <div class="feature-card">
         <div class="feature-icon">🗺️</div>
         <h3>Service Areas</h3>
-        <p>Define your service zones with custom pricing. Optimize routes and maximize efficiency.</p>
+        <p>
+          Define your service zones with custom pricing. Optimize routes and
+          maximize efficiency.
+        </p>
         <div class="feature-stats">
           <span class="stat">Zone-based pricing</span>
           <span class="stat">Route optimization</span>
         </div>
       </div>
-      
+
       <div class="feature-card">
         <div class="feature-icon">👥</div>
         <h3>Team Management</h3>
-        <p>Manage your cleaning team, assign jobs, and track performance all in one place.</p>
+        <p>
+          Manage your cleaning team, assign jobs, and track performance all in
+          one place.
+        </p>
         <div class="feature-stats">
           <span class="stat">Staff scheduling</span>
           <span class="stat">Performance tracking</span>
@@ -332,6 +366,7 @@ Homepage Layout:
 ```
 
 **Design Specifications:**
+
 - **Layout**: Asymmetric grid with one large featured card
 - **Cards**: Clean white cards with subtle shadows and hover effects
 - **Icons**: Consistent emoji or simple SVG icons
@@ -341,6 +376,7 @@ Homepage Layout:
 ## Data Models
 
 ### Page Content Structure
+
 ```typescript
 interface HomepageContent {
   hero: {
@@ -351,18 +387,18 @@ interface HomepageContent {
     ctaSecondary: CallToAction;
     guarantees: string[];
   };
-  
+
   trustSection: {
     companyInfo: CompanyDetails;
     certifications: Certification[];
     customerLogos: CustomerLogo[];
   };
-  
+
   features: Feature[];
   testimonials: Testimonial[];
   pricing: PricingPlan[];
   faq: FAQItem[];
-  
+
   seo: {
     title: string;
     metaDescription: string;
@@ -391,6 +427,7 @@ interface Testimonial {
 ```
 
 ### SEO Schema Markup
+
 ```json
 {
   "@context": "https://schema.org",
@@ -424,12 +461,14 @@ interface Testimonial {
 ## Error Handling
 
 ### Content Validation
+
 - **Image Loading**: Fallback images for all visual elements
 - **Form Validation**: Real-time validation for contact and signup forms
 - **External Dependencies**: Graceful degradation if third-party services fail
 - **Performance Monitoring**: Automatic alerts if page load times exceed thresholds
 
 ### Trust Signal Verification
+
 - **Certificate Validation**: Automated checks for SSL and security certificates
 - **Testimonial Verification**: Process for validating customer testimonials
 - **Logo Usage Rights**: Documentation of permission for customer logos
@@ -438,32 +477,37 @@ interface Testimonial {
 ## Testing Strategy
 
 ### Trust and Credibility Testing
+
 1. **User Perception Studies**: A/B testing different trust elements
 2. **Credibility Audits**: Third-party evaluation of trust signals
 3. **Security Scanning**: Regular penetration testing and vulnerability assessments
 4. **Compliance Verification**: Legal review of all compliance claims
 
 ### Conversion Optimization Testing
+
 1. **CTA Testing**: Multiple variations of call-to-action buttons and placement
 2. **Value Proposition Testing**: Different headline and benefit messaging
 3. **Social Proof Testing**: Various testimonial formats and placement
 4. **Pricing Presentation**: Different pricing table layouts and emphasis
 
 ### Technical Performance Testing
+
 1. **Page Speed Testing**: Regular monitoring across different devices and connections
 2. **Mobile Responsiveness**: Testing on various screen sizes and devices
 3. **SEO Performance**: Monthly SEO audits and keyword ranking monitoring
 4. **Accessibility Testing**: WCAG 2.1 AA compliance verification
 
 ### Content Quality Assurance
+
 1. **Grammar and Spelling**: Professional proofreading and editing
 2. **Fact Checking**: Verification of all statistics and claims
 3. **Legal Review**: Compliance verification for all legal statements
 4. **Brand Consistency**: Alignment with brand guidelines and messaging
 
-### Additional Cal.com Style Sections
+### Additional Style Sections
 
 #### Testimonials Section
+
 ```html
 <section class="testimonials-section">
   <div class="testimonials-container">
@@ -471,14 +515,18 @@ interface Testimonial {
       <h2>Loved by cleaning businesses everywhere</h2>
       <p>See how NordBK is helping businesses grow</p>
     </div>
-    
+
     <div class="testimonials-grid">
       <div class="testimonial-card">
         <div class="testimonial-content">
-          <p>"NordBK transformed our booking process. We went from managing everything manually to having a fully automated system that our customers love."</p>
+          <p>
+            "NordBK transformed our booking process. We went from managing
+            everything manually to having a fully automated system that our
+            customers love."
+          </p>
         </div>
         <div class="testimonial-author">
-          <img src="avatar-1.jpg" alt="Sarah Johnson" class="author-avatar">
+          <img src="avatar-1.jpg" alt="Sarah Johnson" class="author-avatar" />
           <div class="author-info">
             <div class="author-name">Sarah Johnson</div>
             <div class="author-title">Owner, CleanPro Services</div>
@@ -495,7 +543,8 @@ interface Testimonial {
 </section>
 ```
 
-#### Pricing Section (Cal.com Style)
+#### Pricing Section ( Style)
+
 ```html
 <section class="pricing-section">
   <div class="pricing-container">
@@ -503,15 +552,17 @@ interface Testimonial {
       <h2>Simple, transparent pricing</h2>
       <p>Start free, scale as you grow. No hidden fees.</p>
     </div>
-    
+
     <div class="pricing-toggle">
       <span class="toggle-label">Monthly</span>
       <button class="toggle-switch">
         <span class="toggle-slider"></span>
       </button>
-      <span class="toggle-label">Annual <span class="discount-badge">Save 20%</span></span>
+      <span class="toggle-label"
+        >Annual <span class="discount-badge">Save 20%</span></span
+      >
     </div>
-    
+
     <div class="pricing-grid">
       <div class="pricing-card">
         <div class="plan-header">
@@ -532,7 +583,7 @@ interface Testimonial {
         </ul>
         <button class="btn btn-outline btn-full">Get started</button>
       </div>
-      
+
       <div class="pricing-card featured">
         <div class="popular-badge">Most Popular</div>
         <div class="plan-header">
@@ -555,7 +606,7 @@ interface Testimonial {
         </ul>
         <button class="btn btn-primary btn-full">Get started</button>
       </div>
-      
+
       <div class="pricing-card">
         <div class="plan-header">
           <h3 class="plan-name">Enterprise</h3>
@@ -583,7 +634,8 @@ interface Testimonial {
 
 ## Implementation Considerations
 
-### Cal.com Design System Elements
+### Design System Elements
+
 - **Color Palette**: Primary purple (#6366F1), secondary grays, subtle gradients
 - **Typography**: Inter font family throughout, clear hierarchy
 - **Spacing**: 8px grid system, generous white space
@@ -592,21 +644,24 @@ interface Testimonial {
 - **Components**: Consistent button styles, card designs, form elements
 
 ### Content Management
+
 - **Version Control**: Track all content changes and approvals
 - **Review Process**: Multi-stage approval for all content updates
 - **Localization Ready**: Structure to support multiple languages
 - **Dynamic Content**: Ability to update testimonials, stats, and features
 
 ### Performance Optimization
+
 - **Image Optimization**: WebP format with fallbacks, lazy loading
 - **Code Splitting**: Separate CSS/JS for above-the-fold content
 - **CDN Implementation**: Global content delivery for faster loading
 - **Caching Strategy**: Aggressive caching with smart invalidation
 
 ### Analytics and Monitoring
+
 - **Conversion Tracking**: Detailed funnel analysis and optimization
 - **User Behavior**: Heatmaps and session recordings for UX insights
 - **Performance Monitoring**: Real-time alerts for performance issues
 - **Security Monitoring**: Continuous monitoring for security threats
 
-This design provides a comprehensive foundation for creating a trustworthy, professional homepage that follows Cal.com's design language while addressing all the requirements and focusing on conversion optimization and credibility building.
+This design provides a comprehensive foundation for creating a trustworthy, professional homepage that follows 's design language while addressing all the requirements and focusing on conversion optimization and credibility building.

@@ -4,10 +4,10 @@
   --dialog-foreground: hsl(222.2 84% 4.9%);
   --dialog-border: hsl(214.3 31.8% 91.4%);
   --dialog-muted-foreground: hsl(215.4 16.3% 46.9%);
-  --dialog-primary: hsl(222.2 47.4% 11.2%);
+  --dialog-primary: hsl( 221.2 83.2% 53.3%);
   --dialog-primary-foreground: hsl(210 40% 98%);
   --dialog-secondary: hsl(210 40% 96.1%);
-  --dialog-secondary-foreground: hsl(222.2 47.4% 11.2%);
+  --dialog-secondary-foreground: hsl( 221.2 83.2% 53.3%);
   --dialog-destructive: hsl(0 84.2% 60.2%);
   --dialog-destructive-foreground: hsl(210 40% 98%);
   --dialog-radius: 0.5rem;
