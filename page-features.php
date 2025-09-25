@@ -861,46 +861,5 @@ get_header(); // Even if front-page doesn't use it, page templates generally sho
         <!-- End of new content for page-features.php, main content is complete. -->
     </main>
 
-    <!-- Footer (copied from front-page.php and adapted) -->
-    <footer class="front-page-footer">
-        <div class="container">
-            <div class="footer-bottom">
-                <p>&copy; <?php echo date('Y'); ?> Nord Booking. All rights reserved. | <a href="<?php echo esc_url(home_url('/privacy-policy/')); ?>">Privacy Policy</a> | <a href="<?php echo esc_url(home_url('/terms-of-service/')); ?>">Terms of Service</a></p>
-            </div>
-        </div>
-    </footer>
-    <script>
-        // Basic mobile menu toggle for the copied header
-        // Ensure this doesn't conflict if you have a global script
-        const mobileMenuButton = document.querySelector('.front-page-header .mobile-menu-toggle');
-        const navLinks = document.querySelector('.front-page-header .nav-links');
+<?php get_footer(); ?>
 
-        if (mobileMenuButton && navLinks) {
-            mobileMenuButton.addEventListener('click', function() {
-                const isDisplayed = navLinks.style.display === 'flex' || getComputedStyle(navLinks).display === 'flex';
-                if (isDisplayed && window.innerWidth <= 768) { // Check if it's actually in mobile view
-                     navLinks.style.display = 'none';
-                } else {
-                    navLinks.style.display = 'flex';
-                     // For mobile: make it block, stack vertically
-                    if(window.innerWidth <= 768) {
-                        navLinks.style.flexDirection = 'column';
-                        navLinks.style.position = 'absolute';
-                        navLinks.style.top = '4rem'; // Below header
-                        navLinks.style.left = '0';
-                        navLinks.style.right = '0';
-                        navLinks.style.backgroundColor = 'hsl(var(--background))';
-                        navLinks.style.padding = '1rem';
-                        navLinks.style.borderBottom = '1px solid hsl(var(--border))';
-                        navLinks.style.zIndex = '40'; // Ensure it's above content but below sticky header
-                    }
-                }
-            });
-        }
-    </script>
-<?php
-// get_footer(); // Using custom footer from front-page.php style
-wp_footer(); // Standard WordPress hook, good practice
-?>
-</body>
-</html>

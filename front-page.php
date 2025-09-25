@@ -10,984 +10,6 @@ get_header();
 // Text domain for translations
 $nbk_text_domain = 'nord-booking';
 ?>
-
-<style>
-    /* ==================================================
-     * NBK RESET & FOUNDATION STYLES
-     * ================================================== */
-    header#masthead,
-    footer#colophon {
-        display: none;
-    }
-
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-    }
-
-    /* ==================================================
-     * NBK CSS CUSTOM PROPERTIES (DESIGN TOKENS)
-     * ================================================== */
-    :root {
-        --nbk-background: 0 0% 100%;
-        --nbk-foreground: 222.2 84% 4.9%;
-        --nbk-card: 0 0% 100%;
-        --nbk-card-foreground: 222.2 84% 4.9%;
-        --nbk-popover: 0 0% 100%;
-        --nbk-popover-foreground: 222.2 84% 4.9%;
-        --nbk-primary: 221.2 83.2% 53.3%;
-        --nbk-primary-foreground: 210 40% 98%;
-        --nbk-secondary: 210 40% 96%;
-        --nbk-secondary-foreground: 222.2 84% 4.9%;
-        --nbk-muted: 210 40% 96%;
-        --nbk-muted-foreground: 215.4 16.3% 46.9%;
-        --nbk-accent: 210 40% 96%;
-        --nbk-accent-foreground: 222.2 84% 4.9%;
-        --nbk-destructive: 0 62.8% 30.6%;
-        --nbk-destructive-foreground: 210 40% 98%;
-        --nbk-border: 214.3 31.8% 91.4%;
-        --nbk-input: 214.3 31.8% 91.4%;
-        --nbk-ring: 222.2 84% 4.9%;
-        --nbk-radius: 0.5rem;
-    }
-
-    /* ==================================================
-     * NBK BASE STYLES
-     * ================================================== */
-    body {
-        font-family: "Outfit", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif !important;
-        line-height: 1.6;
-        color: hsl(var(--nbk-foreground));
-        background-color: hsl(var(--nbk-background));
-        font-feature-settings: "rlig" 1, "calt" 1;
-    }
-
-    .nbk-link {
-        text-decoration: none !important;
-    }
-
-    .nbk-container {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 0 2rem;
-    }
-
-    /* ==================================================
-     * NBK HEADER STYLES
-     * ================================================== */
-    .nbk-header {
-        position: sticky;
-        top: 0;
-        z-index: 50;
-        width: 100%;
-        border-bottom: 1px solid hsl(var(--nbk-border));
-        background-color: hsl(var(--nbk-background) / 0.95);
-        backdrop-filter: blur(8px);
-    }
-
-    .nbk-nav {
-        display: flex;
-        height: 4rem;
-        align-items: center;
-        justify-content: space-between;
-    }
-
-    .nbk-logo {
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: hsl(var(--nbk-foreground));
-    }
-
-    .nbk-nav-links {
-        display: flex;
-        list-style: none;
-        gap: 2rem;
-        align-items: center;
-    }
-
-    .nbk-nav-links a {
-        text-decoration: none;
-        color: hsl(var(--nbk-muted-foreground));
-        font-weight: 500;
-        font-size: 0.875rem;
-        transition: color 0.2s;
-    }
-
-    .nbk-nav-links a:hover {
-        color: hsl(var(--nbk-foreground));
-    }
-
-    /* ==================================================
-     * NBK BUTTON COMPONENT STYLES
-     * ================================================== */
-    .nbk-btn {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: calc(var(--nbk-radius) - 2px);
-        font-size: 0.875rem;
-        font-weight: 500;
-        transition: all 0.2s;
-        border: 1px solid transparent;
-        cursor: pointer;
-        text-decoration: none;
-        gap: 0.5rem;
-        font-family: "Outfit", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif !important;
-    }
-
-    .nbk-btn svg {
-        width: 18px;
-        height: 18px;
-    }
-
-    .nbk-btn--primary {
-        background-color: hsl(var(--nbk-primary));
-        color: hsl(var(--nbk-primary-foreground));
-    }
-
-    .nbk-btn--primary:hover {
-        background-color: hsl(var(--nbk-primary) / 0.9);
-    }
-
-    .nbk-btn--secondary {
-        border: 1px solid hsl(var(--nbk-border));
-        background-color: hsl(var(--nbk-background));
-        color: hsl(var(--nbk-foreground));
-    }
-
-    .nbk-btn--secondary:hover {
-        background-color: hsl(var(--nbk-accent));
-    }
-
-    .nbk-btn--outline {
-        color: hsl(var(--nbk-foreground));
-        border: 1px solid hsl(var(--nbk-border));
-        background-color: hsl(var(--nbk-background));
-    }
-
-    .nbk-btn--outline:hover {
-        background-color: hsl(var(--nbk-accent));
-        color: hsl(var(--nbk-accent-foreground));
-    }
-
-    .nbk-btn--sm {
-        height: 2.25rem;
-        padding: 0 0.75rem;
-    }
-
-    .nbk-btn--lg {
-        height: 2.75rem;
-        padding: 0 2rem;
-    }
-
-    .nbk-btn--xl {
-        height: 3rem;
-        padding: 0 1.5rem;
-        font-size: 1.1rem;
-    }
-
-    /* ==================================================
-     * NBK HERO SECTION STYLES
-     * ================================================== */
-    .nbk-hero {
-        margin-top: 150px;
-        text-align: center;
-        box-shadow: inset 0 -69px 33px 0 rgb(0 0 0 / 3%), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-        overflow: hidden;
-        background-image: url(../wp-content/themes/saas/assets/images/grid-pattern.png);
-        background-position: bottom center;
-        background-repeat: no-repeat;
-        background-size: 120% auto;
-    }
-
-    .nbk-hero__badge {
-        display: inline-flex;
-        align-items: center;
-        border-radius: 9999px;
-        border: 1px solid hsl(var(--nbk-border));
-        background-color: hsl(var(--nbk-muted));
-        padding: 0.25rem 0.75rem;
-        font-size: 0.75rem;
-        font-weight: 500;
-        margin-bottom: 2rem;
-        gap: 0.5rem;
-        color: hsl(var(--nbk-muted-foreground));
-    }
-    .nbk-hero__badge svg {
-        width: 18px;
-    }
-    .nbk-hero__title {
-        font-size: clamp(2.25rem, 5vw, 4rem);
-        font-weight: 800;
-        line-height: 1.1;
-        letter-spacing: -0.025em;
-        margin-bottom: 1.5rem;
-        color: hsl(var(--nbk-foreground));
-        max-inline-size: 800px;
-        margin-inline: auto;
-    }
-
-    .nbk-hero__description {
-        font-size: 1.25rem;
-        line-height: 1.6;
-        color: hsl(var(--nbk-muted-foreground));
-        max-width: 40rem;
-        margin: 0 auto 2.5rem;
-    }
-
-    .nbk-hero__actions {
-        display: flex;
-        gap: 1rem;
-        justify-content: center;
-        flex-wrap: wrap;
-        margin-top: 2rem;
-        margin-bottom: 3rem;
-    }
-
-    .nbk-hero__stats {
-        display: flex;
-        justify-content: center;
-        gap: 2rem;
-        flex-wrap: wrap;
-        margin-top: 3rem;
-    }
-
-    .nbk-hero__mockup {
-        margin-bottom: -130px;
-        max-width: 1000px;
-        margin: auto;
-        margin-bottom: -210px;
-        margin-top: 3rem;
-    }
-
-    .nbk-hero__mockup img {
-        max-width: 100%;
-        box-shadow: 0 1px 33px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-        overflow: hidden;
-        border-radius: 10px;
-        outline: 1px solid #e4eaf1;
-    }
-
-    .nbk-stat {
-        text-align: center;
-    }
-
-    .nbk-stat__number {
-        font-size: 2rem;
-        font-weight: 700;
-        color: hsl(var(--nbk-foreground));
-    }
-
-    .nbk-stat__label {
-        font-size: 0.875rem;
-        color: hsl(var(--nbk-muted-foreground));
-    }
-
-    /* ==================================================
-     * NBK CARD COMPONENT STYLES
-     * ================================================== */
-    .nbk-card {
-        border-radius: var(--nbk-radius);
-        border: 1px solid hsl(var(--nbk-border));
-        background-color: hsl(var(--nbk-card));
-        color: hsl(var(--nbk-card-foreground));
-        box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-    }
-
-    .nbk-card__header {
-        display: flex;
-        flex-direction: column;
-        space-y: 1.5;
-        padding: 1.5rem;
-    }
-
-    .nbk-card__title {
-        font-size: 1.5rem;
-        font-weight: 600;
-        line-height: 1;
-        letter-spacing: -0.025em;
-    }
-
-    .nbk-card__description {
-        font-size: 0.875rem;
-        color: hsl(var(--nbk-muted-foreground));
-    }
-
-    .nbk-card__content {
-        padding: 1.5rem;
-    }
-
-    /* ==================================================
-     * NBK SECTION STYLES
-     * ================================================== */
-    .nbk-section {
-        padding: 6rem 0;
-    }
-
-    .nbk-section__header {
-        text-align: center;
-        margin-bottom: 4rem;
-    }
-
-    .nbk-section__badge {
-        display: inline-flex;
-        align-items: center;
-        border-radius: 9999px;
-        border: 1px solid hsl(var(--nbk-border));
-        background-color: hsl(var(--nbk-muted));
-        padding: 0.25rem 0.75rem;
-        font-size: 0.75rem;
-        font-weight: 500;
-        margin-bottom: 1rem;
-        gap: 5px;
-        color: hsl(var(--nbk-muted-foreground));
-    }
-
-    .nbk-section__title {
-        font-size: clamp(2rem, 4vw, 3rem);
-        font-weight: 800;
-        line-height: 1.1;
-        letter-spacing: -0.025em;
-        margin-bottom: 1rem;
-        color: hsl(var(--nbk-foreground));
-    }
-
-    .nbk-section__description {
-        font-size: 1.125rem;
-        line-height: 1.6;
-        color: hsl(var(--nbk-muted-foreground));
-        max-width: 48rem;
-        margin: 0 auto;
-    }
-
-    /* ==================================================
-     * NBK FEATURES GRID STYLES
-     * ================================================== */
-
-
-            .nbk-section-header {
-            text-align: center;
-            margin-bottom: 3rem;
-            max-width: 768px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-.feature-img {
-    position: relative;
-    bottom: 0;
-    right: 0;
-    margin-left: 1.5rem;
-}
-
-.feature-img img {
-    max-width: 100%;
-    width: 100%;
-}
-        .nbk-section-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.375rem 0.75rem;
-            background-color: var(--gray-100);
-            color: var(--gray-700);
-            border-radius: var(--border-radius);
-            font-size: 0.875rem;
-            font-weight: 500;
-            margin-bottom: 1rem;
-            border: 1px solid var(--gray-200);
-        }
-
-        .nbk-section-title {
-            font-size: 2.25rem;
-            font-weight: 700;
-            color: var(--gray-900);
-            margin-bottom: 1rem;
-            letter-spacing: -0.025em;
-            line-height: 1.2;
-        }
-
-        .nbk-section-subtitle {
-            font-size: 1.125rem;
-            color: var(--gray-600);
-            line-height: 1.6;
-        }
-
-        .nbk-hero-feature {
-            background-color: var(--gray-50);
-            border: 1px solid var(--gray-200);
-            border-radius: var(--border-radius);
-            padding: 2rem;
-            margin-bottom: 3rem;
-            position: relative;
-        }
-
-        .nbk-hero-badge {
-            position: absolute;
-            top: -0.5rem;
-            left: 1.5rem;
-            background-color: var(--primary-color);
-            color: var(--white);
-            padding: 0.25rem 0.75rem;
-            border-radius: var(--border-radius);
-            font-size: 0.75rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .nbk-hero-content {
-            display: grid;
-            grid-template-columns: 1fr 300px;
-            gap: 2rem;
-            align-items: center;
-        }
-
-        .nbk-hero-text h3 {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: var(--gray-900);
-            margin-bottom: 0.75rem;
-        }
-
-        .nbk-hero-text p {
-            color: var(--gray-600);
-            line-height: 1.6;
-            margin-bottom: 1.5rem;
-        }
-
-        .nbk-hero-features {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 0.75rem;
-        }
-
-        .nbk-hero-feature-item {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 0.875rem;
-            color: var(--gray-700);
-        }
-
-        .nbk-hero-feature-item::before {
-            content: "✓";
-            color: var(--success-color);
-            font-weight: 600;
-            width: 16px;
-            height: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background-color: rgba(16, 185, 129, 0.1);
-            border-radius: 50%;
-            font-size: 0.75rem;
-            flex-shrink: 0;
-        }
-
-        .nbk-hero-visual {
-            background-color: var(--white);
-            border: 1px solid var(--gray-200);
-            border-radius: var(--border-radius);
-            padding: 1.5rem;
-            text-align: center;
-            color: var(--gray-600);
-            font-size: 0.875rem;
-        }
-
-        .nbk-features-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 1.5rem;
-        }
-
-        .nbk-feature-card {
-            background-color: var(--white);
-            border: 1px solid var(--gray-200);
-            border-radius: var(--border-radius);
-            padding: 0rem;
-            position: relative;
-            min-height: 350px;
-            transition: var(--transition-fast);
-        }
-
-        .nbk-feature-card:hover {
-            border-color: var(--gray-300);
-            box-shadow: var(--shadow-sm);
-        }
-
-        .nbk-feature-header {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            margin-bottom: 1rem;
-        }
-
-        .nbk-feature-icon {
-            width: 2.5rem;
-            height: 2.5rem;
-            border-radius: var(--border-radius);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background-color: var(--gray-100);
-            border: 1px solid var(--gray-200);
-        }
-
-        .nbk-feature-icon svg {
-            width: 1.25rem;
-            height: 1.25rem;
-            stroke: var(--gray-600);
-        }
-
-        .nbk-feature-title {
-            font-size: 1.125rem;
-            font-weight: 600;
-            color: var(--gray-900);
-        }
-
-        .nbk-feature-description {
-            color: var(--gray-600);
-            line-height: 1.5;
-            margin-bottom: 0px;
-            font-size: 0.875rem;
-        }
-
-        .nbk-feature-list {
-            list-style: none;
-        }
-
-        .nbk-feature-list li {
-            margin-bottom: 0.5rem;
-            font-size: 0.875rem;
-            color: var(--gray-700);
-            line-height: 1.4;
-        }
-
-        .nbk-feature-list li:last-child {
-            margin-bottom: 0;
-        }
-
-        .nbk-feature-status {
-            display: inline-block;
-            padding: 0.25rem 0.5rem;
-            border-radius: var(--border-radius);
-            font-size: 0.75rem;
-            font-weight: 500;
-            margin-top: 1rem;
-        }
-
-        .nbk-status-available {
-            background-color: rgba(16, 185, 129, 0.1);
-            color: var(--success-color);
-        }
-
-        .nbk-status-planned {
-            background-color: var(--gray-100);
-            color: var(--gray-600);
-        }
-
-        .nbk-status-development {
-            background-color: rgba(37, 99, 235, 0.1);
-            color: var(--primary-color);
-        }
-
-        @media (max-width: 768px) {
-            .nbk-hero-content {
-                grid-template-columns: 1fr;
-                gap: 1.5rem;
-            }
-
-            .nbk-hero-features {
-                grid-template-columns: 1fr;
-            }
-
-            .nbk-features-grid {
-                grid-template-columns: 1fr;
-                gap: 1rem;
-            }
-
-            .nbk-section-title {
-                font-size: 1.875rem;
-            }
-
-            .nbk-features-section {
-                padding: 2rem 1rem;
-            }
-
-            .nbk-hero-feature {
-                padding: 1.5rem;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .nbk-section-title {
-                font-size: 1.5rem;
-            }
-            
-            .nbk-section-subtitle {
-                font-size: 1rem;
-            }
-
-            .nbk-hero-feature {
-                padding: 1rem;
-            }
-
-            .nbk-feature-card {
-                padding: 1rem;
-            }
-        }
-
-.feature-content {
-    padding: 1.5rem;
-}
-    .nbk-feature-card {
-        padding: 0rem;
-        transition: all 0.2s;
-    }
-
-    .nbk-feature-card:hover {
-        box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-    }
-
-    .nbk-feature-card__icon {
-        width: 3rem;
-        height: 3rem;
-        background-color: hsl(var(--nbk-primary));
-        border-radius: var(--nbk-radius);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-bottom: 1rem;
-        font-size: 1.5rem;
-        color: hsl(var(--nbk-primary-foreground));
-    }
-
-    .nbk-feature-card__title {
-        font-size: 1.25rem;
-        font-weight: 600;
-        margin-bottom: 0.75rem;
-        color: hsl(var(--nbk-foreground));
-    }
-
-    .nbk-feature-card__description {
-        color: hsl(var(--nbk-muted-foreground));
-        line-height: 1.6;
-    }
-
-    /* ==================================================
-     * NBK STEPS STYLES
-     * ================================================== */
-    .nbk-steps-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 3rem;
-        margin-top: 4rem;
-    }
-
-    .nbk-step {
-        text-align: center;
-    }
-
-    .nbk-step__number {
-        width: 3rem;
-        height: 3rem;
-        background-color: hsl(var(--nbk-primary));
-        color: hsl(var(--nbk-primary-foreground));
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 0 auto 1.5rem;
-        font-size: 1.25rem;
-        font-weight: 600;
-    }
-
-    .nbk-step__title {
-        font-size: 1.25rem;
-        font-weight: 600;
-        margin-bottom: 0.75rem;
-        color: hsl(var(--nbk-foreground));
-    }
-
-    .nbk-step__description {
-        color: hsl(var(--nbk-muted-foreground));
-        line-height: 1.6;
-    }
-
-    /* ==================================================
-     * NBK PRICING STYLES
-     * ================================================== */
-    .nbk-pricing-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 2rem;
-        margin-top: 4rem;
-    }
-
-    .nbk-pricing-card {
-        position: relative;
-        padding: 2rem;
-        transition: all 0.2s;
-    }
-
-    .nbk-pricing-card:hover {
-        box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-    }
-
-    .nbk-pricing-card__badge {
-        position: absolute;
-        top: -0.5rem;
-        left: 50%;
-        transform: translateX(-50%);
-        background-color: hsl(var(--nbk-primary));
-        color: hsl(var(--nbk-primary-foreground));
-        padding: 0.25rem 0.75rem;
-        border-radius: 9999px;
-        font-size: 0.75rem;
-        font-weight: 500;
-    }
-
-    .nbk-plan__name {
-        font-size: 1.5rem;
-        font-weight: 600;
-        margin-bottom: 0.5rem;
-        color: hsl(var(--nbk-foreground));
-    }
-
-    .nbk-plan__price {
-        font-size: 3rem;
-        font-weight: 800;
-        color: hsl(var(--nbk-foreground));
-        margin-bottom: 0.25rem;
-    }
-
-    .nbk-plan__period {
-        color: hsl(var(--nbk-muted-foreground));
-        margin-bottom: 0;
-    }
-
-    .nbk-plan__features {
-        list-style: none;
-        margin-bottom: 2rem;
-        space-y: 0.75rem;
-    }
-
-    .nbk-plan__features li {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        color: hsl(var(--nbk-muted-foreground));
-        margin-bottom: 0.75rem;
-    }
-
-    .nbk-plan__features li::before {
-        content: '✓';
-        color: hsl(var(--nbk-primary));
-        font-weight: 600;
-        width: 1rem;
-        text-align: center;
-    }
-
-    /* ==================================================
-     * NBK TESTIMONIALS STYLES
-     * ================================================== */
-    .nbk-testimonials-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-        gap: 2rem;
-        margin-top: 4rem;
-    }
-
-    .nbk-testimonial {
-        padding: 2rem;
-        border-left: 4px solid hsl(var(--nbk-border));
-    }
-
-    .nbk-testimonial__content {
-        font-style: italic;
-        margin-bottom: 1.5rem;
-        color: hsl(var(--nbk-muted-foreground));
-        line-height: 1.6;
-    }
-
-    .nbk-testimonial__author {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-    }
-
-    .nbk-author__avatar {
-        width: 2.5rem;
-        height: 2.5rem;
-        border-radius: 50%;
-        background-color: hsl(var(--nbk-muted));
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 600;
-        color: hsl(var(--nbk-foreground));
-    }
-
-    .nbk-author__name {
-        font-weight: 500;
-        color: hsl(var(--nbk-foreground));
-    }
-
-    .nbk-author__title {
-        font-size: 0.875rem;
-        color: hsl(var(--nbk-muted-foreground));
-    }
-
-    /* ==================================================
-     * NBK CTA SECTION STYLES
-     * ================================================== */
-    .nbk-cta-section {
-        padding: 6rem 0;
-        text-align: center;
-        background-color: hsl(var(--nbk-muted) / 0.5);
-    }
-
-    /* ==================================================
-     * NBK FOOTER STYLES
-     * ================================================== */
-    .nbk-footer {
-        border-top: 1px solid hsl(var(--nbk-border));
-        padding: 4rem 0 2rem;
-        background-color: hsl(var(--nbk-muted) / 0.3);
-    }
-
-    .nbk-footer__grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 2rem;
-        margin-bottom: 3rem;
-    }
-
-    .nbk-footer__section h3 {
-        font-weight: 600;
-        margin-bottom: 1rem;
-        color: hsl(var(--nbk-foreground));
-    }
-
-    .nbk-footer__section ul {
-        list-style: none;
-        space-y: 0.5rem;
-    }
-
-    .nbk-footer__section ul li {
-        margin-bottom: 0.5rem;
-    }
-
-    .nbk-footer__section ul li a {
-        color: hsl(var(--nbk-muted-foreground));
-        text-decoration: none;
-        font-size: 0.875rem;
-        transition: color 0.2s;
-    }
-
-    .nbk-footer__section ul li a:hover {
-        color: hsl(var(--nbk-foreground));
-    }
-
-    .nbk-footer__bottom {
-        border-top: 1px solid hsl(var(--nbk-border));
-        padding-top: 2rem;
-        text-align: center;
-        color: hsl(var(--nbk-muted-foreground));
-        font-size: 0.875rem;
-    }
-
-    /* ==================================================
-     * NBK MOBILE MENU STYLES
-     * ================================================== */
-    .nbk-mobile-menu-toggle {
-        display: none;
-        background: none;
-        border: none;
-        font-size: 1.25rem;
-        cursor: pointer;
-        color: hsl(var(--nbk-foreground));
-    }
-
-    /* ==================================================
-     * NBK RESPONSIVE DESIGN
-     * ================================================== */
-    @media (max-width: 768px) {
-        .nbk-nav-links {
-            display: none;
-        }
-
-        .nbk-mobile-menu-toggle {
-            display: block;
-        }
-
-        .nbk-hero__actions {
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .nbk-hero__stats {
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        .nbk-features-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .nbk-steps-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .nbk-pricing-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .nbk-testimonials-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .nbk-footer__grid {
-            grid-template-columns: 1fr;
-        }
-    }
-
-    /* ==================================================
-     * NBK ANIMATION UTILITIES
-     * ================================================== */
-    .nbk-fade-in {
-        opacity: 0;
-        animation: nbk-fadeIn 0.6s ease forwards;
-    }
-
-    @keyframes nbk-fadeIn {
-        to {
-            opacity: 1;
-        }
-    }
-
-    .nbk-slide-up {
-        opacity: 0;
-        transform: translateY(20px);
-        animation: nbk-slideUp 0.6s ease forwards;
-    }
-
-    @keyframes nbk-slideUp {
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    .nbk-delay-100 { animation-delay: 0.1s; }
-    .nbk-delay-200 { animation-delay: 0.2s; }
-    .nbk-delay-300 { animation-delay: 0.3s; }
-    .nbk-delay-400 { animation-delay: 0.4s; }
-    .nbk-delay-500 { animation-delay: 0.5s; }
-    .nbk-delay-600 { animation-delay: 0.6s; }
-</style>
-
 <main>
     <!-- NBK Hero Section -->
     <section class="nbk-hero">
@@ -1075,7 +97,7 @@ $nbk_text_domain = 'nord-booking';
                 </div>
             </div> -->
 
-            <div class="nbk-features-grid">
+<div class="nbk-features-grid">
                 <!-- Service Management -->
                 <div class="nbk-feature-card nbk-slide-up nbk-delay-100">
                     <div class="feature-content">
@@ -1124,130 +146,165 @@ $nbk_text_domain = 'nord-booking';
 
                 <!-- Service Areas & Location -->
                 <div class="nbk-feature-card nbk-slide-up nbk-delay-100">
-                    <div class="nbk-feature-header">
-                        <div class="nbk-feature-icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-                                <circle cx="12" cy="10" r="3"></circle>
-                            </svg>
+                    <div class="feature-content">
+                        <div class="nbk-feature-header">
+                            <div class="nbk-feature-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                                    <circle cx="12" cy="10" r="3"></circle>
+                                </svg>
+                            </div>
+                            <h3 class="nbk-feature-title">Smart Service Areas</h3>
                         </div>
-                        <h3 class="nbk-feature-title">Smart Service Areas</h3>
+                        <p class="nbk-feature-description">
+                            Define precise service coverage by selecting countries, cities, and specific ZIP codes 
+                            with real-time availability checking.
+                        </p>
                     </div>
-                    <p class="nbk-feature-description">
-                        Define precise service coverage by selecting countries, cities, and specific ZIP codes 
-                        with real-time availability checking.
-                    </p>
+                    <div class="feature-img">
+                        <img class="nbk-fade-in" src="<?php echo get_template_directory_uri(); ?>/assets/images/features/location.png" alt="<?php esc_attr_e('Location', $nbk_text_domain); ?>">
+                    </div>
                 </div>
 
                 <!-- Coupon System -->
                 <div class="nbk-feature-card nbk-slide-up nbk-delay-100">
-                    <div class="nbk-feature-header">
-                        <div class="nbk-feature-icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"></path>
-                                <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"></path>
-                                <path d="M18 12a2 2 0 0 0 0 4h4v-4Z"></path>
-                            </svg>
+                    <div class="feature-content">
+                        <div class="nbk-feature-header">
+                            <div class="nbk-feature-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"></path>
+                                    <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"></path>
+                                    <path d="M18 12a2 2 0 0 0 0 4h4v-4Z"></path>
+                                </svg>
+                            </div>
+                            <h3 class="nbk-feature-title">Intelligent Coupon System</h3>
                         </div>
-                        <h3 class="nbk-feature-title">Intelligent Coupon System</h3>
+                        <p class="nbk-feature-description">
+                            Create and manage discount codes with advanced rules, usage limits, 
+                            and detailed tracking for marketing campaigns.
+                        </p>
                     </div>
-                    <p class="nbk-feature-description">
-                        Create and manage discount codes with advanced rules, usage limits, 
-                        and detailed tracking for marketing campaigns.
-                    </p>
+                    <div class="feature-img">
+                        <img class="nbk-fade-in" src="<?php echo get_template_directory_uri(); ?>/assets/images/features/coupon.png" alt="<?php esc_attr_e('Coupon', $nbk_text_domain); ?>">
+                    </div>
                 </div>
 
                 <!-- Worker Management -->
                 <div class="nbk-feature-card nbk-slide-up nbk-delay-100">
-                    <div class="nbk-feature-header">
-                        <div class="nbk-feature-icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
-                                <circle cx="9" cy="7" r="4"></circle>
-                                <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
-                                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                                <circle cx="22" cy="11" r="1"></circle>
-                                <path d="m22 13-1.5-1.5L22 10"></path>
-                            </svg>
+                    <div class="feature-content">
+                        <div class="nbk-feature-header">
+                            <div class="nbk-feature-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="9" cy="7" r="4"></circle>
+                                    <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                                    <circle cx="22" cy="11" r="1"></circle>
+                                    <path d="m22 13-1.5-1.5L22 10"></path>
+                                </svg>
+                            </div>
+                            <h3 class="nbk-feature-title">Team & Worker Management</h3>
                         </div>
-                        <h3 class="nbk-feature-title">Team & Worker Management</h3>
+                        <p class="nbk-feature-description">
+                            Add team members, assign bookings, manage schedules, and track performance 
+                            with role-based access controls.
+                        </p>
                     </div>
-                    <p class="nbk-feature-description">
-                        Add team members, assign bookings, manage schedules, and track performance 
-                        with role-based access controls.
-                    </p>
+                    <div class="feature-img">
+                        <img class="nbk-fade-in" src="<?php echo get_template_directory_uri(); ?>/assets/images/features/worker.png" alt="<?php esc_attr_e('Worker', $nbk_text_domain); ?>">
+                    </div>
                 </div>
 
                 <!-- Email Notifications -->
                 <div class="nbk-feature-card nbk-slide-up nbk-delay-100">
-                    <div class="nbk-feature-header">
-                        <div class="nbk-feature-icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-                                <polyline points="22,6 12,13 2,6"></polyline>
-                            </svg>
+                    <div class="feature-content">
+                        <div class="nbk-feature-header">
+                            <div class="nbk-feature-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                                    <polyline points="22,6 12,13 2,6"></polyline>
+                                </svg>
+                            </div>
+                            <h3 class="nbk-feature-title">Smart Email Notifications</h3>
                         </div>
-                        <h3 class="nbk-feature-title">Smart Email Notifications</h3>
+                        <p class="nbk-feature-description">
+                            Automated email system with customizable templates, triggers, and 
+                            personalized messaging for customers and staff.
+                        </p>
                     </div>
-                    <p class="nbk-feature-description">
-                        Automated email system with customizable templates, triggers, and 
-                        personalized messaging for customers and staff.
-                    </p>
+                    <div class="feature-img">
+                        <img class="nbk-fade-in" src="<?php echo get_template_directory_uri(); ?>/assets/images/features/email.png" alt="<?php esc_attr_e('Email', $nbk_text_domain); ?>">
+                    </div>
                 </div>
 
                 <!-- Invoicing System -->
                 <div class="nbk-feature-card nbk-slide-up nbk-delay-100">
-                    <div class="nbk-feature-header">
-                        <div class="nbk-feature-icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                                <polyline points="14,2 14,8 20,8"></polyline>
-                                <line x1="16" y1="13" x2="8" y2="13"></line>
-                                <line x1="16" y1="17" x2="8" y2="17"></line>
-                                <polyline points="10,9 9,9 8,9"></polyline>
-                            </svg>
+                    <div class="feature-content">
+                        <div class="nbk-feature-header">
+                            <div class="nbk-feature-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                    <polyline points="14,2 14,8 20,8"></polyline>
+                                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                                    <polyline points="10,9 9,9 8,9"></polyline>
+                                </svg>
+                            </div>
+                            <h3 class="nbk-feature-title">Dynamic Invoice Generation</h3>
                         </div>
-                        <h3 class="nbk-feature-title">Dynamic Invoice Generation</h3>
+                        <p class="nbk-feature-description">
+                            Automatically generate professional invoices for each booking with 
+                            customizable templates and integrated payment processing.
+                        </p>
                     </div>
-                    <p class="nbk-feature-description">
-                        Automatically generate professional invoices for each booking with 
-                        customizable templates and integrated payment processing.
-                    </p>
+                    <div class="feature-img">
+                        <img class="nbk-fade-in" src="<?php echo get_template_directory_uri(); ?>/assets/images/features/invoice.png" alt="<?php esc_attr_e('Invoice', $nbk_text_domain); ?>">
+                    </div>
                 </div>
 
                 <!-- Availability Management -->
                 <div class="nbk-feature-card nbk-slide-up nbk-delay-100">
-                    <div class="nbk-feature-header">
-                        <div class="nbk-feature-icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <circle cx="12" cy="12" r="10"></circle>
-                                <polyline points="12,6 12,12 16,14"></polyline>
-                            </svg>
+                    <div class="feature-content">
+                        <div class="nbk-feature-header">
+                            <div class="nbk-feature-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <polyline points="12,6 12,12 16,14"></polyline>
+                                </svg>
+                            </div>
+                            <h3 class="nbk-feature-title">Flexible Availability System</h3>
                         </div>
-                        <h3 class="nbk-feature-title">Flexible Availability System</h3>
+                        <p class="nbk-feature-description">
+                            Set custom availability schedules, time slots, and booking windows 
+                            with support for multiple time zones and seasonal adjustments.
+                        </p>
                     </div>
-                    <p class="nbk-feature-description">
-                        Set custom availability schedules, time slots, and booking windows 
-                        with support for multiple time zones and seasonal adjustments.
-                    </p>
+                    <div class="feature-img">
+                        <img class="nbk-fade-in" src="<?php echo get_template_directory_uri(); ?>/assets/images/features/availability.png" alt="<?php esc_attr_e('Availability', $nbk_text_domain); ?>">
+                    </div>
                 </div>
 
                 <!-- Public Booking Forms -->
                 <div class="nbk-feature-card nbk-slide-up nbk-delay-100">
-                    <div class="nbk-feature-header">
-                        <div class="nbk-feature-icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <circle cx="12" cy="12" r="10"></circle>
-                                <line x1="2" y1="12" x2="22" y2="12"></line>
-                                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
-                            </svg>
+                    <div class="feature-content">
+                        <div class="nbk-feature-header">
+                            <div class="nbk-feature-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <line x1="2" y1="12" x2="22" y2="12"></line>
+                                    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                                </svg>
+                            </div>
+                            <h3 class="nbk-feature-title">Public Booking Forms</h3>
                         </div>
-                        <h3 class="nbk-feature-title">Public Booking Forms</h3>
+                        <p class="nbk-feature-description">
+                            Get your own custom booking form that customers can access publicly 
+                            or embed directly on your website for seamless integration.
+                        </p>
                     </div>
-                    <p class="nbk-feature-description">
-                        Get your own custom booking form that customers can access publicly 
-                        or embed directly on your website for seamless integration.
-                    </p>
+                    <div class="feature-img">
+                        <img class="nbk-fade-in" src="<?php echo get_template_directory_uri(); ?>/assets/images/features/booking-form.png" alt="<?php esc_attr_e('Booking Form', $nbk_text_domain); ?>">
+                    </div>
                 </div>
             </div>
         </div>

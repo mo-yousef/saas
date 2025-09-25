@@ -64,14 +64,6 @@ body.nordbooking-dashboard {
   flex-direction: column;
 }
 
-.admin-bar {
-  margin-top: 32px !important;
-}
-
-.admin-bar .nordbk-header {
-  margin-top: 32px !important;
-}
-
 h1,
 h2,
 h3,
@@ -127,6 +119,7 @@ h6 {
 }
 
 p {
+  font-size: 15px;
   margin-bottom: 1rem;
   font-family: "Outfit",
     -apple-system,
@@ -563,40 +556,55 @@ tbody tr:hover {
   max-width: 10rem;
 }
 
+/*==== Spacing ====*/
+[data-spacing="top"] {
+  padding-top: 100px;
+}
+
+[data-spacing="bottom"] {
+  padding-bottom: 100px;
+}
+
+[data-spacing="top-bottom"] {
+  padding-top: 100px;
+  padding-bottom: 100px;
+}
+
+[data-layout="narrow"] {
+  max-width: 950px !important;
+  margin-inline: auto;
+}
+
+@media screen and (max-width: 768px) {
+  .fxc-container-overflow {
+    overflow: hidden;
+  }
+
+  [data-spacing="top"] {
+    padding-top: 60px;
+  }
+
+  [data-spacing="bottom"] {
+    padding-bottom: 60px;
+  }
+
+  [data-spacing="top-bottom"] {
+    padding-top: 60px;
+    padding-bottom: 60px;
+  }
+
+  [data-m-column-reverse="true"] {
+    flex-direction: column-reverse !important;
+  }
+
+  .buttons-wrapper-center {
+    justify-content: flex-start;
+  }
+}
+
 /*--------------------------------------------------------------
 6.0 WordPress Core Alignments & Generated Classes
 --------------------------------------------------------------*/
-.alignleft {
-  float: left;
-  margin-right: 1.5rem;
-  margin-bottom: 1rem;
-}
-
-.alignright {
-  float: right;
-  margin-left: 1.5rem;
-  margin-bottom: 1rem;
-}
-
-.aligncenter {
-  display: block;
-  margin-left: auto;
-  margin-right: auto;
-  margin-bottom: 1rem;
-  text-align: center;
-}
-
-.screen-reader-text {
-  position: absolute !important;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
 
 /*--------------------------------------------------------------
 7.0 Modal Styles
@@ -862,45 +870,6 @@ span.NORDBOOKING-menu-icon {
   width: 100%;
 }
 
-/* .subscription-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.375rem 0.75rem;
-  border-radius: 0.25rem;
-  font-size: 0.6875rem;
-  font-weight: 600;
-  text-decoration: none;
-  transition: all 0.2s ease;
-  border: 1px solid transparent;
-  width: 100%;
-  text-transform: uppercase;
-  letter-spacing: 0.025em;
-}
-
-.subscription-btn-primary {
-  background-color: hsl(var(--primary));
-  color: hsl(var(--primary-foreground));
-}
-
-.subscription-btn-primary:hover {
-  background-color: hsl(221.2 83.2% 47.3%);
-  color: hsl(var(--primary-foreground));
-  transform: translateY(-1px);
-}
-
-.subscription-btn-secondary {
-  background-color: transparent;
-  color: hsl(210 40% 90%);
-  border-color: hsl(217.2 32.6% 30%);
-}
-
-.subscription-btn-secondary:hover {
-  background-color: hsl(217.2 32.6% 20%);
-  color: hsl(210 40% 98%);
-  border-color: hsl(217.2 32.6% 35%);
-} */
-
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .subscription-status-box {
@@ -1086,1859 +1055,1718 @@ span.NORDBOOKING-menu-icon {
   }
 }
 
-/*--------------------------------------------------------------
-8.1 WordPress Admin Enhancements
---------------------------------------------------------------*/
-.wp-admin .wrap[id^="NORDBOOKING-"] {
-  background-color: hsl(0 0% 100%);
-  padding: 1.5rem;
-  border: 1px solid hsl(214.3 31.8% 91.4%);
-  border-radius: 0.5rem;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  margin-top: 1.5rem;
-}
 
-.wp-admin .wrap[id^="NORDBOOKING-"] h1 {
-  font-size: 1.875rem;
-  font-weight: 700;
-  margin-bottom: 1rem;
-  color: hsl(222.2 84% 4.9%);
-}
 
-.wp-admin .wrap[id^="NORDBOOKING-"] h2 {
-  font-size: 1.5rem;
-  font-weight: 600;
-  margin-top: 2rem;
-  margin-bottom: 1rem;
-  color: hsl(222.2 84% 4.9%);
-}
-
-.wp-admin .wrap[id^="NORDBOOKING-"] h3 {
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin-top: 1.5rem;
-  margin-bottom: 0.75rem;
-  color: hsl(222.2 84% 4.9%);
-}
-
-/* Form Table Styling */
-.wp-admin .wrap[id^="NORDBOOKING-"] .form-table {
-  margin-bottom: 1.5rem;
-}
-
-.wp-admin .wrap[id^="NORDBOOKING-"] .form-table th {
-  width: 14rem;
-  padding: 1rem 1.25rem 1rem 0;
-  vertical-align: top;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: hsl(222.2 84% 4.9%);
-}
-
-.wp-admin .wrap[id^="NORDBOOKING-"] .form-table td {
-  padding: 0.75rem 0;
-  vertical-align: top;
-}
-
-.wp-admin .wrap[id^="NORDBOOKING-"] .form-table td .description {
-  font-size: 0.8125rem;
-  color: hsl(215.4 16.3% 46.9%);
-  margin-top: 0.5rem;
-}
-
-/* Feedback Messages */
-#NORDBOOKING-settings-feedback.notice,
-#NORDBOOKING-discount-form-feedback.notice,
-#NORDBOOKING-service-form-feedback.notice {
-  padding: 1rem;
-  margin-bottom: 1rem;
-  border-radius: 0.375rem;
-  border: 1px solid;
-  font-size: 0.875rem;
-}
-
-#NORDBOOKING-settings-feedback.notice-success,
-#NORDBOOKING-discount-form-feedback.notice-success,
-#NORDBOOKING-service-form-feedback.notice-success {
-  background-color: hsl(142 76% 36% / 0.1);
-  border-color: hsl(142 76% 36% / 0.3);
-  color: hsl(142 76% 36%);
-}
-
-#NORDBOOKING-settings-feedback.notice-error,
-#NORDBOOKING-discount-form-feedback.notice-error,
-#NORDBOOKING-service-form-feedback.notice-error {
-  background-color: hsl(0 84.2% 60.2% / 0.1);
-  border-color: hsl(0 84.2% 60.2% / 0.3);
-  color: hsl(0 84.2% 60.2%);
-}
-
-/* Booking Form Feedback */
-#NORDBOOKING-bf-feedback.success,
-#NORDBOOKING-bf-step-2-feedback.success,
-#NORDBOOKING-bf-step-3-feedback.success,
-#NORDBOOKING-bf-step-4-feedback.success,
-#NORDBOOKING-bf-step-5-feedback.success,
-#NORDBOOKING-bf-discount-feedback.success {
-  color: hsl(142 76% 36%);
-  border: 1px solid hsl(142 76% 36% / 0.3);
-  background-color: hsl(142 76% 36% / 0.1);
-  padding: 0.75rem;
-  border-radius: 0.375rem;
-  margin-bottom: 1rem;
-}
-
-#NORDBOOKING-bf-feedback.error,
-#NORDBOOKING-bf-step-2-feedback.error,
-#NORDBOOKING-bf-step-3-feedback.error,
-#NORDBOOKING-bf-step-4-feedback.error,
-#NORDBOOKING-bf-step-5-feedback.error,
-#NORDBOOKING-bf-discount-feedback.error {
-  color: hsl(0 84.2% 60.2%);
-  border: 1px solid hsl(0 84.2% 60.2% / 0.3);
-  background-color: hsl(0 84.2% 60.2% / 0.1);
-  padding: 0.75rem;
-  border-radius: 0.375rem;
-  margin-bottom: 1rem;
-}
-
-/*--------------------------------------------------------------
-8.2 Dashboard Component Styles
---------------------------------------------------------------*/
-
-/* Service, Booking, Discount Items */
-.NORDBOOKING-service-item,
-.nordbooking-booking-item,
-.NORDBOOKING-area-item {
-  padding: 1rem;
-  margin-bottom: 1rem;
-  background: hsl(0 0% 100%);
-  border: 1px solid hsl(214.3 31.8% 91.4%);
-  border-radius: 0.5rem;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.wp-admin .NORDBOOKING-service-item h3,
-.wp-admin .nordbooking-booking-item h3 {
-  font-size: 1.125rem;
-  font-weight: 600;
-  margin-bottom: 0.75rem;
-  margin-top: 0;
-  color: hsl(222.2 84% 4.9%);
-}
-
-.wp-admin .NORDBOOKING-service-item p,
-.wp-admin .nordbooking-booking-item p {
-  margin-bottom: 0.5rem;
-  color: hsl(215.4 16.3% 46.9%);
-  font-size: 0.875rem;
-}
-
-/* Area Items Specific Layout */
-.wp-admin .NORDBOOKING-area-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.75rem 1rem;
-  margin-bottom: 0.5rem;
-}
-
-/* Overview Page KPI Boxes */
-.wp-admin #NORDBOOKING-overview-content .kpi-box,
-.wp-admin #NORDBOOKING-overview-content #NORDBOOKING-overview-recent-bookings-section,
-.wp-admin #NORDBOOKING-overview-content #NORDBOOKING-overview-quick-actions-section {
-  background-color: hsl(0 0% 100%);
-  padding: 1.5rem;
-  border: 1px solid hsl(214.3 31.8% 91.4%);
-  border-radius: 0.5rem;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  margin-bottom: 1.5rem;
-}
-
-.wp-admin #NORDBOOKING-overview-content .kpi-box h4 {
-  font-size: 0.875rem;
-  font-weight: 500;
-  margin-top: 0;
-  margin-bottom: 0.5rem;
-  color: hsl(215.4 16.3% 46.9%);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.wp-admin #NORDBOOKING-overview-content .kpi-box p {
-  font-size: 2rem;
-  font-weight: 700;
-  margin-bottom: 0;
-  color: hsl(222.2 84% 4.9%);
-}
-
-/* Quick Actions */
-.wp-admin #NORDBOOKING-overview-quick-actions-section ul {
-  padding-left: 0;
-  list-style: none;
-  margin-bottom: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.wp-admin #NORDBOOKING-overview-quick-actions-section .button.button-large {
-  width: 100%;
-  justify-content: center;
-  padding: 0.75rem 1rem;
-  font-weight: 500;
-}
-
-/* Recent Bookings */
-.wp-admin .NORDBOOKING-overview-booking-item {
-  border-bottom: 1px solid hsl(214.3 31.8% 91.4%);
-  padding: 1rem 0;
-  margin-bottom: 1rem;
-}
-
-.wp-admin .NORDBOOKING-overview-booking-item:last-child {
-  border-bottom: none;
-  margin-bottom: 0;
-}
-
-.wp-admin .NORDBOOKING-overview-booking-item strong {
-  font-size: 1rem;
-  font-weight: 600;
-  color: hsl(222.2 84% 4.9%);
-}
-
-/*--------------------------------------------------------------
-8.3 Navigation Tabs
---------------------------------------------------------------*/
-.wp-admin .nav-tab-wrapper {
-  border-bottom: 1px solid hsl(214.3 31.8% 91.4%);
-  padding-bottom: 0;
-  margin-bottom: 1.5rem;
-}
-
-.nav-tab-wrapper {
-  display: inline-flex;
-  height: 2.5rem;
-  align-items: center;
-  justify-content: center;
-  background-color: hsl(210 40% 98%);
-  padding: 0.25rem;
-  color: hsl(215.4 16.3% 46.9%);
-  margin-bottom: 2rem !important;
-  border-radius: 0.375rem;
-  border: 1px solid hsl(214.3 31.8% 91.4%);
-}
-
-.nav-tab {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  white-space: nowrap;
-  border-radius: 0.25rem;
-  padding: 0.375rem 0.75rem;
-  font-size: 0.9rem;
-  font-weight: 500;
-  letter-spacing: 0px;
-  transition: all 0.15s ease-in-out;
-  text-decoration: none;
-  color: inherit;
-}
-
-.nav-tab:hover,
-.nav-tab:focus {
-  text-decoration: none !important;
-}
-
-.nav-tab:focus-visible {
-  outline: 2px solid hsl(215.4 16.3% 46.9%);
-  outline-offset: 2px;
-}
-
-.nav-tab:disabled {
-  pointer-events: none;
-  opacity: 0.5;
-}
-
-.nav-tab-active {
-  background-color: hsl(0 0% 100%);
-  color: hsl(222.2 84% 4.9%);
-  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-}
-
-.wp-admin .nav-tab {
-  padding: 0.75rem 1rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  background: hsl(210 40% 98%);
-  border: 1px solid hsl(214.3 31.8% 91.4%);
-  border-bottom: none;
-  margin-right: 0.25rem;
-  border-top-left-radius: 0.375rem;
-  border-top-right-radius: 0.375rem;
-  color: hsl(215.4 16.3% 46.9%);
-  text-decoration: none;
-  transition: all 0.15s ease;
-}
-
-.wp-admin .nav-tab:hover {
-  background: hsl(0 0% 100%);
-  color: hsl(222.2 84% 4.9%);
-}
-
-.wp-admin .nav-tab-active,
-.wp-admin .nav-tab-active:hover {
-  background: hsl(0 0% 100%);
-  border-bottom-color: hsl(0 0% 100%);
-  border-top: 2px solid hsl(221.2 83.2% 53.3%);
-  padding-top: 0.6875rem;
-  font-weight: 600;
-  color: hsl(222.2 84% 4.9%);
-}
-
-.wp-admin .NORDBOOKING-settings-tab-content {
-  margin-top: -1px;
-}
-
-/*--------------------------------------------------------------
-8.4 Mobile Responsive Tables
---------------------------------------------------------------*/
-@media screen and (max-width: 782px) {
-
-  .wp-list-table tbody th,
-  .wp-list-table tbody td {
-    display: block;
-    width: auto;
-    text-align: left;
-    border-bottom: 0;
-    padding: 0.5rem 1rem;
-  }
-
-  .wp-list-table tbody td:before {
-    content: attr(data-label);
-    float: left;
-    width: 30%;
-    font-weight: 600;
-    margin-right: 0.75rem;
-    display: inline-block;
-    color: hsl(222.2 84% 4.9%);
-  }
-
-  .wp-list-table tbody tr {
-    border-bottom: 1px solid hsl(214.3 31.8% 91.4%);
-    margin-bottom: 1rem;
-  }
-
-  .wp-list-table tbody td .button {
-    display: block;
-    margin-bottom: 0.5rem;
-    text-align: center;
-    width: 100%;
-  }
-
-  .wp-list-table tbody td .button:last-child {
-    margin-bottom: 0;
-  }
-}
-
-/*--------------------------------------------------------------
-8.5 Form Improvements
---------------------------------------------------------------*/
-.wp-admin .wrap[id^="NORDBOOKING-"] input[type="text"],
-.wp-admin .wrap[id^="NORDBOOKING-"] input[type="email"],
-.wp-admin .wrap[id^="NORDBOOKING-"] input[type="password"],
-.wp-admin .wrap[id^="NORDBOOKING-"] input[type="number"],
-.wp-admin .wrap[id^="NORDBOOKING-"] input[type="search"],
-.wp-admin .wrap[id^="NORDBOOKING-"] input[type="tel"],
-.wp-admin .wrap[id^="NORDBOOKING-"] input[type="url"],
-.wp-admin .wrap[id^="NORDBOOKING-"] select,
-.wp-admin .wrap[id^="NORDBOOKING-"] textarea {
-  border: 1px solid hsl(214.3 31.8% 91.4%);
-  border-radius: 0.375rem;
-  padding: 0.5rem 0.75rem;
-  font-size: 0.875rem;
-  color: hsl(222.2 84% 4.9%);
-  background-color: hsl(0 0% 100%);
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
-  width: 100%;
-  max-width: 24rem;
-  margin-bottom: 0.75rem;
-}
-
-.wp-admin .wrap[id^="NORDBOOKING-"] input[type="text"]:focus,
-.wp-admin .wrap[id^="NORDBOOKING-"] input[type="email"]:focus,
-.wp-admin .wrap[id^="NORDBOOKING-"] input[type="password"]:focus,
-.wp-admin .wrap[id^="NORDBOOKING-"] input[type="number"]:focus,
-.wp-admin .wrap[id^="NORDBOOKING-"] input[type="search"]:focus,
-.wp-admin .wrap[id^="NORDBOOKING-"] input[type="tel"]:focus,
-.wp-admin .wrap[id^="NORDBOOKING-"] input[type="url"]:focus,
-.wp-admin .wrap[id^="NORDBOOKING-"] select:focus,
-.wp-admin .wrap[id^="NORDBOOKING-"] textarea:focus {
-  border-color: hsl(221.2 83.2% 53.3%);
-  box-shadow: 0 0 0 2px hsl(221.2 83.2% 53.3% / 0.2);
-}
-
-.wp-admin .wrap[id^="NORDBOOKING-"] label {
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: hsl(222.2 84% 4.9%);
-  margin-bottom: 0.5rem;
-}
-
-.wp-admin .wrap[id^="NORDBOOKING-"] .form-table input[type="text"],
-.wp-admin .wrap[id^="NORDBOOKING-"] .form-table input[type="email"],
-.wp-admin .wrap[id^="NORDBOOKING-"] .form-table input[type="number"],
-.wp-admin .wrap[id^="NORDBOOKING-"] .form-table input[type="url"],
-.wp-admin .wrap[id^="NORDBOOKING-"] .form-table select,
-.wp-admin .wrap[id^="NORDBOOKING-"] .form-table textarea {
-  margin-bottom: 0;
-}
-
-.wp-admin .wrap[id^="NORDBOOKING-"] textarea.large-text,
-.wp-admin .wrap[id^="NORDBOOKING-"] textarea.code {
-  max-width: 100%;
-  width: 100%;
-  min-height: 6rem;
-}
-
-/*--------------------------------------------------------------
-8.6 Button Refinements
---------------------------------------------------------------*/
-.wp-admin .button,
-.wp-admin input[type="submit"],
-.wp-admin input[type="button"],
-.wp-admin input[type="reset"] {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  white-space: nowrap;
-  border-radius: 0.375rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  transition: all 0.15s ease;
-  cursor: pointer;
-  border: 1px solid;
-  padding: 0.5rem 1rem;
-  height: 2.25rem;
-  text-decoration: none;
-  line-height: 1;
-}
-
-.wp-admin .button-primary {
-  background: hsl(221.2 83.2% 53.3%);
-  color: hsl(210 40% 98%);
-  border-color: hsl(221.2 83.2% 53.3%);
-}
-
-.wp-admin .button-primary:hover,
-.wp-admin .button-primary:focus {
-  background: hsl(221.2 83.2% 53.3% / 0.9);
-  border-color: hsl(221.2 83.2% 53.3% / 0.9);
-  color: hsl(210 40% 98%);
-}
-
-.wp-admin .button.button-secondary,
-.wp-admin .NORDBOOKING-button-default {
-  background: hsl(0 0% 100%);
-  border-color: hsl(214.3 31.8% 91.4%);
-  color: hsl(222.2 84% 4.9%);
-}
-
-.wp-admin .button.button-secondary:hover,
-.wp-admin .button.button-secondary:focus,
-.wp-admin .NORDBOOKING-button-default:hover,
-.wp-admin .NORDBOOKING-button-default:focus {
-  background: hsl(210 40% 96%);
-  border-color: hsl(214.3 31.8% 91.4%);
-  color: hsl(222.2 84% 4.9%);
-}
-
-.wp-admin .button-link-delete,
-.wp-admin .NORDBOOKING-button-delete {
-  background: hsl(0 84.2% 60.2%);
-  border-color: hsl(0 84.2% 60.2%);
-  color: hsl(210 40% 98%);
-}
-
-.wp-admin .button-link-delete:hover,
-.wp-admin .NORDBOOKING-button-delete:hover {
-  background: hsl(0 84.2% 60.2% / 0.9);
-  border-color: hsl(0 84.2% 60.2% / 0.9);
-  color: hsl(210 40% 98%);
-}
-
-/* Smooth scrolling for content area */
-.dashboard-page-content-area {
-  scroll-behavior: smooth;
-}
-
-/*--------------------------------------------------------------
-9.0 Availability Page Styles
---------------------------------------------------------------*/
-.NORDBOOKING-availability-page .NORDBOOKING-section {
-  background-color: hsl(0 0% 100%);
-  padding: 1.5rem;
-  /* Match .NORDBOOKING-wrapper */
-  border: 1px solid hsl(214.3 31.8% 91.4%);
-  border-radius: 0.5rem;
-  /* Match .NORDBOOKING-wrapper */
-  margin-bottom: 2rem;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  /* Match .NORDBOOKING-wrapper */
-}
-
-.NORDBOOKING-availability-page h1 {
-  /* Already styled globally, but ensure consistency if overridden */
-  font-size: 1.875rem;
-  font-weight: 700;
-  margin-bottom: 0.75rem;
-}
-
-.NORDBOOKING-availability-page>p {
-  /* Intro paragraph */
-  font-size: 1rem;
-  color: hsl(215.4 16.3% 46.9%);
-  margin-bottom: 2rem;
-}
-
-/* Recurring Slots Display */
-.recurring-day-group {
-  margin-bottom: 1.5rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px dashed hsl(214.3 31.8% 91.4%);
-}
-
-.recurring-day-group:last-child {
-  border-bottom: none;
-  margin-bottom: 0;
-  padding-bottom: 0;
-}
-
-.recurring-day-group h4 {
-  font-size: 1.125rem;
-  /* h5 equivalent */
-  font-weight: 600;
-  /* margin-bottom: 0.75rem; Remove bottom margin as it's part of flex now */
-  color: hsl(222.2 84% 4.9%);
-  margin: 0;
-  /* Reset margin for flex item */
-}
-
-.recurring-day-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.75rem;
-}
-
-.recurring-slots-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.recurring-slots-list li {
-  background-color: hsl(210 40% 98%);
-  padding: 0.75rem 1rem;
-  border: 1px solid hsl(214.3 31.8% 91.4%);
-  border-radius: 0.375rem;
-  /* Standard button/input radius */
-  margin-bottom: 0.5rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  transition: background-color 0.15s ease;
-}
-
-.recurring-slots-list li:hover {
-  background-color: hsl(210 40% 96%);
-}
-
-.recurring-slots-list li .slot-details {
-  /* Create a span for left side content if needed */
-  flex-grow: 1;
-}
-
-.recurring-slots-list li .slot-actions .button {
-  margin-left: 0.5rem;
-  padding: 0.375rem 0.75rem;
-  /* Smaller buttons */
-  height: auto;
-  font-size: 0.8125rem;
-}
-
-.recurring-slots-list li .empty-day-slot {
-  color: hsl(215.4 16.3% 46.9%);
-  font-style: italic;
-  padding: 0.5rem 0;
-}
-
-/* Date Overrides Section */
-.NORDBOOKING-date-overrides-flex-container {
-  display: flex;
-  gap: 1.5rem;
-  /* Slightly more space */
-  flex-wrap: wrap;
-}
-
-.NORDBOOKING-calendar-container {
-  flex: 1;
-  min-width: 280px;
-  /* Ensure datepicker has enough space */
-}
-
-.NORDBOOKING-override-form-container {
-  flex: 1.5;
-  /* Adjust flex ratio if needed */
-  min-width: 320px;
-  background-color: hsl(210 40% 98%);
-  /* Light background for form area */
-  padding: 1.5rem;
-  border-radius: 0.5rem;
-  border: 1px solid hsl(214.3 31.8% 91.4%);
-}
-
-.NORDBOOKING-override-form-container h3 {
-  /* Title like "Manage Override for DATE" */
-  font-size: 1.25rem;
-  /* h4 equivalent */
-  font-weight: 600;
-  margin-top: 0;
-  margin-bottom: 0.5rem;
-  color: hsl(222.2 84% 4.9%);
-}
-
-.override-selected-date-display {
-  font-size: 1rem;
-  font-weight: 500;
-  color: hsl(215.4 16.3% 46.9%);
-  margin-bottom: 1rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px dashed hsl(214.3 31.8% 91.4%);
-}
-
-/* Form fields within override section & modal */
-.NORDBOOKING-availability-page .form-field,
-.NORDBOOKING-modal .form-field {
-  margin-bottom: 1rem;
-}
-
-.NORDBOOKING-availability-page .form-field label,
-.NORDBOOKING-modal .form-field label {
-  display: block;
-  margin-bottom: 0.375rem;
-  font-weight: 500;
-  /* Match global label */
-  color: hsl(222.2 84% 4.9%);
-  /* Match global label */
-}
-
-.NORDBOOKING-availability-page .form-field input[type="time"],
-.NORDBOOKING-availability-page .form-field input[type="number"],
-.NORDBOOKING-availability-page .form-field select,
-.NORDBOOKING-availability-page .form-field textarea,
-.NORDBOOKING-modal .form-field input[type="time"],
-.NORDBOOKING-modal .form-field input[type="number"],
-.NORDBOOKING-modal .form-field select {
-  width: 100%;
-  max-width: none;
-  /* Override default max-width for inputs in this context */
-}
-
-.NORDBOOKING-availability-page .form-field input[type="checkbox"] {
-  width: auto;
-  /* Keep checkbox sizing normal */
-  margin-right: 0.5rem;
-}
-
-.NORDBOOKING-availability-page .form-field .description {
-  font-size: 0.8125rem;
-  color: hsl(215.4 16.3% 46.9%);
-  margin-top: 0.25rem;
-}
-
-/* Old modal styles are removed. New styles are in dialog.css */
-
-/* jQuery UI Datepicker Customization */
-.NORDBOOKING-calendar-container .ui-datepicker {
-  width: 100%;
-  /* Make it responsive */
-  padding: 0.5rem;
-  background: hsl(0 0% 100%);
-  border: 1px solid hsl(214.3 31.8% 91.4%);
-  border-radius: 0.5rem;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-}
-
-.NORDBOOKING-calendar-container .ui-datepicker-header {
-  background: hsl(210 40% 98%);
-  border-bottom: 1px solid hsl(214.3 31.8% 91.4%);
-  border-radius: 0.375rem 0.375rem 0 0;
-  padding: 0.5rem 0;
-}
-
-.NORDBOOKING-calendar-container .ui-datepicker-title {
-  font-weight: 600;
-  color: hsl(222.2 84% 4.9%);
-}
-
-.NORDBOOKING-calendar-container .ui-datepicker-prev,
-.NORDBOOKING-calendar-container .ui-datepicker-next {
-  color: hsl(221.2 83.2% 53.3%);
-  border: 1px solid transparent;
-  border-radius: 0.25rem;
-  transition: background-color 0.15s ease, border-color 0.15s ease;
-}
-
-.NORDBOOKING-calendar-container .ui-datepicker-prev:hover,
-.NORDBOOKING-calendar-container .ui-datepicker-next:hover {
-  background-color: hsl(210 40% 96%);
-  border-color: hsl(214.3 31.8% 91.4%);
-}
-
-.NORDBOOKING-calendar-container .ui-datepicker th {
-  /* Day names */
-  color: hsl(215.4 16.3% 46.9%);
-  font-size: 0.8125rem;
-  font-weight: 500;
-  padding: 0.5rem 0.25rem;
-}
-
-.NORDBOOKING-calendar-container .ui-datepicker td {
-  padding: 0.125rem;
-}
-
-.NORDBOOKING-calendar-container .ui-datepicker td span,
-.NORDBOOKING-calendar-container .ui-datepicker td a {
-  display: block;
-  padding: 0.5rem;
-  text-align: center;
-  text-decoration: none;
-  color: hsl(222.2 84% 4.9%);
-  border-radius: 0.25rem;
-  border: 1px solid transparent;
-  transition: background-color 0.15s ease, border-color 0.15s ease,
-    color 0.15s ease;
-}
-
-.NORDBOOKING-calendar-container .ui-datepicker td a:hover {
-  background-color: hsl(210 40% 96%);
-  border-color: hsl(214.3 31.8% 91.4%);
-}
-
-.NORDBOOKING-calendar-container .ui-datepicker-current-day a,
-.NORDBOOKING-calendar-container .ui-datepicker-current-day span {
-  background-color: hsl(221.2 83.2% 53.3%);
-  color: hsl(210 40% 98%);
-  border-color: hsl(221.2 83.2% 53.3%);
-}
-
-.NORDBOOKING-calendar-container .ui-datepicker-current-day a:hover {
-  background-color: hsl(221.2 83.2% 53.3% / 0.9);
-  border-color: hsl(221.2 83.2% 53.3% / 0.9);
-}
-
-/* Custom Datepicker Day Styles */
-.NORDBOOKING-calendar-container .NORDBOOKING-date-unavailable span,
-.NORDBOOKING-calendar-container .NORDBOOKING-date-unavailable a {
-  background-color: hsl(0 70% 95%) !important;
-  /* Light red */
-  color: hsl(0 60% 40%) !important;
-  /* Darker red text */
-  border: 1px dashed hsl(0 60% 70%) !important;
-  font-style: italic;
-}
-
-.NORDBOOKING-calendar-container .NORDBOOKING-date-custom-availability span,
-.NORDBOOKING-calendar-container .NORDBOOKING-date-custom-availability a {
-  background-color: hsl(45 90% 92%) !important;
-  /* Light yellow/orange */
-  color: hsl(35 80% 40%) !important;
-  border: 1px dashed hsl(45 80% 70%) !important;
-}
-
-/* Feedback div from JS */
-#NORDBOOKING-availability-feedback {
-  padding: 1rem;
-  margin-bottom: 1.5rem;
-  border-radius: 0.375rem;
-  border: 1px solid;
-  font-size: 0.875rem;
-}
-
-#NORDBOOKING-availability-feedback.notice-success {
-  background-color: hsl(142 76% 36% / 0.1);
-  border-color: hsl(142 76% 36% / 0.3);
-  color: hsl(142 76% 36%);
-}
-
-#NORDBOOKING-availability-feedback.notice-error {
-  background-color: hsl(0 84.2% 60.2% / 0.1);
-  border-color: hsl(0 84.2% 60.2% / 0.3);
-  color: hsl(0 84.2% 60.2%);
-}
-
-#NORDBOOKING-availability-feedback.notice-info,
-#NORDBOOKING-availability-feedback.notice-warning {
-  /* Treat warning as info for now */
-  background-color: hsl(200 80% 95%);
-  border-color: hsl(200 70% 70%);
-  color: hsl(200 70% 40%);
-}
-
-/* Ensure button styling from global is applied if specific selectors were used previously */
-.NORDBOOKING-availability-page .button,
-.NORDBOOKING-modal .button {
-  /* Styles from 2.0 Links & Buttons should apply */
-}
-
-.NORDBOOKING-availability-page .button-primary,
-.NORDBOOKING-modal .button-primary {
-  /* Styles from 2.0 Links & Buttons should apply */
-}
-
-.NORDBOOKING-availability-page .NORDBOOKING-button-delete,
-.NORDBOOKING-modal .NORDBOOKING-button-delete {
-  /* Styles from 2.0 Links & Buttons should apply */
-}
-
-
-
-/* Print Styles */
-@media print {
-
-  .nordbooking-kpi-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .chart-controls {
-    display: none;
-  }
-}
-
-/*
- Fix for tab functionality */
-.NORDBOOKING-settings-tab-pane {
+/*=====================================*/
+/* ==================================================
+         * NBK RESET & FOUNDATION STYLES
+         * ================================================== */
+header#masthead,
+footer#colophon {
   display: none;
 }
 
-.NORDBOOKING-settings-tab-pane.active {
-  display: block;
-}
-
-.NORDBOOKING-tab-item.active {
-  background-color: hsl(0 0% 100%);
-  border-bottom-color: hsl(0 0% 100%);
-  color: hsl(221.2 83.2% 53.3%);
-}
-
-/* Ensure proper tab styling */
-.NORDBOOKING-settings-tabs {
-  display: flex;
-  border-bottom: 1px solid hsl(214.3 31.8% 91.4%);
-  margin-bottom: 1.5rem;
-}
-
-.NORDBOOKING-tab-item {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1rem;
-  border: 1px solid transparent;
-  border-bottom: 1px solid hsl(214.3 31.8% 91.4%);
-  background: hsl(210 40% 98%);
-  color: hsl(215.4 16.3% 46.9%);
-  text-decoration: none;
-  font-weight: 500;
-  transition: all 0.2s ease;
-  cursor: pointer;
-}
-
-.NORDBOOKING-tab-item:hover {
-  background: hsl(210 40% 96%);
-  color: hsl(222.2 84% 4.9%);
-}
-
-.NORDBOOKING-tab-item svg {
-  width: 1rem;
-  height: 1rem;
-  fill: currentColor;
-}
-
-/*---------
------------------------------------------------------
-Live Preview Styles for Booking Form Settings
---------------------------------------------------------------*/
-
-/* Preview Container */
-.NORDBOOKING-design-preview {
-  position: sticky;
-  top: 2rem;
-  height: fit-content;
-}
-
-.NORDBOOKING-preview-box {
-  background: hsl(0 0% 100%);
-  border: 1px solid hsl(214.3 31.8% 91.4%);
-  border-radius: 0.5rem;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  overflow: hidden;
-}
-
-.preview-box-title {
-  font-size: 1rem;
-  font-weight: 600;
+* {
   margin: 0;
-  padding: 1rem 1.5rem;
-  border-bottom: 1px solid hsl(214.3 31.8% 91.4%);
-  background: hsl(210 40% 98%);
-  color: hsl(222.2 84% 4.9%);
+  padding: 0;
+  box-sizing: border-box;
 }
 
-.NORDBOOKING-form-preview-wrapper {
-  padding: 1.5rem;
-  background: hsl(210 40% 98%);
-  min-height: 500px;
+/* ==================================================
+         * NBK CSS CUSTOM PROPERTIES (DESIGN TOKENS)
+         * ================================================== */
+:root {
+  --container-width: 1200px;
+  --container-max-width: min(90%, var(--container-width));
+  --nbk-background: 0 0% 100%;
+  --nbk-foreground: 222.2 84% 4.9%;
+  --nbk-card: 0 0% 100%;
+  --nbk-card-foreground: 222.2 84% 4.9%;
+  --nbk-popover: 0 0% 100%;
+  --nbk-popover-foreground: 222.2 84% 4.9%;
+  --nbk-primary: 221.2 83.2% 53.3%;
+  --nbk-primary-foreground: 210 40% 98%;
+  --nbk-secondary: 210 40% 96%;
+  --nbk-secondary-foreground: 222.2 84% 4.9%;
+  --nbk-muted: 210 40% 96%;
+  --nbk-muted-foreground: 215.4 16.3% 46.9%;
+  --nbk-accent: 210 40% 96%;
+  --nbk-accent-foreground: 222.2 84% 4.9%;
+  --nbk-destructive: 0 62.8% 30.6%;
+  --nbk-destructive-foreground: 210 40% 98%;
+  --nbk-border: 214.3 31.8% 91.4%;
+  --nbk-input: 214.3 31.8% 91.4%;
+  --nbk-ring: 222.2 84% 4.9%;
+  --nbk-radius: 0.5rem;
 }
 
-.NORDBOOKING-form-preview {
-  background-color: var(--preview-bg, #ffffff);
-  color: var(--preview-text, #333333);
-  border-radius: var(--preview-radius, 8px);
-  padding: 2rem;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  max-width: 500px;
+/* ==================================================
+         * NBK BASE STYLES
+         * ================================================== */
+body {
+  font-family: "Outfit", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif !important;
+  line-height: 1.6;
+  color: hsl(var(--nbk-foreground));
+  background-color: hsl(var(--nbk-background));
+  font-feature-settings: "rlig" 1, "calt" 1;
+}
+
+.nbk-link {
+  text-decoration: none !important;
+}
+
+.nbk-container {
+  max-width: var(--container-max-width);
   margin: 0 auto;
-  font-family: "Outfit", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
-/* Preview Header */
-.preview-header {
-  text-align: center;
-  margin-bottom: 2rem;
-}
-
-.preview-header h2 {
-  font-size: 1.875rem;
-  font-weight: 700;
-  margin: 0 0 0.75rem 0;
-  color: var(--preview-text, #333333);
-  line-height: 1.2;
-}
-
-.preview-header p {
-  font-size: 1rem;
-  color: var(--preview-text, #666666);
-  margin: 0;
-  opacity: 0.8;
-}
-
-/* Progress Bar */
-.preview-progress-wrapper {
-  padding: 1rem 0;
-  margin-bottom: 1.5rem;
-}
-
-.preview-progress-bar {
-  height: 8px;
-  background-color: hsl(214.3 31.8% 91.4%);
-  border-radius: 4px;
-  overflow: hidden;
-  position: relative;
-}
-
-.preview-progress-fill {
-  width: 33%;
-  height: 100%;
-  background-color: var(--preview-primary, #1abc9c);
-  border-radius: 4px;
-  transition: all 0.3s ease;
-  position: relative;
-}
-
-.preview-progress-fill::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-  animation: shimmer 2s infinite;
-}
-
-@keyframes shimmer {
-  0% {
-    transform: translateX(-100%);
-  }
-
-  100% {
-    transform: translateX(100%);
-  }
-}
-
-/* Service Card Preview */
-.preview-service-card {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 1.25rem;
-  border: 2px solid var(--preview-primary, #1abc9c);
-  border-radius: var(--preview-radius, 8px);
-  background: rgba(26, 188, 156, 0.05);
-  margin-bottom: 1.5rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  position: relative;
-}
-
-.preview-service-card::before {
-  content: '';
-  position: absolute;
-  top: 0.75rem;
-  right: 0.75rem;
-  width: 20px;
-  height: 20px;
-  border: 2px solid var(--preview-primary, #1abc9c);
-  border-radius: 50%;
-  background: var(--preview-primary, #1abc9c);
-}
-
-.preview-service-card::after {
-  content: '✓';
-  position: absolute;
-  top: 0.75rem;
-  right: 0.75rem;
-  width: 20px;
-  height: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 12px;
-  font-weight: bold;
-}
-
-#preview-service-card-image img {
-  width: 60px;
-  height: 40px;
-  border-radius: 4px;
-  object-fit: cover;
-}
-
-#preview-service-card-icon {
-  width: 60px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--preview-primary, #1abc9c);
-  border-radius: 4px;
-  color: white;
-}
-
-#preview-service-card-icon svg {
-  width: 24px;
-  height: 24px;
-}
-
-.preview-service-card div:last-child {
-  flex: 1;
-}
-
-.preview-service-card strong {
-  display: block;
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: var(--preview-text, #333333);
-  margin-bottom: 0.25rem;
-}
-
-.preview-service-card p {
-  font-size: 0.875rem;
-  color: var(--preview-text, #666666);
-  margin: 0;
-  opacity: 0.8;
-}
-
-/* Form Groups */
-.preview-form-group {
-  margin-bottom: 1.5rem;
-}
-
-.preview-form-group label {
-  display: block;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--preview-text, #333333);
-  margin-bottom: 0.5rem;
-}
-
-.preview-form-group input,
-.preview-form-group select {
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid hsl(214.3 31.8% 91.4%);
-  border-radius: var(--preview-radius, 8px);
-  font-size: 0.875rem;
-  color: var(--preview-text, #333333);
-  background: var(--preview-bg, #ffffff);
-  transition: border-color 0.2s ease;
-}
-
-.preview-form-group input:focus,
-.preview-form-group select:focus {
-  outline: none;
-  border-color: var(--preview-primary, #1abc9c);
-  box-shadow: 0 0 0 3px rgba(26, 188, 156, 0.1);
-}
-
-/* Preview Button */
-.preview-button {
-  width: 100%;
-  padding: 0.875rem 1.5rem;
-  background: var(--preview-primary, #1abc9c);
-  color: white;
-  border: none;
-  border-radius: var(--preview-radius, 8px);
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-}
-
-.preview-button:hover {
-  background: var(--preview-primary, #16a085);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(26, 188, 156, 0.3);
-}
-
-.preview-button::after {
-  content: '→';
-  font-size: 1.125rem;
-  transition: transform 0.2s ease;
-}
-
-.preview-button:hover::after {
-  transform: translateX(2px);
-}
-
-/* Responsive Design */
-@media (max-width: 1200px) {
-  .NORDBOOKING-design-preview {
-    position: static;
-    margin-top: 2rem;
-  }
-}
-
-@media (max-width: 768px) {
-  .NORDBOOKING-form-preview-wrapper {
-    padding: 1rem;
-  }
-
-  .NORDBOOKING-form-preview {
-    padding: 1.5rem;
-  }
-
-  .preview-header h2 {
-    font-size: 1.5rem;
-  }
-
-  .preview-service-card {
-    flex-direction: column;
-    text-align: center;
-    gap: 0.75rem;
-  }
-
-  .preview-service-card::before,
-  .preview-service-card::after {
-    top: 0.5rem;
-    right: 0.5rem;
-  }
-}
-
-/* Animation for preview updates */
-.NORDBOOKING-form-preview * {
-  transition: all 0.2s ease;
-}
-
-/* Preview loading state */
-.preview-loading {
-  opacity: 0.6;
-  pointer-events: none;
-}
-
-.preview-loading::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(255, 255, 255, 0.8);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* Add
-itional Preview Enhancements */
-.preview-ready {
-  transition: all 0.3s ease;
-}
-
-.preview-updating {
-  transform: scale(0.98);
-  opacity: 0.9;
-}
-
-/* Better service card styling */
-.preview-service-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(26, 188, 156, 0.15);
-}
-
-/* Form field focus states in preview */
-.preview-form-group input:focus,
-.preview-form-group select:focus {
-  transform: translateY(-1px);
-}
-
-/* Progress bar improvements */
-.preview-progress-bar {
-  position: relative;
-  overflow: hidden;
-}
-
-.preview-progress-bar::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.4) 50%, transparent 100%);
-  transform: translateX(-100%);
-  animation: progress-shine 3s infinite;
-}
-
-@keyframes progress-shine {
-  0% {
-    transform: translateX(-100%);
-  }
-
-  50% {
-    transform: translateX(100%);
-  }
-
-  100% {
-    transform: translateX(100%);
-  }
-}
-
-/* Realistic form styling */
-.preview-form-group input::placeholder,
-.preview-form-group select option:first-child {
-  color: rgba(102, 102, 102, 0.6);
-  font-style: italic;
-}
-
-/* Mobile preview adjustments */
-@media (max-width: 480px) {
-  .NORDBOOKING-form-preview {
-    padding: 1.25rem;
-  }
-
-  .preview-header h2 {
-    font-size: 1.375rem;
-  }
-
-  .preview-service-card {
-    padding: 1rem;
-  }
-}
-
-/* Inter
-active Preview States */
-.preview-service-card.selected {
-  transform: scale(1.02);
-  border-color: var(--preview-primary, #1abc9c);
-  box-shadow: 0 0 0 4px rgba(26, 188, 156, 0.1);
-}
-
-.preview-form-group.focused label {
-  color: var(--preview-primary, #1abc9c);
-  transform: translateY(-2px);
-}
-
-.preview-form-group.focused input,
-.preview-form-group.focused select {
-  border-color: var(--preview-primary, #1abc9c);
-  box-shadow: 0 0 0 3px rgba(26, 188, 156, 0.1);
-}
-
-.preview-button.hovered {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(26, 188, 156, 0.3);
-}
-
-/* Enhanced progress animation */
-.preview-progress-fill {
-  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* Subtle pulse animation for the form */
-@keyframes subtle-pulse {
-
-  0%,
-  100% {
-    transform: scale(1);
-  }
-
-  50% {
-    transform: scale(1.005);
-  }
-}
-
-.NORDBOOKING-form-preview:hover {
-  animation: subtle-pulse 4s infinite;
-}
-
-/* Better visual hierarchy */
-.preview-header {
-  position: relative;
-}
-
-.preview-header::after {
-  content: '';
-  position: absolute;
-  bottom: -1rem;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 60px;
-  height: 2px;
-  background: var(--preview-primary, #1abc9c);
-  border-radius: 1px;
-}
-
-/* Improved form field styling */
-.preview-form-group input,
-.preview-form-group select {
-  position: relative;
-  z-index: 1;
-}
-
-.preview-form-group input:focus::before,
-.preview-form-group select:focus::before {
-  content: '';
-  position: absolute;
-  top: -2px;
-  left: -2px;
-  right: -2px;
-  bottom: -2px;
-  background: linear-gradient(45deg, var(--preview-primary, #1abc9c), rgba(26, 188, 156, 0.6));
-  border-radius: calc(var(--preview-radius, 8px) + 2px);
-  z-index: -1;
-  opacity: 0.1;
-}
-
-/*--
-------------------------------------------------------------
-Color Picker Styles
---------------------------------------------------------------*/
-.nordbooking-color-picker-wrapper {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-top: 0.5rem;
-}
-
-.nordbooking-color-preview {
-  width: 40px;
-  height: 40px;
-  border-radius: 0.375rem;
-  border: 2px solid hsl(214.3 31.8% 91.4%);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  flex-shrink: 0;
-}
-
-.nordbooking-color-preview:hover {
-  border-color: hsl(221.2 83.2% 53.3%);
-  transform: scale(1.05);
-}
-
-.nordbooking-color-text {
-  flex: 1;
-  padding: 0.5rem 0.75rem;
-  border: 1px solid hsl(214.3 31.8% 91.4%);
-  border-radius: 0.375rem;
-  font-size: 0.875rem;
-  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  background: hsl(0 0% 100%);
-  color: hsl(222.2 84% 4.9%);
-  transition: border-color 0.2s ease;
-  max-width: 100px;
-}
-
-.nordbooking-color-text:focus {
-  outline: none;
-  border-color: hsl(221.2 83.2% 53.3%);
-  box-shadow: 0 0 0 2px hsl(221.2 83.2% 53.3% / 0.2);
-}
-
-.nordbooking-color-input {
-  width: 40px;
-  height: 40px;
-  border: none;
-  border-radius: 0.375rem;
-  cursor: pointer;
-  background: none;
-  padding: 0;
-  flex-shrink: 0;
-}
-
-.nordbooking-color-input::-webkit-color-swatch-wrapper {
-  padding: 0;
-  border-radius: 0.375rem;
-  overflow: hidden;
-}
-
-.nordbooking-color-input::-webkit-color-swatch {
-  border: 2px solid hsl(214.3 31.8% 91.4%);
-  border-radius: 0.375rem;
-  transition: border-color 0.2s ease;
-}
-
-.nordbooking-color-input:hover::-webkit-color-swatch {
-  border-color: hsl(221.2 83.2% 53.3%);
-}
-
-/* Firefox color input styles */
-.nordbooking-color-input::-moz-color-swatch {
-  border: 2px solid hsl(214.3 31.8% 91.4%);
-  border-radius: 0.375rem;
-}
-
-.nordbooking-color-input::-moz-color-swatch-wrapper {
-  padding: 0;
-  border: none;
-  border-radius: 0.375rem;
-}
-
-/*--------
-------------------------------------------------------
-NEW Live Preview Styles for Booking Form Settings
---------------------------------------------------------------*/
-
-/* Preview Container */
-.NORDBOOKING-design-preview {
+/* ==================================================
+         * NBK HEADER STYLES
+         * ================================================== */
+.nbk-header {
   position: sticky;
-  top: 2rem;
-  height: fit-content;
+  top: 0;
+  z-index: 50;
+  width: 100%;
+  border-bottom: 1px solid hsl(var(--nbk-border));
+  background-color: hsl(var(--nbk-background) / 0.95);
+  backdrop-filter: blur(8px);
 }
 
-.NORDBOOKING-preview-box {
-  background: hsl(0 0% 100%);
-  border: 1px solid hsl(214.3 31.8% 91.4%);
-  border-radius: 0.5rem;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  overflow: hidden;
+.nbk-nav {
+  display: flex;
+  height: 4rem;
+  align-items: center;
+  justify-content: space-between;
 }
 
-.preview-box-title {
-  font-size: 1rem;
-  font-weight: 600;
-  margin: 0;
-  padding: 1rem 1.5rem;
-  border-bottom: 1px solid hsl(214.3 31.8% 91.4%);
-  background: hsl(210 40% 98%);
-  color: hsl(222.2 84% 4.9%);
-}
-
-.NORDBOOKING-form-preview-wrapper {
-  padding: 1rem;
-  background: linear-gradient(135deg, rgba(26, 188, 156, 0.05) 0%, hsl(210 40% 98%) 100%);
-  min-height: 450px;
-}
-
-/* Preview Header */
-.preview-form-header {
-  text-align: center;
-  margin-bottom: 1.5rem;
-  padding: 1.5rem 1rem;
-  background: var(--preview-primary, #1abc9c);
-  color: white;
-  border-radius: var(--preview-radius, 8px) var(--preview-radius, 8px) 0 0;
-  margin: -1rem -1rem 1.5rem -1rem;
-}
-
-.preview-form-header h2 {
+.nbk-logo {
   font-size: 1.5rem;
-  font-weight: 600;
-  margin: 0 0 0.25rem 0;
-  line-height: 1.2;
+  font-weight: 700;
+  color: hsl(var(--nbk-foreground));
 }
 
-.preview-form-header p {
-  font-size: 0.875rem;
-  margin: 0;
-  opacity: 0.9;
-}
-
-/* Form Container */
-.NORDBOOKING-form-preview {
-  max-width: 480px;
-  margin: 0 auto;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-}
-
-/* Progress Bar */
-.preview-progress-container {
-  background: var(--preview-bg, #ffffff);
-  padding: 1rem 1.5rem;
-  border-bottom: 1px solid hsl(214.3 31.8% 91.4%);
-  border-radius: var(--preview-radius, 8px) var(--preview-radius, 8px) 0 0;
-}
-
-.preview-progress-bar {
-  position: relative;
-  height: 3px;
-  background: hsl(214.3 31.8% 91.4%);
-  border-radius: 2px;
-  overflow: hidden;
-}
-
-.preview-progress-fill {
-  width: 33%;
-  height: 100%;
-  background: var(--preview-primary, #1abc9c);
-  border-radius: 2px;
-  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-}
-
-.preview-progress-fill::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
-  animation: progress-shine-new 3s infinite;
-}
-
-@keyframes progress-shine-new {
-  0% {
-    transform: translateX(-100%);
-  }
-
-  50% {
-    transform: translateX(100%);
-  }
-
-  100% {
-    transform: translateX(100%);
-  }
-}
-
-/* Form Card */
-.preview-form-card {
-  background: var(--preview-bg, #ffffff);
-  border-radius: 0 0 var(--preview-radius, 8px) var(--preview-radius, 8px);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  padding: 1.5rem;
-  color: var(--preview-text, #1a1a1a);
-}
-
-/* Step Header */
-.preview-step-header {
+.nbk-nav-links {
   display: flex;
+  list-style: none;
+  gap: 2rem;
   align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 1.5rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid hsl(214.3 31.8% 91.4%);
 }
 
-.preview-step-icon {
-  width: 36px;
-  height: 36px;
-  background: var(--preview-primary, #1abc9c);
-  border-radius: 50%;
-  display: flex;
+.nbk-nav-links a {
+  text-decoration: none;
+  color: hsl(var(--nbk-muted-foreground));
+  font-weight: 500;
+  font-size: 0.875rem;
+  transition: color 0.2s;
+}
+
+.nbk-nav-links a:hover {
+  color: hsl(var(--nbk-foreground));
+}
+
+/* ==================================================
+         * NBK BUTTON COMPONENT STYLES
+         * ================================================== */
+.nbk-btn {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: white;
-  flex-shrink: 0;
+  border-radius: calc(var(--nbk-radius) - 2px);
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s;
+  border: 1px solid transparent;
+  cursor: pointer;
+  text-decoration: none;
+  gap: 0.5rem;
+  font-family: "Outfit", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif !important;
 }
 
-.preview-step-icon svg {
+.nbk-btn svg {
   width: 18px;
   height: 18px;
 }
 
-.preview-step-header h3 {
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin: 0;
-  color: var(--preview-text, #1a1a1a);
+.nbk-btn--primary {
+  background-color: hsl(var(--nbk-primary));
+  color: hsl(var(--nbk-primary-foreground));
 }
 
-/* Services Grid */
-.preview-services-grid {
+.nbk-btn--primary:hover {
+  background-color: hsl(var(--nbk-primary) / 0.9);
+}
+
+.nbk-btn--secondary {
+  border: 1px solid hsl(var(--nbk-border));
+  background-color: hsl(var(--nbk-background));
+  color: hsl(var(--nbk-foreground));
+}
+
+.nbk-btn--secondary:hover {
+  background-color: hsl(var(--nbk-accent));
+}
+
+.nbk-btn--outline {
+  color: hsl(var(--nbk-foreground));
+  border: 1px solid hsl(var(--nbk-border));
+  background-color: hsl(var(--nbk-background));
+}
+
+.nbk-btn--outline:hover {
+  background-color: hsl(var(--nbk-accent));
+  color: hsl(var(--nbk-accent-foreground));
+}
+
+.nbk-btn--sm {
+  height: 2.25rem;
+  padding: 0 0.75rem;
+}
+
+.nbk-btn--lg {
+  height: 2.75rem;
+  padding: 0 2rem;
+}
+
+.nbk-btn--xl {
+  height: 3rem;
+  padding: 0 1.5rem;
+  font-size: 1.1rem;
+}
+
+
+/* ==================================================
+* NBK Page style
+* ================================================== */
+
+.nbk-page-header {
+  padding: 6rem 0;
+  text-align: center;
+  background-color: hsl(var(--nbk-muted) / 0.5);
+}
+
+.nbk-page-header-content h1 {
+  font-size: clamp(2rem, 4vw, 2.5rem);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.025em;
+  margin-bottom: 0;
+  color: hsl(var(--nbk-foreground));
+}
+
+/* ==================================================
+         * NBK HERO SECTION STYLES
+         * ================================================== */
+.nbk-hero {
+  margin-top: 150px;
+  text-align: center;
+  box-shadow: inset 0 -69px 33px 0 rgb(0 0 0 / 3%), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  overflow: hidden;
+  background-image: url(../wp-content/themes/saas/assets/images/grid-pattern.png);
+  background-position: bottom center;
+  background-repeat: no-repeat;
+  background-size: 150% auto;
+}
+
+.nbk-hero__badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 9999px;
+  border: 1px solid hsl(var(--nbk-border));
+  background-color: hsl(var(--nbk-muted));
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  margin-bottom: 2rem;
+  gap: 0.5rem;
+  color: hsl(var(--nbk-muted-foreground));
+}
+
+.nbk-hero__badge svg {
+  width: 18px;
+}
+
+.nbk-hero__title {
+  font-size: clamp(2.25rem, 5vw, 4rem);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.025em;
+  margin-bottom: 1.5rem;
+  color: hsl(var(--nbk-foreground));
+  max-inline-size: 800px;
+  margin-inline: auto;
+}
+
+.nbk-hero__description {
+  font-size: 1.25rem;
+  line-height: 1.6;
+  color: hsl(var(--nbk-muted-foreground));
+  max-width: 40rem;
+  margin: 0 auto 2.5rem;
+}
+
+.nbk-hero__actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 2rem;
+  margin-bottom: 3rem;
+}
+
+.nbk-hero__stats {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  flex-wrap: wrap;
+  margin-top: 3rem;
+}
+
+.nbk-hero__mockup {
+  margin-bottom: -130px;
+  max-width: 1000px;
+  margin: auto;
+  margin-bottom: -210px;
+  margin-top: 3rem;
+}
+
+.nbk-hero__mockup img {
+  max-width: 100%;
+  box-shadow: 0 1px 33px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  overflow: hidden;
+  border-radius: 10px;
+  outline: 1px solid #e4eaf1;
+}
+
+.nbk-stat {
+  text-align: center;
+}
+
+.nbk-stat__number {
+  font-size: 2rem;
+  font-weight: 700;
+  color: hsl(var(--nbk-foreground));
+}
+
+.nbk-stat__label {
+  font-size: 0.875rem;
+  color: hsl(var(--nbk-muted-foreground));
+}
+
+/* ==================================================
+         * NBK CARD COMPONENT STYLES
+         * ================================================== */
+.nbk-card {
+  border-radius: var(--nbk-radius);
+  border: 1px solid hsl(var(--nbk-border));
+  background-color: hsl(var(--nbk-card));
+  color: hsl(var(--nbk-card-foreground));
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+}
+
+.nbk-card__header {
+  display: flex;
+  flex-direction: column;
+  space-y: 1.5;
+  padding: 1.5rem;
+}
+
+.nbk-card__title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.025em;
+}
+
+.nbk-card__description {
+  font-size: 0.875rem;
+  color: hsl(var(--nbk-muted-foreground));
+}
+
+.nbk-card__content {
+  padding: 1.5rem;
+}
+
+/* ==================================================
+         * NBK SECTION STYLES
+         * ================================================== */
+.nbk-section {
+  padding: 6rem 0;
+}
+
+.nbk-section__header {
+  text-align: center;
+  margin-bottom: 4rem;
+}
+
+.nbk-section__badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 9999px;
+  border: 1px solid hsl(var(--nbk-border));
+  background-color: hsl(var(--nbk-muted));
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  margin-bottom: 1rem;
+  gap: 5px;
+  color: hsl(var(--nbk-muted-foreground));
+}
+
+.nbk-section__title {
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.025em;
+  margin-bottom: 1rem;
+  color: hsl(var(--nbk-foreground));
+}
+
+.nbk-section__description {
+  font-size: 1.125rem;
+  line-height: 1.6;
+  color: hsl(var(--nbk-muted-foreground));
+  max-width: 48rem;
+  margin: 0 auto;
+}
+
+/* ==================================================
+         * NBK FEATURES GRID STYLES
+         * ================================================== */
+
+
+.nbk-section-header {
+  text-align: center;
+  margin-bottom: 3rem;
+  max-width: 768px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.feature-img {
+  position: relative;
+  bottom: 0;
+  right: 0;
+  margin-left: 1.5rem;
+  height: 200px;
+}
+
+.feature-img img {
+  max-width: 100%;
+  width: 100%;
+  scale: 1.4;
+  transform: skewX(10deg) translate(60px, 40px);
+}
+
+.nbk-section-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 0.75rem;
+  background-color: var(--gray-100);
+  color: var(--gray-700);
+  border-radius: var(--border-radius);
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 1rem;
+  border: 1px solid var(--gray-200);
+}
+
+.nbk-section-title {
+  font-size: 2.25rem;
+  font-weight: 700;
+  color: var(--gray-900);
+  margin-bottom: 1rem;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+}
+
+.nbk-section-subtitle {
+  font-size: 1.125rem;
+  color: var(--gray-600);
+  line-height: 1.6;
+}
+
+.nbk-hero-feature {
+  background-color: var(--gray-50);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--border-radius);
+  padding: 2rem;
+  margin-bottom: 3rem;
+  position: relative;
+}
+
+.nbk-hero-badge {
+  position: absolute;
+  top: -0.5rem;
+  left: 1.5rem;
+  background-color: var(--primary-color);
+  color: var(--white);
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--border-radius);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.nbk-hero-content {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 2rem;
+  align-items: center;
+}
+
+.nbk-hero-text h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--gray-900);
+  margin-bottom: 0.75rem;
+}
+
+.nbk-hero-text p {
+  color: var(--gray-600);
+  line-height: 1.6;
   margin-bottom: 1.5rem;
 }
 
-.preview-service-card {
-  border: 2px solid hsl(214.3 31.8% 91.4%);
-  border-radius: var(--preview-radius, 8px);
-  padding: 1rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  position: relative;
-  background: var(--preview-bg, #ffffff);
-}
-
-.preview-service-card.selected {
-  border-color: var(--preview-primary, #1abc9c);
-  background: rgba(26, 188, 156, 0.05);
-}
-
-.preview-service-card:hover {
-  border-color: var(--preview-primary, #1abc9c);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(26, 188, 156, 0.15);
-}
-
-.preview-service-content {
-  display: flex;
-  align-items: center;
+.nbk-hero-features {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 0.75rem;
 }
 
-.preview-service-icon {
-  width: 40px;
-  height: 40px;
-  background: var(--preview-primary, #1abc9c);
-  border-radius: var(--preview-radius, 8px);
+.nbk-hero-feature-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--gray-700);
+}
+
+.nbk-hero-feature-item::before {
+  content: "✓";
+  color: var(--success-color);
+  font-weight: 600;
+  width: 16px;
+  height: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
+  background-color: rgba(16, 185, 129, 0.1);
+  border-radius: 50%;
+  font-size: 0.75rem;
   flex-shrink: 0;
 }
 
-.preview-service-icon svg {
-  width: 20px;
-  height: 20px;
+.nbk-hero-visual {
+  background-color: var(--white);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--border-radius);
+  padding: 1.5rem;
+  text-align: center;
+  color: var(--gray-600);
+  font-size: 0.875rem;
 }
 
-#preview-service-card-image img {
-  width: 40px;
-  height: 40px;
-  border-radius: var(--preview-radius, 8px);
-  object-fit: cover;
+.nbk-features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 1.5rem;
 }
 
-.preview-service-info {
-  flex: 1;
+.nbk-feature-card {
+  background-color: var(--white);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--border-radius);
+  padding: 0rem;
+  position: relative;
+  min-height: 350px;
+  overflow: hidden;
+  transition: var(--transition-fast);
 }
 
-.preview-service-info h4 {
-  font-size: 1rem;
+.nbk-feature-card:hover {
+  border-color: var(--gray-300);
+  box-shadow: var(--shadow-sm);
+}
+
+.nbk-feature-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.nbk-feature-icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--border-radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--gray-100);
+  border: 1px solid var(--gray-200);
+}
+
+.nbk-feature-icon svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  stroke: var(--gray-600);
+}
+
+.nbk-feature-title {
+  font-size: 1.125rem;
   font-weight: 600;
-  margin: 0 0 0.125rem 0;
-  color: var(--preview-text, #1a1a1a);
+  color: var(--gray-900);
 }
 
-.preview-service-info p {
-  font-size: 0.8125rem;
-  color: var(--preview-text, #6b7280);
-  margin: 0;
+.nbk-feature-description {
+  color: var(--gray-600);
+  line-height: 1.5;
+  margin-bottom: 0px;
+  font-size: 0.875rem;
 }
 
-.preview-service-check {
-  position: absolute;
-  top: 0.75rem;
-  right: 0.75rem;
-  width: 20px;
-  height: 20px;
-  background: var(--preview-primary, #1abc9c);
+.nbk-feature-list {
+  list-style: none;
+}
+
+.nbk-feature-list li {
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--gray-700);
+  line-height: 1.4;
+}
+
+.nbk-feature-list li:last-child {
+  margin-bottom: 0;
+}
+
+.nbk-feature-status {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--border-radius);
+  font-size: 0.75rem;
+  font-weight: 500;
+  margin-top: 1rem;
+}
+
+.nbk-status-available {
+  background-color: rgba(16, 185, 129, 0.1);
+  color: var(--success-color);
+}
+
+.nbk-status-planned {
+  background-color: var(--gray-100);
+  color: var(--gray-600);
+}
+
+.nbk-status-development {
+  background-color: rgba(37, 99, 235, 0.1);
+  color: var(--primary-color);
+}
+
+@media (max-width: 768px) {
+  .nbk-hero-content {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .nbk-hero-features {
+    grid-template-columns: 1fr;
+  }
+
+  .nbk-features-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .nbk-section-title {
+    font-size: 1.875rem;
+  }
+
+  .nbk-features-section {
+    padding: 2rem 1rem;
+  }
+
+  .nbk-hero-feature {
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .nbk-section-title {
+    font-size: 1.5rem;
+  }
+
+  .nbk-section-subtitle {
+    font-size: 1rem;
+  }
+
+  .nbk-hero-feature {
+    padding: 1rem;
+  }
+
+  .nbk-feature-card {
+    padding: 1rem;
+  }
+}
+
+.feature-content {
+  padding: 1.5rem;
+}
+
+.nbk-feature-card {
+  padding: 0rem;
+  transition: all 0.2s;
+}
+
+.nbk-feature-card:hover {
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
+
+.nbk-feature-card__icon {
+  width: 3rem;
+  height: 3rem;
+  background-color: hsl(var(--nbk-primary));
+  border-radius: var(--nbk-radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+  font-size: 1.5rem;
+  color: hsl(var(--nbk-primary-foreground));
+}
+
+.nbk-feature-card__title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  color: hsl(var(--nbk-foreground));
+}
+
+.nbk-feature-card__description {
+  color: hsl(var(--nbk-muted-foreground));
+  line-height: 1.6;
+}
+
+/* ==================================================
+         * NBK STEPS STYLES
+         * ================================================== */
+.nbk-steps-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 3rem;
+  margin-top: 4rem;
+}
+
+.nbk-step {
+  text-align: center;
+}
+
+.nbk-step__number {
+  width: 3rem;
+  height: 3rem;
+  background-color: hsl(var(--nbk-primary));
+  color: hsl(var(--nbk-primary-foreground));
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
-  opacity: 0;
-  transform: scale(0.8);
-  transition: all 0.2s ease;
+  margin: 0 auto 1.5rem;
+  font-size: 1.25rem;
+  font-weight: 600;
 }
 
-.preview-service-check svg {
-  width: 12px;
-  height: 12px;
+.nbk-step__title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  color: hsl(var(--nbk-foreground));
 }
 
-.preview-service-card.selected .preview-service-check {
-  opacity: 1;
-  transform: scale(1);
+.nbk-step__description {
+  color: hsl(var(--nbk-muted-foreground));
+  line-height: 1.6;
 }
 
-/* Button Group */
-.preview-button-group {
+/* ==================================================
+         * NBK PRICING STYLES
+         * ================================================== */
+.nbk-pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  margin-top: 4rem;
+}
+
+.nbk-pricing-card {
+  position: relative;
+  padding: 2rem;
+  transition: all 0.2s;
+}
+
+.nbk-pricing-card:hover {
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+}
+
+.nbk-pricing-card__badge {
+  position: absolute;
+  top: -0.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: hsl(var(--nbk-primary));
+  color: hsl(var(--nbk-primary-foreground));
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.nbk-plan__name {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: hsl(var(--nbk-foreground));
+}
+
+.nbk-plan__price {
+  font-size: 3rem;
+  font-weight: 800;
+  color: hsl(var(--nbk-foreground));
+  margin-bottom: 0.25rem;
+}
+
+.nbk-plan__period {
+  color: hsl(var(--nbk-muted-foreground));
+  margin-bottom: 0;
+}
+
+.nbk-plan__features {
+  list-style: none;
+  margin-bottom: 2rem;
+  space-y: 0.75rem;
+}
+
+.nbk-plan__features li {
   display: flex;
-  justify-content: space-between;
+  align-items: center;
   gap: 0.75rem;
+  color: hsl(var(--nbk-muted-foreground));
+  margin-bottom: 0.75rem;
 }
 
-.preview-btn {
+.nbk-plan__features li::before {
+  content: '✓';
+  color: hsl(var(--nbk-primary));
+  font-weight: 600;
+  width: 1rem;
+  text-align: center;
+}
+
+/* ==================================================
+         * NBK TESTIMONIALS STYLES
+         * ================================================== */
+.nbk-testimonials-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 2rem;
+  margin-top: 4rem;
+}
+
+.nbk-testimonial {
+  padding: 2rem;
+  border-left: 4px solid hsl(var(--nbk-border));
+}
+
+.nbk-testimonial__content {
+  font-style: italic;
+  margin-bottom: 1.5rem;
+  color: hsl(var(--nbk-muted-foreground));
+  line-height: 1.6;
+}
+
+.nbk-testimonial__author {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.nbk-author__avatar {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  background-color: hsl(var(--nbk-muted));
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0.625rem 1.25rem;
-  border-radius: var(--preview-radius, 8px);
-  font-size: 0.8125rem;
+  font-weight: 600;
+  color: hsl(var(--nbk-foreground));
+}
+
+.nbk-author__name {
   font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
+  color: hsl(var(--nbk-foreground));
+}
+
+.nbk-author__title {
+  font-size: 0.875rem;
+  color: hsl(var(--nbk-muted-foreground));
+}
+
+/* ==================================================
+         * NBK CTA SECTION STYLES
+         * ================================================== */
+.nbk-cta-section {
+  padding: 6rem 0;
+  text-align: center;
+  background-color: hsl(var(--nbk-muted) / 0.5);
+}
+
+/* ==================================================
+         * NBK FOOTER STYLES
+         * ================================================== */
+.nbk-footer {
+  border-top: 1px solid hsl(var(--nbk-border));
+  padding: 4rem 0 2rem;
+  background-color: hsl(var(--nbk-muted) / 0.3);
+}
+
+.nbk-footer__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
+  margin-bottom: 3rem;
+}
+
+.nbk-footer__section h3 {
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: hsl(var(--nbk-foreground));
+}
+
+.nbk-footer__section ul {
+  list-style: none;
+  space-y: 0.5rem;
+}
+
+.nbk-footer__section ul li {
+  margin-bottom: 0.5rem;
+}
+
+.nbk-footer__section ul li a {
+  color: hsl(var(--nbk-muted-foreground));
+  text-decoration: none;
+  font-size: 0.875rem;
+  transition: color 0.2s;
+}
+
+.nbk-footer__section ul li a:hover {
+  color: hsl(var(--nbk-foreground));
+}
+
+.nbk-footer__bottom {
+  border-top: 1px solid hsl(var(--nbk-border));
+  padding-top: 2rem;
+  text-align: center;
+  color: hsl(var(--nbk-muted-foreground));
+  font-size: 0.875rem;
+}
+
+/* ==================================================
+         * NBK MOBILE MENU STYLES
+         * ================================================== */
+.nbk-mobile-menu-toggle {
+  display: none;
+  background: none;
   border: none;
-  min-width: 100px;
+  font-size: 1.25rem;
+  cursor: pointer;
+  color: hsl(var(--nbk-foreground));
 }
 
-.preview-btn svg {
-  width: 14px;
-  height: 14px;
-}
-
-.preview-btn-secondary {
-  background: hsl(0 0% 100%);
-  color: var(--preview-text, #6b7280);
-  border: 1px solid hsl(214.3 31.8% 91.4%);
-}
-
-.preview-btn-secondary:hover {
-  background: hsl(210 40% 98%);
-  border-color: var(--preview-primary, #1abc9c);
-  color: var(--preview-primary, #1abc9c);
-}
-
-.preview-btn-primary {
-  background: var(--preview-primary, #1abc9c);
-  color: white;
-}
-
-.preview-btn-primary:hover {
-  background: var(--preview-primary, #16a085);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(26, 188, 156, 0.3);
-}
-
-/* Responsive Design */
-@media (max-width: 1200px) {
-  .NORDBOOKING-design-preview {
-    position: static;
-    margin-top: 1.5rem;
-  }
-}
-
+/* ==================================================
+         * NBK RESPONSIVE DESIGN
+         * ================================================== */
 @media (max-width: 768px) {
-  .NORDBOOKING-form-preview-wrapper {
-    padding: 0.75rem;
-    min-height: 380px;
+  .nbk-nav-links {
+    display: none;
   }
 
-  .preview-form-header {
-    padding: 1.25rem 0.75rem;
-    margin: -0.75rem -0.75rem 1.25rem -0.75rem;
+  .nbk-mobile-menu-toggle {
+    display: block;
   }
 
-  .preview-form-header h2 {
-    font-size: 1.25rem;
+  .nbk-hero__actions {
+    flex-direction: column;
+    align-items: center;
   }
 
-  .preview-form-header p {
-    font-size: 0.8125rem;
+  .nbk-hero__stats {
+    flex-direction: column;
+    gap: 1rem;
   }
 
-  .preview-form-card {
-    padding: 1.25rem;
+  .nbk-features-grid {
+    grid-template-columns: 1fr;
   }
 
-  .preview-step-header {
-    gap: 0.5rem;
-    margin-bottom: 1.25rem;
-    padding-bottom: 0.5rem;
+  .nbk-steps-grid {
+    grid-template-columns: 1fr;
   }
 
-  .preview-step-icon {
-    width: 32px;
-    height: 32px;
+  .nbk-pricing-grid {
+    grid-template-columns: 1fr;
   }
 
-  .preview-step-icon svg {
-    width: 16px;
-    height: 16px;
+  .nbk-testimonials-grid {
+    grid-template-columns: 1fr;
   }
 
-  .preview-step-header h3 {
-    font-size: 1.125rem;
-  }
-
-  .preview-service-card {
-    padding: 0.875rem;
-  }
-
-  .preview-service-content {
-    gap: 0.625rem;
-  }
-
-  .preview-service-icon {
-    width: 36px;
-    height: 36px;
-  }
-
-  .preview-service-icon svg {
-    width: 18px;
-    height: 18px;
-  }
-
-  #preview-service-card-image img {
-    width: 36px;
-    height: 36px;
-  }
-
-  .preview-button-group {
-    gap: 0.5rem;
-  }
-
-  .preview-btn {
-    padding: 0.5rem 1rem;
-    font-size: 0.75rem;
-    min-width: 80px;
+  .nbk-footer__grid {
+    grid-template-columns: 1fr;
   }
 }
 
-/* Animation for preview updates */
-.NORDBOOKING-form-preview * {
-  transition: all 0.2s ease;
+/* ==================================================
+         * NBK ANIMATION UTILITIES
+         * ================================================== */
+.nbk-fade-in {
+  opacity: 0;
+  animation: nbk-fadeIn 0.6s ease forwards;
 }
 
-/* Preview ready state */
-.preview-ready {
+@keyframes nbk-fadeIn {
+  to {
+    opacity: 1;
+  }
+}
+
+.nbk-slide-up {
+  opacity: 0;
+  transform: translateY(20px);
+  animation: nbk-slideUp 0.6s ease forwards;
+}
+
+@keyframes nbk-slideUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.nbk-delay-100 {
+  animation-delay: 0.1s;
+}
+
+.nbk-delay-200 {
+  animation-delay: 0.2s;
+}
+
+.nbk-delay-300 {
+  animation-delay: 0.3s;
+}
+
+.nbk-delay-400 {
+  animation-delay: 0.4s;
+}
+
+.nbk-delay-500 {
+  animation-delay: 0.5s;
+}
+
+.nbk-delay-600 {
+  animation-delay: 0.6s;
+}
+
+/*--------------------------------------------------------------
+----------------------------------------------------------------
+==== Header ====
+----------------------------------------------------------------
+--------------------------------------------------------------*/
+
+/* Critical CSS for header - loaded inline for performance */
+:root {
+  --primary-color: #2563eb;
+  --primary-dark: #1d4ed8;
+  --gray-50: #f8fafc;
+  --gray-100: #f1f5f9;
+  --gray-200: #e2e8f0;
+  --gray-300: #cbd5e1;
+  --gray-600: #475569;
+  --gray-700: #334155;
+  --gray-800: #1e293b;
+  --gray-900: #0f172a;
+  --white: #ffffff;
+  --success-color: #10b981;
+  --border-radius: 8px;
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  --transition-fast: all 0.15s ease;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.admin-bar .nordbk-header {
+  top: 32px;
+}
+
+.nordbk-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background-color: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--gray-200);
+  transition: var(--transition-fast);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.nordbk-header.scrolled {
+  background-color: rgba(255, 255, 255, 0.98);
+  box-shadow: var(--shadow-sm);
+}
+
+.header-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.header-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 0;
+}
+
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 700;
+  font-size: 1.25rem;
+  color: var(--gray-900);
+  text-decoration: none;
+}
+
+.brand-icon {
+  width: 32px;
+  height: 32px;
+  color: var(--primary-color);
+}
+
+.nav-menu {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  list-style: none;
+  margin: 0;
+}
+
+.nav-link {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--gray-600);
+  padding: 0.5rem 1rem;
+  border-radius: var(--border-radius);
+  transition: var(--transition-fast);
+  text-decoration: none;
+}
+
+.nav-link:hover,
+.nav-link.active {
+  color: var(--gray-900);
+  background-color: var(--gray-50);
+}
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.trust-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background-color: var(--gray-50);
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--gray-600);
+}
+
+.trust-icon {
+  width: 16px;
+  height: 16px;
+  color: var(--success-color);
+}
+
+.auth-buttons {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: var(--border-radius);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: var(--transition-fast);
+  text-decoration: none;
+  min-height: 40px;
+  padding: 0.5rem 1rem;
+}
+
+.btn-primary {
+  background-color: var(--primary-color);
+  color: var(--white);
+  border-color: var(--primary-color);
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-dark);
+  border-color: var(--primary-dark);
+  color: var(--white);
+}
+
+.btn-outline {
+  background-color: transparent;
+  color: var(--gray-700);
+  border-color: var(--gray-300);
+}
+
+.btn-outline:hover {
+  background-color: var(--gray-50);
+  color: var(--gray-900);
+}
+
+.btn-sm {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.8125rem;
+}
+
+.btn-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.user-menu {
+  position: relative;
+}
+
+.user-menu-trigger {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  background: none;
+  border: none;
+  border-radius: var(--border-radius);
+  color: var(--gray-600);
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.user-menu-trigger:hover {
+  background-color: var(--gray-50);
+}
+
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: var(--gray-100);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--gray-600);
+}
+
+.chevron-down {
+  width: 16px;
+  height: 16px;
+}
+
+.user-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 0.5rem;
+  min-width: 200px;
+  background-color: var(--white);
+  border: 1px solid var(--gray-200);
+  border-radius: 12px;
+  box-shadow: var(--shadow-xl);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: var(--transition-fast);
+}
+
+.user-menu:hover .user-dropdown,
+.user-menu.open .user-dropdown {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  color: var(--gray-700);
+  text-decoration: none;
+  transition: var(--transition-fast);
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+}
+
+.dropdown-item:hover {
+  background-color: var(--gray-50);
+}
+
+.dropdown-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.dropdown-separator {
+  height: 1px;
+  background-color: var(--gray-200);
+  margin: 0.25rem 0;
+}
+
+.mobile-menu-toggle {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 40px;
+  height: 40px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  border-radius: var(--border-radius);
+  transition: var(--transition-fast);
+}
+
+.mobile-menu-toggle:hover {
+  background-color: var(--gray-50);
+}
+
+.hamburger-line {
+  width: 20px;
+  height: 2px;
+  background-color: var(--gray-600);
+  margin: 2px 0;
+  transition: var(--transition-fast);
+  border-radius: 1px;
+}
+
+.mobile-menu-toggle.open .hamburger-line:nth-child(1) {
+  transform: rotate(45deg) translate(5px, 5px);
+}
+
+.mobile-menu-toggle.open .hamburger-line:nth-child(2) {
+  opacity: 0;
+}
+
+.mobile-menu-toggle.open .hamburger-line:nth-child(3) {
+  transform: rotate(-45deg) translate(7px, -6px);
+}
+
+.mobile-menu {
+  position: fixed;
+  top: 0;
+  right: -100%;
+  width: 100%;
+  max-width: 400px;
+  height: 100vh;
+  background-color: var(--white);
+  box-shadow: var(--shadow-xl);
+  transition: all 0.3s ease;
+  z-index: 150;
+}
+
+.mobile-menu.open {
+  right: 0;
+}
+
+.mobile-menu-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 140;
+  opacity: 0;
+  visibility: hidden;
   transition: all 0.3s ease;
 }
 
-.preview-updating {
-  transform: scale(0.98);
-  opacity: 0.9;
+.mobile-menu-overlay.open {
+  opacity: 1;
+  visibility: visible;
 }
+
+.mobile-menu-content {
+  padding: 2rem 1.5rem;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.mobile-menu-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.mobile-close-btn {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-radius: var(--border-radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mobile-nav-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+}
+
+.mobile-nav-link {
+  padding: 1rem;
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: var(--gray-700);
+  border-radius: var(--border-radius);
+  transition: var(--transition-fast);
+  text-decoration: none;
+}
+
+.mobile-nav-link:hover {
+  background-color: var(--gray-50);
+}
+
+.mobile-auth-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: auto;
+}
+
+.btn-mobile {
+  justify-content: center;
+  padding: 1rem;
+}
+
+/* Responsive breakpoints */
+@media (max-width: 768px) {
+  .nav-menu {
+    display: none;
+  }
+
+  .mobile-menu-toggle {
+    display: flex;
+  }
+
+  .trust-badge {
+    display: none;
+  }
+
+  .auth-buttons {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .header-nav {
+    padding: 0.75rem 0;
+  }
+
+  .header-brand {
+    font-size: 1.125rem;
+  }
+
+  .brand-icon {
+    width: 28px;
+    height: 28px;
+  }
+
+  body {
+    padding-top: 70px;
+  }
+}
+
+/* Focus styles for accessibility */
+.btn:focus,
+.nav-link:focus,
+.user-menu-trigger:focus,
+.mobile-menu-toggle:focus,
+.mobile-close-btn:focus {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+
+  .nordbk-header,
+  .nav-link,
+  .btn,
+  .user-dropdown,
+  .mobile-menu,
+  .hamburger-line,
+  .mobile-menu-overlay {
+    transition: none;
+  }
+}
+
+
+
+
+
+
+/*--------------------------------------------------------------
+----------------------------------------------------------------
+==== Footer ====
+----------------------------------------------------------------
+--------------------------------------------------------------*/
+
+/* ==================================================
+     * NBK FOOTER STYLES WITH DARK BACKGROUND
+     * ================================================== */
+.nbk-footer {
+  background-color: hsl(var(--nbk-foreground));
+  color: #ffffff;
+  border-top: 1px solid #333333;
+  padding: 4rem 0 2rem;
+}
+
+.nbk-footer__section h3 {
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  color: #ffffff;
+  font-size: 1.25rem;
+  letter-spacing: -0.025em;
+}
+
+.nbk-footer__section p {
+  color: #a0a0a0;
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+  font-size: 0.95rem;
+}
+
+.nbk-footer__section ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.nbk-footer__section ul li {
+  margin-bottom: 0.75rem;
+}
+
+.nbk-footer__section ul li a {
+  color: #a0a0a0;
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 400;
+  transition: all 0.2s ease;
+  display: inline-block;
+  position: relative;
+}
+
+.nbk-footer__section ul li a:hover {
+  color: #ffffff;
+  transform: translateX(4px);
+}
+
+.nbk-footer__section ul li a:hover::before {
+  content: '→';
+  position: absolute;
+  left: -20px;
+  color: hsl(var(--nbk-primary));
+  font-weight: 600;
+}
+
+.nbk-footer__social-links {
+  display: flex;
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.nbk-footer__social-links a {
+  color: #a0a0a0;
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+
+  transition: all 0.3s ease;
+  background-color: transparent;
+}
+
+.nbk-footer__social-links a:hover {
+  color: #ffffff;
+}
+
+.nbk-footer__brand-description {
+  color: #a0a0a0;
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
+  font-size: 0.95rem;
+}
+
+.nbk-footer__bottom {
+  border-top: 1px solid #333333;
+  padding-top: 2rem;
+  text-align: center;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.nbk-footer__bottom p {
+  color: #a0a0a0;
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+.nbk-footer__bottom-links {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.nbk-footer__bottom-links a {
+  color: #a0a0a0;
+  text-decoration: none;
+  font-size: 0.875rem;
+  transition: color 0.2s ease;
+}
+
+.nbk-footer__bottom-links a:hover {
+  color: #ffffff;
+}
+
+/* NBK Brand Logo Styling */
+.nbk-footer__brand-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin-bottom: 1rem;
+  color: #ffffff;
+  letter-spacing: -0.025em;
+}
+
+/* NBK Responsive Footer */
+@media (max-width: 768px) {
+  .nbk-footer {
+    padding: 3rem 0 1.5rem;
+  }
+
+  .nbk-footer__grid {
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+    margin-bottom: 2.5rem;
+  }
+
+  .nbk-footer__social-links {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .nbk-footer__bottom {
+    flex-direction: column;
+    text-align: center;
+    gap: 1.5rem;
+  }
+
+  .nbk-footer__bottom-links {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .nbk-footer__social-links {
+    gap: 1rem;
+  }
+
+  .nbk-footer__social-links a {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.85rem;
+  }
+
+  .nbk-footer__bottom-links {
+    gap: 1.5rem;
+  }
+}
+
+/* ==================================================
+     * NBK ANIMATION OBSERVER STYLES
+     * ================================================== */
+.nbk-animation-paused {
+  animation-play-state: paused;
+}
+
+.nbk-animation-running {
+  animation-play-state: running;
+}
+
+
+
+
+
+/*--------------------------------------------------------------
+----------------------------------------------------------------
+==== Footer ====
+----------------------------------------------------------------
+--------------------------------------------------------------*/
+
+
+
+
+
+
+
+
+/*--------------------------------------------------------------
+----------------------------------------------------------------
+==== Footer ====
+----------------------------------------------------------------
+--------------------------------------------------------------*/

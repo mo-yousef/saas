@@ -14,7 +14,7 @@ $nbk_text_domain = 'nord-booking';
      * NBK FOOTER STYLES WITH DARK BACKGROUND
      * ================================================== */
     .nbk-footer {
-        background-color: #1a1a1a;
+        background-color:hsl(var(--nbk-foreground));
         color: #ffffff;
         border-top: 1px solid #333333;
         padding: 4rem 0 2rem;
@@ -78,18 +78,13 @@ $nbk_text_domain = 'nord-booking';
         text-decoration: none;
         font-size: 0.9rem;
         font-weight: 500;
-        padding: 0.5rem 1rem;
-        border: 1px solid #333333;
-        border-radius: 6px;
+
         transition: all 0.3s ease;
         background-color: transparent;
     }
 
     .nbk-footer__social-links a:hover {
         color: #ffffff;
-        border-color: hsl(var(--nbk-primary));
-        background-color: hsl(var(--nbk-primary) / 0.1);
-        transform: translateY(-2px);
     }
 
     .nbk-footer__brand-description {
