@@ -434,7 +434,7 @@ if ( is_page_template('templates/booking-form-public.php') || $page_type_for_scr
                 error_log('[NORDBOOKING Debug] Settings manager created, user_id: ' . $user_id);
                 
                 $biz_settings = $settings_manager->get_business_settings($user_id);
-                $email_templates = $settings_manager->get_email_templates();
+                $email_templates = $settings_manager->get_static_email_templates();
                 error_log('[NORDBOOKING Debug] Settings loaded, biz_settings count: ' . count($biz_settings));
             } catch (Exception $e) {
                 error_log('[NORDBOOKING Debug] Settings manager error: ' . $e->getMessage());
@@ -442,19 +442,13 @@ if ( is_page_template('templates/booking-form-public.php') || $page_type_for_scr
                 $email_templates = [];
             }
 
+            // Since we're using static templates now, we don't need complex template data processing
             $email_templates_data = [];
             foreach ($email_templates as $key => $template) {
-                $subject = isset($biz_settings[$template['subject_key']]) ? $biz_settings[$template['subject_key']] : '';
-                $body_json = isset($biz_settings[$template['body_key']]) ? $biz_settings[$template['body_key']] : '[]';
-                $body = json_decode($body_json, true);
-
-                if (!is_array($body)) {
-                    $body = [];
-                }
-
                 $email_templates_data[$key] = [
-                    'subject' => $subject,
-                    'body' => $body,
+                    'subject' => $template['subject'],
+                    'body' => $template['body'],
+                    'name' => $template['name']
                 ];
             }
 
@@ -488,25 +482,7 @@ if ( is_page_template('templates/booking-form-public.php') || $page_type_for_scr
                 'after'
             );
 
-            wp_localize_script('nordbooking-dashboard-email-settings', 'nordbooking_email_settings_params', [
-                'ajax_url' => admin_url('admin-ajax.php'),
-                'nonce' => wp_create_nonce('nordbooking_dashboard_nonce'),
-                'templates' => $email_templates,
-                'email_templates_data' => $email_templates_data,
-                'biz_settings' => $biz_settings,
-                'base_template_url' => NORDBOOKING_THEME_URI . 'templates/email/base-email-template.php',
-                'site_url' => site_url(),
-                'dummy_data' => \NORDBOOKING\Classes\Notifications::get_dummy_data_for_preview(),
-                'i18n' => [
-                    // Component-related translations
-                    'header_placeholder' => __( 'Header Text', 'NORDBOOKING' ),
-                    'text_placeholder' => __( 'Paragraph text...', 'NORDBOOKING' ),
-                    'button_placeholder' => __( 'Button Text', 'NORDBOOKING' ),
-                    'button_url_placeholder' => __( 'Button URL', 'NORDBOOKING' ),
-                    'spacer_text' => __( 'Spacer', 'NORDBOOKING' ),
-                    'delete_component_title' => __( 'Delete Component', 'NORDBOOKING' ),
-                ]
-            ]);
+            // Email settings script localization removed - using simplified static templates now
         }
 
         if ( $current_page_slug === 'services' ) {

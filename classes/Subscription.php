@@ -34,15 +34,37 @@ class Subscription {
             created_at datetime DEFAULT CURRENT_TIMESTAMP NOT NULL,
             updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL,
             PRIMARY KEY  (id),
-            UNIQUE KEY unique_user_id (user_id),
-            FOREIGN KEY (user_id) REFERENCES {$wpdb->prefix}users(ID) ON DELETE CASCADE
+            UNIQUE KEY unique_user_id (user_id)
         ) $charset_collate;";
         
         require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
         dbDelta($sql);
         
-        // Fix existing constraint issues - remove problematic unique constraint
-        $wpdb->query("ALTER TABLE $table_name DROP INDEX IF EXISTS stripe_subscription_id_unique");
+        // Add foreign key constraint separately (after table creation)
+        $fk_exists = $wpdb->get_var($wpdb->prepare("
+            SELECT COUNT(*) 
+            FROM information_schema.key_column_usage 
+            WHERE table_schema = DATABASE() 
+            AND table_name = %s 
+            AND referenced_table_name = %s
+        ", $table_name, $wpdb->prefix . 'users'));
+        
+        if ($fk_exists == 0) {
+            $wpdb->query("ALTER TABLE $table_name ADD CONSTRAINT fk_subscription_user_id FOREIGN KEY (user_id) REFERENCES {$wpdb->prefix}users(ID) ON DELETE CASCADE");
+        }
+        
+        // Fix existing constraint issues - remove problematic unique constraint (compatible with older MySQL)
+        $index_exists = $wpdb->get_var($wpdb->prepare("
+            SELECT COUNT(*) 
+            FROM information_schema.statistics 
+            WHERE table_schema = DATABASE() 
+            AND table_name = %s 
+            AND index_name = 'stripe_subscription_id_unique'
+        ", $table_name));
+        
+        if ($index_exists > 0) {
+            $wpdb->query("ALTER TABLE $table_name DROP INDEX stripe_subscription_id_unique");
+        }
         
         // Clean up any existing empty values that might cause issues
         $wpdb->query("UPDATE $table_name SET stripe_subscription_id = NULL WHERE stripe_subscription_id = ''");
@@ -240,24 +262,44 @@ class Subscription {
     public static function get_days_until_next_payment($user_id) {
         $subscription = self::get_subscription($user_id);
 
-        if (!$subscription || ($subscription['status'] !== 'active' && $subscription['status'] !== 'trial' && $subscription['status'] !== 'cancelled') || empty($subscription['ends_at'])) {
-            if ($subscription && $subscription['status'] === 'trial' && !empty($subscription['trial_ends_at'])) {
-                $ends_at = new \DateTime($subscription['trial_ends_at']);
-            } else {
-                return 0;
-            }
-        } else {
-            $ends_at = new \DateTime($subscription['ends_at']);
+        if (!$subscription) {
+            return 0;
         }
 
+        $ends_at = null;
         $now = new \DateTime();
-        if ($now > $ends_at) {
+
+        // Handle different subscription statuses
+        if ($subscription['status'] === 'trial' && !empty($subscription['trial_ends_at'])) {
+            $ends_at = new \DateTime($subscription['trial_ends_at']);
+        } elseif (($subscription['status'] === 'active' || $subscription['status'] === 'cancelled') && !empty($subscription['ends_at'])) {
+            $ends_at = new \DateTime($subscription['ends_at']);
+        } elseif (!empty($subscription['current_period_end'])) {
+            // Fallback to current_period_end if available
+            $ends_at = new \DateTime('@' . $subscription['current_period_end']);
+        } else {
+            // Try to get from Stripe directly if we have a subscription ID
+            if (!empty($subscription['stripe_subscription_id'])) {
+                try {
+                    if (StripeConfig::is_configured()) {
+                        \Stripe\Stripe::setApiKey(StripeConfig::get_secret_key());
+                        $stripe_subscription = \Stripe\Subscription::retrieve($subscription['stripe_subscription_id']);
+                        if ($stripe_subscription && $stripe_subscription->current_period_end) {
+                            $ends_at = new \DateTime('@' . $stripe_subscription->current_period_end);
+                        }
+                    }
+                } catch (Exception $e) {
+                    error_log('NORDBOOKING: Error fetching subscription period end: ' . $e->getMessage());
+                }
+            }
+        }
+
+        if (!$ends_at || $now > $ends_at) {
             return 0;
         }
 
         $interval = $now->diff($ends_at);
-
-        return $interval->days;
+        return max(0, $interval->days);
     }
 
     /**
@@ -779,8 +821,18 @@ class Subscription {
             AND s1.user_id = s2.user_id
         ");
         
-        // Drop the existing unique constraint
-        $wpdb->query("ALTER TABLE $table_name DROP INDEX IF EXISTS stripe_subscription_id_unique");
+        // Drop the existing unique constraint (compatible with older MySQL versions)
+        $index_exists = $wpdb->get_var($wpdb->prepare("
+            SELECT COUNT(*) 
+            FROM information_schema.statistics 
+            WHERE table_schema = DATABASE() 
+            AND table_name = %s 
+            AND index_name = 'stripe_subscription_id_unique'
+        ", $table_name));
+        
+        if ($index_exists > 0) {
+            $wpdb->query("ALTER TABLE $table_name DROP INDEX stripe_subscription_id_unique");
+        }
         
         // Add the unique constraint back (MySQL allows multiple NULL values in unique constraints)
         $wpdb->query("

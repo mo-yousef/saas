@@ -81,11 +81,36 @@ if ( isset( $_GET['invitation_token'] ) ) {
                         <div class="NORDBOOKING-message success"><p><?php echo $invitation_message; ?></p></div>
                     <?php endif; ?>
 
+                    <?php 
+                    // Show plan selection message
+                    $selected_plan = isset($_GET['plan']) ? sanitize_text_field($_GET['plan']) : '';
+                    if (!empty($selected_plan) && in_array($selected_plan, ['free', 'pro'])) :
+                        $plan_names = [
+                            'free' => '7-Day Free Trial',
+                            'pro' => 'Pro Plan'
+                        ];
+                        $plan_name = $plan_names[$selected_plan];
+                        $plan_message = $selected_plan === 'free' 
+                            ? 'You have selected the %s. Complete your registration to start your free trial with full Pro access!'
+                            : 'You have selected the %s. Complete your registration to get started!';
+                    ?>
+                        <div class="NORDBOOKING-message info">
+                            <p><?php echo sprintf(esc_html__($plan_message, 'NORDBOOKING'), '<strong>' . esc_html($plan_name) . '</strong>'); ?></p>
+                        </div>
+                    <?php endif; ?>
+
                     <form id="NORDBOOKING-register-form">
                         <?php if ( $is_invitation && $invitation_token ) : ?>
                             <input type="hidden" name="inviter_id" id="NORDBOOKING-inviter-id" value="<?php echo esc_attr( $inviter_id ); ?>" />
                             <input type="hidden" name="assigned_role" id="NORDBOOKING-assigned-role" value="<?php echo esc_attr( $assigned_role ); ?>" />
                             <input type="hidden" name="invitation_token" id="NORDBOOKING-invitation-token" value="<?php echo esc_attr( $invitation_token ); ?>" />
+                        <?php endif; ?>
+                        
+                        <?php 
+                        // Get plan parameter from URL
+                        $selected_plan = isset($_GET['plan']) ? sanitize_text_field($_GET['plan']) : '';
+                        if (!empty($selected_plan) && in_array($selected_plan, ['free', 'pro'])) : ?>
+                            <input type="hidden" name="plan" id="NORDBOOKING-plan" value="<?php echo esc_attr( $selected_plan ); ?>" />
                         <?php endif; ?>
 
                         <h3><?php esc_html_e( 'Personal Information', 'NORDBOOKING' ); ?></h3>
@@ -146,3 +171,88 @@ if ( isset( $_GET['invitation_token'] ) ) {
 
 <?php
 get_footer(); // This will be hidden by CSS
+?>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const registerForm = document.getElementById('NORDBOOKING-register-form');
+    const submitButton = document.getElementById('NORDBOOKING-wp-submit-register');
+    const messageContainer = document.getElementById('NORDBOOKING-register-message');
+
+    if (registerForm) {
+        registerForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Disable submit button
+            submitButton.disabled = true;
+            submitButton.value = 'Registering...';
+            
+            // Clear previous messages
+            messageContainer.style.display = 'none';
+            messageContainer.innerHTML = '';
+            
+            // Collect form data
+            const formData = new FormData();
+            formData.append('action', 'nordbooking_register');
+            formData.append('nonce', '<?php echo wp_create_nonce('nordbooking_register_nonce'); ?>');
+            formData.append('first_name', document.getElementById('NORDBOOKING-first-name').value);
+            formData.append('last_name', document.getElementById('NORDBOOKING-last-name').value);
+            formData.append('email', document.getElementById('NORDBOOKING-user-email').value);
+            formData.append('password', document.getElementById('NORDBOOKING-user-pass').value);
+            formData.append('password_confirm', document.getElementById('NORDBOOKING-user-pass-confirm').value);
+            formData.append('company_name', document.getElementById('NORDBOOKING-company-name').value);
+            
+            // Add plan if selected
+            const planInput = document.getElementById('NORDBOOKING-plan');
+            if (planInput) {
+                formData.append('plan', planInput.value);
+            }
+            
+            // Add invitation data if present
+            const inviterIdInput = document.getElementById('NORDBOOKING-inviter-id');
+            const assignedRoleInput = document.getElementById('NORDBOOKING-assigned-role');
+            const invitationTokenInput = document.getElementById('NORDBOOKING-invitation-token');
+            
+            if (inviterIdInput) formData.append('inviter_id', inviterIdInput.value);
+            if (assignedRoleInput) formData.append('assigned_role', assignedRoleInput.value);
+            if (invitationTokenInput) formData.append('invitation_token', invitationTokenInput.value);
+            
+            // Submit form
+            fetch('<?php echo admin_url('admin-ajax.php'); ?>', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Show success message
+                    messageContainer.innerHTML = '<div class="NORDBOOKING-message success"><p>' + data.data.message + '</p></div>';
+                    messageContainer.style.display = 'block';
+                    
+                    // Redirect after a short delay
+                    setTimeout(() => {
+                        window.location.href = data.data.redirect_url;
+                    }, 1500);
+                } else {
+                    // Show error message
+                    messageContainer.innerHTML = '<div class="NORDBOOKING-message error"><p>' + (data.data.message || 'Registration failed. Please try again.') + '</p></div>';
+                    messageContainer.style.display = 'block';
+                    
+                    // Re-enable submit button
+                    submitButton.disabled = false;
+                    submitButton.value = '<?php esc_attr_e('Register', 'NORDBOOKING'); ?>';
+                }
+            })
+            .catch(error => {
+                console.error('Registration error:', error);
+                messageContainer.innerHTML = '<div class="NORDBOOKING-message error"><p>Network error. Please try again.</p></div>';
+                messageContainer.style.display = 'block';
+                
+                // Re-enable submit button
+                submitButton.disabled = false;
+                submitButton.value = '<?php esc_attr_e('Register', 'NORDBOOKING'); ?>';
+            });
+        });
+    }
+});
+</script>

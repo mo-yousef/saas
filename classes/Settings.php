@@ -68,39 +68,26 @@ class Settings {
                 'email_from_name'                     => '',
                 'email_from_address'                  => '',
 
-                // Email Templates
-                'email_booking_conf_subj_customer'    => 'Your Booking Confirmation - Ref: {{booking_reference}}',
-                'email_booking_conf_body_customer'    => json_encode([
-                    ['type' => 'header', 'text' => 'Booking Confirmed!'],
-                    ['type' => 'text', 'text' => "Dear {{customer_name}},\n\nThank you for your booking with {{business_name}}. This email confirms that your booking (Ref: {{booking_reference}}) is confirmed."],
-                    ['type' => 'text', 'text' => "Services: {{service_names}}\nDate & Time: {{booking_date_time}}\nTotal Price: {{total_price}}"],
-                    ['type' => 'button', 'text' => 'View Booking Details', 'url' => '{{booking_link}}']
-                ]),
-                'email_booking_conf_subj_admin'       => 'New Booking Received - Ref: {{booking_reference}}',
-                'email_booking_conf_body_admin'       => json_encode([
-                    ['type' => 'header', 'text' => 'New Booking Received!'],
-                    ['type' => 'text', 'text' => "A new booking has been made by {{customer_name}} ({{customer_email}})."],
-                    ['type' => 'text', 'text' => "Services: {{service_names}}\nDate & Time: {{booking_date_time}}\nTotal Price: {{total_price}}"],
-                    ['type' => 'button', 'text' => 'View in Dashboard', 'url' => '{{admin_booking_link}}']
-                ]),
-                'email_staff_assign_subj'             => 'New Booking Assignment - Ref: {{booking_reference}}',
-                'email_staff_assign_body'             => json_encode([
-                    ['type' => 'header', 'text' => 'New Assignment'],
-                    ['type' => 'text', 'text' => "Hi {{staff_name}},\n\nYou have been assigned to a new booking for {{customer_name}} on {{booking_date_time}}."],
-                    ['type' => 'button', 'text' => 'View Your Assignments', 'url' => '{{staff_dashboard_link}}']
-                ]),
-                'email_welcome_subj'                  => 'Welcome to {{company_name}}!',
-                'email_welcome_body'                  => json_encode([
-                    ['type' => 'header', 'text' => 'Welcome!'],
-                    ['type' => 'text', 'text' => "Hi {{customer_name}},\n\nThanks for creating an account with us. We're excited to have you!"],
-                    ['type' => 'button', 'text' => 'Go to Your Dashboard', 'url' => '{{dashboard_link}}']
-                ]),
-                'email_invitation_subj'               => 'You have been invited to join {{company_name}}',
-                'email_invitation_body'               => json_encode([
-                    ['type' => 'header', 'text' => 'You\'re Invited!'],
-                    ['type' => 'text', 'text' => "Hi there,\n\n{{inviter_name}} has invited you to join {{company_name}} as a {{worker_role}}."],
-                    ['type' => 'button', 'text' => 'Accept & Register', 'url' => '{{registration_link}}']
-                ]),
+                // Email Notification Settings
+                'email_booking_confirmation_customer_enabled'    => '1',
+                'email_booking_confirmation_customer_recipient'  => '',
+                'email_booking_confirmation_customer_use_primary' => '1',
+                
+                'email_booking_confirmation_admin_enabled'       => '1',
+                'email_booking_confirmation_admin_recipient'     => '',
+                'email_booking_confirmation_admin_use_primary'   => '1',
+                
+                'email_staff_assignment_enabled'                 => '1',
+                'email_staff_assignment_recipient'               => '',
+                'email_staff_assignment_use_primary'             => '1',
+                
+                'email_welcome_enabled'                          => '1',
+                'email_welcome_recipient'                        => '',
+                'email_welcome_use_primary'                      => '1',
+                
+                'email_invitation_enabled'                       => '1',
+                'email_invitation_recipient'                     => '',
+                'email_invitation_use_primary'                   => '1',
             ];
         }
         return self::$default_tenant_settings;
@@ -157,30 +144,190 @@ class Settings {
             return;
         }
         $settings = $this->get_business_settings($user_id);
+        
+        // Include personal details
+        $user_meta = get_user_meta($user_id);
+        $settings['first_name'] = isset($user_meta['first_name'][0]) ? $user_meta['first_name'][0] : '';
+        $settings['last_name'] = isset($user_meta['last_name'][0]) ? $user_meta['last_name'][0] : '';
+        $settings['primary_email'] = get_userdata($user_id)->user_email;
+        
         wp_send_json_success(['settings' => $settings]);
     }
 
     public function handle_save_business_settings_ajax() {
-        check_ajax_referer('nordbooking_dashboard_nonce', 'nonce');
-        $user_id = get_current_user_id();
-        if (!$user_id) {
-            wp_send_json_error(['message' => __('User not authenticated.', 'NORDBOOKING')], 403);
-            return;
-        }
+        try {
+            // Log the start of the function
+            error_log('[NORDBOOKING Settings] AJAX save handler started');
+            
+            // Verify nonce
+            if (!check_ajax_referer('nordbooking_dashboard_nonce', 'nonce', false)) {
+                error_log('[NORDBOOKING Settings] Nonce verification failed');
+                wp_send_json_error(['message' => __('Security check failed.', 'NORDBOOKING')], 403);
+                return;
+            }
+            
+            $user_id = get_current_user_id();
+            if (!$user_id) {
+                error_log('[NORDBOOKING Settings] User not authenticated');
+                wp_send_json_error(['message' => __('User not authenticated.', 'NORDBOOKING')], 403);
+                return;
+            }
 
-        $settings_data = isset($_POST['settings']) ? (array) $_POST['settings'] : [];
+            $settings_data = isset($_POST['settings']) ? (array) $_POST['settings'] : [];
+            error_log('[NORDBOOKING Settings] Received settings data: ' . print_r($settings_data, true));
 
-        if (empty($settings_data)) {
-            wp_send_json_error(['message' => __('No settings data received.', 'NORDBOOKING')], 400);
-            return;
-        }
+            if (empty($settings_data)) {
+                error_log('[NORDBOOKING Settings] No settings data received');
+                wp_send_json_error(['message' => __('No settings data received.', 'NORDBOOKING')], 400);
+                return;
+            }
 
-        $result = $this->save_business_settings($user_id, $settings_data);
+            // Validate and sanitize the settings data
+            $validated_settings = $this->validate_and_sanitize_business_settings($settings_data);
+            if (is_wp_error($validated_settings)) {
+                error_log('[NORDBOOKING Settings] Validation failed: ' . $validated_settings->get_error_message());
+                wp_send_json_error(['message' => $validated_settings->get_error_message()], 400);
+                return;
+            }
 
-        if ($result) {
-            wp_send_json_success(['message' => __('Business settings saved successfully.', 'NORDBOOKING')]);
-        } else {
-            wp_send_json_error(['message' => __('Failed to save some business settings.', 'NORDBOOKING')], 500);
+            // Handle personal details (user meta) separately - SIMPLIFIED VERSION
+            $personal_details_updated = true;
+            $personal_details_errors = [];
+            
+            // Try a simplified approach - check raw POST data too
+            $raw_settings = isset($_POST['settings']) ? (array) $_POST['settings'] : [];
+            error_log('[NORDBOOKING Settings] Raw POST settings: ' . print_r($raw_settings, true));
+            
+            error_log('[NORDBOOKING Settings] Starting personal details update for user: ' . $user_id);
+            error_log('[NORDBOOKING Settings] Validated settings keys: ' . implode(', ', array_keys($validated_settings)));
+            
+            // Try both validated settings and raw settings for first_name
+            $first_name_value = null;
+            if (isset($validated_settings['first_name'])) {
+                $first_name_value = $validated_settings['first_name'];
+                error_log('[NORDBOOKING Settings] Found first_name in validated settings: ' . $first_name_value);
+            } elseif (isset($raw_settings['first_name'])) {
+                $first_name_value = sanitize_text_field($raw_settings['first_name']);
+                error_log('[NORDBOOKING Settings] Found first_name in raw settings: ' . $first_name_value);
+            }
+            
+            if ($first_name_value !== null) {
+                $first_name = $first_name_value;
+                error_log('[NORDBOOKING Settings] Attempting to update first_name to: ' . $first_name);
+                
+                $update_result = update_user_meta($user_id, 'first_name', $first_name);
+                error_log('[NORDBOOKING Settings] update_user_meta result for first_name: ' . var_export($update_result, true) . ' (type: ' . gettype($update_result) . ')');
+                
+                // update_user_meta returns meta_id on success, false on failure
+                // It also returns true if the value is the same as existing value
+                if ($update_result === false) {
+                    $personal_details_updated = false;
+                    $personal_details_errors[] = 'first_name';
+                    error_log('[NORDBOOKING Settings] FAILED to update first_name for user: ' . $user_id);
+                    
+                    // Check for database errors
+                    global $wpdb;
+                    if ($wpdb->last_error) {
+                        error_log('[NORDBOOKING Settings] Database error on first_name update: ' . $wpdb->last_error);
+                    }
+                } else {
+                    error_log('[NORDBOOKING Settings] Successfully updated first_name: ' . $first_name . ' (result: ' . var_export($update_result, true) . ')');
+                }
+                unset($validated_settings['first_name']); // Remove from business settings
+            } else {
+                error_log('[NORDBOOKING Settings] first_name not found in validated settings');
+            }
+            
+            // Try both validated settings and raw settings for last_name
+            $last_name_value = null;
+            if (isset($validated_settings['last_name'])) {
+                $last_name_value = $validated_settings['last_name'];
+                error_log('[NORDBOOKING Settings] Found last_name in validated settings: ' . $last_name_value);
+            } elseif (isset($raw_settings['last_name'])) {
+                $last_name_value = sanitize_text_field($raw_settings['last_name']);
+                error_log('[NORDBOOKING Settings] Found last_name in raw settings: ' . $last_name_value);
+            }
+            
+            if ($last_name_value !== null) {
+                $last_name = $last_name_value;
+                error_log('[NORDBOOKING Settings] Attempting to update last_name to: ' . $last_name);
+                
+                $update_result = update_user_meta($user_id, 'last_name', $last_name);
+                error_log('[NORDBOOKING Settings] update_user_meta result for last_name: ' . var_export($update_result, true) . ' (type: ' . gettype($update_result) . ')');
+                
+                // update_user_meta returns meta_id on success, false on failure
+                // It also returns true if the value is the same as existing value
+                if ($update_result === false) {
+                    $personal_details_updated = false;
+                    $personal_details_errors[] = 'last_name';
+                    error_log('[NORDBOOKING Settings] FAILED to update last_name for user: ' . $user_id);
+                    
+                    // Check for database errors
+                    global $wpdb;
+                    if ($wpdb->last_error) {
+                        error_log('[NORDBOOKING Settings] Database error on last_name update: ' . $wpdb->last_error);
+                    }
+                } else {
+                    error_log('[NORDBOOKING Settings] Successfully updated last_name: ' . $last_name . ' (result: ' . var_export($update_result, true) . ')');
+                }
+                unset($validated_settings['last_name']); // Remove from business settings
+            } else {
+                error_log('[NORDBOOKING Settings] last_name not found in validated settings');
+            }
+            
+            error_log('[NORDBOOKING Settings] Personal details final status: ' . ($personal_details_updated ? 'SUCCESS' : 'FAILED'));
+            if (!empty($personal_details_errors)) {
+                error_log('[NORDBOOKING Settings] Personal details errors: ' . implode(', ', $personal_details_errors));
+            }
+
+            // Remove non-business settings from the data
+            $non_business_fields = ['nordbooking_dashboard_nonce_field', '_wp_http_referer', 'nonce', 'action'];
+            foreach ($non_business_fields as $field) {
+                unset($validated_settings[$field]);
+            }
+
+            error_log('[NORDBOOKING Settings] Cleaned settings data: ' . print_r($validated_settings, true));
+            error_log('[NORDBOOKING Settings] Personal details updated: ' . ($personal_details_updated ? 'true' : 'false'));
+
+            // Check if tenant_settings table exists
+            $table_name = Database::get_table_name('tenant_settings');
+            $table_exists = $this->wpdb->get_var($this->wpdb->prepare("SHOW TABLES LIKE %s", $table_name));
+            
+            if (!$table_exists) {
+                error_log('[NORDBOOKING Settings] Table does not exist: ' . $table_name);
+                wp_send_json_error(['message' => __('Database table missing. Please contact support.', 'NORDBOOKING')], 500);
+                return;
+            }
+
+            $business_settings_result = $this->save_business_settings($user_id, $validated_settings);
+            error_log('[NORDBOOKING Settings] Business settings result: ' . ($business_settings_result ? 'success' : 'failed'));
+
+            $overall_result = $business_settings_result && $personal_details_updated;
+
+            if ($overall_result) {
+                wp_send_json_success(['message' => __('Settings saved successfully.', 'NORDBOOKING')]);
+            } else {
+                $error_details = [];
+                if (!$business_settings_result) {
+                    $error_details[] = 'business settings';
+                }
+                if (!$personal_details_updated) {
+                    $error_details[] = 'personal details (' . implode(', ', $personal_details_errors) . ')';
+                }
+                
+                $error_message = __('Failed to save: ', 'NORDBOOKING') . implode(', ', $error_details);
+                error_log('[NORDBOOKING Settings] Final error: ' . $error_message);
+                wp_send_json_error(['message' => $error_message], 500);
+            }
+            
+        } catch (Exception $e) {
+            error_log('[NORDBOOKING Settings] Exception in AJAX handler: ' . $e->getMessage());
+            error_log('[NORDBOOKING Settings] Exception trace: ' . $e->getTraceAsString());
+            wp_send_json_error(['message' => __('An unexpected error occurred: ', 'NORDBOOKING') . $e->getMessage()], 500);
+        } catch (Error $e) {
+            error_log('[NORDBOOKING Settings] Fatal error in AJAX handler: ' . $e->getMessage());
+            error_log('[NORDBOOKING Settings] Fatal error trace: ' . $e->getTraceAsString());
+            wp_send_json_error(['message' => __('A fatal error occurred. Please check server logs.', 'NORDBOOKING')], 500);
         }
     }
 
@@ -575,7 +722,7 @@ private function ensure_unique_slug($slug, $user_id = null) {
         // Sanitize text fields
         $text_fields = [
             'bf_header_text', 'bf_maintenance_message', 'bf_success_message',
-            'bf_google_analytics_id', 'bf_font_family'
+            'bf_google_analytics_id', 'bf_font_family', 'biz_name', 'biz_phone', 'biz_address'
             // Note: bf_custom_css is handled separately to allow certain CSS content.
         ];
         foreach ($text_fields as $field) {
@@ -606,6 +753,34 @@ private function ensure_unique_slug($slug, $user_id = null) {
             }
         }
 
+        // Validate email fields
+        $email_fields = ['biz_email'];
+        // Add email notification recipient fields
+        $email_notification_types = ['booking_confirmation_customer', 'booking_confirmation_admin', 'staff_assignment', 'welcome', 'invitation'];
+        foreach ($email_notification_types as $type) {
+            $email_fields[] = 'email_' . $type . '_recipient';
+        }
+        
+        foreach ($email_fields as $field) {
+            if (isset($settings_data[$field])) {
+                $original_email = $settings_data[$field];
+                if (!empty($settings_data[$field])) {
+                    $email = sanitize_email($settings_data[$field]);
+                    if (!$email) {
+                        $settings_data[$field] = ''; // Clear invalid email
+                        error_log("[NORDBOOKING Settings Validate] Email field $field cleared due to invalid value: '$original_email'");
+                    } else {
+                        $settings_data[$field] = $email;
+                        if ($original_email !== $settings_data[$field]) {
+                            error_log("[NORDBOOKING Settings Validate] Email field $field sanitized from '$original_email' to '$email'");
+                        }
+                    }
+                } else {
+                    $settings_data[$field] = ''; // Ensure empty if submitted empty
+                }
+            }
+        }
+
         // Log for boolean/checkbox like values (0 or 1)
         $boolean_like_fields = [
             'bf_show_progress_bar', 'bf_form_enabled', 'bf_allow_service_selection',
@@ -613,6 +788,12 @@ private function ensure_unique_slug($slug, $user_id = null) {
             'bf_show_pricing', 'bf_allow_discount_codes', 'bf_enable_recaptcha',
             'bf_enable_ssl_required', 'bf_debug_mode'
         ];
+        
+        // Add email notification enabled fields
+        foreach ($email_notification_types as $type) {
+            $boolean_like_fields[] = 'email_' . $type . '_enabled';
+            $boolean_like_fields[] = 'email_' . $type . '_use_primary';
+        }
         foreach ($boolean_like_fields as $field) {
             if (isset($settings_data[$field])) {
                 $original_bool_val = $settings_data[$field];
@@ -626,6 +807,33 @@ private function ensure_unique_slug($slug, $user_id = null) {
 
         error_log('[NORDBOOKING Settings Validate - Output] ' . print_r($settings_data, true));
         return $settings_data;
+    }
+
+    /**
+     * Get user billing information combining personal and business details
+     */
+    public function get_user_billing_info(int $user_id): array {
+        $user = get_userdata($user_id);
+        $user_meta = get_user_meta($user_id);
+        $business_settings = $this->get_business_settings($user_id);
+        
+        return [
+            // Personal Details
+            'first_name' => isset($user_meta['first_name'][0]) ? $user_meta['first_name'][0] : '',
+            'last_name' => isset($user_meta['last_name'][0]) ? $user_meta['last_name'][0] : '',
+            'primary_email' => $user ? $user->user_email : '',
+            'full_name' => trim((isset($user_meta['first_name'][0]) ? $user_meta['first_name'][0] : '') . ' ' . (isset($user_meta['last_name'][0]) ? $user_meta['last_name'][0] : '')),
+            
+            // Business Details
+            'business_name' => $business_settings['biz_name'] ?? '',
+            'business_email' => $business_settings['biz_email'] ?? '',
+            'business_phone' => $business_settings['biz_phone'] ?? '',
+            'business_address' => $business_settings['biz_address'] ?? '',
+            
+            // Billing Display Info
+            'billing_name' => !empty($business_settings['biz_name']) ? $business_settings['biz_name'] : trim((isset($user_meta['first_name'][0]) ? $user_meta['first_name'][0] : '') . ' ' . (isset($user_meta['last_name'][0]) ? $user_meta['last_name'][0] : '')),
+            'billing_email' => !empty($business_settings['biz_email']) ? $business_settings['biz_email'] : ($user ? $user->user_email : ''),
+        ];
     }
 
     public function get_setting(int $user_id, string $setting_name, $default_value = null) {
@@ -648,20 +856,47 @@ private function ensure_unique_slug($slug, $user_id = null) {
     }
 
     public function update_setting(int $user_id, string $setting_name, $setting_value): bool {
-        if (empty($user_id) && $user_id !== 0) return false;
-        if (empty($setting_name)) return false;
+        if (empty($user_id) && $user_id !== 0) {
+            error_log('[NORDBOOKING Settings] Invalid user_id: ' . $user_id);
+            return false;
+        }
+        if (empty($setting_name)) {
+            error_log('[NORDBOOKING Settings] Empty setting_name provided');
+            return false;
+        }
 
         $table_name = Database::get_table_name('tenant_settings');
+        
+        // Check if table exists
+        $table_exists = $this->wpdb->get_var($this->wpdb->prepare("SHOW TABLES LIKE %s", $table_name));
+        if (!$table_exists) {
+            error_log('[NORDBOOKING Settings] Table does not exist: ' . $table_name);
+            return false;
+        }
 
         $value_to_store = is_array($setting_value) || is_object($setting_value)
                         ? maybe_serialize($setting_value)
                         : (string) $setting_value;
 
+        // Log the operation
+        error_log('[NORDBOOKING Settings] Updating setting - User: ' . $user_id . ', Name: ' . $setting_name . ', Value length: ' . strlen($value_to_store));
+
         $result = $this->wpdb->replace(
             $table_name,
-            [ 'user_id' => $user_id, 'setting_name' => $setting_name, 'setting_value' => $value_to_store, ],
+            [ 
+                'user_id' => $user_id, 
+                'setting_name' => $setting_name, 
+                'setting_value' => $value_to_store 
+            ],
             ['%d', '%s', '%s']
         );
+
+        if ($result === false) {
+            error_log('[NORDBOOKING Settings] Database error: ' . $this->wpdb->last_error);
+            error_log('[NORDBOOKING Settings] Failed query: ' . $this->wpdb->last_query);
+        } else {
+            error_log('[NORDBOOKING Settings] Successfully updated setting: ' . $setting_name . ' for user: ' . $user_id);
+        }
 
         return $result !== false;
     }
@@ -794,6 +1029,134 @@ public function save_booking_form_settings(int $user_id, array $settings_data): 
     $success_rate = $total_count > 0 ? ($success_count / $total_count) : 0;
     return $success_rate >= 0.8;
 }
+
+    /**
+     * Validate and sanitize business settings data
+     */
+    private function validate_and_sanitize_business_settings($settings_data) {
+        $sanitized = [];
+        $errors = [];
+
+        // Define validation rules for business settings
+        $validation_rules = [
+            'first_name' => ['type' => 'text', 'max_length' => 50, 'required' => false],
+            'last_name' => ['type' => 'text', 'max_length' => 50, 'required' => false],
+            'biz_name' => ['type' => 'text', 'max_length' => 200, 'required' => false],
+            'biz_email' => ['type' => 'email', 'required' => false],
+            'biz_phone' => ['type' => 'text', 'max_length' => 20, 'required' => false],
+            'biz_address' => ['type' => 'textarea', 'max_length' => 500, 'required' => false],
+            'biz_logo_url' => ['type' => 'url', 'required' => false],
+            'biz_hours_json' => ['type' => 'json', 'required' => false],
+            'biz_currency_code' => ['type' => 'text', 'max_length' => 3, 'required' => false],
+            'biz_user_language' => ['type' => 'text', 'max_length' => 10, 'required' => false],
+            'email_from_name' => ['type' => 'text', 'max_length' => 100, 'required' => false],
+            'email_from_address' => ['type' => 'email', 'required' => false],
+        ];
+
+        // Add email notification settings
+        $email_notification_types = ['booking_confirmation_customer', 'booking_confirmation_admin', 'staff_assignment', 'welcome', 'invitation'];
+        foreach ($email_notification_types as $type) {
+            $validation_rules['email_' . $type . '_enabled'] = ['type' => 'boolean'];
+            $validation_rules['email_' . $type . '_recipient'] = ['type' => 'email', 'required' => false];
+            $validation_rules['email_' . $type . '_use_primary'] = ['type' => 'boolean'];
+        }
+
+        // Process each field
+        error_log('[NORDBOOKING Settings Validation] Processing ' . count($settings_data) . ' fields');
+        error_log('[NORDBOOKING Settings Validation] Input fields: ' . implode(', ', array_keys($settings_data)));
+        
+        foreach ($settings_data as $key => $value) {
+            error_log('[NORDBOOKING Settings Validation] Processing field: ' . $key . ' = ' . (is_array($value) ? json_encode($value) : $value));
+            
+            // Skip if not a valid business setting
+            if (!isset($validation_rules[$key])) {
+                error_log('[NORDBOOKING Settings Validation] Skipping field (no validation rule): ' . $key);
+                continue;
+            }
+
+            $rules = $validation_rules[$key];
+            $sanitized_value = $this->sanitize_business_field_value($value, $rules);
+
+            if (is_wp_error($sanitized_value)) {
+                $error_msg = sprintf(__('Invalid value for %s: %s', 'NORDBOOKING'), $key, $sanitized_value->get_error_message());
+                $errors[] = $error_msg;
+                error_log('[NORDBOOKING Settings Validation] Validation error for ' . $key . ': ' . $error_msg);
+                continue;
+            }
+
+            $sanitized[$key] = $sanitized_value;
+            error_log('[NORDBOOKING Settings Validation] Successfully validated ' . $key . ' = ' . (is_array($sanitized_value) ? json_encode($sanitized_value) : $sanitized_value));
+        }
+        
+        error_log('[NORDBOOKING Settings Validation] Final sanitized fields: ' . implode(', ', array_keys($sanitized)));
+
+        // Return errors if any
+        if (!empty($errors)) {
+            return new WP_Error('validation_failed', implode(' ', $errors));
+        }
+
+        return $sanitized;
+    }
+
+    /**
+     * Sanitize individual business field values
+     */
+    private function sanitize_business_field_value($value, $rules) {
+        $type = $rules['type'] ?? 'text';
+
+        switch ($type) {
+            case 'email':
+                if (empty($value)) {
+                    return '';
+                }
+                $sanitized = sanitize_email($value);
+                if (!$sanitized && !empty($value)) {
+                    return new WP_Error('invalid_email', 'Invalid email format');
+                }
+                return $sanitized;
+
+            case 'url':
+                if (empty($value)) {
+                    return '';
+                }
+                $sanitized = esc_url_raw($value);
+                if (!$sanitized && !empty($value)) {
+                    return new WP_Error('invalid_url', 'Invalid URL format');
+                }
+                return $sanitized;
+
+            case 'boolean':
+                return in_array($value, ['1', 'true', true, 1], true) ? '1' : '0';
+
+            case 'json':
+                if (empty($value)) {
+                    return '{}';
+                }
+                if (is_string($value)) {
+                    $decoded = json_decode($value, true);
+                    if (json_last_error() !== JSON_ERROR_NONE) {
+                        return new WP_Error('invalid_json', 'Invalid JSON format');
+                    }
+                    return $value;
+                }
+                return json_encode($value);
+
+            case 'textarea':
+                $sanitized = sanitize_textarea_field($value);
+                if (!empty($rules['max_length']) && strlen($sanitized) > $rules['max_length']) {
+                    $sanitized = substr($sanitized, 0, $rules['max_length']);
+                }
+                return $sanitized;
+
+            case 'text':
+            default:
+                $sanitized = sanitize_text_field($value);
+                if (!empty($rules['max_length']) && strlen($sanitized) > $rules['max_length']) {
+                    $sanitized = substr($sanitized, 0, $rules['max_length']);
+                }
+                return $sanitized;
+        }
+    }
 
     public function save_business_settings(int $user_id, array $settings_data): bool {
         $business_setting_keys = array_filter(array_keys(self::get_default_settings()), function($key) {
@@ -1074,40 +1437,83 @@ public function save_booking_form_settings(int $user_id, array $settings_data): 
         return self::get_default_settings();
     }
 
-    public function get_email_templates(): array {
-        $templates = [
+    /**
+     * Get static email templates (simplified version)
+     */
+    public function get_static_email_templates(): array {
+        return [
             'booking_confirmation_customer' => [
                 'name' => __('Customer Booking Confirmation', 'NORDBOOKING'),
-                'subject_key' => 'email_booking_conf_subj_customer',
-                'body_key' => 'email_booking_conf_body_customer',
-                'variables' => ['{{customer_name}}', '{{business_name}}', '{{booking_reference}}', '{{service_names}}', '{{booking_date_time}}', '{{total_price}}', '{{service_address}}', '{{special_instructions}}', '{{booking_link}}']
+                'subject' => 'Booking Confirmation - Ref: {{booking_reference}}',
+                'body' => "Dear {{customer_name}},\n\nThank you for your booking with {{business_name}}. Your booking has been confirmed.\n\nBooking Details:\nReference: {{booking_reference}}\nServices: {{service_names}}\nDate & Time: {{booking_date_time}}\nTotal Price: {{total_price}}\nLocation: {{service_address}}\n\nWe look forward to serving you!\n\nBest regards,\n{{business_name}}"
             ],
             'booking_confirmation_admin' => [
                 'name' => __('Admin New Booking Notification', 'NORDBOOKING'),
-                'subject_key' => 'email_booking_conf_subj_admin',
-                'body_key' => 'email_booking_conf_body_admin',
-                'variables' => ['{{customer_name}}', '{{customer_email}}', '{{customer_phone}}', '{{business_name}}', '{{booking_reference}}', '{{service_names}}', '{{booking_date_time}}', '{{total_price}}', '{{service_address}}', '{{special_instructions}}', '{{admin_booking_link}}']
+                'subject' => 'New Booking Received - Ref: {{booking_reference}}',
+                'body' => "A new booking has been received.\n\nCustomer Details:\nName: {{customer_name}}\nEmail: {{customer_email}}\nPhone: {{customer_phone}}\n\nBooking Details:\nReference: {{booking_reference}}\nServices: {{service_names}}\nDate & Time: {{booking_date_time}}\nTotal Price: {{total_price}}\nLocation: {{service_address}}\n\nSpecial Instructions: {{special_instructions}}"
             ],
             'staff_assignment' => [
                 'name' => __('Staff Assignment Notification', 'NORDBOOKING'),
-                'subject_key' => 'email_staff_assign_subj',
-                'body_key' => 'email_staff_assign_body',
-                'variables' => ['{{staff_name}}', '{{customer_name}}', '{{booking_reference}}', '{{booking_date_time}}', '{{staff_dashboard_link}}']
+                'subject' => 'New Booking Assignment - Ref: {{booking_reference}}',
+                'body' => "Hi {{staff_name}},\n\nYou have been assigned to a new booking.\n\nBooking Details:\nCustomer: {{customer_name}}\nReference: {{booking_reference}}\nDate & Time: {{booking_date_time}}\n\nPlease check your dashboard for more details."
             ],
             'welcome' => [
                 'name' => __('Welcome Email', 'NORDBOOKING'),
-                'subject_key' => 'email_welcome_subj',
-                'body_key' => 'email_welcome_body',
-                'variables' => ['{{customer_name}}', '{{company_name}}', '{{dashboard_link}}']
+                'subject' => 'Welcome to {{business_name}}!',
+                'body' => "Hi {{customer_name}},\n\nWelcome to {{business_name}}! We're excited to have you as a customer.\n\nYou can manage your bookings and account settings through your dashboard.\n\nIf you have any questions, please don't hesitate to contact us.\n\nBest regards,\n{{business_name}}"
             ],
             'invitation' => [
-                'name' => __('Invitation Email', 'NORDBOOKING'),
-                'subject_key' => 'email_invitation_subj',
-                'body_key' => 'email_invitation_body',
-                'variables' => ['{{worker_email}}', '{{worker_role}}', '{{inviter_name}}', '{{registration_link}}']
+                'name' => __('Staff Invitation Email', 'NORDBOOKING'),
+                'subject' => 'You have been invited to join {{business_name}}',
+                'body' => "Hi there,\n\n{{inviter_name}} has invited you to join {{business_name}} as a {{worker_role}}.\n\nTo accept this invitation and set up your account, please click the link below:\n{{registration_link}}\n\nWe look forward to working with you!\n\nBest regards,\n{{business_name}}"
             ]
         ];
-        return $templates;
+    }
+
+    /**
+     * Get email notification settings for a user
+     */
+    public function get_email_notification_settings(int $user_id): array {
+        $notification_types = ['booking_confirmation_customer', 'booking_confirmation_admin', 'staff_assignment', 'welcome', 'invitation'];
+        $settings = [];
+        
+        foreach ($notification_types as $type) {
+            $settings[$type] = [
+                'enabled' => $this->get_setting($user_id, 'email_' . $type . '_enabled', '1'),
+                'recipient' => $this->get_setting($user_id, 'email_' . $type . '_recipient', ''),
+                'use_primary' => $this->get_setting($user_id, 'email_' . $type . '_use_primary', '1')
+            ];
+        }
+        
+        return $settings;
+    }
+
+    /**
+     * Get the recipient email for a specific notification type
+     */
+    public function get_notification_recipient(int $user_id, string $notification_type): string {
+        $use_primary = $this->get_setting($user_id, 'email_' . $notification_type . '_use_primary', '1');
+        
+        if ($use_primary === '1') {
+            // Use primary business email
+            $primary_email = $this->get_setting($user_id, 'biz_email', '');
+            if (empty($primary_email)) {
+                // Fallback to user email
+                $user_info = get_userdata($user_id);
+                $primary_email = $user_info ? $user_info->user_email : get_option('admin_email');
+            }
+            return $primary_email;
+        } else {
+            // Use custom email
+            return $this->get_setting($user_id, 'email_' . $notification_type . '_recipient', '');
+        }
+    }
+
+    /**
+     * Check if a notification type is enabled
+     */
+    public function is_notification_enabled(int $user_id, string $notification_type): bool {
+        return $this->get_setting($user_id, 'email_' . $notification_type . '_enabled', '1') === '1';
     }
 
     public function get_setup_progress(int $user_id): array {

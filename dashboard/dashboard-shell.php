@@ -24,7 +24,7 @@ if ( ! current_user_can( \NORDBOOKING\Classes\Auth::ACCESS_NORDBOOKING_DASHBOARD
     wp_die( esc_html__( 'You do not have sufficient permissions to access this dashboard.', 'NORDBOOKING' ) );
 }
 
-// FIXED: Get the requested page from query vars set by the router
+// FIXED: Get the requested page from query vars set by the router FIRST
 $requested_page = get_query_var('nordbooking_dashboard_page');
 
 // Fallback methods if query var is not set
@@ -44,9 +44,27 @@ if (empty($requested_page)) {
     }
 }
 
+// Handle special case for trial-expired page
+if (empty($requested_page) && isset($_GET['page']) && $_GET['page'] === 'trial-expired') {
+    $requested_page = 'trial-expired';
+}
+
 // Final fallback to overview
 if (empty($requested_page)) {
     $requested_page = 'overview';
+}
+
+// Check subscription status and trial expiration AFTER requested page is determined
+$current_user_id = get_current_user_id();
+$subscription_status = '';
+
+if (class_exists('\NORDBOOKING\Classes\Subscription')) {
+    $subscription_status = \NORDBOOKING\Classes\Subscription::get_subscription_status($current_user_id);
+    
+    // If trial has expired, show trial expired page (except if on subscription page or already on trial-expired)
+    if ($subscription_status === 'expired_trial' && !in_array($requested_page, ['subscription', 'trial-expired'])) {
+        $requested_page = 'trial-expired';
+    }
 }
 
 error_log('[NORDBOOKING Shell Debug] Final determined requested page: ' . $requested_page);
@@ -65,6 +83,7 @@ $page_capabilities = [
     'availability' => \NORDBOOKING\Classes\Auth::CAP_MANAGE_AVAILABILITY,
     'customers' => \NORDBOOKING\Classes\Auth::CAP_VIEW_CUSTOMERS, // Use view capability for page access
     'subscription' => \NORDBOOKING\Classes\Auth::ACCESS_NORDBOOKING_DASHBOARD, // All dashboard users can access subscription
+    'trial-expired' => \NORDBOOKING\Classes\Auth::ACCESS_NORDBOOKING_DASHBOARD, // All dashboard users can access trial expired page
     // Add other specific pages like 'discount-edit', 'area-edit' if they exist and need specific manage caps
 ];
 

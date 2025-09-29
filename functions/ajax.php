@@ -662,6 +662,118 @@ if (!function_exists('nordbooking_log_ajax_error')) {
     }
 }
 
+// Registration AJAX Handler
+add_action('wp_ajax_nopriv_nordbooking_register', 'nordbooking_handle_registration');
+add_action('wp_ajax_nordbooking_register', 'nordbooking_handle_registration');
+
+if (!function_exists('nordbooking_handle_registration')) {
+    function nordbooking_handle_registration() {
+        // Security check
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'nordbooking_register_nonce')) {
+            wp_send_json_error(array('message' => 'Security check failed.'), 403);
+            return;
+        }
+
+        // Validate required fields
+        $first_name = sanitize_text_field($_POST['first_name'] ?? '');
+        $last_name = sanitize_text_field($_POST['last_name'] ?? '');
+        $email = sanitize_email($_POST['email'] ?? '');
+        $password = $_POST['password'] ?? '';
+        $password_confirm = $_POST['password_confirm'] ?? '';
+        $company_name = sanitize_text_field($_POST['company_name'] ?? '');
+        $selected_plan = sanitize_text_field($_POST['plan'] ?? '');
+
+        // Basic validation
+        if (empty($first_name) || empty($last_name) || empty($email) || empty($password)) {
+            wp_send_json_error(array('message' => 'Please fill in all required fields.'), 400);
+            return;
+        }
+
+        if ($password !== $password_confirm) {
+            wp_send_json_error(array('message' => 'Passwords do not match.'), 400);
+            return;
+        }
+
+        if (strlen($password) < 8) {
+            wp_send_json_error(array('message' => 'Password must be at least 8 characters long.'), 400);
+            return;
+        }
+
+        if (!is_email($email)) {
+            wp_send_json_error(array('message' => 'Please enter a valid email address.'), 400);
+            return;
+        }
+
+        if (email_exists($email)) {
+            wp_send_json_error(array('message' => 'An account with this email already exists.'), 400);
+            return;
+        }
+
+        try {
+            // Create user
+            $user_id = wp_create_user($email, $password, $email);
+            
+            if (is_wp_error($user_id)) {
+                wp_send_json_error(array('message' => $user_id->get_error_message()), 400);
+                return;
+            }
+
+            // Update user meta
+            wp_update_user(array(
+                'ID' => $user_id,
+                'first_name' => $first_name,
+                'last_name' => $last_name,
+                'display_name' => $first_name . ' ' . $last_name
+            ));
+
+            // Add business owner role
+            $user = new WP_User($user_id);
+            $user->add_role(\NORDBOOKING\Classes\Auth::ROLE_BUSINESS_OWNER);
+
+            // Save company name if provided
+            if (!empty($company_name)) {
+                if (isset($GLOBALS['nordbooking_settings_manager'])) {
+                    $GLOBALS['nordbooking_settings_manager']->update_setting($user_id, 'biz_name', $company_name);
+                }
+            }
+
+            // Create trial subscription
+            if (class_exists('\NORDBOOKING\Classes\Subscription')) {
+                try {
+                    \NORDBOOKING\Classes\Subscription::create_trial_subscription($user_id);
+                } catch (Exception $e) {
+                    error_log('Failed to create trial subscription for user ' . $user_id . ': ' . $e->getMessage());
+                }
+            }
+
+            // Send welcome email for new registration
+            nordbooking_send_registration_welcome_email($user_id);
+
+            // Log the user in
+            wp_set_current_user($user_id);
+            wp_set_auth_cookie($user_id);
+
+            // Determine redirect URL based on selected plan
+            $redirect_url = home_url('/dashboard/');
+            
+            if ($selected_plan === 'pro') {
+                // If user selected Pro plan, redirect to subscription page with plan parameter
+                $redirect_url = home_url('/dashboard/subscription/?plan=pro');
+            }
+
+            wp_send_json_success(array(
+                'message' => 'Registration successful!',
+                'redirect_url' => $redirect_url,
+                'user_id' => $user_id
+            ));
+
+        } catch (Exception $e) {
+            error_log('Registration error: ' . $e->getMessage());
+            wp_send_json_error(array('message' => 'Registration failed. Please try again.'), 500);
+        }
+    }
+}
+
 // Add debugging handler for admin-ajax.php
 add_action('wp_ajax_nordbooking_debug_ajax', 'nordbooking_debug_ajax_handler');
 if (!function_exists('nordbooking_debug_ajax_handler')) {

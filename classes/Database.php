@@ -63,8 +63,7 @@ class Database {
         $charset_collate = $wpdb->get_charset_collate();
         $dbDelta_results = [];
 
-        // Run performance optimizations after table creation
-        add_action('shutdown', [__CLASS__, 'optimize_existing_tables']);
+        // Performance optimizations are now handled separately to avoid activation errors
 
         // Services Table
         $table_name = self::get_table_name('services');
@@ -154,10 +153,10 @@ class Database {
         error_log('[NORDBOOKING DB Debug] Preparing SQL for bookings table: ' . $table_name);
         $sql_bookings = "CREATE TABLE $table_name (
             booking_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-            user_id BIGINT UNSIGNED NOT NULL, -- Tenant ID (Business Owner)
-            customer_id BIGINT UNSIGNED, -- Original field, maybe WordPress user ID of customer if they are registered users.
-            mob_customer_id BIGINT UNSIGNED NULL, -- FK to nordbooking_customers table (formerly mob_customers)
-            assigned_staff_id BIGINT UNSIGNED NULL, -- ID of the assigned staff member (WP User ID)
+            user_id BIGINT UNSIGNED NOT NULL,
+            customer_id BIGINT UNSIGNED,
+            mob_customer_id BIGINT UNSIGNED NULL,
+            assigned_staff_id BIGINT UNSIGNED NULL,
             customer_name VARCHAR(255) NOT NULL,
             customer_email VARCHAR(255) NOT NULL,
             customer_phone VARCHAR(50),
@@ -184,8 +183,8 @@ class Database {
             property_access_details TEXT,
             PRIMARY KEY (booking_id),
             INDEX user_id_idx (user_id),
-            INDEX customer_id_idx (customer_id), -- Original customer_id index
-            INDEX mob_customer_id_idx (mob_customer_id), -- Index for the new customer ID
+            INDEX customer_id_idx (customer_id),
+            INDEX mob_customer_id_idx (mob_customer_id),
             INDEX customer_email_idx (customer_email),
             INDEX zip_code_idx (zip_code),
             INDEX status_idx (status),
@@ -259,16 +258,15 @@ class Database {
         $sql_availability_rules = "CREATE TABLE $table_name_rules (
             slot_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
             user_id BIGINT UNSIGNED NOT NULL,
-            day_of_week TINYINT UNSIGNED NOT NULL COMMENT '0 for Sunday, 1 for Monday, ..., 6 for Saturday',
+            day_of_week TINYINT UNSIGNED NOT NULL,
             start_time TIME NOT NULL,
             end_time TIME NOT NULL,
-            capacity INT UNSIGNED NOT NULL DEFAULT 1 COMMENT 'Number of concurrent bookings allowed',
+            capacity INT UNSIGNED NOT NULL DEFAULT 1,
             is_active BOOLEAN NOT NULL DEFAULT 1,
             created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
             updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             PRIMARY KEY (slot_id),
             INDEX user_id_day_idx (user_id, day_of_week)
-            -- CONSTRAINT check_day_of_week CHECK (day_of_week BETWEEN 0 AND 6) -- Removed for dbDelta compatibility
         ) $charset_collate;";
         error_log('[NORDBOOKING DB Debug] SQL for availability_rules table: ' . preg_replace('/\s+/', ' ', $sql_availability_rules));
         $dbDelta_results['availability_rules'] = dbDelta( $sql_availability_rules );
@@ -283,7 +281,7 @@ class Database {
             start_time TIME,
             end_time TIME,
             capacity INT UNSIGNED DEFAULT 1,
-            is_unavailable BOOLEAN NOT NULL DEFAULT 0 COMMENT 'If true, this whole day (or specific time range if start/end provided) is off',
+            is_unavailable BOOLEAN NOT NULL DEFAULT 0,
             notes TEXT,
             created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
             updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -307,18 +305,18 @@ class Database {
         // If start_time/end_time are NOT NULL and is_unavailable=0, it's a custom slot.
         // It doesn't make sense to have is_unavailable=1 AND specific times. This will be handled by application logic.
         $sql_availability_exceptions = "CREATE TABLE $table_name_exceptions (
-            exception_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT, -- Renamed from override_id
+            exception_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
             user_id BIGINT UNSIGNED NOT NULL,
-            exception_date DATE NOT NULL, -- Renamed from override_date
-            start_time TIME NULL, -- Null if is_unavailable is true for the whole day
-            end_time TIME NULL,   -- Null if is_unavailable is true for the whole day
-            capacity INT UNSIGNED DEFAULT 1, -- Relevant if not is_unavailable
-            is_unavailable BOOLEAN NOT NULL DEFAULT 0 COMMENT 'True if this date is entirely unavailable, ignoring start/end time',
+            exception_date DATE NOT NULL,
+            start_time TIME NULL,
+            end_time TIME NULL,
+            capacity INT UNSIGNED DEFAULT 1,
+            is_unavailable BOOLEAN NOT NULL DEFAULT 0,
             notes TEXT,
             created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
             updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-            PRIMARY KEY (exception_id), -- Renamed from override_id
-            UNIQUE KEY user_exception_date_unique (user_id, exception_date) -- Renamed from user_override_date_unique
+            PRIMARY KEY (exception_id),
+            UNIQUE KEY user_exception_date_unique (user_id, exception_date)
         ) $charset_collate;";
         error_log('[NORDBOOKING DB Debug] SQL for availability_exceptions table: ' . preg_replace('/\s+/', ' ', $sql_availability_exceptions));
         $dbDelta_results['availability_exceptions'] = dbDelta( $sql_availability_exceptions );
@@ -329,8 +327,8 @@ class Database {
         error_log('[NORDBOOKING DB Debug] Preparing SQL for customers table: ' . $table_name_customers);
         $sql_customers = "CREATE TABLE $table_name_customers (
             id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-            wp_user_id BIGINT UNSIGNED NULL, -- Link to WordPress user table if the customer is a registered WP user
-            tenant_id BIGINT UNSIGNED NOT NULL, -- The business owner (user_id from wp_users) this customer belongs to
+            wp_user_id BIGINT UNSIGNED NULL,
+            tenant_id BIGINT UNSIGNED NOT NULL,
             full_name VARCHAR(255) NOT NULL,
             email VARCHAR(255) NOT NULL,
             phone_number VARCHAR(50),
@@ -340,14 +338,14 @@ class Database {
             state VARCHAR(100),
             zip_code VARCHAR(20),
             country VARCHAR(100),
-            status VARCHAR(20) NOT NULL DEFAULT 'active' COMMENT 'e.g., active, inactive, blacklisted',
+            status VARCHAR(20) NOT NULL DEFAULT 'active',
             total_bookings INT UNSIGNED NOT NULL DEFAULT 0,
             last_booking_date DATETIME NULL,
             created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
             updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             last_activity_at DATETIME NULL,
             PRIMARY KEY (id),
-            INDEX tenant_id_email_idx (tenant_id, email), -- Unique customer per tenant by email
+            INDEX tenant_id_email_idx (tenant_id, email),
             INDEX tenant_id_status_idx (tenant_id, status),
             INDEX wp_user_id_idx (wp_user_id),
             INDEX tenant_id_idx (tenant_id),
@@ -390,33 +388,33 @@ class Database {
 
         error_log('[NORDBOOKING DB Debug] Running table optimizations...');
 
-        // Add missing indexes to existing tables
+        // Add missing indexes to existing tables - Fixed SQL syntax
         $optimizations = [
             // Bookings table optimizations
             self::get_table_name('bookings') => [
-                'idx_user_status_date' => 'ADD INDEX IF NOT EXISTS idx_user_status_date (user_id, status, booking_date)',
-                'idx_customer_email_date' => 'ADD INDEX IF NOT EXISTS idx_customer_email_date (customer_email, booking_date)',
-                'idx_status_created' => 'ADD INDEX IF NOT EXISTS idx_status_created (status, created_at)',
-                'idx_booking_date_time' => 'ADD INDEX IF NOT EXISTS idx_booking_date_time (booking_date, booking_time)',
-                'idx_user_date_status' => 'ADD INDEX IF NOT EXISTS idx_user_date_status (user_id, booking_date, status)'
+                'idx_user_status_date' => 'ADD INDEX idx_user_status_date (user_id, status, booking_date)',
+                'idx_customer_email_date' => 'ADD INDEX idx_customer_email_date (customer_email, booking_date)',
+                'idx_status_created' => 'ADD INDEX idx_status_created (status, created_at)',
+                'idx_booking_date_time' => 'ADD INDEX idx_booking_date_time (booking_date, booking_time)',
+                'idx_user_date_status' => 'ADD INDEX idx_user_date_status (user_id, booking_date, status)'
             ],
             // Services table optimizations
             self::get_table_name('services') => [
-                'idx_user_status_sort' => 'ADD INDEX IF NOT EXISTS idx_user_status_sort (user_id, status, sort_order)',
-                'idx_status_active' => 'ADD INDEX IF NOT EXISTS idx_status_active (status)'
+                'idx_user_status_sort' => 'ADD INDEX idx_user_status_sort (user_id, status, sort_order)',
+                'idx_status_active' => 'ADD INDEX idx_status_active (status)'
             ],
             // Service options optimizations
             self::get_table_name('service_options') => [
-                'idx_service_user' => 'ADD INDEX IF NOT EXISTS idx_service_user (service_id, user_id)'
+                'idx_service_user' => 'ADD INDEX idx_service_user (service_id, user_id)'
             ],
             // Customers table optimizations
             self::get_table_name('customers') => [
-                'idx_tenant_status_activity' => 'ADD INDEX IF NOT EXISTS idx_tenant_status_activity (tenant_id, status, last_activity_at)',
-                'idx_tenant_email_unique' => 'ADD INDEX IF NOT EXISTS idx_tenant_email_unique (tenant_id, email)'
+                'idx_tenant_status_activity' => 'ADD INDEX idx_tenant_status_activity (tenant_id, status, last_activity_at)',
+                'idx_tenant_email_unique' => 'ADD INDEX idx_tenant_email_unique (tenant_id, email)'
             ],
             // Booking items optimizations
             self::get_table_name('booking_items') => [
-                'idx_booking_service' => 'ADD INDEX IF NOT EXISTS idx_booking_service (booking_id, service_id)'
+                'idx_booking_service' => 'ADD INDEX idx_booking_service (booking_id, service_id)'
             ]
         ];
 
@@ -427,14 +425,21 @@ class Database {
             }
 
             foreach ($indexes as $index_name => $sql) {
-                // Check if index already exists
-                $existing_indexes = $wpdb->get_results("SHOW INDEX FROM $table_name WHERE Key_name = '$index_name'");
+                // Check if index already exists - safer method
+                $existing_indexes = $wpdb->get_results($wpdb->prepare("SHOW INDEX FROM `%s` WHERE Key_name = %s", $table_name, $index_name));
                 
                 if (empty($existing_indexes)) {
-                    $result = $wpdb->query("ALTER TABLE $table_name $sql");
-                    if ($result === false) {
-                        error_log("[NORDBOOKING DB Optimization] Failed to add index $index_name to $table_name: " . $wpdb->last_error);
-                    } else {
+                    // Suppress errors temporarily to avoid warnings
+                    $wpdb->suppress_errors(true);
+                    $result = $wpdb->query("ALTER TABLE `$table_name` $sql");
+                    $wpdb->suppress_errors(false);
+                    
+                    if ($result === false && !empty($wpdb->last_error)) {
+                        // Only log if it's not a "duplicate key" error
+                        if (strpos($wpdb->last_error, 'Duplicate key name') === false) {
+                            error_log("[NORDBOOKING DB Optimization] Failed to add index $index_name to $table_name: " . $wpdb->last_error);
+                        }
+                    } elseif ($result !== false) {
                         error_log("[NORDBOOKING DB Optimization] Successfully added index $index_name to $table_name");
                     }
                 }

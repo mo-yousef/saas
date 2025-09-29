@@ -137,6 +137,14 @@ $nbk_text_domain = 'nord-booking';
         letter-spacing: -0.025em;
     }
 
+    /* NBK Footer Grid */
+    .nbk-footer__grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 3rem;
+        margin-bottom: 3rem;
+    }
+
     /* NBK Responsive Footer */
     @media (max-width: 768px) {
         .nbk-footer {
@@ -217,8 +225,8 @@ $nbk_text_domain = 'nord-booking';
             <div class="nbk-footer__section">
                 <h3><?php _e('Product', $nbk_text_domain); ?></h3>
                 <ul>
-                    <li><a href="<?php echo esc_url(home_url('/#features')); ?>" class="nbk-link"><?php _e('Features', $nbk_text_domain); ?></a></li>
-                    <li><a href="<?php echo esc_url(home_url('/#pricing')); ?>" class="nbk-link"><?php _e('Pricing', $nbk_text_domain); ?></a></li>
+                    <li><a href="<?php echo esc_url(home_url('/features/')); ?>" class="nbk-link"><?php _e('Features', $nbk_text_domain); ?></a></li>
+                    <li><a href="<?php echo esc_url(home_url('/pricing/')); ?>" class="nbk-link"><?php _e('Pricing', $nbk_text_domain); ?></a></li>
                     <li><a href="<?php echo esc_url(home_url('/api/')); ?>" class="nbk-link"><?php _e('API', $nbk_text_domain); ?></a></li>
                     <li><a href="<?php echo esc_url(home_url('/integrations/')); ?>" class="nbk-link"><?php _e('Integrations', $nbk_text_domain); ?></a></li>
                     <li><a href="<?php echo esc_url(home_url('/changelog/')); ?>" class="nbk-link"><?php _e('Changelog', $nbk_text_domain); ?></a></li>

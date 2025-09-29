@@ -30,8 +30,8 @@ require_once NORDBOOKING_THEME_DIR . 'functions/utilities.php';
 require_once NORDBOOKING_THEME_DIR . 'functions/debug.php';
 require_once NORDBOOKING_THEME_DIR . 'functions/email.php';
 require_once NORDBOOKING_THEME_DIR . 'functions/ajax-fixes.php';
-include_once get_template_directory() . '/debug-settings.php';
-include_once get_template_directory() . '/test-settings-js.php';
+require_once NORDBOOKING_THEME_DIR . 'functions/access-control.php';
+require_once NORDBOOKING_THEME_DIR . 'functions/booking-form-restrictions.php';
 
 // =============================================================================
 // LOGO UPLOAD HANDLER
@@ -254,6 +254,856 @@ function nordbooking_handle_logo_upload() {
 // Include performance monitoring
 if (file_exists(NORDBOOKING_THEME_DIR . 'performance_monitoring.php')) {
     require_once NORDBOOKING_THEME_DIR . 'performance_monitoring.php';
+}
+
+// =============================================================================
+// TRIAL REMINDER CRON JOB SYSTEM
+// =============================================================================
+
+// Schedule the trial reminder cron job
+add_action('wp', 'nordbooking_schedule_trial_reminders');
+
+function nordbooking_schedule_trial_reminders() {
+    if (!wp_next_scheduled('nordbooking_send_trial_reminders')) {
+        wp_schedule_event(time(), 'daily', 'nordbooking_send_trial_reminders');
+    }
+}
+
+// Hook the trial reminder function to the cron job
+add_action('nordbooking_send_trial_reminders', 'nordbooking_process_trial_reminders');
+
+function nordbooking_process_trial_reminders() {
+    global $wpdb;
+    
+    // Get all users with trials that expire tomorrow (day 6 of 7-day trial)
+    $subscriptions_table = $wpdb->prefix . 'nordbooking_subscriptions';
+    
+    // Calculate tomorrow's date
+    $tomorrow = date('Y-m-d', strtotime('+1 day'));
+    
+    // Find trials expiring tomorrow
+    $expiring_trials = $wpdb->get_results($wpdb->prepare(
+        "SELECT user_id, trial_ends_at FROM {$subscriptions_table} 
+         WHERE status = 'trial' 
+         AND DATE(trial_ends_at) = %s",
+        $tomorrow
+    ));
+    
+    if (empty($expiring_trials)) {
+        error_log('NORDBOOKING: No trials expiring tomorrow found.');
+        return;
+    }
+    
+    error_log('NORDBOOKING: Found ' . count($expiring_trials) . ' trials expiring tomorrow.');
+    
+    $notifications = new \NORDBOOKING\Classes\Notifications();
+    
+    foreach ($expiring_trials as $trial) {
+        $user_id = $trial->user_id;
+        
+        // Check if reminder was already sent
+        $reminder_sent = get_user_meta($user_id, 'nordbooking_trial_reminder_sent', true);
+        if (!empty($reminder_sent)) {
+            // Check if reminder was sent for this trial period
+            $reminder_date = date('Y-m-d', strtotime($reminder_sent));
+            $trial_start_date = date('Y-m-d', strtotime($trial->trial_ends_at . ' -7 days'));
+            
+            if ($reminder_date >= $trial_start_date) {
+                error_log("NORDBOOKING: Trial reminder already sent to user {$user_id}");
+                continue;
+            }
+        }
+        
+        // Send the reminder email
+        $email_sent = $notifications->send_trial_reminder_email($user_id);
+        
+        if ($email_sent) {
+            error_log("NORDBOOKING: Trial reminder email sent successfully to user {$user_id}");
+        } else {
+            error_log("NORDBOOKING: Failed to send trial reminder email to user {$user_id}");
+        }
+    }
+}
+
+// Clean up the cron job when theme is deactivated
+add_action('switch_theme', 'nordbooking_cleanup_cron_jobs');
+
+function nordbooking_cleanup_cron_jobs() {
+    wp_clear_scheduled_hook('nordbooking_send_trial_reminders');
+}
+
+// Add admin action to manually trigger trial reminders (for testing)
+add_action('wp_ajax_nordbooking_test_trial_reminders', 'nordbooking_test_trial_reminders');
+
+function nordbooking_test_trial_reminders() {
+    if (!current_user_can('manage_options')) {
+        wp_die('Unauthorized');
+    }
+    
+    error_log('NORDBOOKING: Manual trial reminder test triggered');
+    nordbooking_process_trial_reminders();
+    
+    wp_send_json_success(['message' => 'Trial reminder process completed. Check error logs for details.']);
+}
+
+// Add admin action to manually send trial reminder to current user (for testing)
+add_action('wp_ajax_nordbooking_test_send_trial_reminder', 'nordbooking_test_send_trial_reminder');
+
+function nordbooking_test_send_trial_reminder() {
+    if (!is_user_logged_in()) {
+        wp_die('Unauthorized');
+    }
+    
+    $user_id = get_current_user_id();
+    $notifications = new \NORDBOOKING\Classes\Notifications();
+    
+    $email_sent = $notifications->send_trial_reminder_email($user_id);
+    
+    if ($email_sent) {
+        wp_send_json_success(['message' => 'Trial reminder email sent successfully to your email address.']);
+    } else {
+        wp_send_json_error(['message' => 'Failed to send trial reminder email.']);
+    }
+}
+
+// =============================================================================
+// SUBSCRIPTION AJAX HANDLERS
+// =============================================================================
+
+// Create Stripe checkout session
+add_action('wp_ajax_nordbooking_create_checkout_session', 'nordbooking_create_checkout_session');
+
+function nordbooking_create_checkout_session() {
+    // Debug logging
+    error_log('NORDBOOKING: Checkout session AJAX called');
+    error_log('NORDBOOKING: POST data: ' . print_r($_POST, true));
+    
+    if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'nordbooking_dashboard_nonce')) {
+        error_log('NORDBOOKING: Nonce verification failed. Received: ' . ($_POST['nonce'] ?? 'none'));
+        wp_send_json_error(['message' => 'Security check failed: Invalid nonce.']);
+        return;
+    }
+    
+    if (!is_user_logged_in()) {
+        wp_send_json_error(['message' => 'You must be logged in.']);
+        return;
+    }
+    
+    $user_id = get_current_user_id();
+    
+    try {
+        if (!class_exists('\NORDBOOKING\Classes\StripeConfig') || !class_exists('\NORDBOOKING\Classes\Subscription')) {
+            wp_send_json_error(['message' => 'Subscription system not available.']);
+            return;
+        }
+        
+        if (!\NORDBOOKING\Classes\StripeConfig::is_configured()) {
+            wp_send_json_error(['message' => 'Stripe is not configured.']);
+            return;
+        }
+        
+        \Stripe\Stripe::setApiKey(\NORDBOOKING\Classes\StripeConfig::get_secret_key());
+        
+        // Get or create Stripe customer
+        $subscription = \NORDBOOKING\Classes\Subscription::get_subscription($user_id);
+        $stripe_customer_id = null;
+        
+        if ($subscription && !empty($subscription['stripe_customer_id'])) {
+            $stripe_customer_id = $subscription['stripe_customer_id'];
+        } else {
+            $stripe_customer_id = \NORDBOOKING\Classes\Subscription::create_stripe_customer($user_id);
+        }
+        
+        // Get price ID
+        $price_id = \NORDBOOKING\Classes\StripeConfig::get_price_id();
+        if (!$price_id) {
+            wp_send_json_error(['message' => 'Pricing not configured.']);
+            return;
+        }
+        
+        // Create checkout session
+        $checkout_session = \Stripe\Checkout\Session::create([
+            'customer' => $stripe_customer_id,
+            'payment_method_types' => ['card'],
+            'line_items' => [[
+                'price' => $price_id,
+                'quantity' => 1,
+            ]],
+            'mode' => 'subscription',
+            'success_url' => home_url('/dashboard/subscription/?success=1'),
+            'cancel_url' => home_url('/dashboard/subscription/?cancelled=1'),
+            'metadata' => [
+                'user_id' => $user_id,
+            ],
+        ]);
+        
+        wp_send_json_success(['checkout_url' => $checkout_session->url]);
+        
+    } catch (Exception $e) {
+        error_log('NORDBOOKING: Checkout session creation failed: ' . $e->getMessage());
+        wp_send_json_error(['message' => 'Failed to create checkout session: ' . $e->getMessage()]);
+    }
+}
+
+// Cancel subscription
+add_action('wp_ajax_nordbooking_cancel_subscription', 'nordbooking_cancel_subscription');
+
+function nordbooking_cancel_subscription() {
+    if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'nordbooking_dashboard_nonce')) {
+        wp_send_json_error(['message' => 'Security check failed: Invalid nonce.']);
+        return;
+    }
+    
+    if (!is_user_logged_in()) {
+        wp_send_json_error(['message' => 'You must be logged in.']);
+        return;
+    }
+    
+    $user_id = get_current_user_id();
+    
+    try {
+        if (!class_exists('\NORDBOOKING\Classes\Subscription')) {
+            wp_send_json_error(['message' => 'Subscription system not available.']);
+            return;
+        }
+        
+        $subscription = \NORDBOOKING\Classes\Subscription::get_subscription($user_id);
+        if (!$subscription || empty($subscription['stripe_subscription_id'])) {
+            wp_send_json_error(['message' => 'No active subscription found.']);
+            return;
+        }
+        
+        \Stripe\Stripe::setApiKey(\NORDBOOKING\Classes\StripeConfig::get_secret_key());
+        
+        // Cancel the subscription at period end
+        $stripe_subscription = \Stripe\Subscription::update($subscription['stripe_subscription_id'], [
+            'cancel_at_period_end' => true,
+        ]);
+        
+        // Update local subscription
+        global $wpdb;
+        $subscriptions_table = $wpdb->prefix . 'nordbooking_subscriptions';
+        $wpdb->update(
+            $subscriptions_table,
+            ['status' => 'cancelled'],
+            ['user_id' => $user_id],
+            ['%s'],
+            ['%d']
+        );
+        
+        wp_send_json_success(['message' => 'Subscription cancelled successfully.']);
+        
+    } catch (Exception $e) {
+        error_log('NORDBOOKING: Subscription cancellation failed: ' . $e->getMessage());
+        wp_send_json_error(['message' => 'Failed to cancel subscription: ' . $e->getMessage()]);
+    }
+}
+
+// Create billing portal session
+add_action('wp_ajax_nordbooking_create_billing_portal_session', 'nordbooking_create_billing_portal_session');
+
+function nordbooking_create_billing_portal_session() {
+    if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'nordbooking_dashboard_nonce')) {
+        wp_send_json_error(['message' => 'Security check failed: Invalid nonce.']);
+        return;
+    }
+    
+    if (!is_user_logged_in()) {
+        wp_send_json_error(['message' => 'You must be logged in.']);
+        return;
+    }
+    
+    $user_id = get_current_user_id();
+    
+    try {
+        if (!class_exists('\NORDBOOKING\Classes\Subscription')) {
+            wp_send_json_error(['message' => 'Subscription system not available.']);
+            return;
+        }
+        
+        $subscription = \NORDBOOKING\Classes\Subscription::get_subscription($user_id);
+        if (!$subscription || empty($subscription['stripe_customer_id'])) {
+            wp_send_json_error(['message' => 'No customer record found.']);
+            return;
+        }
+        
+        \Stripe\Stripe::setApiKey(\NORDBOOKING\Classes\StripeConfig::get_secret_key());
+        
+        // Create billing portal session
+        try {
+            $portal_session = \Stripe\BillingPortal\Session::create([
+                'customer' => $subscription['stripe_customer_id'],
+                'return_url' => home_url('/dashboard/subscription/'),
+            ]);
+            
+            wp_send_json_success(['portal_url' => $portal_session->url]);
+        } catch (\Stripe\Exception\InvalidRequestException $e) {
+            if (strpos($e->getMessage(), 'configuration') !== false) {
+                wp_send_json_error(['message' => 'Billing portal is not configured. Please contact support or configure the billing portal in your Stripe dashboard.']);
+            } else {
+                throw $e; // Re-throw if it's a different error
+            }
+        }
+        
+    } catch (Exception $e) {
+        error_log('NORDBOOKING: Billing portal creation failed: ' . $e->getMessage());
+        wp_send_json_error(['message' => 'Failed to create billing portal: ' . $e->getMessage()]);
+    }
+}
+
+// Check Stripe configuration status
+add_action('wp_ajax_nordbooking_check_stripe_config', 'nordbooking_check_stripe_config');
+
+function nordbooking_check_stripe_config() {
+    if (!current_user_can('manage_options')) {
+        wp_die('Unauthorized');
+    }
+    
+    $config_status = [
+        'configured' => false,
+        'has_api_keys' => false,
+        'has_price_id' => false,
+        'billing_portal_configured' => false,
+        'test_mode' => true,
+        'issues' => []
+    ];
+    
+    if (class_exists('\NORDBOOKING\Classes\StripeConfig')) {
+        $config_status['has_api_keys'] = \NORDBOOKING\Classes\StripeConfig::has_api_keys();
+        $config_status['has_price_id'] = !empty(\NORDBOOKING\Classes\StripeConfig::get_price_id());
+        $config_status['test_mode'] = \NORDBOOKING\Classes\StripeConfig::is_test_mode();
+        $config_status['configured'] = \NORDBOOKING\Classes\StripeConfig::is_configured();
+        
+        if (!$config_status['has_api_keys']) {
+            $config_status['issues'][] = 'Stripe API keys not configured';
+        }
+        
+        if (!$config_status['has_price_id']) {
+            $config_status['issues'][] = 'Stripe price ID not configured';
+        }
+        
+        // Test billing portal configuration
+        if ($config_status['configured']) {
+            try {
+                \Stripe\Stripe::setApiKey(\NORDBOOKING\Classes\StripeConfig::get_secret_key());
+                
+                // Try to create a test billing portal configuration check
+                $configurations = \Stripe\BillingPortal\Configuration::all(['limit' => 1]);
+                $config_status['billing_portal_configured'] = count($configurations->data) > 0;
+                
+                if (!$config_status['billing_portal_configured']) {
+                    $config_status['issues'][] = 'Billing portal not configured in Stripe dashboard';
+                }
+                
+            } catch (Exception $e) {
+                $config_status['issues'][] = 'Stripe API connection failed: ' . $e->getMessage();
+            }
+        }
+    } else {
+        $config_status['issues'][] = 'StripeConfig class not found';
+    }
+    
+    wp_send_json_success($config_status);
+}
+
+// Get invoices
+add_action('wp_ajax_nordbooking_get_invoices', 'nordbooking_get_invoices');
+
+function nordbooking_get_invoices() {
+    if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'nordbooking_dashboard_nonce')) {
+        wp_send_json_error(['message' => 'Security check failed: Invalid nonce.']);
+        return;
+    }
+    
+    if (!is_user_logged_in()) {
+        wp_send_json_error(['message' => 'You must be logged in.']);
+        return;
+    }
+    
+    $user_id = get_current_user_id();
+    
+    try {
+        if (!class_exists('\NORDBOOKING\Classes\Subscription')) {
+            wp_send_json_error(['message' => 'Subscription system not available.']);
+            return;
+        }
+        
+        $subscription = \NORDBOOKING\Classes\Subscription::get_subscription($user_id);
+        if (!$subscription || empty($subscription['stripe_customer_id'])) {
+            wp_send_json_success(['invoices' => []]);
+            return;
+        }
+        
+        \Stripe\Stripe::setApiKey(\NORDBOOKING\Classes\StripeConfig::get_secret_key());
+        
+        // Get invoices from Stripe
+        $invoices = \Stripe\Invoice::all([
+            'customer' => $subscription['stripe_customer_id'],
+            'limit' => 10,
+        ]);
+        
+        $invoice_data = [];
+        foreach ($invoices->data as $invoice) {
+            $invoice_data[] = [
+                'id' => $invoice->id,
+                'created' => $invoice->created,
+                'amount_paid' => $invoice->amount_paid,
+                'status' => $invoice->status,
+                'invoice_pdf' => $invoice->invoice_pdf,
+                'hosted_invoice_url' => $invoice->hosted_invoice_url,
+            ];
+        }
+        
+        wp_send_json_success(['invoices' => $invoice_data]);
+        
+    } catch (Exception $e) {
+        error_log('NORDBOOKING: Invoice retrieval failed: ' . $e->getMessage());
+        wp_send_json_error(['message' => 'Failed to retrieve invoices: ' . $e->getMessage()]);
+    }
+}
+
+// =============================================================================
+// TEST ACCOUNT CREATION
+// =============================================================================
+
+// Add admin action to create test account
+add_action('wp_ajax_nordbooking_create_test_account', 'nordbooking_create_test_account');
+
+function nordbooking_create_test_account() {
+    if (!current_user_can('manage_options')) {
+        wp_die('Unauthorized');
+    }
+    
+    $test_email = 'test@nordbooking.local';
+    $test_password = 'TestAccount123!';
+    $test_company = 'Test Cleaning Company';
+    
+    // Check if test user already exists
+    $existing_user = get_user_by('email', $test_email);
+    if ($existing_user) {
+        wp_send_json_error(['message' => 'Test account already exists. Email: ' . $test_email . ', Password: ' . $test_password]);
+        return;
+    }
+    
+    try {
+        // Create test user
+        $user_id = wp_create_user($test_email, $test_password, $test_email);
+        
+        if (is_wp_error($user_id)) {
+            wp_send_json_error(['message' => 'Failed to create test user: ' . $user_id->get_error_message()]);
+            return;
+        }
+        
+        // Update user profile
+        wp_update_user([
+            'ID' => $user_id,
+            'first_name' => 'Test',
+            'last_name' => 'User',
+            'display_name' => 'Test User'
+        ]);
+        
+        // Set business owner role
+        $user = new WP_User($user_id);
+        $user->set_role(\NORDBOOKING\Classes\Auth::ROLE_BUSINESS_OWNER);
+        
+        // Save company name
+        update_user_meta($user_id, 'nordbooking_company_name', $test_company);
+        
+        // Initialize settings
+        if (isset($GLOBALS['nordbooking_settings_manager'])) {
+            $settings_manager = $GLOBALS['nordbooking_settings_manager'];
+            $settings_manager->update_setting($user_id, 'biz_name', $test_company);
+            
+            // Generate business slug
+            $base_slug = sanitize_title($test_company);
+            $settings_manager->update_setting($user_id, 'bf_business_slug', $base_slug);
+        }
+        
+        // Initialize default settings
+        if (class_exists('NORDBOOKING\Classes\Settings') && method_exists('NORDBOOKING\Classes\Settings', 'initialize_default_settings')) {
+            \NORDBOOKING\Classes\Settings::initialize_default_settings($user_id);
+        }
+        
+        // Create trial subscription
+        if (class_exists('NORDBOOKING\Classes\Subscription')) {
+            \NORDBOOKING\Classes\Subscription::create_trial_subscription($user_id);
+        }
+        
+        wp_send_json_success([
+            'message' => 'Test account created successfully!',
+            'login_details' => [
+                'email' => $test_email,
+                'password' => $test_password,
+                'login_url' => home_url('/login/'),
+                'dashboard_url' => home_url('/dashboard/')
+            ]
+        ]);
+        
+    } catch (Exception $e) {
+        error_log('NORDBOOKING: Test account creation failed: ' . $e->getMessage());
+        wp_send_json_error(['message' => 'Failed to create test account: ' . $e->getMessage()]);
+    }
+}
+
+// Create test trial expiring tomorrow (for testing reminder emails)
+add_action('wp_ajax_nordbooking_create_expiring_trial', 'nordbooking_create_expiring_trial');
+
+function nordbooking_create_expiring_trial() {
+    if (!current_user_can('manage_options')) {
+        wp_die('Unauthorized');
+    }
+    
+    $test_email = 'expiring@nordbooking.local';
+    $test_password = 'ExpiringTrial123!';
+    $test_company = 'Expiring Trial Company';
+    
+    // Check if test user already exists
+    $existing_user = get_user_by('email', $test_email);
+    if ($existing_user) {
+        // Update existing user's trial to expire tomorrow
+        $user_id = $existing_user->ID;
+    } else {
+        try {
+            // Create test user
+            $user_id = wp_create_user($test_email, $test_password, $test_email);
+            
+            if (is_wp_error($user_id)) {
+                wp_send_json_error(['message' => 'Failed to create test user: ' . $user_id->get_error_message()]);
+                return;
+            }
+            
+            // Update user profile
+            wp_update_user([
+                'ID' => $user_id,
+                'first_name' => 'Expiring',
+                'last_name' => 'Trial',
+                'display_name' => 'Expiring Trial'
+            ]);
+            
+            // Set business owner role
+            $user = new WP_User($user_id);
+            $user->set_role(\NORDBOOKING\Classes\Auth::ROLE_BUSINESS_OWNER);
+            
+            // Save company name
+            update_user_meta($user_id, 'nordbooking_company_name', $test_company);
+        } catch (Exception $e) {
+            wp_send_json_error(['message' => 'Failed to create test user: ' . $e->getMessage()]);
+            return;
+        }
+    }
+    
+    try {
+        // Create/update trial subscription that expires tomorrow
+        global $wpdb;
+        $subscriptions_table = $wpdb->prefix . 'nordbooking_subscriptions';
+        
+        // Delete existing subscription
+        $wpdb->delete($subscriptions_table, ['user_id' => $user_id], ['%d']);
+        
+        // Create new trial expiring tomorrow
+        $trial_ends_at = date('Y-m-d H:i:s', strtotime('+1 day'));
+        
+        $wpdb->insert($subscriptions_table, [
+            'user_id' => $user_id,
+            'status' => 'trial',
+            'trial_ends_at' => $trial_ends_at,
+            'created_at' => current_time('mysql'),
+            'updated_at' => current_time('mysql')
+        ]);
+        
+        wp_send_json_success([
+            'message' => 'Test trial account created/updated successfully!',
+            'details' => [
+                'email' => $test_email,
+                'password' => $test_password,
+                'expires_at' => $trial_ends_at,
+                'login_url' => home_url('/login/'),
+                'note' => 'This trial will expire tomorrow and should trigger a reminder email.'
+            ]
+        ]);
+        
+    } catch (Exception $e) {
+        error_log('NORDBOOKING: Expiring trial creation failed: ' . $e->getMessage());
+        wp_send_json_error(['message' => 'Failed to create expiring trial: ' . $e->getMessage()]);
+    }
+}
+
+// =============================================================================
+// ADMIN TEST PANEL
+// =============================================================================
+
+// Add admin menu for testing
+add_action('admin_menu', 'nordbooking_add_test_admin_menu');
+
+function nordbooking_add_test_admin_menu() {
+    add_submenu_page(
+        'tools.php',
+        'Nord Booking Tests',
+        'Nord Booking Tests',
+        'manage_options',
+        'nordbooking-tests',
+        'nordbooking_test_admin_page'
+    );
+}
+
+function nordbooking_test_admin_page() {
+    ?>
+    <div class="wrap">
+        <h1>Nord Booking Test Panel</h1>
+        
+        <div class="card" style="max-width: 800px;">
+            <h2>Test Account Management</h2>
+            <p>Create a test account to verify subscription functionality.</p>
+            
+            <button id="create-test-account" class="button button-primary">Create Test Account</button>
+            <button id="test-trial-reminders" class="button button-secondary">Test Trial Reminders</button>
+            <button id="create-expiring-trial" class="button button-secondary">Create Trial Expiring Tomorrow</button>
+            <button id="check-stripe-config" class="button button-secondary">Check Stripe Configuration</button>
+            
+            <div id="test-results" style="margin-top: 20px; padding: 15px; background: #f9f9f9; border-radius: 4px; display: none;">
+                <h3>Test Results:</h3>
+                <div id="test-output"></div>
+            </div>
+        </div>
+        
+        <div class="card" style="max-width: 800px; margin-top: 20px;">
+            <h2>Stripe Configuration Status</h2>
+            <?php
+            $stripe_configured = false;
+            $config_details = [];
+            
+            if (class_exists('\NORDBOOKING\Classes\StripeConfig')) {
+                $stripe_configured = \NORDBOOKING\Classes\StripeConfig::is_configured();
+                $config_details = [
+                    'Test Mode' => \NORDBOOKING\Classes\StripeConfig::is_test_mode() ? 'Yes' : 'No',
+                    'Has API Keys' => \NORDBOOKING\Classes\StripeConfig::has_api_keys() ? 'Yes' : 'No',
+                    'Has Price ID' => \NORDBOOKING\Classes\StripeConfig::get_price_id() ? 'Yes' : 'No',
+                    'Trial Days' => \NORDBOOKING\Classes\StripeConfig::get_trial_days(),
+                    'Currency' => strtoupper(\NORDBOOKING\Classes\StripeConfig::get_currency()),
+                ];
+            }
+            ?>
+            
+            <p><strong>Status:</strong> 
+                <span style="color: <?php echo $stripe_configured ? 'green' : 'red'; ?>;">
+                    <?php echo $stripe_configured ? 'Configured' : 'Not Configured'; ?>
+                </span>
+            </p>
+            
+            <?php if (!empty($config_details)): ?>
+            <table class="widefat">
+                <thead>
+                    <tr>
+                        <th>Setting</th>
+                        <th>Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($config_details as $key => $value): ?>
+                    <tr>
+                        <td><?php echo esc_html($key); ?></td>
+                        <td><?php echo esc_html($value); ?></td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+            <?php endif; ?>
+            
+            <?php if (!$stripe_configured): ?>
+            <div style="background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 4px; margin-top: 15px;">
+                <strong>Setup Required:</strong> Please configure Stripe settings to enable subscription functionality.
+                <br><br>
+                <strong>Setup Steps:</strong>
+                <ol>
+                    <li>Configure Stripe API keys in your settings</li>
+                    <li>Set up a product and price in Stripe dashboard</li>
+                    <li>Configure the billing portal in Stripe dashboard: <a href="https://dashboard.stripe.com/test/settings/billing/portal" target="_blank">Test Mode Portal Settings</a></li>
+                    <li>Update your webhook endpoints if needed</li>
+                </ol>
+            </div>
+            <?php endif; ?>
+        </div>
+    </div>
+    
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const createTestBtn = document.getElementById('create-test-account');
+        const testTrialBtn = document.getElementById('test-trial-reminders');
+        const expiringTrialBtn = document.getElementById('create-expiring-trial');
+        const checkStripeBtn = document.getElementById('check-stripe-config');
+        const resultsDiv = document.getElementById('test-results');
+        const outputDiv = document.getElementById('test-output');
+        
+        function showResults(message, isSuccess = true) {
+            resultsDiv.style.display = 'block';
+            outputDiv.innerHTML = '<div style="color: ' + (isSuccess ? 'green' : 'red') + ';">' + message + '</div>';
+        }
+        
+        createTestBtn.addEventListener('click', function() {
+            this.disabled = true;
+            this.textContent = 'Creating...';
+            
+            fetch(ajaxurl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    action: 'nordbooking_create_test_account'
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const details = data.data.login_details;
+                    showResults(`
+                        <strong>Test Account Created Successfully!</strong><br><br>
+                        <strong>Login Details:</strong><br>
+                        Email: <code>${details.email}</code><br>
+                        Password: <code>${details.password}</code><br><br>
+                        <a href="${details.login_url}" target="_blank" class="button">Login Page</a>
+                        <a href="${details.dashboard_url}" target="_blank" class="button">Dashboard</a>
+                    `, true);
+                } else {
+                    showResults('Error: ' + data.data.message, false);
+                }
+                this.disabled = false;
+                this.textContent = 'Create Test Account';
+            })
+            .catch(error => {
+                showResults('Network error: ' + error.message, false);
+                this.disabled = false;
+                this.textContent = 'Create Test Account';
+            });
+        });
+        
+        testTrialBtn.addEventListener('click', function() {
+            this.disabled = true;
+            this.textContent = 'Testing...';
+            
+            fetch(ajaxurl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    action: 'nordbooking_test_trial_reminders'
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showResults('Trial reminder process completed. Check error logs for details.', true);
+                } else {
+                    showResults('Error: ' + data.data.message, false);
+                }
+                this.disabled = false;
+                this.textContent = 'Test Trial Reminders';
+            })
+            .catch(error => {
+                showResults('Network error: ' + error.message, false);
+                this.disabled = false;
+                this.textContent = 'Test Trial Reminders';
+            });
+        });
+        
+        expiringTrialBtn.addEventListener('click', function() {
+            this.disabled = true;
+            this.textContent = 'Creating...';
+            
+            fetch(ajaxurl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    action: 'nordbooking_create_expiring_trial'
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const details = data.data.details;
+                    showResults(`
+                        <strong>Expiring Trial Account Created!</strong><br><br>
+                        <strong>Login Details:</strong><br>
+                        Email: <code>${details.email}</code><br>
+                        Password: <code>${details.password}</code><br>
+                        Expires: <code>${details.expires_at}</code><br><br>
+                        <strong>Note:</strong> ${details.note}<br><br>
+                        <a href="${details.login_url}" target="_blank" class="button">Login Page</a>
+                    `, true);
+                } else {
+                    showResults('Error: ' + data.data.message, false);
+                }
+                this.disabled = false;
+                this.textContent = 'Create Trial Expiring Tomorrow';
+            })
+            .catch(error => {
+                showResults('Network error: ' + error.message, false);
+                this.disabled = false;
+                this.textContent = 'Create Trial Expiring Tomorrow';
+            });
+        });
+        
+        checkStripeBtn.addEventListener('click', function() {
+            this.disabled = true;
+            this.textContent = 'Checking...';
+            
+            fetch(ajaxurl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    action: 'nordbooking_check_stripe_config'
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const config = data.data;
+                    let statusHtml = '<strong>Stripe Configuration Status:</strong><br><br>';
+                    
+                    statusHtml += '<table style="width: 100%; border-collapse: collapse;">';
+                    statusHtml += '<tr><td style="padding: 5px; border: 1px solid #ddd;"><strong>Overall Status:</strong></td><td style="padding: 5px; border: 1px solid #ddd; color: ' + (config.configured ? 'green' : 'red') + ';">' + (config.configured ? 'Configured' : 'Not Configured') + '</td></tr>';
+                    statusHtml += '<tr><td style="padding: 5px; border: 1px solid #ddd;"><strong>API Keys:</strong></td><td style="padding: 5px; border: 1px solid #ddd; color: ' + (config.has_api_keys ? 'green' : 'red') + ';">' + (config.has_api_keys ? 'Configured' : 'Missing') + '</td></tr>';
+                    statusHtml += '<tr><td style="padding: 5px; border: 1px solid #ddd;"><strong>Price ID:</strong></td><td style="padding: 5px; border: 1px solid #ddd; color: ' + (config.has_price_id ? 'green' : 'red') + ';">' + (config.has_price_id ? 'Configured' : 'Missing') + '</td></tr>';
+                    statusHtml += '<tr><td style="padding: 5px; border: 1px solid #ddd;"><strong>Billing Portal:</strong></td><td style="padding: 5px; border: 1px solid #ddd; color: ' + (config.billing_portal_configured ? 'green' : 'red') + ';">' + (config.billing_portal_configured ? 'Configured' : 'Not Configured') + '</td></tr>';
+                    statusHtml += '<tr><td style="padding: 5px; border: 1px solid #ddd;"><strong>Test Mode:</strong></td><td style="padding: 5px; border: 1px solid #ddd;">' + (config.test_mode ? 'Yes' : 'No') + '</td></tr>';
+                    statusHtml += '</table>';
+                    
+                    if (config.issues.length > 0) {
+                        statusHtml += '<br><strong>Issues Found:</strong><ul>';
+                        config.issues.forEach(issue => {
+                            statusHtml += '<li style="color: red;">' + issue + '</li>';
+                        });
+                        statusHtml += '</ul>';
+                        
+                        if (!config.billing_portal_configured) {
+                            statusHtml += '<br><strong>To fix billing portal:</strong><br>';
+                            statusHtml += '1. Go to <a href="https://dashboard.stripe.com/test/settings/billing/portal" target="_blank">Stripe Test Portal Settings</a><br>';
+                            statusHtml += '2. Click "Activate test link" or configure your portal settings<br>';
+                            statusHtml += '3. Save the configuration<br>';
+                        }
+                    }
+                    
+                    showResults(statusHtml, config.configured);
+                } else {
+                    showResults('Error: ' + data.data.message, false);
+                }
+                this.disabled = false;
+                this.textContent = 'Check Stripe Configuration';
+            })
+            .catch(error => {
+                showResults('Network error: ' + error.message, false);
+                this.disabled = false;
+                this.textContent = 'Check Stripe Configuration';
+            });
+        });
+    });
+    </script>
+    <?php
 }
 
 // Include performance dashboard for admins

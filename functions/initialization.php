@@ -49,6 +49,21 @@ function nordbooking_create_authentication_pages() {
             'title' => 'Subscription Required',
             'template' => 'page-subscription-required.php',
         ),
+        array(
+            'slug' => 'terms-conditions',
+            'title' => 'Terms & Conditions',
+            'template' => 'page-terms.php',
+        ),
+        array(
+            'slug' => 'privacy-policy',
+            'title' => 'Privacy Policy',
+            'template' => 'page-privacy.php',
+        ),
+        array(
+            'slug' => 'cookies-policy',
+            'title' => 'Cookies Policy',
+            'template' => 'page-cookies.php',
+        ),
     );
 
     foreach ( $pages as $page ) {

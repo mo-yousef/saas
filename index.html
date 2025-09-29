@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pricing - Choose Your Plan</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Hero Section -->
+        <section class="hero">
+            <h1>Simple, Transparent Pricing</h1>
+            <p>Choose the perfect plan for your needs. Upgrade or downgrade at any time.</p>
+        </section>
+
+        <!-- Pricing Cards -->
+        <section class="pricing-section">
+            <div class="pricing-toggle">
+                <span class="toggle-label">Monthly</span>
+                <label class="switch">
+                    <input type="checkbox" id="billing-toggle">
+                    <span class="slider"></span>
+                </label>
+                <span class="toggle-label">Annual <span class="save-badge">Save 20%</span></span>
+            </div>
+
+            <div class="pricing-grid">
+                <!-- Basic Plan -->
+                <div class="pricing-card">
+                    <div class="plan-header">
+                        <h3>Basic</h3>
+                        <div class="price">
+                            <span class="currency">$</span>
+                            <span class="amount" data-monthly="9" data-annual="7.20">9</span>
+                            <span class="period">/month</span>
+                        </div>
+                        <p class="plan-description">Perfect for individuals getting started</p>
+                    </div>
+                    <ul class="features">
+                        <li>✓ Up to 5 projects</li>
+                        <li>✓ 10GB storage</li>
+                        <li>✓ Email support</li>
+                        <li>✓ Basic analytics</li>
+                    </ul>
+                    <button class="cta-button" data-plan="basic">Get Started</button>
+                </div>
+
+                <!-- Pro Plan (Most Popular) -->
+                <div class="pricing-card featured">
+                    <div class="popular-badge">Most Popular</div>
+                    <div class="plan-header">
+                        <h3>Pro</h3>
+                        <div class="price">
+                            <span class="currency">$</span>
+                            <span class="amount" data-monthly="29" data-annual="23.20">29</span>
+                            <span class="period">/month</span>
+                        </div>
+                        <p class="plan-description">Best for growing teams and businesses</p>
+                    </div>     
+               <ul class="features">
+                        <li>✓ Unlimited projects</li>
+                        <li>✓ 100GB storage</li>
+                        <li>✓ Priority support</li>
+                        <li>✓ Advanced analytics</li>
+                        <li>✓ Team collaboration</li>
+                        <li>✓ API access</li>
+                    </ul>
+                    <button class="cta-button primary" data-plan="pro">Start Free Trial</button>
+                </div>
+
+                <!-- Enterprise Plan -->
+                <div class="pricing-card">
+                    <div class="plan-header">
+                        <h3>Enterprise</h3>
+                        <div class="price">
+                            <span class="currency">$</span>
+                            <span class="amount" data-monthly="99" data-annual="79.20">99</span>
+                            <span class="period">/month</span>
+                        </div>
+                        <p class="plan-description">For large organizations with custom needs</p>
+                    </div>
+                    <ul class="features">
+                        <li>✓ Everything in Pro</li>
+                        <li>✓ Unlimited storage</li>
+                        <li>✓ 24/7 phone support</li>
+                        <li>✓ Custom integrations</li>
+                        <li>✓ Advanced security</li>
+                        <li>✓ Dedicated account manager</li>
+                    </ul>
+                    <button class="cta-button" data-plan="enterprise">Contact Sales</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- FAQ Section -->
+        <section class="faq-section">
+            <h2>Frequently Asked Questions</h2>
+            <div class="faq-container">
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <h3>Can I change my plan at any time?</h3>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Yes! You can upgrade or downgrade your plan at any time. Changes take effect immediately, and we'll prorate any billing differences.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <h3>Is there a free trial available?</h3>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Yes! We offer a 14-day free trial for all paid plans. No credit card required to start your trial.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <h3>What payment methods do you accept?</h3>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>We accept all major credit cards (Visa, MasterCard, American Express), PayPal, and bank transfers for annual plans.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <h3>Can I cancel my subscription anytime?</h3>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Absolutely! You can cancel your subscription at any time. You'll continue to have access until the end of your current billing period.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <h3>Do you offer refunds?</h3>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>We offer a 30-day money-back guarantee. If you're not satisfied, contact us within 30 days for a full refund.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <h3>Is my data secure?</h3>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Yes! We use enterprise-grade security with SSL encryption, regular backups, and comply with GDPR and SOC 2 standards.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

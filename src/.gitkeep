@@ -1,0 +1,8 @@
+# Source Code Directory
+
+This directory contains organized source code.
+
+## Structure:
+- Classes/ - All PHP classes
+- Functions/ - Utility functions
+- Utilities/ - Helper utilities and tools

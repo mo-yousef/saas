@@ -312,12 +312,136 @@ get_header(); // Even if front-page doesn't use it, page templates generally sho
     </style>
 
 
+        <style>
+        /* In-page TOC for quick navigation */
+        .feature-toc {
+            position: sticky;
+            top: 4rem;
+            z-index: 40;
+            background: hsl(var(--background) / 0.9);
+            backdrop-filter: blur(6px);
+            border-bottom: 1px solid hsl(var(--border));
+        }
+
+        .feature-toc .container {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            align-items: center;
+            padding-top: 0.75rem;
+            padding-bottom: 0.75rem;
+        }
+
+        .toc-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            border: 1px solid hsl(var(--border));
+            border-radius: 999px;
+            color: hsl(var(--muted-foreground));
+            font-size: 0.875rem;
+            transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+        }
+
+        .toc-link:hover {
+            background-color: hsl(var(--accent));
+            color: hsl(var(--accent-foreground));
+            border-color: hsl(var(--accent));
+        }
+
+        /* At-a-glance section */
+        .glance-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1rem;
+        }
+
+        .glance-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            padding: 1rem 1.25rem;
+            border: 1px solid hsl(var(--border));
+            border-radius: var(--radius);
+            background: hsl(var(--card));
+        }
+
+        .glance-item .icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 2rem;
+            height: 2rem;
+            border-radius: var(--radius);
+            background: hsl(var(--primary) / 0.12);
+            color: hsl(var(--primary));
+        }
+
+        .glance-item .text {
+            font-size: 0.95rem;
+            color: hsl(var(--foreground));
+            line-height: 1.5;
+        }
+        </style>
+
+
     <main id="content" class="site-content">
         <!-- Page Header -->
         <section class="section page-header-section" style="padding-top: 4rem; padding-bottom: 2rem; text-align: center;">
             <div class="container">
                 <h1 class="section-title" style="font-size: clamp(2.25rem, 5vw, 3rem); margin-bottom: 0.75rem;">Everything You Need to Run Your Cleaning Business</h1>
                 <p class="section-description" style="font-size: 1.25rem; max-width: 48rem; margin: 0 auto;">Powerful features designed specifically for cleaning service companies. From simple bookings to advanced business management - we've got you covered.</p>
+            </div>
+        </section>
+
+        <!-- In-page Quick Navigation -->
+        <nav class="feature-toc" aria-label="Features page navigation">
+            <div class="container">
+                <a class="toc-link" href="#at-a-glance">At a Glance</a>
+                <a class="toc-link" href="#core-features">Core</a>
+                <a class="toc-link" href="#advanced-features">Advanced</a>
+                <a class="toc-link" href="#technical-excellence">Technical</a>
+                <a class="toc-link" href="#pricing-integration">Pricing</a>
+                <a class="toc-link" href="#social-proof">Reviews</a>
+                <a class="toc-link" href="#faq">FAQ</a>
+                <a class="toc-link" href="<?php echo esc_url( home_url('/register/') ); ?>">Start Free</a>
+            </div>
+        </nav>
+
+        <!-- At a Glance Section -->
+        <section id="at-a-glance" class="section" style="padding-top: 2.5rem;">
+            <div class="container">
+                <div class="section-header" style="margin-bottom: 1.5rem;">
+                    <h2 class="section-title">At a Glance</h2>
+                    <p class="section-description">A quick overview of the key capabilities that help run and grow your cleaning business.</p>
+                </div>
+                <div class="glance-grid" role="list">
+                    <div class="glance-item" role="listitem">
+                        <span class="icon" aria-hidden="true">📅</span>
+                        <div class="text">Effortless online bookings with real-time availability and confirmations.</div>
+                    </div>
+                    <div class="glance-item" role="listitem">
+                        <span class="icon" aria-hidden="true">🏢</span>
+                        <div class="text">Scalable multi-tenant setup for single locations to franchises.</div>
+                    </div>
+                    <div class="glance-item" role="listitem">
+                        <span class="icon" aria-hidden="true">🧰</span>
+                        <div class="text">Robust service management with options, add‑ons, and dynamic pricing.</div>
+                    </div>
+                    <div class="glance-item" role="listitem">
+                        <span class="icon" aria-hidden="true">👥</span>
+                        <div class="text">Customer CRM: profiles, history, and automated follow‑ups.</div>
+                    </div>
+                    <div class="glance-item" role="listitem">
+                        <span class="icon" aria-hidden="true">💳</span>
+                        <div class="text">Stripe payments, invoices, and support for modern wallets.</div>
+                    </div>
+                    <div class="glance-item" role="listitem">
+                        <span class="icon" aria-hidden="true">📈</span>
+                        <div class="text">Actionable analytics dashboard to track revenue and performance.</div>
+                    </div>
+                </div>
             </div>
         </section>
 

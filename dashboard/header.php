@@ -5,6 +5,14 @@
  * @package NORDBOOKING
  */
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
+
+// Get current user subscription status for menu restrictions
+$user_id = get_current_user_id();
+$subscription_status = 'unsubscribed';
+if (class_exists('\NORDBOOKING\Classes\Subscription')) {
+    $subscription_status = \NORDBOOKING\Classes\Subscription::get_subscription_status($user_id);
+}
+$is_expired = in_array($subscription_status, ['expired_trial', 'expired']);
 ?>
 <header class="nordbooking-dashboard-header">
     <div class="dashboard-header-left">
@@ -41,16 +49,45 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
                 <div class="dropdown-header">
                     <span class="user-display-name"><?php echo esc_html( $user->display_name ); ?></span>
                     <span class="user-email"><?php echo esc_html( $user->user_email ); ?></span>
+                    <?php if ($is_expired): ?>
+                        <div class="subscription-status-badge expired">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <line x1="15" y1="9" x2="9" y2="15"/>
+                                <line x1="9" y1="9" x2="15" y2="15"/>
+                            </svg>
+                            <?php esc_html_e('Plan Expired', 'NORDBOOKING'); ?>
+                        </div>
+                    <?php endif; ?>
                 </div>
-                <div class="dropdown-divider"></div>
-                <a class="dropdown-item" href="<?php echo esc_url(home_url('/dashboard/')); ?>"><?php echo nordbooking_get_dashboard_menu_icon('overview'); ?><span><?php esc_html_e('Dashboard', 'NORDBOOKING'); ?></span></a>
-                <a class="dropdown-item" href="<?php echo esc_url(home_url('/dashboard/availability/')); ?>"><?php echo nordbooking_get_dashboard_menu_icon('availability'); ?><span><?php esc_html_e('Availability', 'NORDBOOKING'); ?></span></a>
-                <a class="dropdown-item" href="<?php echo esc_url(home_url('/dashboard/discounts/')); ?>"><?php echo nordbooking_get_dashboard_menu_icon('discounts'); ?><span><?php esc_html_e('Discounts', 'NORDBOOKING'); ?></span></a>
-                <div class="dropdown-divider"></div>
-                <a class="dropdown-item" href="<?php echo esc_url(home_url('/dashboard/settings/')); ?>"><?php echo nordbooking_get_dashboard_menu_icon('settings'); ?><span><?php esc_html_e('Settings', 'NORDBOOKING'); ?></span></a>
-                <a class="dropdown-item" href="<?php echo esc_url(home_url('/')); ?>"><?php echo nordbooking_get_dashboard_menu_icon('booking_form'); ?><span><?php esc_html_e('View Booking Form', 'NORDBOOKING'); ?></span></a>
-                <div class="dropdown-divider"></div>
-                <a class="dropdown-item" href="<?php echo wp_logout_url( home_url() ); ?>"><?php echo nordbooking_get_dashboard_menu_icon('logout'); ?><span><?php esc_html_e('Logout', 'NORDBOOKING'); ?></span></a>
+                
+                <?php if ($is_expired): ?>
+                    <!-- Expired users: Only show subscription page and logout -->
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item" href="<?php echo esc_url(home_url('/dashboard/subscription/')); ?>">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect width="20" height="14" x="2" y="5" rx="2"/>
+                            <line x1="2" x2="22" y1="10" y2="10"/>
+                        </svg>
+                        <span><?php esc_html_e('Upgrade Plan', 'NORDBOOKING'); ?></span>
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item" href="<?php echo wp_logout_url( home_url() ); ?>">
+                        <?php echo nordbooking_get_dashboard_menu_icon('logout'); ?>
+                        <span><?php esc_html_e('Logout', 'NORDBOOKING'); ?></span>
+                    </a>
+                <?php else: ?>
+                    <!-- Active users: Show full menu -->
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item" href="<?php echo esc_url(home_url('/dashboard/')); ?>"><?php echo nordbooking_get_dashboard_menu_icon('overview'); ?><span><?php esc_html_e('Dashboard', 'NORDBOOKING'); ?></span></a>
+                    <a class="dropdown-item" href="<?php echo esc_url(home_url('/dashboard/availability/')); ?>"><?php echo nordbooking_get_dashboard_menu_icon('availability'); ?><span><?php esc_html_e('Availability', 'NORDBOOKING'); ?></span></a>
+                    <a class="dropdown-item" href="<?php echo esc_url(home_url('/dashboard/discounts/')); ?>"><?php echo nordbooking_get_dashboard_menu_icon('discounts'); ?><span><?php esc_html_e('Discounts', 'NORDBOOKING'); ?></span></a>
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item" href="<?php echo esc_url(home_url('/dashboard/settings/')); ?>"><?php echo nordbooking_get_dashboard_menu_icon('settings'); ?><span><?php esc_html_e('Settings', 'NORDBOOKING'); ?></span></a>
+                    <a class="dropdown-item" href="<?php echo esc_url(home_url('/')); ?>"><?php echo nordbooking_get_dashboard_menu_icon('booking_form'); ?><span><?php esc_html_e('View Booking Form', 'NORDBOOKING'); ?></span></a>
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item" href="<?php echo wp_logout_url( home_url() ); ?>"><?php echo nordbooking_get_dashboard_menu_icon('logout'); ?><span><?php esc_html_e('Logout', 'NORDBOOKING'); ?></span></a>
+                <?php endif; ?>
             </div>
         </div>
     </div>

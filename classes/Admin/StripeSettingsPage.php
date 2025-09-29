@@ -499,8 +499,19 @@ class StripeSettingsPage {
             // Fix constraints
             $messages = [];
             
-            // Drop the problematic unique constraint
-            $result = $wpdb->query("ALTER TABLE $table_name DROP INDEX IF EXISTS stripe_subscription_id_unique");
+            // Drop the problematic unique constraint (compatible with older MySQL versions)
+            $index_exists = $wpdb->get_var($wpdb->prepare("
+                SELECT COUNT(*) 
+                FROM information_schema.statistics 
+                WHERE table_schema = DATABASE() 
+                AND table_name = %s 
+                AND index_name = 'stripe_subscription_id_unique'
+            ", $table_name));
+            
+            $result = false;
+            if ($index_exists > 0) {
+                $result = $wpdb->query("ALTER TABLE $table_name DROP INDEX stripe_subscription_id_unique");
+            }
             if ($result !== false) {
                 $messages[] = 'Removed problematic unique constraint on stripe_subscription_id.';
             }

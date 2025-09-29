@@ -69,7 +69,7 @@ $current_url = home_url($_SERVER['REQUEST_URI']);
         <nav class="mobile-nav-links">
             <a href="<?php echo esc_url(home_url('/features/')); ?>" class="mobile-nav-link">Features</a>
             <a href="#how-it-works" class="mobile-nav-link">How It Works</a>
-            <a href="#pricing" class="mobile-nav-link">Pricing</a>
+            <a href="<?php echo esc_url(home_url('/pricing/')); ?>" class="mobile-nav-link">Pricing</a>
             <a href="#testimonials" class="mobile-nav-link">Reviews</a>
         </nav>
         
@@ -123,7 +123,7 @@ $current_url = home_url($_SERVER['REQUEST_URI']);
             <ul class="nav-menu">
                 <li><a href="<?php echo esc_url(home_url('/features/')); ?>" class="nav-link">Features</a></li>
                 <li><a href="#how-it-works" class="nav-link">How It Works</a></li>
-                <li><a href="#pricing" class="nav-link">Pricing</a></li>
+                <li><a href="<?php echo esc_url(home_url('/pricing/')); ?>" class="nav-link">Pricing</a></li>
                 <li><a href="#testimonials" class="nav-link">Reviews</a></li>
             </ul>
             

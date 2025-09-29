@@ -704,4 +704,91 @@ class Notifications {
         $headers = $this->get_email_headers();
         return wp_mail($user->user_email, $subject, $full_email_html, $headers);
     }
+
+    /**
+     * Sends a trial reminder email on day 6 of the 7-day trial
+     * @param int $user_id The user ID
+     * @return bool
+     */
+    public function send_trial_reminder_email($user_id) {
+        $user = get_userdata($user_id);
+        if (!$user) {
+            return false;
+        }
+
+        $subject = __('Your Nord Booking Trial Expires Tomorrow!', 'NORDBOOKING');
+        $greeting = sprintf(__('Hi %s,', 'NORDBOOKING'), $user->display_name);
+        $subscription_link = home_url('/dashboard/subscription/');
+
+        // Create the email body content
+        $body_content = $this->get_trial_reminder_email_content($user->display_name, $subscription_link);
+
+        $replacements = [
+            '%%SUBJECT%%'      => $subject,
+            '%%GREETING%%'     => $greeting,
+            '%%BODY_CONTENT%%' => $body_content,
+            '%%BUTTON_GROUP%%' => '<a href="' . esc_url($subscription_link) . '" class="btn btn-primary" style="background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600;">' . __('Subscribe to Pro Plan', 'NORDBOOKING') . '</a>',
+        ];
+        $full_email_html = $this->get_styled_email_html($replacements);
+
+        $headers = $this->get_email_headers();
+        $email_sent = wp_mail($user->user_email, $subject, $full_email_html, $headers);
+
+        if ($email_sent) {
+            // Mark that reminder was sent to avoid sending duplicates
+            update_user_meta($user_id, 'nordbooking_trial_reminder_sent', current_time('mysql'));
+            error_log("NORDBOOKING: Trial reminder email sent to user {$user_id} ({$user->user_email})");
+        } else {
+            error_log("NORDBOOKING: Failed to send trial reminder email to user {$user_id} ({$user->user_email})");
+        }
+
+        return $email_sent;
+    }
+
+    /**
+     * Get the trial reminder email content
+     * @param string $user_name
+     * @param string $subscription_link
+     * @return string
+     */
+    private function get_trial_reminder_email_content($user_name, $subscription_link) {
+        return '
+        <div style="font-family: -apple-system, BlinkMacSystemFont, \'Segoe UI\', Roboto, sans-serif; line-height: 1.6; color: #333;">
+            <div style="background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
+                <h1 style="color: white; margin: 0; font-size: 28px; font-weight: 700;">⏰ Your Trial Expires Tomorrow!</h1>
+            </div>
+            
+            <div style="padding: 30px; background: white;">
+                <p style="font-size: 16px; margin-bottom: 20px;">Your 7-day free trial of Nord Booking ends tomorrow. Don\'t lose access to all the powerful features that are helping you grow your cleaning business!</p>
+                
+                <div style="background: #f8fafc; border-left: 4px solid #2563eb; padding: 20px; margin: 25px 0; border-radius: 0 6px 6px 0;">
+                    <h3 style="margin: 0 0 15px 0; color: #2563eb; font-size: 18px;">🚀 What You\'ll Keep With Pro:</h3>
+                    <ul style="margin: 0; padding-left: 20px; color: #4b5563;">
+                        <li style="margin-bottom: 8px;"><strong>Unlimited Bookings</strong> - Accept as many clients as you want</li>
+                        <li style="margin-bottom: 8px;"><strong>Advanced Scheduling</strong> - Smart calendar management and availability</li>
+                        <li style="margin-bottom: 8px;"><strong>Payment Processing</strong> - Get paid instantly with Stripe integration</li>
+                        <li style="margin-bottom: 8px;"><strong>Customer Portal</strong> - Let clients manage their own bookings</li>
+                        <li style="margin-bottom: 8px;"><strong>Team Management</strong> - Add and manage your cleaning staff</li>
+                        <li style="margin-bottom: 8px;"><strong>Analytics & Reports</strong> - Track your business growth</li>
+                        <li style="margin-bottom: 8px;"><strong>Priority Support</strong> - Get help when you need it</li>
+                    </ul>
+                </div>
+                
+                <div style="background: #fef3c7; border: 1px solid #f59e0b; padding: 15px; border-radius: 6px; margin: 25px 0;">
+                    <p style="margin: 0; color: #92400e; font-weight: 600;">💡 <strong>Pro Tip:</strong> Customers who subscribe during their trial see an average 40% increase in bookings within their first month!</p>
+                </div>
+                
+                <p style="font-size: 16px; margin: 25px 0;">For just <strong>$29/month</strong>, you\'ll have everything you need to run and scale your cleaning business professionally.</p>
+                
+                <div style="text-align: center; margin: 30px 0;">
+                    <a href="' . esc_url($subscription_link) . '" style="background-color: #2563eb; color: white; padding: 15px 30px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600; font-size: 16px; box-shadow: 0 4px 6px rgba(37, 99, 235, 0.3);">Subscribe to Pro Plan →</a>
+                </div>
+                
+                <div style="border-top: 1px solid #e5e7eb; padding-top: 20px; margin-top: 30px; font-size: 14px; color: #6b7280;">
+                    <p><strong>Questions?</strong> Reply to this email or contact our support team. We\'re here to help!</p>
+                    <p style="margin: 0;">Thanks for choosing Nord Booking,<br>The Nord Booking Team</p>
+                </div>
+            </div>
+        </div>';
+    }
 }

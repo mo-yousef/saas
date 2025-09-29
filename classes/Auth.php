@@ -653,7 +653,7 @@ private function setup_invited_worker(\WP_User $user, array $post_data): array {
     }
 }
 
-private function setup_new_business_owner(\WP_User $user, string $company_name): array {
+private function setup_new_business_owner(\WP_User $user, string $company_name, string $plan = ''): array {
     error_log('NORDBOOKING: Processing business owner registration for user ID: ' . $user->ID);
 
     $user->set_role(self::ROLE_BUSINESS_OWNER);
@@ -744,12 +744,24 @@ private function setup_new_business_owner(\WP_User $user, string $company_name):
         // Continue with registration even if default settings initialization fails
     }
 
+    // Determine redirect URL based on plan selection
+    $redirect_url = home_url('/dashboard/');
+    if (!empty($plan)) {
+        if ($plan === 'free') {
+            // For free trial, redirect to dashboard (trial will be activated automatically)
+            $redirect_url = home_url('/dashboard/');
+        } elseif ($plan === 'pro') {
+            // For pro plan, redirect to subscription page
+            $redirect_url = home_url('/dashboard/subscription/?plan=' . urlencode($plan));
+        }
+    }
+
     return [
         'message' => sprintf(
             __('Welcome to %s! Your business account has been successfully created.', 'NORDBOOKING'),
             get_bloginfo('name')
         ),
-        'redirect_url' => home_url('/dashboard/'),
+        'redirect_url' => $redirect_url,
     ];
 }
 
@@ -815,6 +827,7 @@ public function handle_ajax_registration() {
         $password = isset($_POST['password']) ? $_POST['password'] : '';
         $password_confirm = isset($_POST['password_confirm']) ? $_POST['password_confirm'] : '';
         $company_name = isset($_POST['company_name']) ? sanitize_text_field(trim($_POST['company_name'])) : '';
+        $plan = isset($_POST['plan']) ? sanitize_text_field(trim($_POST['plan'])) : '';
         $is_invitation_flow = isset($_POST['inviter_id']) && isset($_POST['assigned_role']);
 
         error_log("NORDBOOKING: Registration attempt for email: {$email}");
@@ -852,7 +865,7 @@ public function handle_ajax_registration() {
         if ($is_invitation_flow) {
             $result = $this->setup_invited_worker($user, $_POST);
         } else {
-            $result = $this->setup_new_business_owner($user, $company_name);
+            $result = $this->setup_new_business_owner($user, $company_name, $plan);
         }
 
         // 6. Log the new user in

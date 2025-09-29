@@ -762,7 +762,8 @@ span.NORDBOOKING-menu-icon {
 /* Subscription Status Box - Compact Version */
 .subscription-status-box {
   padding: 1.5rem;
-  border-top: 1px solid hsl(var(--border))
+  border-top: 1px solid hsl(var(--border));
+  margin-top: auto;
 }
 
 .subscription-compact {
@@ -1353,6 +1354,16 @@ body {
   color: hsl(var(--nbk-muted-foreground));
 }
 
+.masthead-bottom-rounded {
+  height: 2em
+}
+
+.masthead-bottom-rounded div {
+  background-color: #fff;
+  height: 2em;
+  border-radius: 2em 2em 0 0;
+}
+
 /* ==================================================
          * NBK CARD COMPONENT STYLES
          * ================================================== */
@@ -1568,6 +1579,9 @@ body {
   color: var(--gray-600);
   font-size: 0.875rem;
 }
+
+
+
 
 .nbk-features-grid {
   display: grid;

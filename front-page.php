@@ -42,9 +42,7 @@ $nbk_text_domain = 'nord-booking';
 
 
 
-
-
-
+    <div class="masthead-bottom-rounded"><div></div></div>
 
    <section id="nbk-features-section" class="nbk-section">
         <div class="nbk-container">

@@ -131,7 +131,7 @@ class StripeConfig {
         $settings = [
             'test_mode' => true,
             'currency' => 'usd',
-            'trial_days' => 14,
+            'trial_days' => 7,
             'test_publishable_key' => 'pk_test_placeholder',
             'test_secret_key' => 'sk_test_placeholder',
             'test_price_id' => 'price_placeholder',

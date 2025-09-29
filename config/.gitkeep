@@ -1,0 +1,8 @@
+# Configuration Directory
+
+This directory contains application configuration files.
+
+## Files:
+- app.php - Main application configuration
+- database.php - Database configuration
+- stripe.php - Payment processing configuration

@@ -30,6 +30,64 @@ jQuery(document).ready(function ($) {
     console.log("showAlert function is available");
   }
 
+  // --- Load Existing Settings ---
+  function loadExistingSettings() {
+    console.log("Loading existing settings...");
+    
+    $.ajax({
+      url: nordbooking_biz_settings_params.ajax_url,
+      type: "POST",
+      data: {
+        action: "nordbooking_get_business_settings",
+        nonce: nordbooking_biz_settings_params.nonce,
+      },
+      success: function(response) {
+        if (response.success && response.data.settings) {
+          const settings = response.data.settings;
+          console.log("Loaded settings:", settings);
+          
+          // Populate form fields
+          Object.keys(settings).forEach(function(key) {
+            const value = settings[key];
+            const $field = $('[name="' + key + '"]');
+            
+            if ($field.length > 0) {
+              if ($field.is(':checkbox')) {
+                $field.prop('checked', value === '1' || value === true);
+              } else if ($field.is(':radio')) {
+                $field.filter('[value="' + value + '"]').prop('checked', true);
+              } else {
+                $field.val(value);
+              }
+            }
+          });
+          
+          // Handle logo preview
+          if (settings.biz_logo_url && settings.biz_logo_url !== '') {
+            $('.logo-preview').html('<img src="' + settings.biz_logo_url + '" alt="Company Logo">');
+            $('#NORDBOOKING-remove-logo-btn').show();
+          }
+          
+          // Trigger color picker updates
+          if (typeof $.fn.wpColorPicker === "function") {
+            $('.NORDBOOKING-color-picker').wpColorPicker('refresh');
+          }
+          
+          // Update email notification toggles
+          $('.email-toggle-switch input[type="checkbox"]').trigger('change');
+          $('input[name*="_use_primary"]').trigger('change');
+          
+          console.log("Settings loaded and form populated successfully");
+        } else {
+          console.error("Failed to load settings:", response);
+        }
+      },
+      error: function(xhr, status, error) {
+        console.error("Error loading settings:", xhr, status, error);
+      }
+    });
+  }
+
   // --- Tab Navigation ---
   const navTabs = $(".nav-tab-wrapper .nav-tab");
   const tabContents = $(".settings-tab-content");
@@ -161,14 +219,68 @@ jQuery(document).ready(function ($) {
     $(this).hide();
   });
 
+  // --- Email Notification Toggles ---
+  $('.email-toggle-switch input[type="checkbox"]').on('change', function() {
+    const isEnabled = $(this).is(':checked');
+    const notificationItem = $(this).closest('.email-notification-item');
+    const recipientSettings = notificationItem.find('.email-recipient-settings');
+    
+    if (isEnabled) {
+      recipientSettings.css({
+        'opacity': '1',
+        'pointer-events': 'auto'
+      });
+      notificationItem.removeClass('disabled');
+    } else {
+      recipientSettings.css({
+        'opacity': '0.5',
+        'pointer-events': 'none'
+      });
+      notificationItem.addClass('disabled');
+    }
+  });
+
+  // Handle radio button changes for email recipient selection
+  $('input[name*="_use_primary"]').on('change', function() {
+    const usePrimary = $(this).val() === '1';
+    const notificationItem = $(this).closest('.email-notification-item');
+    const customEmailField = notificationItem.find('.custom-email-field');
+    
+    if (usePrimary) {
+      customEmailField.css({
+        'opacity': '0.5',
+        'pointer-events': 'none'
+      });
+    } else {
+      customEmailField.css({
+        'opacity': '1',
+        'pointer-events': 'auto'
+      });
+    }
+  });
+
   // --- Main Form Submission ---
   const form = $("#NORDBOOKING-business-settings-form");
   const saveButtons = $(
     "#NORDBOOKING-save-biz-settings-btn, #NORDBOOKING-save-biz-settings-btn-footer"
   );
 
+  let isSubmitting = false; // Prevent multiple submissions
+
+  // Remove any existing handlers to prevent duplicates
+  form.off("submit");
+  saveButtons.off("click");
+
   form.on("submit", function (e) {
     e.preventDefault();
+    e.stopPropagation();
+    
+    if (isSubmitting) {
+      console.log("Form submission already in progress, ignoring");
+      return false;
+    }
+    
+    isSubmitting = true;
     console.log("Form submission started");
 
     const originalButtonText = saveButtons.first().text();
@@ -176,32 +288,31 @@ jQuery(document).ready(function ($) {
       .prop("disabled", true)
       .text(nordbooking_biz_settings_params.i18n.saving || "Saving...");
 
-    // Serialize form data
-    let settingsData = $(this)
-      .serializeArray()
-      .reduce((obj, item) => {
-        obj[item.name] = item.value;
-        return obj;
-      }, {});
+    // Serialize form data including checkboxes and radio buttons
+    let settingsData = {};
+    
+    // Get all form elements
+    $(this).find('input, select, textarea').each(function() {
+      const $element = $(this);
+      const name = $element.attr('name');
+      
+      if (!name || name === 'nordbooking_dashboard_nonce_field' || name === '_wp_http_referer') return;
+      
+      if ($element.is(':checkbox')) {
+        // For checkboxes, set value to '1' if checked, '0' if not
+        settingsData[name] = $element.is(':checked') ? '1' : '0';
+      } else if ($element.is(':radio')) {
+        // For radio buttons, only set value if this one is checked
+        if ($element.is(':checked')) {
+          settingsData[name] = $element.val();
+        }
+      } else {
+        // For other inputs, just get the value
+        settingsData[name] = $element.val();
+      }
+    });
 
     console.log("Settings data to save:", settingsData);
-
-    // Add email template data if the editor is present and initialized
-    if (window.EmailEditor && window.EmailEditor.isInitialized) {
-      const emailData = window.EmailEditor.templatesData;
-      const emailTemplates = nordbooking_biz_settings_params.templates;
-      for (const key in emailData) {
-        if (
-          emailData.hasOwnProperty(key) &&
-          emailTemplates.hasOwnProperty(key)
-        ) {
-          const subjectKey = emailTemplates[key].subject_key;
-          const bodyKey = emailTemplates[key].body_key;
-          settingsData[subjectKey] = emailData[key].subject;
-          settingsData[bodyKey] = JSON.stringify(emailData[key].body);
-        }
-      }
-    }
 
     $.ajax({
       url: nordbooking_biz_settings_params.ajax_url,
@@ -230,14 +341,36 @@ jQuery(document).ready(function ($) {
       },
       error: (xhr, status, error) => {
         console.error("AJAX error:", xhr, status, error);
-        window.showAlert(
-          nordbooking_biz_settings_params.i18n.error_ajax,
-          "error"
-        );
+        console.error("Response text:", xhr.responseText);
+        
+        let errorMessage = nordbooking_biz_settings_params.i18n.error_ajax;
+        
+        // Try to extract more specific error information
+        if (xhr.responseText) {
+          try {
+            const errorResponse = JSON.parse(xhr.responseText);
+            if (errorResponse.data && errorResponse.data.message) {
+              errorMessage = errorResponse.data.message;
+            }
+          } catch (e) {
+            // If it's not JSON, check for common error patterns
+            if (xhr.responseText.includes('Fatal error')) {
+              errorMessage = 'Server error occurred. Please check the error logs.';
+            }
+          }
+        }
+        
+        window.showAlert(errorMessage, "error");
       },
       complete: () => {
         saveButtons.prop("disabled", false).text(originalButtonText);
+        isSubmitting = false; // Reset the flag
       },
     });
+    
+    return false;
   });
+
+  // --- Load Settings on Page Load ---
+  loadExistingSettings();
 });
