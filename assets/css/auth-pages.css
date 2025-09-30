@@ -9,7 +9,7 @@ footer {
     display: flex;
     min-height: 100vh;
     width: 100%;
-    background-color: hsl(210 40% 98%);
+    background-color: #fff;
     /* bg-muted */
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
 }
@@ -42,13 +42,19 @@ footer {
 
 .nbk-auth-image-column .placeholder-content {
     text-align: center;
+    height: 523px;
+    width: 900px;
+    position: absolute;
+    right: -300px;
+    overflow: hidden;
 }
 
 .placeholder-content img {
     max-width: 100%;
-    scale: 1.9;
-    transform: translateX(210px);
-    border-radius: 6px;
+    height: 100%;
+    width: 100%;
+    border-radius: 10px;
+    object-fit: contain;
 }
 
 .nbk-auth-image-column .placeholder-content h1 {
@@ -306,10 +312,8 @@ footer {
 /* Responsive adjustments */
 @media (max-width: 992px) {
     .nbk-auth-grid {
+        height: unset !important;
         grid-template-columns: 1fr;
-        max-width: 500px;
-        margin: 2rem auto;
-        border-radius: 0.5rem;
     }
 
     .nbk-auth-image-column {
@@ -317,32 +321,21 @@ footer {
         /* display: none; */
         /* Option: hide image on smaller screens */
     }
-
-    .nbk-auth-form-column {
-        padding: 2rem;
-    }
 }
 
 @media (max-width: 576px) {
     .nbk-auth-page-container {
-        padding: 1rem;
-        /* Add padding to page itself on mobile */
-    }
-
-    .nbk-auth-grid {
-        margin: 1rem auto;
-        box-shadow: none;
-        /* Remove shadow on very small screens if it looks odd */
-        border-radius: 0.375rem;
+        padding: 5% !important;
     }
 
     .nbk-auth-image-column {
         display: none;
-        /* Hide image column on very small screens */
     }
 
     .nbk-auth-form-column {
-        padding: 1.5rem;
+        padding: 0px;
+        overflow: unset !important;
+        display: unset !important;
     }
 
     .NORDBOOKING-auth-form-wrapper h2 {

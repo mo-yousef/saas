@@ -255,6 +255,35 @@ input[type="submit"]:hover,
   color: hsl(222.2 84% 4.9%);
 }
 
+.button.has-icon {
+  gap: 8px;
+  display: flex;
+  align-items: center;
+}
+
+.button.has-icon svg {
+  min-width: 15px;
+  max-width: 15px;
+  max-height: 15px;
+  min-height: 15px;
+  color: currentColor !important;
+}
+
+.link.has-icon {
+  gap: 8px;
+  display: flex;
+  align-items: center;
+  text-decoration: none !important;
+}
+
+.link.has-icon svg {
+  min-width: 16px;
+  max-width: 16px;
+  max-height: 16px;
+  min-height: 16px;
+  color: currentColor !important;
+}
+
 /*--------------------------------------------------------------
 3.0 Forms (Inputs, Textareas, Selects)
 --------------------------------------------------------------*/
@@ -1805,15 +1834,14 @@ body {
 .nbk-hero__badge {
   display: inline-flex;
   align-items: center;
-  border-radius: 9999px;
-  border: 1px solid hsl(var(--nbk-border));
-  background-color: hsl(var(--nbk-muted));
-  padding: 0.25rem 0.75rem;
+  border-radius: 100px;
+  background-color: hsl(0deg 0% 100% / 15%);
+  padding: 10px 20px;
   font-size: 0.75rem;
   font-weight: 500;
   margin-bottom: 2rem;
   gap: 0.5rem;
-  color: hsl(var(--nbk-muted-foreground));
+  color: hsl(0deg 0% 100%);
 }
 
 .nbk-hero__badge svg {
@@ -2830,7 +2858,7 @@ figure img {
   left: 0;
   right: 0;
   z-index: 100;
-  background-color: rgba(255, 255, 255, 0.95);
+  background-color: #fff;
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   transition: var(--transition-fast);
@@ -3231,21 +3259,8 @@ figure img {
     width: 28px;
     height: 28px;
   }
-
-  body {
-    padding-top: 70px;
-  }
 }
 
-/* Focus styles for accessibility */
-.btn:focus,
-.nav-link:focus,
-.user-menu-trigger:focus,
-.mobile-menu-toggle:focus,
-.mobile-close-btn:focus {
-  outline: 2px solid var(--primary-color);
-  outline-offset: 2px;
-}
 
 /* Reduced motion support */
 @media (prefers-reduced-motion: reduce) {

@@ -454,8 +454,8 @@ $nbk_text_domain = 'nord-booking';
     ============================================ -->
     <section class="nbk-cta-section">
         <div class="nbk-container">
-            <div class="nbk-hero__badge nbk-fade-in">
-                🚀 <?php _e('Join 500+ successful cleaning businesses', $nbk_text_domain); ?>
+            <div class="nbk-section__badge nbk-slide-up">
+                🚀 <?php _e('Join 100+ successful cleaning businesses', $nbk_text_domain); ?>
             </div>
             
             <h2 class="nbk-section__title nbk-slide-up">

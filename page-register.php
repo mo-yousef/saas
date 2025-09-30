@@ -158,6 +158,7 @@ if ( isset( $_GET['invitation_token'] ) ) {
                             <a href="<?php echo esc_url( home_url( '/login/' ) ); ?>"><?php esc_html_e( 'Log In', 'NORDBOOKING' ); ?></a>
                         </p>
                     </div>
+                    <a href="/" class="link hyperlink has-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 8 8 12 12 16"></polyline><line x1="16" y1="12" x2="8" y2="12"></line></svg> Back to home</a>
                 </div>
             </main>
         </div>
