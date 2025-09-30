@@ -107,11 +107,31 @@ function nordbooking_select_biz_setting_value($settings, $key, $value, $default_
         </div>
     </div>
 
-    <h2 class="nav-tab-wrapper" style="margin-bottom:20px;">
-        <a href="#general" class="nav-tab nav-tab-active" data-tab="general"><?php esc_html_e('General', 'NORDBOOKING'); ?></a>
-        <a href="#branding" class="nav-tab" data-tab="branding"><?php esc_html_e('Branding', 'NORDBOOKING'); ?></a>
-        <a href="#email-notifications" class="nav-tab" data-tab="email-notifications"><?php esc_html_e('Email Notifications', 'NORDBOOKING'); ?></a>
-    </h2>
+    <div class="NORDBOOKING-settings-tabs">
+        <div class="settings-tabs-nav">
+            <button type="button" class="settings-tab-btn active" data-tab="general">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                </svg>
+                <?php esc_html_e('General', 'NORDBOOKING'); ?>
+            </button>
+            <button type="button" class="settings-tab-btn" data-tab="branding">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                    <circle cx="8.5" cy="8.5" r="1.5"/>
+                    <polyline points="21,15 16,10 5,21"/>
+                </svg>
+                <?php esc_html_e('Branding', 'NORDBOOKING'); ?>
+            </button>
+            <button type="button" class="settings-tab-btn" data-tab="email-notifications">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                    <polyline points="22,6 12,13 2,6"/>
+                </svg>
+                <?php esc_html_e('Email Notifications', 'NORDBOOKING'); ?>
+            </button>
+        </div>
+    </div>
 
     <form id="NORDBOOKING-business-settings-form" method="post">
         <?php wp_nonce_field('nordbooking_dashboard_nonce', 'nordbooking_dashboard_nonce_field'); ?>
@@ -213,240 +233,302 @@ function nordbooking_select_biz_setting_value($settings, $key, $value, $default_
             </div>
         </div>
 
-        <!-- Additional tabs would go here (branding, email-notifications) -->
+        <!-- Branding Tab -->
         <div id="branding-tab" class="settings-tab-content" style="display:none;">
-            <h3><?php esc_html_e('Branding Settings', 'NORDBOOKING'); ?></h3>
-            <p><?php esc_html_e('Customize the appearance and branding of your booking forms.', 'NORDBOOKING'); ?></p>
+            <p class="page-description"><?php esc_html_e('Customize the appearance and branding of your booking forms to match your business identity.', 'NORDBOOKING'); ?></p>
             
-            <table class="form-table">
-                <tr>
-                    <th scope="row"><?php esc_html_e('Company Logo', 'NORDBOOKING'); ?></th>
-                    <td>
-                        <div class="logo-upload-section">
-                            <div class="logo-preview">
-                                <div class="logo-placeholder">
-                                    <span><?php esc_html_e('No Logo', 'NORDBOOKING'); ?></span>
+            <div class="settings-layout">
+                <!-- Left Column -->
+                <div class="settings-column">
+                    <!-- Logo & Visual Identity Card -->
+                    <div class="nordbooking-card">
+                        <div class="nordbooking-card-header">
+                            <h3 class="nordbooking-card-title"><?php esc_html_e('Logo & Visual Identity', 'NORDBOOKING'); ?></h3>
+                        </div>
+                        <div class="nordbooking-card-content">
+                            <div class="form-group">
+                                <label for="biz_logo_url"><?php esc_html_e('Company Logo', 'NORDBOOKING'); ?></label>
+                                <div class="logo-upload-section">
+                                    <div class="logo-preview">
+                                        <div class="logo-placeholder">
+                                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                                                <circle cx="8.5" cy="8.5" r="1.5"/>
+                                                <polyline points="21,15 16,10 5,21"/>
+                                            </svg>
+                                            <span><?php esc_html_e('Upload Logo', 'NORDBOOKING'); ?></span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="logo-upload-controls">
+                                        <button type="button" id="NORDBOOKING-upload-logo-btn" class="btn btn-outline btn-sm">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                                <polyline points="7,10 12,15 17,10"/>
+                                                <line x1="12" y1="15" x2="12" y2="3"/>
+                                            </svg>
+                                            <?php esc_html_e('Upload Logo', 'NORDBOOKING'); ?>
+                                        </button>
+                                        <button type="button" id="NORDBOOKING-remove-logo-btn" class="btn btn-outline btn-sm" style="display: none;">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <polyline points="3,6 5,6 21,6"/>
+                                                <path d="m19,6v14a2,2 0 0,1 -2,2H7a2,2 0 0,1 -2,-2V6m3,0V4a2,2 0 0,1 2,-2h4a2,2 0 0,1 2,2v2"/>
+                                            </svg>
+                                            <?php esc_html_e('Remove', 'NORDBOOKING'); ?>
+                                        </button>
+                                        <input type="file" id="NORDBOOKING-logo-file-input" accept="image/*" style="display: none;" />
+                                        <input type="hidden" id="biz_logo_url" name="biz_logo_url" value="<?php echo nordbooking_get_biz_setting_value($biz_settings, 'biz_logo_url'); ?>" />
+                                    </div>
+                                    
+                                    <div class="progress-bar-wrapper" style="display: none;">
+                                        <div class="progress-bar"></div>
+                                    </div>
+                                </div>
+                                <p class="description"><?php esc_html_e('Upload your company logo. Recommended size: 200x80 pixels. Maximum file size: 5MB.', 'NORDBOOKING'); ?></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Color Scheme Card -->
+                    <div class="nordbooking-card">
+                        <div class="nordbooking-card-header">
+                            <h3 class="nordbooking-card-title"><?php esc_html_e('Color Scheme', 'NORDBOOKING'); ?></h3>
+                        </div>
+                        <div class="nordbooking-card-content">
+                            <div class="form-group">
+                                <label for="bf_theme_color"><?php esc_html_e('Primary Color', 'NORDBOOKING'); ?></label>
+                                <div class="color-input-wrapper">
+                                    <input type="text" id="bf_theme_color" name="bf_theme_color" 
+                                           class="NORDBOOKING-color-picker" value="<?php echo nordbooking_get_biz_setting_value($bf_settings, 'bf_theme_color', '#1abc9c'); ?>" />
+                                    <div class="color-preview" style="background-color: <?php echo nordbooking_get_biz_setting_value($bf_settings, 'bf_theme_color', '#1abc9c'); ?>"></div>
+                                </div>
+                                <p class="description"><?php esc_html_e('The main color used in your booking forms and buttons.', 'NORDBOOKING'); ?></p>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="bf_secondary_color"><?php esc_html_e('Secondary Color', 'NORDBOOKING'); ?></label>
+                                <div class="color-input-wrapper">
+                                    <input type="text" id="bf_secondary_color" name="bf_secondary_color" 
+                                           class="NORDBOOKING-color-picker" value="<?php echo nordbooking_get_biz_setting_value($bf_settings, 'bf_secondary_color', '#34495e'); ?>" />
+                                    <div class="color-preview" style="background-color: <?php echo nordbooking_get_biz_setting_value($bf_settings, 'bf_secondary_color', '#34495e'); ?>"></div>
+                                </div>
+                                <p class="description"><?php esc_html_e('Secondary color for accents and highlights.', 'NORDBOOKING'); ?></p>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="bf_background_color"><?php esc_html_e('Background Color', 'NORDBOOKING'); ?></label>
+                                <div class="color-input-wrapper">
+                                    <input type="text" id="bf_background_color" name="bf_background_color" 
+                                           class="NORDBOOKING-color-picker" value="<?php echo nordbooking_get_biz_setting_value($bf_settings, 'bf_background_color', '#ffffff'); ?>" />
+                                    <div class="color-preview" style="background-color: <?php echo nordbooking_get_biz_setting_value($bf_settings, 'bf_background_color', '#ffffff'); ?>"></div>
+                                </div>
+                                <p class="description"><?php esc_html_e('Background color for your booking forms.', 'NORDBOOKING'); ?></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column -->
+                <div class="settings-column">
+                    <!-- Form Styling Card -->
+                    <div class="nordbooking-card">
+                        <div class="nordbooking-card-header">
+                            <h3 class="nordbooking-card-title"><?php esc_html_e('Form Styling', 'NORDBOOKING'); ?></h3>
+                        </div>
+                        <div class="nordbooking-card-content">
+                            <div class="form-group">
+                                <label for="bf_border_radius"><?php esc_html_e('Border Radius', 'NORDBOOKING'); ?></label>
+                                <div class="input-with-unit">
+                                    <input type="number" id="bf_border_radius" name="bf_border_radius" 
+                                           value="<?php echo nordbooking_get_biz_setting_value($bf_settings, 'bf_border_radius', '8'); ?>" 
+                                           min="0" max="50" class="small-text" />
+                                    <span class="input-unit">px</span>
+                                </div>
+                                <p class="description"><?php esc_html_e('Roundness of form elements (0 = square, higher = more rounded).', 'NORDBOOKING'); ?></p>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="bf_font_family"><?php esc_html_e('Font Family', 'NORDBOOKING'); ?></label>
+                                <select name="bf_font_family" id="bf_font_family" class="regular-text">
+                                    <option value="system-ui" <?php echo nordbooking_select_biz_setting_value($bf_settings, 'bf_font_family', 'system-ui', 'system-ui'); ?>>System Default</option>
+                                    <option value="Inter" <?php echo nordbooking_select_biz_setting_value($bf_settings, 'bf_font_family', 'Inter'); ?>>Inter</option>
+                                    <option value="Roboto" <?php echo nordbooking_select_biz_setting_value($bf_settings, 'bf_font_family', 'Roboto'); ?>>Roboto</option>
+                                    <option value="Open Sans" <?php echo nordbooking_select_biz_setting_value($bf_settings, 'bf_font_family', 'Open Sans'); ?>>Open Sans</option>
+                                    <option value="Lato" <?php echo nordbooking_select_biz_setting_value($bf_settings, 'bf_font_family', 'Lato'); ?>>Lato</option>
+                                </select>
+                                <p class="description"><?php esc_html_e('Choose the font family for your booking forms.', 'NORDBOOKING'); ?></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Custom CSS Card -->
+                    <div class="nordbooking-card">
+                        <div class="nordbooking-card-header">
+                            <h3 class="nordbooking-card-title"><?php esc_html_e('Custom CSS', 'NORDBOOKING'); ?></h3>
+                        </div>
+                        <div class="nordbooking-card-content">
+                            <div class="form-group">
+                                <label for="bf_custom_css"><?php esc_html_e('Additional CSS', 'NORDBOOKING'); ?></label>
+                                <textarea id="bf_custom_css" name="bf_custom_css" rows="8" class="large-text code" 
+                                          placeholder="/* Add your custom CSS here */"><?php echo nordbooking_get_biz_setting_textarea($bf_settings, 'bf_custom_css'); ?></textarea>
+                                <p class="description"><?php esc_html_e('Add custom CSS to further customize your booking forms. Use with caution.', 'NORDBOOKING'); ?></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Email Notifications Tab -->
+        <div id="email-notifications-tab" class="settings-tab-content" style="display:none;">
+            <p class="page-description"><?php esc_html_e('Configure email notifications and customize when and where they are sent.', 'NORDBOOKING'); ?></p>
+            
+            <div class="settings-layout">
+                <!-- Left Column -->
+                <div class="settings-column">
+                    <!-- Email Sender Settings Card -->
+                    <div class="nordbooking-card">
+                        <div class="nordbooking-card-header">
+                            <h3 class="nordbooking-card-title"><?php esc_html_e('Email Sender Settings', 'NORDBOOKING'); ?></h3>
+                        </div>
+                        <div class="nordbooking-card-content">
+                            <div class="form-group">
+                                <label for="email_from_name"><?php esc_html_e('From Name', 'NORDBOOKING'); ?></label>
+                                <input type="text" id="email_from_name" name="email_from_name" class="regular-text" 
+                                       value="<?php echo nordbooking_get_biz_setting_value($biz_settings, 'email_from_name'); ?>"
+                                       placeholder="<?php esc_attr_e('Your Business Name', 'NORDBOOKING'); ?>" />
+                                <p class="description"><?php esc_html_e('The name that appears in the "From" field of emails sent to customers.', 'NORDBOOKING'); ?></p>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="email_from_address"><?php esc_html_e('From Email Address', 'NORDBOOKING'); ?></label>
+                                <input type="email" id="email_from_address" name="email_from_address" class="regular-text" 
+                                       value="<?php echo nordbooking_get_biz_setting_value($biz_settings, 'email_from_address'); ?>"
+                                       placeholder="<?php esc_attr_e('noreply@yourdomain.com', 'NORDBOOKING'); ?>" />
+                                <p class="description"><?php esc_html_e('The email address that appears in the "From" field. Use a domain you own.', 'NORDBOOKING'); ?></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column -->
+                <div class="settings-column">
+                    <!-- Email Delivery Status Card -->
+                    <div class="nordbooking-card">
+                        <div class="nordbooking-card-header">
+                            <h3 class="nordbooking-card-title"><?php esc_html_e('Email Delivery Status', 'NORDBOOKING'); ?></h3>
+                        </div>
+                        <div class="nordbooking-card-content">
+                            <div class="email-status-indicator">
+                                <div class="status-item">
+                                    <div class="status-icon status-success">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <polyline points="20,6 9,17 4,12"/>
+                                        </svg>
+                                    </div>
+                                    <div class="status-content">
+                                        <strong><?php esc_html_e('Email System Active', 'NORDBOOKING'); ?></strong>
+                                        <p><?php esc_html_e('Your email notifications are configured and ready to send.', 'NORDBOOKING'); ?></p>
+                                    </div>
                                 </div>
                             </div>
                             
-                            <div class="logo-upload-controls" style="margin-top: 10px;">
-                                <button type="button" id="NORDBOOKING-upload-logo-btn" class="button">
-                                    <?php esc_html_e('Upload Logo', 'NORDBOOKING'); ?>
+                            <div class="email-test-section">
+                                <button type="button" id="test-email-btn" class="btn btn-outline btn-sm">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                                        <polyline points="22,6 12,13 2,6"/>
+                                    </svg>
+                                    <?php esc_html_e('Send Test Email', 'NORDBOOKING'); ?>
                                 </button>
-                                <button type="button" id="NORDBOOKING-remove-logo-btn" class="button" style="display: none;">
-                                    <?php esc_html_e('Remove Logo', 'NORDBOOKING'); ?>
-                                </button>
-                                <input type="file" id="NORDBOOKING-logo-file-input" accept="image/*" style="display: none;" />
-                                <input type="hidden" id="biz_logo_url" name="biz_logo_url" value="" />
+                                <p class="description"><?php esc_html_e('Send a test email to verify your settings are working correctly.', 'NORDBOOKING'); ?></p>
                             </div>
-                            
-                            <div class="progress-bar-wrapper" style="display: none; margin-top: 10px;">
-                                <div class="progress-bar" style="width: 0%; height: 20px; background: #0073aa; border-radius: 3px;"></div>
-                            </div>
-                            
-                            <p class="description">
-                                <?php esc_html_e('Upload your company logo. Recommended size: 200x80 pixels. Maximum file size: 5MB.', 'NORDBOOKING'); ?>
-                            </p>
                         </div>
-                    </td>
-                </tr>
-                
-                <tr>
-                    <th scope="row"><?php esc_html_e('Primary Color', 'NORDBOOKING'); ?></th>
-                    <td>
-                        <input type="text" id="bf_theme_color" name="bf_theme_color" 
-                               class="NORDBOOKING-color-picker" value="#1abc9c" />
-                        <p class="description"><?php esc_html_e('The main color used in your booking forms.', 'NORDBOOKING'); ?></p>
-                    </td>
-                </tr>
-                
-                <tr>
-                    <th scope="row"><?php esc_html_e('Secondary Color', 'NORDBOOKING'); ?></th>
-                    <td>
-                        <input type="text" id="bf_secondary_color" name="bf_secondary_color" 
-                               class="NORDBOOKING-color-picker" value="#34495e" />
-                        <p class="description"><?php esc_html_e('Secondary color for accents and highlights.', 'NORDBOOKING'); ?></p>
-                    </td>
-                </tr>
-                
-                <tr>
-                    <th scope="row"><?php esc_html_e('Background Color', 'NORDBOOKING'); ?></th>
-                    <td>
-                        <input type="text" id="bf_background_color" name="bf_background_color" 
-                               class="NORDBOOKING-color-picker" value="#ffffff" />
-                        <p class="description"><?php esc_html_e('Background color for your booking forms.', 'NORDBOOKING'); ?></p>
-                    </td>
-                </tr>
-                
-                <tr>
-                    <th scope="row"><?php esc_html_e('Border Radius', 'NORDBOOKING'); ?></th>
-                    <td>
-                        <input type="number" id="bf_border_radius" name="bf_border_radius" 
-                               value="8" min="0" max="50" class="small-text" />
-                        <span><?php esc_html_e('px', 'NORDBOOKING'); ?></span>
-                        <p class="description"><?php esc_html_e('Roundness of form elements (0 = square, higher = more rounded).', 'NORDBOOKING'); ?></p>
-                    </td>
-                </tr>
-                
-                <tr>
-                    <th scope="row"><?php esc_html_e('Custom CSS', 'NORDBOOKING'); ?></th>
-                    <td>
-                        <textarea id="bf_custom_css" name="bf_custom_css" rows="8" cols="50" class="large-text code" 
-                                  placeholder="/* Add your custom CSS here */"></textarea>
-                        <p class="description"><?php esc_html_e('Add custom CSS to further customize your booking forms.', 'NORDBOOKING'); ?></p>
-                    </td>
-                </tr>
-            </table>
-            
-            <style>
-                .logo-preview {
-                    width: 200px;
-                    height: 80px;
-                    border: 2px dashed #ddd;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    background: #f9f9f9;
-                    border-radius: 5px;
-                }
-                
-                .logo-preview img {
-                    max-width: 100%;
-                    max-height: 100%;
-                    object-fit: contain;
-                }
-                
-                .logo-placeholder {
-                    color: #666;
-                    font-style: italic;
-                }
-                
-                .progress-bar-wrapper {
-                    width: 200px;
-                    height: 20px;
-                    background: #f0f0f0;
-                    border-radius: 3px;
-                    overflow: hidden;
-                }
-            </style>
-        </div>
-
-        <div id="email-notifications-tab" class="settings-tab-content" style="display:none;">
-            <h3><?php esc_html_e('Email Notification Settings', 'NORDBOOKING'); ?></h3>
-            <p><?php esc_html_e('Configure when and where email notifications are sent.', 'NORDBOOKING'); ?></p>
-            
-            <table class="form-table">
-                <tr>
-                    <th scope="row"><?php esc_html_e('Email From Name', 'NORDBOOKING'); ?></th>
-                    <td>
-                        <input type="text" id="email_from_name" name="email_from_name" class="regular-text" 
-                               placeholder="<?php esc_attr_e('Your Business Name', 'NORDBOOKING'); ?>" />
-                        <p class="description"><?php esc_html_e('The name that appears in the "From" field of emails.', 'NORDBOOKING'); ?></p>
-                    </td>
-                </tr>
-                <tr>
-                    <th scope="row"><?php esc_html_e('Email From Address', 'NORDBOOKING'); ?></th>
-                    <td>
-                        <input type="email" id="email_from_address" name="email_from_address" class="regular-text" 
-                               placeholder="<?php esc_attr_e('noreply@yourdomain.com', 'NORDBOOKING'); ?>" />
-                        <p class="description"><?php esc_html_e('The email address that appears in the "From" field of emails.', 'NORDBOOKING'); ?></p>
-                    </td>
-                </tr>
-            </table>
-
-            <h4><?php esc_html_e('Notification Types', 'NORDBOOKING'); ?></h4>
-            
-            <?php
-            $notification_types = [
-                'booking_confirmation_customer' => __('Customer Booking Confirmation', 'NORDBOOKING'),
-                'booking_confirmation_admin' => __('Admin Booking Notification', 'NORDBOOKING'),
-                'staff_assignment' => __('Staff Assignment Notification', 'NORDBOOKING'),
-                'welcome' => __('Welcome Email', 'NORDBOOKING'),
-                'invitation' => __('Invitation Email', 'NORDBOOKING')
-            ];
-            
-            foreach ($notification_types as $type => $label): ?>
-                <div class="email-notification-item" style="border: 1px solid #ddd; padding: 15px; margin: 10px 0; border-radius: 5px;">
-                    <div style="display: flex; align-items: center; margin-bottom: 10px;">
-                        <label class="email-toggle-switch" style="margin-right: 15px;">
-                            <input type="checkbox" name="email_<?php echo esc_attr($type); ?>_enabled" 
-                                   id="email_<?php echo esc_attr($type); ?>_enabled" value="1" />
-                            <span class="toggle-slider"></span>
-                        </label>
-                        <strong><?php echo esc_html($label); ?></strong>
-                    </div>
-                    
-                    <div class="email-recipient-settings" style="margin-left: 20px;">
-                        <p style="margin: 5px 0;">
-                            <label>
-                                <input type="radio" name="email_<?php echo esc_attr($type); ?>_use_primary" value="1" checked />
-                                <?php esc_html_e('Use primary business email', 'NORDBOOKING'); ?>
-                            </label>
-                        </p>
-                        <p style="margin: 5px 0;">
-                            <label>
-                                <input type="radio" name="email_<?php echo esc_attr($type); ?>_use_primary" value="0" />
-                                <?php esc_html_e('Use custom email:', 'NORDBOOKING'); ?>
-                            </label>
-                            <input type="email" name="email_<?php echo esc_attr($type); ?>_recipient" 
-                                   class="regular-text custom-email-field" 
-                                   placeholder="<?php esc_attr_e('custom@email.com', 'NORDBOOKING'); ?>" 
-                                   style="margin-left: 10px; opacity: 0.5;" />
-                        </p>
                     </div>
                 </div>
-            <?php endforeach; ?>
-            
-            <style>
-                .email-toggle-switch {
-                    position: relative;
-                    display: inline-block;
-                    width: 50px;
-                    height: 24px;
-                }
-                
-                .email-toggle-switch input {
-                    opacity: 0;
-                    width: 0;
-                    height: 0;
-                }
-                
-                .toggle-slider {
-                    position: absolute;
-                    cursor: pointer;
-                    top: 0;
-                    left: 0;
-                    right: 0;
-                    bottom: 0;
-                    background-color: #ccc;
-                    transition: .4s;
-                    border-radius: 24px;
-                }
-                
-                .toggle-slider:before {
-                    position: absolute;
-                    content: "";
-                    height: 18px;
-                    width: 18px;
-                    left: 3px;
-                    bottom: 3px;
-                    background-color: white;
-                    transition: .4s;
-                    border-radius: 50%;
-                }
-                
-                .email-toggle-switch input:checked + .toggle-slider {
-                    background-color: #2196F3;
-                }
-                
-                .email-toggle-switch input:checked + .toggle-slider:before {
-                    transform: translateX(26px);
-                }
-                
-                .email-notification-item.disabled {
-                    opacity: 0.6;
-                }
-            </style>
+            </div>
+
+            <!-- Notification Types Section -->
+            <div class="nordbooking-card" style="margin-top: 1.5rem;">
+                <div class="nordbooking-card-header">
+                    <h3 class="nordbooking-card-title"><?php esc_html_e('Notification Types', 'NORDBOOKING'); ?></h3>
+                    <p class="nordbooking-card-description"><?php esc_html_e('Configure which email notifications to send and where to send them.', 'NORDBOOKING'); ?></p>
+                </div>
+                <div class="nordbooking-card-content">
+                    <div class="email-notifications-grid">
+                        <?php
+                        $notification_types = [
+                            'booking_confirmation_customer' => [
+                                'label' => __('Customer Booking Confirmation', 'NORDBOOKING'),
+                                'description' => __('Sent to customers when they make a booking', 'NORDBOOKING'),
+                                'icon' => '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><polyline points="16,11 18,13 22,9"/></svg>'
+                            ],
+                            'booking_confirmation_admin' => [
+                                'label' => __('Admin Booking Notification', 'NORDBOOKING'),
+                                'description' => __('Sent to you when a new booking is made', 'NORDBOOKING'),
+                                'icon' => '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="m22 12-3-3 3-3"/></svg>'
+                            ],
+                            'staff_assignment' => [
+                                'label' => __('Staff Assignment Notification', 'NORDBOOKING'),
+                                'description' => __('Sent to staff when assigned to a booking', 'NORDBOOKING'),
+                                'icon' => '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="m22 12-3-3 3-3"/></svg>'
+                            ],
+                            'welcome' => [
+                                'label' => __('Welcome Email', 'NORDBOOKING'),
+                                'description' => __('Sent to new customers after their first booking', 'NORDBOOKING'),
+                                'icon' => '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2v4l-3 3h18l-3-3V2z"/><path d="M8 6v10a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V6"/></svg>'
+                            ],
+                            'invitation' => [
+                                'label' => __('Invitation Email', 'NORDBOOKING'),
+                                'description' => __('Sent when inviting staff or team members', 'NORDBOOKING'),
+                                'icon' => '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>'
+                            ]
+                        ];
+                        
+                        foreach ($notification_types as $type => $config): ?>
+                            <div class="email-notification-card">
+                                <div class="notification-header">
+                                    <div class="notification-icon">
+                                        <?php echo $config['icon']; ?>
+                                    </div>
+                                    <div class="notification-info">
+                                        <h4><?php echo esc_html($config['label']); ?></h4>
+                                        <p><?php echo esc_html($config['description']); ?></p>
+                                    </div>
+                                    <div class="notification-toggle">
+                                        <label class="toggle-switch">
+                                            <input type="checkbox" name="email_<?php echo esc_attr($type); ?>_enabled" 
+                                                   id="email_<?php echo esc_attr($type); ?>_enabled" value="1" 
+                                                   <?php checked(nordbooking_get_biz_setting_value($biz_settings, 'email_' . $type . '_enabled', '1'), '1'); ?> />
+                                            <span class="toggle-slider"></span>
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <div class="notification-settings">
+                                    <div class="recipient-options">
+                                        <label class="radio-option">
+                                            <input type="radio" name="email_<?php echo esc_attr($type); ?>_use_primary" value="1" 
+                                                   <?php checked(nordbooking_get_biz_setting_value($biz_settings, 'email_' . $type . '_use_primary', '1'), '1'); ?> />
+                                            <span class="radio-label"><?php esc_html_e('Use primary business email', 'NORDBOOKING'); ?></span>
+                                        </label>
+                                        
+                                        <label class="radio-option">
+                                            <input type="radio" name="email_<?php echo esc_attr($type); ?>_use_primary" value="0" 
+                                                   <?php checked(nordbooking_get_biz_setting_value($biz_settings, 'email_' . $type . '_use_primary', '1'), '0'); ?> />
+                                            <span class="radio-label"><?php esc_html_e('Use custom email:', 'NORDBOOKING'); ?></span>
+                                            <input type="email" name="email_<?php echo esc_attr($type); ?>_recipient" 
+                                                   class="custom-email-field" 
+                                                   value="<?php echo nordbooking_get_biz_setting_value($biz_settings, 'email_' . $type . '_recipient'); ?>"
+                                                   placeholder="<?php esc_attr_e('custom@email.com', 'NORDBOOKING'); ?>" />
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Save button -->

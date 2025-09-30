@@ -1056,7 +1056,543 @@ span.NORDBOOKING-menu-icon {
   }
 }
 
+/* Settings Page Enhancements */
+.settings-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
 
+.settings-column {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.nordbooking-card {
+  background: hsl(0 0% 100%);
+  border: 1px solid hsl(214.3 31.8% 91.4%);
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.nordbooking-card-header {
+  padding: 1.5rem 1.5rem 0 1.5rem;
+  border-bottom: none;
+}
+
+.nordbooking-card-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: hsl(222.2 84% 4.9%);
+  margin: 0 0 0.25rem 0;
+}
+
+.nordbooking-card-description {
+  font-size: 0.875rem;
+  color: hsl(215.4 16.3% 46.9%);
+  margin: 0;
+}
+
+.nordbooking-card-content {
+  padding: 1.5rem;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group:last-child {
+  margin-bottom: 0;
+}
+
+.form-group label {
+  display: block;
+  font-weight: 500;
+  color: hsl(222.2 84% 4.9%);
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.form-group .description {
+  font-size: 0.8125rem;
+  color: hsl(215.4 16.3% 46.9%);
+  margin-top: 0.5rem;
+  margin-bottom: 0;
+  line-height: 1.4;
+}
+
+/* Logo Upload Styles */
+.logo-upload-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.logo-preview {
+  width: 200px;
+  height: 100px;
+  border: 2px dashed hsl(214.3 31.8% 91.4%);
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: hsl(210 40% 98%);
+  transition: border-color 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.logo-preview:hover {
+  border-color: hsl(217.2 91.2% 59.8%);
+}
+
+.logo-preview img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 0.25rem;
+}
+
+.logo-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  color: hsl(215.4 16.3% 46.9%);
+  text-align: center;
+}
+
+.logo-placeholder svg {
+  opacity: 0.5;
+}
+
+.logo-placeholder span {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.logo-upload-controls {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.progress-bar-wrapper {
+  width: 200px;
+  height: 8px;
+  background: hsl(210 40% 96%);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-top: 0.5rem;
+}
+
+.progress-bar {
+  height: 100%;
+  background: hsl(217.2 91.2% 59.8%);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+  width: 0%;
+}
+
+/* Color Input Styles */
+.color-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.color-preview {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.375rem;
+  border: 2px solid hsl(214.3 31.8% 91.4%);
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+
+.color-preview:hover {
+  border-color: hsl(217.2 91.2% 59.8%);
+}
+
+/* Input with Unit Styles */
+.input-with-unit {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.input-unit {
+  font-size: 0.875rem;
+  color: hsl(215.4 16.3% 46.9%);
+  font-weight: 500;
+}
+
+/* Email Notifications Styles */
+.email-status-indicator {
+  margin-bottom: 1.5rem;
+}
+
+.status-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.status-icon {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+}
+
+.status-success {
+  background: rgba(34, 197, 94, 0.1);
+  color: rgb(34, 197, 94);
+}
+
+.status-content strong {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: hsl(222.2 84% 4.9%);
+  margin-bottom: 0.25rem;
+}
+
+.status-content p {
+  font-size: 0.8125rem;
+  color: hsl(215.4 16.3% 46.9%);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.email-test-section {
+  padding-top: 1rem;
+  border-top: 1px solid hsl(214.3 31.8% 91.4%);
+}
+
+.email-notifications-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.email-notification-card {
+  border: 1px solid hsl(214.3 31.8% 91.4%);
+  border-radius: 0.5rem;
+  padding: 1.25rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.email-notification-card:hover {
+  border-color: hsl(217.2 91.2% 59.8%);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.notification-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.notification-icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.5rem;
+  background: hsl(210 40% 98%);
+  border: 1px solid hsl(214.3 31.8% 91.4%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: hsl(215.4 16.3% 46.9%);
+}
+
+.notification-info {
+  flex-grow: 1;
+}
+
+.notification-info h4 {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: hsl(222.2 84% 4.9%);
+  margin: 0 0 0.25rem 0;
+}
+
+.notification-info p {
+  font-size: 0.8125rem;
+  color: hsl(215.4 16.3% 46.9%);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.notification-toggle {
+  flex-shrink: 0;
+}
+
+.notification-settings {
+  padding-left: 3.5rem;
+}
+
+.recipient-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.radio-option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.radio-option input[type="radio"] {
+  margin: 0;
+}
+
+.radio-label {
+  color: hsl(222.2 84% 4.9%);
+  font-weight: 500;
+}
+
+.custom-email-field {
+  margin-left: 0.5rem;
+  width: 200px;
+  transition: opacity 0.2s ease;
+}
+
+/* Toggle Switch Styles */
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: hsl(214.3 31.8% 91.4%);
+  transition: 0.3s;
+  border-radius: 24px;
+}
+
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.3s;
+  border-radius: 50%;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.toggle-switch input:checked+.toggle-slider {
+  background-color: hsl(217.2 91.2% 59.8%);
+}
+
+.toggle-switch input:checked+.toggle-slider:before {
+  transform: translateX(20px);
+}
+
+.toggle-switch input:focus+.toggle-slider {
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+}
+
+/* Disabled State */
+.email-notification-card.disabled {
+  opacity: 0.6;
+}
+
+.email-notification-card.disabled .notification-settings {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* Page Description */
+.page-description {
+  color: hsl(215.4 16.3% 46.9%);
+  font-size: 0.9375rem;
+  margin-bottom: 1.5rem;
+  line-height: 1.5;
+}
+
+/* Page Header Styles */
+.nordbooking-page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid hsl(214.3 31.8% 91.4%);
+}
+
+.nordbooking-page-header-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.nordbooking-page-header-icon {
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: hsl(210 40% 98%);
+  border: 1px solid hsl(214.3 31.8% 91.4%);
+  border-radius: 0.5rem;
+  color: hsl(215.4 16.3% 46.9%);
+}
+
+.nordbooking-page-header h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: hsl(222.2 84% 4.9%);
+}
+
+.nordbooking-page-header-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* Settings Tabs Styles */
+.NORDBOOKING-settings-tabs {
+  margin-bottom: 2rem;
+}
+
+.settings-tabs-nav {
+  display: flex;
+  gap: 0.25rem;
+  background: hsl(210 40% 98%);
+  padding: 0.25rem;
+  border-radius: 0.5rem;
+  border: 1px solid hsl(214.3 31.8% 91.4%);
+}
+
+.settings-tab-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border: none;
+  background: transparent;
+  color: hsl(215.4 16.3% 46.9%);
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  flex: 1;
+  justify-content: center;
+}
+
+.settings-tab-btn:hover {
+  background: hsl(0 0% 100%);
+  color: hsl(222.2 84% 4.9%);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.settings-tab-btn.active {
+  background: hsl(0 0% 100%);
+  color: hsl(217.2 91.2% 59.8%);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  font-weight: 600;
+}
+
+.settings-tab-btn svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  stroke-width: 1.5;
+}
+
+.settings-tab-btn.active svg {
+  stroke-width: 2;
+}
+
+/* Settings Page Responsive Design */
+@media (max-width: 768px) {
+  .settings-layout {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .logo-upload-controls {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .color-input-wrapper {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .notification-header {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .notification-settings {
+    padding-left: 0;
+  }
+
+  .radio-option {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .custom-email-field {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .settings-tabs-nav {
+    flex-direction: column;
+    gap: 0.125rem;
+  }
+
+  .settings-tab-btn {
+    justify-content: flex-start;
+    flex: none;
+  }
+
+  .nordbooking-page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .nordbooking-page-header-actions {
+    width: 100%;
+  }
+
+  .nordbooking-page-header-actions .btn {
+    flex: 1;
+  }
+}
 
 /*=====================================*/
 /* ==================================================
@@ -1074,11 +1610,11 @@ footer#colophon {
 }
 
 /* ==================================================
-         * NBK CSS CUSTOM PROPERTIES (DESIGN TOKENS)
-         * ================================================== */
+* NBK CSS CUSTOM PROPERTIES (DESIGN TOKENS)
+* ================================================== */
 :root {
   --container-width: 1200px;
-  --container-max-width: min(90%, var(--container-width));
+  --container-max-width: min(95%, var(--container-width));
   --nbk-background: 0 0% 100%;
   --nbk-foreground: 222.2 84% 4.9%;
   --nbk-card: 0 0% 100%;
@@ -1127,7 +1663,7 @@ body {
 .nbk-header {
   position: sticky;
   top: 0;
-  z-index: 50;
+  z-index: 9999;
   width: 100%;
   border-bottom: 1px solid hsl(var(--nbk-border));
   background-color: hsl(var(--nbk-background) / 0.95);
@@ -1259,14 +1795,11 @@ body {
          * NBK HERO SECTION STYLES
          * ================================================== */
 .nbk-hero {
-  margin-top: 150px;
+  padding-top: 100px;
   text-align: center;
-  box-shadow: inset 0 -69px 33px 0 rgb(0 0 0 / 3%), 0 1px 2px -1px rgb(0 0 0 / 0.1);
   overflow: hidden;
-  background-image: url(../wp-content/themes/saas/assets/images/grid-pattern.png);
-  background-position: bottom center;
-  background-repeat: no-repeat;
-  background-size: 150% auto;
+  position: relative;
+  background: radial-gradient(hsl(var(--nbk-primary)), #0e172a);
 }
 
 .nbk-hero__badge {
@@ -1293,7 +1826,7 @@ body {
   line-height: 1.1;
   letter-spacing: -0.025em;
   margin-bottom: 1.5rem;
-  color: hsl(var(--nbk-foreground));
+  color: #fff;
   max-inline-size: 800px;
   margin-inline: auto;
 }
@@ -1301,7 +1834,7 @@ body {
 .nbk-hero__description {
   font-size: 1.25rem;
   line-height: 1.6;
-  color: hsl(var(--nbk-muted-foreground));
+  color: #fff;
   max-width: 40rem;
   margin: 0 auto 2.5rem;
 }
@@ -1325,10 +1858,16 @@ body {
 
 .nbk-hero__mockup {
   margin-bottom: -130px;
-  max-width: 1000px;
+  max-width: 800px;
   margin: auto;
-  margin-bottom: -210px;
+  margin-bottom: -110px;
   margin-top: 3rem;
+  border-radius: 1.2em;
+  padding: .5em;
+  background: hsl(0deg 0% 100% / 32%);
+  backdrop-filter: blur(0.375em);
+  position: relative;
+  z-index: 3;
 }
 
 .nbk-hero__mockup img {
@@ -1336,7 +1875,6 @@ body {
   box-shadow: 0 1px 33px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
   overflow: hidden;
   border-radius: 10px;
-  outline: 1px solid #e4eaf1;
 }
 
 .nbk-stat {
@@ -1355,13 +1893,85 @@ body {
 }
 
 .masthead-bottom-rounded {
-  height: 2em
+  background: transparent;
+  height: 2em;
+  margin-top: -27px;
+  position: relative;
+  z-index: 4;
 }
 
 .masthead-bottom-rounded div {
   background-color: #fff;
   height: 2em;
   border-radius: 2em 2em 0 0;
+}
+
+
+
+
+
+.figure1 {
+  left: calc(50% - 24px - 16px - 254px - 23em);
+  top: 22em;
+  width: 254px;
+  height: 315px;
+  position: absolute;
+  scale: 0.7;
+  animation: float1 4s ease-in-out infinite;
+}
+
+/*==== 3 ====*/
+.figure3 {
+  position: absolute;
+  left: calc(50% - 24px - 16px + 29em);
+  top: 26em;
+  width: 306px;
+  height: 360px;
+  scale: 0.7;
+  animation: float1 4s ease-in-out infinite;
+}
+
+figure img {
+  display: flex;
+  position: absolute;
+  border-radius: 3.25em;
+  box-shadow: 0 20px 40px 0 rgba(0, 0, 0, .12);
+}
+
+@keyframes float1 {
+
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+@keyframes float2 {
+
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-15px);
+  }
+}
+
+@keyframes float3 {
+
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-25px);
+  }
 }
 
 /* ==================================================
@@ -1466,7 +2076,7 @@ body {
   max-width: 100%;
   width: 100%;
   scale: 1.4;
-  transform: skewX(10deg) translate(60px, 40px);
+  transform: translate(60px, 40px);
 }
 
 .nbk-section-badge {
@@ -1619,14 +2229,13 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: var(--gray-100);
   border: 1px solid var(--gray-200);
 }
 
 .nbk-feature-icon svg {
   width: 1.25rem;
   height: 1.25rem;
-  stroke: var(--gray-600);
+  stroke: var(--primary-color);
 }
 
 .nbk-feature-title {
@@ -1764,6 +2373,91 @@ body {
   color: hsl(var(--nbk-muted-foreground));
   line-height: 1.6;
 }
+
+/* ==================================================
+* Key Features
+* ================================================== */
+.nbk-key-features {
+  padding: 80px 20px;
+  margin: 0 auto;
+  background-color: hsl(var(--nbk-primary));
+  background: radial-gradient(hsl(var(--nbk-primary)), #0e172a);
+  color: hsl(var(--nbk-primary-foreground));
+}
+
+.nbk-key-features__header {
+  text-align: center;
+  margin-bottom: 60px;
+}
+
+.nbk-key-features__title {
+  font-size: 48px;
+  font-weight: 700;
+  margin-bottom: 16px;
+  color: #fff;
+}
+
+.nbk-key-features__subtitle {
+  font-size: 18px;
+  opacity: 0.9;
+  color: #fff;
+}
+
+.nbk-key-features__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 40px;
+  margin-top: 60px;
+}
+
+.nbk-key-features__card {
+  text-align: center;
+  padding: 20px;
+}
+
+.nbk-key-features__icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 24px;
+  background: hsla(0 0% 100% / 0.15);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nbk-key-features__icon svg {
+  width: 32px;
+  height: 32px;
+  fill: white;
+  stroke: white;
+}
+
+.nbk-key-features__card-title {
+  color: #fff;
+  font-size: 22px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.nbk-key-features__card-description {
+  font-size: 15px;
+  line-height: 1.6;
+  opacity: 0.85;
+  color: #fff;
+}
+
+@media (max-width: 768px) {
+  .nbk-key-features__title {
+    font-size: 36px;
+  }
+
+  .nbk-key-features__grid {
+    grid-template-columns: 1fr;
+    gap: 48px;
+  }
+}
+
 
 /* ==================================================
          * NBK STEPS STYLES
@@ -2131,7 +2825,7 @@ body {
 }
 
 .nordbk-header {
-  position: fixed;
+  position: sticky;
   top: 0;
   left: 0;
   right: 0;
@@ -2139,14 +2833,12 @@ body {
   background-color: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  border-bottom: 1px solid var(--gray-200);
   transition: var(--transition-fast);
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 .nordbk-header.scrolled {
-  background-color: rgba(255, 255, 255, 0.98);
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 2px 12px rgba(20, 20, 43, 5%);
+  transition: box-shadow 0.3s ease;
 }
 
 .header-container {

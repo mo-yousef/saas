@@ -22,7 +22,7 @@
     pointer-events: none;
 }
 
-.pricing-container {
+.nbk-container {
     max-width: var(--container-xl);
     margin: 0 auto;
     padding: 0 var(--space-4);
@@ -458,7 +458,7 @@
 }
 
 @media (max-width: 479px) {
-    .pricing-container {
+    .nbk-container {
         padding: 0 var(--space-3);
     }
 

@@ -54,15 +54,10 @@ if ( isset( $_GET['invitation_token'] ) ) {
 }
 ?>
 
-<div class="NORDBOOKING-auth-page-container">
-    <div class="NORDBOOKING-auth-grid">
-        <div class="NORDBOOKING-auth-image-column">
-            <div class="placeholder-content">
-                <h1><?php bloginfo('name'); ?></h1>
-                <p><?php esc_html_e('Join us and streamline your business operations.', 'NORDBOOKING'); ?></p>
-            </div>
-        </div>
-        <div class="NORDBOOKING-auth-form-column">
+<div class="nbk-auth-page-container">
+    <div class="nbk-auth-grid">
+
+        <div class="nbk-auth-form-column">
             <main id="main" class="site-main">
                 <div id="NORDBOOKING-register-form-container" class="NORDBOOKING-auth-form-wrapper">
                     <h2><?php
@@ -165,6 +160,11 @@ if ( isset( $_GET['invitation_token'] ) ) {
                     </div>
                 </div>
             </main>
+        </div>
+        <div class="nbk-auth-image-column">
+            <div class="placeholder-content">
+                <img class="nbk-fade-in" src="<?php echo get_template_directory_uri(); ?>/assets/images/hero-mockup.png" alt="Register Your Business">
+            </div>
         </div>
     </div>
 </div>

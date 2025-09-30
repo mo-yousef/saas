@@ -37,11 +37,6 @@ $selected_plan = isset($_GET['plan']) ? sanitize_text_field($_GET['plan']) : '';
     color: white;
 }
 
-.contact-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 1rem;
-}
 
 .contact-section {
     padding: 4rem 0;
@@ -230,7 +225,7 @@ $selected_plan = isset($_GET['plan']) ? sanitize_text_field($_GET['plan']) : '';
 
 <!-- Contact Hero Section -->
 <section class="contact-hero">
-    <div class="contact-container">
+    <div class="nbk-container">
         <h1>Get in Touch</h1>
         <p>We're here to help you grow your cleaning business. Reach out to our team for support, questions, or enterprise solutions.</p>
     </div>
@@ -238,7 +233,7 @@ $selected_plan = isset($_GET['plan']) ? sanitize_text_field($_GET['plan']) : '';
 
 <!-- Contact Content Section -->
 <section class="contact-section">
-    <div class="contact-container">
+    <div class="nbk-container">
         <div class="contact-grid">
             <!-- Contact Information -->
             <div class="contact-info">

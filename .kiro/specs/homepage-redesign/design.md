@@ -547,7 +547,7 @@ interface Testimonial {
 
 ```html
 <section class="pricing-section">
-  <div class="pricing-container">
+  <div class="nbk-container">
     <div class="section-header">
       <h2>Simple, transparent pricing</h2>
       <p>Start free, scale as you grow. No hidden fees.</p>

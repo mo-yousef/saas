@@ -14,15 +14,15 @@ if ( is_user_logged_in() ) {
 get_header(); // This will be hidden by CSS in auth-pages.css for this template
 ?>
 
-<div class="NORDBOOKING-auth-page-container">
-    <div class="NORDBOOKING-auth-grid">
-        <div class="NORDBOOKING-auth-image-column">
+<div class="nbk-auth-page-container">
+    <div class="nbk-auth-grid">
+        <div class="nbk-auth-image-column">
             <div class="placeholder-content">
                 <h1><?php bloginfo('name'); ?></h1>
                 <p><?php esc_html_e('Reset your password to regain access to your account.', 'NORDBOOKING'); ?></p>
             </div>
         </div>
-        <div class="NORDBOOKING-auth-form-column">
+        <div class="nbk-auth-form-column">
             <main id="main" class="site-main">
                 <div id="NORDBOOKING-forgot-password-form-container" class="NORDBOOKING-auth-form-wrapper">
                     <h2><?php esc_html_e( 'Forgot Your Password?', 'NORDBOOKING' ); ?></h2>

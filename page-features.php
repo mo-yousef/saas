@@ -910,7 +910,7 @@ get_header(); // Even if front-page doesn't use it, page templates generally sho
                     <a href="<?php echo esc_url(home_url('/contact/#schedule-demo')); ?>" class="btn btn-outline btn-xl" style="border-color: hsl(var(--primary-foreground)/0.5); color: hsl(var(--primary-foreground)); background-color: transparent;">Schedule Demo</a>
                 </div>
                 <p style="margin-top: 1.5rem; font-size: 0.875rem; color: hsl(var(--primary-foreground)/0.7);">
-                    No credit card required • 14-day free trial • Cancel anytime
+                    No credit card required • 7-days free trial • Cancel anytime
                 </p>
             </div>
         </section>
@@ -962,7 +962,7 @@ get_header(); // Even if front-page doesn't use it, page templates generally sho
                     <div class="card faq-item">
                         <div class="card-content">
                             <h3 class="faq-question">Is there a free trial?</h3>
-                            <p class="faq-answer">Yes! We offer a 14-day free trial with no credit card required. You can explore all features and see how Nord Booking works for your business.</p>
+                            <p class="faq-answer">Yes! We offer a 7-days free trial with no credit card required. You can explore all features and see how Nord Booking works for your business.</p>
                         </div>
                     </div>
                     <!-- FAQ 5 -->

@@ -68,6 +68,15 @@ jQuery(document).ready(function ($) {
             $('#NORDBOOKING-remove-logo-btn').show();
           }
           
+          // Update color previews
+          $('.color-input-wrapper').each(function() {
+            const $input = $(this).find('.NORDBOOKING-color-picker');
+            const $preview = $(this).find('.color-preview');
+            if ($input.length && $preview.length) {
+              $preview.css('background-color', $input.val());
+            }
+          });
+          
           // Trigger color picker updates
           if (typeof $.fn.wpColorPicker === "function") {
             $('.NORDBOOKING-color-picker').wpColorPicker('refresh');
@@ -89,23 +98,23 @@ jQuery(document).ready(function ($) {
   }
 
   // --- Tab Navigation ---
-  const navTabs = $(".nav-tab-wrapper .nav-tab");
+  const tabButtons = $(".settings-tab-btn");
   const tabContents = $(".settings-tab-content");
 
   console.log(
-    "Found tabs:",
-    navTabs.length,
+    "Found tab buttons:",
+    tabButtons.length,
     "Found tab contents:",
     tabContents.length
   );
 
-  navTabs.on("click", function (e) {
+  tabButtons.on("click", function (e) {
     e.preventDefault();
     const tabId = $(this).data("tab");
     console.log("Tab clicked:", tabId);
 
-    navTabs.removeClass("nav-tab-active");
-    $(this).addClass("nav-tab-active");
+    tabButtons.removeClass("active");
+    $(this).addClass("active");
 
     tabContents.hide();
     const targetTab = $("#" + tabId + "-tab");
@@ -122,21 +131,35 @@ jQuery(document).ready(function ($) {
   // Activate tab based on URL hash on page load
   if (window.location.hash) {
     const hashWithoutHash = window.location.hash.substring(1);
-    const activeTab = navTabs.filter('[data-tab="' + hashWithoutHash + '"]');
+    const activeTab = tabButtons.filter('[data-tab="' + hashWithoutHash + '"]');
     if (activeTab.length) {
       activeTab.trigger("click");
     } else {
       // Default to the first tab if hash doesn't match any tab
-      navTabs.first().trigger("click");
+      tabButtons.first().trigger("click");
     }
   } else {
     // Default to the first tab if no hash is present
-    navTabs.first().trigger("click");
+    tabButtons.first().trigger("click");
   }
 
   // --- Color Picker ---
   if (typeof $.fn.wpColorPicker === "function") {
-    $(".NORDBOOKING-color-picker").wpColorPicker();
+    $(".NORDBOOKING-color-picker").wpColorPicker({
+      change: function(event, ui) {
+        const colorValue = ui.color.toString();
+        const $preview = $(this).siblings('.color-preview');
+        if ($preview.length) {
+          $preview.css('background-color', colorValue);
+        }
+      },
+      clear: function() {
+        const $preview = $(this).siblings('.color-preview');
+        if ($preview.length) {
+          $preview.css('background-color', '#ffffff');
+        }
+      }
+    });
   } else {
     console.warn("WordPress Color Picker not available");
   }
@@ -210,41 +233,48 @@ jQuery(document).ready(function ($) {
     });
   }
 
-  removeLogoBtn.on("click", (e) => {
+  removeLogoBtn.on("click", function(e) {
     e.preventDefault();
     $("#biz_logo_url").val("");
     logoPreview.html(
-      '<div class="logo-placeholder"><span>No Logo</span></div>'
+      '<div class="logo-placeholder">' +
+      '<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">' +
+      '<rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>' +
+      '<circle cx="8.5" cy="8.5" r="1.5"/>' +
+      '<polyline points="21,15 16,10 5,21"/>' +
+      '</svg>' +
+      '<span>Upload Logo</span>' +
+      '</div>'
     );
     $(this).hide();
   });
 
   // --- Email Notification Toggles ---
-  $('.email-toggle-switch input[type="checkbox"]').on('change', function() {
+  $('.toggle-switch input[type="checkbox"]').on('change', function() {
     const isEnabled = $(this).is(':checked');
-    const notificationItem = $(this).closest('.email-notification-item');
-    const recipientSettings = notificationItem.find('.email-recipient-settings');
+    const notificationCard = $(this).closest('.email-notification-card');
+    const notificationSettings = notificationCard.find('.notification-settings');
     
     if (isEnabled) {
-      recipientSettings.css({
+      notificationSettings.css({
         'opacity': '1',
         'pointer-events': 'auto'
       });
-      notificationItem.removeClass('disabled');
+      notificationCard.removeClass('disabled');
     } else {
-      recipientSettings.css({
+      notificationSettings.css({
         'opacity': '0.5',
         'pointer-events': 'none'
       });
-      notificationItem.addClass('disabled');
+      notificationCard.addClass('disabled');
     }
   });
 
   // Handle radio button changes for email recipient selection
   $('input[name*="_use_primary"]').on('change', function() {
     const usePrimary = $(this).val() === '1';
-    const notificationItem = $(this).closest('.email-notification-item');
-    const customEmailField = notificationItem.find('.custom-email-field');
+    const notificationCard = $(this).closest('.email-notification-card');
+    const customEmailField = notificationCard.find('.custom-email-field');
     
     if (usePrimary) {
       customEmailField.css({
@@ -257,6 +287,46 @@ jQuery(document).ready(function ($) {
         'pointer-events': 'auto'
       });
     }
+  });
+
+  // --- Color Picker Updates ---
+  $('.NORDBOOKING-color-picker').on('change', function() {
+    const colorValue = $(this).val();
+    const colorPreview = $(this).siblings('.color-preview');
+    if (colorPreview.length) {
+      colorPreview.css('background-color', colorValue);
+    }
+  });
+
+  // --- Test Email Button ---
+  $('#test-email-btn').on('click', function(e) {
+    e.preventDefault();
+    const $btn = $(this);
+    const originalText = $btn.text();
+    
+    $btn.prop('disabled', true).text('Sending...');
+    
+    $.ajax({
+      url: nordbooking_biz_settings_params.ajax_url,
+      type: 'POST',
+      data: {
+        action: 'nordbooking_send_test_email',
+        nonce: nordbooking_biz_settings_params.nonce
+      },
+      success: function(response) {
+        if (response.success) {
+          window.showAlert('Test email sent successfully!', 'success');
+        } else {
+          window.showAlert(response.data.message || 'Failed to send test email.', 'error');
+        }
+      },
+      error: function() {
+        window.showAlert('Error sending test email.', 'error');
+      },
+      complete: function() {
+        $btn.prop('disabled', false).text(originalText);
+      }
+    });
   });
 
   // --- Main Form Submission ---
@@ -291,12 +361,17 @@ jQuery(document).ready(function ($) {
     // Serialize form data including checkboxes and radio buttons
     let settingsData = {};
     
-    // Get all form elements
+    // Get all form elements (including those in hidden tabs)
     $(this).find('input, select, textarea').each(function() {
       const $element = $(this);
       const name = $element.attr('name');
       
       if (!name || name === 'nordbooking_dashboard_nonce_field' || name === '_wp_http_referer') return;
+      
+      // Debug: log field names to see what we're processing
+      if (name === 'first_name' || name === 'last_name') {
+        console.log('Processing personal field:', name, 'value:', $element.val());
+      }
       
       if ($element.is(':checkbox')) {
         // For checkboxes, set value to '1' if checked, '0' if not
@@ -313,6 +388,10 @@ jQuery(document).ready(function ($) {
     });
 
     console.log("Settings data to save:", settingsData);
+    console.log("Personal details in settingsData:", {
+      first_name: settingsData.first_name || 'NOT FOUND',
+      last_name: settingsData.last_name || 'NOT FOUND'
+    });
 
     $.ajax({
       url: nordbooking_biz_settings_params.ajax_url,

@@ -19,7 +19,7 @@ img {
 .trust-container,
 .features-container,
 .testimonials-container,
-.pricing-container {
+.nbk-container {
     width: 100%;
     max-width: 1200px;
     margin: 0 auto;
@@ -34,7 +34,7 @@ img {
     .trust-container,
     .features-container,
     .testimonials-container,
-    .pricing-container {
+    .nbk-container {
         padding: 0 var(--space-3);
     }
 

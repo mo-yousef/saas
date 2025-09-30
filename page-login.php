@@ -34,16 +34,9 @@ if ( is_user_logged_in() ) {
 get_header(); // This will be hidden by CSS in auth-pages.css for these templates
 ?>
 
-<div class="NORDBOOKING-auth-page-container">
-    <div class="NORDBOOKING-auth-grid">
-        <div class="NORDBOOKING-auth-image-column">
-            <div class="placeholder-content">
-                 <!-- You can replace this with an <img> tag or more complex HTML -->
-                <h1><?php bloginfo('name'); ?></h1>
-                <p><?php esc_html_e('Manage your bookings efficiently and effectively.', 'NORDBOOKING'); ?></p>
-            </div>
-        </div>
-        <div class="NORDBOOKING-auth-form-column">
+<div class="nbk-auth-page-container">
+    <div class="nbk-auth-grid">
+        <div class="nbk-auth-form-column">
             <main id="main" class="site-main">
                 <div id="NORDBOOKING-login-form-container" class="NORDBOOKING-auth-form-wrapper">
                     <h2><?php esc_html_e( 'Business Owner Login', 'NORDBOOKING' ); ?></h2>
@@ -75,6 +68,11 @@ get_header(); // This will be hidden by CSS in auth-pages.css for these template
                     </div>
                 </div>
             </main><!-- #main -->
+        </div>
+        <div class="nbk-auth-image-column">
+            <div class="placeholder-content">
+                <img class="nbk-fade-in" src="<?php echo get_template_directory_uri(); ?>/assets/images/hero-mockup.png" alt="Register Your Business">
+            </div>
         </div>
     </div>
 </div>

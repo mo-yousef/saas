@@ -17,14 +17,13 @@ get_header();
 <style>
 /* Pricing Page Specific Styles */
 .pricing-hero {
-    background: linear-gradient(135deg, hsl(var(--nbk-primary)) 0%, hsl(var(--nbk-primary) / 0.8) 100%);
-    color: white;
+background: radial-gradient(hsl(var(--nbk-primary)), #0e172a);    color: white;
     padding: 4rem 0;
     text-align: center;
 }
 
 .pricing-hero h1 {
-    font-size: clamp(2.5rem, 5vw, 4rem);
+    font-size: clamp(2.5rem, 5vw, 3rem);
     font-weight: 800;
     margin-bottom: 1rem;
     color: white;
@@ -49,12 +48,6 @@ get_header();
     font-weight: 500;
     margin-bottom: 2rem;
     backdrop-filter: blur(10px);
-}
-
-.pricing-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 1rem;
 }
 
 .pricing-section {
@@ -379,7 +372,7 @@ get_header();
 
 <!-- Pricing Hero Section -->
 <section class="pricing-hero">
-    <div class="pricing-container">
+    <div class="nbk-container">
         <div class="pricing-badge">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
@@ -393,7 +386,7 @@ get_header();
 
 <!-- Pricing Cards Section -->
 <section class="pricing-section">
-    <div class="pricing-container">
+    <div class="nbk-container">
         <div class="pricing-cards">
             <!-- Free Trial Card -->
             <div class="pricing-card">
@@ -536,7 +529,7 @@ get_header();
 
 <!-- Trust Indicators -->
 <section class="trust-indicators">
-    <div class="pricing-container">
+    <div class="nbk-container">
         <h3>Trusted by cleaning businesses worldwide</h3>
         <div class="trust-badges">
             <div class="trust-badge">
@@ -573,7 +566,7 @@ get_header();
 
 <!-- FAQ Section -->
 <section class="faq-section">
-    <div class="pricing-container">
+    <div class="nbk-container">
         <div class="faq-header">
             <h2>Frequently Asked Questions</h2>
             <p>Everything you need to know about our pricing and features</p>
