@@ -33,6 +33,18 @@ require_once NORDBOOKING_THEME_DIR . 'functions/ajax-fixes.php';
 require_once NORDBOOKING_THEME_DIR . 'functions/access-control.php';
 require_once NORDBOOKING_THEME_DIR . 'functions/booking-form-restrictions.php';
 
+function nordbooking_enqueue_theme_assets() {
+    if (is_page_template('page-features.php')) {
+        wp_enqueue_style(
+            'nordbooking-features-page-style',
+            get_template_directory_uri() . '/assets/css/page-features.css',
+            array(),
+            NORDBOOKING_VERSION
+        );
+    }
+}
+add_action('wp_enqueue_scripts', 'nordbooking_enqueue_theme_assets');
+
 // =============================================================================
 // LOGO UPLOAD HANDLER
 // =============================================================================

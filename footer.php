@@ -227,31 +227,22 @@ $nbk_text_domain = 'nord-booking';
                     <ul>
                         <li><a href="<?php echo esc_url(home_url('/features/')); ?>" class="nbk-link"><?php _e('Features', $nbk_text_domain); ?></a></li>
                         <li><a href="<?php echo esc_url(home_url('/pricing/')); ?>" class="nbk-link"><?php _e('Pricing', $nbk_text_domain); ?></a></li>
-                        <li><a href="<?php echo esc_url(home_url('/api/')); ?>" class="nbk-link"><?php _e('API', $nbk_text_domain); ?></a></li>
-                        <li><a href="<?php echo esc_url(home_url('/integrations/')); ?>" class="nbk-link"><?php _e('Integrations', $nbk_text_domain); ?></a></li>
-                        <li><a href="<?php echo esc_url(home_url('/changelog/')); ?>" class="nbk-link"><?php _e('Changelog', $nbk_text_domain); ?></a></li>
                     </ul>
                 </div>
 
                 <div class="nbk-footer__section">
                     <h3><?php _e('Company', $nbk_text_domain); ?></h3>
                     <ul>
-                        <li><a href="<?php echo esc_url(home_url('/about/')); ?>" class="nbk-link"><?php _e('About', $nbk_text_domain); ?></a></li>
-                        <li><a href="<?php echo esc_url(home_url('/blog/')); ?>" class="nbk-link"><?php _e('Blog', $nbk_text_domain); ?></a></li>
-                        <li><a href="<?php echo esc_url(home_url('/careers/')); ?>" class="nbk-link"><?php _e('Careers', $nbk_text_domain); ?></a></li>
-                        <li><a href="<?php echo esc_url(home_url('/press/')); ?>" class="nbk-link"><?php _e('Press', $nbk_text_domain); ?></a></li>
-                        <li><a href="<?php echo esc_url(home_url('/partners/')); ?>" class="nbk-link"><?php _e('Partners', $nbk_text_domain); ?></a></li>
+                        <li><a href="<?php echo esc_url(home_url('/contact/')); ?>" class="nbk-link"><?php _e('Contact Us', $nbk_text_domain); ?></a></li>
                     </ul>
                 </div>
 
                 <div class="nbk-footer__section">
-                    <h3><?php _e('Support', $nbk_text_domain); ?></h3>
+                    <h3><?php _e('Legal', $nbk_text_domain); ?></h3>
                     <ul>
-                        <li><a href="<?php echo esc_url(home_url('/help/')); ?>" class="nbk-link"><?php _e('Help Center', $nbk_text_domain); ?></a></li>
-                        <li><a href="<?php echo esc_url(home_url('/contact/')); ?>" class="nbk-link"><?php _e('Contact Us', $nbk_text_domain); ?></a></li>
-                        <li><a href="<?php echo esc_url(home_url('/status/')); ?>" class="nbk-link"><?php _e('Status', $nbk_text_domain); ?></a></li>
                         <li><a href="<?php echo esc_url(home_url('/privacy/')); ?>" class="nbk-link"><?php _e('Privacy Policy', $nbk_text_domain); ?></a></li>
                         <li><a href="<?php echo esc_url(home_url('/terms/')); ?>" class="nbk-link"><?php _e('Terms of Service', $nbk_text_domain); ?></a></li>
+                        <li><a href="<?php echo esc_url(home_url('/cookies/')); ?>" class="nbk-link"><?php _e('Cookie Policy', $nbk_text_domain); ?></a></li>
                     </ul>
                 </div>
             </div>
