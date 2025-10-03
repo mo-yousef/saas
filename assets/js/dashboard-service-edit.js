@@ -146,6 +146,13 @@ jQuery(function ($) {
         self.saveService();
       });
 
+      // Clear field errors when user starts typing
+      $(document).on('input', '#service-name, #service-price, #service-duration', function() {
+        const $field = $(this);
+        $field.removeClass('error');
+        $field.siblings('.field-error').remove();
+      });
+
       // Delete
       $("#delete-service-btn").on("click", () => this.deleteService());
 
@@ -499,6 +506,34 @@ jQuery(function ($) {
       // Fix indices before submission
       this.fixOptionIndices();
 
+      // Clear previous error states
+      $form.find('.field-error').remove();
+      $form.find('.error').removeClass('error');
+
+      // Validate required fields
+      let hasErrors = false;
+
+      // Validate service name
+      const $serviceName = $form.find('#service-name');
+      if (!$serviceName.val().trim()) {
+        this.showFieldError($serviceName, 'Service name is required');
+        hasErrors = true;
+      }
+
+      // Validate price
+      const $servicePrice = $form.find('#service-price');
+      if (!$servicePrice.val() || !$.isNumeric($servicePrice.val()) || parseFloat($servicePrice.val()) < 0) {
+        this.showFieldError($servicePrice, 'Valid price is required');
+        hasErrors = true;
+      }
+
+      // Validate duration
+      const $serviceDuration = $form.find('#service-duration');
+      if (!$serviceDuration.val() || parseInt($serviceDuration.val()) < 30) {
+        this.showFieldError($serviceDuration, 'Duration must be at least 30 minutes');
+        hasErrors = true;
+      }
+
       // Validate that all choice labels are filled
       let hasEmptyChoices = false;
       let hasEmptyOptionNames = false;
@@ -542,6 +577,10 @@ jQuery(function ($) {
         return;
       }
 
+      if (hasErrors) {
+        return;
+      }
+
       // Show loading state
       $submitBtn
         .prop("disabled", true)
@@ -579,27 +618,82 @@ jQuery(function ($) {
               // It's an update, so we reload the page after a short delay to allow the toast to be seen.
               setTimeout(() => location.reload(), 500);
             } else {
-              // It's a new service, so we redirect to the new edit page.
+              // It's a new service, so we update the page to edit mode
               if (response.data && response.data.service_id) {
                 const newServiceId = response.data.service_id;
-                // Build the redirect URL using the localized admin_base_url
-                const baseUrl =
-                  nordbooking_service_edit_params.admin_base_url || "admin.php";
-                const redirectUrl = `${baseUrl}?page=NORDBOOKING-service-edit&service_id=${newServiceId}`;
-                window.location.href = redirectUrl;
+                
+                // Add the service_id as a hidden input to the form
+                if (!$form.find('input[name="service_id"]').length) {
+                  $form.append(`<input type="hidden" name="service_id" value="${newServiceId}">`);
+                }
+                
+                // Update the page title and button text
+                $('.dashboard-title').text('Edit Service');
+                $('.dashboard-subtitle').text('Modify service details and customize options to fit your business needs.');
+                $('#save-service-btn').html(`
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2">
+                    <path d="M20 6L9 17l-5-5"/>
+                  </svg>
+                  Update Service
+                `);
+                
+                // Show delete button if it doesn't exist
+                if (!$('#delete-service-btn').length) {
+                  const deleteButtonHtml = `
+                    <button type="button" id="delete-service-btn" class="btn btn-destructive btn-sm w-full">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 6h18"/>
+                        <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                        <path d="m19 6-1 14H6L5 6"/>
+                        <line x1="10" y1="11" x2="10" y2="17"/>
+                        <line x1="14" y1="11" x2="14" y2="17"/>
+                      </svg>
+                      Delete Service
+                    </button>
+                    <hr class="my-4">
+                  `;
+                  $('#save-service-btn').after(deleteButtonHtml);
+                }
+                
+                // Update the URL without reloading
+                const currentUrl = new URL(window.location);
+                currentUrl.searchParams.set('service_id', newServiceId);
+                window.history.pushState({}, '', currentUrl.toString());
+                
+                console.log('Service created successfully, switched to edit mode');
               } else {
                 // Fallback in case the service_id is not returned, just reload.
                 setTimeout(() => location.reload(), 500);
               }
             }
           } else {
-            const message =
-              (response && response.data && response.data.message) ||
-              (nordbooking_service_edit_params.i18n &&
-                nordbooking_service_edit_params.i18n.error_saving_service) ||
-              "Error saving service. Please check your input and try again.";
-            if (typeof window.showToast === "function") {
-              window.showToast({ type: "error", title: "Error", message });
+            // Handle field-specific errors
+            if (response && response.data && response.data.field_errors) {
+              const fieldErrors = response.data.field_errors;
+              
+              // Show field-specific errors
+              for (const fieldName in fieldErrors) {
+                const $field = $form.find(`[name="${fieldName}"], #service-${fieldName}`);
+                if ($field.length) {
+                  self.showFieldError($field, fieldErrors[fieldName]);
+                }
+              }
+              
+              // Focus on first error field
+              const $firstError = $form.find('.error').first();
+              if ($firstError.length) {
+                $firstError.focus();
+              }
+            } else {
+              // Fallback to general error message
+              const message =
+                (response && response.data && response.data.message) ||
+                (nordbooking_service_edit_params.i18n &&
+                  nordbooking_service_edit_params.i18n.error_saving_service) ||
+                "Error saving service. Please check your input and try again.";
+              if (typeof window.showToast === "function") {
+                window.showToast({ type: "error", title: "Error", message });
+              }
             }
           }
         },
@@ -794,6 +888,21 @@ jQuery(function ($) {
       );
     },
     // --- End Icon Selector Logic ---
+
+    showFieldError: function($field, message) {
+      // Remove any existing error for this field
+      $field.siblings('.field-error').remove();
+      $field.addClass('error');
+      
+      // Add error message below the field
+      const $errorDiv = $('<div class="field-error" style="color: #ef4444; font-size: 0.875rem; margin-top: 0.25rem;">' + message + '</div>');
+      $field.after($errorDiv);
+      
+      // Focus on the first error field
+      if (!$('.error').length || $field.is($('.error').first())) {
+        $field.focus();
+      }
+    },
 
     handleImageUpload: function (file) {
       const maxSizeBytes = 5 * 1024 * 1024; // 5MB

@@ -524,7 +524,7 @@ if ($status === 'trial' && isset($_GET['plan']) && $_GET['plan'] === 'pro'): ?>
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    padding: 0.875rem;
+    padding: 30px 15px;
     border: 2px solid transparent;
     border-radius: 0.5rem;
     background: white;
@@ -541,11 +541,11 @@ if ($status === 'trial' && isset($_GET['plan']) && $_GET['plan'] === 'pro'): ?>
     border-color: #3b82f6;
 }
 
-.sidebar-btn.primary.trial-upgrade {
+/* .sidebar-btn.primary.trial-upgrade {
     background: linear-gradient(135deg, #10b981 0%, #059669 100%);
     border-color: #10b981;
     animation: pulse-glow 2s infinite;
-}
+} */
 
 .sidebar-btn.secondary {
     background: #f9fafb;
@@ -553,10 +553,10 @@ if ($status === 'trial' && isset($_GET['plan']) && $_GET['plan'] === 'pro'): ?>
     color: #374151;
 }
 
-.sidebar-btn:hover {
+/* .sidebar-btn:hover {
     transform: translateY(-1px);
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
+} */
 
 .sidebar-btn.primary:hover {
     background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
@@ -579,7 +579,7 @@ if ($status === 'trial' && isset($_GET['plan']) && $_GET['plan'] === 'pro'): ?>
     display: block;
     font-weight: 600;
     font-size: 0.875rem;
-    margin-bottom: 0.25rem;
+    margin-bottom: 0.1rem;
 }
 
 .btn-subtitle {
@@ -664,17 +664,6 @@ if ($status === 'trial' && isset($_GET['plan']) && $_GET['plan'] === 'pro'): ?>
     background: #f9fafb;
 }
 
-.status-badge {
-    display: inline-flex;
-    align-items: center;
-    padding: 0.25rem 0.75rem;
-    border-radius: 9999px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.025em;
-}
-
 .status-badge.status-paid {
     background: rgba(34, 197, 94, 0.1);
     color: #16a34a;
@@ -740,33 +729,6 @@ if ($status === 'trial' && isset($_GET['plan']) && $_GET['plan'] === 'pro'): ?>
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
-}
-
-.status-badge {
-    display: inline-flex;
-    align-items: center;
-    border-radius: 9999px;
-    padding: 0.5rem 1rem;
-    font-size: 0.875rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.025em;
-}
-
-.status-badge.status-active {
-    background-color: hsl(142 76% 36% / 0.1);
-    color: hsl(142 76% 36%);
-}
-
-.status-badge.status-trial {
-    background-color: hsl(221.2 83.2% 53.3% / 0.1);
-    color: hsl(221.2 83.2% 53.3%);
-}
-
-.status-badge.status-expired,
-.status-badge.status-cancelled {
-    background-color: hsl(0 84.2% 60.2% / 0.1);
-    color: hsl(0 84.2% 60.2%);
 }
 
 .status-badge.status-none {
@@ -920,10 +882,6 @@ if ($status === 'trial' && isset($_GET['plan']) && $_GET['plan'] === 'pro'): ?>
     }
 }
 
-.trial-benefits-card {
-    border: 2px solid #3b82f6 !important;
-    background: linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(29, 78, 216, 0.05) 100%);
-}
 
 .trial-pricing-display {
     display: flex;
@@ -991,10 +949,6 @@ if ($status === 'trial' && isset($_GET['plan']) && $_GET['plan'] === 'pro'): ?>
     }
 }
 
-.expired-trial-card {
-    border: 2px solid #ef4444 !important;
-    background: linear-gradient(135deg, rgba(239, 68, 68, 0.05) 0%, rgba(220, 38, 38, 0.05) 100%);
-}
 
 .expired-trial-notice {
     background: rgba(239, 68, 68, 0.1);

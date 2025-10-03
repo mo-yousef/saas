@@ -528,8 +528,8 @@ get_header(); // Even if front-page doesn't use it, page templates generally sho
                 <h2 class="section-title">Ready to Transform Your Cleaning Business?</h2>
                 <p class="section-description">Join thousands of cleaning businesses that have streamlined their operations with Nord Booking.</p>
                 <div class="hero-actions">
-                    <a href="<?php echo esc_url(home_url('/register/')); ?>" class="btn btn-xl" style="background-color: hsl(var(--background)); color: hsl(var(--primary));">Start Free Trial</a>
-                    <a href="<?php echo esc_url(home_url('/contact/#schedule-demo')); ?>" class="btn btn-outline btn-xl" style="border-color: hsl(var(--primary-foreground)/0.5); color: hsl(var(--primary-foreground)); background-color: transparent;">Schedule Demo</a>
+                <a href="<?php echo esc_url(home_url('/register/')); ?>" class="nb-btn nb-btn--primary nb-btn--lg">Start Free Trial</a>
+                    <a href="<?php echo esc_url(home_url('/contact/#schedule-demo')); ?>" class="nb-btn nb-btn--secondary nb-btn--lg">Schedule Demo</a>
                 </div>
                 <p>
                     No credit card required • 7-days free trial • Cancel anytime
@@ -542,7 +542,7 @@ get_header(); // Even if front-page doesn't use it, page templates generally sho
             <div class="container">
                 <h2 class="section-title">See Nord Booking in Action</h2>
                 <p class="section-description">Book a personalized demo and see how Nord Booking can work for your specific cleaning business needs.</p>
-                <a href="<?php echo esc_url(home_url('/contact/#schedule-demo')); ?>" class="btn btn-primary btn-lg">Schedule Demo</a>
+                <a href="<?php echo esc_url(home_url('/contact/#schedule-demo')); ?>" class="nb-btn nb-btn--primary nb-btn--lg">Schedule Demo</a>
                 <ul>
                     <li>✓ 30-minute personalized demo</li>
                     <li>✓ Custom setup consultation</li>

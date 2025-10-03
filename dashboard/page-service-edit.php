@@ -40,7 +40,7 @@ $service_options_data = array();
 $error_message        = '';
 
 // Get settings.
-$breadcrumb_services = admin_url( 'admin.php?page=NORDBOOKING-services' );
+$breadcrumb_services = "/dashboard/services/";
 $user_id             = get_current_user_id();
 $settings_manager    = new \NORDBOOKING\Classes\Settings();
 $biz_settings        = $settings_manager->get_business_settings( $user_id );
@@ -285,6 +285,43 @@ if ( $edit_mode && $service_id > 0 ) {
 					</div>
 				</div>
 
+				<!-- Service Area Card -->
+				<div class="nordbooking-card">
+					<div class="nordbooking-card-header">
+						<h3 class="nordbooking-card-title"><?php esc_html_e( 'Service Area', 'NORDBOOKING' ); ?></h3>
+						<p class="nordbooking-card-description">
+							<?php esc_html_e( 'Define where this service is available. You can select one country and specific cities within that country.', 'NORDBOOKING' ); ?>
+						</p>
+					</div>
+					<div class="nordbooking-card-content">
+						<div id="service-area-container">
+							<!-- Service area selection will be loaded here -->
+							<div class="service-area-selection">
+								<div class="service-area-country-selection">
+									<label class="nordbooking-filter-item label"><?php esc_html_e( 'Country', 'NORDBOOKING' ); ?></label>
+									<select id="service-country-select" name="service_country" class="regular-text">
+										<option value=""><?php esc_html_e( 'Select a country...', 'NORDBOOKING' ); ?></option>
+									</select>
+								</div>
+								
+								<div id="service-cities-container" class="service-cities-container" style="display: none;">
+									<label class="nordbooking-filter-item label"><?php esc_html_e( 'Available Cities', 'NORDBOOKING' ); ?></label>
+									<div id="service-cities-grid" class="service-cities-grid">
+										<!-- Cities will be loaded here -->
+									</div>
+								</div>
+								
+								<div id="service-area-summary" class="service-area-summary" style="display: none;">
+									<h4><?php esc_html_e( 'Selected Service Areas', 'NORDBOOKING' ); ?></h4>
+									<div id="selected-areas-list" class="selected-areas-list">
+										<!-- Selected areas will be displayed here -->
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+
 				<!-- Service Options Card -->
 				<div class="nordbooking-card">
 					<div class="nordbooking-card-header">
@@ -468,6 +505,20 @@ if ( $edit_mode && $service_id > 0 ) {
 </template>
 
 <?php
+// Enqueue service area selection styles and scripts
+wp_enqueue_style('nordbooking-enhanced-areas', get_template_directory_uri() . '/assets/css/enhanced-areas.css', [], '1.0.0');
+wp_enqueue_script('nordbooking-country-flags', get_template_directory_uri() . '/assets/js/country-flags.js', [], '1.0.0', true);
+wp_enqueue_script('nordbooking-country-change-dialog', get_template_directory_uri() . '/assets/js/country-change-dialog.js', ['jquery'], '1.0.0', true);
+wp_enqueue_script('nordbooking-service-area-selection', get_template_directory_uri() . '/assets/js/service-area-selection.js', ['jquery', 'nordbooking-country-change-dialog', 'nordbooking-country-flags'], '1.0.0', true);
+
+wp_localize_script('nordbooking-service-area-selection', 'nordbooking_service_params', [
+    'ajax_url' => admin_url('admin-ajax.php'),
+    'nonce' => wp_create_nonce('nordbooking_dashboard_nonce'),
+    'user_id' => $user_id,
+    'service_id' => $service_id,
+    'edit_mode' => $edit_mode,
+]);
+
 // Initialize existing options count for JavaScript
 if ( $edit_mode && ! empty( $service_options_data ) ) {
 	// This script is no longer needed as the tabbed interface has been removed.

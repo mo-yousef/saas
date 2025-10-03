@@ -1337,27 +1337,37 @@ public function save_booking_form_settings(int $user_id, array $settings_data): 
             }
         }
 
-        // Explicitly require dependencies before creating demo data to prevent potential autoloader issues during AJAX.
-        require_once __DIR__ . '/Services.php';
-        self::create_demo_services($user_id);
+        // Demo services creation is now handled by Auth class during registration
+        // to ensure it matches the specific requirements for account setup automation
     }
 
     private static function create_demo_services(int $user_id)
     {
-        if (get_user_meta($user_id, 'demo_services_created', true)) {
+        $demo_services_created = get_user_meta($user_id, 'demo_services_created', true);
+        if (!empty($demo_services_created)) {
+            error_log('[NORDBOOKING Demo Services] Demo services already created for user ' . $user_id);
             return;
         }
 
-        $services_manager = new \NORDBOOKING\Classes\Services();
+        error_log('[NORDBOOKING Demo Services] Creating demo services for user ' . $user_id);
 
-        // 1. Home Cleaning
-        $home_cleaning_id = $services_manager->add_service($user_id, [
-            'name' => 'Home Cleaning',
-            'description' => 'A comprehensive cleaning service for your home.',
-            'price' => 50,
-            'duration' => 120,
-            'icon' => 'preset:home-cleaning.svg',
-        ]);
+        try {
+            $services_manager = new \NORDBOOKING\Classes\Services();
+
+            // 1. Home Cleaning
+            $home_cleaning_id = $services_manager->add_service($user_id, [
+                'name' => 'Demo - Home Cleaning',
+                'description' => 'A comprehensive cleaning service for your home.',
+                'price' => 50,
+                'duration' => 120,
+                'icon' => 'preset:home-cleaning.svg',
+            ]);
+
+            if (is_wp_error($home_cleaning_id)) {
+                error_log('[NORDBOOKING Demo Services] Error creating Home Cleaning service: ' . $home_cleaning_id->get_error_message());
+            } else {
+                error_log('[NORDBOOKING Demo Services] Created Home Cleaning service with ID: ' . $home_cleaning_id);
+            }
 
         if (!is_wp_error($home_cleaning_id)) {
             $services_manager->service_options_manager->add_service_option($user_id, $home_cleaning_id, [
@@ -1423,7 +1433,7 @@ public function save_booking_form_settings(int $user_id, array $settings_data): 
 
         // 2. Window Cleaning
         $window_cleaning_id = $services_manager->add_service($user_id, [
-            'name' => 'Window Cleaning',
+            'name' => 'Demo - Window Cleaning',
             'description' => 'Crystal clear windows for your home or office.',
             'price' => 30,
             'duration' => 60,
@@ -1459,7 +1469,7 @@ public function save_booking_form_settings(int $user_id, array $settings_data): 
 
         // 3. Moving Cleaning
         $moving_cleaning_id = $services_manager->add_service($user_id, [
-            'name' => 'Moving Cleaning',
+            'name' => 'Demo - Moving Cleaning',
             'description' => 'A thorough cleaning for when you are moving in or out.',
             'price' => 150,
             'duration' => 240,
@@ -1511,7 +1521,11 @@ public function save_booking_form_settings(int $user_id, array $settings_data): 
             ]);
         }
 
-        update_user_meta($user_id, 'demo_services_created', true);
+            update_user_meta($user_id, 'demo_services_created', true);
+            error_log('[NORDBOOKING Demo Services] Demo services creation completed for user ' . $user_id);
+        } catch (Exception $e) {
+            error_log('[NORDBOOKING Demo Services] Error creating demo services for user ' . $user_id . ': ' . $e->getMessage());
+        }
     }
 
     /**

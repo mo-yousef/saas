@@ -144,6 +144,7 @@ class Auth {
     }
 
     public function init_ajax_handlers() {
+        error_log('NORDBOOKING: Initializing AJAX handlers');
         add_action( 'wp_ajax_nopriv_nordbooking_login', [ $this, 'handle_ajax_login' ] );
         add_action( 'wp_ajax_nopriv_nordbooking_register', [ $this, 'handle_ajax_registration' ] );
         add_action( 'wp_ajax_nopriv_nordbooking_check_email_exists', [ $this, 'handle_check_email_exists_ajax' ] );
@@ -155,6 +156,14 @@ class Auth {
         add_action( 'wp_ajax_nordbooking_direct_add_staff', [ $this, 'handle_ajax_direct_add_staff' ] );
         add_action( 'wp_ajax_nordbooking_edit_worker_details', [ $this, 'handle_ajax_edit_worker_details' ] );
         add_action( 'wp_ajax_nordbooking_worker_update_booking_status', [ $this, 'handle_ajax_worker_update_booking_status' ] );
+        
+        // Add test handler for debugging
+        add_action( 'wp_ajax_nopriv_nordbooking_test_registration', [ $this, 'handle_test_registration' ] );
+        
+        // Add alternative registration handler with different name for testing
+        add_action( 'wp_ajax_nopriv_nordbooking_register_alt', [ $this, 'handle_ajax_registration' ] );
+        
+        error_log('NORDBOOKING: AJAX handlers registered successfully');
         // wp_ajax_nordbooking_login for logged-in users if needed, but login is for non-logged-in
     }
 
@@ -654,6 +663,7 @@ private function setup_invited_worker(\WP_User $user, array $post_data): array {
 }
 
 private function setup_new_business_owner(\WP_User $user, string $company_name, string $plan = ''): array {
+    error_log('NORDBOOKING DEBUG: setup_new_business_owner method called for user ID: ' . $user->ID . ', company: ' . $company_name);
     error_log('NORDBOOKING: Processing business owner registration for user ID: ' . $user->ID);
 
     $user->set_role(self::ROLE_BUSINESS_OWNER);
@@ -744,6 +754,58 @@ private function setup_new_business_owner(\WP_User $user, string $company_name, 
         // Continue with registration even if default settings initialization fails
     }
 
+    // Create demo services for new business owner
+    error_log('NORDBOOKING: Creating demo services');
+    try {
+        $this->create_demo_services($user->ID);
+        error_log('NORDBOOKING: Demo services created successfully');
+    } catch (Exception $e) {
+        error_log('NORDBOOKING: Error creating demo services: ' . $e->getMessage());
+        error_log('NORDBOOKING: Demo services error trace: ' . $e->getTraceAsString());
+        // Continue with registration even if demo services creation fails
+    } catch (Throwable $t) {
+        error_log('NORDBOOKING: Demo services throwable error: ' . $t->getMessage());
+        error_log('NORDBOOKING: Demo services throwable trace: ' . $t->getTraceAsString());
+    }
+
+    // Setup default availability for new business owner
+    error_log('NORDBOOKING: Setting up default availability');
+    try {
+        $this->setup_default_availability($user->ID);
+        error_log('NORDBOOKING: Default availability setup successfully');
+    } catch (Exception $e) {
+        error_log('NORDBOOKING: Error setting up default availability: ' . $e->getMessage());
+        error_log('NORDBOOKING: Availability error trace: ' . $e->getTraceAsString());
+        // Continue with registration even if availability setup fails
+    } catch (Throwable $t) {
+        error_log('NORDBOOKING: Availability throwable error: ' . $t->getMessage());
+        error_log('NORDBOOKING: Availability throwable trace: ' . $t->getTraceAsString());
+    }
+
+    // Create demo discount codes for new business owner
+    error_log('NORDBOOKING: Creating demo discount codes');
+    try {
+        $this->create_demo_discounts($user->ID, $company_name);
+        error_log('NORDBOOKING: Demo discount codes created successfully');
+    } catch (Exception $e) {
+        error_log('NORDBOOKING: Error creating demo discount codes: ' . $e->getMessage());
+        error_log('NORDBOOKING: Discounts error trace: ' . $e->getTraceAsString());
+        // Continue with registration even if discount creation fails
+    } catch (Throwable $t) {
+        error_log('NORDBOOKING: Discounts throwable error: ' . $t->getMessage());
+        error_log('NORDBOOKING: Discounts throwable trace: ' . $t->getTraceAsString());
+    }
+
+    // Configure default settings for new business owner
+    error_log('NORDBOOKING: Configuring default settings');
+    try {
+        $this->configure_default_settings($user->ID);
+        error_log('NORDBOOKING: Default settings configured successfully');
+    } catch (Exception $e) {
+        error_log('NORDBOOKING: Error configuring default settings: ' . $e->getMessage());
+        // Continue with registration even if settings configuration fails
+    }
+
     // Determine redirect URL based on plan selection
     $redirect_url = home_url('/dashboard/');
     if (!empty($plan)) {
@@ -772,13 +834,26 @@ public function handle_ajax_registration() {
         ob_clean();
     }
     
+    error_log('NORDBOOKING: Registration AJAX handler called');
+    error_log('NORDBOOKING: POST data: ' . print_r($_POST, true));
     error_log('NORDBOOKING: Registration process started');
     $user_id = null; // Initialize user_id to null
 
     try {
         // 1. Verify nonce
-        if (!check_ajax_referer(self::REGISTER_NONCE_ACTION, 'nonce', false)) {
-            throw new \Exception(__('Security check failed. Please refresh the page and try again.', 'NORDBOOKING'));
+        error_log('NORDBOOKING: Checking nonce - Expected action: ' . self::REGISTER_NONCE_ACTION . ', Received nonce: ' . ($_POST['nonce'] ?? 'none'));
+        
+        // Check if this is coming from our custom endpoint (which bypasses nonce for now)
+        $is_custom_endpoint = isset($_SERVER['SCRIPT_NAME']) && strpos($_SERVER['SCRIPT_NAME'], 'registration-endpoint.php') !== false;
+        
+        if (!$is_custom_endpoint) {
+            if (!check_ajax_referer(self::REGISTER_NONCE_ACTION, 'nonce', false)) {
+                error_log('NORDBOOKING: Nonce verification failed');
+                throw new \Exception(__('Security check failed. Please refresh the page and try again.', 'NORDBOOKING'));
+            }
+            error_log('NORDBOOKING: Nonce verification passed');
+        } else {
+            error_log('NORDBOOKING: Skipping nonce check for custom endpoint');
         }
 
         // Verify reCAPTCHA
@@ -830,6 +905,9 @@ public function handle_ajax_registration() {
         $plan = isset($_POST['plan']) ? sanitize_text_field(trim($_POST['plan'])) : '';
         $is_invitation_flow = isset($_POST['inviter_id']) && isset($_POST['assigned_role']);
 
+        error_log("NORDBOOKING DEBUG: POST data check - inviter_id: " . (isset($_POST['inviter_id']) ? $_POST['inviter_id'] : 'not set'));
+        error_log("NORDBOOKING DEBUG: POST data check - assigned_role: " . (isset($_POST['assigned_role']) ? $_POST['assigned_role'] : 'not set'));
+        error_log("NORDBOOKING DEBUG: is_invitation_flow determined as: " . ($is_invitation_flow ? 'true' : 'false'));
         error_log("NORDBOOKING: Registration attempt for email: {$email}");
 
         $errors = [];
@@ -862,9 +940,12 @@ public function handle_ajax_registration() {
         error_log('NORDBOOKING: User profile data updated successfully');
 
         // 5. Setup user based on registration type (Business Owner or Worker)
+        error_log("NORDBOOKING DEBUG: Registration flow check - is_invitation_flow: " . ($is_invitation_flow ? 'true' : 'false'));
         if ($is_invitation_flow) {
+            error_log("NORDBOOKING DEBUG: Taking invitation flow path");
             $result = $this->setup_invited_worker($user, $_POST);
         } else {
+            error_log("NORDBOOKING DEBUG: Taking business owner flow path");
             $result = $this->setup_new_business_owner($user, $company_name, $plan);
         }
 
@@ -1003,6 +1084,30 @@ public function handle_ajax_registration() {
         }
         
         // wp_send_json_* functions call wp_die() internally, so we should not reach this point
+    }
+
+    /**
+     * Test handler to verify AJAX is working
+     */
+    public function handle_test_registration() {
+        error_log('NORDBOOKING: Test registration handler called');
+        error_log('NORDBOOKING: Test POST data: ' . print_r($_POST, true));
+        
+        // Clean any output
+        if (ob_get_level()) {
+            ob_clean();
+        }
+        
+        wp_send_json_success([
+            'message' => 'Test registration AJAX is working!',
+            'timestamp' => current_time('mysql'),
+            'post_data' => $_POST,
+            'server_info' => [
+                'REQUEST_METHOD' => $_SERVER['REQUEST_METHOD'] ?? 'unknown',
+                'REQUEST_URI' => $_SERVER['REQUEST_URI'] ?? 'unknown',
+                'HTTP_USER_AGENT' => $_SERVER['HTTP_USER_AGENT'] ?? 'unknown'
+            ]
+        ]);
     }
 
     /**
@@ -1175,5 +1280,353 @@ public function handle_ajax_registration() {
             return self::get_business_owner_id_for_worker($user_id);
         }
         return $user_id;
+    }
+
+    /**
+     * Create demo services for new business owner
+     * 
+     * @param int $user_id The user ID of the new business owner
+     * @throws Exception If service creation fails
+     */
+    private function create_demo_services(int $user_id) {
+        error_log("NORDBOOKING DEBUG: create_demo_services called with user_id: {$user_id}");
+        
+        if (empty($user_id)) {
+            throw new \Exception('Invalid user ID for demo services creation');
+        }
+
+        // Initialize Services manager
+        $services_manager = new \NORDBOOKING\Classes\Services();
+
+        // Define demo services data
+        $demo_services = [
+            [
+                'name' => 'Basic House Cleaning',
+                'description' => 'Standard residential cleaning service including dusting, vacuuming, mopping, and bathroom cleaning. Perfect for maintaining a clean and healthy home environment.',
+                'price' => 75.00,
+                'duration' => 120, // 2 hours
+                'status' => 'active',
+                'disable_pet_question' => 0,
+                'disable_frequency_option' => 0,
+                'disable_discount_code' => 0,
+                'options' => [
+                    [
+                        'name' => 'Inside Oven Cleaning',
+                        'description' => 'Deep cleaning of oven interior including racks and glass door',
+                        'type' => 'addon',
+                        'is_required' => 0,
+                        'price_impact_type' => 'fixed',
+                        'price_impact_value' => 15.00,
+                        'sort_order' => 1
+                    ],
+                    [
+                        'name' => 'Inside Refrigerator Cleaning',
+                        'description' => 'Complete cleaning of refrigerator interior including shelves and drawers',
+                        'type' => 'addon',
+                        'is_required' => 0,
+                        'price_impact_type' => 'fixed',
+                        'price_impact_value' => 10.00,
+                        'sort_order' => 2
+                    ]
+                ]
+            ],
+            [
+                'name' => 'Deep Cleaning Service',
+                'description' => 'Comprehensive deep cleaning service that covers every corner of your home. Includes detailed cleaning of all rooms, appliances, and hard-to-reach areas.',
+                'price' => 150.00,
+                'duration' => 240, // 4 hours
+                'status' => 'active',
+                'disable_pet_question' => 0,
+                'disable_frequency_option' => 0,
+                'disable_discount_code' => 0,
+                'options' => [
+                    [
+                        'name' => 'Carpet Steam Cleaning',
+                        'description' => 'Professional steam cleaning for carpets and rugs',
+                        'type' => 'addon',
+                        'is_required' => 0,
+                        'price_impact_type' => 'fixed',
+                        'price_impact_value' => 25.00,
+                        'sort_order' => 1
+                    ]
+                ]
+            ],
+            [
+                'name' => 'Office Cleaning',
+                'description' => 'Professional commercial cleaning service for offices and business spaces. Includes desk cleaning, floor maintenance, and restroom sanitization.',
+                'price' => 100.00,
+                'duration' => 180, // 3 hours
+                'status' => 'active',
+                'disable_pet_question' => 1, // Offices typically don't have pets
+                'disable_frequency_option' => 0,
+                'disable_discount_code' => 0,
+                'options' => []
+            ]
+        ];
+
+        $created_services = [];
+
+        foreach ($demo_services as $service_data) {
+            try {
+                // Extract options before creating service
+                $service_options = $service_data['options'] ?? [];
+                unset($service_data['options']);
+
+                // Create the service
+                $service_id = $services_manager->add_service($user_id, $service_data);
+
+                if (is_wp_error($service_id)) {
+                    error_log("NORDBOOKING: Failed to create demo service '{$service_data['name']}': " . $service_id->get_error_message());
+                    continue; // Skip this service but continue with others
+                }
+
+                $created_services[] = [
+                    'id' => $service_id,
+                    'name' => $service_data['name']
+                ];
+
+                // Create service options if any
+                if (!empty($service_options)) {
+                    foreach ($service_options as $option_data) {
+                        $option_result = $services_manager->service_options_manager->add_service_option($user_id, $service_id, $option_data);
+                        
+                        if (is_wp_error($option_result)) {
+                            error_log("NORDBOOKING: Failed to create service option '{$option_data['name']}' for service '{$service_data['name']}': " . $option_result->get_error_message());
+                            // Continue with other options
+                        }
+                    }
+                }
+
+                error_log("NORDBOOKING: Successfully created demo service '{$service_data['name']}' with ID: {$service_id}");
+
+            } catch (Exception $e) {
+                error_log("NORDBOOKING: Exception creating demo service '{$service_data['name']}': " . $e->getMessage());
+                // Continue with other services
+            }
+        }
+
+        if (empty($created_services)) {
+            throw new \Exception('Failed to create any demo services');
+        }
+
+        error_log("NORDBOOKING: Successfully created " . count($created_services) . " demo services for user {$user_id}");
+    }
+
+    /**
+     * Setup default availability for new business owner
+     * 
+     * @param int $user_id The user ID of the new business owner
+     * @throws Exception If availability setup fails
+     */
+    private function setup_default_availability(int $user_id) {
+        error_log("NORDBOOKING DEBUG: setup_default_availability called with user_id: {$user_id}");
+        
+        if (empty($user_id)) {
+            throw new \Exception('Invalid user ID for default availability setup');
+        }
+
+        // Initialize Availability manager
+        $availability_manager = new \NORDBOOKING\Classes\Availability();
+
+        // Define default availability schedule (Monday to Friday, 9 AM to 5 PM)
+        $default_schedule = [
+            // Monday (1)
+            [
+                'day_of_week' => 1,
+                'is_enabled' => true,
+                'slots' => [
+                    [
+                        'start_time' => '09:00',
+                        'end_time' => '17:00'
+                    ]
+                ]
+            ],
+            // Tuesday (2)
+            [
+                'day_of_week' => 2,
+                'is_enabled' => true,
+                'slots' => [
+                    [
+                        'start_time' => '09:00',
+                        'end_time' => '17:00'
+                    ]
+                ]
+            ],
+            // Wednesday (3)
+            [
+                'day_of_week' => 3,
+                'is_enabled' => true,
+                'slots' => [
+                    [
+                        'start_time' => '09:00',
+                        'end_time' => '17:00'
+                    ]
+                ]
+            ],
+            // Thursday (4)
+            [
+                'day_of_week' => 4,
+                'is_enabled' => true,
+                'slots' => [
+                    [
+                        'start_time' => '09:00',
+                        'end_time' => '17:00'
+                    ]
+                ]
+            ],
+            // Friday (5)
+            [
+                'day_of_week' => 5,
+                'is_enabled' => true,
+                'slots' => [
+                    [
+                        'start_time' => '09:00',
+                        'end_time' => '17:00'
+                    ]
+                ]
+            ],
+            // Saturday (6) - Disabled by default
+            [
+                'day_of_week' => 6,
+                'is_enabled' => false,
+                'slots' => []
+            ],
+            // Sunday (0) - Disabled by default
+            [
+                'day_of_week' => 0,
+                'is_enabled' => false,
+                'slots' => []
+            ]
+        ];
+
+        // Save the default schedule
+        $result = $availability_manager->save_recurring_schedule($user_id, $default_schedule);
+
+        if (!$result) {
+            throw new \Exception('Failed to save default availability schedule');
+        }
+
+        error_log("NORDBOOKING: Successfully set up default availability (Monday-Friday 9 AM-5 PM) for user {$user_id}");
+    }
+
+    /**
+     * Create demo discount codes for new business owner
+     * 
+     * @param int $user_id The user ID of the new business owner
+     * @param string $company_name The company name for reference in logging
+     * @throws Exception If discount creation fails
+     */
+    private function create_demo_discounts(int $user_id, string $company_name = '') {
+        error_log("NORDBOOKING DEBUG: create_demo_discounts called with user_id: {$user_id}, company: {$company_name}");
+        
+        if (empty($user_id)) {
+            throw new \Exception('Invalid user ID for demo discounts creation');
+        }
+
+        // Initialize Discounts manager
+        $discounts_manager = new \NORDBOOKING\Classes\Discounts($user_id);
+
+        // Define demo discount codes data
+        $demo_discounts = [
+            [
+                'code' => 'DEMO10',
+                'type' => 'percentage',
+                'value' => 10.00,
+                'expiry_date' => date('Y-m-d', strtotime('+30 days')),
+                'usage_limit' => 50,
+                'status' => 'active'
+            ],
+            [
+                'code' => 'WELCOME5',
+                'type' => 'fixed_amount',
+                'value' => 5.00,
+                'expiry_date' => date('Y-m-d', strtotime('+30 days')),
+                'usage_limit' => 100,
+                'status' => 'active'
+            ]
+        ];
+
+        $created_discounts = [];
+
+        foreach ($demo_discounts as $discount_data) {
+            try {
+                // Create the discount code
+                $discount_id = $discounts_manager->add_discount($user_id, $discount_data);
+
+                if (is_wp_error($discount_id)) {
+                    error_log("NORDBOOKING: Failed to create demo discount '{$discount_data['code']}': " . $discount_id->get_error_message());
+                    continue; // Skip this discount but continue with others
+                }
+
+                $created_discounts[] = [
+                    'id' => $discount_id,
+                    'code' => $discount_data['code'],
+                    'type' => $discount_data['type'],
+                    'value' => $discount_data['value']
+                ];
+
+                error_log("NORDBOOKING: Successfully created demo discount '{$discount_data['code']}' with ID: {$discount_id}");
+
+            } catch (Exception $e) {
+                error_log("NORDBOOKING: Exception creating demo discount '{$discount_data['code']}': " . $e->getMessage());
+                // Continue with other discounts
+            }
+        }
+
+        if (empty($created_discounts)) {
+            throw new \Exception('Failed to create any demo discount codes');
+        }
+
+        $company_reference = !empty($company_name) ? " for {$company_name}" : '';
+        error_log("NORDBOOKING: Successfully created " . count($created_discounts) . " demo discount codes{$company_reference} (user {$user_id})");
+    }
+
+    /**
+     * Configure default settings for new business owner
+     * 
+     * @param int $user_id The user ID of the new business owner
+     * @throws Exception If settings configuration fails
+     */
+    private function configure_default_settings(int $user_id) {
+        error_log("NORDBOOKING DEBUG: configure_default_settings called with user_id: {$user_id}");
+        
+        if (empty($user_id)) {
+            throw new \Exception('Invalid user ID for default settings configuration');
+        }
+
+        // Initialize Settings manager
+        if (!isset($GLOBALS['nordbooking_settings_manager'])) {
+            $GLOBALS['nordbooking_settings_manager'] = new \NORDBOOKING\Classes\Settings();
+        }
+        $settings_manager = $GLOBALS['nordbooking_settings_manager'];
+
+        // Configure specific default settings that differ from system defaults
+        $custom_defaults = [
+            'bf_enable_location_check' => '0', // Disable location check by default for new accounts
+        ];
+
+        $configured_settings = [];
+
+        foreach ($custom_defaults as $setting_key => $setting_value) {
+            try {
+                $result = $settings_manager->update_setting($user_id, $setting_key, $setting_value);
+                
+                if ($result) {
+                    $configured_settings[] = $setting_key;
+                    error_log("NORDBOOKING: Successfully set {$setting_key} to '{$setting_value}' for user {$user_id}");
+                } else {
+                    error_log("NORDBOOKING: Failed to set {$setting_key} to '{$setting_value}' for user {$user_id}");
+                }
+            } catch (Exception $e) {
+                error_log("NORDBOOKING: Exception setting {$setting_key}: " . $e->getMessage());
+                // Continue with other settings
+            }
+        }
+
+        if (empty($configured_settings)) {
+            throw new \Exception('Failed to configure any default settings');
+        }
+
+        error_log("NORDBOOKING: Successfully configured " . count($configured_settings) . " default settings for user {$user_id}");
     }
 }

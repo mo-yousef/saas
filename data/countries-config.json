@@ -1,0 +1,39 @@
+{
+  "countries": [
+    {
+      "code": "SE",
+      "name": "Sweden",
+      "flag": "🇸🇪",
+      "default": true,
+      "dataFile": "zipcodes.se.json"
+    },
+    {
+      "code": "NO",
+      "name": "Norway", 
+      "flag": "🇳🇴",
+      "default": false,
+      "dataFile": "zipcodes.no.json"
+    },
+    {
+      "code": "DK",
+      "name": "Denmark",
+      "flag": "🇩🇰", 
+      "default": false,
+      "dataFile": "zipcodes.de.json"
+    },
+    {
+      "code": "FI",
+      "name": "Finland",
+      "flag": "🇫🇮",
+      "default": false,
+      "dataFile": "zipcodes.fi.json"
+    },
+    {
+      "code": "CY",
+      "name": "Cyprus",
+      "flag": "🇨🇾",
+      "default": false,
+      "dataFile": "zipcodes.cy.json"
+    }
+  ]
+}

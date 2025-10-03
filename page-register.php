@@ -149,7 +149,7 @@ if ( isset( $_GET['invitation_token'] ) ) {
                         <div id="NORDBOOKING-register-message" style="display:none; margin-top: 15px;"></div>
 
                         <div class="form-navigation" style="margin-top: 1.5rem;">
-                            <input type="submit" name="wp-submit" id="NORDBOOKING-wp-submit-register" class="button button-primary" value="<?php esc_attr_e( 'Register', 'NORDBOOKING' ); ?>" />
+                            <button type="submit" id="NORDBOOKING-wp-submit-register" class="nb-btn nb-btn--primary nb-btn--lg nb-btn--block"><?php esc_html_e( 'Register', 'NORDBOOKING' ); ?></button>
                         </div>
                     </form>
                     <div class="NORDBOOKING-auth-links">
@@ -195,7 +195,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Collect form data
             const formData = new FormData();
             formData.append('action', 'nordbooking_register');
-            formData.append('nonce', '<?php echo wp_create_nonce('nordbooking_register_nonce'); ?>');
+            formData.append('nonce', '<?php echo wp_create_nonce('nordbooking_register_action'); ?>');
             formData.append('first_name', document.getElementById('NORDBOOKING-first-name').value);
             formData.append('last_name', document.getElementById('NORDBOOKING-last-name').value);
             formData.append('email', document.getElementById('NORDBOOKING-user-email').value);
@@ -218,12 +218,28 @@ document.addEventListener('DOMContentLoaded', function() {
             if (assignedRoleInput) formData.append('assigned_role', assignedRoleInput.value);
             if (invitationTokenInput) formData.append('invitation_token', invitationTokenInput.value);
             
+            // Try WordPress AJAX first, then fallback to custom endpoint
+            const ajaxUrl = '<?php echo admin_url('admin-ajax.php'); ?>';
+            const fallbackUrl = '<?php echo get_template_directory_uri(); ?>/registration-endpoint.php';
+            
             // Submit form
-            fetch('<?php echo admin_url('admin-ajax.php'); ?>', {
+            fetch(ajaxUrl, {
                 method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
                 body: formData
             })
-            .then(response => response.json())
+            .then(response => {
+                console.log('Response status:', response.status);
+                console.log('Response headers:', response.headers);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                return response.json();
+            })
             .then(data => {
                 if (data.success) {
                     // Show success message
@@ -246,7 +262,67 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .catch(error => {
                 console.error('Registration error:', error);
-                messageContainer.innerHTML = '<div class="NORDBOOKING-message error"><p>Network error. Please try again.</p></div>';
+                
+                // If we get a 403 error, try the fallback endpoint
+                if (error.message.includes('403')) {
+                    console.log('Trying fallback endpoint due to 403 error...');
+                    
+                    fetch(fallbackUrl, {
+                        method: 'POST',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: formData
+                    })
+                    .then(response => {
+                        console.log('Fallback response status:', response.status);
+                        
+                        if (!response.ok) {
+                            throw new Error(`Fallback HTTP ${response.status}: ${response.statusText}`);
+                        }
+                        
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.success) {
+                            // Show success message
+                            messageContainer.innerHTML = '<div class="NORDBOOKING-message success"><p>' + data.data.message + '</p></div>';
+                            messageContainer.style.display = 'block';
+                            
+                            // Redirect after a short delay
+                            setTimeout(() => {
+                                window.location.href = data.data.redirect_url;
+                            }, 1500);
+                        } else {
+                            // Show error message
+                            messageContainer.innerHTML = '<div class="NORDBOOKING-message error"><p>' + (data.data.message || 'Registration failed. Please try again.') + '</p></div>';
+                            messageContainer.style.display = 'block';
+                        }
+                        
+                        // Re-enable submit button
+                        submitButton.disabled = false;
+                        submitButton.value = '<?php esc_attr_e('Register', 'NORDBOOKING'); ?>';
+                    })
+                    .catch(fallbackError => {
+                        console.error('Fallback error:', fallbackError);
+                        messageContainer.innerHTML = '<div class="NORDBOOKING-message error"><p>Registration system temporarily unavailable. Please try again later.</p></div>';
+                        messageContainer.style.display = 'block';
+                        
+                        // Re-enable submit button
+                        submitButton.disabled = false;
+                        submitButton.value = '<?php esc_attr_e('Register', 'NORDBOOKING'); ?>';
+                    });
+                    
+                    return; // Don't execute the rest of the error handling
+                }
+                
+                let errorMessage = 'Network error. Please try again.';
+                
+                if (error.message.includes('500')) {
+                    errorMessage = 'Server error. Please try again later.';
+                }
+                
+                messageContainer.innerHTML = '<div class="NORDBOOKING-message error"><p>' + errorMessage + '</p></div>';
                 messageContainer.style.display = 'block';
                 
                 // Re-enable submit button

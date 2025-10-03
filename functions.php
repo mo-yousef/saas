@@ -6,7 +6,7 @@
  */
 
 if ( ! defined( 'NORDBOOKING_VERSION' ) ) {
-    define( 'NORDBOOKING_VERSION', '0.1.24' );
+    define( 'NORDBOOKING_VERSION', '0.1.27' );
 }
 if ( ! defined( 'NORDBOOKING_DB_VERSION' ) ) {
     define( 'NORDBOOKING_DB_VERSION', '2.3' );
@@ -61,13 +61,17 @@ function nordbooking_handle_logo_upload_nopriv() {
 
 // Add a simple test handler to verify AJAX is working
 add_action('wp_ajax_nordbooking_test_ajax', 'nordbooking_test_ajax_handler');
+add_action('wp_ajax_nopriv_nordbooking_test_ajax', 'nordbooking_test_ajax_handler');
 
 function nordbooking_test_ajax_handler() {
     error_log('[NORDBOOKING Test] AJAX test handler called');
+    error_log('[NORDBOOKING Test] POST data: ' . print_r($_POST, true));
+    
     wp_send_json_success([
         'message' => 'AJAX is working!',
         'user_id' => get_current_user_id(),
-        'timestamp' => current_time('mysql')
+        'timestamp' => current_time('mysql'),
+        'post_data' => $_POST
     ]);
 }
 

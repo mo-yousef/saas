@@ -52,7 +52,7 @@ get_header(); // This will be hidden by CSS in auth-pages.css for these template
                         <?php // Nonce is handled by assets/js/auth.js via localized script parameters ?>
                         <p class="login-remember"><label><input name="rememberme" type="checkbox" id="NORDBOOKING-rememberme" value="forever" /> <?php esc_html_e( 'Remember Me', 'NORDBOOKING' ); ?></label></p>
                         <p class="login-submit">
-                            <input type="submit" name="wp-submit" id="NORDBOOKING-wp-submit" class="button button-primary" value="<?php esc_attr_e( 'Log In', 'NORDBOOKING' ); ?>" />
+                            <button type="submit" id="NORDBOOKING-wp-submit" class="nb-btn nb-btn--primary nb-btn--lg nb-btn--block"><?php esc_html_e( 'Log In', 'NORDBOOKING' ); ?></button>
                             <input type="hidden" name="redirect_to" value="<?php echo esc_url( home_url( '/dashboard/' ) ); // Adjust as needed ?>" />
                         </p>
                         <div id="NORDBOOKING-login-message" style="display:none;"></div>

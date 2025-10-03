@@ -78,7 +78,9 @@ function nordbooking_scripts() {
     // We are using strpos to check for the dashboard URL slug, as is_admin() will not work
     // for this theme's custom dashboard pages.
     if ( strpos($_SERVER['REQUEST_URI'] ?? '', '/dashboard/') === false ) {
+        // Public site only styles
         // wp_enqueue_style( 'NORDBOOKING-new-front-page', NORDBOOKING_THEME_URI . 'assets/css/new-front-page.css', array('NORDBOOKING-style'), NORDBOOKING_VERSION );
+        wp_enqueue_style( 'NORDBOOKING-buttons', NORDBOOKING_THEME_URI . 'assets/css/buttons.css', array('NORDBOOKING-style'), NORDBOOKING_VERSION );
     }
 
 

@@ -71,7 +71,7 @@ if ( $current_user_id > 0 ) {
             <h3><?php echo $display_brand_name; ?></h3>
         </a>
         <?php if ($is_subscription_expired) : ?>
-            <div style="background: #ef4444; color: white; padding: 0.5rem; text-align: center; font-size: 0.75rem; border-radius: 0.25rem; margin-top: 0.5rem;">
+            <!-- <div style="background: #ef4444; color: white; padding: 0.5rem; text-align: center; font-size: 0.75rem; border-radius: 0.25rem; margin-top: 0.5rem;">
                 <?php 
                 if ($subscription_status === 'expired_trial') {
                     esc_html_e('Trial Expired', 'NORDBOOKING');
@@ -79,7 +79,7 @@ if ( $current_user_id > 0 ) {
                     esc_html_e('Plan Expired', 'NORDBOOKING');
                 }
                 ?>
-            </div>
+            </div> -->
         <?php endif; ?>
     </div>
 
@@ -95,7 +95,7 @@ if ( $current_user_id > 0 ) {
             <div class="nav-group">
                 <h4 class="nav-group-title"><?php esc_html_e('Account', 'NORDBOOKING'); ?></h4>
                 <ul>
-                    <li class="<?php echo ($current_page === 'subscription') ? 'active' : ''; ?>"><a href="<?php echo esc_url($dashboard_base_url . 'subscription/'); ?>"><span class="NORDBOOKING-menu-icon">💳</span>
+                    <li class="<?php echo ($current_page === 'subscription') ? 'active' : ''; ?>"><a href="<?php echo esc_url($dashboard_base_url . 'subscription/'); ?>"><span class="NORDBOOKING-menu-icon"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" viewBox="0 0 256 256"><path d="M224,48H32A16,16,0,0,0,16,64V192a16,16,0,0,0,16,16H224a16,16,0,0,0,16-16V64A16,16,0,0,0,224,48Zm0,16V88H32V64Zm0,128H32V104H224v88Zm-16-24a8,8,0,0,1-8,8H168a8,8,0,0,1,0-16h32A8,8,0,0,1,208,168Zm-64,0a8,8,0,0,1-8,8H120a8,8,0,0,1,0-16h16A8,8,0,0,1,144,168Z"></path></svg></span>
                         <?php 
                         if ($subscription_status === 'expired_trial') {
                             esc_html_e('Subscribe', 'NORDBOOKING');
@@ -105,17 +105,6 @@ if ( $current_user_id > 0 ) {
                         ?>
                     </a></li>
                 </ul>
-            </div>
-            
-            <!-- Disabled Navigation Notice -->
-            <div class="nav-group">
-                <div class="nav-disabled-notice">
-                    <div class="notice-icon">🔒</div>
-                    <div class="notice-content">
-                        <h5><?php esc_html_e('Access Restricted', 'NORDBOOKING'); ?></h5>
-                        <p><?php esc_html_e('Your plan has expired. Renew to access all features.', 'NORDBOOKING'); ?></p>
-                    </div>
-                </div>
             </div>
         <?php else : ?>
             <!-- Normal Navigation -->
@@ -186,7 +175,7 @@ if ( $current_user_id > 0 ) {
                     <li class="<?php echo ($current_page === 'settings') ? 'active' : ''; ?>"><a href="<?php echo esc_url(trailingslashit($dashboard_base_url) . 'settings/'); ?>"><span class="NORDBOOKING-menu-icon"><?php echo nordbooking_get_dashboard_menu_icon('settings'); ?></span><?php esc_html_e('Settings', 'NORDBOOKING'); ?></a></li>
                     <?php endif; ?>
                     
-                    <li class="<?php echo ($current_page === 'subscription') ? 'active' : ''; ?>"><a href="<?php echo esc_url(trailingslashit($dashboard_base_url) . 'subscription/'); ?>"><span class="NORDBOOKING-menu-icon">💳</span><?php esc_html_e('Subscription', 'NORDBOOKING'); ?></a></li>
+                    <li class="<?php echo ($current_page === 'subscription') ? 'active' : ''; ?>"><a href="<?php echo esc_url(trailingslashit($dashboard_base_url) . 'subscription/'); ?>"><span class="NORDBOOKING-menu-icon"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" viewBox="0 0 256 256"><path d="M224,48H32A16,16,0,0,0,16,64V192a16,16,0,0,0,16,16H224a16,16,0,0,0,16-16V64A16,16,0,0,0,224,48Zm0,16V88H32V64Zm0,128H32V104H224v88Zm-16-24a8,8,0,0,1-8,8H168a8,8,0,0,1,0-16h32A8,8,0,0,1,208,168Zm-64,0a8,8,0,0,1-8,8H120a8,8,0,0,1,0-16h16A8,8,0,0,1,144,168Z"></path></svg></span><?php esc_html_e('Subscription', 'NORDBOOKING'); ?></a></li>
                 </ul>
             </div>
             <?php endif; ?>
@@ -277,7 +266,7 @@ if ( $current_user_id > 0 ) {
         <div class="subscription-compact">
             <div class="subscription-main">
                 <div class="subscription-icon">
-                    💳
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" viewBox="0 0 256 256"><path d="M224,48H32A16,16,0,0,0,16,64V192a16,16,0,0,0,16,16H224a16,16,0,0,0,16-16V64A16,16,0,0,0,224,48Zm0,16V88H32V64Zm0,128H32V104H224v88Zm-16-24a8,8,0,0,1-8,8H168a8,8,0,0,1,0-16h32A8,8,0,0,1,208,168Zm-64,0a8,8,0,0,1-8,8H120a8,8,0,0,1,0-16h16A8,8,0,0,1,144,168Z"></path></svg>
                 </div>
                 <div class="subscription-info">
                     <div class="subscription-status-line">
@@ -301,174 +290,7 @@ if ( $current_user_id > 0 ) {
         </div>
     </div>
     
-    <style>
-    .subscription-status-box {
-        margin: 1rem 0;
-        padding: 1rem;
-        background: rgba(255, 255, 255, 0.05);
-        border-radius: 0.5rem;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-    }
     
-    .subscription-compact {
-        display: flex;
-        flex-direction: column;
-        gap: 0.75rem;
-    }
-    
-    .subscription-main {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-    }
-    
-    .subscription-icon {
-        font-size: 1.25rem;
-    }
-    
-    .subscription-info {
-        flex: 1;
-    }
-    
-    .subscription-status-line {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        margin-bottom: 0.25rem;
-    }
-    
-    .status-badge {
-        font-size: 0.75rem;
-        font-weight: 600;
-        padding: 0.25rem 0.5rem;
-        border-radius: 0.25rem;
-        text-transform: uppercase;
-        letter-spacing: 0.025em;
-    }
-    
-    .status-badge.status-trial {
-        background: rgba(59, 130, 246, 0.1);
-        color: #3b82f6;
-    }
-    
-    .status-badge.status-active {
-        background: rgba(34, 197, 94, 0.1);
-        color: #22c55e;
-    }
-    
-    .status-badge.status-expired {
-        background: rgba(239, 68, 68, 0.1);
-        color: #ef4444;
-    }
-    
-    .subscription-expiry {
-        font-size: 0.75rem;
-        color: rgba(255, 255, 255, 0.7);
-    }
-    
-    .subscription-btn {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        padding: 0.5rem 1rem;
-        font-size: 0.875rem;
-        font-weight: 500;
-        border-radius: 0.375rem;
-        text-decoration: none;
-        transition: all 0.2s ease;
-        width: 100%;
-        text-align: center;
-    }
-    
-    .subscription-btn-primary {
-        background: #3b82f6;
-        color: white;
-        border: 1px solid #3b82f6;
-    }
-    
-    .subscription-btn-primary:hover {
-        background: #2563eb;
-        border-color: #2563eb;
-        color: white;
-    }
-    
-    .subscription-btn-secondary {
-        background: transparent;
-        color: rgba(255, 255, 255, 0.8);
-        border: 1px solid rgba(255, 255, 255, 0.3);
-    }
-    
-    .subscription-btn-secondary:hover {
-        background: rgba(255, 255, 255, 0.1);
-        color: white;
-    }
-    
-    .upgrade-highlight {
-        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-        box-shadow: 0 4px 6px rgba(59, 130, 246, 0.3);
-        animation: pulse-glow 2s infinite;
-    }
-    
-    .upgrade-highlight:hover {
-        background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
-        transform: translateY(-1px);
-        box-shadow: 0 6px 8px rgba(59, 130, 246, 0.4);
-    }
-    
-    .warning-dot {
-        width: 8px;
-        height: 8px;
-        background: #f59e0b;
-        border-radius: 50%;
-        animation: pulse 2s infinite;
-    }
-    
-    @keyframes pulse-glow {
-        0%, 100% {
-            box-shadow: 0 4px 6px rgba(59, 130, 246, 0.3);
-        }
-        50% {
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.5);
-        }
-    }
-    
-    @keyframes pulse {
-        0%, 100% {
-            opacity: 1;
-        }
-        50% {
-            opacity: 0.5;
-        }
-    }
-    
-    .nav-disabled-notice {
-        background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(220, 38, 38, 0.1) 100%);
-        border: 1px solid rgba(239, 68, 68, 0.3);
-        border-radius: 0.5rem;
-        padding: 1rem;
-        margin: 1rem 0;
-        text-align: center;
-    }
-    
-    .notice-icon {
-        font-size: 2rem;
-        margin-bottom: 0.5rem;
-    }
-    
-    .notice-content h5 {
-        font-size: 0.875rem;
-        font-weight: 600;
-        color: #dc2626;
-        margin: 0 0 0.25rem 0;
-    }
-    
-    .notice-content p {
-        font-size: 0.75rem;
-        color: #7f1d1d;
-        margin: 0;
-        line-height: 1.4;
-    }
-    </style>
     <?php endif; ?>
 </aside>
 

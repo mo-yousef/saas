@@ -41,79 +41,120 @@ class Areas {
         add_action('wp_ajax_nordbooking_save_city_areas', [$this, 'handle_save_city_areas_ajax']);
         add_action('wp_ajax_nordbooking_remove_city_coverage', [$this, 'handle_remove_city_coverage_ajax']);
         add_action('wp_ajax_nordbooking_update_city_status', [$this, 'handle_update_status_for_city_ajax']);
+        
+        // User preferences
+        add_action('wp_ajax_nordbooking_save_selected_country', [$this, 'handle_save_selected_country_ajax']);
+        add_action('wp_ajax_nordbooking_get_selected_country', [$this, 'handle_get_selected_country_ajax']);
+        
+        // Bulk operations
+        add_action('wp_ajax_nordbooking_bulk_city_action', [$this, 'handle_bulk_city_action_ajax']);
+        add_action('wp_ajax_nordbooking_remove_country_areas', [$this, 'handle_remove_country_areas_ajax']);
     }
 
     /**
-     * Load and cache area data from JSON
+     * Load area data for a specific country from its JSON file
+     */
+    private function load_country_data_from_json($country_code) {
+        $countries = $this->get_countries();
+        if (is_wp_error($countries)) {
+            return $countries;
+        }
+
+        $country_config = null;
+        foreach ($countries as $country) {
+            if ($country['code'] === $country_code) {
+                $country_config = $country;
+                break;
+            }
+        }
+
+        if (!$country_config || !isset($country_config['dataFile'])) {
+            return new \WP_Error('country_not_found', __('Country configuration not found.', 'NORDBOOKING'));
+        }
+
+        $json_file_path = get_template_directory() . '/data/' . $country_config['dataFile'];
+        
+        if (!file_exists($json_file_path)) {
+            return new \WP_Error('file_not_found', sprintf(__('Data file not found for country %s.', 'NORDBOOKING'), $country_code));
+        }
+
+        $json_content = file_get_contents($json_file_path);
+        if ($json_content === false) {
+            return new \WP_Error('file_read_error', sprintf(__('Could not read data file for country %s.', 'NORDBOOKING'), $country_code));
+        }
+
+        $data = json_decode($json_content, true);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            return new \WP_Error('json_decode_error', sprintf(__('Invalid JSON in data file for country %s.', 'NORDBOOKING'), $country_code));
+        }
+
+        return $data;
+    }
+
+    /**
+     * Load and cache area data from JSON (legacy method - now loads all countries)
      */
     private function load_area_data_from_json() {
         if ($this->countries_cache !== null) {
             return $this->countries_cache;
         }
 
-        $json_file_path = get_template_directory() . '/data/service-areas-data.json';
-        
-        if (!file_exists($json_file_path)) {
-            return new \WP_Error('file_not_found', __('Service areas data file not found.', 'NORDBOOKING'));
+        $countries = $this->get_countries();
+        if (is_wp_error($countries)) {
+            return $countries;
         }
 
-        $json_content = file_get_contents($json_file_path);
-        if ($json_content === false) {
-            return new \WP_Error('file_read_error', __('Could not read service areas data file.', 'NORDBOOKING'));
-        }
-
-        $data = json_decode($json_content, true);
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            return new \WP_Error('json_decode_error', __('Invalid JSON in service areas data file.', 'NORDBOOKING'));
-        }
-
-        $this->countries_cache = $data;
-        return $data;
-    }
-
-    /**
-     * Get available countries
-     */
-    public function get_countries() {
-        $data = $this->load_area_data_from_json();
-        if (is_wp_error($data)) {
-            return $data;
-        }
-
-        $countries = [];
-        
-        // FIXED: Access $data directly, not $data['countries']
-        if (is_array($data)) {
-            foreach ($data as $country_code => $country_data) {
-                if (is_array($country_data) && isset($country_data['name'])) {
-                    $countries[] = [
-                        'code' => $country_code,
-                        'name' => $country_data['name']
-                    ];
-                }
+        $all_data = [];
+        foreach ($countries as $country) {
+            $country_data = $this->load_country_data_from_json($country['code']);
+            if (!is_wp_error($country_data) && is_array($country_data)) {
+                $all_data = array_merge($all_data, $country_data);
             }
         }
 
-        // Sort countries by name
-        usort($countries, function($a, $b) {
-            return strcmp($a['name'], $b['name']);
-        });
-
-        return $countries;
+        $this->countries_cache = $all_data;
+        return $all_data;
     }
 
     /**
-     * Get cities (states) for a country from the new JSON format.
+     * Get available countries from config file
+     */
+    public function get_countries() {
+        $config_file_path = get_template_directory() . '/data/countries-config.json';
+        
+        if (!file_exists($config_file_path)) {
+            return new \WP_Error('config_not_found', __('Countries configuration file not found.', 'NORDBOOKING'));
+        }
+
+        $json_content = file_get_contents($config_file_path);
+        if ($json_content === false) {
+            return new \WP_Error('config_read_error', __('Could not read countries configuration file.', 'NORDBOOKING'));
+        }
+
+        $config = json_decode($json_content, true);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            return new \WP_Error('config_decode_error', __('Invalid JSON in countries configuration file.', 'NORDBOOKING'));
+        }
+
+        if (!isset($config['countries']) || !is_array($config['countries'])) {
+            return new \WP_Error('config_invalid', __('Invalid countries configuration format.', 'NORDBOOKING'));
+        }
+
+        return $config['countries'];
+    }
+
+    /**
+     * Get cities (states) for a country from the country-specific JSON file.
      */
     public function get_cities_for_country($country_code) {
-        $data = $this->load_area_data_from_json();
+        $data = $this->load_country_data_from_json($country_code);
         if (is_wp_error($data) || !is_array($data)) {
             return [];
         }
 
         $states = [];
         foreach ($data as $location) {
-            if (isset($location['country_code']) && $location['country_code'] === $country_code && isset($location['state'])) {
+            if (isset($location['state'])) {
                 $states[$location['state']] = true;
             }
         }
@@ -139,7 +180,7 @@ class Areas {
      * Get areas (places/zipcodes) for a specific city (state) from the new JSON format.
      */
     public function get_areas_for_city($country_code, $city_code) {
-        $data = $this->load_area_data_from_json();
+        $data = $this->load_country_data_from_json($country_code);
         if (is_wp_error($data) || !is_array($data)) {
             return [];
         }
@@ -147,7 +188,6 @@ class Areas {
         $grouped_areas = [];
         foreach ($data as $location) {
             if (
-                isset($location['country_code']) && $location['country_code'] === $country_code &&
                 isset($location['state']) && $location['state'] === $city_code &&
                 isset($location['zipcode']) && isset($location['place'])
             ) {
@@ -702,13 +742,16 @@ public function get_service_coverage_grouped(int $user_id, $filters = []) {
         return ['cities' => []];
     }
 
-    // 3. Create a reverse map from ZIP -> State.
-    $zip_to_state_map = [];
+    // 3. Create a reverse map from ZIP -> State and Country.
+    $zip_to_location_map = [];
     foreach ($area_data as $location) {
-        if (isset($location['zipcode']) && isset($location['state'])) {
+        if (isset($location['zipcode']) && isset($location['state']) && isset($location['country_code'])) {
             // Sanitize the zip from the file to match the format in the DB
             $sanitized_zip = str_replace(' ', '', $location['zipcode']);
-            $zip_to_state_map[$sanitized_zip] = $location['state'];
+            $zip_to_location_map[$sanitized_zip] = [
+                'state' => $location['state'],
+                'country_code' => $location['country_code']
+            ];
         }
     }
 
@@ -716,10 +759,22 @@ public function get_service_coverage_grouped(int $user_id, $filters = []) {
     $state_groups = [];
     foreach ($saved_areas as $zip => $area_details) {
         $sanitized_zip = str_replace(' ', '', $zip);
-        if (isset($zip_to_state_map[$sanitized_zip])) {
-            $state_name = $zip_to_state_map[$sanitized_zip];
+        if (isset($zip_to_location_map[$sanitized_zip])) {
+            $location_info = $zip_to_location_map[$sanitized_zip];
+            $state_name = $location_info['state'];
+            $country_code = $location_info['country_code'];
+            
+            // Apply country filter if specified
+            if (!empty($filters['country']) && $filters['country'] !== $country_code) {
+                continue;
+            }
+            
             if (!isset($state_groups[$state_name])) {
-                $state_groups[$state_name] = ['area_count' => 0, 'statuses' => []];
+                $state_groups[$state_name] = [
+                    'area_count' => 0, 
+                    'statuses' => [],
+                    'country_code' => $country_code
+                ];
             }
             $state_groups[$state_name]['area_count']++;
             $state_groups[$state_name]['statuses'][] = $area_details->status;
@@ -747,7 +802,8 @@ public function get_service_coverage_grouped(int $user_id, $filters = []) {
             'city_name' => $state_name,
             'city_code' => $state_name,
             'area_count' => $group_details['area_count'],
-            'status' => $status
+            'status' => $status,
+            'country_code' => $group_details['country_code']
         ];
     }
 
@@ -1150,4 +1206,248 @@ public function get_areas_count_by_user(int $user_id): int {
             'updated_count' => $result
         ]);
     }
-}
+
+    /**
+     * Save user's selected country preference
+     */
+    public function save_selected_country($user_id, $country_code) {
+        if (empty($user_id) || empty($country_code)) {
+            return false;
+        }
+        
+        return update_user_meta($user_id, 'nordbooking_selected_country', $country_code);
+    }
+    
+    /**
+     * Get user's selected country preference
+     */
+    public function get_selected_country($user_id) {
+        if (empty($user_id)) {
+            return '';
+        }
+        
+        return get_user_meta($user_id, 'nordbooking_selected_country', true);
+    }
+    
+    /**
+     * Handle save selected country AJAX request
+     */
+    public function handle_save_selected_country_ajax() {
+        check_ajax_referer('nordbooking_dashboard_nonce', 'nonce');
+        
+        $user_id = get_current_user_id();
+        if (!$user_id) {
+            wp_send_json_error(['message' => __('User not logged in.', 'NORDBOOKING')], 403);
+            return;
+        }
+        
+        $country_code = isset($_POST['country_code']) ? sanitize_text_field($_POST['country_code']) : '';
+        if (empty($country_code)) {
+            wp_send_json_error(['message' => __('Country code is required.', 'NORDBOOKING')], 400);
+            return;
+        }
+        
+        $result = $this->save_selected_country($user_id, $country_code);
+        
+        if ($result) {
+            wp_send_json_success(['message' => __('Country preference saved.', 'NORDBOOKING')]);
+        } else {
+            wp_send_json_error(['message' => __('Failed to save country preference.', 'NORDBOOKING')], 500);
+        }
+    }
+    
+    /**
+     * Handle get selected country AJAX request
+     */
+    public function handle_get_selected_country_ajax() {
+        check_ajax_referer('nordbooking_dashboard_nonce', 'nonce');
+        
+        $user_id = get_current_user_id();
+        if (!$user_id) {
+            wp_send_json_error(['message' => __('User not logged in.', 'NORDBOOKING')], 403);
+            return;
+        }
+        
+        $selected_country = $this->get_selected_country($user_id);
+        
+        wp_send_json_success(['country_code' => $selected_country]);
+    }
+
+    /**
+     * Handle bulk city action AJAX request
+     */
+    public function handle_bulk_city_action_ajax() {
+        check_ajax_referer('nordbooking_dashboard_nonce', 'nonce');
+        
+        $user_id = get_current_user_id();
+        if (!$user_id) {
+            wp_send_json_error(['message' => __('User not logged in.', 'NORDBOOKING')], 403);
+            return;
+        }
+        
+        $bulk_action = isset($_POST['bulk_action']) ? sanitize_text_field($_POST['bulk_action']) : '';
+        $cities = isset($_POST['cities']) ? $_POST['cities'] : [];
+        
+        if (empty($bulk_action) || empty($cities) || !is_array($cities)) {
+            wp_send_json_error(['message' => __('Invalid bulk action parameters.', 'NORDBOOKING')], 400);
+            return;
+        }
+        
+        $valid_actions = ['enable', 'disable', 'remove'];
+        if (!in_array($bulk_action, $valid_actions)) {
+            wp_send_json_error(['message' => __('Invalid bulk action.', 'NORDBOOKING')], 400);
+            return;
+        }
+        
+        $results = [];
+        $success_count = 0;
+        $error_count = 0;
+        
+        foreach ($cities as $city_data) {
+            if (!isset($city_data['city']) || !isset($city_data['country'])) {
+                $error_count++;
+                continue;
+            }
+            
+            $city_code = sanitize_text_field($city_data['city']);
+            $country_code = sanitize_text_field($city_data['country']);
+            
+            switch ($bulk_action) {
+                case 'enable':
+                case 'disable':
+                    $new_status = $bulk_action === 'enable' ? 'active' : 'inactive';
+                    $result = $this->bulk_update_city_status($user_id, $city_code, $new_status);
+                    break;
+                case 'remove':
+                    $result = $this->remove_city_coverage($user_id, $city_code);
+                    break;
+            }
+            
+            if ($result && !is_wp_error($result)) {
+                $success_count++;
+            } else {
+                $error_count++;
+            }
+        }
+        
+        $message = sprintf(
+            __('Bulk action completed: %d successful, %d failed.', 'NORDBOOKING'),
+            $success_count,
+            $error_count
+        );
+        
+        wp_send_json_success([
+            'message' => $message,
+            'success_count' => $success_count,
+            'error_count' => $error_count
+        ]);
+    }
+    
+    /**
+     * Handle remove country areas AJAX request
+     */
+    public function handle_remove_country_areas_ajax() {
+        check_ajax_referer('nordbooking_dashboard_nonce', 'nonce');
+        
+        $user_id = get_current_user_id();
+        if (!$user_id) {
+            wp_send_json_error(['message' => __('User not logged in.', 'NORDBOOKING')], 403);
+            return;
+        }
+        
+        $country_code = isset($_POST['country_code']) ? sanitize_text_field($_POST['country_code']) : '';
+        if (empty($country_code)) {
+            wp_send_json_error(['message' => __('Country code is required.', 'NORDBOOKING')], 400);
+            return;
+        }
+        
+        $result = $this->remove_country_areas($user_id, $country_code);
+        
+        if (is_wp_error($result)) {
+            wp_send_json_error(['message' => $result->get_error_message()], 500);
+            return;
+        }
+        
+        wp_send_json_success([
+            'message' => sprintf(__('All areas for country %s have been removed.', 'NORDBOOKING'), $country_code),
+            'deleted_count' => $result
+        ]);
+    }
+    
+    /**
+     * Bulk update city status
+     */
+    public function bulk_update_city_status($user_id, $city_code, $status) {
+        if (empty($user_id) || empty($city_code) || empty($status)) {
+            return new \WP_Error('invalid_params', __('Invalid parameters.', 'NORDBOOKING'));
+        }
+        
+        if (!in_array($status, ['active', 'inactive'])) {
+            return new \WP_Error('invalid_status', __('Invalid status value.', 'NORDBOOKING'));
+        }
+        
+        $table_name = Database::get_table_name('areas');
+        
+        // Get all areas for this city and user
+        $area_data = $this->load_area_data_from_json();
+        if (is_wp_error($area_data)) {
+            return $area_data;
+        }
+        
+        $city_zips = [];
+        foreach ($area_data as $location) {
+            if (isset($location['state']) && $location['state'] === $city_code && isset($location['zipcode'])) {
+                $city_zips[] = str_replace(' ', '', strtoupper($location['zipcode']));
+            }
+        }
+        
+        if (empty($city_zips)) {
+            return new \WP_Error('no_areas', __('No areas found for this city.', 'NORDBOOKING'));
+        }
+        
+        // Update all areas for this city
+        $placeholders = implode(',', array_fill(0, count($city_zips), '%s'));
+        $sql = "UPDATE $table_name SET status = %s WHERE user_id = %d AND area_value IN ($placeholders)";
+        
+        $query_params = array_merge([$status, $user_id], $city_zips);
+        $result = $this->wpdb->query($this->wpdb->prepare($sql, $query_params));
+        
+        return $result !== false ? $result : new \WP_Error('db_error', __('Failed to update city status.', 'NORDBOOKING'));
+    }
+    
+    /**
+     * Remove all areas for a specific country
+     */
+    public function remove_country_areas($user_id, $country_code) {
+        if (empty($user_id) || empty($country_code)) {
+            return new \WP_Error('invalid_params', __('Invalid parameters.', 'NORDBOOKING'));
+        }
+        
+        $table_name = Database::get_table_name('areas');
+        
+        // Get all areas for this country
+        $country_data = $this->load_country_data_from_json($country_code);
+        if (is_wp_error($country_data)) {
+            return $country_data;
+        }
+        
+        $country_zips = [];
+        foreach ($country_data as $location) {
+            if (isset($location['zipcode'])) {
+                $country_zips[] = str_replace(' ', '', strtoupper($location['zipcode']));
+            }
+        }
+        
+        if (empty($country_zips)) {
+            return 0; // No areas to remove
+        }
+        
+        // Remove all areas for this country and user
+        $placeholders = implode(',', array_fill(0, count($country_zips), '%s'));
+        $sql = "DELETE FROM $table_name WHERE user_id = %d AND area_value IN ($placeholders)";
+        
+        $query_params = array_merge([$user_id], $country_zips);
+        $result = $this->wpdb->query($this->wpdb->prepare($sql, $query_params));
+        
+        return $result !== false ? $result : new \WP_Error('db_error', __('Failed to remove country areas.', 'NORDBOOKING'));
+    }}

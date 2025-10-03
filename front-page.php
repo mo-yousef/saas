@@ -33,7 +33,7 @@ $nbk_text_domain = 'nord-booking';
             </p>
 
             <div class="nbk-hero__actions nbk-slide-up nbk-delay-200">
-                <a href="<?php echo esc_url(home_url('/register/')); ?>" class="nbk-btn nbk-btn--outline nbk-btn--xl">
+                <a href="<?php echo esc_url(home_url('/register/')); ?>" class="nb-btn nb-btn--secondary nb-btn--lg">
                     <?php _e('Start Free Trial', $nbk_text_domain); ?>
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <polyline points="9 18 15 12 9 6"></polyline>
@@ -82,7 +82,7 @@ $nbk_text_domain = 'nord-booking';
 
             <div class="nbk-features-grid">
                 <!-- Custom Service Creation -->
-                <div class="nbk-feature-card nbk-slide-up nbk-delay-100">
+                <div class="nbk-feature-card nbk-bento-3x2 nbk-slide-up nbk-delay-100">
                     <div class="feature-content">
                         <div class="nbk-feature-header">
                             <div class="nbk-feature-icon">
@@ -102,7 +102,7 @@ $nbk_text_domain = 'nord-booking';
                 </div>
 
                 <!-- Customer Management Hub -->
-                <div class="nbk-feature-card nbk-slide-up nbk-delay-100">
+                <div class="nbk-feature-card nbk-bento-2x3 nbk-slide-up nbk-delay-100">
                     <div class="feature-content">
                         <div class="nbk-feature-header">
                             <div class="nbk-feature-icon">
@@ -125,7 +125,7 @@ $nbk_text_domain = 'nord-booking';
                 </div>
 
                 <!-- Smart Service Areas -->
-                <div class="nbk-feature-card nbk-slide-up nbk-delay-100">
+                <div class="nbk-feature-card nbk-bento-2x2 nbk-slide-up nbk-delay-100">
                     <div class="feature-content">
                         <div class="nbk-feature-header">
                             <div class="nbk-feature-icon">
@@ -146,7 +146,7 @@ $nbk_text_domain = 'nord-booking';
                 </div>
 
                 <!-- Intelligent Coupon System -->
-                <div class="nbk-feature-card nbk-slide-up nbk-delay-100">
+                <div class="nbk-feature-card nbk-bento-2x2 nbk-slide-up nbk-delay-100">
                     <div class="feature-content">
                         <div class="nbk-feature-header">
                             <div class="nbk-feature-icon">
@@ -168,7 +168,7 @@ $nbk_text_domain = 'nord-booking';
                 </div>
 
                 <!-- Team & Worker Management -->
-                <div class="nbk-feature-card nbk-slide-up nbk-delay-100">
+                <div class="nbk-feature-card nbk-bento-3x2 nbk-slide-up nbk-delay-100">
                     <div class="feature-content">
                         <div class="nbk-feature-header">
                             <div class="nbk-feature-icon">
@@ -193,7 +193,7 @@ $nbk_text_domain = 'nord-booking';
                 </div>
 
                 <!-- Smart Email Notifications -->
-                <div class="nbk-feature-card nbk-slide-up nbk-delay-100">
+                <div class="nbk-feature-card nbk-bento-2x2 nbk-slide-up nbk-delay-100">
                     <div class="feature-content">
                         <div class="nbk-feature-header">
                             <div class="nbk-feature-icon">
@@ -214,7 +214,7 @@ $nbk_text_domain = 'nord-booking';
                 </div>
 
                 <!-- Dynamic Invoice Generation -->
-                <div class="nbk-feature-card nbk-slide-up nbk-delay-100">
+                <div class="nbk-feature-card nbk-bento-2x2 nbk-slide-up nbk-delay-100">
                     <div class="feature-content">
                         <div class="nbk-feature-header">
                             <div class="nbk-feature-icon">
@@ -467,11 +467,8 @@ $nbk_text_domain = 'nord-booking';
             </p>
 
             <div class="nbk-hero__actions nbk-slide-up nbk-delay-200">
-                <a href="<?php echo esc_url(home_url('/register/')); ?>" class="nbk-btn nbk-btn--primary nbk-btn--xl">
+                <a href="<?php echo esc_url(home_url('/register/')); ?>" class="nb-btn nb-btn--primary nb-btn--lg">
                     <?php _e('Start Free Trial', $nbk_text_domain); ?>
-                </a>
-                <a href="<?php echo esc_url(home_url('/contact/')); ?>" class="nbk-btn nbk-btn--outline nbk-btn--xl">
-                    <?php _e('Schedule Demo', $nbk_text_domain); ?>
                 </a>
             </div>
 

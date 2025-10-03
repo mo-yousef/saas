@@ -1167,25 +1167,30 @@ class Services {
         $service_name_from_post = isset($_POST['name']) ? (string) $_POST['name'] : '';
         $trimmed_service_name = trim($service_name_from_post);
 
+        $validation_errors = [];
+
         if (empty($trimmed_service_name)) {
             error_log('[NORDBOOKING SaveSvc Debug] Validation Error: Service name (after trim) is required. Original POST name: \'' . $service_name_from_post . '\'');
-                if (ob_get_length()) ob_clean();
-                wp_send_json_error(['message' => __('Service name is required.', 'NORDBOOKING')], 400);
-                return;
-            }
+            $validation_errors['name'] = __('Service name is required.', 'NORDBOOKING');
+        }
 
         $price_from_post = isset($_POST['price']) ? $_POST['price'] : null;
-        if (is_null($price_from_post) || !is_numeric($price_from_post)) {
+        if (is_null($price_from_post) || !is_numeric($price_from_post) || floatval($price_from_post) < 0) {
             error_log('[NORDBOOKING SaveSvc Debug] Validation Error: Valid price is required. Received: ' . print_r($price_from_post, true));
-                if (ob_get_length()) ob_clean();
-                wp_send_json_error(['message' => __('Valid price is required.', 'NORDBOOKING')], 400);
-                return;
-            }
+            $validation_errors['price'] = __('Valid price is required.', 'NORDBOOKING');
+        }
 
         $duration_from_post = isset($_POST['duration']) ? intval($_POST['duration']) : 0;
         if ($duration_from_post < 30) {
+            $validation_errors['duration'] = __('Duration must be at least 30 minutes.', 'NORDBOOKING');
+        }
+
+        if (!empty($validation_errors)) {
             if (ob_get_length()) ob_clean();
-            wp_send_json_error(['message' => __('Duration must be at least 30 minutes.', 'NORDBOOKING')], 400);
+            wp_send_json_error([
+                'message' => __('Please fix the following errors:', 'NORDBOOKING'),
+                'field_errors' => $validation_errors
+            ], 400);
             return;
         }
 

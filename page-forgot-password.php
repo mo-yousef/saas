@@ -16,12 +16,7 @@ get_header(); // This will be hidden by CSS in auth-pages.css for this template
 
 <div class="nbk-auth-page-container">
     <div class="nbk-auth-grid">
-        <div class="nbk-auth-image-column">
-            <div class="placeholder-content">
-                <h1><?php bloginfo('name'); ?></h1>
-                <p><?php esc_html_e('Reset your password to regain access to your account.', 'NORDBOOKING'); ?></p>
-            </div>
-        </div>
+
         <div class="nbk-auth-form-column">
             <main id="main" class="site-main">
                 <div id="NORDBOOKING-forgot-password-form-container" class="NORDBOOKING-auth-form-wrapper">
@@ -35,7 +30,7 @@ get_header(); // This will be hidden by CSS in auth-pages.css for this template
                             <input type="email" name="user_email" id="NORDBOOKING-user-email-forgot" class="input" value="" required />
                         </p>
                         <p class="forgot-password-submit">
-                            <input type="submit" name="wp-submit" id="NORDBOOKING-wp-submit-forgot" class="button button-primary" value="<?php esc_attr_e( 'Send Reset Link', 'NORDBOOKING' ); ?>" />
+                            <button type="submit" id="NORDBOOKING-wp-submit-forgot" class="nb-btn nb-btn--primary nb-btn--lg nb-btn--block"><?php esc_html_e( 'Send Reset Link', 'NORDBOOKING' ); ?></button>
                         </p>
                         <div id="NORDBOOKING-forgot-password-message" style="display:none; margin-top: 1rem;"></div>
                     </form>
@@ -52,6 +47,12 @@ get_header(); // This will be hidden by CSS in auth-pages.css for this template
                 </div>
             </main>
         </div>
+        <div class="nbk-auth-image-column">
+            <div class="placeholder-content">
+                <img class="nbk-fade-in" src="<?php echo get_template_directory_uri(); ?>/assets/images/hero-mockup.png" alt="Register Your Business">
+            </div>
+        </div>
+
     </div>
 </div>
 

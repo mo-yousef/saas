@@ -1,6 +1,6 @@
 /**
  * Enhanced Service Areas CSS
- * Swedish-focused, modal-based city and area management
+ * Multi-country support with modal-based city and area management
  */
 
 .country-flag-emoji {
@@ -9,28 +9,100 @@
     vertical-align: middle;
 }
 
+/* Countries Grid */
+.countries-grid-container {
+    padding: 1rem 1.25rem;
+}
+
+.countries-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 1.25rem;
+}
+
+.country-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1.5rem 1rem;
+    border: 1px solid hsl(var(--input));
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background-color: #fff;
+    text-align: center;
+    gap: 0.75rem;
+}
+
+.country-card.compact {
+    padding: 1rem 0.75rem;
+    gap: 0.5rem;
+}
+
+.country-card:hover {
+    border-color: #007bff;
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.15);
+    transform: translateY(-2px);
+}
+
+.country-card .country-flag {
+    width: 30px;
+    height: 30px;
+    display: flex;
+    padding: 0px;
+    align-items: center;
+    justify-content: center;
+    background: hsl(var(--muted));
+    border: 1px solid hsl(var(--input));
+    border-radius: 200px;
+}
+
+
+.country-card .country-flag svg {
+    width: 100%;
+    height: 100%;
+    border-radius: 4px;
+}
+
+.country-card .country-name {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--mobk-card-foreground);
+    margin: 0;
+}
+
+.country-card.compact .country-name {
+    font-size: 0.9rem;
+}
+
+.country-card .country-action-link {
+    font-size: 0.8rem;
+    color: #007bff;
+    font-weight: 500;
+}
+
 .cities-grid-container {
-    padding: 1.5rem;
+    padding: 1rem 1.25rem;
 }
 
 .cities-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 1.5rem;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 1.25rem;
 }
 
 .city-card {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1.25rem 1.5rem;
+    padding: 1rem 1.25rem;
     border: 1px solid #e9ecef;
     border-radius: 0.5rem;
     cursor: pointer;
     transition: all 0.2s ease;
     background-color: #fff;
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
 }
 
 .city-card:hover {
@@ -458,7 +530,7 @@ span.city-name svg {
 
 .service-coverage-container {
     background: #fff;
-    border-radius: 0 0 8px 8px;
+    padding: 1rem 1.25rem;
     overflow: hidden;
 }
 
@@ -491,15 +563,12 @@ span.city-name svg {
 }
 
 .country-flag {
-    background: var(--primary-color, #007bff);
     color: white;
-    padding: 0.5rem 0.75rem;
-    border-radius: 6px;
     font-size: 0.8rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    min-width: 50px;
+    min-width: 30px;
     text-align: center;
 }
 
@@ -975,4 +1044,575 @@ span.city-name svg {
     font-weight: 600;
     margin-left: auto;
     margin-right: 0.5rem;
+}
+
+/* Servic
+e Area Selection in Service Edit */
+.service-area-selection {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.service-area-country-selection {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.service-cities-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.service-cities-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 0.75rem;
+    max-height: 250px;
+    overflow-y: auto;
+    border: 1px solid #e9ecef;
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+}
+
+.service-city-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #e9ecef;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.9rem;
+}
+
+.service-city-item:hover {
+    border-color: #007bff;
+    background-color: #f8f9fa;
+}
+
+.service-city-item.selected {
+    border-color: #007bff;
+    background-color: #e7f3ff;
+}
+
+.service-city-item input[type="checkbox"] {
+    margin: 0;
+}
+
+.service-city-item .city-name {
+    font-weight: 500;
+    flex: 1;
+}
+
+.service-area-summary {
+    padding: 1rem;
+    background-color: #f8f9fa;
+    border-radius: 0.5rem;
+    border: 1px solid #e9ecef;
+}
+
+.selected-areas-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.selected-area-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.5rem;
+    background-color: #007bff;
+    color: white;
+    border-radius: 0.25rem;
+    font-size: 0.875rem;
+}
+
+.selected-area-tag .remove-area {
+    cursor: pointer;
+    font-weight: bold;
+    margin-left: 0.25rem;
+}
+
+.selected-area-tag .remove-area:hover {
+    color: #ff6b6b;
+}
+
+.country-change-warning {
+    padding: 1rem;
+    background-color: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 0.5rem;
+    color: #856404;
+    margin-bottom: 1rem;
+}
+
+.country-change-warning .warning-icon {
+    display: inline-block;
+    margin-right: 0.5rem;
+    color: #f39c12;
+}
+
+/* Co
+untry Change Dialog */
+.country-change-dialog-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.country-change-dialog-overlay.show {
+    opacity: 1;
+}
+
+.country-change-dialog {
+    background: white;
+    border-radius: 0.75rem;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    max-width: 500px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    transform: scale(0.95);
+    transition: transform 0.3s ease;
+}
+
+.country-change-dialog-overlay.show .country-change-dialog {
+    transform: scale(1);
+}
+
+.country-change-dialog .dialog-header {
+    padding: 1.5rem 1.5rem 0;
+    border-bottom: 1px solid #e9ecef;
+    margin-bottom: 1.5rem;
+}
+
+.country-change-dialog .dialog-header h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.country-change-dialog .dialog-content {
+    padding: 0 1.5rem;
+}
+
+.country-change-dialog .warning-message {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+}
+
+.country-change-dialog .warning-icon {
+    color: #f59e0b;
+    flex-shrink: 0;
+    margin-top: 0.125rem;
+}
+
+.country-change-dialog .warning-text p {
+    margin: 0 0 0.75rem 0;
+    color: #374151;
+    line-height: 1.5;
+}
+
+.country-change-dialog .warning-text p:last-child {
+    margin-bottom: 0;
+}
+
+.country-change-dialog .dialog-actions {
+    padding: 1.5rem;
+    display: flex;
+    gap: 0.75rem;
+    justify-content: flex-end;
+    border-top: 1px solid #e9ecef;
+    margin-top: 1.5rem;
+}
+
+.country-change-dialog .btn {
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.country-change-dialog .btn-secondary {
+    background-color: #f8f9fa;
+    color: #6c757d;
+    border-color: #dee2e6;
+}
+
+.country-change-dialog .btn-secondary:hover {
+    background-color: #e9ecef;
+    color: #495057;
+}
+
+.country-change-dialog .btn-primary {
+    background-color: #dc3545;
+    color: white;
+    border-color: #dc3545;
+}
+
+.country-change-dialog .btn-primary:hover {
+    background-color: #c82333;
+    border-color: #bd2130;
+}
+
+/* Compa
+ct Card Design */
+.nordbooking-card.compact {
+    margin-bottom: 1rem;
+}
+
+.nordbooking-card.compact .nordbooking-card-header {
+    padding: 1rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.nordbooking-card.compact .card-header-main {
+    flex: 1;
+}
+
+.nordbooking-card.compact .nordbooking-card-title {
+    font-size: 1.1rem;
+    margin-bottom: 0.25rem;
+}
+
+.nordbooking-card.compact .nordbooking-card-description {
+    font-size: 0.9rem;
+    margin-bottom: 0;
+    color: #6c757d;
+}
+
+
+/* Responsive adjustments for compact design */
+@media (max-width: 768px) {
+    .nordbooking-card.compact .nordbooking-card-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .countries-grid.compact {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    }
+
+    .cities-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    }
+
+    .service-cities-grid {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    }
+}
+
+/* Service 
+Coverage Management Redesign */
+.coverage-stats {
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.stat-number {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #007bff;
+    line-height: 1;
+}
+
+.stat-label {
+    font-size: 0.75rem;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 0.25rem;
+}
+
+/* Coverage Controls */
+.coverage-controls {
+    border-bottom: 1px solid #e9ecef;
+    padding: 1rem 1.25rem;
+}
+
+.nordbooking-filters-wrapper.compact {
+    padding: 0;
+    margin-bottom: 1rem;
+}
+
+.nordbooking-filters-wrapper.compact .nordbooking-filters-main {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.nordbooking-filters-wrapper.compact .nordbooking-filter-item {
+    margin: 0;
+    min-width: auto;
+}
+
+.nordbooking-filters-wrapper.compact .nordbooking-filter-item-search {
+    flex: 1;
+    min-width: 200px;
+}
+
+.nordbooking-filters-wrapper.compact .nordbooking-filter-item input,
+.nordbooking-filters-wrapper.compact .nordbooking-filter-item select {
+    margin: 0;
+}
+
+/* Bulk Actions Bar */
+.bulk-actions-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+    margin-top: 1rem;
+}
+
+.bulk-actions-info {
+    font-weight: 500;
+    color: #495057;
+}
+
+.bulk-actions-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+/* Coverage Table */
+.coverage-table-header {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem 0.375rem;
+    margin-bottom: 10px;
+}
+
+.coverage-header-row {
+    display: grid;
+    grid-template-columns: 40px 100px 1fr 80px 80px 120px;
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: #495057;
+}
+
+.coverage-table-body {
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem 0.375rem;
+    background-color: #fff;
+}
+
+.coverage-row {
+    display: grid;
+    grid-template-columns: 40px 100px 1fr 80px 80px 120px;
+    gap: 1rem;
+    padding: 1rem;
+    border-bottom: 1px solid #f1f3f4;
+    align-items: center;
+    transition: background-color 0.2s ease;
+}
+
+.coverage-row:last-child {
+    border-bottom: none;
+}
+
+.coverage-row:hover {
+    background-color: #f8f9fa;
+}
+
+.coverage-row.selected {
+    background-color: #e7f3ff;
+    border-color: #007bff;
+}
+
+.coverage-checkbox {
+    margin: 0;
+}
+
+.country-flag {
+    display: inline-flex;
+    align-items: center;
+    margin-right: 0;
+    width: 20px;
+    height: 20px;
+}
+
+.country-flag svg {
+    width: 100%;
+    height: 100%;
+    border-radius: 2px;
+}
+
+.city-name {
+    font-weight: 500;
+    color: #212529;
+}
+
+.area-count {
+    font-size: 0.875rem;
+    color: #6c757d;
+}
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.status-badge.active {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.status-badge.inactive {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.coverage-actions {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.coverage-actions .btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+}
+
+/* Country Change Warning */
+.country-change-warning-banner {
+    background-color: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 0.375rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+}
+
+.country-change-warning-banner .warning-icon {
+    color: #f39c12;
+    flex-shrink: 0;
+    margin-top: 0.125rem;
+}
+
+.country-change-warning-banner .warning-content h4 {
+    margin: 0 0 0.5rem 0;
+    color: #856404;
+    font-size: 1rem;
+}
+
+.country-change-warning-banner .warning-content p {
+    margin: 0;
+    color: #856404;
+    font-size: 0.875rem;
+}
+
+.country-change-warning-banner .warning-actions {
+    margin-top: 0.75rem;
+    display: flex;
+    gap: 0.5rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .coverage-stats {
+        gap: 1rem;
+    }
+
+    .stat-number {
+        font-size: 1.25rem;
+    }
+
+    .nordbooking-filters-wrapper.compact .nordbooking-filters-main {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .nordbooking-filters-wrapper.compact .nordbooking-filter-item-search {
+        min-width: auto;
+    }
+
+    .bulk-actions-bar {
+        flex-direction: column;
+        gap: 0.75rem;
+        align-items: stretch;
+    }
+
+    .bulk-actions-buttons {
+        justify-content: center;
+    }
+
+    .coverage-header-row,
+    .coverage-row {
+        grid-template-columns: 40px 80px 1fr 60px 60px 100px;
+        gap: 0.5rem;
+        padding: 0.75rem 0.5rem;
+        font-size: 0.8rem;
+    }
+
+    .coverage-actions .btn {
+        padding: 0.125rem 0.25rem;
+        font-size: 0.7rem;
+    }
+}
+
+@media (max-width: 480px) {
+
+    .coverage-header-row,
+    .coverage-row {
+        grid-template-columns: 30px 1fr 50px 80px;
+        gap: 0.5rem;
+    }
+
+    .country-cell,
+    .areas-cell {
+        display: none;
+    }
+
+    .city-name {
+        font-size: 0.875rem;
+    }
+
+    .coverage-actions {
+        flex-direction: column;
+        gap: 0.125rem;
+    }
 }

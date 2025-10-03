@@ -31,7 +31,7 @@ $current_url = home_url($_SERVER['REQUEST_URI']);
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
+    <script id="Cookiebot" src="https://consent.cookiebot.com/uc.js" data-cbid="ac08707c-05d5-40a3-8fc3-7453491713b5"  type="text/javascript"></script>
     <?php wp_head(); ?>
 
 </head>
@@ -135,7 +135,7 @@ $current_url = home_url($_SERVER['REQUEST_URI']);
                         <?php if ($is_logged_in) : ?>
                             <!-- User Menu -->
                             <div class="user-menu">
-                                <button class="user-menu-trigger" id="userMenuTrigger" aria-haspopup="true" aria-expanded="false">
+                                <button class="user-menu-trigger user-menu-toggle" id="userMenuTrigger" aria-haspopup="true" aria-expanded="false">
                                     <div class="user-avatar">
                                         <?php echo esc_html(strtoupper(substr($current_user->display_name, 0, 1))); ?>
                                     </div>
@@ -143,38 +143,25 @@ $current_url = home_url($_SERVER['REQUEST_URI']);
                                         <polyline points="6,9 12,15 18,9"></polyline>
                                     </svg>
                                 </button>
-                                <div class="user-dropdown" id="userDropdown" role="menu">
+                                <div class="user-dropdown user-dropdown-menu" id="userDropdown" role="menu">
                                     <?php if ($has_dashboard_access) : ?>
                                         <a href="<?php echo esc_url(home_url('/dashboard/')); ?>" class="dropdown-item" role="menuitem">
-                                            <svg class="dropdown-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                                                <line x1="9" y1="15" x2="15" y2="9"></line>
-                                            </svg>
+                                            <?php echo nordbooking_get_dashboard_menu_icon('overview'); ?>
                                             Dashboard
                                         </a>
                                     <?php endif; ?>
                                     <a href="<?php echo esc_url(home_url('/profile/')); ?>" class="dropdown-item" role="menuitem">
-                                        <svg class="dropdown-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                                            <circle cx="12" cy="7" r="4"></circle>
-                                        </svg>
+                                        <?php echo nordbooking_get_dashboard_menu_icon('profile'); ?>
                                         Profile
                                     </a>
                                     <a href="<?php echo esc_url(home_url('/settings/')); ?>" class="dropdown-item" role="menuitem">
-                                        <svg class="dropdown-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <circle cx="12" cy="12" r="3"></circle>
-                                            <path d="M12 1v6m0 6v6m11-7h-6m-6 0H1"></path>
-                                        </svg>
+                                        <?php echo nordbooking_get_dashboard_menu_icon('settings'); ?>
                                         Settings
                                     </a>
                                     <div class="dropdown-separator"></div>
                                     <form method="post" action="<?php echo esc_url(wp_logout_url(home_url())); ?>" style="margin: 0;">
                                         <button type="submit" class="dropdown-item" role="menuitem">
-                                            <svg class="dropdown-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                                                <polyline points="16,17 21,12 16,7"></polyline>
-                                                <line x1="21" y1="12" x2="9" y2="12"></line>
-                                            </svg>
+                                            <?php echo nordbooking_get_dashboard_menu_icon('logout'); ?>
                                             Logout
                                         </button>
                                     </form>

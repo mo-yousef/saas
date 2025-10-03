@@ -56,9 +56,11 @@ background: radial-gradient(hsl(var(--nbk-primary)), #0e172a);    color: white;
 
 .pricing-cards {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
     gap: 2rem;
     margin-top: 3rem;
+    max-width: 900px;
+    margin-inline: auto;
 }
 
 .pricing-card {
@@ -250,10 +252,6 @@ background: radial-gradient(hsl(var(--nbk-primary)), #0e172a);    color: white;
     transition: all 0.2s ease;
 }
 
-.faq-item:hover {
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-}
-
 .faq-question {
     padding: 1.5rem;
     cursor: pointer;
@@ -264,7 +262,7 @@ background: radial-gradient(hsl(var(--nbk-primary)), #0e172a);    color: white;
     border: none;
     width: 100%;
     text-align: left;
-    font-size: 1.1rem;
+    font-size: 16px;
     font-weight: 600;
     color: hsl(var(--nbk-foreground));
     transition: background-color 0.2s ease;
@@ -275,7 +273,6 @@ background: radial-gradient(hsl(var(--nbk-primary)), #0e172a);    color: white;
 }
 
 .faq-question.active {
-    background: hsl(var(--nbk-primary) / 0.1);
     color: hsl(var(--nbk-primary));
 }
 
@@ -290,12 +287,14 @@ background: radial-gradient(hsl(var(--nbk-primary)), #0e172a);    color: white;
 }
 
 .faq-answer {
-    padding: 0 1.5rem 1.5rem;
+    padding: 1.5rem 1.5rem;
     color: hsl(var(--nbk-muted-foreground));
     line-height: 1.6;
     display: none;
 }
-
+.faq-answer p {
+    margin: 0px;
+}
 .faq-answer.active {
     display: block;
     animation: fadeIn 0.3s ease;
@@ -441,7 +440,7 @@ background: radial-gradient(hsl(var(--nbk-primary)), #0e172a);    color: white;
                         <span class="feature-text">Priority email support</span>
                     </li>
                 </ul>
-                <button class="plan-cta secondary" onclick="handlePricingClick('free')">
+                <button class="nb-btn nb-btn--secondary nb-btn--lg nb-btn--block" onclick="handlePricingClick('free')">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
                         <polyline points="22,4 12,14.01 9,11.01"/>
@@ -512,7 +511,7 @@ background: radial-gradient(hsl(var(--nbk-primary)), #0e172a);    color: white;
                         <span class="feature-text">Priority email support</span>
                     </li>
                 </ul>
-                <button class="plan-cta primary" onclick="handlePricingClick('pro')">
+                <button class="nb-btn nb-btn--primary nb-btn--lg nb-btn--block" onclick="handlePricingClick('pro')">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M9 12l2 2 4-4"/>
                         <circle cx="12" cy="12" r="10"/>
@@ -552,13 +551,6 @@ background: radial-gradient(hsl(var(--nbk-primary)), #0e172a);    color: white;
                     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
                 </svg>
                 99.9% Uptime
-            </div>
-            <div class="trust-badge">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
-                    <polyline points="14,2 14,8 20,8"/>
-                </svg>
-                PCI DSS Level 1
             </div>
         </div>
     </div>

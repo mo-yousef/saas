@@ -1,0 +1,293 @@
+/*
+  Reusable Buttons
+  Variants: primary, secondary, icon-only, with subtitle
+  Supports light and dark backgrounds via data-theme or prefers-color-scheme
+*/
+
+/* Base button */
+.nb-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 16px;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color .2s ease, color .2s ease, border-color .2s ease, box-shadow .2s ease, transform .05s ease;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Compatibility selectors for legacy public classes (avoid dashboard scope) */
+/* Only apply on pages not under .dashboard or [data-dashboard] containers */
+:root :where(.btn, .plan-cta) {
+    font: inherit;
+    border: none;
+    background: none;
+    padding: 0;
+}
+
+:root :where(.btn, .plan-cta) {
+    /* Map to nb-btn defaults */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 16px;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color .2s ease, color .2s ease, border-color .2s ease, box-shadow .2s ease, transform .05s ease;
+}
+
+:root :where(.btn-primary, .plan-cta.primary) {
+    background-color: var(--primary-color);
+    color: #fff;
+    border-color: var(--primary-color);
+}
+
+:root :where(.btn-outline, .btn-secondary, .plan-cta.secondary) {
+    background-color: #ffffff;
+    color: var(--primary-color);
+    border-color: #e5e7eb;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root :where(.btn-primary, .plan-cta.primary) {
+        background-color: #60a5fa;
+        color: #0b1220;
+        border-color: #60a5fa;
+    }
+
+    :root :where(.btn-outline, .btn-secondary, .plan-cta.secondary) {
+        background-color: #1f2937;
+        color: #e5e7eb;
+        border-color: #374151;
+    }
+}
+
+.nb-btn:disabled,
+.nb-btn[aria-disabled="true"] {
+    opacity: .6;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* Size modifiers */
+.nb-btn--sm {
+    padding: 9px 12px;
+    font-size: 14px;
+    border-radius: 8px;
+}
+
+.nb-btn--lg {
+    padding: 14px 18px;
+    font-size: 16px;
+    border-radius: 12px;
+}
+
+.nb-btn--xl {
+    padding: 16px 22px;
+    font-size: 17px;
+    border-radius: 14px;
+}
+
+/* Icon container (for consistent sizing) */
+.nb-btn__icon {
+    display: inline-flex;
+    width: 18px;
+    height: 18px;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 18px;
+}
+
+/* Label + subtitle layout */
+.nb-btn__content {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: flex-start;
+    line-height: 1.1;
+}
+
+.nb-btn__label {
+    font-weight: 700;
+}
+
+.nb-btn__subtitle {
+    font-weight: 500;
+    font-size: 12px;
+    opacity: .85;
+    margin-top: 2px;
+}
+
+/* Icon-only buttons */
+.nb-btn--icon {
+    padding: 10px;
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+}
+
+.nb-btn--icon.nb-btn--sm {
+    width: 36px;
+    height: 36px;
+    padding: 8px;
+    border-radius: 10px;
+}
+
+.nb-btn--icon.nb-btn--lg {
+    width: 44px;
+    height: 44px;
+    padding: 12px;
+    border-radius: 14px;
+}
+
+.nb-btn--icon.nb-btn--xl {
+    width: 48px;
+    height: 48px;
+    padding: 14px;
+    border-radius: 16px;
+}
+
+/* Light scheme (default) */
+.nb-btn--primary {
+    background-color: var(--primary-color);
+    /* gray-900 */
+    color: #ffffff;
+    border-color: var(--primary-color);
+    box-shadow: 0 1px 0 rgba(0, 0, 0, .15);
+}
+
+.nb-btn--primary:hover {
+    background-color: #0b1220;
+    border-color: #0b1220;
+}
+
+.nb-btn--primary:active {
+    transform: translateY(1px);
+}
+
+.nb-btn--secondary {
+    background-color: #ffffff;
+    color: var(--primary-color);
+    border-color: #e5e7eb;
+    /* gray-200 */
+}
+
+.nb-btn--secondary:hover {
+    background-color: #f9fafb;
+    border-color: #d1d5db;
+}
+
+.nb-btn--secondary:active {
+    transform: translateY(1px);
+}
+
+/* Outline variant for dark surfaces, optional utility */
+.nb-btn--ghost {
+    background-color: transparent;
+    color: inherit;
+    border-color: currentColor;
+}
+
+.nb-btn--ghost:hover {
+    background-color: rgba(0, 0, 0, .05);
+}
+
+/* Dark background support
+   Two strategies are supported:
+   1) Wrap section with [data-theme="dark"] attribute
+   2) Automatic via prefers-color-scheme: dark
+*/
+
+[data-theme="dark"] .nb-btn--primary {
+    background-color: #60a5fa;
+    /* blue-400 */
+    border-color: #60a5fa;
+    color: #0b1220;
+}
+
+[data-theme="dark"] .nb-btn--primary:hover {
+    background-color: #3b82f6;
+    border-color: #3b82f6;
+}
+
+[data-theme="dark"] .nb-btn--secondary {
+    background-color: #1f2937;
+    /* gray-800 */
+    border-color: #374151;
+    /* gray-700 */
+    color: #e5e7eb;
+}
+
+[data-theme="dark"] .nb-btn--secondary:hover {
+    background-color: var(--primary-color);
+    border-color: #374151;
+}
+
+/* Auto dark fallback if no data-theme is used */
+@media (prefers-color-scheme: dark) {
+    .nb-btn--primary {
+        background-color: #60a5fa;
+        border-color: #60a5fa;
+        color: #0b1220;
+    }
+
+    .nb-btn--primary:hover {
+        background-color: #3b82f6;
+        border-color: #3b82f6;
+    }
+
+    .nb-btn--secondary {
+        background-color: #1f2937;
+        border-color: #374151;
+        color: #e5e7eb;
+    }
+
+    .nb-btn--secondary:hover {
+        background-color: var(--primary-color);
+        border-color: #374151;
+    }
+}
+
+/* Focus ring accessible */
+.nb-btn:focus-visible {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+}
+
+/* Ensure SVG icons inherit currentColor */
+.nb-btn svg {
+    width: 18px;
+    height: 18px;
+    display: block;
+}
+
+.nb-btn svg,
+.nb-btn i {
+    color: currentColor;
+    fill: currentColor;
+}
+
+/* Utility spacing for icon + text alignment */
+.nb-btn__spacer {
+    width: 6px;
+    display: inline-block;
+}
+
+/* Block/full-width utility */
+.nb-btn--block {
+    display: flex;
+    width: 100%;
+}

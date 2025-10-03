@@ -1,23 +1,41 @@
 /**
  * Enhanced Service Areas Management JavaScript
- * Swedish-focused, modal-based city and area management
+ * Multi-country support with modal-based city and area management
  */
 
 (function ($) {
   "use strict";
 
   // Global state
+  let currentCountry = null;
   let currentCity = null;
+  let countriesData = [];
   let citiesData = [];
   let citiesWithCoverage = [];
 
   // DOM elements
+  const $countriesGridContainer = $("#countries-grid-container");
+  const $citiesSelectionCard = $("#cities-selection-card");
   const $citiesGridContainer = $("#cities-grid-container");
   const $coverageList = $("#service-coverage-list");
+  const $countryFilter = $("#country-filter");
   const $cityFilter = $("#city-filter");
   const $statusFilter = $("#status-filter");
   const $coverageSearch = $("#coverage-search");
   const $clearFiltersBtn = $("#clear-coverage-filters-btn");
+  const $changeCountryBtn = $("#change-country-btn");
+  
+  // New bulk action elements
+  const $bulkActionsBar = $("#bulk-actions-bar");
+  const $selectedCount = $("#selected-count");
+  const $selectAllCoverage = $("#select-all-coverage");
+  const $bulkEnableBtn = $("#bulk-enable-btn");
+  const $bulkDisableBtn = $("#bulk-disable-btn");
+  const $bulkRemoveBtn = $("#bulk-remove-btn");
+  const $bulkCancelBtn = $("#bulk-cancel-btn");
+  const $coverageTableHeader = $("#coverage-table-header");
+  const $totalCities = $("#total-cities");
+  const $activeCities = $("#active-cities");
 
   // Dialog instance
   let areaDialog = null;
@@ -29,25 +47,41 @@
    * Initialize the application
    */
   function init() {
-    loadCities();
+    loadCountries();
     loadServiceCoverage();
     bindEvents();
+    loadSelectedCountry(); // Load previously selected country
   }
 
   /**
    * Bind all event handlers
    */
   function bindEvents() {
+    // Country selection
+    $countriesGridContainer.on("click", ".country-card", handleCountryClick);
+    $changeCountryBtn.on("click", handleChangeCountry);
+
     // City selection
     $citiesGridContainer.on("click", ".city-card", handleCityClick);
 
     // Coverage management
     $coverageSearch.on("input", debounce(loadServiceCoverage, 500));
+    $countryFilter.on("change", loadServiceCoverage);
     $cityFilter.on("change", loadServiceCoverage);
     $statusFilter.on("change", loadServiceCoverage);
     $clearFiltersBtn.on("click", clearCoverageFilters);
     $coverageList.on("click", ".toggle-city-btn", handleToggleCity);
     $coverageList.on("click", ".remove-city-btn", handleRemoveCity);
+    
+    // Bulk selection
+    $selectAllCoverage.on("change", handleSelectAll);
+    $coverageList.on("change", ".coverage-checkbox", handleCoverageSelection);
+    
+    // Bulk actions
+    $bulkEnableBtn.on("click", () => handleBulkAction("enable"));
+    $bulkDisableBtn.on("click", () => handleBulkAction("disable"));
+    $bulkRemoveBtn.on("click", () => handleBulkAction("remove"));
+    $bulkCancelBtn.on("click", clearBulkSelection);
   }
 
   /**
@@ -66,9 +100,197 @@
   }
 
   /**
-   * Load available Swedish cities and their coverage status
+   * Load previously selected country
+   */
+  function loadSelectedCountry() {
+    $.ajax({
+      url: nordbooking_areas_params.ajax_url,
+      type: "POST",
+      data: {
+        action: "nordbooking_get_selected_country",
+        nonce: nordbooking_areas_params.nonce,
+      },
+      success: function(response) {
+        if (response.success && response.data?.country_code) {
+          const countryCode = response.data.country_code;
+          const country = countriesData.find(c => c.code === countryCode);
+          if (country) {
+            selectCountry(countryCode, country.name, false); // Don't save again
+          }
+        }
+      },
+      error: function() {
+        console.log("No previously selected country found");
+      }
+    });
+  }
+
+  /**
+   * Save selected country preference
+   */
+  function saveSelectedCountry(countryCode) {
+    $.ajax({
+      url: nordbooking_areas_params.ajax_url,
+      type: "POST",
+      data: {
+        action: "nordbooking_save_selected_country",
+        nonce: nordbooking_areas_params.nonce,
+        country_code: countryCode,
+      },
+      success: function(response) {
+        console.log("Country preference saved");
+      },
+      error: function() {
+        console.error("Failed to save country preference");
+      }
+    });
+  }
+
+  /**
+   * Load available countries
+   */
+  function loadCountries() {
+    $countriesGridContainer.html(
+      `<div class="NORDBOOKING-loading-state"><div class="NORDBOOKING-spinner"></div><p>${i18n.loading_countries}</p></div>`
+    );
+
+    $.ajax({
+      url: nordbooking_areas_params.ajax_url,
+      type: "POST",
+      data: {
+        action: "nordbooking_get_countries",
+        nonce: nordbooking_areas_params.nonce,
+      },
+      success: function(response) {
+        if (response.success && response.data?.countries) {
+          countriesData = response.data.countries;
+          displayCountries(countriesData);
+          populateCountryFilter(countriesData);
+          // Load selected country after countries are loaded
+          setTimeout(loadSelectedCountry, 100);
+        } else {
+          $countriesGridContainer.html(
+            `<div class="NORDBOOKING-empty-state"><p>${i18n.no_countries_available}</p></div>`
+          );
+        }
+      },
+      error: function() {
+        $countriesGridContainer.html(
+          `<div class="NORDBOOKING-error-state"><p>${i18n.error}</p></div>`
+        );
+      }
+    });
+  }
+
+  /**
+   * Display countries grid (compact design)
+   */
+  function displayCountries(countries) {
+    if (!countries.length) {
+      $countriesGridContainer.html(
+        `<div class="NORDBOOKING-empty-state"><p>${i18n.no_countries_available}</p></div>`
+      );
+      return;
+    }
+
+    let html = '<div class="countries-grid compact">';
+    countries.forEach(function (country) {
+      const countryFlag = getCountryFlag(country.code);
+      html += `
+        <div class="country-card compact" data-country-code="${escapeHtml(country.code)}" data-country-name="${escapeHtml(country.name)}">
+          <span class="country-flag">${countryFlag}</span>
+          <span class="country-name">${escapeHtml(country.name)}</span>
+        </div>
+      `;
+    });
+    html += "</div>";
+    $countriesGridContainer.html(html);
+  }
+
+  /**
+   * Populate the country filter dropdown
+   */
+  function populateCountryFilter(countries) {
+    $countryFilter
+      .empty()
+      .append(
+        $("<option>", { value: "", text: i18n.all_countries || "All Countries" })
+      );
+    countries.forEach(function (country) {
+      $countryFilter.append($("<option>", { value: country.code, text: country.name }));
+    });
+  }
+
+  /**
+   * Handle country selection
+   */
+  function handleCountryClick() {
+    const $countryCard = $(this);
+    const countryCode = $countryCard.data("country-code");
+    const countryName = $countryCard.data("country-name");
+    
+    // Check if user has existing coverage and warn about country change
+    if (currentCountry && currentCountry.code !== countryCode) {
+      if (!confirm(i18n.country_change_warning)) {
+        return;
+      }
+    }
+    
+    selectCountry(countryCode, countryName);
+  }
+
+  /**
+   * Handle change country button click
+   */
+  function handleChangeCountry() {
+    if (currentCountry && !confirm(i18n.country_change_warning)) {
+      return;
+    }
+    
+    // Remove all areas for the current country before changing
+    if (currentCountry) {
+      removeAllAreasForCountry(currentCountry.code);
+    }
+    
+    $citiesSelectionCard.hide();
+    $countriesGridContainer.parent().show();
+    currentCountry = null;
+    nordbooking_areas_params.country_code = '';
+    
+    // Clear saved country preference
+    saveSelectedCountry('');
+  }
+
+  /**
+   * Select a country and load its cities
+   */
+  function selectCountry(countryCode, countryName, shouldSave = true) {
+    currentCountry = { code: countryCode, name: countryName };
+    nordbooking_areas_params.country_code = countryCode;
+    
+    // Save country preference
+    if (shouldSave) {
+      saveSelectedCountry(countryCode);
+    }
+    
+    // Update UI
+    $("#cities-card-title").text(i18n.select_cities_in.replace('%s', countryName));
+    $("#cities-card-description").text(`Click on a city to manage its service areas in ${countryName}. Areas can be enabled or disabled individually.`);
+    
+    // Hide countries, show cities
+    $countriesGridContainer.parent().hide();
+    $citiesSelectionCard.show();
+    
+    // Load cities for selected country
+    loadCities();
+  }
+
+  /**
+   * Load available cities for selected country and their coverage status
    */
   function loadCities() {
+    if (!currentCountry) return;
+    
     $citiesGridContainer.html(
       `<div class="NORDBOOKING-loading-state"><div class="NORDBOOKING-spinner"></div><p>${i18n.loading_cities}</p></div>`
     );
@@ -503,9 +725,9 @@
 
     const filters = {
       search: $coverageSearch.val().trim(),
+      country: $countryFilter.val(),
       city: $cityFilter.val(),
       status: $statusFilter.val(),
-      country_code: nordbooking_areas_params.country_code,
       groupby: "city",
     };
 
@@ -539,47 +761,251 @@
   }
 
   /**
-   * Render the service coverage section
+   * Render the service coverage section with new table design
    */
   function renderCoverage(cities) {
     if (!cities.length) {
+      $coverageTableHeader.hide();
       $coverageList.html(
         `<div class="NORDBOOKING-empty-state"><p>${
           i18n.no_coverage || "No service coverage found."
         }</p></div>`
       );
+      updateCoverageStats(0, 0);
       return;
     }
 
-    let html = '<div class="coverage-cities-list">';
+    $coverageTableHeader.show();
+    
+    let html = '';
+    let totalCities = cities.length;
+    let activeCities = 0;
+    
     cities.forEach(function (city) {
+      if (city.status === 'active') activeCities++;
+      
+      const countryFlag = getCountryFlag(city.country_code);
       html += `
-                <div class="coverage-city-item" data-city-code="${escapeHtml(
-                  city.city_code
-                )}">
-                    <div class="city-info">
-                        <span class="city-name">${escapeHtml(
-                          city.city_name
-                        )}</span>
-                        <span class="city-stats">${city.area_count} areas</span>
-                    </div>
-                    <div class="city-actions">
-                        <button type="button" class="toggle-city-btn NORDBOOKING-btn NORDBOOKING-btn-secondary NORDBOOKING-btn-sm" data-city-code="${escapeHtml(
-                          city.city_code
-                        )}" data-status="${escapeHtml(city.status)}">
-                            ${city.status === "active" ? "Disable" : "Enable"}
-                        </button>
-                        <button type="button" class="remove-city-btn NORDBOOKING-btn NORDBOOKING-btn-danger NORDBOOKING-btn-sm" data-city-code="${escapeHtml(
-                          city.city_code
-                        )}">
-                            Remove
-                        </button>
-                    </div>
-                </div>
-            `;
+        <div class="coverage-row" data-city-code="${escapeHtml(city.city_code)}" data-country-code="${escapeHtml(city.country_code)}">
+          <div class="select-cell">
+            <input type="checkbox" class="coverage-checkbox" value="${escapeHtml(city.city_code)}">
+          </div>
+          <div class="country-cell">
+            <span class="country-flag">${countryFlag}</span>
+            ${escapeHtml(city.country_code)}
+          </div>
+          <div class="city-cell">
+            <span class="city-name">${escapeHtml(city.city_name)}</span>
+          </div>
+          <div class="areas-cell">
+            <span class="area-count">${city.area_count}</span>
+          </div>
+          <div class="status-cell">
+            <span class="status-badge ${city.status}">${city.status === 'active' ? 'Active' : 'Inactive'}</span>
+          </div>
+          <div class="actions-cell">
+            <div class="coverage-actions">
+              <button type="button" class="toggle-city-btn btn btn-outline btn-sm" data-city-code="${escapeHtml(city.city_code)}" data-status="${escapeHtml(city.status)}">
+                ${city.status === "active" ? "Disable" : "Enable"}
+              </button>
+              <button type="button" class="remove-city-btn btn btn-destructive btn-sm" data-city-code="${escapeHtml(city.city_code)}">
+                Remove
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
     });
-    html += "</div>";
+    
     $coverageList.html(html);
+    updateCoverageStats(totalCities, activeCities);
+  }
+
+  /**
+   * Get country flag SVG
+   */
+  function getCountryFlag(countryCode) {
+    return window.CountryFlags ? window.CountryFlags.getSVG(countryCode, 20) : `<span>${countryCode}</span>`;
+  }
+
+  /**
+   * Update coverage statistics
+   */
+  function updateCoverageStats(total, active) {
+    $totalCities.text(total);
+    $activeCities.text(active);
+  }
+
+  /**
+   * Handle select all checkbox
+   */
+  function handleSelectAll() {
+    const isChecked = $selectAllCoverage.is(':checked');
+    $coverageList.find('.coverage-checkbox').prop('checked', isChecked);
+    updateBulkActionsBar();
+  }
+
+  /**
+   * Handle individual coverage selection
+   */
+  function handleCoverageSelection() {
+    updateBulkActionsBar();
+    updateSelectAllState();
+  }
+
+  /**
+   * Update bulk actions bar visibility and count
+   */
+  function updateBulkActionsBar() {
+    const selectedCheckboxes = $coverageList.find('.coverage-checkbox:checked');
+    const selectedCount = selectedCheckboxes.length;
+    
+    if (selectedCount > 0) {
+      $selectedCount.text(selectedCount);
+      $bulkActionsBar.show();
+      
+      // Add selected class to rows
+      $coverageList.find('.coverage-row').removeClass('selected');
+      selectedCheckboxes.each(function() {
+        $(this).closest('.coverage-row').addClass('selected');
+      });
+    } else {
+      $bulkActionsBar.hide();
+      $coverageList.find('.coverage-row').removeClass('selected');
+    }
+  }
+
+  /**
+   * Update select all checkbox state
+   */
+  function updateSelectAllState() {
+    const totalCheckboxes = $coverageList.find('.coverage-checkbox').length;
+    const checkedCheckboxes = $coverageList.find('.coverage-checkbox:checked').length;
+    
+    if (checkedCheckboxes === 0) {
+      $selectAllCoverage.prop('indeterminate', false).prop('checked', false);
+    } else if (checkedCheckboxes === totalCheckboxes) {
+      $selectAllCoverage.prop('indeterminate', false).prop('checked', true);
+    } else {
+      $selectAllCoverage.prop('indeterminate', true).prop('checked', false);
+    }
+  }
+
+  /**
+   * Clear bulk selection
+   */
+  function clearBulkSelection() {
+    $coverageList.find('.coverage-checkbox').prop('checked', false);
+    $selectAllCoverage.prop('checked', false).prop('indeterminate', false);
+    $bulkActionsBar.hide();
+    $coverageList.find('.coverage-row').removeClass('selected');
+  }
+
+  /**
+   * Handle bulk actions
+   */
+  function handleBulkAction(action) {
+    const selectedCities = [];
+    $coverageList.find('.coverage-checkbox:checked').each(function() {
+      const cityCode = $(this).val();
+      const countryCode = $(this).closest('.coverage-row').data('country-code');
+      selectedCities.push({ city: cityCode, country: countryCode });
+    });
+
+    if (selectedCities.length === 0) {
+      return;
+    }
+
+    let confirmMessage = '';
+    let actionText = '';
+    
+    switch (action) {
+      case 'enable':
+        confirmMessage = `Enable ${selectedCities.length} selected cities?`;
+        actionText = 'Enabling';
+        break;
+      case 'disable':
+        confirmMessage = `Disable ${selectedCities.length} selected cities?`;
+        actionText = 'Disabling';
+        break;
+      case 'remove':
+        confirmMessage = `Remove ${selectedCities.length} selected cities? This action cannot be undone.`;
+        actionText = 'Removing';
+        break;
+    }
+
+    if (!confirm(confirmMessage)) {
+      return;
+    }
+
+    // Show loading state
+    $bulkActionsBar.find('.bulk-actions-buttons').html(
+      `<div class="NORDBOOKING-spinner NORDBOOKING-spinner-sm"></div> ${actionText}...`
+    );
+
+    $.ajax({
+      url: nordbooking_areas_params.ajax_url,
+      type: "POST",
+      data: {
+        action: "nordbooking_bulk_city_action",
+        nonce: nordbooking_areas_params.nonce,
+        bulk_action: action,
+        cities: selectedCities,
+      },
+      success: function(response) {
+        if (response.success) {
+          window.showAlert(response.data.message || `Bulk ${action} completed successfully.`, "success");
+          clearBulkSelection();
+          loadServiceCoverage(); // Refresh the list
+        } else {
+          window.showAlert(response.data.message || `Failed to ${action} cities.`, "error");
+        }
+      },
+      error: function() {
+        window.showAlert(`An error occurred during bulk ${action}.`, "error");
+      },
+      complete: function() {
+        // Restore bulk actions buttons
+        $bulkActionsBar.find('.bulk-actions-buttons').html(`
+          <button type="button" id="bulk-enable-btn" class="btn btn-success btn-sm">Enable</button>
+          <button type="button" id="bulk-disable-btn" class="btn btn-warning btn-sm">Disable</button>
+          <button type="button" id="bulk-remove-btn" class="btn btn-destructive btn-sm">Remove</button>
+          <button type="button" id="bulk-cancel-btn" class="btn btn-outline btn-sm">Cancel</button>
+        `);
+        
+        // Re-bind events
+        $bulkActionsBar.find('#bulk-enable-btn').on("click", () => handleBulkAction("enable"));
+        $bulkActionsBar.find('#bulk-disable-btn').on("click", () => handleBulkAction("disable"));
+        $bulkActionsBar.find('#bulk-remove-btn').on("click", () => handleBulkAction("remove"));
+        $bulkActionsBar.find('#bulk-cancel-btn').on("click", clearBulkSelection);
+      }
+    });
+  }
+
+  /**
+   * Remove all areas for a specific country
+   */
+  function removeAllAreasForCountry(countryCode) {
+    $.ajax({
+      url: nordbooking_areas_params.ajax_url,
+      type: "POST",
+      data: {
+        action: "nordbooking_remove_country_areas",
+        nonce: nordbooking_areas_params.nonce,
+        country_code: countryCode,
+      },
+      success: function(response) {
+        if (response.success) {
+          console.log(`All areas for country ${countryCode} removed successfully.`);
+          loadServiceCoverage(); // Refresh the coverage list
+        } else {
+          console.error(`Failed to remove areas for country ${countryCode}:`, response.data.message);
+        }
+      },
+      error: function() {
+        console.error(`Error removing areas for country ${countryCode}`);
+      }
+    });
   }
 
   /**
@@ -686,6 +1112,7 @@
    */
   function clearCoverageFilters() {
     $coverageSearch.val("");
+    $countryFilter.val("");
     $cityFilter.val("");
     $statusFilter.val("");
     loadServiceCoverage();

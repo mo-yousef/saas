@@ -47,6 +47,28 @@ body.wp-admin #wpbody-content .NORDBOOKING-overview-dashboard {
   margin: 0 auto;
 }
 
+/* Field Error Styles */
+.field-error {
+  color: hsl(var(--destructive));
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+  display: block;
+}
+
+input.error,
+textarea.error,
+select.error {
+  border-color: hsl(var(--destructive)) !important;
+  box-shadow: 0 0 0 1px hsl(var(--destructive)) !important;
+}
+
+input.error:focus,
+textarea.error:focus,
+select.error:focus {
+  border-color: hsl(var(--destructive)) !important;
+  box-shadow: 0 0 0 2px hsl(var(--destructive) / 0.2) !important;
+}
+
 /* Page Header */
 .nordbooking-page-header,
 .dashboard-header {
@@ -384,16 +406,6 @@ table.nordbooking-table {
 }
 
 /* Standardized Status Badges */
-.status-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.25em 0.6em;
-  font-size: 0.85em;
-  font-weight: 500;
-  border-radius: var(--radius, 0.5rem);
-  border: 1px solid transparent;
-  line-height: 1.2;
-}
 
 .status-badge .feather {
   width: 1em;
@@ -847,7 +859,7 @@ a.quick-action:hover {
   gap: 8px;
 }
 
-.nordbooking-card-content input,
+.nordbooking-card-content text,
 .nordbooking-card-content textarea {
   margin: 0px !important;
   padding: 0.5rem 0.75rem;

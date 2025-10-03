@@ -223,32 +223,6 @@
     }
 }
 
-/* Enhanced Status Badges for Subscription */
-.status-badge.status-trial {
-    background-color: hsl(200, 80%, 95%);
-    color: hsl(200, 70%, 40%);
-    border-color: hsl(200, 70%, 70%);
-}
-
-.status-badge.status-active {
-    background-color: hsl(145, 63%, 95%);
-    color: hsl(145, 63%, 22%);
-    border-color: hsl(145, 63%, 72%);
-}
-
-.status-badge.status-expired,
-.status-badge.status-trial-expired {
-    background-color: hsl(var(--destructive) / 0.1);
-    color: hsl(var(--destructive));
-    border-color: hsl(var(--destructive) / 0.3);
-}
-
-.status-badge.status-unsubscribed {
-    background-color: hsl(var(--muted));
-    color: hsl(var(--muted-foreground));
-    border-color: hsl(var(--border));
-}
-
 /* Loading States */
 .button:disabled {
     opacity: 0.6;
