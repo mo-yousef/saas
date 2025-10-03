@@ -1062,11 +1062,18 @@
    */
   function handleRemoveCity() {
     const $btn = $(this);
-    const cityCode = $btn.closest(".coverage-city-item").data("city-code");
+    const cityCode = $btn.closest(".coverage-row").data("city-code");
     const cityName = $btn
-      .closest(".coverage-city-item")
+      .closest(".coverage-row")
       .find(".city-name")
       .text();
+
+    console.log('Remove city clicked:', { cityCode, cityName }); // Debug log
+
+    if (!cityCode) {
+      window.showAlert("City code not found. Please refresh the page and try again.", "error");
+      return;
+    }
 
     if (!confirm(i18n.confirm_remove_city.replace("%s", cityName))) {
       return;
@@ -1075,6 +1082,8 @@
     $btn
       .prop("disabled", true)
       .html('<div class="NORDBOOKING-spinner NORDBOOKING-spinner-sm"></div>');
+
+    console.log('Sending AJAX request to remove city:', cityCode); // Debug log
 
     $.ajax({
       url: nordbooking_areas_params.ajax_url,
@@ -1088,7 +1097,7 @@
         if (response.success) {
           window.showAlert(response.data.message || "City removed.", "success");
           // Optimistically remove from UI
-          $btn.closest(".coverage-city-item").fadeOut(300, function () {
+          $btn.closest(".coverage-row").fadeOut(300, function () {
             $(this).remove();
           });
           loadCities(); // Refresh cities to show updated status

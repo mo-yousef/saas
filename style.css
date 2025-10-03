@@ -3558,25 +3558,32 @@ figure img {
 Service Areas Informational Banner Styles
 --------------------------------------------------------------*/
 .nordbooking-info-banner {
-  background: linear-gradient(135deg, hsl(213 100% 96%) 0%, hsl(214 100% 97%) 100%);
-  border: 1px solid hsl(213 27% 84%);
-  border-radius: 0.75rem;
-  margin-bottom: 1.5rem;
-  overflow: hidden;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid hsl(var(--border));
+  gap: 0.75rem;
+  background-color: var(--mobk-card);
+  border: 1px solid var(--mobk-border);
+  border-radius: var(--mobk-radius);
+  box-shadow: var(--mobk-shadow-sm);
+  transition: box-shadow 0.2s ease;
+  padding: 1rem;
+  min-height: 70px;
 }
 
 .nordbooking-info-banner-content {
   display: flex;
   align-items: flex-start;
   gap: 1rem;
-  padding: 1.25rem;
 }
 
 .nordbooking-info-banner-icon {
   flex-shrink: 0;
   width: 2.5rem;
   height: 2.5rem;
-  background: hsl(213 94% 68%);
+  background: #FF9800;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -3592,19 +3599,19 @@ Service Areas Informational Banner Styles
 .nordbooking-info-banner-text {
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
 }
 
 .nordbooking-info-banner-text h4 {
-  margin: 0 0 0.5rem 0;
   font-size: 1.125rem;
   font-weight: 600;
-  color: hsl(213 94% 27%);
 }
 
 .nordbooking-info-banner-text p {
-  margin: 0 0 1rem 0;
-  color: hsl(213 19% 18%);
-  line-height: 1.5;
+  margin: 0 0 0.5rem 0;
 }
 
 .nordbooking-info-banner-link {

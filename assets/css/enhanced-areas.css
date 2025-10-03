@@ -93,7 +93,6 @@
 
 .city-card {
     display: flex;
-    justify-content: space-between;
     align-items: center;
     padding: 1rem 1.25rem;
     border: 1px solid #e9ecef;
@@ -102,7 +101,8 @@
     transition: all 0.2s ease;
     background-color: #fff;
     flex-direction: column;
-    gap: 6px;
+    gap: 10px;
+    justify-content: center;
 }
 
 .city-card:hover {
@@ -112,13 +112,14 @@
 }
 
 .city-card .city-name {
-    font-size: 1.1rem;
+    font-size: 15px;
     font-weight: 600;
     color: var(--mobk-card-foreground);
     margin: 0px;
     display: flex;
     align-items: center;
     gap: 8px;
+    text-align: center;
     line-height: 1;
     flex-direction: column;
 }

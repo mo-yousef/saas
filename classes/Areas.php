@@ -1018,49 +1018,23 @@ public function handle_remove_city_coverage_ajax() {
         return;
     }
 
-    $city_name = isset($_POST['city_code']) ? sanitize_text_field($_POST['city_code']) : '';
+    $city_code = isset($_POST['city_code']) ? sanitize_text_field($_POST['city_code']) : '';
 
-    if (empty($city_name)) {
+    if (empty($city_code)) {
         wp_send_json_error(['message' => __('City code is required.', 'NORDBOOKING')], 400);
         return;
     }
 
-    // Get all ZIP codes for the specified city from the JSON file.
-    $area_data = $this->load_area_data_from_json();
-    if (is_wp_error($area_data)) {
-        wp_send_json_error(['message' => 'Could not load area data file.'], 500);
-        return;
-    }
-
-    $country_code = 'SE'; // Hardcoded as per frontend
-    $city_zips = [];
-    if (isset($area_data[$country_code]['cities'][$city_name])) {
-        foreach ($area_data[$country_code]['cities'][$city_name] as $area_info) {
-            if (isset($area_info['zip'])) {
-                $city_zips[] = $area_info['zip'];
-            }
-        }
-    }
-
-    $deleted_count = 0;
-    if (!empty($city_zips)) {
-        $table_name = Database::get_table_name('areas');
-        $placeholders = implode(', ', array_fill(0, count($city_zips), '%s'));
-
-        $deleted_count = $this->wpdb->query($this->wpdb->prepare(
-            "DELETE FROM $table_name WHERE user_id = %d AND area_type = 'zip_code' AND area_value IN ($placeholders)",
-            array_merge([$user_id], $city_zips)
-        ));
-    }
-
-    if (false === $deleted_count) {
-        wp_send_json_error(['message' => __('Could not remove city coverage.', 'NORDBOOKING')], 500);
+    $result = $this->remove_city_coverage($user_id, $city_code);
+    
+    if (is_wp_error($result)) {
+        wp_send_json_error(['message' => $result->get_error_message()], 500);
         return;
     }
 
     wp_send_json_success([
-        'message' => sprintf(__('%d service areas removed for %s.', 'NORDBOOKING'), $deleted_count, $city_name),
-        'deleted_count' => $deleted_count
+        'message' => sprintf(__('%d service areas removed for %s.', 'NORDBOOKING'), $result, $city_code),
+        'deleted_count' => $result
     ]);
 }
 
@@ -1271,6 +1245,43 @@ public function get_areas_count_by_user(int $user_id): int {
         $selected_country = $this->get_selected_country($user_id);
         
         wp_send_json_success(['country_code' => $selected_country]);
+    }
+
+    /**
+     * Remove all areas for a specific city
+     */
+    public function remove_city_coverage($user_id, $city_code) {
+        if (empty($user_id) || empty($city_code)) {
+            return new \WP_Error('invalid_params', __('Invalid parameters.', 'NORDBOOKING'));
+        }
+        
+        $table_name = Database::get_table_name('areas');
+        
+        // Get all areas for this city from all countries
+        $area_data = $this->load_area_data_from_json();
+        if (is_wp_error($area_data)) {
+            return $area_data;
+        }
+        
+        $city_zips = [];
+        foreach ($area_data as $location) {
+            if (isset($location['state']) && $location['state'] === $city_code && isset($location['zipcode'])) {
+                $city_zips[] = str_replace(' ', '', strtoupper($location['zipcode']));
+            }
+        }
+        
+        if (empty($city_zips)) {
+            return 0; // No areas to remove
+        }
+        
+        // Remove all areas for this city and user
+        $placeholders = implode(',', array_fill(0, count($city_zips), '%s'));
+        $sql = "DELETE FROM $table_name WHERE user_id = %d AND area_value IN ($placeholders)";
+        
+        $query_params = array_merge([$user_id], $city_zips);
+        $result = $this->wpdb->query($this->wpdb->prepare($sql, $query_params));
+        
+        return $result !== false ? $result : new \WP_Error('db_error', __('Failed to remove city coverage.', 'NORDBOOKING'));
     }
 
     /**

@@ -23,9 +23,6 @@ $current_user_id = get_current_user_id();
             </span>
             <h1 class="nordbooking-page-title"><?php esc_html_e('Service Areas', 'NORDBOOKING'); ?></h1>
         </div>
-        <p class="nordbooking-page-description">
-            <?php esc_html_e('Manage your service coverage by selecting countries, cities and their specific areas. Choose one country at a time to configure your service areas.', 'NORDBOOKING'); ?>
-        </p>
     </div>
 
     <?php
@@ -47,7 +44,7 @@ $current_user_id = get_current_user_id();
                 <p>
                     <?php esc_html_e('Your booking form will accept bookings from any location. To enable location-based restrictions and use the service areas you configure here, please enable "Location Check" in your booking form settings.', 'NORDBOOKING'); ?>
                 </p>
-                <a href="<?php echo esc_url(home_url('/dashboard/booking-form/')); ?>" class="nordbooking-info-banner-link">
+                <a href="<?php echo esc_url(home_url('/dashboard/booking-form/')); ?>" class="btn btn-outline">
                     <?php esc_html_e('Go to Booking Form Settings', 'NORDBOOKING'); ?>
                     <svg class="NORDBOOKING-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
