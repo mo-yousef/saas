@@ -344,14 +344,24 @@ if ( is_page_template('templates/booking-form-public.php') || $page_type_for_scr
 
         if ($current_page_slug === 'overview') {
             wp_enqueue_style('nordbooking-dashboard-overview', NORDBOOKING_THEME_URI . 'assets/css/dashboard-overview.css', array('nordbooking-dashboard-main'), NORDBOOKING_VERSION);
+            wp_enqueue_style('nordbooking-dashboard-overview-enhanced', NORDBOOKING_THEME_URI . 'assets/css/dashboard-overview-enhanced.css', array('nordbooking-dashboard-overview'), NORDBOOKING_VERSION);
             wp_enqueue_script('chart-js', 'https://cdn.jsdelivr.net/npm/chart.js', array(), '4.4.1', true);
             wp_enqueue_script('nordbooking-dashboard-overview-enhanced', NORDBOOKING_THEME_URI . 'assets/js/dashboard-overview-enhanced.js', array('jquery', 'chart-js'), NORDBOOKING_VERSION, true);
             $stats = function_exists('nordbooking_get_overview_stats') ? nordbooking_get_overview_stats() : [];
             wp_localize_script('nordbooking-dashboard-overview-enhanced', 'nordbooking_overview_params', [
                 'ajax_url' => admin_url('admin-ajax.php'),
-                'nonce' => wp_create_nonce('nordbooking_ajax_nonce'),
+                'nonce' => wp_create_nonce('nordbooking_dashboard_nonce'),
                 'currency_symbol' => get_option('nordbooking_currency_symbol', '$'),
                 'stats' => $stats,
+                'dashboard_base_url' => home_url('/dashboard/'),
+                'i18n' => [
+                    'no_data' => __('No data available', 'NORDBOOKING'),
+                    'new_booking' => __('New booking received', 'NORDBOOKING'),
+                    'booking_updated' => __('Booking updated', 'NORDBOOKING'),
+                    'service_created' => __('Service created', 'NORDBOOKING'),
+                    'worker_added' => __('Worker added', 'NORDBOOKING'),
+                    'settings_updated' => __('Settings updated', 'NORDBOOKING'),
+                ]
             ]);
         }
 

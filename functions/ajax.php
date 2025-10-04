@@ -638,15 +638,64 @@ if (!function_exists('nordbooking_ajax_get_chart_data')) {
         $period = isset($_POST['period']) ? sanitize_text_field($_POST['period']) : 'week';
 
         try {
-            // Initialize bookings manager if not available
-            if (!isset($GLOBALS['nordbooking_bookings_manager'])) {
-                $GLOBALS['nordbooking_bookings_manager'] = new \NORDBOOKING\Classes\Bookings();
+            global $wpdb;
+            $bookings_table = \NORDBOOKING\Classes\Database::get_table_name('bookings');
+            
+            // Calculate date range based on period
+            $end_date = date('Y-m-d');
+            switch ($period) {
+                case 'week':
+                    $start_date = date('Y-m-d', strtotime('-7 days'));
+                    $date_format = '%a'; // Day name
+                    break;
+                case 'month':
+                    $start_date = date('Y-m-d', strtotime('-30 days'));
+                    $date_format = '%d'; // Day of month
+                    break;
+                case 'quarter':
+                    $start_date = date('Y-m-d', strtotime('-90 days'));
+                    $date_format = '%Y-%m'; // Year-Month
+                    break;
+                default:
+                    $start_date = date('Y-m-d', strtotime('-7 days'));
+                    $date_format = '%a';
             }
-
-            $bookings_manager = $GLOBALS['nordbooking_bookings_manager'];
-            $chart_data = $bookings_manager->get_chart_data($data_user_id, $period);
-
-            wp_send_json_success($chart_data);
+            
+            // Get revenue data grouped by date
+            $revenue_data = $wpdb->get_results($wpdb->prepare(
+                "SELECT 
+                    DATE(booking_date) as date,
+                    DATE_FORMAT(booking_date, %s) as label,
+                    SUM(total_price) as revenue
+                 FROM $bookings_table 
+                 WHERE user_id = %d 
+                 AND booking_date BETWEEN %s AND %s
+                 AND status IN ('completed', 'confirmed')
+                 GROUP BY DATE(booking_date)
+                 ORDER BY booking_date ASC",
+                $date_format, $data_user_id, $start_date, $end_date
+            ), ARRAY_A);
+            
+            $labels = [];
+            $revenue = [];
+            
+            if (!empty($revenue_data)) {
+                foreach ($revenue_data as $row) {
+                    $labels[] = $row['label'];
+                    $revenue[] = floatval($row['revenue']);
+                }
+            } else {
+                // Provide sample data if no real data exists
+                $labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+                $revenue = [0, 0, 0, 0, 0, 0, 0];
+            }
+            
+            wp_send_json_success(array(
+                'labels' => $labels,
+                'revenue' => $revenue,
+                'period' => $period
+            ));
+            
         } catch (Exception $e) {
             wp_send_json_error(array('message' => 'Failed to load chart data: ' . $e->getMessage()), 500);
         }
@@ -1157,7 +1206,7 @@ if (!function_exists('nordbooking_get_recent_activity')) {
         
         // Get recent bookings as activity
         $recent_bookings = $wpdb->get_results($wpdb->prepare(
-            "SELECT id, customer_name, status, created_at, total_price 
+            "SELECT booking_id, customer_name, status, created_at, total_price 
              FROM $bookings_table 
              WHERE user_id = %d 
              ORDER BY created_at DESC 
@@ -1174,11 +1223,11 @@ if (!function_exists('nordbooking_get_recent_activity')) {
             if ($booking->status === 'completed') {
                 $icon = 'check-circle';
                 $title = __('Booking completed', 'NORDBOOKING');
-                $description = sprintf(__('Booking #%d completed', 'NORDBOOKING'), $booking->id);
+                $description = sprintf(__('Booking #%d completed', 'NORDBOOKING'), $booking->booking_id);
             } elseif ($booking->status === 'cancelled') {
                 $icon = 'x-circle';
                 $title = __('Booking cancelled', 'NORDBOOKING');
-                $description = sprintf(__('Booking #%d cancelled', 'NORDBOOKING'), $booking->id);
+                $description = sprintf(__('Booking #%d cancelled', 'NORDBOOKING'), $booking->booking_id);
             }
             
             $activities[] = array(
@@ -1754,5 +1803,280 @@ function nordbooking_ajax_sync_subscription_status() {
         ]);
     } else {
         wp_send_json_error(['message' => __('No subscription found in Stripe to sync. If you just completed a payment, please wait a few minutes and try again.', 'NORDBOOKING')]);
+    }
+}
+
+// AJAX handler for service performance data
+add_action('wp_ajax_nordbooking_get_service_performance', 'nordbooking_ajax_get_service_performance');
+if (!function_exists('nordbooking_ajax_get_service_performance')) {
+    function nordbooking_ajax_get_service_performance() {
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'nordbooking_dashboard_nonce')) {
+            wp_send_json_error(array('message' => 'Security check failed: Invalid nonce.'), 403);
+            return;
+        }
+        
+        $current_user_id = get_current_user_id();
+        if (!$current_user_id) {
+            wp_send_json_error(array('message' => 'User not authenticated.'), 401);
+            return;
+        }
+        
+        try {
+            // Determine user for data fetching (handle workers)
+            $data_user_id = $current_user_id;
+            if (class_exists('NORDBOOKING\Classes\Auth') && \NORDBOOKING\Classes\Auth::is_user_worker($current_user_id)) {
+                $owner_id = \NORDBOOKING\Classes\Auth::get_business_owner_id_for_worker($current_user_id);
+                if ($owner_id) {
+                    $data_user_id = $owner_id;
+                }
+            }
+            
+            global $wpdb;
+            $bookings_table = \NORDBOOKING\Classes\Database::get_table_name('bookings');
+            
+            // Get current month date range
+            $current_month_start = date('Y-m-01');
+            $current_month_end = date('Y-m-t');
+            
+            // Get service performance data by status (since service columns don't exist)
+            $service_performance = $wpdb->get_results($wpdb->prepare(
+                "SELECT 
+                    CASE 
+                        WHEN status = 'completed' THEN 'Completed Bookings'
+                        WHEN status = 'confirmed' THEN 'Confirmed Bookings'
+                        WHEN status = 'pending' THEN 'Pending Bookings'
+                        ELSE 'Other Bookings'
+                    END as service_name,
+                    COUNT(*) as booking_count, 
+                    SUM(total_price) as revenue
+                 FROM $bookings_table 
+                 WHERE user_id = %d 
+                 AND booking_date BETWEEN %s AND %s
+                 GROUP BY status 
+                 ORDER BY booking_count DESC 
+                 LIMIT 10",
+                $data_user_id, $current_month_start, $current_month_end
+            ), ARRAY_A);
+            
+            $labels = array();
+            $data = array();
+            
+            foreach ($service_performance as $service) {
+                $labels[] = $service['service_name'] ?: __('Unknown Service', 'NORDBOOKING');
+                $data[] = intval($service['booking_count']);
+            }
+            
+            // If no data, provide sample data
+            if (empty($labels)) {
+                $labels = array(__('No services yet', 'NORDBOOKING'));
+                $data = array(0);
+            }
+            
+            wp_send_json_success(array(
+                'labels' => $labels,
+                'data' => $data
+            ));
+            
+        } catch (Exception $e) {
+            wp_send_json_error(array('message' => 'Failed to load service performance: ' . $e->getMessage()), 500);
+        }
+    }
+}
+
+// AJAX handler for live updates check
+add_action('wp_ajax_nordbooking_get_live_updates', 'nordbooking_ajax_get_live_updates');
+if (!function_exists('nordbooking_ajax_get_live_updates')) {
+    function nordbooking_ajax_get_live_updates() {
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'nordbooking_dashboard_nonce')) {
+            wp_send_json_error(array('message' => 'Security check failed: Invalid nonce.'), 403);
+            return;
+        }
+        
+        $current_user_id = get_current_user_id();
+        if (!$current_user_id) {
+            wp_send_json_error(array('message' => 'User not authenticated.'), 401);
+            return;
+        }
+        
+        try {
+            // Determine user for data fetching (handle workers)
+            $data_user_id = $current_user_id;
+            if (class_exists('NORDBOOKING\Classes\Auth') && \NORDBOOKING\Classes\Auth::is_user_worker($current_user_id)) {
+                $owner_id = \NORDBOOKING\Classes\Auth::get_business_owner_id_for_worker($current_user_id);
+                if ($owner_id) {
+                    $data_user_id = $owner_id;
+                }
+            }
+            
+            $last_update = isset($_POST['last_update']) ? sanitize_text_field($_POST['last_update']) : '';
+            $current_time = current_time('mysql');
+            
+            global $wpdb;
+            $bookings_table = \NORDBOOKING\Classes\Database::get_table_name('bookings');
+            
+            // Check for new bookings since last update
+            $new_bookings_count = 0;
+            if (!empty($last_update)) {
+                $new_bookings_count = $wpdb->get_var($wpdb->prepare(
+                    "SELECT COUNT(*) FROM $bookings_table 
+                     WHERE user_id = %d AND created_at > %s",
+                    $data_user_id, $last_update
+                ));
+            }
+            
+            $has_updates = $new_bookings_count > 0;
+            
+            wp_send_json_success(array(
+                'has_updates' => $has_updates,
+                'new_bookings' => intval($new_bookings_count),
+                'timestamp' => $current_time,
+                'notifications' => array() // Can be extended for other notifications
+            ));
+            
+        } catch (Exception $e) {
+            wp_send_json_error(array('message' => 'Failed to check live updates: ' . $e->getMessage()), 500);
+        }
+    }
+}
+
+// AJAX handler for exporting dashboard data
+add_action('wp_ajax_nordbooking_export_dashboard_data', 'nordbooking_ajax_export_dashboard_data');
+if (!function_exists('nordbooking_ajax_export_dashboard_data')) {
+    function nordbooking_ajax_export_dashboard_data() {
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'nordbooking_dashboard_nonce')) {
+            wp_send_json_error(array('message' => 'Security check failed: Invalid nonce.'), 403);
+            return;
+        }
+        
+        $current_user_id = get_current_user_id();
+        if (!$current_user_id) {
+            wp_send_json_error(array('message' => 'User not authenticated.'), 401);
+            return;
+        }
+        
+        try {
+            // Determine user for data fetching (handle workers)
+            $data_user_id = $current_user_id;
+            if (class_exists('NORDBOOKING\Classes\Auth') && \NORDBOOKING\Classes\Auth::is_user_worker($current_user_id)) {
+                $owner_id = \NORDBOOKING\Classes\Auth::get_business_owner_id_for_worker($current_user_id);
+                if ($owner_id) {
+                    $data_user_id = $owner_id;
+                }
+            }
+            
+            $format = isset($_POST['format']) ? sanitize_text_field($_POST['format']) : 'csv';
+            $period = isset($_POST['period']) ? sanitize_text_field($_POST['period']) : 'month';
+            
+            global $wpdb;
+            $bookings_table = \NORDBOOKING\Classes\Database::get_table_name('bookings');
+            
+            // Get date range based on period
+            switch ($period) {
+                case 'week':
+                    $start_date = date('Y-m-d', strtotime('-7 days'));
+                    break;
+                case 'quarter':
+                    $start_date = date('Y-m-d', strtotime('-3 months'));
+                    break;
+                default:
+                    $start_date = date('Y-m-01'); // Current month
+            }
+            
+            $end_date = date('Y-m-d');
+            
+            // Get booking data
+            $bookings = $wpdb->get_results($wpdb->prepare(
+                "SELECT booking_id, customer_name, customer_email, 
+                        'General Service' as service_name,
+                        booking_date, booking_time, status, total_price, created_at
+                 FROM $bookings_table 
+                 WHERE user_id = %d 
+                 AND booking_date BETWEEN %s AND %s
+                 ORDER BY booking_date DESC",
+                $data_user_id, $start_date, $end_date
+            ), ARRAY_A);
+            
+            if ($format === 'csv') {
+                $csv_content = "Booking ID,Customer Name,Customer Email,Service,Date,Time,Status,Price,Created\n";
+                
+                foreach ($bookings as $booking) {
+                    $csv_content .= sprintf(
+                        "%s,%s,%s,%s,%s,%s,%s,%s,%s\n",
+                        $booking['booking_id'],
+                        '"' . str_replace('"', '""', $booking['customer_name']) . '"',
+                        $booking['customer_email'],
+                        '"' . str_replace('"', '""', $booking['service_name']) . '"',
+                        $booking['booking_date'],
+                        $booking['booking_time'],
+                        $booking['status'],
+                        $booking['total_price'],
+                        $booking['created_at']
+                    );
+                }
+                
+                $filename = 'nordbooking-dashboard-' . $period . '-' . date('Y-m-d') . '.csv';
+                
+                wp_send_json_success(array(
+                    'csv' => $csv_content,
+                    'filename' => $filename
+                ));
+            } else {
+                wp_send_json_error(array('message' => 'Unsupported export format.'), 400);
+            }
+            
+        } catch (Exception $e) {
+            wp_send_json_error(array('message' => 'Failed to export data: ' . $e->getMessage()), 500);
+        }
+    }
+}
+// AJAX handler for updating user profile (name and surname)
+add_action('wp_ajax_nordbooking_update_user_profile', 'nordbooking_ajax_update_user_profile');
+if (!function_exists('nordbooking_ajax_update_user_profile')) {
+    function nordbooking_ajax_update_user_profile() {
+        // Verify nonce
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'nordbooking_dashboard_nonce')) {
+            wp_send_json_error(['message' => 'Security check failed.'], 403);
+            return;
+        }
+
+        $current_user_id = get_current_user_id();
+        if (!$current_user_id) {
+            wp_send_json_error(['message' => 'User not authenticated.'], 401);
+            return;
+        }
+
+        // Get and sanitize input data
+        $first_name = isset($_POST['first_name']) ? sanitize_text_field($_POST['first_name']) : '';
+        $last_name = isset($_POST['last_name']) ? sanitize_text_field($_POST['last_name']) : '';
+
+        if (empty($first_name) || empty($last_name)) {
+            wp_send_json_error(['message' => 'First name and last name are required.'], 400);
+            return;
+        }
+
+        try {
+            // Update user meta
+            update_user_meta($current_user_id, 'first_name', $first_name);
+            update_user_meta($current_user_id, 'last_name', $last_name);
+            
+            // Update display name
+            $display_name = $first_name . ' ' . $last_name;
+            wp_update_user([
+                'ID' => $current_user_id,
+                'display_name' => $display_name,
+                'first_name' => $first_name,
+                'last_name' => $last_name
+            ]);
+
+            wp_send_json_success([
+                'message' => 'Profile updated successfully.',
+                'display_name' => $display_name,
+                'first_name' => $first_name,
+                'last_name' => $last_name
+            ]);
+
+        } catch (Exception $e) {
+            wp_send_json_error(['message' => 'Failed to update profile: ' . $e->getMessage()], 500);
+        }
     }
 }

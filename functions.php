@@ -6,7 +6,7 @@
  */
 
 if ( ! defined( 'NORDBOOKING_VERSION' ) ) {
-    define( 'NORDBOOKING_VERSION', '0.1.27' );
+    define( 'NORDBOOKING_VERSION', '0.1.28' );
 }
 if ( ! defined( 'NORDBOOKING_DB_VERSION' ) ) {
     define( 'NORDBOOKING_DB_VERSION', '2.3' );
@@ -44,6 +44,110 @@ function nordbooking_enqueue_theme_assets() {
     }
 }
 add_action('wp_enqueue_scripts', 'nordbooking_enqueue_theme_assets');
+
+// =============================================================================
+// CUSTOMER BOOKING MANAGEMENT ROUTING
+// =============================================================================
+
+// Add rewrite rule for customer booking management
+function nordbooking_add_customer_booking_management_rewrite_rules() {
+    add_rewrite_rule(
+        '^customer-booking-management/?$',
+        'index.php?customer_booking_management=1',
+        'top'
+    );
+    
+    // Auto-flush rewrite rules in development (remove in production)
+    if (!get_option('nordbooking_rewrite_rules_flushed_v2')) {
+        flush_rewrite_rules();
+        update_option('nordbooking_rewrite_rules_flushed_v2', true);
+    }
+}
+add_action('init', 'nordbooking_add_customer_booking_management_rewrite_rules');
+
+// Add query vars for customer booking management
+function nordbooking_add_customer_booking_management_query_vars($vars) {
+    $vars[] = 'customer_booking_management';
+    return $vars;
+}
+add_filter('query_vars', 'nordbooking_add_customer_booking_management_query_vars');
+
+// Template redirect for customer booking management
+function nordbooking_customer_booking_management_template_redirect() {
+    if (get_query_var('customer_booking_management')) {
+        // Load the customer booking management template
+        $template_path = get_template_directory() . '/page-customer-booking-management.php';
+        if (file_exists($template_path)) {
+            include $template_path;
+            exit;
+        }
+    }
+}
+add_action('template_redirect', 'nordbooking_customer_booking_management_template_redirect');
+
+
+
+// Add admin notice to flush rewrite rules if needed
+function nordbooking_admin_notice_flush_rewrite_rules() {
+    if (current_user_can('manage_options') && !get_option('nordbooking_rewrite_rules_flushed_v2')) {
+        echo '<div class="notice notice-warning is-dismissible">';
+        echo '<p><strong>Nord Booking:</strong> Enhanced booking management page is ready! ';
+        echo '<a href="' . admin_url('tools.php?page=nordbooking-flush-rewrite-rules') . '" class="button button-primary">Activate Enhanced Booking Page</a>';
+        echo '</p></div>';
+    }
+}
+add_action('admin_notices', 'nordbooking_admin_notice_flush_rewrite_rules');
+
+// Add admin menu item for flushing rewrite rules
+function nordbooking_add_flush_rewrite_rules_admin_page() {
+    add_submenu_page(
+        'tools.php', // Under Tools menu
+        'Flush Rewrite Rules',
+        'Flush Rewrite Rules',
+        'manage_options',
+        'nordbooking-flush-rewrite-rules',
+        'nordbooking_flush_rewrite_rules_admin_page'
+    );
+}
+add_action('admin_menu', 'nordbooking_add_flush_rewrite_rules_admin_page');
+
+// Admin page callback for flushing rewrite rules
+function nordbooking_flush_rewrite_rules_admin_page() {
+    if (isset($_POST['flush_rules'])) {
+        flush_rewrite_rules();
+        update_option('nordbooking_rewrite_rules_flushed_v2', true);
+        echo '<div class="notice notice-success"><p><strong>Success!</strong> Rewrite rules have been flushed. The enhanced booking management page is now active.</p></div>';
+    }
+    
+    ?>
+    <div class="wrap">
+        <h1>Enhanced Booking Management - Setup</h1>
+        <div class="card">
+            <h2>Activate Enhanced Booking Management Page</h2>
+            <p>Click the button below to activate the new enhanced booking management page with timeline infographic and improved user experience.</p>
+            
+            <form method="post">
+                <input type="submit" name="flush_rules" class="button button-primary" value="Activate Enhanced Booking Page">
+            </form>
+            
+            <h3>What this will do:</h3>
+            <ul>
+                <li>✅ Activate the new customer booking management URL structure</li>
+                <li>✅ Enable the timeline infographic and enhanced design</li>
+                <li>✅ Redirect "View Details" links to the enhanced page</li>
+                <li>✅ Make the improved sidebar and mobile experience available</li>
+            </ul>
+            
+            <h3>After activation:</h3>
+            <ol>
+                <li>Go to your <a href="<?php echo home_url('/dashboard/bookings/'); ?>" target="_blank">Dashboard Bookings</a> page</li>
+                <li>Click "View Details" on any booking</li>
+                <li>You'll see the new enhanced booking management page!</li>
+            </ol>
+        </div>
+    </div>
+    <?php
+}
 
 // =============================================================================
 // LOGO UPLOAD HANDLER
@@ -620,6 +724,126 @@ function nordbooking_check_stripe_config() {
     }
     
     wp_send_json_success($config_status);
+}
+
+// Email invoice to customer
+add_action('wp_ajax_nordbooking_email_invoice', 'nordbooking_email_invoice_handler');
+add_action('wp_ajax_nopriv_nordbooking_email_invoice', 'nordbooking_email_invoice_handler');
+
+function nordbooking_email_invoice_handler() {
+    // Verify nonce
+    if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'nordbooking_customer_booking_management')) {
+        wp_send_json_error(['message' => 'Security check failed.']);
+        return;
+    }
+    
+    $booking_id = isset($_POST['booking_id']) ? intval($_POST['booking_id']) : 0;
+    $booking_token = isset($_POST['booking_token']) ? sanitize_text_field($_POST['booking_token']) : '';
+    
+    if (!$booking_id || !$booking_token) {
+        wp_send_json_error(['message' => 'Invalid booking information.']);
+        return;
+    }
+    
+    try {
+        // Verify booking token and get booking details
+        global $wpdb;
+        $bookings_table = \NORDBOOKING\Classes\Database::get_table_name('bookings');
+        
+        $booking = null;
+        $bookings = $wpdb->get_results(
+            "SELECT * FROM $bookings_table WHERE status IN ('pending', 'confirmed') ORDER BY booking_id DESC"
+        );
+        
+        foreach ($bookings as $potential_booking) {
+            $expected_token = hash('sha256', $potential_booking->booking_id . $potential_booking->customer_email . wp_salt());
+            if (hash_equals($expected_token, $booking_token) && $potential_booking->booking_id == $booking_id) {
+                $booking = $potential_booking;
+                break;
+            }
+        }
+        
+        if (!$booking) {
+            wp_send_json_error(['message' => 'Booking not found or access denied.']);
+            return;
+        }
+        
+        // Get business information
+        $business_owner = get_userdata($booking->user_id);
+        $business_name = $business_owner ? $business_owner->display_name : get_bloginfo('name');
+        
+        // Get business settings
+        $business_settings = [];
+        if (class_exists('NORDBOOKING\Classes\Settings')) {
+            $settings = new \NORDBOOKING\Classes\Settings();
+            $business_settings = $settings->get_business_settings($booking->user_id);
+            if (!empty($business_settings['biz_name'])) {
+                $business_name = $business_settings['biz_name'];
+            }
+        }
+        
+        // Generate invoice URL
+        $invoice_url = home_url('/invoice-standalone.php?booking_id=' . $booking->booking_id . '&download_invoice=true');
+        
+        // Prepare email content
+        $subject = sprintf('[%s] Invoice for Booking %s', $business_name, $booking->booking_reference);
+        
+        $message = '<html><body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">';
+        $message .= '<div style="max-width: 600px; margin: 0 auto; padding: 20px;">';
+        $message .= '<h2 style="color: #007cba; border-bottom: 2px solid #007cba; padding-bottom: 10px;">Invoice for Your Booking</h2>';
+        
+        $message .= '<p>Dear ' . esc_html($booking->customer_name) . ',</p>';
+        $message .= '<p>Thank you for choosing ' . esc_html($business_name) . '. Please find your invoice details below:</p>';
+        
+        $message .= '<div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">';
+        $message .= '<h3 style="margin-top: 0; color: #333;">Booking Information</h3>';
+        $message .= '<p><strong>Booking Reference:</strong> ' . esc_html($booking->booking_reference) . '</p>';
+        $message .= '<p><strong>Date:</strong> ' . date('F j, Y', strtotime($booking->booking_date)) . '</p>';
+        $message .= '<p><strong>Time:</strong> ' . date('g:i A', strtotime($booking->booking_time)) . '</p>';
+        $message .= '<p><strong>Total Amount:</strong> $' . number_format($booking->total_price, 2) . '</p>';
+        $message .= '</div>';
+        
+        $message .= '<div style="text-align: center; margin: 30px 0;">';
+        $message .= '<a href="' . esc_url($invoice_url) . '" style="background: #007cba; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: bold;">View & Download Invoice</a>';
+        $message .= '</div>';
+        
+        $message .= '<p>If you have any questions about this invoice, please don\'t hesitate to contact us.</p>';
+        
+        $message .= '<hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">';
+        $message .= '<p style="font-size: 14px; color: #666;">Best regards,<br>' . esc_html($business_name) . '</p>';
+        
+        if (!empty($business_settings['biz_email'])) {
+            $message .= '<p style="font-size: 14px; color: #666;">Email: ' . esc_html($business_settings['biz_email']) . '</p>';
+        }
+        if (!empty($business_settings['biz_phone'])) {
+            $message .= '<p style="font-size: 14px; color: #666;">Phone: ' . esc_html($business_settings['biz_phone']) . '</p>';
+        }
+        
+        $message .= '</div></body></html>';
+        
+        // Set email headers
+        $headers = array(
+            'Content-Type: text/html; charset=UTF-8',
+            'From: ' . $business_name . ' <' . get_option('admin_email') . '>'
+        );
+        
+        if (!empty($business_settings['biz_email'])) {
+            $headers[1] = 'From: ' . $business_name . ' <' . $business_settings['biz_email'] . '>';
+        }
+        
+        // Send email
+        $sent = wp_mail($booking->customer_email, $subject, $message, $headers);
+        
+        if ($sent) {
+            wp_send_json_success(['message' => 'Invoice has been sent to your email address successfully.']);
+        } else {
+            wp_send_json_error(['message' => 'Failed to send email. Please try again or contact support.']);
+        }
+        
+    } catch (Exception $e) {
+        error_log('NORDBOOKING Email Invoice Error: ' . $e->getMessage());
+        wp_send_json_error(['message' => 'An error occurred while sending the invoice. Please try again.']);
+    }
 }
 
 // Get invoices

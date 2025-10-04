@@ -37,27 +37,36 @@
 .booking-details-list li {
     display: flex;
     align-items: center;
-    padding: 0.5rem 0;
-    border-bottom: 1px solid #eee;
+    font-size: 15px;
+    color: hsl(var(--muted-foreground));
+    line-height: 1.4;
+    padding: 10px 15px;
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius);
+    background: hsl(var(--muted) / 0.3);
 }
 
-.booking-details-list li:last-child {
-    border-bottom: none;
-}
 
 .booking-details-list .detail-icon {
     margin-right: 0.75rem;
-    color: #666;
+    color: hsl(var(--foreground));
+    width: 18px;
+    height: 18px;
+}
+
+span.detail-icon svg {
+    width: 18px;
+    height: 18px;
 }
 
 .booking-details-list .detail-label {
     font-weight: 500;
-    color: #333;
+    color: hsl(var(--foreground));
     flex-basis: 150px;
 }
 
 .booking-details-list .detail-value {
-    color: #666;
+    color: hsl(var(--muted-foreground));
 }
 
 .booking-details-list .nested-detail {
@@ -66,4 +75,26 @@
 
 .special-instructions-section {
     margin-top: 1rem;
+}
+
+.nbk-services-table {}
+
+.nbk-services-table td {
+    font-size: 15px;
+    font-weight: 500;
+    color: hsl(var(--foreground));
+}
+
+.currently-assigned {
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: flex-start;
+    font-size: 14px;
+    color: hsl(var(--muted-foreground));
+    line-height: 1.4;
+    padding: 10px 15px;
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius);
+    background: hsl(var(--muted) / 0.3);
+    flex-direction: column;
 }

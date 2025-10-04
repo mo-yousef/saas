@@ -87,8 +87,9 @@ $booking_date_formatted = !empty($booking['booking_date']) ? date_i18n(get_optio
 $booking_time_formatted = !empty($booking['booking_time']) ? date_i18n(get_option('time_format'), strtotime($booking['booking_time'])) : 'N/A';
 $invoice_date = date_i18n(get_option('date_format'), current_time('timestamp'));
 
-// Check if user wants to download as HTML file
+// Check if user wants to download as HTML file or PDF
 $download_as_file = isset($_GET['download_as_file']) && $_GET['download_as_file'] === 'true';
+$download_as_pdf = isset($_GET['download_as_pdf']) && $_GET['download_as_pdf'] === 'true';
 
 // Set headers
 if ($download_as_file) {
@@ -96,6 +97,9 @@ if ($download_as_file) {
     header('Content-Disposition: attachment; filename="Invoice-' . sanitize_file_name($booking['booking_reference']) . '.html"');
     header('Cache-Control: no-cache, must-revalidate');
     header('Expires: Sat, 26 Jul 1997 05:00:00 GMT');
+} elseif ($download_as_pdf) {
+    // For PDF download, we'll use browser's print to PDF functionality
+    header('Content-Type: text/html; charset=utf-8');
 } else {
     header('Content-Type: text/html; charset=utf-8');
 }
@@ -408,7 +412,7 @@ if ($download_as_file) {
                 margin: 0;
             }
             
-            .print-button {
+            .invoice-actions {
                 display: none !important;
             }
             
@@ -464,7 +468,19 @@ if ($download_as_file) {
     </style>
 </head>
 <body>
-    <button class="print-button" onclick="window.print()">Print</button>
+    <?php if (!$download_as_pdf): ?>
+    <div class="invoice-actions" style="position: fixed; top: 1rem; right: 1rem; display: flex; gap: 0.5rem; z-index: 9999;">
+        <button class="action-button print-button" onclick="window.print()" style="background: hsl(221.2 83.2% 53.3%); color: white; border: none; padding: 0.5rem 1rem; border-radius: 0.375rem; cursor: pointer; font-size: 0.875rem; font-weight: 500; box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1); transition: all 0.2s ease;">
+            Print
+        </button>
+        <button class="action-button download-pdf-button" onclick="downloadAsPDF()" style="background: hsl(142 76% 36%); color: white; border: none; padding: 0.5rem 1rem; border-radius: 0.375rem; cursor: pointer; font-size: 0.875rem; font-weight: 500; box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1); transition: all 0.2s ease;">
+            Download PDF
+        </button>
+        <a href="<?php echo esc_url(add_query_arg('download_as_file', 'true')); ?>" class="action-button" style="background: hsl(45 93% 47%); color: white; border: none; padding: 0.5rem 1rem; border-radius: 0.375rem; text-decoration: none; font-size: 0.875rem; font-weight: 500; box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1); transition: all 0.2s ease; display: inline-block;">
+            Download HTML
+        </a>
+    </div>
+    <?php endif; ?>
     
     <div class="invoice-container">
         <div class="invoice-header">
@@ -688,9 +704,14 @@ if ($download_as_file) {
             // Small delay to ensure page is fully rendered
             setTimeout(function() {
                 const urlParams = new URLSearchParams(window.location.search);
-                if (urlParams.get('download_invoice') === 'true' && urlParams.get('download_as_file') !== 'true') {
+                if (urlParams.get('download_invoice') === 'true' && urlParams.get('download_as_file') !== 'true' && urlParams.get('download_as_pdf') !== 'true') {
                     // Show print dialog automatically for print/PDF generation
                     window.print();
+                } else if (urlParams.get('download_as_pdf') === 'true') {
+                    // Auto-trigger PDF download
+                    setTimeout(() => {
+                        window.print();
+                    }, 1000);
                 }
             }, 500);
         });
@@ -703,12 +724,52 @@ if ($download_as_file) {
             });
         }
         
+        // Handle PDF download
+        function downloadAsPDF() {
+            // Change page title for PDF
+            const originalTitle = document.title;
+            document.title = 'Invoice-<?php echo esc_js($booking['booking_reference']); ?>';
+            
+            // Hide action buttons for PDF
+            const actionButtons = document.querySelector('.invoice-actions');
+            if (actionButtons) {
+                actionButtons.style.display = 'none';
+            }
+            
+            // Trigger print dialog (user can save as PDF)
+            window.print();
+            
+            // Restore after print
+            setTimeout(() => {
+                document.title = originalTitle;
+                if (actionButtons) {
+                    actionButtons.style.display = 'flex';
+                }
+            }, 1000);
+        }
+        
         // Add keyboard shortcut for printing
         document.addEventListener('keydown', function(e) {
             if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
                 e.preventDefault();
                 window.print();
             }
+        });
+        
+        // Add hover effects for action buttons
+        document.addEventListener('DOMContentLoaded', function() {
+            const actionButtons = document.querySelectorAll('.action-button');
+            actionButtons.forEach(button => {
+                button.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-1px)';
+                    this.style.boxShadow = '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)';
+                });
+                
+                button.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
+                    this.style.boxShadow = '0 1px 3px 0 rgb(0 0 0 / 0.1)';
+                });
+            });
         });
     </script>
 </body>

@@ -105,7 +105,7 @@ if ($current_user_id) {
             $initial_bookings_html .= '<td data-label="' . esc_attr__('Total', 'NORDBOOKING') . '">' . $total_price_formatted . '</td>';
             $initial_bookings_html .= '<td data-label="' . esc_attr__('Status', 'NORDBOOKING') . '"><span class="status-badge status-' . esc_attr($status_val) . '">' . $status_icon_html . '<span class="status-text">' . esc_html($status_display) . '</span></span></td>';
             $initial_bookings_html .= '<td data-label="' . esc_attr__('Actions', 'NORDBOOKING') . '" class="nordbooking-table-actions">';
-            $initial_bookings_html .= '<a href="' . esc_url($details_page_url) . '" class="btn btn-outline btn-sm">' . __('View Details', 'NORDBOOKING') . '</a> ';
+            $initial_bookings_html .= '<a href="' . esc_url($details_page_url) . '" class="btn btn-outline btn-sm" title="' . esc_attr__('View enhanced booking details', 'NORDBOOKING') . '">' . __('View Details', 'NORDBOOKING') . '</a> ';
             if (class_exists('NORDBOOKING\Classes\Auth') && !\NORDBOOKING\Classes\Auth::is_user_worker($current_user_id)) {
                 $initial_bookings_html .= '<button class="btn btn-destructive btn-sm NORDBOOKING-delete-booking-btn" data-booking-id="' . esc_attr($booking['booking_id']) . '">' . __('Delete', 'NORDBOOKING') . '</button>';
             }

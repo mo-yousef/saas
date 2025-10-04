@@ -392,6 +392,14 @@ table {
   border-spacing: 0;
   border-collapse: collapse;
   margin-bottom: 0;
+  font-size: 15px;
+  color: hsl(var(--muted-foreground));
+  line-height: 1.4;
+  padding: 10px 15px;
+  outline: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  /* background: hsl(var(--muted) / 0.3); */
+  overflow: hidden;
 }
 
 th,
@@ -405,7 +413,7 @@ td {
 thead th {
   background-color: hsl(210 40% 98%) !important;
   font-weight: 600 !important;
-  font-size: 0.875rem !important;
+  font-size: 15px !important;
   letter-spacing: 0;
   color: hsl(215.4 16.3% 46.9%) !important;
   border-bottom: 1px solid hsl(214.3 31.8% 91.4%) !important;
@@ -847,13 +855,15 @@ span.NORDBOOKING-menu-icon svg {
 }
 
 .status-badge {
-  font-size: 0.625rem;
-  padding: 0.0625rem 0.3125rem;
-  /* smaller pill */
+  font-size: 10px;
+  padding: 4px 10px;
   border-radius: 9999px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.03em;
+  display: flex;
+  align-items: center;
+  width: max-content;
 }
 
 /* Enhanced Status Badges for Subscription */
@@ -1121,10 +1131,13 @@ span.NORDBOOKING-menu-icon svg {
 }
 
 .nordbooking-card {
-  background: hsl(0 0% 100%);
-  border: 1px solid hsl(214.3 31.8% 91.4%);
-  border-radius: 0.5rem;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  background: hsl(var(--mobk-card));
+  border: 1px solid hsl(var(--mobk-border));
+  border-radius: var(--mobk-radius);
+  box-shadow: var(--mobk-shadow-sm);
+  transition: all var(--mobk-duration-normal) ease;
+  display: flex;
+  flex-direction: column;
 }
 
 .nordbooking-card-header {

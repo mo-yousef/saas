@@ -200,19 +200,6 @@
 /* ============================================================================
    Enhanced Card Components
    ============================================================================ */
-.nordbooking-card {
-  background-color: var(--mobk-card);
-  border: 1px solid var(--mobk-border);
-  border-radius: var(--mobk-radius);
-  box-shadow: var(--mobk-shadow-sm);
-  transition: box-shadow 0.2s ease;
-}
-
-.nordbooking-card-description {
-  color: var(--mobk-muted-foreground);
-  font-size: 0.875rem;
-  line-height: 1.5;
-}
 
 /* ============================================================================
    Enhanced Form Components
